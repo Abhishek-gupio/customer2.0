@@ -1,0 +1,2 @@
+// useVoiceInput - Gupio plan
+export {};
