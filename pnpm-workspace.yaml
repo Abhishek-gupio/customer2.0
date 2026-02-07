@@ -1,0 +1,4 @@
+packages:
+  - "Backend"
+  - "prisma"
+  - "MobileApp"

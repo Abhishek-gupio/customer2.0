@@ -1,0 +1,28 @@
+// =============================================================================
+// ISOLATION RULES (same DB URL as another project – must stay isolated)
+// =============================================================================
+// 1. Every model MUST have @@schema("customer"). Never omit it.
+// 2. Do not add models to "public" or any schema other than "customer".
+// 3. Do not run raw SQL or tooling against public/other project schemas.
+// 4. Run migrations only from this repo; do not run the other project's migrations here.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["customer"]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("customer")
+}

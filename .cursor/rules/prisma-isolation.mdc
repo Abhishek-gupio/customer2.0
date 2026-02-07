@@ -1,0 +1,31 @@
+---
+description: Prisma schema isolation – all models must use customer schema (same DB URL as another project)
+globs: prisma/**/schema.prisma
+alwaysApply: false
+---
+
+# Prisma schema isolation
+
+This project shares the same database URL with another app. All tables must live in the PostgreSQL schema `customer` only.
+
+## Required for every model
+
+- Add **`@@schema("customer")`** at the end of every `model` block. Never omit it.
+- Do not add models to `public` or any schema other than `customer`.
+
+## Example
+
+```prisma
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  createdAt DateTime @default(now())
+
+  @@schema("customer")
+}
+```
+
+## Do not
+
+- Run raw SQL or tooling against `public` or the other project's schema.
+- Run the other project's migrations from this repo (or this repo's migrations from the other project).

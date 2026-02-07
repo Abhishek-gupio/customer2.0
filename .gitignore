@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+
+# Build / compiled
+dist/
+build/
+*.tsbuildinfo
+
+# Environment (do not commit secrets)
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs & debug
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.pnpm-debug.log
+
+# Lock files from other package managers (use pnpm)
+package-lock.json
+yarn.lock
+bun.lock
+
+# --- Backend ---
+# (dist/ and node_modules/ covered above)
+
+# --- Prisma ---
+# Generated client lives in prisma/prisma/generated/ – often committed; uncomment to ignore:
+# prisma/prisma/generated/
+
+# --- MobileApp / Expo ---
+.expo/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+# Native (when not using prebuild)
+/ios
+/android
+# Certificates & keys
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Turbo
+.turbo/
