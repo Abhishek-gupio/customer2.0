@@ -9,4 +9,10 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/Customer'
+export type * from './models/CustomerDevice'
+export type * from './models/CustomerDocument'
+export type * from './models/DigiLockerConnection'
+export type * from './models/CustomerVehicle'
+export type * from './models/VehicleHealthScore'
 export type * from './commonInputTypes'

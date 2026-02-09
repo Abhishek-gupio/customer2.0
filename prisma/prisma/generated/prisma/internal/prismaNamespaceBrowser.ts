@@ -51,7 +51,13 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  User: 'User'
+  User: 'User',
+  Customer: 'Customer',
+  CustomerDevice: 'CustomerDevice',
+  CustomerDocument: 'CustomerDocument',
+  DigiLockerConnection: 'DigiLockerConnection',
+  CustomerVehicle: 'CustomerVehicle',
+  VehicleHealthScore: 'VehicleHealthScore'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -81,12 +87,130 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const CustomerScalarFieldEnum = {
+  id: 'id',
+  phoneNumber: 'phoneNumber',
+  email: 'email',
+  fullName: 'fullName',
+  profilePic: 'profilePic',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+export const CustomerDeviceScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  platform: 'platform',
+  deviceToken: 'deviceToken',
+  deviceInfo: 'deviceInfo',
+  lastActiveAt: 'lastActiveAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerDeviceScalarFieldEnum = (typeof CustomerDeviceScalarFieldEnum)[keyof typeof CustomerDeviceScalarFieldEnum]
+
+
+export const CustomerDocumentScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  vehicleId: 'vehicleId',
+  type: 'type',
+  documentNumber: 'documentNumber',
+  issueDate: 'issueDate',
+  expiryDate: 'expiryDate',
+  issuerName: 'issuerName',
+  fileUrl: 'fileUrl',
+  thumbnailUrl: 'thumbnailUrl',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  ocrData: 'ocrData',
+  extractedFields: 'extractedFields',
+  verificationStatus: 'verificationStatus',
+  verifiedAt: 'verifiedAt',
+  verifiedBy: 'verifiedBy',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerDocumentScalarFieldEnum = (typeof CustomerDocumentScalarFieldEnum)[keyof typeof CustomerDocumentScalarFieldEnum]
+
+
+export const DigiLockerConnectionScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  expiresAt: 'expiresAt',
+  scope: 'scope',
+  consentId: 'consentId',
+  consentDate: 'consentDate',
+  status: 'status',
+  lastSyncAt: 'lastSyncAt',
+  connectedAt: 'connectedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DigiLockerConnectionScalarFieldEnum = (typeof DigiLockerConnectionScalarFieldEnum)[keyof typeof DigiLockerConnectionScalarFieldEnum]
+
+
+export const CustomerVehicleScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  registrationNumber: 'registrationNumber',
+  make: 'make',
+  model: 'model',
+  variant: 'variant',
+  year: 'year',
+  fuelType: 'fuelType',
+  vehicleType: 'vehicleType',
+  currentOdometer: 'currentOdometer',
+  registrationDate: 'registrationDate',
+  rcVerified: 'rcVerified',
+  isActive: 'isActive',
+  isPrimary: 'isPrimary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
+
+
+export const VehicleHealthScoreScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  overallScore: 'overallScore',
+  ageScore: 'ageScore',
+  mileageScore: 'mileageScore',
+  maintenanceScore: 'maintenanceScore',
+  drivingScore: 'drivingScore',
+  explanations: 'explanations',
+  recommendations: 'recommendations',
+  lastCalculated: 'lastCalculated',
+  nextDueDate: 'nextDueDate'
+} as const
+
+export type VehicleHealthScoreScalarFieldEnum = (typeof VehicleHealthScoreScalarFieldEnum)[keyof typeof VehicleHealthScoreScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -103,4 +227,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -1,3 +1,4 @@
+/// <reference path="./types/global.d.ts" />
 import "dotenv/config";
 import { app } from "./app";
 import { env } from "./config/env";

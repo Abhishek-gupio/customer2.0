@@ -26,3 +26,177 @@ model User {
 
   @@schema("customer")
 }
+
+model Customer {
+  id           String    @id @default(cuid())
+  phoneNumber  String    @unique
+  email        String?
+  fullName     String?
+  profilePic   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  devices      CustomerDevice[]
+  documents    CustomerDocument[]
+  digilocker   DigiLockerConnection?
+  vehicles     CustomerVehicle[]
+
+  @@schema("customer")
+}
+
+model CustomerDevice {
+  id           String   @id @default(cuid())
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  platform     String   // e.g. "ios" | "android"
+  deviceToken  String?
+  deviceInfo   String?  // JSON string
+  lastActiveAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@schema("customer")
+}
+
+enum DocumentType {
+  RC
+  INSURANCE
+  PUC
+  FASTAG
+  DL
+  OTHER
+
+  @@schema("customer")
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+
+  @@schema("customer")
+}
+
+enum DocumentSource {
+  UPLOAD
+  DIGILOCKER
+  PARIVAHAN
+
+  @@schema("customer")
+}
+
+model CustomerDocument {
+  id                 String             @id @default(cuid())
+  customerId         String
+  customer           Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicleId          String?            // Optional: link to vehicle
+  vehicle            CustomerVehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  
+  type               DocumentType
+  documentNumber     String?
+  issueDate          DateTime?
+  expiryDate         DateTime?
+  issuerName         String?
+
+  fileUrl            String
+  thumbnailUrl       String?
+  fileSize           Int?
+  mimeType           String?
+
+  ocrData            Json?              // Raw OCR result
+  extractedFields    Json?              // Structured OCR data
+
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  verifiedBy         String?            // Admin ID or system
+
+  source             DocumentSource     @default(UPLOAD)
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([type])
+  @@schema("customer")
+}
+
+enum DigiLockerStatus {
+  CONNECTED
+  DISCONNECTED
+  EXPIRED
+  REVOKED
+
+  @@schema("customer")
+}
+
+model DigiLockerConnection {
+  id           String           @id @default(cuid())
+  customerId   String           @unique
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scope        String?
+
+  consentId     String?
+  consentDate   DateTime?
+
+  status       DigiLockerStatus @default(CONNECTED)
+  lastSyncAt   DateTime?
+  connectedAt  DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@schema("customer")
+}
+
+model CustomerVehicle {
+  id                 String               @id @default(cuid())
+  customerId         String
+  customer           Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  registrationNumber String               @unique
+  make               String?
+  model              String?
+  variant            String?
+  year               Int?
+  fuelType           String?              // PETROL, DIESEL, CNG, EV
+  vehicleType        String?              // LUV, SUV, SEDAN, BIKE
+  
+  currentOdometer    Int?                 @default(0)
+  registrationDate   DateTime?
+  
+  rcVerified         Boolean              @default(false)
+  isActive           Boolean              @default(true)
+  isPrimary          Boolean              @default(false)
+
+  healthScore        VehicleHealthScore?
+  documents          CustomerDocument[]
+
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model VehicleHealthScore {
+  id               String          @id @default(cuid())
+  vehicleId        String          @unique
+  vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  overallScore     Int             @default(100)
+  ageScore         Int?
+  mileageScore     Int?
+  maintenanceScore Int?
+  drivingScore     Int?
+
+  explanations     Json?           // Array of human-readable strings
+  recommendations  Json?           // Array of suggestions
+
+  lastCalculated   DateTime        @default(now())
+  nextDueDate      DateTime?
+
+  @@schema("customer")
+}
+

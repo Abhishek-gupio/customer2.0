@@ -22,3 +22,33 @@ export * from './enums';
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model Customer
+ * 
+ */
+export type Customer = Prisma.CustomerModel
+/**
+ * Model CustomerDevice
+ * 
+ */
+export type CustomerDevice = Prisma.CustomerDeviceModel
+/**
+ * Model CustomerDocument
+ * 
+ */
+export type CustomerDocument = Prisma.CustomerDocumentModel
+/**
+ * Model DigiLockerConnection
+ * 
+ */
+export type DigiLockerConnection = Prisma.DigiLockerConnectionModel
+/**
+ * Model CustomerVehicle
+ * 
+ */
+export type CustomerVehicle = Prisma.CustomerVehicleModel
+/**
+ * Model VehicleHealthScore
+ * 
+ */
+export type VehicleHealthScore = Prisma.VehicleHealthScoreModel

@@ -9,7 +9,41 @@
 * 🟢 You can import this file directly.
 */
 
+export const DocumentType = {
+  RC: 'RC',
+  INSURANCE: 'INSURANCE',
+  PUC: 'PUC',
+  FASTAG: 'FASTAG',
+  DL: 'DL',
+  OTHER: 'OTHER'
+} as const
+
+export type DocumentType = (typeof DocumentType)[keyof typeof DocumentType]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const VerificationStatus = {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type VerificationStatus = (typeof VerificationStatus)[keyof typeof VerificationStatus]
+
+
+export const DocumentSource = {
+  UPLOAD: 'UPLOAD',
+  DIGILOCKER: 'DIGILOCKER',
+  PARIVAHAN: 'PARIVAHAN'
+} as const
+
+export type DocumentSource = (typeof DocumentSource)[keyof typeof DocumentSource]
+
+
+export const DigiLockerStatus = {
+  CONNECTED: 'CONNECTED',
+  DISCONNECTED: 'DISCONNECTED',
+  EXPIRED: 'EXPIRED',
+  REVOKED: 'REVOKED'
+} as const
+
+export type DigiLockerStatus = (typeof DigiLockerStatus)[keyof typeof DigiLockerStatus]

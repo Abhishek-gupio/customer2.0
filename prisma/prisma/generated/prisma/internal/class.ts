@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.3.0",
   "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
   "activeProvider": "postgresql",
-  "inlineSchema": "// =============================================================================\n// ISOLATION RULES (same DB URL as another project – must stay isolated)\n// =============================================================================\n// 1. Every model MUST have @@schema(\"customer\"). Never omit it.\n// 2. Do not add models to \"public\" or any schema other than \"customer\".\n// 3. Do not run raw SQL or tooling against public/other project schemas.\n// 4. Run migrations only from this repo; do not run the other project's migrations here.\n// =============================================================================\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  schemas  = [\"customer\"]\n}\n\nmodel User {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  name      String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n",
+  "inlineSchema": "// =============================================================================\n// ISOLATION RULES (same DB URL as another project – must stay isolated)\n// =============================================================================\n// 1. Every model MUST have @@schema(\"customer\"). Never omit it.\n// 2. Do not add models to \"public\" or any schema other than \"customer\".\n// 3. Do not run raw SQL or tooling against public/other project schemas.\n// 4. Run migrations only from this repo; do not run the other project's migrations here.\n// =============================================================================\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  schemas  = [\"customer\"]\n}\n\nmodel User {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  name      String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n\nmodel Customer {\n  id          String                @id @default(cuid())\n  phoneNumber String                @unique\n  email       String?\n  fullName    String?\n  profilePic  String?\n  createdAt   DateTime              @default(now())\n  updatedAt   DateTime              @updatedAt\n  devices     CustomerDevice[]\n  documents   CustomerDocument[]\n  digilocker  DigiLockerConnection?\n  vehicles    CustomerVehicle[]\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerDevice {\n  id           String   @id @default(cuid())\n  customerId   String\n  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  platform     String // e.g. \"ios\" | \"android\"\n  deviceToken  String?\n  deviceInfo   String? // JSON string\n  lastActiveAt DateTime @default(now())\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n\nenum DocumentType {\n  RC\n  INSURANCE\n  PUC\n  FASTAG\n  DL\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum VerificationStatus {\n  PENDING\n  VERIFIED\n  REJECTED\n\n  @@schema(\"customer\")\n}\n\nenum DocumentSource {\n  UPLOAD\n  DIGILOCKER\n  PARIVAHAN\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerDocument {\n  id         String           @id @default(cuid())\n  customerId String\n  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  vehicleId  String? // Optional: link to vehicle\n  vehicle    CustomerVehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)\n\n  type           DocumentType\n  documentNumber String?\n  issueDate      DateTime?\n  expiryDate     DateTime?\n  issuerName     String?\n\n  fileUrl      String\n  thumbnailUrl String?\n  fileSize     Int?\n  mimeType     String?\n\n  ocrData         Json? // Raw OCR result\n  extractedFields Json? // Structured OCR data\n\n  verificationStatus VerificationStatus @default(PENDING)\n  verifiedAt         DateTime?\n  verifiedBy         String? // Admin ID or system\n\n  source DocumentSource @default(UPLOAD)\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([customerId])\n  @@index([vehicleId])\n  @@index([type])\n  @@schema(\"customer\")\n}\n\nenum DigiLockerStatus {\n  CONNECTED\n  DISCONNECTED\n  EXPIRED\n  REVOKED\n\n  @@schema(\"customer\")\n}\n\nmodel DigiLockerConnection {\n  id         String   @id @default(cuid())\n  customerId String   @unique\n  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  accessToken  String\n  refreshToken String\n  expiresAt    DateTime\n  scope        String?\n\n  consentId   String?\n  consentDate DateTime?\n\n  status      DigiLockerStatus @default(CONNECTED)\n  lastSyncAt  DateTime?\n  connectedAt DateTime         @default(now())\n  updatedAt   DateTime         @updatedAt\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerVehicle {\n  id         String   @id @default(cuid())\n  customerId String\n  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  registrationNumber String  @unique\n  make               String?\n  model              String?\n  variant            String?\n  year               Int?\n  fuelType           String? // PETROL, DIESEL, CNG, EV\n  vehicleType        String? // LUV, SUV, SEDAN, BIKE\n\n  currentOdometer  Int?      @default(0)\n  registrationDate DateTime?\n\n  rcVerified Boolean @default(false)\n  isActive   Boolean @default(true)\n  isPrimary  Boolean @default(false)\n\n  healthScore VehicleHealthScore?\n  documents   CustomerDocument[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel VehicleHealthScore {\n  id        String          @id @default(cuid())\n  vehicleId String          @unique\n  vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  overallScore     Int  @default(100)\n  ageScore         Int?\n  mileageScore     Int?\n  maintenanceScore Int?\n  drivingScore     Int?\n\n  explanations    Json? // Array of human-readable strings\n  recommendations Json? // Array of suggestions\n\n  lastCalculated DateTime  @default(now())\n  nextDueDate    DateTime?\n\n  @@schema(\"customer\")\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Customer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"profilePic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"devices\",\"kind\":\"object\",\"type\":\"CustomerDevice\",\"relationName\":\"CustomerToCustomerDevice\"},{\"name\":\"documents\",\"kind\":\"object\",\"type\":\"CustomerDocument\",\"relationName\":\"CustomerToCustomerDocument\"},{\"name\":\"digilocker\",\"kind\":\"object\",\"type\":\"DigiLockerConnection\",\"relationName\":\"CustomerToDigiLockerConnection\"},{\"name\":\"vehicles\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerToCustomerVehicle\"}],\"dbName\":null},\"CustomerDevice\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerDevice\"},{\"name\":\"platform\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceInfo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastActiveAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"CustomerDocument\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerDocument\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerDocumentToCustomerVehicle\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"DocumentType\"},{\"name\":\"documentNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"issueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"expiryDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"issuerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"thumbnailUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileSize\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ocrData\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"extractedFields\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"verificationStatus\",\"kind\":\"enum\",\"type\":\"VerificationStatus\"},{\"name\":\"verifiedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"verifiedBy\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"enum\",\"type\":\"DocumentSource\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"DigiLockerConnection\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToDigiLockerConnection\"},{\"name\":\"accessToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"refreshToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"scope\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"consentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"consentDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"DigiLockerStatus\"},{\"name\":\"lastSyncAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"connectedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"CustomerVehicle\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerVehicle\"},{\"name\":\"registrationNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"make\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"model\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"variant\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"year\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"fuelType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"currentOdometer\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"registrationDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"rcVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"isPrimary\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"healthScore\",\"kind\":\"object\",\"type\":\"VehicleHealthScore\",\"relationName\":\"CustomerVehicleToVehicleHealthScore\"},{\"name\":\"documents\",\"kind\":\"object\",\"type\":\"CustomerDocument\",\"relationName\":\"CustomerDocumentToCustomerVehicle\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"VehicleHealthScore\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToVehicleHealthScore\"},{\"name\":\"overallScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"ageScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mileageScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"maintenanceScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"drivingScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"explanations\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"recommendations\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"lastCalculated\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextDueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -185,6 +185,66 @@ export interface PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.customer`: Exposes CRUD operations for the **Customer** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Customers
+    * const customers = await prisma.customer.findMany()
+    * ```
+    */
+  get customer(): Prisma.CustomerDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.customerDevice`: Exposes CRUD operations for the **CustomerDevice** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerDevices
+    * const customerDevices = await prisma.customerDevice.findMany()
+    * ```
+    */
+  get customerDevice(): Prisma.CustomerDeviceDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.customerDocument`: Exposes CRUD operations for the **CustomerDocument** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerDocuments
+    * const customerDocuments = await prisma.customerDocument.findMany()
+    * ```
+    */
+  get customerDocument(): Prisma.CustomerDocumentDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.digiLockerConnection`: Exposes CRUD operations for the **DigiLockerConnection** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DigiLockerConnections
+    * const digiLockerConnections = await prisma.digiLockerConnection.findMany()
+    * ```
+    */
+  get digiLockerConnection(): Prisma.DigiLockerConnectionDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.customerVehicle`: Exposes CRUD operations for the **CustomerVehicle** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerVehicles
+    * const customerVehicles = await prisma.customerVehicle.findMany()
+    * ```
+    */
+  get customerVehicle(): Prisma.CustomerVehicleDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.vehicleHealthScore`: Exposes CRUD operations for the **VehicleHealthScore** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VehicleHealthScores
+    * const vehicleHealthScores = await prisma.vehicleHealthScore.findMany()
+    * ```
+    */
+  get vehicleHealthScore(): Prisma.VehicleHealthScoreDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

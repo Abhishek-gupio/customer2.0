@@ -1,12 +1,30 @@
 import { PrismaClient } from '../prisma/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 declare global {
   var prisma: PrismaClient | undefined;
 }
 
-const connectionString = process.env.DATABASE_URL ?? '';
-const adapter = new PrismaPg({ connectionString });
+let connectionString = process.env.DATABASE_URL ?? '';
+
+if (connectionString) {
+  try {
+    const url = new URL(connectionString);
+    if (url.searchParams.has('sslmode')) {
+      url.searchParams.delete('sslmode');
+      connectionString = url.toString();
+    }
+  } catch (e) {
+    // Ignore URL parse errors
+  }
+}
+
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false }
+});
+const adapter = new PrismaPg(pool);
 export const dbInstances = global.prisma ?? new PrismaClient({ adapter });
 
 if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
