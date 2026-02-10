@@ -28,6 +28,8 @@ const envSchema = z.object({
   // Storage
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
   UPLOAD_DIR: z.string().default("uploads"),
+  // AI Features
+  GEMINI_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

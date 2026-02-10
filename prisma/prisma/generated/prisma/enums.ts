@@ -47,3 +47,12 @@ export const DigiLockerStatus = {
 } as const
 
 export type DigiLockerStatus = (typeof DigiLockerStatus)[keyof typeof DigiLockerStatus]
+
+
+export const AccessRole = {
+  OWNER: 'OWNER',
+  EDITOR: 'EDITOR',
+  VIEWER: 'VIEWER'
+} as const
+
+export type AccessRole = (typeof AccessRole)[keyof typeof AccessRole]

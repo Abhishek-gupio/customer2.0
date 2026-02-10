@@ -13,5 +13,11 @@ export const addVehicleSchema = z.object({
 
 export const updateVehicleSchema = addVehicleSchema.partial();
 
+export const addOdometerSchema = z.object({
+    reading: z.coerce.number().min(0),
+    date: z.coerce.date().default(() => new Date()),
+});
+
 export type AddVehicleInput = z.infer<typeof addVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
+export type AddOdometerInput = z.infer<typeof addOdometerSchema>;

@@ -68,6 +68,11 @@ export type DigiLockerConnection = Prisma.DigiLockerConnectionModel
  */
 export type CustomerVehicle = Prisma.CustomerVehicleModel
 /**
+ * Model VehicleAccess
+ * 
+ */
+export type VehicleAccess = Prisma.VehicleAccessModel
+/**
  * Model VehicleHealthScore
  * 
  */

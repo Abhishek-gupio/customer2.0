@@ -8,6 +8,7 @@ import path from "path";
 
 export interface SMSService {
   sendOTP(phoneNumber: string, otp: string): Promise<boolean>;
+  sendSMS(phoneNumber: string, message: string, dltTemplateId?: string): Promise<boolean>;
 }
 
 export class Flash49SMSService implements SMSService {
@@ -64,19 +65,36 @@ export class Flash49SMSService implements SMSService {
     try {
       const cfg = this.getConfig();
       if (!cfg) return false;
-      if (!Flash49SMSService.isValidDlt(cfg.dltContentId)) {
-        console.error("Invalid DLT Content ID format. Must be 4-19 numeric digits.");
-        return false;
-      }
-
       const to = Flash49SMSService.formatPhoneNumber(phoneNumber);
       const params = Flash49SMSService.buildParams(cfg, to, otp);
       const url = "https://api.flash49.com/fe/api/v1/send";
-
       const { data } = await axios.get(url, { params });
       return Flash49SMSService.isAccepted(data);
     } catch (error: any) {
       console.error("Error sending OTP:", error?.response?.data || error.message);
+      return false;
+    }
+  }
+
+  async sendSMS(phoneNumber: string, message: string, dltTemplateId?: string): Promise<boolean> {
+    try {
+      const cfg = this.getConfig();
+      if (!cfg) return false;
+      const to = Flash49SMSService.formatPhoneNumber(phoneNumber);
+      const params = {
+        username: cfg.username,
+        password: cfg.password,
+        unicode: true,
+        from: cfg.from,
+        to,
+        text: message,
+        dltContentId: dltTemplateId || cfg.dltContentId, // Use specific template if provided
+      };
+      const url = "https://api.flash49.com/fe/api/v1/send";
+      const { data } = await axios.get(url, { params });
+      return Flash49SMSService.isAccepted(data);
+    } catch (error: any) {
+      console.error("Error sending SMS:", error?.response?.data || error.message);
       return false;
     }
   }
@@ -96,24 +114,23 @@ export class GmailSMSService implements SMSService {
   }
 
   async sendOTP(emailAddress: string, otp: string): Promise<boolean> {
+    return this.sendSMS(emailAddress, `Your OTP is ${otp} to Login GUPIO.`, otp);
+  }
+
+  async sendSMS(emailAddress: string, message: string, otp?: string): Promise<boolean> {
     try {
       const mailOptions = {
         from: process.env.GMAIL_USER,
         to: emailAddress,
-        subject: "GUPIO Tech Park Analyzer - OTP Verification",
-        html: this.createEmailTemplate(otp),
-        text: `Your OTP is ${otp} to Login GUPIO Tech Park Analyzer. It is valid for 10 minutes. Do not share this with anyone. GUPIO.`,
+        subject: "GUPIO Tech Park Analyzer - Notification",
+        html: otp ? this.createEmailTemplate(otp) : `<p>${message}</p>`,
+        text: message,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      if (info.messageId) {
-        console.log(`Email sent successfully with ID: ${info.messageId}`);
-        return true;
-      }
-      console.error("Failed to send email via Gmail");
-      return false;
+      return !!info.messageId;
     } catch (error: any) {
-      console.error("Error sending OTP via Gmail:", error?.response?.data || error.message);
+      console.error("Error sending Email notification:", error.message);
       return false;
     }
   }
@@ -318,7 +335,7 @@ export async function sendEmail(options: {
         logPath,
         `[${new Date().toISOString()}] FAILED to=${options.to} subject="${options.subject}" reason=no-message-id\n`
       );
-    } catch {}
+    } catch { }
     return false;
   } catch (error: any) {
     console.error("Error sending email:", error?.response?.data || error.message);
@@ -330,7 +347,7 @@ export async function sendEmail(options: {
         logPath,
         `[${new Date().toISOString()}] ERROR to=${options.to} subject="${options.subject}" error="${(error?.message || "").toString()}"\n`
       );
-    } catch {}
+    } catch { }
     return false;
   }
 }
@@ -402,14 +419,15 @@ export function buildContactFormEmailHTML(contact: {
 
 class MockSMSService implements SMSService {
   sendOTP(phoneNumber: string, otp: string): Promise<boolean> {
+    return this.sendSMS(phoneNumber, `Your OTP is ${otp} to Login GUPIO.`);
+  }
+
+  sendSMS(phoneNumber: string, message: string): Promise<boolean> {
     console.log("\n========================================");
-    console.log("📱 [MOCK SMS SERVICE - DEVELOPMENT MODE]");
+    console.log("📱 [MOCK SMS SERVICE - NOTIFICATION]");
     console.log("========================================");
-    console.log("📞 Phone Number:", phoneNumber);
-    console.log("🔢 OTP Code:", otp);
-    console.log("📝 Message:", `Your OTP is ${otp} to Login GUPIO. It is valid for 10 minutes. Do not share this with anyone. GUPIO.`);
-    console.log("");
-    console.log("💡 Use this OTP to test the application");
+    console.log("📞 Target:", phoneNumber);
+    console.log("📝 Message:", message);
     console.log("========================================\n");
     return Promise.resolve(true);
   }

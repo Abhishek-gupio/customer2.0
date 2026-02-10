@@ -14,7 +14,7 @@
         "prisma:generate": "prisma generate",
         "prisma:migrate:dev": "prisma migrate dev",
         "prisma:studio": "prisma studio",
-        "build": "tsc -p tsconfig.json",
+        "build": "tsc -p tsconfig.json && mkdir -p dist/prisma && cp -r prisma/generated dist/prisma/",
         "prepare": "pnpm prisma:generate"
     },
     "devDependencies": {

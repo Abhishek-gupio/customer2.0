@@ -1,10 +1,12 @@
 import { dbInstances } from "@repo/db-customer";
 import { AppError } from "../../utils/AppError";
-import { AddVehicleInput, UpdateVehicleInput } from "./vehicle.validators";
+import { AddVehicleInput, UpdateVehicleInput, AddOdometerInput } from "./vehicle.validators";
 import { logger } from "../../config/logger";
+import { predictionService } from "../../services/prediction.service";
 
 export const vehicleService = {
     async addVehicle(customerId: string, input: AddVehicleInput) {
+        // ... (existing addVehicle code)
         // Check if registration number already exists
         const existing = await dbInstances.customerVehicle.findUnique({
             where: { registrationNumber: input.registrationNumber },
@@ -31,16 +33,63 @@ export const vehicleService = {
             },
         });
 
+        // If odometer provided, add first log
+        if (input.currentOdometer) {
+            await this.addOdometerLog(customerId, vehicle.id, {
+                reading: input.currentOdometer,
+                date: new Date()
+            });
+        }
+
         return vehicle;
     },
 
+    async addOdometerLog(customerId: string, vehicleId: string, input: AddOdometerInput) {
+        await this.getVehicle(customerId, vehicleId); // Ownership check
+
+        // 1. Get last log to prevent "Rewinding" odometer
+        const lastLog = await (dbInstances as any).odometerLog.findFirst({
+            where: { vehicleId },
+            orderBy: { date: "desc" },
+        });
+
+        if (lastLog && input.reading < lastLog.reading) {
+            throw AppError.badRequest(`New reading (${input.reading}) cannot be lower than the previous reading (${lastLog.reading})`);
+        }
+
+        const log = await (dbInstances as any).odometerLog.create({
+            data: {
+                vehicleId,
+                reading: input.reading,
+                date: input.date,
+            }
+        });
+
+        // Update current odometer on vehicle
+        await dbInstances.customerVehicle.update({
+            where: { id: vehicleId },
+            data: { currentOdometer: input.reading }
+        });
+
+        // Trigger health recalculation
+        this.calculateHealthScore(vehicleId);
+
+        return log;
+    },
+
     async listVehicles(customerId: string) {
+        // ... (rest of the service)
         return dbInstances.customerVehicle.findMany({
-            where: { customerId, isActive: true },
+            where: {
+                OR: [
+                    { customerId, isActive: true },
+                    { accessList: { some: { customerId } }, isActive: true }
+                ]
+            },
             include: {
                 healthScore: true,
             },
-            orderBy: { isPrimary: "desc" },
+            orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
         });
     },
 
@@ -49,10 +98,13 @@ export const vehicleService = {
             where: { id: vehicleId },
             include: {
                 healthScore: true,
+                accessList: {
+                    where: { customerId }
+                }
             },
         });
 
-        if (!vehicle || vehicle.customerId !== customerId) {
+        if (!vehicle || (vehicle.customerId !== customerId && vehicle.accessList.length === 0)) {
             throw AppError.notFound("Vehicle not found");
         }
 
@@ -69,7 +121,7 @@ export const vehicleService = {
     },
 
     async deleteVehicle(customerId: string, vehicleId: string) {
-        const vehicle = await this.getVehicle(customerId, vehicleId);
+        await this.getVehicle(customerId, vehicleId);
 
         // Soft delete
         return dbInstances.customerVehicle.update({
@@ -93,48 +145,21 @@ export const vehicleService = {
     },
 
     async calculateHealthScore(vehicleId: string) {
-        const vehicle = await dbInstances.customerVehicle.findUnique({
-            where: { id: vehicleId },
-        });
+        logger.info({ vehicleId }, "Predicting advanced vehicle health score...");
+        return predictionService.calculateAdvancedHealthScore(vehicleId);
+    },
 
-        if (!vehicle) throw AppError.notFound("Vehicle not found");
+    async updateOdometerViaAI(customerId: string, vehicleId: string, file: Express.Multer.File) {
+        const { ocrService } = require("../../services/ocr.service");
+        const reading = await ocrService.parseOdometer(file.buffer, file.mimetype);
 
-        // Simple placeholder algorithm for now
-        // logic: Age-based decline + Odometer-based decline
-        let score = 100;
-        const explanations: string[] = [];
-
-        // Age factor
-        if (vehicle.year) {
-            const age = new Date().getFullYear() - vehicle.year;
-            if (age > 10) {
-                score -= 20;
-                explanations.push("Vehicle is over 10 years old");
-            } else if (age > 5) {
-                score -= 10;
-                explanations.push("Vehicle is over 5 years old");
-            }
+        if (!reading) {
+            throw AppError.badRequest("Could not extract odometer reading from photo. Please ensure the dashboard is clear.");
         }
 
-        // Mileage factor
-        if (vehicle.currentOdometer && vehicle.currentOdometer > 100000) {
-            score -= 30;
-            explanations.push("High mileage (over 100k km)");
-        } else if (vehicle.currentOdometer && vehicle.currentOdometer > 50000) {
-            score -= 15;
-            explanations.push("Moderate mileage (over 50k km)");
-        }
-
-        // Ensure score doesn't go below 10
-        score = Math.max(10, score);
-
-        return dbInstances.vehicleHealthScore.update({
-            where: { vehicleId },
-            data: {
-                overallScore: score,
-                explanations: explanations as any,
-                lastCalculated: new Date(),
-            },
+        return this.addOdometerLog(customerId, vehicleId, {
+            reading,
+            date: new Date()
         });
     },
 };

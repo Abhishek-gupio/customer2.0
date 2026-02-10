@@ -390,6 +390,7 @@ export const ModelName = {
   CustomerDocument: 'CustomerDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
+  VehicleAccess: 'VehicleAccess',
   VehicleHealthScore: 'VehicleHealthScore'
 } as const
 
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleHealthScore"
+    modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleAccess" | "vehicleHealthScore"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -854,6 +855,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    VehicleAccess: {
+      payload: Prisma.$VehicleAccessPayload<ExtArgs>
+      fields: Prisma.VehicleAccessFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.VehicleAccessFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.VehicleAccessFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>
+        }
+        findFirst: {
+          args: Prisma.VehicleAccessFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.VehicleAccessFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>
+        }
+        findMany: {
+          args: Prisma.VehicleAccessFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>[]
+        }
+        create: {
+          args: Prisma.VehicleAccessCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>
+        }
+        createMany: {
+          args: Prisma.VehicleAccessCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.VehicleAccessCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>[]
+        }
+        delete: {
+          args: Prisma.VehicleAccessDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>
+        }
+        update: {
+          args: Prisma.VehicleAccessUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>
+        }
+        deleteMany: {
+          args: Prisma.VehicleAccessDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.VehicleAccessUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.VehicleAccessUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>[]
+        }
+        upsert: {
+          args: Prisma.VehicleAccessUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VehicleAccessPayload>
+        }
+        aggregate: {
+          args: Prisma.VehicleAccessAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVehicleAccess>
+        }
+        groupBy: {
+          args: Prisma.VehicleAccessGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VehicleAccessGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.VehicleAccessCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VehicleAccessCountAggregateOutputType> | number
+        }
+      }
+    }
     VehicleHealthScore: {
       payload: Prisma.$VehicleHealthScorePayload<ExtArgs>
       fields: Prisma.VehicleHealthScoreFieldRefs
@@ -1071,6 +1146,18 @@ export const CustomerVehicleScalarFieldEnum = {
 export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
 
 
+export const VehicleAccessScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  customerId: 'customerId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VehicleAccessScalarFieldEnum = (typeof VehicleAccessScalarFieldEnum)[keyof typeof VehicleAccessScalarFieldEnum]
+
+
 export const VehicleHealthScoreScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -1255,6 +1342,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'AccessRole'
+ */
+export type EnumAccessRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccessRole'>
+    
+
+
+/**
+ * Reference to a field of type 'AccessRole[]'
+ */
+export type ListEnumAccessRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccessRole[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1368,6 +1469,7 @@ export type GlobalOmitConfig = {
   customerDocument?: Prisma.CustomerDocumentOmit
   digiLockerConnection?: Prisma.DigiLockerConnectionOmit
   customerVehicle?: Prisma.CustomerVehicleOmit
+  vehicleAccess?: Prisma.VehicleAccessOmit
   vehicleHealthScore?: Prisma.VehicleHealthScoreOmit
 }
 

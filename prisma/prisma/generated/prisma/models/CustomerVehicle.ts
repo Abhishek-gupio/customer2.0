@@ -311,6 +311,7 @@ export type CustomerVehicleWhereInput = {
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   healthScore?: Prisma.XOR<Prisma.VehicleHealthScoreNullableScalarRelationFilter, Prisma.VehicleHealthScoreWhereInput> | null
   documents?: Prisma.CustomerDocumentListRelationFilter
+  accessList?: Prisma.VehicleAccessListRelationFilter
 }
 
 export type CustomerVehicleOrderByWithRelationInput = {
@@ -333,6 +334,7 @@ export type CustomerVehicleOrderByWithRelationInput = {
   customer?: Prisma.CustomerOrderByWithRelationInput
   healthScore?: Prisma.VehicleHealthScoreOrderByWithRelationInput
   documents?: Prisma.CustomerDocumentOrderByRelationAggregateInput
+  accessList?: Prisma.VehicleAccessOrderByRelationAggregateInput
 }
 
 export type CustomerVehicleWhereUniqueInput = Prisma.AtLeast<{
@@ -358,6 +360,7 @@ export type CustomerVehicleWhereUniqueInput = Prisma.AtLeast<{
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   healthScore?: Prisma.XOR<Prisma.VehicleHealthScoreNullableScalarRelationFilter, Prisma.VehicleHealthScoreWhereInput> | null
   documents?: Prisma.CustomerDocumentListRelationFilter
+  accessList?: Prisma.VehicleAccessListRelationFilter
 }, "id" | "registrationNumber">
 
 export type CustomerVehicleOrderByWithAggregationInput = {
@@ -425,6 +428,7 @@ export type CustomerVehicleCreateInput = {
   customer: Prisma.CustomerCreateNestedOneWithoutVehiclesInput
   healthScore?: Prisma.VehicleHealthScoreCreateNestedOneWithoutVehicleInput
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleUncheckedCreateInput = {
@@ -446,6 +450,7 @@ export type CustomerVehicleUncheckedCreateInput = {
   updatedAt?: Date | string
   healthScore?: Prisma.VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleUpdateInput = {
@@ -467,6 +472,7 @@ export type CustomerVehicleUpdateInput = {
   customer?: Prisma.CustomerUpdateOneRequiredWithoutVehiclesNestedInput
   healthScore?: Prisma.VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
   documents?: Prisma.CustomerDocumentUpdateManyWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleUncheckedUpdateInput = {
@@ -488,6 +494,7 @@ export type CustomerVehicleUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   healthScore?: Prisma.VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleCreateManyInput = {
@@ -695,6 +702,20 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type CustomerVehicleCreateNestedOneWithoutAccessListInput = {
+  create?: Prisma.XOR<Prisma.CustomerVehicleCreateWithoutAccessListInput, Prisma.CustomerVehicleUncheckedCreateWithoutAccessListInput>
+  connectOrCreate?: Prisma.CustomerVehicleCreateOrConnectWithoutAccessListInput
+  connect?: Prisma.CustomerVehicleWhereUniqueInput
+}
+
+export type CustomerVehicleUpdateOneRequiredWithoutAccessListNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerVehicleCreateWithoutAccessListInput, Prisma.CustomerVehicleUncheckedCreateWithoutAccessListInput>
+  connectOrCreate?: Prisma.CustomerVehicleCreateOrConnectWithoutAccessListInput
+  upsert?: Prisma.CustomerVehicleUpsertWithoutAccessListInput
+  connect?: Prisma.CustomerVehicleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerVehicleUpdateToOneWithWhereWithoutAccessListInput, Prisma.CustomerVehicleUpdateWithoutAccessListInput>, Prisma.CustomerVehicleUncheckedUpdateWithoutAccessListInput>
+}
+
 export type CustomerVehicleCreateNestedOneWithoutHealthScoreInput = {
   create?: Prisma.XOR<Prisma.CustomerVehicleCreateWithoutHealthScoreInput, Prisma.CustomerVehicleUncheckedCreateWithoutHealthScoreInput>
   connectOrCreate?: Prisma.CustomerVehicleCreateOrConnectWithoutHealthScoreInput
@@ -727,6 +748,7 @@ export type CustomerVehicleCreateWithoutCustomerInput = {
   updatedAt?: Date | string
   healthScore?: Prisma.VehicleHealthScoreCreateNestedOneWithoutVehicleInput
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleUncheckedCreateWithoutCustomerInput = {
@@ -747,6 +769,7 @@ export type CustomerVehicleUncheckedCreateWithoutCustomerInput = {
   updatedAt?: Date | string
   healthScore?: Prisma.VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleCreateOrConnectWithoutCustomerInput = {
@@ -815,6 +838,7 @@ export type CustomerVehicleCreateWithoutDocumentsInput = {
   updatedAt?: Date | string
   customer: Prisma.CustomerCreateNestedOneWithoutVehiclesInput
   healthScore?: Prisma.VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleUncheckedCreateWithoutDocumentsInput = {
@@ -835,6 +859,7 @@ export type CustomerVehicleUncheckedCreateWithoutDocumentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   healthScore?: Prisma.VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleCreateOrConnectWithoutDocumentsInput = {
@@ -871,6 +896,7 @@ export type CustomerVehicleUpdateWithoutDocumentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.CustomerUpdateOneRequiredWithoutVehiclesNestedInput
   healthScore?: Prisma.VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleUncheckedUpdateWithoutDocumentsInput = {
@@ -891,6 +917,107 @@ export type CustomerVehicleUncheckedUpdateWithoutDocumentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   healthScore?: Prisma.VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+}
+
+export type CustomerVehicleCreateWithoutAccessListInput = {
+  id?: string
+  registrationNumber: string
+  make?: string | null
+  model?: string | null
+  variant?: string | null
+  year?: number | null
+  fuelType?: string | null
+  vehicleType?: string | null
+  currentOdometer?: number | null
+  registrationDate?: Date | string | null
+  rcVerified?: boolean
+  isActive?: boolean
+  isPrimary?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  customer: Prisma.CustomerCreateNestedOneWithoutVehiclesInput
+  healthScore?: Prisma.VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  documents?: Prisma.CustomerDocumentCreateNestedManyWithoutVehicleInput
+}
+
+export type CustomerVehicleUncheckedCreateWithoutAccessListInput = {
+  id?: string
+  customerId: string
+  registrationNumber: string
+  make?: string | null
+  model?: string | null
+  variant?: string | null
+  year?: number | null
+  fuelType?: string | null
+  vehicleType?: string | null
+  currentOdometer?: number | null
+  registrationDate?: Date | string | null
+  rcVerified?: boolean
+  isActive?: boolean
+  isPrimary?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  healthScore?: Prisma.VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+}
+
+export type CustomerVehicleCreateOrConnectWithoutAccessListInput = {
+  where: Prisma.CustomerVehicleWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerVehicleCreateWithoutAccessListInput, Prisma.CustomerVehicleUncheckedCreateWithoutAccessListInput>
+}
+
+export type CustomerVehicleUpsertWithoutAccessListInput = {
+  update: Prisma.XOR<Prisma.CustomerVehicleUpdateWithoutAccessListInput, Prisma.CustomerVehicleUncheckedUpdateWithoutAccessListInput>
+  create: Prisma.XOR<Prisma.CustomerVehicleCreateWithoutAccessListInput, Prisma.CustomerVehicleUncheckedCreateWithoutAccessListInput>
+  where?: Prisma.CustomerVehicleWhereInput
+}
+
+export type CustomerVehicleUpdateToOneWithWhereWithoutAccessListInput = {
+  where?: Prisma.CustomerVehicleWhereInput
+  data: Prisma.XOR<Prisma.CustomerVehicleUpdateWithoutAccessListInput, Prisma.CustomerVehicleUncheckedUpdateWithoutAccessListInput>
+}
+
+export type CustomerVehicleUpdateWithoutAccessListInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  make?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  variant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fuelType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vehicleType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentOdometer?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  registrationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rcVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+  healthScore?: Prisma.VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  documents?: Prisma.CustomerDocumentUpdateManyWithoutVehicleNestedInput
+}
+
+export type CustomerVehicleUncheckedUpdateWithoutAccessListInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  make?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  variant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fuelType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vehicleType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentOdometer?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  registrationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rcVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  healthScore?: Prisma.VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleCreateWithoutHealthScoreInput = {
@@ -911,6 +1038,7 @@ export type CustomerVehicleCreateWithoutHealthScoreInput = {
   updatedAt?: Date | string
   customer: Prisma.CustomerCreateNestedOneWithoutVehiclesInput
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleUncheckedCreateWithoutHealthScoreInput = {
@@ -931,6 +1059,7 @@ export type CustomerVehicleUncheckedCreateWithoutHealthScoreInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+  accessList?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type CustomerVehicleCreateOrConnectWithoutHealthScoreInput = {
@@ -967,6 +1096,7 @@ export type CustomerVehicleUpdateWithoutHealthScoreInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.CustomerUpdateOneRequiredWithoutVehiclesNestedInput
   documents?: Prisma.CustomerDocumentUpdateManyWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleUncheckedUpdateWithoutHealthScoreInput = {
@@ -987,6 +1117,7 @@ export type CustomerVehicleUncheckedUpdateWithoutHealthScoreInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleCreateManyCustomerInput = {
@@ -1025,6 +1156,7 @@ export type CustomerVehicleUpdateWithoutCustomerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   healthScore?: Prisma.VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
   documents?: Prisma.CustomerDocumentUpdateManyWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleUncheckedUpdateWithoutCustomerInput = {
@@ -1045,6 +1177,7 @@ export type CustomerVehicleUncheckedUpdateWithoutCustomerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   healthScore?: Prisma.VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+  accessList?: Prisma.VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type CustomerVehicleUncheckedUpdateManyWithoutCustomerInput = {
@@ -1072,10 +1205,12 @@ export type CustomerVehicleUncheckedUpdateManyWithoutCustomerInput = {
 
 export type CustomerVehicleCountOutputType = {
   documents: number
+  accessList: number
 }
 
 export type CustomerVehicleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   documents?: boolean | CustomerVehicleCountOutputTypeCountDocumentsArgs
+  accessList?: boolean | CustomerVehicleCountOutputTypeCountAccessListArgs
 }
 
 /**
@@ -1093,6 +1228,13 @@ export type CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Ty
  */
 export type CustomerVehicleCountOutputTypeCountDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CustomerDocumentWhereInput
+}
+
+/**
+ * CustomerVehicleCountOutputType without action
+ */
+export type CustomerVehicleCountOutputTypeCountAccessListArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.VehicleAccessWhereInput
 }
 
 
@@ -1116,6 +1258,7 @@ export type CustomerVehicleSelect<ExtArgs extends runtime.Types.Extensions.Inter
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   healthScore?: boolean | Prisma.CustomerVehicle$healthScoreArgs<ExtArgs>
   documents?: boolean | Prisma.CustomerVehicle$documentsArgs<ExtArgs>
+  accessList?: boolean | Prisma.CustomerVehicle$accessListArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customerVehicle"]>
 
@@ -1183,6 +1326,7 @@ export type CustomerVehicleInclude<ExtArgs extends runtime.Types.Extensions.Inte
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   healthScore?: boolean | Prisma.CustomerVehicle$healthScoreArgs<ExtArgs>
   documents?: boolean | Prisma.CustomerVehicle$documentsArgs<ExtArgs>
+  accessList?: boolean | Prisma.CustomerVehicle$accessListArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerVehicleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1198,6 +1342,7 @@ export type $CustomerVehiclePayload<ExtArgs extends runtime.Types.Extensions.Int
     customer: Prisma.$CustomerPayload<ExtArgs>
     healthScore: Prisma.$VehicleHealthScorePayload<ExtArgs> | null
     documents: Prisma.$CustomerDocumentPayload<ExtArgs>[]
+    accessList: Prisma.$VehicleAccessPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1613,6 +1758,7 @@ export interface Prisma__CustomerVehicleClient<T, Null = never, ExtArgs extends 
   customer<T extends Prisma.CustomerDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CustomerDefaultArgs<ExtArgs>>): Prisma.Prisma__CustomerClient<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   healthScore<T extends Prisma.CustomerVehicle$healthScoreArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CustomerVehicle$healthScoreArgs<ExtArgs>>): Prisma.Prisma__VehicleHealthScoreClient<runtime.Types.Result.GetResult<Prisma.$VehicleHealthScorePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   documents<T extends Prisma.CustomerVehicle$documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CustomerVehicle$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  accessList<T extends Prisma.CustomerVehicle$accessListArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CustomerVehicle$accessListArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2094,6 +2240,30 @@ export type CustomerVehicle$documentsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.CustomerDocumentScalarFieldEnum | Prisma.CustomerDocumentScalarFieldEnum[]
+}
+
+/**
+ * CustomerVehicle.accessList
+ */
+export type CustomerVehicle$accessListArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VehicleAccess
+   */
+  select?: Prisma.VehicleAccessSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the VehicleAccess
+   */
+  omit?: Prisma.VehicleAccessOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VehicleAccessInclude<ExtArgs> | null
+  where?: Prisma.VehicleAccessWhereInput
+  orderBy?: Prisma.VehicleAccessOrderByWithRelationInput | Prisma.VehicleAccessOrderByWithRelationInput[]
+  cursor?: Prisma.VehicleAccessWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.VehicleAccessScalarFieldEnum | Prisma.VehicleAccessScalarFieldEnum[]
 }
 
 /**

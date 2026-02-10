@@ -8,7 +8,7 @@
 // =============================================================================
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "./generated/prisma"
 }
 
@@ -39,6 +39,10 @@ model Customer {
   documents    CustomerDocument[]
   digilocker   DigiLockerConnection?
   vehicles     CustomerVehicle[]
+  sharedVehicles VehicleAccess[]
+  notifications InAppNotification[]
+  expenses     Expense[]
+  budgets      ExpenseBudget[]
 
   @@schema("customer")
 }
@@ -172,11 +176,76 @@ model CustomerVehicle {
 
   healthScore        VehicleHealthScore?
   documents          CustomerDocument[]
+  accessList         VehicleAccess[]
+  odometerLogs       OdometerLog[]
+  challans           Challan[]
+  expenses           Expense[]
+  serviceRecords     ServiceRecord[]
 
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
   @@index([customerId])
+  @@schema("customer")
+}
+
+model OdometerLog {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  reading     Int
+  date        DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+
+  @@index([vehicleId])
+  @@schema("customer")
+}
+
+model Challan {
+  id                String   @id @default(cuid())
+  vehicleId         String
+  vehicle           CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  challanNumber     String   @unique
+  amount            Int
+  status            String   // UNPAID, PAID
+  date              DateTime
+  violationType     String
+  location          String?
+  source            String   // e.g., "PARIVAHAN"
+  
+  lastCheckedAt     DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([vehicleId])
+  @@schema("customer")
+}
+
+enum AccessRole {
+  OWNER
+  EDITOR
+  VIEWER
+
+  @@schema("customer")
+}
+
+model VehicleAccess {
+  id         String   @id @default(cuid())
+  vehicleId  String
+  vehicle    CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  role       AccessRole @default(VIEWER)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([vehicleId, customerId])
   @@schema("customer")
 }
 
@@ -200,3 +269,191 @@ model VehicleHealthScore {
   @@schema("customer")
 }
 
+model InAppNotification {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  title       String
+  body        String
+  type        String   // INFO, WARNING, SUCCESS, ERROR
+  link        String?  // Optional link to navigate to
+  metadata    Json?    // Any extra data
+  
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+enum ExpenseCategory {
+  FUEL
+  TOLL
+  PARKING
+  SERVICE
+  INSURANCE
+  CHALLAN
+  EMI
+  OTHER
+
+  @@schema("customer")
+}
+
+enum ExpenseSource {
+  MANUAL
+  SMS
+  NOTIFICATION
+  VOICE
+  RECEIPT
+  
+  @@schema("customer")
+}
+
+model Expense {
+  id              String          @id @default(cuid())
+  customerId      String
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicleId       String?         
+  vehicle         CustomerVehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  amount          Float
+  currency        String          @default("INR")
+  category        ExpenseCategory
+  date            DateTime        @default(now())
+  
+  merchantName    String?
+  location        String?
+  notes           String?
+  
+  source          ExpenseSource   @default(MANUAL)
+  
+  receiptUrl      String?
+  mimeType        String?
+  
+  rawText         String?         
+  isAutomated     Boolean         @default(false)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([category])
+  @@schema("customer")
+}
+
+model ExpenseBudget {
+  id              String          @id @default(cuid())
+  customerId      String
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  category        ExpenseCategory
+  amount          Float           
+  period          String          @default("MONTHLY") // WEEKLY, MONTHLY
+  
+  notifyThreshold Int             @default(80) 
+  
+  isActive        Boolean         @default(true)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([customerId, category])
+  @@schema("customer")
+}
+
+// ============================================================
+// FUEL PRICE INTELLIGENCE
+// ============================================================
+model FuelPriceCache {
+  id          String   @id @default(cuid())
+  city        String
+  state       String
+  fuelType    String   // PETROL, DIESEL, CNG
+  price       Float    // Price per liter in INR
+  date        DateTime @default(now()) // Date of this price
+  source      String   @default("IOCL_API") // Where we fetched from
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([city, fuelType, date])
+  @@index([city, fuelType])
+  @@schema("customer")
+}
+
+// ============================================================
+// WARRANTY & PARTS TRACKER
+// ============================================================
+enum ServicePartType {
+  ENGINE_OIL
+  OIL_FILTER
+  AIR_FILTER
+  BRAKE_PADS
+  BRAKE_DISCS
+  BATTERY
+  TYRES_FRONT
+  TYRES_REAR
+  CLUTCH_PLATE
+  SPARK_PLUGS
+  COOLANT
+  TIMING_BELT
+  AC_FILTER
+  WIPER_BLADES
+  HEADLIGHT_BULB
+  OTHER_PART
+
+  @@schema("customer")
+}
+
+model ServiceRecord {
+  id              String          @id @default(cuid())
+  vehicleId       String
+  vehicle         CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  expenseId       String?         // Link to the expense that created this
+  
+  serviceType     String          // REGULAR_SERVICE, REPAIR, ACCIDENT, MODIFICATION
+  garageName      String?
+  odometerAtService Int?
+  serviceDate     DateTime        @default(now())
+  nextServiceDate DateTime?       // Predicted or set by user
+  nextServiceKm   Int?            // e.g., next service at 20,000 km
+  notes           String?
+
+  parts           ServicePart[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([vehicleId])
+  @@schema("customer")
+}
+
+model ServicePart {
+  id                String          @id @default(cuid())
+  serviceRecordId   String
+  serviceRecord     ServiceRecord   @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+  
+  partType          ServicePartType
+  partName          String?         // Custom name if OTHER_PART
+  brand             String?         // e.g., "Bosch", "Exide"
+  cost              Float?          // Cost of this specific part
+  
+  warrantyMonths    Int?            // Warranty period in months
+  warrantyKm        Int?            // Warranty in km
+  warrantyExpiresAt DateTime?       // Calculated expiry date
+  
+  lastReplacedAt    DateTime        @default(now())
+  nextReplacementDue DateTime?      // Predicted next replacement
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([serviceRecordId])
+  @@index([partType])
+  @@schema("customer")
+}

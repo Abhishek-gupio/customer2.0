@@ -57,6 +57,7 @@ export const ModelName = {
   CustomerDocument: 'CustomerDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
+  VehicleAccess: 'VehicleAccess',
   VehicleHealthScore: 'VehicleHealthScore'
 } as const
 
@@ -178,6 +179,18 @@ export const CustomerVehicleScalarFieldEnum = {
 } as const
 
 export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
+
+
+export const VehicleAccessScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  customerId: 'customerId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VehicleAccessScalarFieldEnum = (typeof VehicleAccessScalarFieldEnum)[keyof typeof VehicleAccessScalarFieldEnum]
 
 
 export const VehicleHealthScoreScalarFieldEnum = {

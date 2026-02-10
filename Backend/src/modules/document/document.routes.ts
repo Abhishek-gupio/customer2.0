@@ -19,6 +19,7 @@ router.post("/", upload.single("file"), documentController.upload);
 router.get("/expiring", documentController.getExpiring);
 router.get("/", documentController.list);
 router.get("/:id", documentController.getById);
+router.post("/:id/verify", documentController.verify);
 router.delete("/:id", documentController.delete);
 
 // DigiLocker

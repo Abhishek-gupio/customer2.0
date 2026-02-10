@@ -57,5 +57,11 @@ export const documentController = {
         const result = await documentService.getExpiringDocuments(req.customer.id, days);
         success(res, result);
     }),
+
+    verify: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+        const result = await documentService.verifyDocument(req.customer.id, req.params.id as string);
+        success(res, result);
+    }),
 };
 

@@ -202,6 +202,7 @@ export type CustomerWhereInput = {
   documents?: Prisma.CustomerDocumentListRelationFilter
   digilocker?: Prisma.XOR<Prisma.DigiLockerConnectionNullableScalarRelationFilter, Prisma.DigiLockerConnectionWhereInput> | null
   vehicles?: Prisma.CustomerVehicleListRelationFilter
+  sharedVehicles?: Prisma.VehicleAccessListRelationFilter
 }
 
 export type CustomerOrderByWithRelationInput = {
@@ -216,6 +217,7 @@ export type CustomerOrderByWithRelationInput = {
   documents?: Prisma.CustomerDocumentOrderByRelationAggregateInput
   digilocker?: Prisma.DigiLockerConnectionOrderByWithRelationInput
   vehicles?: Prisma.CustomerVehicleOrderByRelationAggregateInput
+  sharedVehicles?: Prisma.VehicleAccessOrderByRelationAggregateInput
 }
 
 export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -233,6 +235,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   documents?: Prisma.CustomerDocumentListRelationFilter
   digilocker?: Prisma.XOR<Prisma.DigiLockerConnectionNullableScalarRelationFilter, Prisma.DigiLockerConnectionWhereInput> | null
   vehicles?: Prisma.CustomerVehicleListRelationFilter
+  sharedVehicles?: Prisma.VehicleAccessListRelationFilter
 }, "id" | "phoneNumber">
 
 export type CustomerOrderByWithAggregationInput = {
@@ -273,6 +276,7 @@ export type CustomerCreateInput = {
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionCreateNestedOneWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateInput = {
@@ -287,6 +291,7 @@ export type CustomerUncheckedCreateInput = {
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUpdateInput = {
@@ -301,6 +306,7 @@ export type CustomerUpdateInput = {
   documents?: Prisma.CustomerDocumentUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateInput = {
@@ -315,6 +321,7 @@ export type CustomerUncheckedUpdateInput = {
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyInput = {
@@ -438,6 +445,20 @@ export type CustomerUpdateOneRequiredWithoutVehiclesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutVehiclesInput, Prisma.CustomerUpdateWithoutVehiclesInput>, Prisma.CustomerUncheckedUpdateWithoutVehiclesInput>
 }
 
+export type CustomerCreateNestedOneWithoutSharedVehiclesInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutSharedVehiclesInput, Prisma.CustomerUncheckedCreateWithoutSharedVehiclesInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutSharedVehiclesInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneRequiredWithoutSharedVehiclesNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutSharedVehiclesInput, Prisma.CustomerUncheckedCreateWithoutSharedVehiclesInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutSharedVehiclesInput
+  upsert?: Prisma.CustomerUpsertWithoutSharedVehiclesInput
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutSharedVehiclesInput, Prisma.CustomerUpdateWithoutSharedVehiclesInput>, Prisma.CustomerUncheckedUpdateWithoutSharedVehiclesInput>
+}
+
 export type CustomerCreateWithoutDevicesInput = {
   id?: string
   phoneNumber: string
@@ -449,6 +470,7 @@ export type CustomerCreateWithoutDevicesInput = {
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionCreateNestedOneWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutDevicesInput = {
@@ -462,6 +484,7 @@ export type CustomerUncheckedCreateWithoutDevicesInput = {
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutDevicesInput = {
@@ -491,6 +514,7 @@ export type CustomerUpdateWithoutDevicesInput = {
   documents?: Prisma.CustomerDocumentUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutDevicesInput = {
@@ -504,6 +528,7 @@ export type CustomerUncheckedUpdateWithoutDevicesInput = {
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutDocumentsInput = {
@@ -517,6 +542,7 @@ export type CustomerCreateWithoutDocumentsInput = {
   devices?: Prisma.CustomerDeviceCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionCreateNestedOneWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutDocumentsInput = {
@@ -530,6 +556,7 @@ export type CustomerUncheckedCreateWithoutDocumentsInput = {
   devices?: Prisma.CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutDocumentsInput = {
@@ -559,6 +586,7 @@ export type CustomerUpdateWithoutDocumentsInput = {
   devices?: Prisma.CustomerDeviceUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutDocumentsInput = {
@@ -572,6 +600,7 @@ export type CustomerUncheckedUpdateWithoutDocumentsInput = {
   devices?: Prisma.CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutDigilockerInput = {
@@ -585,6 +614,7 @@ export type CustomerCreateWithoutDigilockerInput = {
   devices?: Prisma.CustomerDeviceCreateNestedManyWithoutCustomerInput
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutDigilockerInput = {
@@ -598,6 +628,7 @@ export type CustomerUncheckedCreateWithoutDigilockerInput = {
   devices?: Prisma.CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
   vehicles?: Prisma.CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutDigilockerInput = {
@@ -627,6 +658,7 @@ export type CustomerUpdateWithoutDigilockerInput = {
   devices?: Prisma.CustomerDeviceUpdateManyWithoutCustomerNestedInput
   documents?: Prisma.CustomerDocumentUpdateManyWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutDigilockerInput = {
@@ -640,6 +672,7 @@ export type CustomerUncheckedUpdateWithoutDigilockerInput = {
   devices?: Prisma.CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
   vehicles?: Prisma.CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutVehiclesInput = {
@@ -653,6 +686,7 @@ export type CustomerCreateWithoutVehiclesInput = {
   devices?: Prisma.CustomerDeviceCreateNestedManyWithoutCustomerInput
   documents?: Prisma.CustomerDocumentCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutVehiclesInput = {
@@ -666,6 +700,7 @@ export type CustomerUncheckedCreateWithoutVehiclesInput = {
   devices?: Prisma.CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
   documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutVehiclesInput = {
@@ -695,6 +730,7 @@ export type CustomerUpdateWithoutVehiclesInput = {
   devices?: Prisma.CustomerDeviceUpdateManyWithoutCustomerNestedInput
   documents?: Prisma.CustomerDocumentUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutVehiclesInput = {
@@ -708,6 +744,79 @@ export type CustomerUncheckedUpdateWithoutVehiclesInput = {
   devices?: Prisma.CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
   documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
   digilocker?: Prisma.DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+  sharedVehicles?: Prisma.VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerCreateWithoutSharedVehiclesInput = {
+  id?: string
+  phoneNumber: string
+  email?: string | null
+  fullName?: string | null
+  profilePic?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  devices?: Prisma.CustomerDeviceCreateNestedManyWithoutCustomerInput
+  documents?: Prisma.CustomerDocumentCreateNestedManyWithoutCustomerInput
+  digilocker?: Prisma.DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+  vehicles?: Prisma.CustomerVehicleCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
+  id?: string
+  phoneNumber: string
+  email?: string | null
+  fullName?: string | null
+  profilePic?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  devices?: Prisma.CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+  documents?: Prisma.CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+  digilocker?: Prisma.DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+  vehicles?: Prisma.CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutSharedVehiclesInput, Prisma.CustomerUncheckedCreateWithoutSharedVehiclesInput>
+}
+
+export type CustomerUpsertWithoutSharedVehiclesInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutSharedVehiclesInput, Prisma.CustomerUncheckedUpdateWithoutSharedVehiclesInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutSharedVehiclesInput, Prisma.CustomerUncheckedCreateWithoutSharedVehiclesInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutSharedVehiclesInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutSharedVehiclesInput, Prisma.CustomerUncheckedUpdateWithoutSharedVehiclesInput>
+}
+
+export type CustomerUpdateWithoutSharedVehiclesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  devices?: Prisma.CustomerDeviceUpdateManyWithoutCustomerNestedInput
+  documents?: Prisma.CustomerDocumentUpdateManyWithoutCustomerNestedInput
+  digilocker?: Prisma.DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+  vehicles?: Prisma.CustomerVehicleUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  devices?: Prisma.CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+  documents?: Prisma.CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+  digilocker?: Prisma.DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+  vehicles?: Prisma.CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 
@@ -719,12 +828,14 @@ export type CustomerCountOutputType = {
   devices: number
   documents: number
   vehicles: number
+  sharedVehicles: number
 }
 
 export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   devices?: boolean | CustomerCountOutputTypeCountDevicesArgs
   documents?: boolean | CustomerCountOutputTypeCountDocumentsArgs
   vehicles?: boolean | CustomerCountOutputTypeCountVehiclesArgs
+  sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs
 }
 
 /**
@@ -758,6 +869,13 @@ export type CustomerCountOutputTypeCountVehiclesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.CustomerVehicleWhereInput
 }
 
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountSharedVehiclesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.VehicleAccessWhereInput
+}
+
 
 export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -771,6 +889,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   documents?: boolean | Prisma.Customer$documentsArgs<ExtArgs>
   digilocker?: boolean | Prisma.Customer$digilockerArgs<ExtArgs>
   vehicles?: boolean | Prisma.Customer$vehiclesArgs<ExtArgs>
+  sharedVehicles?: boolean | Prisma.Customer$sharedVehiclesArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
 
@@ -810,6 +929,7 @@ export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   documents?: boolean | Prisma.Customer$documentsArgs<ExtArgs>
   digilocker?: boolean | Prisma.Customer$digilockerArgs<ExtArgs>
   vehicles?: boolean | Prisma.Customer$vehiclesArgs<ExtArgs>
+  sharedVehicles?: boolean | Prisma.Customer$sharedVehiclesArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -822,6 +942,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     documents: Prisma.$CustomerDocumentPayload<ExtArgs>[]
     digilocker: Prisma.$DigiLockerConnectionPayload<ExtArgs> | null
     vehicles: Prisma.$CustomerVehiclePayload<ExtArgs>[]
+    sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1229,6 +1350,7 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
   documents<T extends Prisma.Customer$documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   digilocker<T extends Prisma.Customer$digilockerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$digilockerArgs<ExtArgs>>): Prisma.Prisma__DigiLockerConnectionClient<runtime.Types.Result.GetResult<Prisma.$DigiLockerConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   vehicles<T extends Prisma.Customer$vehiclesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sharedVehicles<T extends Prisma.Customer$sharedVehiclesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$sharedVehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1741,6 +1863,30 @@ export type Customer$vehiclesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.CustomerVehicleScalarFieldEnum | Prisma.CustomerVehicleScalarFieldEnum[]
+}
+
+/**
+ * Customer.sharedVehicles
+ */
+export type Customer$sharedVehiclesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VehicleAccess
+   */
+  select?: Prisma.VehicleAccessSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the VehicleAccess
+   */
+  omit?: Prisma.VehicleAccessOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VehicleAccessInclude<ExtArgs> | null
+  where?: Prisma.VehicleAccessWhereInput
+  orderBy?: Prisma.VehicleAccessOrderByWithRelationInput | Prisma.VehicleAccessOrderByWithRelationInput[]
+  cursor?: Prisma.VehicleAccessWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.VehicleAccessScalarFieldEnum | Prisma.VehicleAccessScalarFieldEnum[]
 }
 
 /**

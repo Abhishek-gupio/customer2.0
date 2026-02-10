@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { vehicleService } from "./vehicle.service";
-import { addVehicleSchema, updateVehicleSchema } from "./vehicle.validators";
+import { addVehicleSchema, updateVehicleSchema, addOdometerSchema } from "./vehicle.validators";
 import { AppError } from "../../utils/AppError";
 
 function parseBody<T>(
@@ -62,5 +62,20 @@ export const vehicleController = {
         await vehicleService.getVehicle(req.customer.id, req.params.id as string);
         const health = await vehicleService.calculateHealthScore(req.params.id as string);
         success(res, health);
+    }),
+
+    addOdometer: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+        const body = parseBody(req, addOdometerSchema);
+        const log = await vehicleService.addOdometerLog(req.customer.id, req.params.id as string, body);
+        success(res, log, 201);
+    }),
+
+    addOdometerViaAI: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+        if (!req.file) throw AppError.badRequest("No image uploaded");
+
+        const log = await vehicleService.updateOdometerViaAI(req.customer.id, req.params.id as string, req.file);
+        success(res, log, 201);
     }),
 };
