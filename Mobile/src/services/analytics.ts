@@ -1,0 +1,2 @@
+// Analytics - Gupio plan
+export {};

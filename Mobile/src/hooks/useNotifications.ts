@@ -1,0 +1,2 @@
+// useNotifications - Gupio plan
+export {};
