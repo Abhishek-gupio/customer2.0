@@ -35,7 +35,7 @@ export const ocrService = {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
             const prompt = `
                 You are an expert Indian vehicle document assistant. 
@@ -107,7 +107,7 @@ export const ocrService = {
         if (!genAI) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
             const prompt = `
                 Analyze this car dashboard image and extract ONLY the current odometer reading (total distance traveled).
                 Return ONLY the number. No units (km/miles), no text.
@@ -145,7 +145,7 @@ export const ocrService = {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
             const prompt = `
                 You are an intelligent Indian vehicle expense assistant.
@@ -221,7 +221,7 @@ export const ocrService = {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
             const prompt = `
                 You are an expert Indian financial transaction parser.
@@ -301,7 +301,7 @@ export const ocrService = {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
             const prompt = `
                 You are an expert Indian vehicle service advisor.

@@ -136,4 +136,17 @@ export const authService = {
     }
     return { message: "Logged out" };
   },
+
+  async getProfile(id: string) {
+    const customer = await dbInstances.customer.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { vehicles: true, documents: true }
+        }
+      }
+    });
+    if (!customer) throw AppError.notFound("Customer not found");
+    return customer;
+  },
 };

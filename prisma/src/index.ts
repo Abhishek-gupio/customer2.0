@@ -22,7 +22,7 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false }
+  ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false }
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = global.prisma ?? new PrismaClient({ adapter });

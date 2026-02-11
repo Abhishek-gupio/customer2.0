@@ -63,4 +63,10 @@ export const authController = {
     );
     success(res, data);
   }),
+
+  getProfile: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const data = await authService.getProfile(req.customer.id);
+    success(res, data);
+  }),
 };
