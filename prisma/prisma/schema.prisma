@@ -110,6 +110,8 @@ model CustomerVehicle {
   year               Int?
   fuelType           String?
   vehicleType        String?
+  engineNumber       String?
+  chassisNumber      String?
   currentOdometer    Int?                @default(0)
   registrationDate   DateTime?
   rcVerified         Boolean             @default(false)

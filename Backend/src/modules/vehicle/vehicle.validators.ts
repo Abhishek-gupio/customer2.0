@@ -8,6 +8,9 @@ export const addVehicleSchema = z.object({
     year: z.coerce.number().min(1900).max(new Date().getFullYear() + 1).optional(),
     fuelType: z.enum(["PETROL", "DIESEL", "CNG", "EV", "HYBRID", "OTHER"]).optional(),
     vehicleType: z.enum(["LUV", "SUV", "SEDAN", "BIKE", "HATCHBACK", "TRUCK"]).optional(),
+    engineNumber: z.string().optional(),
+    chassisNumber: z.string().optional(),
+    registrationDate: z.coerce.date().optional(),
     currentOdometer: z.coerce.number().min(0).optional(),
 });
 

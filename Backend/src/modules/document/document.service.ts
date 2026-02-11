@@ -15,12 +15,18 @@ export const documentService = {
         // 1. Upload to S3
         const { url, key } = await storageService.uploadFile(file, `documents/${customerId}`);
 
+        // 1.5 Sanitize documentNumber for Swagger placeholders
+        let finalDocNo = input.documentNumber;
+        if (finalDocNo === "string" || !finalDocNo) {
+            finalDocNo = undefined;
+        }
+
         // 2. Check for duplicates in input
-        if (input.documentNumber) {
+        if (finalDocNo) {
             const existing = await dbInstances.customerDocument.findFirst({
                 where: {
                     customerId,
-                    documentNumber: input.documentNumber,
+                    documentNumber: finalDocNo,
                     type: input.type
                 },
             });
@@ -41,9 +47,13 @@ export const documentService = {
         }
 
         // 3.5 AI Improvisation: Auto-link or Create Vehicle if it's an RC
-        let finalVehicleId = input.vehicleId;
+        // Handle Swagger "string" placeholder or empty string
+        let finalVehicleId: string | undefined = input.vehicleId;
+        if (!finalVehicleId || finalVehicleId === "string") {
+            finalVehicleId = undefined;
+        }
         if (!finalVehicleId && (input.type === "RC" || extractedFields?.type === "RC")) {
-            const regNo = input.documentNumber || extractedFields?.documentNumber;
+            const regNo = finalDocNo || extractedFields?.documentNumber;
             if (regNo) {
                 // Try to find existing vehicle by registration number
                 const existingVehicle = await dbInstances.customerVehicle.findUnique({
@@ -53,6 +63,23 @@ export const documentService = {
                 if (existingVehicle) {
                     finalVehicleId = existingVehicle.id;
                     logger.info({ vehicleId: finalVehicleId }, "Auto-linked document to existing vehicle found by Registration No");
+
+                    // Optional: Update missing fields on existing vehicle from AI data
+                    if (extractedFields?.vehicleDetails) {
+                        await dbInstances.customerVehicle.update({
+                            where: { id: existingVehicle.id },
+                            data: {
+                                make: existingVehicle.make || extractedFields.vehicleDetails.make,
+                                model: existingVehicle.model || extractedFields.vehicleDetails.model,
+                                variant: existingVehicle.variant || extractedFields.vehicleDetails.variant,
+                                fuelType: existingVehicle.fuelType || extractedFields.vehicleDetails.fuelType,
+                                engineNumber: (existingVehicle as any).engineNumber || extractedFields.vehicleDetails.engineNumber,
+                                chassisNumber: (existingVehicle as any).chassisNumber || extractedFields.vehicleDetails.chassisNumber,
+                                registrationDate: existingVehicle.registrationDate || (extractedFields.vehicleDetails.registrationDate ? new Date(extractedFields.vehicleDetails.registrationDate) : undefined),
+                                vehicleType: existingVehicle.vehicleType || extractedFields.vehicleDetails.vehicleType,
+                            } as any
+                        });
+                    }
                 } else if (extractedFields?.vehicleDetails) {
                     // Auto-create vehicle if AI found enough details
                     try {
@@ -63,7 +90,11 @@ export const documentService = {
                             variant: extractedFields.vehicleDetails.variant,
                             year: extractedFields.vehicleDetails.registrationDate ? new Date(extractedFields.vehicleDetails.registrationDate).getFullYear() : undefined,
                             fuelType: extractedFields.vehicleDetails.fuelType,
-                        });
+                            registrationDate: extractedFields.vehicleDetails.registrationDate ? new Date(extractedFields.vehicleDetails.registrationDate) : undefined,
+                            engineNumber: extractedFields.vehicleDetails.engineNumber,
+                            chassisNumber: extractedFields.vehicleDetails.chassisNumber,
+                            vehicleType: extractedFields.vehicleDetails.vehicleType, // Map if available
+                        } as any);
                         finalVehicleId = newVehicle.id;
                         logger.info({ vehicleId: finalVehicleId }, "Auto-created vehicle from uploaded RC using AI");
                     } catch (vErr) {
@@ -74,12 +105,15 @@ export const documentService = {
         }
 
         // 4. Save to DB
+        const savedDocNo = finalDocNo || (extractedFields?.documentNumber as string);
+        logger.info({ documentNumber: savedDocNo, type: input.type }, "Saving document to database");
+
         const document = await dbInstances.customerDocument.create({
             data: {
                 customerId,
-                vehicleId: finalVehicleId,
+                vehicleId: finalVehicleId || null,
                 type: input.type,
-                documentNumber: input.documentNumber || (extractedFields?.documentNumber as string),
+                documentNumber: savedDocNo,
                 issueDate: input.issueDate ? new Date(input.issueDate) : undefined,
                 expiryDate: input.expiryDate ? new Date(input.expiryDate) : (extractedFields?.dates?.[0] ? new Date(extractedFields.dates[0]) : undefined),
                 issuerName: input.issuerName,

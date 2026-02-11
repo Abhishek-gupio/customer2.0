@@ -4,6 +4,8 @@ import { success } from "../../utils/apiResponse";
 import { documentService } from "./document.service";
 import { uploadDocumentSchema } from "./document.validators";
 import { AppError } from "../../utils/AppError";
+import { logger } from "../../config/logger";
+import { dbInstances } from "@repo/db-customer";
 
 function parseBody<T>(
     req: Request,
@@ -26,6 +28,13 @@ export const documentController = {
         if (!req.customer?.id) {
             throw AppError.unauthorized();
         }
+        // Check if customer exists in DB to prevent foreign key errors
+        const customerExists = await dbInstances.customer.findUnique({ where: { id: req.customer.id } });
+        if (!customerExists) {
+            logger.error({ customerId: req.customer.id }, "Token valid but customer not found in DB");
+            throw AppError.unauthorized("User no longer exists");
+        }
+        logger.info({ customerId: req.customer.id }, "Document upload initiated for customer");
 
         const body = parseBody(req, uploadDocumentSchema);
         const document = await documentService.uploadDocument(req.customer.id, req.file, body);

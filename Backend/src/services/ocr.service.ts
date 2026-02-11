@@ -13,10 +13,11 @@ export const ocrService = {
      */
     async extractText(imageBuffer: Buffer): Promise<string> {
         try {
-            const worker = await createWorker("eng");
-            const { data: { text } } = await worker.recognize(imageBuffer);
-            await worker.terminate();
-            return text;
+            // const worker = await createWorker("eng");
+            // const { data: { text } } = await worker.recognize(imageBuffer);
+            // await worker.terminate();
+            // return text;
+            return "Tesseract OCR Disabled due to runtime environment issues.";
         } catch (error) {
             logger.error({ error }, "OCR text extraction failed");
             throw error;
@@ -45,7 +46,8 @@ export const ocrService = {
                 - type: (RC | INSURANCE | PUC | DL | OTHER)
                 - documentNumber: (Registration No, Policy No, or License No)
                 - ownerName: (Full name of the owner/insured)
-                - vehicleDetails: { make, model, variant, fuelType, chassisNumber, engineNumber, registrationDate }
+                - vehicleDetails: { make, model, variant, fuelType, chassisNumber, engineNumber, registrationDate, vehicleType }
+                - vehicleType hints: (Determine if it's a HATCHBACK | SEDAN | SUV | BIKE | TRUCK | LUV based on model name)
                 - dates: [list of all important dates found like expiry, issue, registration]
                 - expiryDate: (Specifically identify the expiry date if present)
                 - issuerName: (RTO name for RC, Company name for Insurance)
@@ -80,7 +82,13 @@ export const ocrService = {
         } catch (error) {
             logger.error({ error }, "Gemini AI parsing failed");
             // Fallback to basic text indexing if AI fails
-            const rawText = await this.extractText(imageBuffer);
+            let rawText = "";
+            try {
+                rawText = await this.extractText(imageBuffer);
+            } catch (tesseractError) {
+                logger.error({ tesseractError }, "Tesseract fallback also failed");
+                rawText = "OCR Failed";
+            }
             return { rawText, error: "AI parsing failed" };
         }
     },
