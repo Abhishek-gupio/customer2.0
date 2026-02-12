@@ -1,32 +1,36 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
 } from '../lib/react-navigation-native-stack';
 import type { RootStackParamList } from './types';
 import SplashScreen from '../components/SplashScreen';
-import Login from '../screens/Auth/Login';
+import SigninFirst from '../screens/Auth/Signin_first';
+import Signin from '../screens/Auth/Signin';
+import Signup from '../screens/Auth/Signup';
+import OTP from '../screens/Auth/OTP';
+import Home from '../screens/Main/Home';
 import { ProtectedRoute } from './ProtectedRoute';
+import { useAppSelector } from '../store/hooks';
+import type { RootState } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function MainScreen() {
   return (
     <ProtectedRoute>
-      <View style={styles.main}>
-        <Text style={styles.text}>Main</Text>
-      </View>
+      <Home />
     </ProtectedRoute>
   );
 }
 
-const styles = StyleSheet.create({
-  main: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  text: { fontSize: 18, color: '#333' },
-});
-
 export function RootNavigator() {
+  const isAuthenticated = useAppSelector((state: RootState) => state.auth.isAuthenticated);
+  const authRef = useRef(isAuthenticated);
+  useEffect(() => {
+    authRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
   return (
     <Stack.Navigator
       initialRouteName="Splash"
@@ -36,10 +40,21 @@ export function RootNavigator() {
         {({
           navigation,
         }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
-          <SplashScreen onComplete={() => navigation.replace('Login')} />
+          <SplashScreen
+            onComplete={() => {
+              if (authRef.current) {
+                navigation.replace('Main', { screen: 'Home' });
+              } else {
+                navigation.replace('SigninFirst');
+              }
+            }}
+          />
         )}
       </Stack.Screen>
-      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="SigninFirst" component={SigninFirst} />
+      <Stack.Screen name="Signin" component={Signin} />
+      <Stack.Screen name="Signup" component={Signup} />
+      <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="Main" component={MainScreen} />
     </Stack.Navigator>
   );

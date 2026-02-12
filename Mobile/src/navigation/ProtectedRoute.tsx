@@ -13,7 +13,7 @@ interface ProtectedRouteProps {
 }
 
 /**
- * Wraps content that requires auth. Redirects to Login if not authenticated.
+ * Wraps content that requires auth. Redirects to SigninFirst if not authenticated.
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isAuthenticated = useAppSelector(
@@ -23,7 +23,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigation.replace('Login');
+      navigation.replace('SigninFirst');
     }
   }, [isAuthenticated, navigation]);
 

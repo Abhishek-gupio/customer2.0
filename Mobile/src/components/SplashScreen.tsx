@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Image,
-  Text,
   StyleSheet,
   Animated,
   Dimensions,
@@ -80,8 +79,11 @@ function SplashScreen(props: SplashScreenProps): React.ReactElement {
           resizeMode="contain"
         />
         <Animated.View style={[styles.logoWrap, { opacity: logoOpacity }]}>
-          <Text style={styles.logoText}>GUPIO</Text>
-          <Text style={styles.tagline}>Your Vehicle Partner</Text>
+          <Image
+            source={require('../assets/images/logo.png') as ImageSourcePropType}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </Animated.View>
       </View>
 
@@ -127,17 +129,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: -150,
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#ffbf00',
-    letterSpacing: 4,
-  },
-  tagline: {
-    fontSize: 12,
-    color: 'rgba(255,191,0,0.8)',
-    marginTop: 4,
-    letterSpacing: 2,
+  logoImage: {
+    width: width * 0.65,
+    maxWidth: 260,
+    height: 80,
   },
   carSection: {
     position: 'absolute',
