@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { logger } from "../config/logger";
 import { AppError } from "../utils/AppError";
+import { env } from "../config/env";
 
 export function errorMiddleware(
   err: Error,
@@ -16,8 +17,12 @@ export function errorMiddleware(
     return;
   }
   logger.error({ err }, "Unhandled error");
+  const message =
+    env.NODE_ENV === "development"
+      ? (err?.message ?? "Internal server error")
+      : "Internal server error";
   res.status(500).json({
     success: false,
-    error: { message: "Internal server error" },
+    error: { message },
   });
 }

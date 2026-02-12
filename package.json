@@ -5,7 +5,14 @@
         "build": "turbo run build",
         "dev": "turbo run dev",
         "lint": "turbo run lint",
-        "format": "prettier --write \"**/*.{ts,tsx,md}\""
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "db:up": "docker compose up -d",
+        "db:up:local": "bash scripts/db-start.sh",
+        "db:migrate": "pnpm --filter @repo/db-customer prisma:migrate:dev",
+        "db:setup": "bash scripts/db-start.sh && sleep 3 && pnpm db:migrate",
+        "prisma:migrate:dev": "pnpm --filter @repo/db-customer prisma:migrate:dev",
+        "prisma:generate": "pnpm --filter @repo/db-customer prisma:generate",
+        "prisma:studio": "pnpm --filter @repo/db-customer prisma:studio"
     },
     "devDependencies": {
         "turbo": "latest",
