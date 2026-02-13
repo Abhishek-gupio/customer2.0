@@ -6,6 +6,7 @@ export type RootStackParamList = {
   Signin: undefined;
   Signup: undefined;
   OTP: { phone?: string; otp?: string };
+  LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
 };
 

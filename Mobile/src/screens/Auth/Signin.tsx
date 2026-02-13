@@ -9,19 +9,62 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
   type ImageSourcePropType,
 } from 'react-native';
-import { Phone, ArrowRight } from 'lucide-react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { login as loginApi } from '../../services/authService';
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signin'>;
 
 export default function Signin() {
   const navigation = useNavigation<SigninScreenNavigationProp>();
   const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 10) {
+      setError('Enter a valid 10-digit phone number');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const phoneNumber = digits.length === 10 ? `+91${digits}` : phone.trim();
+      const data = await loginApi(phoneNumber);
+      navigation.navigate('OTP', {
+        phone: phoneNumber,
+        ...(data.otp && { otp: data.otp }),
+      });
+      if (data.otp) {
+        Alert.alert('Dev OTP', `Use this OTP: ${data.otp}`, [{ text: 'OK' }]);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Sign in failed';
+      if (message.toLowerCase().includes('please sign up') || message.toLowerCase().includes('sign up')) {
+        setError('Please sign up');
+        Alert.alert('Not registered', 'This number is not registered. Please sign up.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign Up', onPress: () => navigation.navigate('Signup') },
+        ]);
+      } else {
+        setError(message);
+        Alert.alert('Sign in failed', message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -44,26 +87,34 @@ export default function Signin() {
         <Text style={styles.subtitle}>Sign in to continue</Text>
 
         <View style={styles.inputWrap}>
-          <Phone size={20} color="#AAAAAA" style={styles.inputIcon} />
+          <Icon name="phone" size={wp(5)} color="#AAAAAA" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter phone number"
             placeholderTextColor="#AAAAAA"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(t) => { setPhone(t); setError(''); }}
             keyboardType="phone-pad"
             autoCapitalize="none"
             autoCorrect={false}
           />
         </View>
 
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.submitButton}
-          onPress={() => {}}
+          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+          onPress={handleSubmit}
+          disabled={loading}
         >
-          <Text style={styles.submitText}>Submit</Text>
-          <ArrowRight size={20} color="#fff" />
+          {loading ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <>
+              <Text style={styles.submitText}>Submit</Text>
+              <Icon name="arrow-right" size={wp(5)} color="#000" />
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.orRow}>
@@ -77,7 +128,7 @@ export default function Signin() {
           style={styles.socialButton}
           onPress={() => {}}
         >
-          <Icon name="google" size={20} color="#fff" style={styles.socialIcon} />
+          <Icon name="google" size={wp(5)} color="#fff" style={styles.socialIcon} />
           <Text style={styles.socialText}>Sign in with Google</Text>
         </TouchableOpacity>
 
@@ -86,7 +137,7 @@ export default function Signin() {
           style={styles.socialButton}
           onPress={() => {}}
         >
-          <Icon name="apple" size={22} color="#fff" style={styles.socialIcon} />
+          <Icon name="apple" size={wp(5.5)} color="#fff" style={styles.socialIcon} />
           <Text style={styles.socialText}>Sign in with Apple</Text>
         </TouchableOpacity>
 
@@ -109,49 +160,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 40,
+    flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(4),
   },
   logoWrap: {
-    marginBottom: 24,
+    marginBottom: hp(3),
     alignItems: 'center',
   },
   logo: {
-    width: 180,
-    height: 56,
+    width: wp(45),
+    height: hp(7),
   },
   welcomeBack: {
-    fontSize: 28,
+    fontSize: wp(7),
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 6,
+    marginBottom: hp(0.8),
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: wp(4),
     fontWeight: '400',
     color: 'rgba(255,255,255,0.85)',
-    marginBottom: 32,
+    marginBottom: hp(4),
+    textAlign: 'center',
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     backgroundColor: '#282828',
-    borderRadius: 14,
+    borderRadius: wp(3.5),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 16,
-    height: 52,
-    marginBottom: 14,
+    paddingHorizontal: wp(4),
+    height: hp(6.5),
+    marginBottom: hp(1.8),
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: wp(3),
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: wp(4),
     color: '#fff',
     paddingVertical: 0,
   },
@@ -160,24 +214,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    backgroundColor: '#202020',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    height: 52,
-    marginBottom: 28,
-    gap: 8,
+    backgroundColor: '#FFBF00',
+    borderRadius: wp(3.5),
+    height: hp(6.5),
+    marginBottom: hp(3.5),
+    gap: wp(2),
   },
   submitText: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: '700',
-    color: '#fff',
+    color: '#000',
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  errorText: {
+    fontSize: wp(3.5),
+    color: '#f66',
+    marginBottom: hp(1.5),
+    textAlign: 'center',
+    width: '100%',
   },
   orRow: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 28,
+    marginBottom: hp(3.5),
   },
   orLine: {
     flex: 1,
@@ -185,9 +247,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   orText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: '#888',
-    marginHorizontal: 14,
+    marginHorizontal: wp(3.5),
   },
   socialButton: {
     flexDirection: 'row',
@@ -195,36 +257,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     backgroundColor: '#202020',
-    borderRadius: 14,
-    height: 52,
-    marginBottom: 12,
+    borderRadius: wp(3.5),
+    height: hp(6.5),
+    marginBottom: hp(1.5),
   },
   socialIcon: {
-    marginRight: 12,
+    marginRight: wp(3),
   },
   socialText: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: '600',
     color: '#fff',
   },
   footerText: {
-    fontSize: 15,
+    fontSize: wp(3.8),
     color: '#888',
-    marginTop: 24,
-    marginBottom: 10,
+    marginTop: hp(3),
+    marginBottom: hp(1.2),
+    textAlign: 'center',
   },
   signUpButton: {
     width: '100%',
     backgroundColor: '#111',
-    borderRadius: 14,
+    borderRadius: wp(3.5),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    height: 52,
+    height: hp(6.5),
     alignItems: 'center',
     justifyContent: 'center',
   },
   signUpText: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: '600',
     color: '#fff',
   },

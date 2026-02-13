@@ -98,6 +98,13 @@ export const authService = {
   },
 
   async login(phoneNumber: string) {
+    const phone = normalizePhone(phoneNumber);
+    const existing = await dbInstances.customer.findUnique({
+      where: { phoneNumber: phone },
+    });
+    if (!existing) {
+      throw AppError.notFound("Please sign up");
+    }
     const canSend = await otpStore.checkRateLimit(phoneNumber);
     if (!canSend) {
       throw AppError.tooManyRequests(

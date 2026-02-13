@@ -69,6 +69,20 @@ export type VerifyOtpResponse = {
   expiresIn: number;
 };
 
+export type LoginResponse = {
+  message: string;
+  requiresOtpVerification?: boolean;
+  otp?: string;
+};
+
+export async function login(phoneNumber: string): Promise<LoginResponse> {
+  const phone = normalizePhone(phoneNumber);
+  const body = {
+    phoneNumber: phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${phone}`,
+  };
+  return api.post<LoginResponse>('/login', body);
+}
+
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
   const phone = normalizePhone(payload.phoneNumber);
   const body = {

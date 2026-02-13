@@ -9,6 +9,7 @@ import SigninFirst from '../screens/Auth/Signin_first';
 import Signin from '../screens/Auth/Signin';
 import Signup from '../screens/Auth/Signup';
 import OTP from '../screens/Auth/OTP';
+import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
 import Home from '../screens/Main/Home';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useAppSelector } from '../store/hooks';
@@ -55,6 +56,7 @@ export function RootNavigator() {
       <Stack.Screen name="Signin" component={Signin} />
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="OTP" component={OTP} />
+      <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
       <Stack.Screen name="Main" component={MainScreen} />
     </Stack.Navigator>
   );

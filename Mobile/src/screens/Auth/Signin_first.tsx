@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
   },
   carImage: {
     width: width * 1.14,
-    maxWidth: 460,
-    height: width * 0.6,
+    maxWidth: 760,
+    height: width * 0.8,
   },
   buttonSection: {
     paddingBottom: 8,

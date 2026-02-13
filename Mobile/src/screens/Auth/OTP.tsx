@@ -5,13 +5,21 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Image,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   Alert,
+  type ImageSourcePropType,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
 } from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useRoute, useNavigation, type RouteProp } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -73,7 +81,7 @@ export default function OTP() {
     try {
       const result = await verifyOtp(phoneFromParams, code);
       dispatch(setUser({ id: result.userId ?? '', email: undefined }));
-      navigation.replace('Main', { screen: 'Home' });
+      navigation.replace('LoginSuccessfull');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Invalid OTP';
       Alert.alert('Verification failed', message);
@@ -87,11 +95,35 @@ export default function OTP() {
       style={styles.keyboard}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.container}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.backButton}
+        onPress={() => navigation.navigate('Signin')}
+      >
+        <Icon name="arrow-left" size={wp(5.5)} color="#fff" />
+      </TouchableOpacity>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Image
+          source={require('../../assets/images/logo.png') as ImageSourcePropType}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
         <Text style={styles.title}>ENTER OTP</Text>
-        {otpFromParams ? (
-          <Text style={styles.devOtpText}>Dev OTP: {otpFromParams}</Text>
-        ) : null}
+        <Text style={styles.subtitle}>OTP sent on Your registered Phone number</Text>
+
+        <Image
+          source={require('../../assets/images/Car_OTP.png') as ImageSourcePropType}
+          style={styles.illustration}
+          resizeMode="contain"
+        />
+
+        <Text style={styles.inputCodeLabel}>Input code</Text>
 
         <View style={styles.otpRow}>
           {Array.from({ length: OTP_LENGTH }, (_, i) => (
@@ -112,6 +144,10 @@ export default function OTP() {
           ))}
         </View>
 
+        {otpFromParams ? (
+          <Text style={styles.devOtpText}>Dev OTP: {otpFromParams}</Text>
+        ) : null}
+
         <TouchableOpacity
           activeOpacity={0.85}
           style={[styles.confirmButton, loading && styles.confirmButtonDisabled]}
@@ -119,12 +155,12 @@ export default function OTP() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#000" />
           ) : (
             <Text style={styles.confirmText}>CONFIRM</Text>
           )}
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -134,48 +170,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0a0a0a',
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 80,
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: wp(8),
+    paddingTop: hp(12),
+    paddingBottom: hp(5),
+  },
+  backButton: {
+    position: 'absolute',
+    left: wp(6),
+    top: hp(5),
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  logo: {
+    width: wp(40),
+    height: hp(6),
+    marginBottom: hp(2),
   },
   title: {
-    fontSize: 26,
+    fontSize: wp(6.5),
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: hp(1),
     letterSpacing: 1,
+    textAlign: 'center',
   },
-  devOtpText: {
-    fontSize: 18,
-    color: '#FFBF00',
-    marginBottom: 24,
+  subtitle: {
+    fontSize: wp(3.8),
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: hp(2.5),
+    textAlign: 'center',
+  },
+  illustration: {
+    width: wp(75),
+    height: hp(20),
+    marginBottom: hp(2.5),
+  },
+  inputCodeLabel: {
+    fontSize: wp(4),
     fontWeight: '600',
+    color: '#fff',
+    marginBottom: hp(1.5),
+    textAlign: 'center',
   },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 10,
-    marginBottom: 48,
+    gap: wp(2.5),
+    marginBottom: hp(2),
   },
   otpBox: {
-    width: 44,
-    height: 52,
+    width: wp(12),
+    height: hp(6.5),
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: wp(2),
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.12)',
-    fontSize: 22,
+    fontSize: wp(5.5),
     fontWeight: '600',
     color: '#111',
     textAlign: 'center',
     padding: 0,
   },
+  devOtpText: {
+    fontSize: wp(4),
+    color: '#FFBF00',
+    marginBottom: hp(2),
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   confirmButton: {
     width: '100%',
     maxWidth: 320,
-    backgroundColor: '#243b32',
+    backgroundColor: '#FFBF00',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -184,7 +259,7 @@ const styles = StyleSheet.create({
   confirmText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: '#000',
     letterSpacing: 1,
   },
   confirmButtonDisabled: {
