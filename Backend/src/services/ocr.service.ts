@@ -94,6 +94,59 @@ export const ocrService = {
     },
 
     /**
+     * Parse generic receipts/bills (Fuel, Service, Restaurants, etc.)
+     */
+    async parseReceipt(imageBuffer: Buffer, mimeType: string): Promise<Record<string, any>> {
+        if (!genAI) {
+            // Fallback to text extraction
+            const text = await this.extractText(imageBuffer);
+            return { rawText: text, amount: null, error: "AI not configured" };
+        }
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const prompt = `
+                Analyze this receipt/bill image and extract expense details.
+                
+                Return a JSON object with:
+                - amount: (Number - total amount paid. Look for Total, Grand Total, or largest amount. Ignore tax breakdown.)
+                - merchantName: (Name of the shop, petrol pump, or service center)
+                - date: (YYYY-MM-DD format)
+                - category: (One of: FUEL, TOLL, PARKING, SERVICE, INSURANCE, CHALLAN, OTHER)
+                - vehicleNumber: (Vehicle registration number if visible, e.g., "DL01AB1234")
+                - notes: (Any relevant details like fuel quantity, items purchased)
+                - rawText: (Full text visible on the receipt for indexing)
+                
+                Rules:
+                1. Return valid JSON only.
+                2. Be precise with the Amount.
+            `;
+
+            const imagePart: Part = {
+                inlineData: {
+                    data: imageBuffer.toString("base64"),
+                    mimeType
+                }
+            };
+
+            const result = await model.generateContent([prompt, imagePart]);
+            const response = await result.response;
+            const text = response.text();
+
+            const jsonStr = text.replace(/```json|```/g, "").trim();
+            const parsed = JSON.parse(jsonStr);
+
+            return parsed;
+
+        } catch (error) {
+            logger.error({ error }, "Gemini Receipt parsing failed");
+            // Fallback to text extraction
+            const text = await this.extractText(imageBuffer);
+            return { rawText: text, error: "AI parsing failed" };
+        }
+    },
+
+    /**
      * Simple regex-based fallback for when AI is unavailable
      */
     async basicRegexParse(text: string): Promise<Record<string, any>> {

@@ -15,6 +15,8 @@ interface UploadedFile extends Express.Multer.File { }
 // Cast for new models until TS picks up regenerated Prisma types
 const db = dbInstances as any;
 
+import { ingestionService } from "../../services/ingestion.service";
+
 export const expenseService = {
     /**
      * Core: Add Manual Expense
@@ -69,6 +71,9 @@ export const expenseService = {
                 logger.debug({ err }, "Fuel price enrichment failed (non-critical)");
             }
         }
+
+        // Ingest into AI Memory
+        ingestionService.ingestExpense(expense.id).catch(err => logger.error({ err }, "Expense ingestion failed"));
 
         return { expense, fuelIntelligence };
     },
@@ -547,20 +552,87 @@ export const expenseService = {
         // 1. Upload
         const uploaded = await storageService.uploadFile(file, `expenses/${customerId}`);
 
-        // 2. Perform OCR
-        let text = "";
+        // 2. Perform OCR & Parsing using dedicated receipt parser
+        let aiResult: any = {};
         try {
-            const result = await ocrService.parseDocument(file.buffer, file.mimetype);
-            text = result.rawText || "";
-            // If GenAI returns structured data, use it. For now assume raw text fallback or GenAI result
+            aiResult = await ocrService.parseReceipt(file.buffer, file.mimetype);
         } catch (e) {
-            text = await ocrService.extractText(file.buffer);
+            // Fallback
+            aiResult = { rawText: await ocrService.extractText(file.buffer) };
         }
 
-        // 3. Feed text into Parser
-        // We do a 'dry run' of parsing basically
+        // 3. If AI found structured data (amount is key), use it directly
+        if (aiResult.amount) {
+            // Deduplication Check
+            const dupCheck = await expenseIntelligenceService.isDuplicate(
+                customerId,
+                aiResult.amount,
+                aiResult.category || "OTHER",
+                aiResult.date ? new Date(aiResult.date) : new Date()
+            );
+
+            if (dupCheck.isDuplicate) {
+                return {
+                    success: false,
+                    skipped: true,
+                    reason: dupCheck.reason,
+                    existingExpenseId: dupCheck.existingExpenseId
+                };
+            }
+
+            // Find vehicle: Try to match by reg number from receipt, else default to primary
+            let vehicleId = null;
+            if (aiResult.vehicleNumber) {
+                const matchedVehicle = await dbInstances.customerVehicle.findFirst({
+                    where: {
+                        customerId,
+                        registrationNumber: { contains: aiResult.vehicleNumber, mode: "insensitive" }
+                    },
+                    select: { id: true }
+                });
+                if (matchedVehicle) vehicleId = matchedVehicle.id;
+            }
+
+            // Fallback: Use primary vehicle if not found by reg number
+            if (!vehicleId) {
+                const primaryVehicle = await dbInstances.customerVehicle.findFirst({
+                    where: { customerId, isPrimary: true },
+                    select: { id: true }
+                });
+                if (primaryVehicle) {
+                    vehicleId = primaryVehicle.id;
+                } else {
+                    // Fallback to any first vehicle
+                    const anyVehicle = await dbInstances.customerVehicle.findFirst({
+                        where: { customerId },
+                        select: { id: true }
+                    });
+                    if (anyVehicle) vehicleId = anyVehicle.id;
+                }
+            }
+
+            const expense = await db.expense.create({
+                data: {
+                    customerId,
+                    vehicleId,
+                    amount: aiResult.amount,
+                    category: aiResult.category || "OTHER",
+                    merchantName: aiResult.merchantName || "Unknown Merchant",
+                    date: aiResult.date ? new Date(aiResult.date) : new Date(),
+                    source: "RECEIPT",
+                    rawText: aiResult.rawText || aiResult.notes || "Receipt Upload",
+                    isAutomated: true,
+                    receiptUrl: uploaded.url,
+                    mimeType: file.mimetype,
+                    notes: aiResult.notes
+                }
+            });
+            return { success: true, expense };
+        }
+
+        // 4. Fallback: Feed raw text into Parser if AI failed structured parse
         const parsed = await this.parseExpenseText(customerId, {
-            text: text,
+            text: aiResult.rawText || "",
             source: "RECEIPT",
             timestamp: new Date().toISOString()
         });

@@ -6,6 +6,7 @@ import { vehicleRoutes } from "./modules/vehicle/vehicle.routes";
 import { sharingRoutes } from "./modules/sharing/sharing.routes";
 import { notificationRoutes } from "./modules/notification/notification.routes";
 import { expenseRoutes } from "./modules/expense/expense.routes";
+import { chatRoutes } from "./modules/chat/chat.routes";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/v1/vehicles", vehicleRoutes);
 router.use("/v1/sharing", sharingRoutes);
 router.use("/v1/notifications", notificationRoutes);
 router.use("/v1/expenses", expenseRoutes);
+router.use("/v1/chat", chatRoutes);
 
 export const apiRoutes = router;

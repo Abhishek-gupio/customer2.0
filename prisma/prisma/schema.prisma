@@ -1,11 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "./generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  schemas  = ["customer"]
+  provider   = "postgresql"
+  schemas    = ["customer"]
+  extensions = [vector]
 }
 
 model User {
@@ -34,6 +35,7 @@ model Customer {
   budgets        ExpenseBudget[]
   notifications  InAppNotification[]
   sharedVehicles VehicleAccess[]
+  chats          ChatSession[]
 
   @@schema("customer")
 }
@@ -209,6 +211,47 @@ model InAppNotification {
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
+  @@schema("customer")
+}
+
+model ChatSession {
+  id         String        @id @default(cuid())
+  customerId String
+  title      String?
+  isActive   Boolean       @default(true)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  messages   ChatMessage[]
+  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  role      String      // "user", "assistant", "system"
+  content   String
+  metadata  Json?       // For tool calls, citations, etc.
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@schema("customer")
+}
+
+model DocumentEmbedding {
+  id         String                 @id @default(cuid())
+  customerId String
+  entityId   String                 // ID of Expense, Document, etc.
+  entityType String                 // "EXPENSE", "DOCUMENT", "VEHICLE"
+  content    String
+  vector     Unsupported("vector")?
+  createdAt  DateTime               @default(now())
+
+  @@index([customerId])
+  @@index([entityId])
   @@schema("customer")
 }
 

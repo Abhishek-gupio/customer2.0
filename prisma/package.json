@@ -14,11 +14,12 @@
         "prisma:generate": "prisma generate",
         "prisma:migrate:dev": "prisma migrate dev",
         "prisma:studio": "prisma studio",
-        "build": "tsc -p tsconfig.json && mkdir -p dist/prisma && cp -r prisma/generated dist/prisma/",
+        "build": "tsc -p tsconfig.json",
         "prepare": "pnpm prisma:generate"
     },
     "devDependencies": {
         "@prisma/client": "^7.3.0",
+        "@prisma/client-runtime-utils": "^7.4.0",
         "@types/node": "^24.7.1",
         "@types/pg": "^8.16.0",
         "prisma": "^7.3.0",
