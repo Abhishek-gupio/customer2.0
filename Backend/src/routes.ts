@@ -7,6 +7,9 @@ import { sharingRoutes } from "./modules/sharing/sharing.routes";
 import { notificationRoutes } from "./modules/notification/notification.routes";
 import { expenseRoutes } from "./modules/expense/expense.routes";
 import { chatRoutes } from "./modules/chat/chat.routes";
+import { telematicsRoutes } from "./modules/telematics/telematics.routes";
+
+import { aiRoutes } from "./modules/ai/ai.routes";
 
 const router = Router();
 
@@ -18,5 +21,7 @@ router.use("/v1/sharing", sharingRoutes);
 router.use("/v1/notifications", notificationRoutes);
 router.use("/v1/expenses", expenseRoutes);
 router.use("/v1/chat", chatRoutes);
+router.use("/v1/telematics", telematicsRoutes);
+router.use("/v1/ai", aiRoutes);
 
 export const apiRoutes = router;

@@ -129,6 +129,8 @@ model CustomerVehicle {
   serviceRecords     ServiceRecord[]
   accessList         VehicleAccess[]
   healthScore        VehicleHealthScore?
+  telematicsDevice   TelematicsDevice?
+  drivingTrips       DrivingTrip[]
 
   @@index([customerId])
   @@schema("customer")
@@ -352,6 +354,62 @@ model ServicePart {
 
   @@index([serviceRecordId])
   @@index([partType])
+  @@schema("customer")
+}
+
+model TelematicsDevice {
+  id           String          @id @default(cuid())
+  vehicleId    String          @unique
+  instanceId   String          @unique // Damoov Instance ID
+  deviceToken  String?         // Damoov Device Token
+  platform     String?         // iOS/Android
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  vehicle      CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model DrivingTrip {
+  id             String          @id @default(cuid())
+  vehicleId      String
+  tripId         String          @unique // Damoov Trip ID
+  startTime      DateTime
+  endTime        DateTime
+  distanceKm     Float
+  durationMin    Float
+  maxSpeed       Float?
+  avgSpeed       Float?
+  fuelConsumed   Float?
+  safetyScore    Int            // 0-100
+  startLocation  Json?          // {lat, lng, address}
+  endLocation    Json?          // {lat, lng, address}
+  status         String         // COMPLETED, ONGOING
+  createdAt      DateTime       @default(now())
+  
+  vehicle        CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  events         DrivingEvent[]
+
+  @@index([vehicleId])
+  @@index([startTime])
+  @@schema("customer")
+}
+
+model DrivingEvent {
+  id           String       @id @default(cuid())
+  tripId       String
+  eventType    String       // HARSH_BRAKING, HARSH_ACCEL, PHONE_USAGE, SPEEDING
+  timestamp    DateTime
+  latitude     Float
+  longitude    Float
+  severity     Float?       // 0.0 - 1.0 (g-force or other metric)
+  speed        Float?
+  createdAt    DateTime     @default(now())
+  
+  trip         DrivingTrip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
   @@schema("customer")
 }
 

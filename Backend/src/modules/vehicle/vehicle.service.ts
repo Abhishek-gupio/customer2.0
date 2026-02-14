@@ -3,6 +3,7 @@ import { AppError } from "../../utils/AppError";
 import { AddVehicleInput, UpdateVehicleInput, AddOdometerInput } from "./vehicle.validators";
 import { logger } from "../../config/logger";
 import { predictionService } from "../../services/prediction.service";
+import { ocrService } from "../../services/ocr.service";
 
 export const vehicleService = {
     async addVehicle(customerId: string, input: AddVehicleInput) {
@@ -150,7 +151,6 @@ export const vehicleService = {
     },
 
     async updateOdometerViaAI(customerId: string, vehicleId: string, file: Express.Multer.File) {
-        const { ocrService } = require("../../services/ocr.service");
         const reading = await ocrService.parseOdometer(file.buffer, file.mimetype);
 
         if (!reading) {

@@ -196,5 +196,44 @@ export const aiService = {
             orderBy: { updatedAt: "desc" },
             select: { id: true, title: true, updatedAt: true }
         });
+    },
+
+    /**
+     * AI DRIVING COACH
+     * Generates a short, actionable advice sentence based on recent driving events.
+     */
+    async generateDrivingCoachAdvice(events: any[], context: any) {
+        if (!genAI) throw new Error("AI not configured");
+
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+            You are a friendly, calm driving instructor.
+            Analyze these recent driving events from the last 5 minutes:
+            ${JSON.stringify(events)}
+
+            Context:
+            - Speed: ${context.currentSpeed || "Unknown"} km/h
+            - Weather: ${context.weather || "Unknown"}
+            - Time: ${new Date().toLocaleTimeString()}
+
+            Task:
+            Generate a SINGLE, SHORT sentence (max 15 words) of advice to help the driver improve safety.
+            It will be spoken via Text-to-Speech, so make it natural and encouraging.
+            If no serious events, say something positive like "You're driving smoothly, keep it up!".
+            
+            Crucial:
+            - No "Hello" or greetings.
+            - No generic safety slogans like "Safety first".
+            - Be specific to the events (e.g. "Try to brake more gently").
+        `;
+
+        try {
+            const result = await model.generateContent(prompt);
+            return result.response.text().trim();
+        } catch (error) {
+            logger.error({ error }, "AI Coach generation failed");
+            return "Drive safely and maintain a steady speed."; // Fallback
+        }
     }
 };
