@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
@@ -46,4 +46,4 @@ export const dbInstances = (global.prisma ??
 
 if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
 
-export * from '@prisma/client';
+export * from '../generated/client';
