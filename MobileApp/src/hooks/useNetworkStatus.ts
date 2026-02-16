@@ -1,2 +1,0 @@
-// useNetworkStatus - Gupio plan
-export {};
