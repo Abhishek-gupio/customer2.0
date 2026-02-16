@@ -11,6 +11,8 @@ import { telematicsRoutes } from "./modules/telematics/telematics.routes";
 
 import { aiRoutes } from "./modules/ai/ai.routes";
 
+import { sosRoutes } from "./modules/sos/sos.routes";
+
 const router = Router();
 
 router.use("/v1/auth", authRoutes);
@@ -23,5 +25,6 @@ router.use("/v1/expenses", expenseRoutes);
 router.use("/v1/chat", chatRoutes);
 router.use("/v1/telematics", telematicsRoutes);
 router.use("/v1/ai", aiRoutes);
+router.use("/v1/sos", sosRoutes);
 
 export const apiRoutes = router;

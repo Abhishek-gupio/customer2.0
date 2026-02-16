@@ -24,7 +24,8 @@
 
 ---
 
-## 🔐 1. AUTH FLOW (4 Screens)
+## 🔐 1. AUTH MODULE (Matches `auth.swagger.ts`)
+**Screens:** Welcome, Login, OTP, Success
 
 ```
 ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────────┐
@@ -121,22 +122,10 @@ API: Stores token → AsyncStorage
 
 ---
 
-## 🏠 2. MAIN APP — Bottom Tab Navigation
+## 👤 2. CUSTOMER MODULE (Matches `customer.swagger.ts`)
+**Screens:** Home (Dashboard), More Menu, Edit Profile
 
-```
-┌─────────────────────────────────────────────┐
-│                                             │
-│              SCREEN CONTENT                 │
-│                                             │
-├──────────┬──────────┬──────────┬────────────┤
-│  🏠 Home │  🤖 AI   │  🔔 Notif│  ☰ More   │
-└──────────┴──────────┴──────────┴────────────┘
-     Tab 1     Tab 2     Tab 3      Tab 4
-```
-
----
-
-## 🏠 2.1 HOME SCREEN (Tab 1)
+### 2.1 HOME SCREEN (Tab 1 / Dashboard)
 
 ```
 ┌─────────────────────────┐
@@ -196,17 +185,82 @@ APIs Used:
   GET /v1/notifications           → Notification badge count
 ```
 
+### 2.2 MORE / PROFILE SCREEN (Tab 4)
+
+```
+┌─────────────────────────┐
+│ ☰ More                  │
+│─────────────────────────│
+│ ┌───────────────────┐   │
+│ │ 👤 Abhishek Kumar  │   │
+│ │ +91 98765XXXXX     │   │
+│ │ [View Profile] ➜   │   │
+│ └───────────────────┘   │
+│─────────────────────────│
+│ 🚗  My Vehicles     ➜   │  → Vehicle List
+│ 📄  My Documents     ➜   │  → Document List
+│ 💰  Expenses         ➜   │  → Expense List
+│ ⛽  Fuel Prices      ➜   │  → Fuel Price Screen
+│ 🔧  Service History  ➜   │  → Service History
+│ 🔗  Shared Vehicles  ➜   │  → Shared With Me
+│─────────────────────────│
+│ ⚙️  Settings         ➜   │
+│ ❓  Help & Support   ➜   │
+│ 📜  Terms & Privacy  ➜   │
+│─────────────────────────│
+│ ┌─────────────────┐     │
+│ │  🚪 Logout       │     │
+│ └─────────────────┘     │
+└─────────────────────────┘
+
+APIs:
+  GET  /v1/customer/profile  → Profile info
+  POST /v1/auth/logout       → Logout button
+```
+
+### 2.3 Edit Profile Screen
+```
+┌─────────────────────────┐
+│ ← Edit Profile          │
+│─────────────────────────│
+│       ┌─────┐           │
+│       │ 👤  │ [Change]  │  ← Profile pic upload
+│       └─────┘           │
+│ Full Name                │
+│ ┌─────────────────┐     │
+│ │ Abhishek Kumar  │     │
+│ └─────────────────┘     │
+│ Email                    │
+│ ┌─────────────────┐     │
+│ │ abhi@email.com  │     │
+│ └─────────────────┘     │
+│ Phone (read-only)        │
+│ ┌─────────────────┐     │
+│ │ +91 98765XXXXX  │     │  ← Disabled
+│ └─────────────────┘     │
+│                         │
+│ ┌─────────────────┐     │
+│ │  Save Changes ➜ │     │
+│ └─────────────────┘     │
+└─────────────────────────┘
+
+APIs:
+  GET /v1/customer/profile    → Load current profile
+  PUT /v1/customer/profile    → Save changes
+      Body: { fullName, email, profilePic }
+  POST /v1/customer/device    → Register device token
+```
+
 ---
 
-## 🚗 3. VEHICLE MODULE (5 Screens)
+## 🚗 3. VEHICLE MODULE (Matches `vehicle.swagger.ts`)
+**Screens:** List, Add, Detail, Challans
 
 ```
 Home ──▶ Vehicle List ──▶ Vehicle Detail ──▶ Health Score
               │                  │
-              ▼                  ├──▶ Challans
-         Add Vehicle             ├──▶ Service History
-                                 ├──▶ Odometer Log
-                                 └──▶ Sharing
+              ▼                  └──▶ Challans
+         Add Vehicle
 ```
 
 ### 3.1 Vehicle List Screen
@@ -230,7 +284,7 @@ Home ──▶ Vehicle List ──▶ Vehicle Detail ──▶ Health Score
 │              ┌────────┐ │
 │              │ + Add  │ │  ← FAB → Add Vehicle Screen
 │              └────────┘ │
-└─────────────────────────┘
+│ └─────────────────────────┘
 
 API: GET /v1/vehicles
 ```
@@ -308,7 +362,7 @@ API: POST /v1/vehicles
 │ │📄  ││🔧  ││📋  ││🔗  ││
 │ │Docs││Srvc││Chln││Share│
 │ └────┘└────┘└────┘└────┘│
-└─────────────────────────┘
+│ └─────────────────────────┘
 
 APIs:
   GET    /v1/vehicles/:id                    → Vehicle info
@@ -348,46 +402,10 @@ APIs:
   PATCH /v1/vehicles/challans/:id/pay          → Mark as Paid
 ```
 
-### 3.5 Vehicle Sharing Screen
-```
-┌─────────────────────────┐
-│ ← Share Vehicle          │
-│─────────────────────────│
-│ MH12AB1234 - Swift       │
-│─────────────────────────│
-│ ── People with Access ── │
-│ ┌───────────────────┐   │
-│ │ 👤 Rahul (Owner)   │   │
-│ │ +91 98765XXXXX     │   │
-│ └───────────────────┘   │
-│ ┌───────────────────┐   │
-│ │ 👤 Priya (Viewer)  │   │
-│ │ +91 87654XXXXX     │   │
-│ │            [Revoke]│   │  ← Revoke button
-│ └───────────────────┘   │
-│─────────────────────────│
-│ ── Invite New ────────  │
-│ Phone Number             │
-│ ┌─────────────────┐     │
-│ │ +91              │     │
-│ └─────────────────┘     │
-│ Role: ○ Viewer ○ Editor  │
-│ ┌─────────────────┐     │
-│ │   Share  ➜      │     │
-│ └─────────────────┘     │
-└─────────────────────────┘
-
-APIs:
-  GET    /v1/sharing/vehicle/:vehicleId/access                     → List access
-  POST   /v1/sharing/share                                         → Share
-         Body: { vehicleId, phoneNumber, role }
-  DELETE /v1/sharing/vehicle/:vehicleId/access/:targetCustomerId   → Revoke
-  GET    /v1/sharing/shared-with-me                                → Shared vehicles
-```
-
 ---
 
-## 📄 4. DOCUMENT MODULE (3 Screens)
+## 📄 4. DOCUMENT MODULE (Matches `document.swagger.ts`)
+**Screens:** List, Upload, Detail, DigiLocker
 
 ```
 Home ──▶ Document List ──▶ Document Detail
@@ -499,7 +517,8 @@ APIs:
 
 ---
 
-## 💰 5. EXPENSE MODULE (5 Screens)
+## 💰 5. EXPENSE MODULE (Matches `expense.swagger.ts`)
+**Screens:** Expense List, Add Expense, Analytics, Budget, Fuel Prices, Service History, Warranty
 
 ```
 Home ──▶ Expense List ──▶ Expense Detail
@@ -507,7 +526,8 @@ Home ──▶ Expense List ──▶ Expense Detail
               ├──▶ Add Expense (Manual / Voice / Receipt / Text)
               ├──▶ Expense Summary & Analytics
               ├──▶ Budget Settings
-              └──▶ Insights
+              ├──▶ Fuel Price Module
+              └──▶ Warranty & Service Module
 ```
 
 ### 5.1 Expense List Screen
@@ -651,10 +671,7 @@ API: POST /v1/expenses/budgets
      Body: { category, amount, period, notifyThreshold }
 ```
 
----
-
-## ⛽ 6. FUEL PRICE MODULE (1 Screen)
-
+### 5.5 Fuel Price Screens (Sub-module)
 ```
 ┌─────────────────────────┐
 │ ← Fuel Prices           │
@@ -684,11 +701,9 @@ APIs:
   POST /v1/expenses/fuel-prices/calculate-liters → Calculator
 ```
 
----
+### 5.6 Warranty & Service Screens (Sub-module)
 
-## 🔧 7. WARRANTY & SERVICE MODULE (2 Screens)
-
-### 7.1 Service History Screen
+**Service History Screen**
 ```
 ┌─────────────────────────┐
 │ ← Service History       │
@@ -719,7 +734,7 @@ APIs:
   GET  /v1/expenses/warranty/providers                      → Garage list
 ```
 
-### 7.2 Warranty Status Screen
+**Warranty Status Screen**
 ```
 ┌─────────────────────────┐
 │ ← Parts & Warranty      │
@@ -752,8 +767,88 @@ APIs:
 
 ---
 
-## 🤖 8. AI CHAT MODULE (Tab 2)
+## 🔗 6. SHARING MODULE (Matches `sharing.swagger.ts`)
+**Screens:** Vehicle Sharing (Moved from Vehicle Module)
 
+### 6.1 Vehicle Sharing Screen
+```
+┌─────────────────────────┐
+│ ← Share Vehicle          │
+│─────────────────────────│
+│ MH12AB1234 - Swift       │
+│─────────────────────────│
+│ ── People with Access ── │
+│ ┌───────────────────┐   │
+│ │ 👤 Rahul (Owner)   │   │
+│ │ +91 98765XXXXX     │   │
+│ └───────────────────┘   │
+│ ┌───────────────────┐   │
+│ │ 👤 Priya (Viewer)  │   │
+│ │ +91 87654XXXXX     │   │
+│ │            [Revoke]│   │  ← Revoke button
+│ └───────────────────┘   │
+│─────────────────────────│
+│ ── Invite New ────────  │
+│ Phone Number             │
+│ ┌─────────────────┐     │
+│ │ +91              │     │
+│ └─────────────────┘     │
+│ Role: ○ Viewer ○ Editor  │
+│ ┌─────────────────┐     │
+│ │   Share  ➜      │     │
+│ └─────────────────┘     │
+└─────────────────────────┘
+
+APIs:
+  GET    /v1/sharing/vehicle/:vehicleId/access                     → List access
+  POST   /v1/sharing/share                                         → Share
+         Body: { vehicleId, phoneNumber, role }
+  DELETE /v1/sharing/vehicle/:vehicleId/access/:targetCustomerId   → Revoke
+  GET    /v1/sharing/shared-with-me                                → Shared vehicles
+```
+
+---
+
+## 🔔 7. NOTIFICATION MODULE (Matches `notification.swagger.ts`)
+**Screens:** Notifications (Tab 3)
+
+### 7.1 Notification/Inbox Screen
+```
+┌─────────────────────────┐
+│ 🔔 Notifications        │
+│─────────────────────────│
+│ ── Today ─────────────  │
+│ ┌───────────────────┐   │
+│ │ ⚠️ PUC Expiring     │   │
+│ │ Your PUC for Swift │   │  ← Unread (bold)
+│ │ expires in 15 days │   │
+│ │ 2:30 PM     [•]   │   │  ← Unread dot
+│ └───────────────────┘   │
+│ ┌───────────────────┐   │
+│ │ 💰 Expense Logged  │   │
+│ │ ₹2,200 Fuel auto   │   │  ← Read (normal)
+│ │ detected from SMS  │   │
+│ │ 11:15 AM           │   │
+│ └───────────────────┘   │
+│ ── Earlier ───────────  │
+│ ┌───────────────────┐   │
+│ │ 🔧 Service Due     │   │
+│ │ Oil change due for │   │
+│ │ i20 in 500 km      │   │
+│ └───────────────────┘   │
+└─────────────────────────┘
+
+APIs:
+  GET   /v1/notifications             → List all
+  PATCH /v1/notifications/:id/read    → Mark as read (on tap)
+```
+
+---
+
+## 🤖 8. CHAT MODULE (Matches `chat.swagger.ts`)
+**Screens:** AI Chat (Tab 2)
+
+### 8.1 AI Chat Screen
 ```
 ┌─────────────────────────┐
 │ 🤖 Gupio AI        [New]│  ← New chat button
@@ -796,109 +891,7 @@ APIs:
 
 ---
 
-## 🔔 9. NOTIFICATIONS (Tab 3)
-
-```
-┌─────────────────────────┐
-│ 🔔 Notifications        │
-│─────────────────────────│
-│ ── Today ─────────────  │
-│ ┌───────────────────┐   │
-│ │ ⚠️ PUC Expiring     │   │
-│ │ Your PUC for Swift │   │  ← Unread (bold)
-│ │ expires in 15 days │   │
-│ │ 2:30 PM     [•]   │   │  ← Unread dot
-│ └───────────────────┘   │
-│ ┌───────────────────┐   │
-│ │ 💰 Expense Logged  │   │
-│ │ ₹2,200 Fuel auto   │   │  ← Read (normal)
-│ │ detected from SMS  │   │
-│ │ 11:15 AM           │   │
-│ └───────────────────┘   │
-│ ── Earlier ───────────  │
-│ ┌───────────────────┐   │
-│ │ 🔧 Service Due     │   │
-│ │ Oil change due for │   │
-│ │ i20 in 500 km      │   │
-│ └───────────────────┘   │
-└─────────────────────────┘
-
-APIs:
-  GET   /v1/notifications             → List all
-  PATCH /v1/notifications/:id/read    → Mark as read (on tap)
-```
-
----
-
-## ☰ 10. MORE / PROFILE (Tab 4)
-
-```
-┌─────────────────────────┐
-│ ☰ More                  │
-│─────────────────────────│
-│ ┌───────────────────┐   │
-│ │ 👤 Abhishek Kumar  │   │
-│ │ +91 98765XXXXX     │   │
-│ │ [View Profile] ➜   │   │
-│ └───────────────────┘   │
-│─────────────────────────│
-│ 🚗  My Vehicles     ➜   │  → Vehicle List
-│ 📄  My Documents     ➜   │  → Document List
-│ 💰  Expenses         ➜   │  → Expense List
-│ ⛽  Fuel Prices      ➜   │  → Fuel Price Screen
-│ 🔧  Service History  ➜   │  → Service History
-│ 🔗  Shared Vehicles  ➜   │  → Shared With Me
-│─────────────────────────│
-│ ⚙️  Settings         ➜   │
-│ ❓  Help & Support   ➜   │
-│ 📜  Terms & Privacy  ➜   │
-│─────────────────────────│
-│ ┌─────────────────┐     │
-│ │  🚪 Logout       │     │
-│ └─────────────────┘     │
-└─────────────────────────┘
-
-APIs:
-  GET  /v1/customer/profile  → Profile info
-  POST /v1/auth/logout       → Logout button
-```
-
-### 10.1 Edit Profile Screen
-```
-┌─────────────────────────┐
-│ ← Edit Profile          │
-│─────────────────────────│
-│       ┌─────┐           │
-│       │ 👤  │ [Change]  │  ← Profile pic upload
-│       └─────┘           │
-│ Full Name                │
-│ ┌─────────────────┐     │
-│ │ Abhishek Kumar  │     │
-│ └─────────────────┘     │
-│ Email                    │
-│ ┌─────────────────┐     │
-│ │ abhi@email.com  │     │
-│ └─────────────────┘     │
-│ Phone (read-only)        │
-│ ┌─────────────────┐     │
-│ │ +91 98765XXXXX  │     │  ← Disabled
-│ └─────────────────┘     │
-│                         │
-│ ┌─────────────────┐     │
-│ │  Save Changes ➜ │     │
-│ └─────────────────┘     │
-└─────────────────────────┘
-
-APIs:
-  GET /v1/customer/profile    → Load current profile
-  PUT /v1/customer/profile    → Save changes
-      Body: { fullName, email, profilePic }
-  POST /v1/customer/device    → Register device token
-```
-
----
-
-## 🗺️ COMPLETE SCREEN FLOW DIAGRAM
+## 🗺️ COMPLETE SCREEN FLOW DIAGRAM (Updated)
 
 ```
                           ┌─────────────┐
@@ -922,148 +915,21 @@ APIs:
              ┌────▼───┐ │  DETAIL   │ │  UPLOAD   │ │  ADD EXPENSE  │
              │SUCCESS │ └─────┬─────┘ └───────────┘ │ (4 methods)   │
              └────────┘       │                     └───────┬───────┘
-                        ┌─────┼─────┐                       │
-                        │     │     │               ┌───────▼───────┐
-                   ┌────▼┐┌───▼──┐┌─▼──┐            │  ANALYTICS    │
-                   │CHLN ││SHARE ││SRVC│            └───────────────┘
-                   └─────┘└──────┘└────┘
-
-         ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-         │   AI CHAT    │  │NOTIFICATIONS │  │    MORE      │
-         │   (Tab 2)    │  │   (Tab 3)    │  │   (Tab 4)    │
-         └──────┬───────┘  └──────────────┘  └──────┬───────┘
-                │                                    │
-         ┌──────▼───────┐                     ┌──────▼───────┐
-         │ CHAT HISTORY │                     │EDIT PROFILE  │
-         └──────────────┘                     └──────────────┘
+                        ┌─────┴─────┐                       │
+                        │   SHARE   │               ┌───────▼───────┐
+                        └───────────┘               │  ANALYTICS    │
+                                                    └───────┬───────┘
+         ┌──────────────┐  ┌──────────────┐                 │
+         │   AI CHAT    │  │NOTIFICATIONS │         ┌───────▼───────┐
+         │   (Tab 2)    │  │   (Tab 3)    │         │  WARRANTY &   │
+         └──────┬───────┘  └──────────────┘         │  FUEL SCREENS │
+                │                                   └───────────────┘
+         ┌──────▼───────┐                     ┌──────────────┐
+         │ CHAT HISTORY │                     │    MORE      │
+         └──────────────┘                     │   (Tab 4)    │
+                                              └──────┬───────┘
+                                                     │
+                                              ┌──────▼───────┐
+                                              │EDIT PROFILE  │
+                                              └──────────────┘
 ```
-
----
-
-## 📊 API ↔ SCREEN MAPPING TABLE
-
-| # | Screen | APIs Used | Method |
-|---|--------|-----------|--------|
-| 1 | Welcome | *None* | Static |
-| 2 | Login | `POST /v1/auth/send-otp` | Send OTP |
-| 3 | OTP | `POST /v1/auth/verify-otp` | Verify & get token |
-| 4 | Success | *Token storage* | Auto-redirect |
-| 5 | Home | `GET /v1/customer/profile` | Greeting |
-|   |      | `GET /v1/vehicles` | Vehicle cards |
-|   |      | `GET /v1/documents/expiring` | Alerts |
-|   |      | `GET /v1/expenses/summary` | Monthly total |
-|   |      | `GET /v1/notifications` | Badge count |
-| 6 | Vehicle List | `GET /v1/vehicles` | Full list |
-| 7 | Add Vehicle | `POST /v1/vehicles` | Create vehicle |
-| 8 | Vehicle Detail | `GET /v1/vehicles/:id` | Details |
-|   |               | `POST /v1/vehicles/:id/health/recalculate` | Recalculate |
-|   |               | `POST /v1/vehicles/:id/odometer` | Update reading |
-|   |               | `POST /v1/vehicles/:id/odometer-ai` | AI scan photo |
-|   |               | `PUT /v1/vehicles/:id` | Edit |
-|   |               | `DELETE /v1/vehicles/:id` | Delete |
-| 9 | Challans | `GET /v1/vehicles/:id/challans` | List |
-|   |          | `POST /v1/vehicles/:id/challans/sync` | Sync |
-|   |          | `PATCH /v1/vehicles/challans/:id/pay` | Mark paid |
-| 10 | Sharing | `POST /v1/sharing/share` | Share |
-|    |         | `GET /v1/sharing/vehicle/:id/access` | List access |
-|    |         | `DELETE /v1/sharing/vehicle/:id/access/:cid` | Revoke |
-|    |         | `GET /v1/sharing/shared-with-me` | Incoming |
-| 11 | Document List | `GET /v1/documents` | All docs |
-| 12 | Upload Doc | `POST /v1/documents` | Upload + OCR |
-| 13 | Doc Detail | `GET /v1/documents/:id` | Details |
-|    |            | `POST /v1/documents/:id/verify` | Verify |
-|    |            | `DELETE /v1/documents/:id` | Delete |
-| 14 | DigiLocker | `GET /v1/documents/digilocker/connect` | OAuth |
-|    |            | `POST /v1/documents/digilocker/sync` | Sync docs |
-| 15 | Expense List | `GET /v1/expenses` | Filter + list |
-| 16 | Add Expense | `POST /v1/expenses` | Manual |
-|    |             | `POST /v1/expenses/parse/voice` | Voice |
-|    |             | `POST /v1/expenses/parse/receipt` | Receipt OCR |
-|    |             | `POST /v1/expenses/parse/text` | SMS parse |
-| 17 | Analytics | `GET /v1/expenses/summary` | Summary |
-|    |           | `GET /v1/expenses/insights` | AI insights |
-|    |           | `GET /v1/expenses/vehicles/:id/cost-per-km` | Efficiency |
-|    |           | `POST /v1/expenses/anomalies/check` | Anomaly check |
-| 18 | Budget | `POST /v1/expenses/budgets` | Set budget |
-| 19 | Fuel Prices | `GET /v1/expenses/fuel-prices` | Current |
-|    |             | `GET /v1/expenses/fuel-prices/compare` | Compare |
-|    |             | `POST /v1/expenses/fuel-prices/calculate-liters` | Calc |
-| 20 | Service History | `GET /v1/expenses/warranty/vehicles/:id/history` | History |
-|    |                 | `POST /v1/expenses/warranty/service-records` | Log service |
-| 21 | Warranty Status | `GET /v1/expenses/warranty/vehicles/:id/status` | Status |
-|    |                 | `GET /v1/expenses/warranty/vehicles/:id/upcoming` | Upcoming |
-| 22 | AI Chat | `POST /v1/chat` | Send / receive |
-|    |         | `GET /v1/chat/sessions` | History list |
-|    |         | `GET /v1/chat/sessions/:id` | Load session |
-| 23 | Notifications | `GET /v1/notifications` | List |
-|    |               | `PATCH /v1/notifications/:id/read` | Mark read |
-| 24 | Profile | `GET /v1/customer/profile` | Load |
-|    |         | `PUT /v1/customer/profile` | Update |
-|    |         | `POST /v1/customer/device` | Register device |
-|    |         | `POST /v1/auth/logout` | Logout |
-
----
-
-## 📱 TOTAL SCREENS: 24
-
-| Module | Screens | Count |
-|--------|---------|-------|
-| Auth | Welcome, Login, OTP, Success | 4 |
-| Home | Home Dashboard | 1 |
-| Vehicles | List, Add, Detail, Challans, Sharing | 5 |
-| Documents | List, Upload, Detail, DigiLocker | 4 |
-| Expenses | List, Add (4 methods), Analytics, Budget | 4 |
-| Fuel | Fuel Prices | 1 |
-| Warranty | Service History, Warranty Status | 2 |
-| AI Chat | Chat Screen | 1 |
-| Notifications | Notification List | 1 |
-| Profile | More Menu, Edit Profile | 2 |
-| **TOTAL** | | **25** |
-
----
-
-## 🎨 BUTTON & ACTION REFERENCE
-
-| Button | Screen | Action | API Called |
-|--------|--------|--------|-----------|
-| Get Started | Welcome | → Login Screen | - |
-| Send OTP | Login | Sends OTP to phone | `POST /auth/send-otp` |
-| Verify | OTP | Verifies code, gets token | `POST /auth/verify-otp` |
-| Search | Home | Global search overlay | Client-side filter |
-| Quick Action: Vehicles | Home | → Vehicle List | - |
-| Quick Action: Docs | Home | → Document List | - |
-| Quick Action: Expenses | Home | → Expense List | - |
-| Quick Action: AI | Home | → AI Chat Tab | - |
-| Quick Action: Maintenance | Home | → Service History | - |
-| Quick Action: Share | Home | → Shared Vehicles | - |
-| Quick Action: Fuel | Home | → Fuel Prices | - |
-| Quick Action: Challans | Home | → Vehicle → Challans | - |
-| + Add Vehicle | Vehicle List | → Add Vehicle Screen | - |
-| Add Vehicle ➜ | Add Vehicle | Creates vehicle | `POST /vehicles` |
-| ✏️ Edit | Vehicle Detail | Inline edit mode | `PUT /vehicles/:id` |
-| 🗑️ Delete | Vehicle Detail | Confirm → Delete | `DELETE /vehicles/:id` |
-| Recalculate | Vehicle Detail | Recalculates health | `POST /vehicles/:id/health/recalculate` |
-| Update Odometer | Vehicle Detail | Odometer input modal | `POST /vehicles/:id/odometer` |
-| 📷 Scan Odometer | Vehicle Detail | Camera → AI read | `POST /vehicles/:id/odometer-ai` |
-| Set Primary | Vehicle Detail | Sets as primary | `PUT /vehicles/:id/primary` |
-| Sync Challans | Challans | Fetches from server | `POST /vehicles/:id/challans/sync` |
-| Mark as Paid | Challans | Updates challan | `PATCH /challans/:id/pay` |
-| Share ➜ | Sharing | Shares vehicle access | `POST /sharing/share` |
-| Revoke | Sharing | Removes access | `DELETE /sharing/...` |
-| 📤 Upload | Document List | → Upload Screen | - |
-| 🔗 DigiLocker | Document List | → DigiLocker OAuth | `GET /digilocker/connect` |
-| Upload ➜ | Upload Doc | Uploads + OCR | `POST /documents` |
-| Verify | Doc Detail | Triggers verification | `POST /documents/:id/verify` |
-| + Add Expense | Expense List | → Add Expense | - |
-| Save Expense ➜ | Add Expense | Saves expense | `POST /expenses` |
-| 🎤 Voice | Add Expense | Records → AI parse | `POST /expenses/parse/voice` |
-| 📷 Receipt | Add Expense | Photo → OCR parse | `POST /expenses/parse/receipt` |
-| + Set Budget | Budget | Creates budget | `POST /expenses/budgets` |
-| Calculate | Fuel Prices | Amount → Liters | `POST /fuel-prices/calculate-liters` |
-| + Log Service | Service History | Creates record | `POST /warranty/service-records` |
-| Send (Chat) | AI Chat | Sends message | `POST /chat` |
-| 🎤 Voice (Chat) | AI Chat | Voice → text → send | `POST /chat` |
-| New Chat | AI Chat | Starts new session | `POST /chat` (no sessionId) |
-| Tap Notification | Notifications | Marks read + navigate | `PATCH /notifications/:id/read` |
-| Save Changes ➜ | Edit Profile | Updates profile | `PUT /customer/profile` |
-| 🚪 Logout | More | Logs out, clears token | `POST /auth/logout` |

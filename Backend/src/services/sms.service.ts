@@ -1,14 +1,15 @@
-/* eslint-disable quotes, object-property-newline, comma-dangle, no-console, max-lines, max-lines-per-function, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import "dotenv/config";
 
 import axios from "axios";
 import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
+import twilio from "twilio";
 
 export interface SMSService {
   sendOTP(phoneNumber: string, otp: string): Promise<boolean>;
   sendSMS(phoneNumber: string, message: string, dltTemplateId?: string): Promise<boolean>;
+  sendVoice?(phoneNumber: string, message: string): Promise<boolean>;
 }
 
 export class Flash49SMSService implements SMSService {
@@ -99,6 +100,51 @@ export class Flash49SMSService implements SMSService {
     }
   }
 }
+
+export class TwilioSMSService implements SMSService {
+  private client: twilio.Twilio;
+  private fromNumber: string;
+
+  constructor() {
+    this.client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    this.fromNumber = process.env.TWILIO_PHONE_NUMBER || "";
+  }
+
+  async sendOTP(phoneNumber: string, otp: string): Promise<boolean> {
+    return this.sendSMS(phoneNumber, `Your OTP is ${otp} to Login GUPIO.`);
+  }
+
+  async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      const result = await this.client.messages.create({
+        body: message,
+        from: this.fromNumber,
+        to: phoneNumber.startsWith("+") ? phoneNumber : `+91${phoneNumber}`,
+      });
+      return !!result.sid;
+    } catch (error: any) {
+      console.error("Twilio SMS Error:", error.message);
+      return false;
+    }
+  }
+
+  async sendVoice(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      // TwiML for reading the message
+      const twiml = `<Response><Say>${message}</Say></Response>`;
+      const result = await this.client.calls.create({
+        twiml,
+        to: phoneNumber.startsWith("+") ? phoneNumber : `+91${phoneNumber}`,
+        from: this.fromNumber,
+      });
+      return !!result.sid;
+    } catch (error: any) {
+      console.error("Twilio Voice Error:", error.message);
+      return false;
+    }
+  }
+}
+
 
 export class GmailSMSService implements SMSService {
   private transporter: nodemailer.Transporter;
@@ -446,6 +492,10 @@ export function getSMSService(): SMSService {
   if (svc === "GUPIO") {
     console.log("📱 Using Flash49 SMS Service");
     return new Flash49SMSService();
+  }
+  if (svc === "TWILIO") {
+    console.log("📱 Using Twilio SMS Service");
+    return new TwilioSMSService();
   }
   console.log("📧 Defaulting to Gmail SMS Service");
   return new GmailSMSService();
