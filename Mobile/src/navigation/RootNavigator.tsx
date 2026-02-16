@@ -10,7 +10,10 @@ import Signin from '../screens/Auth/Signin';
 import Signup from '../screens/Auth/Signup';
 import OTP from '../screens/Auth/OTP';
 import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
-import Home from '../screens/Main/Home';
+import DocumentList from '../screens/Documents/DocumentList';
+import UploadDocument from '../screens/Documents/UploadDocument';
+import DocumentDetail from '../screens/Documents/DocumentDetail';
+import { MainBottomTabs } from './MainBottomTabs';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useAppSelector } from '../store/hooks';
 import type { RootState } from '../store';
@@ -20,7 +23,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function MainScreen() {
   return (
     <ProtectedRoute>
-      <Home />
+      <MainBottomTabs />
     </ProtectedRoute>
   );
 }
@@ -57,6 +60,9 @@ export function RootNavigator() {
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
+      <Stack.Screen name="DocumentList" component={DocumentList} />
+      <Stack.Screen name="UploadDocument" component={UploadDocument} />
+      <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />
     </Stack.Navigator>
   );

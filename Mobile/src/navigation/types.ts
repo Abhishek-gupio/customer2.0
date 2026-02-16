@@ -8,12 +8,17 @@ export type RootStackParamList = {
   OTP: { phone?: string; otp?: string };
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
+  DocumentList: undefined;
+  UploadDocument: undefined;
+  DocumentDetail: { documentId: string };
 };
 
 export type MainTabParamList = {
   Home: undefined;
-  Notifications: undefined;
-  More: undefined;
+  Search: undefined;
+  AIAssistant: undefined;
+  Alerts: undefined;
+  History: undefined;
 };
 
 declare global {
