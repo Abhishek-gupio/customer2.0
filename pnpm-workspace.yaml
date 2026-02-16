@@ -2,3 +2,4 @@ packages:
   - "Backend"
   - "prisma"
   - "MobileApp"
+  - "Mobile-v2"

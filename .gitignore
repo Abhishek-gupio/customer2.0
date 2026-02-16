@@ -37,8 +37,8 @@ bun.lock
 # (dist/ and node_modules/ covered above)
 
 # --- Prisma ---
-# Generated client lives in prisma/prisma/generated/ – often committed; uncomment to ignore:
-# prisma/prisma/generated/
+# Generated client lives in prisma/prisma/generated/
+prisma/prisma/generated/
 
 # --- MobileApp / Expo ---
 .expo/
