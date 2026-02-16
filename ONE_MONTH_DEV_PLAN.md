@@ -1,9 +1,9 @@
 # 🚀 GUPIO CUSTOMER APP — ULTIMATE 1-MONTH DEV PLAN
 ## **Feb 17, 2026 – Mar 15, 2026**
 
-> **Objective:** Go from **Waitlist to App Store** in exactly 4 weeks.
-> **Current Status:** Backend ~5% (Scaffold only), Frontend ~0% (Structure only).
-> **Pace:** EXTREMELY AGGRESSIVE. No delays allowed.
+> **Objective:** Go from **Backend Ready** to **App Store Launch**.
+> **Current Status:** Backend ~90% (Advanced AI/OCR implemented), Frontend ~0% (Structure only).
+> **Strategy:** Backend is DONE. Focus 100% on Frontend Build & Integration.
 
 ---
 
@@ -11,114 +11,95 @@
 
 | Week | Dates | Focus Area | Key Deliverables |
 |------|-------|------------|------------------|
-| **1** | Feb 17 – Feb 23 | **Foundation & Auth** | Real DB Schema, Auth (JWT), Vehicle CRUD, Core UI Components |
-| **2** | Feb 24 – Mar 1 | **Core Features** | Documents (OCR), Expenses (NLP), DigiLocker, Home Screen |
-| **3** | Mar 2 – Mar 8 | **Advanced Tech** | AI Assistant (OpenAI), Valet Tracking (Socket.IO), RTO Services |
-| **4** | Mar 9 – Mar 15 | **Launch Ready** | Optimization, Security, Testing, Production Build, **SUBMIT** |
+| **1** | Feb 17 – Feb 23 | **Frontend Core** | Auth, Home, Vehicles UI (Backend Ready ✅) |
+| **2** | Feb 24 – Mar 1 | **Documents & Expenses** | Doc Upload, Expense Charts, DigiLocker UI (Backend Ready ✅) |
+| **3** | Mar 2 – Mar 8 | **Smart Features** | AI Chat, Valet Tracking, RTO Services UI (Backend Ready ✅) |
+| **4** | Mar 9 – Mar 15 | **Polish & Launch** | Security, Testing, Production Build, **SUBMIT** |
 
 ---
 
-## 📅 WEEK 1: Foundation, Auth & Vehicles (Feb 17 – Feb 23)
+## 📅 WEEK 1: Foundation & Vehicles (Feb 17 – Feb 23)
 
-### 🟢 Backend (Days 1–7)
+### 🟢 Backend (Status: DONE ✅)
+| Task | Status | Note |
+|------|--------|------|
+| **DB Schema** | ✅ | Complete (503 lines, 40+ models) |
+| **Auth API** | ✅ | Login/OTP/JWT/Refresh implemented |
+| **Vehicle API** | ✅ | CRUD, Health Score, AI Odometer logic ready |
+| **Storage** | ✅ | S3 & Local drivers implemented |
+| **Integration** | ❌ | Parivahan/RTO API needed (Check `challan.service.ts`) |
+
+### 🔵 Frontend (Focus: BUILD 🚧)
 | Day | Task | Status |
 |-----|------|--------|
-| Mon | **DB Schema:** Create remaining 29 Prisma models (Auth, Vehicle, etc.) | ❌ |
-| Mon | **Infrastructure:** Setup Redis, BullMQ, S3/Cloudinary | ❌ |
-| Tue | **Auth API:** Implement Login/OTP/JWT/Refresh tokens | ❌ |
-| Wed | **Vehicle API:** Implement 15 endpoints (CRUD, health score) | ❌ |
-| Thu | **Integration:** Parivahan API for RC verification | ❌ |
-| Fri | **Testing:** Unit tests for Auth/Vehicle services | ❌ |
-| Sat | **Deploy:** Staging environment setup | ❌ |
-
-### 🔵 Frontend (Days 1–7)
-| Day | Task | Status |
-|-----|------|--------|
-| Mon | **Design System:** Implement real values in `theme/` | ❌ |
-| Mon | **Components:** Build 15 core UI components (Button, Input, Card) | ❌ |
-| Tue | **State:** Implement Zustand stores (Auth, Vehicle) | ❌ |
-| Wed | **Screens:** Implement Login/OTP screens with API integration | ❌ |
-| Thu | **Home Screen:** Header, quick actions, active valet card | ❌ |
-| Fri | **Vehicle Screens:** List, Add Vehicle form, Details screen | ❌ |
-| Sat | **Polish:** Navigation flows & deep linking | ❌ |
+| Mon | **Design System:** Implement fonts, colors, spacing in `src/theme` | ❌ |
+| Mon | **API Client:** Setup Axios interceptors & React Query | ❌ |
+| Tue | **Auth Screens:** Login, OTP Input, Success Screen | ❌ |
+| Wed | **Home Helper:** Active Valet card, Quick Actions grid | ❌ |
+| Thu | **Vehicle List:** Car cards with health score badge | ❌ |
+| Fri | **Add Vehicle:** Form with RC upload (connect to OCR API) | ❌ |
+| Sat | **Detail Screen:** Vehicle stats (Service, Insurance status) | ❌ |
 
 ---
 
-## 📅 WEEK 2: Documents, Expenses & Integration (Feb 24 – Mar 1)
+## 📅 WEEK 2: Documents & Expenses (Feb 24 – Mar 1)
 
-### 🟢 Backend (Days 8–14)
+### 🟢 Backend (Status: DONE ✅)
+| Task | Status | Note |
+|------|--------|------|
+| **OCR Service** | ✅ | Gemini AI implemented for Docs & Receipts |
+| **Expense API** | ✅ | `expense-intelligence` service is huge (21KB) |
+| **Prediction** | ✅ | Service date & mileage prediction logic ready |
+| **Notifications** | ✅ | Logic exists in `notification.service.ts` |
+
+### 🔵 Frontend (Focus: BUILD 🚧)
 | Day | Task | Status |
 |-----|------|--------|
-| Mon | **Document API:** Upload, OCR integration (Tesseract) | ❌ |
-| Tue | **Expense API:** CRUD, Analytics, Budget endpoints | ❌ |
-| Wed | **NLP:** Expense text parser (Regex/Rule-based) | ❌ |
-| Thu | **DigiLocker:** OAuth flow & document fetch service | ❌ |
-| Fri | **Maintenance:** Part tracking logic & reminders | ❌ |
-| Sat | **Notifications:** Firebase Admin setup & service | ❌ |
-
-### 🔵 Frontend (Days 8–14)
-| Day | Task | Status |
-|-----|------|--------|
-| Mon | **Document UI:** List, Viewer (PDF/Image), Upload | ❌ |
-| Tue | **Expense UI:** List, Add Expense, Analytics Charts | ❌ |
-| Wed | **DigiLocker UI:** Connect screen & OAuth handling | ❌ |
-| Thu | **Maintenance UI:** Service history & status dashboard | ❌ |
-| Fri | **Profile:** User settings & preferences | ❌ |
-| Sat | **Integration:** Connect all screens to real APIs | ❌ |
+| Mon | **Doc Locker:** Grid view of RC, Insurance, PUC | ❌ |
+| Tue | **Doc Viewer:** PDF/Image zoomable viewer | ❌ |
+| Wed | **Expense Dashboard:** Spending graphs (Pie/Bar charts) | ❌ |
+| Thu | **Add Expense:** Camera capture -> Send to Backend OCR | ❌ |
+| Fri | **Connect DigiLocker:** WebView flow / API integration | ❌ |
+| Sat | **Maintenance:** Timeline view of service history | ❌ |
 
 ---
 
-## 📅 WEEK 3: AI, Valet, RTO & SOS (Mar 2 – Mar 8)
+## 📅 WEEK 3: AI, Valet & RTO (Mar 2 – Mar 8)
 
-### 🟢 Backend (Days 15–21)
+### 🟢 Backend (Status: DONE ✅)
+| Task | Status | Note |
+|------|--------|------|
+| **AI Assistant** | ✅ | `ai.service.ts` & `voice.service.ts` ready |
+| **Valet Logic** | ✅ | `telematics.service.ts` exists |
+| **Trip Tracking** | ✅ | Logic for mileage/safety score ready |
+
+### 🔵 Frontend (Focus: BUILD 🚧)
 | Day | Task | Status |
 |-----|------|--------|
-| Mon | **AI Backend:** OpenAI integration + Vector DB setup | ❌ |
-| Tue | **Valet API:** WebSocket setup + Real-time location | ❌ |
-| Wed | **RTO API:** Service requests, fee calc, payment | ❌ |
-| Thu | **SOS API:** Emergency request & nearby help logic | ❌ |
-| Fri | **Webhooks:** Payment & DigiLocker handlers | ❌ |
-| Sat | **Optimizations:** Caching hot endpoints | ❌ |
-
-### 🔵 Frontend (Days 15–21)
-| Day | Task | Status |
-|-----|------|--------|
-| Mon | **AI Chat UI:** Message bubbles, Auto-scroll, Voice I/O | ❌ |
-| Tue | **Valet Map:** Live tracking with driver location | ❌ |
-| Wed | **RTO Screens:** Service selection, Form, Status tracker | ❌ |
-| Thu | **SOS UI:** Emergency button & contact management | ❌ |
-| Fri | **Budget UI:** Settings & alerts | ❌ |
-| Sat | **Polish:** Animations & Micro-interactions | ❌ |
+| Mon | **Gupio AI Chat:** Chat interface with Voice rec button | ❌ |
+| Tue | **Valet Map:** Live Google Maps tracking view | ❌ |
+| Wed | **RTO Services:** Form generator for DL Renewal/Transfer | ❌ |
+| Thu | **SOS:** Emergency panic button implementation | ❌ |
+| Fri | **Voice Commands:** "Add expense 500 petrol" (Audio record) | ❌ |
+| Sat | **Settings:** Profile, Notifications, Dark Mode toggle | ❌ |
 
 ---
 
 ## 📅 WEEK 4: Launch Week (Mar 9 – Mar 15)
 
-### 🟢 Backend (Days 22–28)
+### 🟢 Backend (Focus: DEPLOY)
+| Task | Status | Note |
+|------|--------|------|
+| **Production DB** | ❌ | Setup Postgres on Cloud |
+| **Deploy API** | ❌ | Dockerize & Deploy to AWS/DO |
+| **Swagger** | ✅ | Already initialized |
+
+### 🔵 Frontend (Focus: SHIP)
 | Day | Task | Status |
 |-----|------|--------|
-| Mon | **Performance:** SQL Query optimization (N+1 fixes) | ❌ |
-| Tue | **Security:** Rate limiting, Helmet, Audit logs | ❌ |
-| Wed | **Testing:** Load testing (10k users) | ❌ |
-| Thu | **Prod:** Setup Production DB & Servers | ❌ |
-| Fri | **Docs:** Finalize Swagger & Runbooks | ❌ |
-| Sat | **Go Live:** Deploy to Production | ❌ |
-
-### 🔵 Frontend (Days 22–28)
-| Day | Task | Status |
-|-----|------|--------|
-| Mon | **Performance:** FlashList optimization, Image caching | ❌ |
-| Tue | **Monitoring:** Sentry setup, Error boundaries | ❌ |
-| Wed | **Testing:** End-to-end full flow verification | ❌ |
-| Thu | **Assets:** Icons, Splash screens, Screenshots | ❌ |
-| Fri | **Build:** Create Prod APK/AAB & IPA | ❌ |
-| Sat | **Submit:** Upload to App Store & Play Store | ❌ |
-
----
-
-## 🚀 LAUNCH DAY CHECKLIST (Mar 15)
-- [ ] Backend deployed to production (AWS/DigitalOcean)
-- [ ] Database migrated & backed up
-- [ ] Frontend submitted to Apple App Store & Google Play Store
-- [ ] Monitoring dashboards active (Green)
-- [ ] Marketing/Launch announcement ready
+| Mon | **Performance:** FlashList, Image caching, Memoization | ❌ |
+| Tue | **Offline Mode:** Redux Persist / MMKV caching | ❌ |
+| Wed | **Testing:** End-to-end user flows (Auth -> Vehicle -> Doc) | ❌ |
+| Thu | **Icons & Splash:** Generate assets for iOS/Android | ❌ |
+| Fri | **Build:** Release builds (AAB / IPA) | ❌ |
+| Sat | **Submit:** App Store Connect & Play Console | ❌ |
