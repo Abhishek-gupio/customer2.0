@@ -7,6 +7,8 @@ export enum DocumentType {
   OTHER = "OTHER",
 }
 
+// hbhbhbh
+
 export enum VerificationStatus {
   PENDING = "PENDING",
   VERIFIED = "VERIFIED",
