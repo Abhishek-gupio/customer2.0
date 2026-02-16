@@ -1,11 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "./generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  schemas  = ["customer"]
+  provider   = "postgresql"
+  schemas    = ["customer"]
+  extensions = [vector]
 }
 
 model User {
@@ -34,6 +35,7 @@ model Customer {
   budgets        ExpenseBudget[]
   notifications  InAppNotification[]
   sharedVehicles VehicleAccess[]
+  chats          ChatSession[]
 
   @@schema("customer")
 }
@@ -127,6 +129,8 @@ model CustomerVehicle {
   serviceRecords     ServiceRecord[]
   accessList         VehicleAccess[]
   healthScore        VehicleHealthScore?
+  telematicsDevice   TelematicsDevice?
+  drivingTrips       DrivingTrip[]
 
   @@index([customerId])
   @@schema("customer")
@@ -209,6 +213,47 @@ model InAppNotification {
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
+  @@schema("customer")
+}
+
+model ChatSession {
+  id         String        @id @default(cuid())
+  customerId String
+  title      String?
+  isActive   Boolean       @default(true)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  messages   ChatMessage[]
+  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  role      String      // "user", "assistant", "system"
+  content   String
+  metadata  Json?       // For tool calls, citations, etc.
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@schema("customer")
+}
+
+model DocumentEmbedding {
+  id         String                 @id @default(cuid())
+  customerId String
+  entityId   String                 // ID of Expense, Document, etc.
+  entityType String                 // "EXPENSE", "DOCUMENT", "VEHICLE"
+  content    String
+  vector     Unsupported("vector")?
+  createdAt  DateTime               @default(now())
+
+  @@index([customerId])
+  @@index([entityId])
   @@schema("customer")
 }
 
@@ -309,6 +354,62 @@ model ServicePart {
 
   @@index([serviceRecordId])
   @@index([partType])
+  @@schema("customer")
+}
+
+model TelematicsDevice {
+  id           String          @id @default(cuid())
+  vehicleId    String          @unique
+  instanceId   String          @unique // Damoov Instance ID
+  deviceToken  String?         // Damoov Device Token
+  platform     String?         // iOS/Android
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  vehicle      CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model DrivingTrip {
+  id             String          @id @default(cuid())
+  vehicleId      String
+  tripId         String          @unique // Damoov Trip ID
+  startTime      DateTime
+  endTime        DateTime
+  distanceKm     Float
+  durationMin    Float
+  maxSpeed       Float?
+  avgSpeed       Float?
+  fuelConsumed   Float?
+  safetyScore    Int            // 0-100
+  startLocation  Json?          // {lat, lng, address}
+  endLocation    Json?          // {lat, lng, address}
+  status         String         // COMPLETED, ONGOING
+  createdAt      DateTime       @default(now())
+  
+  vehicle        CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  events         DrivingEvent[]
+
+  @@index([vehicleId])
+  @@index([startTime])
+  @@schema("customer")
+}
+
+model DrivingEvent {
+  id           String       @id @default(cuid())
+  tripId       String
+  eventType    String       // HARSH_BRAKING, HARSH_ACCEL, PHONE_USAGE, SPEEDING
+  timestamp    DateTime
+  latitude     Float
+  longitude    Float
+  severity     Float?       // 0.0 - 1.0 (g-force or other metric)
+  speed        Float?
+  createdAt    DateTime     @default(now())
+  
+  trip         DrivingTrip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
   @@schema("customer")
 }
 

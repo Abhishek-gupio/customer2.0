@@ -276,7 +276,61 @@ export const warrantyService = {
             return (order[a.urgency] || 3) - (order[b.urgency] || 3);
         });
 
-        return due;
+        // Calculate Average Daily Running (ADR) to predict future dates
+        const adr = await this.calculateAverageDailyRunning(vehicleId);
+
+        return due.map(d => {
+            // If we have ADR and it's a KM-based due, predict the date
+            if (adr > 0 && d.kmSinceReplacement < d.lifecycleKm) {
+                const kmRemaining = d.lifecycleKm - d.kmSinceReplacement;
+                const daysRemaining = Math.ceil(kmRemaining / adr);
+                const predictedDate = new Date();
+                predictedDate.setDate(predictedDate.getDate() + daysRemaining);
+
+                // If predicted date is sooner than the time-based recommendation, suggest it
+                if (predictedDate < d.recommendedReplacementDate) {
+                    d.predictedReplacementDate = predictedDate;
+                    d.predictionReason = `Based on your daily usage of ~${Math.round(adr)} km/day`;
+                    // Update message if prediction is sooner
+                    if (d.urgency !== "OVERDUE") {
+                        d.message += ` Projected due date: ${predictedDate.toLocaleDateString("en-IN")} (${d.predictionReason}).`;
+                    }
+                }
+            } else if (adr > 0 && d.kmSinceReplacement >= d.lifecycleKm) {
+                // Already overdue by KM
+                d.predictionReason = `Overdue by KM (Usage: ~${Math.round(adr)} km/day)`;
+            }
+            return d;
+        });
+    },
+
+    /**
+     * Calculate Average Daily Running (ADR) in km/day
+     * based on odometer logs from the last 90 days.
+     */
+    async calculateAverageDailyRunning(vehicleId: string): Promise<number> {
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+        const logs = await (dbInstances as any).odometerLog.findMany({
+            where: {
+                vehicleId,
+                date: { gte: ninetyDaysAgo }
+            },
+            orderBy: { date: "asc" }
+        });
+
+        if (logs.length < 2) return 0; // Not enough data
+
+        const first = logs[0];
+        const last = logs[logs.length - 1];
+
+        const daysDiff = (new Date(last.date).getTime() - new Date(first.date).getTime()) / (1000 * 60 * 60 * 24);
+        const kmDiff = last.reading - first.reading;
+
+        if (daysDiff < 1 || kmDiff < 0) return 0;
+
+        return kmDiff / daysDiff;
     },
 
     /**
@@ -332,5 +386,34 @@ export const warrantyService = {
             recommendedIntervalKm: lifecycle.km,
             defaultWarrantyMonths: lifecycle.defaultWarrantyMonths,
         }));
+    },
+
+    /**
+     * Get list of service providers (garages) used by the customer
+     */
+    async getServiceProviders(customerId: string): Promise<string[]> {
+        // 1. From Service Records
+        const records = await db.serviceRecord.findMany({
+            where: { vehicle: { customerId: customerId }, garageName: { not: null } },
+            distinct: ['garageName'],
+            select: { garageName: true }
+        });
+
+        // 2. From Expenses (Category = SERVICE/REPAIR)
+        const expenses = await db.expense.findMany({
+            where: {
+                customerId,
+                category: { in: ["SERVICE", "REPAIR"] },
+                merchantName: { not: null }
+            },
+            distinct: ['merchantName'],
+            select: { merchantName: true }
+        });
+
+        const names = new Set<string>();
+        records.forEach((r: any) => { if (r.garageName) names.add(r.garageName); });
+        expenses.forEach((e: any) => { if (e.merchantName) names.add(e.merchantName); });
+
+        return Array.from(names).sort();
     },
 };

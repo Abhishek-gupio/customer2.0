@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -30,6 +31,9 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().default("uploads"),
   // AI Features
   GEMINI_API_KEY: z.string().optional(),
+
+  // Weather
+  WEATHER_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -2,50 +2,14 @@
  * @swagger
  * tags:
  *   name: Auth
- *   description: Authentication endpoints
- */
-
-/**
- * @swagger
- * /api/v1/auth/signup:
- *   post:
- *     summary: Sign up a new user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phoneNumber:
- *                 type: string
- *               fullName:
- *                 type: string
- *     responses:
- *       201:
- *         description: User created
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 requiresOtpVerification:
- *                   type: boolean
- *                 otp:
- *                   type: string
- *                   description: "Returned only in development mode"
- *       400:
- *         description: Bad request
+ *   description: Authentication and User Management
  */
 
 /**
  * @swagger
  * /api/v1/auth/send-otp:
  *   post:
- *     summary: Send OTP to phone
+ *     summary: Send Login OTP
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -53,29 +17,21 @@
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [phoneNumber]
  *             properties:
  *               phoneNumber:
  *                 type: string
+ *                 example: "+919876543210"
  *     responses:
  *       200:
- *         description: OTP sent
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 otp:
- *                   type: string
- *                   description: "Returned only in development mode"
+ *         description: OTP sent successfully
  */
 
 /**
  * @swagger
  * /api/v1/auth/verify-otp:
  *   post:
- *     summary: Verify OTP
+ *     summary: Verify OTP & Login
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -83,60 +39,43 @@
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [phoneNumber, otp]
  *             properties:
  *               phoneNumber:
  *                 type: string
+ *                 example: "+919876543210"
  *               otp:
  *                 type: string
+ *                 example: "123456"
+ *               deviceInfo:
+ *                 type: object
+ *                 description: Optional device details
  *     responses:
  *       200:
- *         description: OTP verified
+ *         description: Login successful, returns JWT tokens
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 accessToken:
  *                   type: string
- */
-
-/**
- * @swagger
- * /api/v1/auth/login:
- *   post:
- *     summary: Login with phone
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phoneNumber:
- *                 type: string
- *     responses:
- *       200:
- *         description: Logged in
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
+ *                 refreshToken:
  *                   type: string
- *                 requiresOtpVerification:
- *                   type: boolean
- *                 otp:
- *                   type: string
- *                   description: "Returned only in development mode"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     phoneNumber:
+ *                       type: string
  */
 
 /**
  * @swagger
  * /api/v1/auth/refresh:
  *   post:
- *     summary: Refresh access token
+ *     summary: Refresh Access Token
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -144,21 +83,24 @@
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [refreshToken]
  *             properties:
  *               refreshToken:
  *                 type: string
  *     responses:
  *       200:
- *         description: Token refreshed
+ *         description: New access token generated
  */
 
 /**
  * @swagger
- * /api/v1/auth/logout:
- *   post:
- *     summary: Logout user
+ * /api/v1/auth/me:
+ *   get:
+ *     summary: Get Current User Profile
  *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Logged out
+ *         description: User profile details
  */

@@ -58,3 +58,16 @@
  *       404:
  *         description: Notification not found
  */
+
+/**
+ * @swagger
+ * /api/v1/notifications/read-all:
+ *   patch:
+ *     summary: Mark all notifications as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All notifications marked as read
+ */

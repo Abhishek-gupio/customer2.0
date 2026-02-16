@@ -85,79 +85,106 @@ export const predictionService = {
             include: {
                 documents: {
                     where: { verificationStatus: "VERIFIED" }
+                },
+                healthScore: true,
+                serviceRecords: {
+                    orderBy: { serviceDate: "desc" },
+                    take: 1
                 }
             }
         });
 
         if (!vehicle) return;
 
-        let score = 100;
+        let complianceScore = 100;
+        let maintenanceScore = 100;
         const explanations: string[] = [];
         const recommendations: string[] = [];
 
-        // 1. Compliance Audit (Critical Impact)
+        // 1. Compliance Audit (20% Weight)
         const now = new Date();
         const activeInsurance = vehicle.documents.find(d => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now);
         const activePUC = vehicle.documents.find(d => d.type === "PUC" && d.expiryDate && d.expiryDate > now);
 
         if (!activeInsurance) {
-            score -= 40;
-            explanations.push("Insurance is expired or missing. High financial/legal risk.");
-            recommendations.push("Renew insurance immediately.");
+            complianceScore -= 50;
+            explanations.push("Critical: Valid Insurance not found.");
+            recommendations.push("Renew insurance immediately to avoid fines.");
         }
-
         if (!activePUC) {
-            score -= 15;
-            explanations.push("PUC (Pollution) certificate is expired or missing.");
-            recommendations.push("Get a PUC test at the nearest certified center.");
+            complianceScore -= 20;
+            explanations.push("Warning: Valid PUC not found.");
+            recommendations.push("Get a pollution check done.");
         }
 
-        // 2. Usage Impact (Predicted Odometer)
+        // 2. Maintenance Audit (20% Weight) - Age, Mileage, Service
         const predictedKM = await this.predictCurrentOdometer(vehicleId) || vehicle.currentOdometer || 0;
-        if (predictedKM > 100000) {
-            score -= 20;
-            explanations.push("High usage: Vehicle has crossed 100,000 km.");
-        } else if (predictedKM > 50000) {
-            score -= 10;
-            explanations.push("Moderate usage: Vehicle has crossed 50,000 km.");
-        }
 
-        // 3. Age Impact
+        // Mileage Impact
+        if (predictedKM > 100000) maintenanceScore -= 20;
+        else if (predictedKM > 50000) maintenanceScore -= 10;
+
+        // Age Impact
         if (vehicle.registrationDate) {
             const ageYears = (now.getTime() - vehicle.registrationDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
-            if (ageYears > 15) {
-                score -= 30;
-                explanations.push("Vintage Status: Vehicle is over 15 years old (check fitness).");
-            } else if (ageYears > 10) {
-                score -= 15;
-                explanations.push("Old Age: Vehicle is over 10 years old.");
+            if (ageYears > 15) maintenanceScore -= 30;
+            else if (ageYears > 10) maintenanceScore -= 15;
+
+            explanations.push(`Vehicle is ${ageYears.toFixed(1)} years old.`);
+        }
+
+        // Service Impact
+        const lastService = vehicle.serviceRecords[0];
+        if (lastService) {
+            const monthsSinceService = (now.getTime() - lastService.serviceDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+            if (monthsSinceService > 12) {
+                maintenanceScore -= 20;
+                explanations.push("Service overdue: Last service was more than a year ago.");
+                recommendations.push("Schedule a general service.");
             }
         }
 
-        // 4. Maintenance Regularity
-        const adr = await this.calculateADR(vehicleId);
-        if (adr && adr > 100) {
-            score -= 5;
-            explanations.push("Extreme Usage: Carrying high daily average running (>100 km/day).");
-            recommendations.push("Consider more frequent oil checks.");
-        }
+        // 3. Driving Score (60% Weight) - From Telematics
+        const drivingScore = vehicle.healthScore?.drivingScore || null;
 
-        score = Math.max(5, score); // Absolute floor
+        let overallScore = 0;
+
+        if (drivingScore !== null) {
+            // Weighted Average: 60% Driving, 20% Compliance, 20% Maintenance
+            overallScore = (drivingScore * 0.6) + (complianceScore * 0.2) + (maintenanceScore * 0.2);
+            explanations.push(`Driving Score impact: ${drivingScore}/100 based on recent trips.`);
+        } else {
+            // Fallback Weights: 50% Compliance, 50% Maintenance
+            overallScore = (complianceScore * 0.5) + (maintenanceScore * 0.5);
+            explanations.push("Driving Score pending: Connect App to track trips for better accuracy.");
+            recommendations.push("Link the Gupio App to start tracking your driving score.");
+        }
 
         // Predict next service to add as recommendation
-        const nextService = await this.predictNextServiceDate(vehicleId);
-        if (nextService) {
-            recommendations.push(`Next service predicted around: ${nextService.toLocaleDateString()}`);
+        const nextServiceDate = await this.predictNextServiceDate(vehicleId);
+        if (nextServiceDate) {
+            recommendations.push(`Next service predicted around: ${nextServiceDate.toLocaleDateString()}`);
         }
 
-        return dbInstances.vehicleHealthScore.update({
+        return dbInstances.vehicleHealthScore.upsert({
             where: { vehicleId },
-            data: {
-                overallScore: score,
+            update: {
+                overallScore: Math.round(overallScore),
+                ageScore: Math.max(0, 100 - (maintenanceScore < 100 ? 100 - maintenanceScore : 0)), // Simplified
+                mileageScore: predictedKM > 100000 ? 50 : 100,
+                maintenanceScore: Math.max(0, maintenanceScore),
                 explanations: explanations as any,
                 recommendations: recommendations as any,
                 lastCalculated: now,
-                nextDueDate: nextService,
+                nextDueDate: nextServiceDate,
+            },
+            create: {
+                vehicleId,
+                overallScore: Math.round(overallScore),
+                maintenanceScore: Math.max(0, maintenanceScore),
+                explanations: explanations as any,
+                recommendations: recommendations as any,
+                lastCalculated: now
             }
         });
     }

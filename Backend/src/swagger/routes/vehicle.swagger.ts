@@ -184,3 +184,105 @@
  *                   items:
  *                     type: string
  */
+
+/**
+ * @swagger
+ * /api/v1/vehicles/{id}/odometer:
+ *   post:
+ *     summary: Log Odometer Reading
+ *     tags: [Vehicles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [reading]
+ *             properties:
+ *               reading:
+ *                 type: number
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               source:
+ *                 type: string
+ *                 enum: [MANUAL, IMAGE_AI]
+ *     responses:
+ *       200:
+ *         description: Odometer updated and health recalculated
+ */
+
+/**
+ * @swagger
+ * /api/v1/vehicles/{id}/odometer-ai:
+ *   post:
+ *     summary: Log Odometer via AI (Image Upload)
+ *     tags: [Vehicles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [photo]
+ *             properties:
+ *               photo:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Odometer read from image and updated
+ */
+
+/**
+ * @swagger
+ * /api/v1/vehicles/{vehicleId}/challans:
+ *   get:
+ *     summary: Get Challans for Vehicle
+ *     tags: [Vehicles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: vehicleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of challans
+ */
+
+/**
+ * @swagger
+ * /api/v1/vehicles/{vehicleId}/challans/sync:
+ *   post:
+ *     summary: Force Sync Challans from Parivahan
+ *     tags: [Vehicles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: vehicleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Challans synced successfully
+ */

@@ -276,4 +276,159 @@
  *     responses:
  *       200:
  *         description: Warranty checklist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 active:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 expiring:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 expired:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ */
+
+/**
+ * @swagger
+ * /api/v1/expenses/warranty/providers:
+ *   get:
+ *     summary: Get list of service providers (garages) used by the user
+ *     tags: [Expenses - Warranty]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of garage/merchant names
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ */
+
+/**
+ * @swagger
+ * /api/v1/expenses/insights:
+ *   get:
+ *     summary: Get weekly spending insights, tips, and recurring expenses
+ *     tags: [Expenses - Intelligence]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Weekly digest and smart tips
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 weeklyDigest:
+ *                   type: object
+ *                   properties:
+ *                     totalSpent:
+ *                       type: number
+ *                     breakdown:
+ *                       type: array
+ *                     vsLastWeek:
+ *                       type: object
+ *                 recurringExpenses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category:
+ *                         type: string
+ *                       merchantName:
+ *                         type: string
+ *                       frequency:
+ *                         type: string
+ *                 smartTips:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+
+/**
+ * @swagger
+ * /api/v1/expenses/vehicles/{vehicleId}/cost-per-km:
+ *   get:
+ *     summary: Calculate Total Cost of Ownership (TCO) per KM
+ *     tags: [Expenses - Intelligence]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: vehicleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Cost per KM analysis
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 costPerKm:
+ *                   type: number
+ *                 totalKm:
+ *                   type: number
+ *                 totalExpenses:
+ *                   type: number
+ *                 categoryBreakdownPerKm:
+ *                   type: array
+ */
+
+/**
+ * @swagger
+ * /api/v1/expenses/anomalies/check:
+ *   post:
+ *     summary: Check for expense anomalies before saving
+ *     tags: [Expenses - Intelligence]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - category
+ *             properties:
+ *               amount:
+ *                 type: number
+ *               category:
+ *                 type: string
+ *               merchantName:
+ *                 type: string
+ *               vehicleId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Anomaly detection result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hasAnomaly:
+ *                   type: boolean
+ *                 anomalies:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 severity:
+ *                   type: string
+ *                   enum: [LOW, MEDIUM, HIGH]
  */

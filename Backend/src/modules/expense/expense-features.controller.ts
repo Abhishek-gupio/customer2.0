@@ -4,6 +4,7 @@ import { success } from "../../utils/apiResponse";
 import { AppError } from "../../utils/AppError";
 import { fuelPriceService } from "../../services/fuel-price.service";
 import { warrantyService, CreateServiceRecordInput } from "../../services/warranty.service";
+import { expenseIntelligenceService } from "../../services/expense-intelligence.service";
 import { z } from "zod";
 
 // ============================================================
@@ -126,5 +127,60 @@ export const warrantyController = {
 
         const alerts = await warrantyService.checkAlerts(vehicleId, req.customer.id);
         success(res, { alerts, count: alerts.length });
+    }),
+
+    // GET /warranty/providers — Get list of service providers
+    getServiceProviders: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+
+        const providers = await warrantyService.getServiceProviders(req.customer.id);
+        success(res, providers);
+    }),
+};
+
+// ============================================================
+// EXPENSE INTELLIGENCE & ANALYTICS CONTROLLER
+// ============================================================
+export const expenseAnalysisController = {
+    // GET /expenses/insights — Weekly digest, anomalies, and smart tips
+    getInsights: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+
+        // Parallel execution for speed
+        const [digest, recurring] = await Promise.all([
+            expenseIntelligenceService.generateWeeklyDigest(req.customer.id),
+            expenseIntelligenceService.detectRecurringExpenses(req.customer.id)
+        ]);
+
+        success(res, {
+            weeklyDigest: digest,
+            recurringExpenses: recurring.patterns,
+            smartTips: digest.tips
+        });
+    }),
+
+    // GET /expenses/vehicles/:vehicleId/cost-per-km
+    getCostPerKm: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+        const vehicleId = req.params.vehicleId as string;
+
+        const result = await expenseIntelligenceService.costPerKm(vehicleId, req.customer.id);
+        success(res, result);
+    }),
+
+    // POST /expenses/anomalies/check — Manual anomaly check (e.g. before adding expense)
+    checkAnomalies: asyncHandler(async (req: Request, res: Response) => {
+        if (!req.customer?.id) throw AppError.unauthorized();
+        // Body: amount, category, vehicleId, merchantName
+        const { amount, category, merchantName, vehicleId } = req.body;
+
+        const result = await expenseIntelligenceService.detectAnomalies(
+            req.customer.id,
+            parseFloat(amount),
+            category,
+            merchantName,
+            vehicleId
+        );
+        success(res, result);
     }),
 };
