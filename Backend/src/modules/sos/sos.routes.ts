@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 // @ts-ignore
 import { authMiddleware } from "../../middlewares/auth.middleware";

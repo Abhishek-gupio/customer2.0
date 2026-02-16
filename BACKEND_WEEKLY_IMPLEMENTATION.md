@@ -14,11 +14,11 @@ This document is a week-wise view of the Gupio Customer App backend implementati
 
 ## High-level Summary
 
-| Item | Detail |
-|------|--------|
-| **Stack** | Node.js 18+, Express 5.1, TypeScript 5.3, Prisma 6.16, PostgreSQL, Redis, BullMQ, Socket.IO, OpenAI, AWS/Cloudinary |
-| **Scope** | 200+ backend files, 30+ Prisma models, 120+ API endpoints |
-| **Timeline** | 4 weeks (28 days) |
+| Item                 | Detail                                                                                                                                                                                                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stack**            | Node.js 18+, Express 5.1, TypeScript 5.3, Prisma 6.16, PostgreSQL, Redis, BullMQ, Socket.IO, OpenAI, AWS/Cloudinary                                                                                                                 |
+| **Scope**            | 200+ backend files, 30+ Prisma models, 120+ API endpoints                                                                                                                                                                           |
+| **Timeline**         | 4 weeks (28 days)                                                                                                                                                                                                                   |
 | **Folder structure** | `apps/api/src/` with `config/`, `controllers/`, `services/`, `routes/v1/`, `middlewares/`, `validators/`, `jobs/`, `integrations/`, `utils/`, `types/`, `tests/` — see [GUPIO_BACKEND_PLAN.md](GUPIO_BACKEND_PLAN.md) for full tree |
 
 **Main milestones**

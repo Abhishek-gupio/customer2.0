@@ -135,4 +135,3 @@
  *       200:
  *         description: Sync successful
  */
-

@@ -25,6 +25,7 @@
 ---
 
 ## 🔐 1. AUTH MODULE (Matches `auth.swagger.ts`)
+
 **Screens:** Welcome, Login, OTP, Success
 
 ```
@@ -35,6 +36,7 @@
 ```
 
 ### 1.1 Welcome Screen
+
 ```
 ┌─────────────────────────┐
 │                         │
@@ -55,6 +57,7 @@ API: None (Static screen)
 ```
 
 ### 1.2 Login Screen
+
 ```
 ┌─────────────────────────┐
 │  ← Back                 │
@@ -80,6 +83,7 @@ API: POST /v1/auth/send-otp
 ```
 
 ### 1.3 OTP Screen
+
 ```
 ┌─────────────────────────┐
 │  ← Back                 │
@@ -104,6 +108,7 @@ API: POST /v1/auth/verify-otp
 ```
 
 ### 1.4 Success Screen
+
 ```
 ┌─────────────────────────┐
 │                         │
@@ -123,6 +128,7 @@ API: Stores token → AsyncStorage
 ---
 
 ## 👤 2. CUSTOMER MODULE (Matches `customer.swagger.ts`)
+
 **Screens:** Home (Dashboard), More Menu, Edit Profile
 
 ### 2.1 HOME SCREEN (Tab 1 / Dashboard)
@@ -219,6 +225,7 @@ APIs:
 ```
 
 ### 2.3 Edit Profile Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Edit Profile          │
@@ -254,6 +261,7 @@ APIs:
 ---
 
 ## 🚗 3. VEHICLE MODULE (Matches `vehicle.swagger.ts`)
+
 **Screens:** List, Add, Detail, Challans
 
 ```
@@ -264,6 +272,7 @@ Home ──▶ Vehicle List ──▶ Vehicle Detail ──▶ Health Score
 ```
 
 ### 3.1 Vehicle List Screen
+
 ```
 ┌─────────────────────────┐
 │ ← My Vehicles           │
@@ -290,6 +299,7 @@ API: GET /v1/vehicles
 ```
 
 ### 3.2 Add Vehicle Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Add Vehicle           │
@@ -328,6 +338,7 @@ API: POST /v1/vehicles
 ```
 
 ### 3.3 Vehicle Detail Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Maruti Swift    ✏️ 🗑️  │  ← Edit / Delete icons
@@ -374,6 +385,7 @@ APIs:
 ```
 
 ### 3.4 Challans Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Challans (MH12AB1234) │
@@ -405,6 +417,7 @@ APIs:
 ---
 
 ## 📄 4. DOCUMENT MODULE (Matches `document.swagger.ts`)
+
 **Screens:** List, Upload, Detail, DigiLocker
 
 ```
@@ -415,6 +428,7 @@ Home ──▶ Document List ──▶ Document Detail
 ```
 
 ### 4.1 Document List Screen
+
 ```
 ┌─────────────────────────┐
 │ ← My Documents          │
@@ -449,6 +463,7 @@ APIs:
 ```
 
 ### 4.2 Upload Document Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Upload Document       │
@@ -484,6 +499,7 @@ API: POST /v1/documents
 ```
 
 ### 4.3 Document Detail Screen
+
 ```
 ┌─────────────────────────┐
 │ ← RC - MH12AB1234  🗑️   │
@@ -518,6 +534,7 @@ APIs:
 ---
 
 ## 💰 5. EXPENSE MODULE (Matches `expense.swagger.ts`)
+
 **Screens:** Expense List, Add Expense, Analytics, Budget, Fuel Prices, Service History, Warranty
 
 ```
@@ -531,6 +548,7 @@ Home ──▶ Expense List ──▶ Expense Detail
 ```
 
 ### 5.1 Expense List Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Expenses         📊 ⚙️│  ← Analytics / Budget icons
@@ -567,6 +585,7 @@ API: GET /v1/expenses?month=2&year=2026&category=FUEL
 ```
 
 ### 5.2 Add Expense Screen (4 Input Methods)
+
 ```
 ┌─────────────────────────┐
 │ ← Add Expense           │
@@ -611,6 +630,7 @@ APIs per tab:
 ```
 
 ### 5.3 Expense Summary & Analytics Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Analytics             │
@@ -645,6 +665,7 @@ APIs:
 ```
 
 ### 5.4 Budget Settings Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Budget Settings       │
@@ -672,6 +693,7 @@ API: POST /v1/expenses/budgets
 ```
 
 ### 5.5 Fuel Price Screens (Sub-module)
+
 ```
 ┌─────────────────────────┐
 │ ← Fuel Prices           │
@@ -704,6 +726,7 @@ APIs:
 ### 5.6 Warranty & Service Screens (Sub-module)
 
 **Service History Screen**
+
 ```
 ┌─────────────────────────┐
 │ ← Service History       │
@@ -735,6 +758,7 @@ APIs:
 ```
 
 **Warranty Status Screen**
+
 ```
 ┌─────────────────────────┐
 │ ← Parts & Warranty      │
@@ -768,9 +792,11 @@ APIs:
 ---
 
 ## 🔗 6. SHARING MODULE (Matches `sharing.swagger.ts`)
+
 **Screens:** Vehicle Sharing (Moved from Vehicle Module)
 
 ### 6.1 Vehicle Sharing Screen
+
 ```
 ┌─────────────────────────┐
 │ ← Share Vehicle          │
@@ -810,9 +836,11 @@ APIs:
 ---
 
 ## 🔔 7. NOTIFICATION MODULE (Matches `notification.swagger.ts`)
+
 **Screens:** Notifications (Tab 3)
 
 ### 7.1 Notification/Inbox Screen
+
 ```
 ┌─────────────────────────┐
 │ 🔔 Notifications        │
@@ -846,9 +874,11 @@ APIs:
 ---
 
 ## 🤖 8. CHAT MODULE (Matches `chat.swagger.ts`)
+
 **Screens:** AI Chat (Tab 2)
 
 ### 8.1 AI Chat Screen
+
 ```
 ┌─────────────────────────┐
 │ 🤖 Gupio AI        [New]│  ← New chat button
