@@ -15,7 +15,7 @@ import UploadDocument from '../screens/Documents/UploadDocument';
 import DocumentDetail from '../screens/Documents/DocumentDetail';
 import { MainBottomTabs } from './MainBottomTabs';
 import ExpensesList from '../screens/Expenses/ExpenseList';
-import addExpense from '../screens/Expenses/addExpense';
+import addExpense from '../screens/Expenses/AddExpense';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
