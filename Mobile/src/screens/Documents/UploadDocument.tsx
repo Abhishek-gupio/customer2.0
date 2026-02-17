@@ -5,30 +5,198 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   StatusBar,
   Platform,
+  Alert,
+  ActionSheetIOS,
+  PermissionsAndroid,
+  InteractionManager,
 } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { pick as pickDocument, types as docTypes } from 'react-native-document-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { useAppDispatch } from '../../store/hooks';
+import { addDocument } from '../../store/slices/documentsSlice';
+import type { OcrData } from '../../store/slices/documentsSlice';
 
 type UploadDocNavProp = NativeStackNavigationProp<RootStackParamList, 'UploadDocument'>;
 
 const DOC_TYPES = ['RC', 'Insurance', 'PUC', 'FASTag', 'DL', 'Other'];
-const VEHICLES = ['MH12AB1234', 'KA01CD5678', 'DL3EF9012'];
 
 export default function UploadDocument() {
   const navigation = useNavigation<UploadDocNavProp>();
+  const dispatch = useAppDispatch();
   const [docType, setDocType] = useState('');
   const [vehicle, setVehicle] = useState('');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
-  const [showVehicleDropdown, setShowVehicleDropdown] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+
+  const requestAndroidPermissions = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    try {
+      const camera = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs camera access to capture documents',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      const storage =
+        Platform.Version >= 33
+          ? await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+              {
+                title: 'Photo Library Permission',
+                message: 'App needs photo library access to select documents',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
+              },
+            )
+          : await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+              {
+                title: 'Storage Permission',
+                message: 'App needs storage access to select documents',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
+              },
+            );
+      return (
+        camera === PermissionsAndroid.RESULTS.GRANTED &&
+        storage === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const handleTapToUpload = () => {
+    const options = ['Camera', 'Gallery', 'Choose File', 'Cancel'];
+    const cancelIndex = 3;
+
+    const runPicker = (fn: () => void) => {
+      InteractionManager.runAfterInteractions(() => {
+        setTimeout(fn, 100);
+      });
+    };
+
+    if (Platform.OS === 'ios' && ActionSheetIOS) {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: cancelIndex },
+        (buttonIndex) => {
+          if (buttonIndex === 0) runPicker(handleTakePhoto);
+          else if (buttonIndex === 1) runPicker(handlePickImage);
+          else if (buttonIndex === 2) runPicker(handlePickDocument);
+        },
+      );
+    } else {
+      Alert.alert('Upload Document', 'Select source', [
+        { text: 'Camera', onPress: () => runPicker(handleTakePhoto) },
+        { text: 'Gallery', onPress: () => runPicker(handlePickImage) },
+        { text: 'Choose File', onPress: () => runPicker(handlePickDocument) },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
+  const handlePickDocument = async () => {
+    try {
+      const res = await pickDocument({
+        type: [docTypes.pdf, docTypes.images],
+        allowMultiSelection: false,
+      });
+      if (res?.[0]?.uri) setImageUri(res[0].uri);
+    } catch (e: unknown) {
+      const err = e as { code?: string };
+      if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
+        Alert.alert('Error', 'Could not pick file');
+      }
+    }
+  };
+
+  const handlePickImage = async () => {
+    if (Platform.OS === 'android') {
+      const hasPermission = await requestAndroidPermissions();
+      if (!hasPermission) {
+        Alert.alert('Permission needed', 'Camera and photo library access are required.');
+        return;
+      }
+    }
+    try {
+      const res = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
+      if (res?.assets?.[0]?.uri) setImageUri(res.assets[0].uri);
+    } catch {
+      Alert.alert('Error', 'Could not pick image');
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    if (Platform.OS === 'android') {
+      const hasPermission = await requestAndroidPermissions();
+      if (!hasPermission) {
+        Alert.alert('Permission needed', 'Camera access is required.');
+        return;
+      }
+    }
+    try {
+      const res = await launchCamera({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
+      if (res?.assets?.[0]?.uri) setImageUri(res.assets[0].uri);
+    } catch {
+      Alert.alert('Error', 'Could not take photo');
+    }
+  };
+
+  const mockOcrFromUri = (_uri: string): OcrData => {
+    return {
+      docNumber: `DOC-${Date.now().toString(36).toUpperCase()}`,
+      issueDate: new Date().toLocaleDateString('en-IN'),
+      expiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
+      issuer: 'Extracted via OCR',
+      vehicleNumber: vehicle || undefined,
+    };
+  };
+
+  const handleUpload = () => {
+    if (!docType) {
+      Alert.alert('Required', 'Please select document type');
+      return;
+    }
+    if (!imageUri) {
+      Alert.alert('Required', 'Please add a document (tap to upload)');
+      return;
+    }
+    const ocrData = mockOcrFromUri(imageUri);
+    dispatch(
+      addDocument({
+        type: docType,
+        vehicle: vehicle.trim(),
+        imageUri,
+        ocrData,
+      }),
+    );
+    navigation.goBack();
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -63,10 +231,7 @@ export default function UploadDocument() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.selectInput}
-          onPress={() => {
-            setShowTypeDropdown(!showTypeDropdown);
-            setShowVehicleDropdown(false);
-          }}
+          onPress={() => setShowTypeDropdown(!showTypeDropdown)}
         >
           <Text style={docType ? styles.selectText : styles.selectPlaceholder}>
             {docType || 'Select document type'}
@@ -108,63 +273,36 @@ export default function UploadDocument() {
           </View>
         )}
 
-        {/* ─── Link to Vehicle ─── */}
+        {/* ─── Link to Vehicle (Input Field) ─── */}
         <Text style={styles.label}>Link to Vehicle</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Enter vehicle number (e.g. MH12AB1234)"
+          placeholderTextColor="#666"
+          value={vehicle}
+          onChangeText={setVehicle}
+          autoCapitalize="characters"
+        />
+
+        {/* ─── Tap to Upload (File / Camera) ─── */}
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.selectInput}
-          onPress={() => {
-            setShowVehicleDropdown(!showVehicleDropdown);
-            setShowTypeDropdown(false);
-          }}
+          style={styles.uploadArea}
+          onPress={handleTapToUpload}
         >
-          <Text style={vehicle ? styles.selectText : styles.selectPlaceholder}>
-            {vehicle || 'Select vehicle (optional)'}
-          </Text>
-          <Icon
-            name={showVehicleDropdown ? 'chevron-up' : 'chevron-down'}
-            size={wp(3.5)}
-            color="#888"
-          />
-        </TouchableOpacity>
-        {showVehicleDropdown && (
-          <View style={styles.dropdown}>
-            {VEHICLES.map((v) => (
-              <TouchableOpacity
-                key={v}
-                activeOpacity={0.85}
-                style={[
-                  styles.dropdownItem,
-                  vehicle === v && styles.dropdownItemActive,
-                ]}
-                onPress={() => {
-                  setVehicle(v);
-                  setShowVehicleDropdown(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItemText,
-                    vehicle === v && styles.dropdownItemTextActive,
-                  ]}
-                >
-                  {v}
-                </Text>
-                {vehicle === v && (
-                  <Icon name="check" size={wp(3.5)} color="#FFBF00" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {/* ─── File Upload / Camera ─── */}
-        <TouchableOpacity activeOpacity={0.85} style={styles.uploadArea}>
           <View style={styles.uploadIconWrap}>
-            <Icon name="camera" size={wp(8)} color="#FFBF00" />
+            <Icon
+              name={imageUri ? 'check-circle' : 'cloud-upload-alt'}
+              size={wp(8)}
+              color={imageUri ? '#4CAF50' : '#FFBF00'}
+            />
           </View>
-          <Text style={styles.uploadTitle}>Tap to upload</Text>
-          <Text style={styles.uploadSub}>or take a photo</Text>
+          <Text style={styles.uploadTitle}>
+            {imageUri ? 'Document selected' : 'Tap to upload'}
+          </Text>
+          <Text style={styles.uploadSub}>
+            {imageUri ? 'Tap again to change' : 'Choose file or take a photo'}
+          </Text>
           <View style={styles.uploadFileTypes}>
             <View style={styles.fileTypeBadge}>
               <Text style={styles.fileTypeBadgeText}>PDF</Text>
@@ -191,7 +329,7 @@ export default function UploadDocument() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.submitBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleUpload}
         >
           <Text style={styles.submitBtnText}>Upload</Text>
           <Icon name="arrow-right" size={wp(4)} color="#000" />
@@ -250,6 +388,19 @@ const styles = StyleSheet.create({
   },
   selectText: { fontSize: wp(4), color: '#fff' },
   selectPlaceholder: { fontSize: wp(4), color: '#666' },
+
+  /* TextInput for Vehicle */
+  textInput: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: wp(3),
+    paddingHorizontal: wp(4),
+    height: hp(6.5),
+    marginBottom: hp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    fontSize: wp(4),
+    color: '#fff',
+  },
 
   /* Dropdown */
   dropdown: {

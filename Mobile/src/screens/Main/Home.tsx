@@ -34,8 +34,8 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
       >
         <HomeVideo
-          onProfilePress={() => {}}
-          onHelpPress={() => {}}
+          onProfilePress={() => navigation.navigate('MyProfile')}
+          onHelpPress={() => navigation.navigate('HelpSupport')}
         />
 
         <QuickServicesGrid

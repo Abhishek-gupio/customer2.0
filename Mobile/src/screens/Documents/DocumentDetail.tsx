@@ -8,6 +8,7 @@ import {
   StatusBar,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -19,73 +20,44 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { RouteProp } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import type { RootState } from '../../store';
+import { removeDocument } from '../../store/slices/documentsSlice';
 
 type DetailNavProp = NativeStackNavigationProp<RootStackParamList, 'DocumentDetail'>;
 
-/* ── mock detail data (would come from API) ── */
-interface DocDetail {
-  id: string;
-  type: string;
-  vehicle: string;
-  status: 'Verified' | 'Pending' | 'Expired';
-  source: 'Upload' | 'DigiLocker';
-  docNumber: string;
-  issueDate: string;
-  expiry: string;
-  issuer: string;
-}
-
-const MOCK_DETAIL: Record<string, DocDetail> = {
-  '1': {
-    id: '1',
-    type: 'RC',
-    vehicle: 'MH12AB1234',
-    status: 'Verified',
-    source: 'Upload',
-    docNumber: 'MH12 20200012345',
-    issueDate: '01 Jan 2022',
-    expiry: '15 Mar 2030',
-    issuer: 'RTO Pune',
+const DEFAULT_DETAILS: Record<string, {
+  type: string; vehicle: string; status: string; source: string;
+  docNumber: string; issueDate: string; expiry: string; issuer: string;
+}> = {
+  default_RC: {
+    type: 'RC', vehicle: 'MH12AB1234', status: 'verified', source: 'Upload',
+    docNumber: 'MH12 20200012345', issueDate: '01 Jan 2022', expiry: '15 Dec 2028', issuer: 'RTO Pune',
   },
-  '2': {
-    id: '2',
-    type: 'Insurance',
-    vehicle: 'ICICI Lombard',
-    status: 'Verified',
-    source: 'Upload',
-    docNumber: 'POL-2024-789456',
-    issueDate: '01 Mar 2024',
-    expiry: '28 Feb 2026',
-    issuer: 'ICICI Lombard',
+  default_Insurance: {
+    type: 'Insurance', vehicle: 'ICICI Lombard', status: 'expiring', source: 'Upload',
+    docNumber: 'POL-2024-789456', issueDate: '01 Mar 2024', expiry: '28 Mar 2026', issuer: 'ICICI Lombard',
   },
-  '3': {
-    id: '3',
-    type: 'PUC',
-    vehicle: 'MH12AB1234',
-    status: 'Expired',
-    source: 'Upload',
-    docNumber: 'PUC-2023-654321',
-    issueDate: '10 Aug 2023',
-    expiry: '10 Aug 2025',
-    issuer: 'Govt. Testing Center',
+  default_PUC: {
+    type: 'PUC', vehicle: 'MH12AB1234', status: 'expired', source: 'Upload',
+    docNumber: 'PUC-2023-654321', issueDate: '10 Aug 2023', expiry: '10 Aug 2025', issuer: 'Govt. Testing Center',
   },
-  '4': {
-    id: '4',
-    type: 'DL',
-    vehicle: '',
-    status: 'Verified',
-    source: 'DigiLocker',
-    docNumber: 'MH03 20190078901',
-    issueDate: '15 Jun 2019',
-    expiry: '01 Jan 2030',
-    issuer: 'RTO Mumbai',
+  default_DL: {
+    type: 'DL', vehicle: '', status: 'verified', source: 'DigiLocker',
+    docNumber: 'MH03 20190078901', issueDate: '15 Jun 2019', expiry: '01 Jan 2030', issuer: 'RTO Mumbai',
   },
 };
 
 function statusColor(s: string) {
-  if (s === 'Verified') return '#4CAF50';
-  if (s === 'Pending') return '#FFA000';
+  if (s === 'verified') return '#4CAF50';
+  if (s === 'expiring') return '#FFA000';
   return '#F44336';
+}
+
+function statusLabel(s: string) {
+  if (s === 'verified') return 'Verified';
+  if (s === 'expiring') return 'Expiring Soon';
+  return 'Expired';
 }
 
 interface Props {
@@ -94,19 +66,60 @@ interface Props {
 
 export default function DocumentDetail({ route }: Props) {
   const navigation = useNavigation<DetailNavProp>();
+  const dispatch = useAppDispatch();
   const { documentId } = route.params;
-  const doc = MOCK_DETAIL[documentId] ?? MOCK_DETAIL['1'];
+  const documents = useAppSelector((state: RootState) => state.documents.documents);
+  const doc = documents.find((d) => d.id === documentId);
+  const defaultDoc = DEFAULT_DETAILS[documentId];
 
   const handleDelete = () => {
+    if (!doc) {
+      navigation.goBack();
+      return;
+    }
     Alert.alert('Delete Document', 'Are you sure you want to delete this document?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => navigation.goBack(),
+        onPress: () => {
+          dispatch(removeDocument(documentId));
+          navigation.goBack();
+        },
       },
     ]);
   };
+
+  if (!doc && !defaultDoc) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Icon name="arrow-left" size={wp(5)} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Document not found</Text>
+        </View>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>This document may have been deleted.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const displayType = doc?.type ?? defaultDoc!.type;
+  const displayVehicle = doc?.vehicle ?? defaultDoc!.vehicle;
+  const displayStatus = doc?.status ?? defaultDoc!.status;
+  const displaySource = doc ? 'Upload' : (defaultDoc!.source ?? 'Upload');
+  const imageUri = doc?.imageUri ?? null;
+  const ocr = doc
+    ? doc.ocrData
+    : {
+        docNumber: defaultDoc!.docNumber,
+        issueDate: defaultDoc!.issueDate,
+        expiry: defaultDoc!.expiry,
+        issuer: defaultDoc!.issuer,
+        vehicleNumber: defaultDoc!.vehicle || undefined,
+      };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -125,7 +138,7 @@ export default function DocumentDetail({ route }: Props) {
           <Icon name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {doc.type} – {doc.vehicle || 'Document'}
+          {displayType} – {displayVehicle || 'Document'}
         </Text>
         <TouchableOpacity
           onPress={handleDelete}
@@ -143,10 +156,23 @@ export default function DocumentDetail({ route }: Props) {
       >
         {/* ─── Document Preview ─── */}
         <View style={styles.previewCard}>
-          <View style={styles.previewPlaceholder}>
-            <Icon name="file-pdf" size={wp(14)} color="#555" />
-            <Text style={styles.previewText}>Document Preview</Text>
-          </View>
+          {imageUri && !imageUri.toLowerCase().endsWith('.pdf') ? (
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          ) : imageUri ? (
+            <View style={styles.previewPlaceholder}>
+              <Icon name="file-pdf" size={wp(14)} color="#FFBF00" />
+              <Text style={styles.previewText}>PDF Document</Text>
+            </View>
+          ) : (
+            <View style={styles.previewPlaceholder}>
+              <Icon name="file-pdf" size={wp(14)} color="#555" />
+              <Text style={styles.previewText}>Document Preview</Text>
+            </View>
+          )}
         </View>
 
         {/* ─── Status & Source ─── */}
@@ -155,10 +181,10 @@ export default function DocumentDetail({ route }: Props) {
             <Text style={styles.infoLabel}>Status</Text>
             <View style={styles.statusBadge}>
               <View
-                style={[styles.statusDot, { backgroundColor: statusColor(doc.status) }]}
+                style={[styles.statusDot, { backgroundColor: statusColor(displayStatus) }]}
               />
-              <Text style={[styles.statusText, { color: statusColor(doc.status) }]}>
-                {doc.status}
+              <Text style={[styles.statusText, { color: statusColor(displayStatus) }]}>
+                {statusLabel(displayStatus)}
               </Text>
             </View>
           </View>
@@ -166,28 +192,47 @@ export default function DocumentDetail({ route }: Props) {
             <Text style={styles.infoLabel}>Source</Text>
             <View style={styles.sourceBadge}>
               <Icon
-                name={doc.source === 'DigiLocker' ? 'link' : 'cloud-upload-alt'}
+                name={displaySource === 'DigiLocker' ? 'link' : 'cloud-upload-alt'}
                 size={wp(3.5)}
                 color="#aaa"
                 style={{ marginRight: wp(1.5) }}
               />
-              <Text style={styles.sourceText}>{doc.source.toUpperCase()}</Text>
+              <Text style={styles.sourceText}>{displaySource.toUpperCase()}</Text>
             </View>
           </View>
         </View>
 
-        {/* ─── Extracted Fields ─── */}
+        {/* ─── Extracted Fields (OCR) ─── */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Icon name="magic" size={wp(4)} color="#FFBF00" style={{ marginRight: wp(2) }} />
-            <Text style={styles.sectionTitle}>Extracted Fields</Text>
+            <Text style={styles.sectionTitle}>Extracted Fields (OCR)</Text>
           </View>
 
           <View style={styles.fieldCard}>
-            <FieldRow label="Doc Number" value={doc.docNumber} />
-            <FieldRow label="Issue Date" value={doc.issueDate} />
-            <FieldRow label="Expiry" value={doc.expiry} />
-            <FieldRow label="Issuer" value={doc.issuer} last />
+            {(
+              [
+                ocr.docNumber && { label: 'Doc Number', value: ocr.docNumber },
+                ocr.issueDate && { label: 'Issue Date', value: ocr.issueDate },
+                ocr.expiry && { label: 'Expiry', value: ocr.expiry },
+                ocr.issuer && { label: 'Issuer', value: ocr.issuer },
+                ocr.vehicleNumber && { label: 'Vehicle', value: ocr.vehicleNumber },
+              ] as ({ label: string; value: string } | false)[]
+            )
+              .filter((f): f is { label: string; value: string } => Boolean(f))
+              .map((f, i, arr) => (
+                <FieldRow
+                  key={f.label}
+                  label={f.label}
+                  value={f.value}
+                  last={i === arr.length - 1}
+                />
+              ))}
+            {!ocr.docNumber && !ocr.issueDate && !ocr.expiry && !ocr.issuer && !ocr.vehicleNumber && (
+              <View style={styles.noOcrRow}>
+                <Text style={styles.noOcrText}>No OCR data extracted</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -265,11 +310,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  previewImage: {
+    width: '100%',
+    height: hp(28),
+  },
   previewText: {
     fontSize: wp(3.5),
     color: '#666',
     marginTop: hp(1.5),
   },
+
+  /* Empty state */
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: wp(5),
+  },
+  emptyStateText: { fontSize: wp(4), color: '#888' },
 
   /* Info row */
   infoRow: {
@@ -333,6 +391,8 @@ const styles = StyleSheet.create({
   },
   fieldLabel: { fontSize: wp(3.5), color: '#888' },
   fieldValue: { fontSize: wp(3.8), color: '#fff', fontWeight: '500' },
+  noOcrRow: { padding: wp(4) },
+  noOcrText: { fontSize: wp(3.5), color: '#666' },
 
   /* Actions */
   actionsRow: {

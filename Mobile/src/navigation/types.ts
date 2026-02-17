@@ -11,6 +11,9 @@ export type RootStackParamList = {
   DocumentList: undefined;
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
+  MyProfile: undefined;
+  HelpSupport: undefined;
+  Settings: undefined;
 };
 
 export type MainTabParamList = {
