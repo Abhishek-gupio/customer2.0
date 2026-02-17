@@ -48,6 +48,7 @@ expo-env.d.ts
 # Native (when not using prebuild)
 /ios
 /android
+
 # Certificates & keys
 .kotlin/
 *.orig.*
