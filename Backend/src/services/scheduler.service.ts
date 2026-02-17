@@ -14,7 +14,7 @@ export const schedulerService = {
     initWorkers();
 
     // 2. Schedule Repeatable Jobs
-    // IMPORTANT: 'repeat' options act like cron jobs. 
+    // IMPORTANT: 'repeat' options act like cron jobs.
     // BullMQ ensures these are unique (if jobId/name matches).
 
     // A. Daily Maintenance (Every day at 9:00 AM)
@@ -24,7 +24,7 @@ export const schedulerService = {
       {
         repeat: { pattern: "0 9 * * *" },
         jobId: "daily-maintenance-job", // fixed ID ensures singleton
-      }
+      },
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
 
@@ -35,7 +35,7 @@ export const schedulerService = {
       {
         repeat: { pattern: "0 10 * * 1" },
         jobId: "weekly-digest-job",
-      }
+      },
     );
     logger.info("Scheduled: Weekly Expense Digest (0 10 * * 1)");
 
@@ -46,7 +46,7 @@ export const schedulerService = {
       {
         repeat: { pattern: "0 2 * * 1" },
         jobId: "health-score-update-job",
-      }
+      },
     );
     logger.info("Scheduled: Weekly Health Score Update (0 2 * * 1)");
 
@@ -62,7 +62,10 @@ export const schedulerService = {
   },
 
   async scheduleNotification(customerId: string, type: string, payload: any) {
-    await queues.notifications.add("send-notification", { customerId, type, payload });
-  }
+    await queues.notifications.add("send-notification", {
+      customerId,
+      type,
+      payload,
+    });
+  },
 };
-
