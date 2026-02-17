@@ -43,6 +43,9 @@ export default function Home() {
             if (label === 'Documents') {
               navigation.navigate('DocumentList');
             }
+            else if(label=='Expenses'){
+              navigation.navigate('Expenses');
+            }
           }}
         />
 

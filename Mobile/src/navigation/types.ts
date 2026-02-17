@@ -11,6 +11,8 @@ export type RootStackParamList = {
   DocumentList: undefined;
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
+  Expenses: undefined;
+  addExpense: undefined;
 };
 
 export type MainTabParamList = {
