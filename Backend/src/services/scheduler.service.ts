@@ -112,6 +112,48 @@ export const schedulerService = {
       }
     });
 
+    // ============================================================
+    // 3. WEEKLY HEALTH SCORE UPDATE (Every Monday at 2:00 AM)
+    // ============================================================
+    cron.schedule("0 2 * * 1", async () => {
+      logger.info("Running Weekly Health Score Update...");
+      try {
+        const vehicles = await db.customerVehicle.findMany({
+          where: { isActive: true },
+          select: { id: true },
+        });
+
+        logger.info(
+          `Recalculating health scores for ${vehicles.length} vehicles...`,
+        );
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const vehicle of vehicles) {
+          try {
+            await (
+              await import("./prediction.service")
+            ).predictionService.calculateAdvancedHealthScore(vehicle.id);
+            successCount++;
+          } catch (err) {
+            failCount++;
+            logger.error(
+              { err, vehicleId: vehicle.id },
+              "Failed to recalculate health score",
+            );
+          }
+        }
+
+        logger.info(
+          { successCount, failCount },
+          "Weekly Health Score Update Completed.",
+        );
+      } catch (err) {
+        logger.error({ err }, "Weekly Health Score Update Failed");
+      }
+    });
+
     logger.info("Scheduler Service Initialized. Jobs Scheduled.");
   },
 };
