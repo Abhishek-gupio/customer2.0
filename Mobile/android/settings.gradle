@@ -1,0 +1,20 @@
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+rootProject.name = 'Mobile'
+include ':app'
+
+// If pnpm hoists packages, react-native-nitro-modules may live under node_modules/.pnpm/*/node_modules
+def pnpmRoot = new File(rootDir, 'node_modules/.pnpm')
+if (pnpmRoot.exists()) {
+	pnpmRoot.eachDir { d ->
+		def candidate = new File(d, 'node_modules/react-native-nitro-modules')
+		if (candidate.exists()) {
+			// include as composite build so project(':react-native-nitro-modules') is available
+			includeBuild(candidate)
+			println "Included react-native-nitro-modules from ${candidate}"
+			return
+		}
+	}
+}
+includeBuild('../node_modules/@react-native/gradle-plugin')
