@@ -1,19 +1,28 @@
 {
-    "name": "customer-2.0-monorepo",
-    "private": true,
-    "scripts": {
-        "build": "turbo run build",
-        "dev": "turbo run dev",
-        "lint": "turbo run lint",
-        "format": "prettier --write \"**/*.{ts,tsx,md}\""
-    },
-    "devDependencies": {
-        "turbo": "latest",
-        "prettier": "latest",
-        "typescript": "latest"
-    },
-    "engines": {
-        "node": ">=18"
-    },
-    "packageManager": "pnpm@9.0.0"
+  "name": "customer-2.0-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:up": "docker compose up -d",
+    "db:up:local": "bash scripts/db-start.sh",
+    "db:migrate": "pnpm --filter @repo/db-customer prisma:migrate:dev",
+    "db:setup": "bash scripts/db-start.sh && sleep 3 && pnpm db:migrate",
+    "prisma:migrate:dev": "pnpm --filter @repo/db-customer prisma:migrate:dev",
+    "prisma:generate": "pnpm --filter @repo/db-customer prisma:generate",
+    "prisma:studio": "pnpm --filter @repo/db-customer prisma:studio",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.0.0"
 }

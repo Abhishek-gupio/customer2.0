@@ -18,14 +18,16 @@ Database client for the customer2.0 project. Uses PostgreSQL with a **dedicated 
 
 ## Commands
 
-From repo root or from `prisma/`:
+**From repo root** (`customer2.0/`): use `pnpm prisma:migrate:dev`, `pnpm prisma:generate`, `pnpm prisma:studio`, or `pnpm db:migrate` (same as prisma:migrate:dev).
+
+**From `prisma/` directory:** use `pnpm prisma:generate`, `pnpm prisma:migrate:dev`, `pnpm prisma:studio`, or `pnpm prisma db push`.
 
 - `pnpm prisma:generate` – generate Prisma Client
 - `pnpm prisma:migrate:dev` – create/apply migrations (customer schema only)
-- `pnpm prisma db push` – push schema without migration files (dev)
+- `pnpm prisma db push` – push schema without migration files (dev; run from `prisma/`)
 - `pnpm prisma:studio` – open Prisma Studio
 
-Ensure `prisma/.env` (or `DATABASE_URL` in the environment) is set before running any of these.
+Ensure `prisma/.env` (or `DATABASE_URL` in the environment) is set and PostgreSQL is running before migrations.
 
 ## Prisma Studio and the “old” app’s models
 
@@ -35,3 +37,69 @@ Prisma Studio (v7+) **introspects the whole database**, so the sidebar lists **a
 - **The old application’s tables** – usually in the **`public`** schema.
 
 That’s expected: same DB URL means one connection, and Studio shows everything. **Use only the `customer` schema** for this app; ignore or avoid editing tables in `public`. There is no option in Studio to hide other schemas.
+
+## Local database (Docker, then migrate)
+
+From the **repo root** (`customer2.0/`):
+
+1. **Start PostgreSQL** (requires [Docker](https://docs.docker.com/get-docker/) installed and running):
+
+   ```bash
+   pnpm db:up
+   ```
+
+   Or manually: `docker compose up -d`.
+
+2. **Wait a few seconds** for Postgres to accept connections, then run migrations:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+   Or do both in one go: `pnpm db:setup` (starts Docker, waits 5s, then migrates).
+
+3. Ensure `prisma/.env` uses the local URL (see `.env.local.example`). It should look like:
+   ```bash
+   DATABASE_URL=postgresql://abhishekkumar@localhost:5432/valet_db?schema=customer
+   ```
+
+**No Docker?** From repo root run:
+
+- **`pnpm db:up:local`** – tries to start PostgreSQL via **Homebrew** (macOS). If you don’t have PostgreSQL yet, run:
+  ```bash
+  brew install postgresql@16 && brew services start postgresql@16
+  ```
+  Then run `pnpm db:up:local` again, then **`pnpm db:migrate`**.
+- Or use [Postgres.app](https://postgresapp.com/): install, start it, then in **psql** run `CREATE USER abhishekkumar SUPERUSER;` and `CREATE DATABASE valet_db OWNER abhishekkumar;`, copy `prisma/.env.local.example` to `prisma/.env`, and run **`pnpm db:migrate`**.
+
+## Troubleshooting
+
+### `connect ECONNREFUSED 127.0.0.1:5432` or P1001 (Can't reach database server)
+
+Prisma is trying to use **localhost** but no PostgreSQL is running there.
+
+- **Option A – Use RDS:** Keep `prisma/.env` with your RDS `DATABASE_URL` (as in `prisma/env`). If you get **P1011 (TLS / bad certificate)** with RDS, use Option B.
+- **Option B – Use local PostgreSQL (Docker or Postgres.app):**
+  - **Docker:** From repo root run `pnpm db:up` (or `docker compose up -d`). Then `pnpm db:migrate` or from `prisma/`: `pnpm prisma:migrate:dev`.
+  - **Postgres.app:** Install [Postgres.app](https://postgresapp.com/) and start it. In **psql** run:
+    ```sql
+    CREATE USER abhishekkumar SUPERUSER;
+    CREATE DATABASE valet_db OWNER abhishekkumar;
+    ```
+    Then copy the local URL into `prisma/.env`: `cp prisma/.env.local.example prisma/.env`, and run `pnpm prisma:migrate:dev` from `prisma/`.
+    In Prisma Studio, choose schema **`customer`** to see this app's tables.
+
+### P1010 (User was denied access on the database)
+
+PostgreSQL is running but the user `abhishekkumar` or database `valet_db` doesn't exist yet (common with Homebrew Postgres).
+
+**Fix:** From repo root run **`pnpm db:up:local`** — it creates the user and database using Homebrew's `psql`. Then run **`pnpm db:migrate`**.
+
+Or run these once (use Homebrew's psql if `psql` is not in PATH):
+
+```bash
+/opt/homebrew/opt/postgresql@16/bin/psql postgres -c "CREATE USER abhishekkumar WITH SUPERUSER;"
+/opt/homebrew/opt/postgresql@16/bin/psql postgres -c "CREATE DATABASE valet_db OWNER abhishekkumar;"
+```
+
+Then run `pnpm db:migrate` again.

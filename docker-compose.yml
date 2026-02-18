@@ -1,0 +1,19 @@
+# Local PostgreSQL for Prisma (customer schema) and Backend
+# Run: docker compose up -d
+# Then: cd prisma && pnpm prisma:migrate:dev && pnpm prisma:studio
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: customer-valet-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: abhishekkumar
+      POSTGRES_DB: valet_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_valet_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_valet_data:

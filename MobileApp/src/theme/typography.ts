@@ -1,2 +1,0 @@
-// Typography - Gupio plan
-export {};

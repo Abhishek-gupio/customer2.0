@@ -1,2 +1,0 @@
-// Spacing - Gupio plan
-export {};

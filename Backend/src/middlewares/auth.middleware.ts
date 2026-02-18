@@ -1,19 +1,26 @@
 import type { Request, Response, NextFunction } from "express";
+import { verifyAccess } from "../modules/auth/jwt";
+import { AppError } from "../utils/AppError";
 
 /**
- * Placeholder auth middleware. In production, verify JWT/session and attach user to req.
- * Currently allows all requests; replace with real auth (e.g. verify Bearer token).
+ * Verifies JWT Bearer token and attaches customer payload to req.customer.
+ * Use on routes that require authentication.
  */
 export function authMiddleware(
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   const authHeader = req.headers.authorization;
-  // TODO: validate token and set req.user (e.g. from JWT)
-  if (authHeader?.startsWith("Bearer ")) {
-    // const token = authHeader.slice(7);
-    // req.user = await verifyToken(token);
+  if (!authHeader?.startsWith("Bearer ")) {
+    next(AppError.unauthorized("Missing or invalid Authorization header"));
+    return;
   }
-  next();
+  const token = authHeader.slice(7);
+  try {
+    req.customer = verifyAccess(token);
+    next();
+  } catch {
+    next(AppError.unauthorized("Invalid or expired token"));
+  }
 }
