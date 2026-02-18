@@ -1,6 +1,9 @@
 import { dbInstances } from "@repo/db-customer";
 import { AppError } from "../../utils/AppError";
-import type { UpdateProfileInput, RegisterDeviceInput } from "./customer.validators";
+import type {
+  UpdateProfileInput,
+  RegisterDeviceInput,
+} from "./customer.validators";
 
 export const customerService = {
   async getProfile(customerId: string) {

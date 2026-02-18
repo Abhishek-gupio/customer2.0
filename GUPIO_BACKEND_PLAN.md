@@ -146,6 +146,7 @@ apps/api/
 ### **1. Customer & Authentication (2 models)**
 
 **Customer Model:**
+
 - Basic Info: id, phoneNumber, email, fullName, profilePic, dateOfBirth, gender
 - KYC: kycStatus, kycDocuments
 - DigiLocker: digilockerConnected, connection details
@@ -153,6 +154,7 @@ apps/api/
 - Relationships: vehicles, documents, expenses, chat sessions, notifications
 
 **CustomerDevice Model:**
+
 - Device tracking for push notifications
 - Platform (iOS/Android), deviceToken, deviceInfo
 - Last active tracking
@@ -160,6 +162,7 @@ apps/api/
 ### **2. Vehicle Management (2 models)**
 
 **CustomerVehicle Model:**
+
 - Registration: registrationNumber, make, model, variant, year
 - Technical: fuelType, vehicleType, bsNorm, engineCC, transmissionType
 - Tracking: currentOdometer, purchaseDate, registrationDate
@@ -167,6 +170,7 @@ apps/api/
 - Relationships: healthScore, documents, expenses, maintenance
 
 **VehicleHealthScore Model:**
+
 - Scores: overallScore (0-100), ageScore, mileageScore, maintenanceScore, drivingScore
 - Explanation: JSON array of human-readable explanations
 - Factors: Detailed breakdown
@@ -176,6 +180,7 @@ apps/api/
 ### **3. Document Management (2 models)**
 
 **CustomerDocument Model:**
+
 - Type: documentType (RC/INSURANCE/PUC/FASTAG/DL)
 - Details: documentNumber, issueDate, expiryDate, issuerName
 - Files: fileUrl, thumbnailUrl, fileSize, mimeType
@@ -184,6 +189,7 @@ apps/api/
 - Source: UPLOAD, DIGILOCKER, PARIVAHAN
 
 **DigiLockerConnection Model:**
+
 - OAuth: accessToken, refreshToken, expiresAt, scope
 - Consent: consentId, consentDate
 - Status: CONNECTED, DISCONNECTED, EXPIRED, REVOKED
@@ -192,6 +198,7 @@ apps/api/
 ### **4. Expense Tracking (2 models)**
 
 **Expense Model:**
+
 - Amount: amount, currency (INR)
 - Category: ExpenseCategory enum (FUEL/TOLL/PARKING/VALET/SERVICE)
 - Merchant: merchantName, merchantLocation
@@ -204,6 +211,7 @@ apps/api/
 - Recurring: isRecurring, recurringInterval
 
 **ExpenseBudget Model:**
+
 - Budget: category, period (WEEKLY/MONTHLY), budgetAmount
 - Alerts: alertThreshold (percentage), notifyOnExceed
 - Date range: startDate, endDate
@@ -212,6 +220,7 @@ apps/api/
 ### **5. Maintenance Tracking (3 models)**
 
 **MaintenancePart Model:**
+
 - Part: partName, partCategory (ENGINE/BRAKE/TIRE/FLUID/FILTER/BATTERY)
 - Service: lastServiceDate, lastServiceKm
 - Due: nextDueDate, nextDueKm
@@ -220,6 +229,7 @@ apps/api/
 - Cost: cost, serviceProvider, notes
 
 **MaintenanceReminder Model:**
+
 - Type: DATE/KM/BOTH
 - Reminder: reminderDate, reminderKm
 - Advance notice: advanceNoticeDays, advanceNoticeKm
@@ -227,6 +237,7 @@ apps/api/
 - Snooze: snoozeUntil, snoozeCount
 
 **ServiceHistory Model:**
+
 - Service: serviceDate, serviceType, serviceProvider, serviceLocation
 - Tracking: odometer, cost
 - Details: partsReplaced (JSON), laborCharges, partsCharges
@@ -237,6 +248,7 @@ apps/api/
 ### **6. RTO Services (2 models)**
 
 **RTORequest Model:**
+
 - Service: serviceType (OWNERSHIP_TRANSFER/HYPOTHECATION/LICENSE/etc.)
 - Status: DRAFT/SUBMITTED/IN_PROGRESS/COMPLETED/REJECTED
 - Form: formData (JSON), requiredDocuments, uploadedDocuments
@@ -248,6 +260,7 @@ apps/api/
 - Notes: notes (JSON array), rejectionReason
 
 **RTODocument Model:**
+
 - Document: documentType, fileName, fileUrl
 - Upload: uploadedAt
 - Verification: verifiedAt, verificationStatus, verificationNotes
@@ -255,11 +268,13 @@ apps/api/
 ### **7. AI & Chat (3 models)**
 
 **ChatSession Model:**
+
 - Session: sessionId, startedAt, endedAt, isActive
 - Activity: lastActivityAt, messageCount, tokenUsage
 - Context: context (JSON), language, platform
 
 **ChatMessage Model:**
+
 - Message: role (USER/ASSISTANT/SYSTEM), content, contentType (TEXT/VOICE)
 - Voice: voiceUrl, language
 - Functions: functionCalls (JSON), functionResults (JSON)
@@ -267,6 +282,7 @@ apps/api/
 - Metadata: metadata (JSON)
 
 **AIContext Model:**
+
 - Context: contextType (VEHICLE/DOCUMENT/EXPENSE/etc.), contextData (JSON)
 - Embeddings: vector embeddings for semantic search
 - Update: lastUpdated
@@ -274,12 +290,14 @@ apps/api/
 ### **8. Valet Enhancements (2 models)**
 
 **CustomerPickup (enhance existing):**
+
 - Add: customerId, vehicleId
 - Feedback: customerRating (1-5), customerFeedback
 - Tracking: etaAccuracy, actualDuration
 - Notifications: notificationsSent (JSON)
 
 **ValetTracking Model:**
+
 - Location: locations (JSON array), currentLatitude, currentLongitude
 - Update: lastUpdateAt
 - ETA: etaHistory (JSON), currentETA, initialETA
@@ -289,6 +307,7 @@ apps/api/
 ### **9. Notifications (2 models)**
 
 **CustomerNotification Model:**
+
 - Type: type (REMINDER/ALERT/INFO/PROMOTION)
 - Category: category (VEHICLE/DOCUMENT/EXPENSE/MAINTENANCE/RTO/VALET/SOS)
 - Content: title, message, richMessage (HTML/JSON)
@@ -300,6 +319,7 @@ apps/api/
 - Actions: actionButtons (JSON)
 
 **NotificationPreference Model:**
+
 - Settings: categorySettings (JSON), channelSettings (JSON)
 - Quiet Hours: quietHoursEnabled, quietHoursStart, quietHoursEnd
 - Locale: language, timezone
@@ -307,6 +327,7 @@ apps/api/
 ### **10. Analytics & Insights (2 models)**
 
 **CustomerAnalytics Model:**
+
 - Metric: metricType (DRIVING/EXPENSE/HEALTH/USAGE)
 - Period: period (DAY/WEEK/MONTH/YEAR), periodStart, periodEnd
 - Data: data (JSON aggregated metrics)
@@ -314,6 +335,7 @@ apps/api/
 - Generated: generatedAt
 
 **DrivingBehavior Model:**
+
 - Trip: tripId, startTime, endTime, duration, distance
 - Location: startLocation (JSON), endLocation (JSON), route (JSON)
 - Events: events (JSON: harsh_braking, acceleration, speeding, idling)
@@ -323,6 +345,7 @@ apps/api/
 ### **11. SOS & Emergency (2 models)**
 
 **SOSRequest Model:**
+
 - Request: requestNumber (unique)
 - Location: latitude, longitude, accuracy, address (reverse geocoded)
 - Status: timestamp, status (ACTIVE/RESOLVED/CANCELLED)
@@ -330,6 +353,7 @@ apps/api/
 - Operator: operatorNotes (JSON), resolvedAt, resolvedBy, resolutionNotes
 
 **EmergencyContact Model:**
+
 - Contact: name, phoneNumber, relationship, email
 - Priority: isPrimary, priority (order)
 - Status: isActive
@@ -337,6 +361,7 @@ apps/api/
 ### **12. Reminders (1 model)**
 
 **Reminder Model:**
+
 - Type: reminderType (PUC/INSURANCE/SERVICE/DOCUMENT/EXPENSE/RTO)
 - Entity: entityId, entityType (linking to related entity)
 - Details: title, message, dueDate, reminderDate
@@ -353,6 +378,7 @@ apps/api/
 ## 📦 **DEPENDENCIES - 83 PACKAGES**
 
 ### **Core Framework (Already Installed ✅)**
+
 ```
 express@5.1.0
 typescript@5.3.0
@@ -371,6 +397,7 @@ winston@3.18.3
 ```
 
 ### **AI & ML (10 packages)**
+
 ```
 openai
 @anthropic-ai/sdk
@@ -385,6 +412,7 @@ langsmith
 ```
 
 ### **OCR & Documents (8 packages)**
+
 ```
 tesseract.js
 sharp
@@ -397,6 +425,7 @@ image-size
 ```
 
 ### **Queue & Jobs (7 packages)**
+
 ```
 bullmq
 @bull-board/api
@@ -408,6 +437,7 @@ p-retry
 ```
 
 ### **Integrations (8 packages)**
+
 ```
 razorpay
 twilio
@@ -420,6 +450,7 @@ node-geocoder
 ```
 
 ### **Security (10 packages)**
+
 ```
 helmet
 joi
@@ -434,6 +465,7 @@ express-slow-down
 ```
 
 ### **Monitoring (9 packages)**
+
 ```
 morgan
 prom-client
@@ -447,6 +479,7 @@ response-time
 ```
 
 ### **Testing (11 dev packages)**
+
 ```
 jest
 supertest
@@ -462,6 +495,7 @@ jest-mock-extended
 ```
 
 ### **Utilities (12 packages)**
+
 ```
 dayjs
 lodash
@@ -478,6 +512,7 @@ form-data
 ```
 
 ### **Development (8 dev packages)**
+
 ```
 ts-node-dev
 nodemon
@@ -496,42 +531,49 @@ concurrently
 ## **WEEK 1: FOUNDATION & INFRASTRUCTURE** (Days 1-7)
 
 ### **Day 1: Project Setup & Database Design**
+
 **Morning:** Review existing architecture, audit dependencies, document patterns
 **Afternoon:** Design 30+ database models, create Prisma schema, define relationships
 **Evening:** Create migrations, run on dev database, seed test data
 **Deliverables:** Complete schema, all migrations, dev database ready, test data seeded
 
 ### **Day 2: Authentication & Authorization**
+
 **Morning:** Customer auth service, OTP login, JWT tokens, refresh mechanism
 **Afternoon:** Auth middleware, RBAC, API key auth, webhook verification, rate limiting
 **Evening:** Security hardening, Helmet.js, CORS, XSS protection, security logging
 **Deliverables:** Auth system complete, security middleware, rate limiting configured
 
 ### **Day 3: API Architecture & Routing**
+
 **Morning:** Base controller/service classes, standardized responses, error hierarchy
 **Afternoon:** All route modules, customer/vehicle/document/expense/AI routes
 **Evening:** Swagger/OpenAPI setup, route documentation, Postman collection
 **Deliverables:** Base architecture, all routes created, API docs initialized
 
 ### **Day 4: Redis & Queue System**
+
 **Morning:** Redis configuration, connection pooling, cache service wrapper
 **Afternoon:** Multi-layer caching, query caching, session caching, distributed locking
 **Evening:** BullMQ setup, job queues, processors, retry logic, Bull Board monitoring
 **Deliverables:** Redis operational, caching working, queue system ready
 
 ### **Day 5: Logging & Monitoring**
+
 **Morning:** Enhanced Winston logging, structured logs, request/response logging
 **Afternoon:** Prometheus metrics, health checks, APM, Sentry error tracking
 **Evening:** Alert configuration, Slack notifications, performance alerts
 **Deliverables:** Logging comprehensive, monitoring active, alerts configured
 
 ### **Day 6: File Upload & Storage**
+
 **Morning:** Multer configuration, file validation, size limits, type checking
 **Afternoon:** AWS S3/Cloudinary integration, signed URLs, image optimization
 **Evening:** Image compression, thumbnail generation, PDF processing, watermarking
 **Deliverables:** File upload complete, cloud storage integrated, processing pipeline ready
 
 ### **Day 7: Testing Infrastructure**
+
 **Morning:** Jest configuration, test utilities, database fixtures, mock data generators
 **Afternoon:** Supertest setup, auth test helpers, integration test examples
 **Evening:** Week 1 review, test all components, documentation, code review
@@ -542,42 +584,49 @@ concurrently
 ## **WEEK 2: VEHICLE, DOCUMENT & EXPENSE APIs** (Days 8-14)
 
 ### **Day 8: Vehicle Management API (Part 1)**
+
 **Morning:** Vehicle CRUD endpoints, validation, duplicate check
 **Afternoon:** Vehicle service layer, registration verification, make/model database
 **Evening:** Parivahan integration structure, RC verification, vehicle enrichment
 **Deliverables:** Vehicle CRUD complete, validation comprehensive, image upload working
 
 ### **Day 9: Vehicle Health Score & Maintenance**
+
 **Morning:** Health score algorithm, multi-factor calculation, weighted scoring
 **Afternoon:** Score explanation generator, recommendations engine, score history
 **Evening:** Maintenance part tracking, schedule calculator, overdue detection
 **Deliverables:** Health score API complete, maintenance tracking functional
 
 ### **Day 10: Document Management API (Part 1)**
+
 **Morning:** Document upload endpoints, type validation, storage, thumbnails
 **Afternoon:** Tesseract OCR integration, field extraction (RC/Insurance/PUC/DL)
 **Evening:** Document verification, format validation, duplicate detection
 **Deliverables:** Document upload complete, OCR working, verification system ready
 
 ### **Day 11: DigiLocker Integration**
+
 **Morning:** DigiLocker OAuth 2.0 flow, authorization, callback, token storage
 **Afternoon:** Document list fetch, individual retrieval, download, sync service
 **Evening:** Document intelligence, expiry prediction, smart reminders
 **Deliverables:** DigiLocker integration complete, OAuth working, smart reminders active
 
 ### **Day 12: Expense Tracking API (Part 1)**
+
 **Morning:** Expense CRUD endpoints, manual entry, list with filters
 **Afternoon:** Auto-categorization, merchant matching, custom categories
 **Evening:** NLP parser for voice/notification, amount/date extraction, merchant extraction
 **Deliverables:** Expense CRUD complete, categorization working, parser functional
 
 ### **Day 13: Expense Analytics & Budget**
+
 **Morning:** Budget management endpoints, tracking, alerts, recommendations
 **Afternoon:** Monthly analytics, category breakdown, trend analysis, comparisons
 **Evening:** AI insights, anomaly detection, spending prediction, cost-saving tips
 **Deliverables:** Budget management complete, analytics functional, insights generating
 
 ### **Day 14: Maintenance Reminders**
+
 **Morning:** Reminder service, date/km-based scheduling, notification queue
 **Afternoon:** Service history API, cost tracking, provider database, recommendations
 **Evening:** Smart reminders, driving behavior integration, dynamic intervals
@@ -588,42 +637,49 @@ concurrently
 ## **WEEK 3: AI ASSISTANT & ADVANCED FEATURES** (Days 15-21)
 
 ### **Day 15: AI Assistant Infrastructure**
+
 **Morning:** OpenAI API integration, chat completion, streaming, token management
 **Afternoon:** Vector database (Pinecone/pgvector), embeddings, semantic search
 **Evening:** Chat session management, message storage, context tracking, history
 **Deliverables:** OpenAI integrated, vector database operational, session management ready
 
 ### **Day 16: AI Core Features**
+
 **Morning:** Context-aware responses, customer/vehicle/expense/document context loading
 **Afternoon:** Function calling framework, function registry, action execution
 **Evening:** Intent classification, entity extraction, conversation flow management
 **Deliverables:** Context-aware AI working, function calling operational, conversations natural
 
 ### **Day 17: Voice & Multilingual**
+
 **Morning:** Speech-to-text integration, audio processing, voice command parsing
 **Afternoon:** Text-to-speech integration, voice response generation, language-specific voices
 **Evening:** Language detection, translation service, multilingual responses
 **Deliverables:** Voice input/output complete, multilingual support operational
 
 ### **Day 18: Real-time Valet Tracking**
+
 **Morning:** WebSocket enhancement, room-based communication, location updates
 **Afternoon:** Google Maps ETA calculation, traffic-aware routing, historical data
 **Evening:** Enhanced valet features, ratings, customer notifications, job completion
 **Deliverables:** Real-time tracking enhanced, ETA accurate, WebSocket robust
 
 ### **Day 19: RTO Services API**
+
 **Morning:** RTO service types, requirements, document checklist, fee calculation
 **Afternoon:** RTO request management, form validation, document upload, status tracking
 **Evening:** Razorpay payment integration, webhooks, e-sign (DigiLocker), invoices
 **Deliverables:** RTO API complete, payment working, e-sign operational
 
 ### **Day 20: SOS & Emergency System**
+
 **Morning:** SOS creation, immutable records, location capture, ops notifications
 **Afternoon:** Google Places integration, hospital/police/garage search, distance ranking
 **Evening:** Emergency contact management, auto-notification, SOS resolution
 **Deliverables:** SOS system complete, nearby help finder accurate, safety features ready
 
 ### **Day 21: Analytics & Insights**
+
 **Morning:** Data aggregation jobs, daily/weekly/monthly rollups, custom periods
 **Afternoon:** Pattern recognition, anomaly detection, predictive analytics, recommendations
 **Evening:** Analytics API endpoints, dashboard data, real-time metrics, exports
@@ -634,42 +690,49 @@ concurrently
 ## **WEEK 4: OPTIMIZATION & PRODUCTION** (Days 22-28)
 
 ### **Day 22: Performance Optimization (Part 1)**
+
 **Morning:** Query optimization, slow query audit, add indexes, N+1 fix
 **Afternoon:** Response compression, payload optimization, caching strategy, CDN
 **Evening:** Connection pool tuning, Prisma/Redis optimization, monitoring
 **Deliverables:** Queries optimized, API response < 200ms, connections tuned
 
 ### **Day 23: Performance Optimization (Part 2)**
+
 **Morning:** Advanced caching, multi-layer strategy, cache warming, monitoring
 **Afternoon:** Rate limiting tiers, burst handling, dynamic adjustment
 **Evening:** Load testing with Artillery/k6, stress testing, bottleneck identification
 **Deliverables:** Caching optimized, rate limiting production-ready, load tests passed
 
 ### **Day 24: Background Jobs & Queues**
+
 **Morning:** All job processors (maintenance, document, expense, budget, health, RTO, analytics)
 **Afternoon:** Cron scheduling, prioritization, retry logic, failure handling, monitoring
 **Evening:** Queue optimization, concurrency, dead letter queue, health checks
 **Deliverables:** All jobs operational, scheduling configured, queues robust
 
 ### **Day 25: Comprehensive Testing**
+
 **Morning:** Integration tests for all major APIs, complete flow testing
 **Afternoon:** End-to-end tests, user journey tests, error handling, edge cases
 **Evening:** API contract testing, schema validation, backward compatibility
 **Deliverables:** Integration coverage > 80%, E2E tests complete, all flows tested
 
 ### **Day 26: Security Audit & Hardening**
+
 **Morning:** OWASP assessment, auth/authorization audit, sensitive data review
 **Afternoon:** Additional security headers, signature verification, IP whitelisting, audit logging
 **Evening:** Penetration testing, SQL injection/XSS testing, vulnerability fixes
 **Deliverables:** Security audit complete, vulnerabilities fixed, pen test passed
 
 ### **Day 27: Documentation & DevOps**
+
 **Morning:** Complete Swagger docs, endpoint descriptions, examples, error codes
 **Afternoon:** CI/CD pipeline setup, deployment scripts, environment configs, migrations
 **Evening:** Runbooks, troubleshooting guides, incident response, scaling procedures
 **Deliverables:** API docs complete, CI/CD operational, runbooks ready
 
 ### **Day 28: Final Testing & Go-Live**
+
 **Morning:** Production environment setup, database/Redis configuration, monitoring
 **Afternoon:** Final validation on staging, load testing, integration verification, backups
 **Evening:** Go-live checklist, rollback plan, team briefing, stakeholder review
@@ -680,6 +743,7 @@ concurrently
 ## 🎯 **API ENDPOINTS - 120+ TOTAL**
 
 ### **Authentication (7 endpoints)**
+
 ```
 POST   /api/v1/auth/login                # Customer login (OTP)
 POST   /api/v1/auth/verify-otp           # Verify OTP code
@@ -691,6 +755,7 @@ POST   /api/v1/customer/device           # Register device for notifications
 ```
 
 ### **Vehicle Management (15 endpoints)**
+
 ```
 POST   /api/v1/vehicles                  # Add new vehicle
 GET    /api/v1/vehicles                  # List all vehicles
@@ -710,6 +775,7 @@ POST   /api/v1/vehicles/verify-rc        # Verify RC via Parivahan
 ```
 
 ### **Document Management (12 endpoints)**
+
 ```
 POST   /api/v1/documents                 # Upload document
 GET    /api/v1/documents                 # List documents
@@ -726,6 +792,7 @@ GET    /api/v1/documents/expiring        # Get expiring documents
 ```
 
 ### **Expense Tracking (14 endpoints)**
+
 ```
 POST   /api/v1/expenses                  # Add expense
 GET    /api/v1/expenses                  # List expenses (with filters)
@@ -744,6 +811,7 @@ POST   /api/v1/expenses/categories       # Create custom category
 ```
 
 ### **RTO Services (10 endpoints)**
+
 ```
 GET    /api/v1/rto/services              # List service types
 GET    /api/v1/rto/services/:id          # Service details
@@ -758,6 +826,7 @@ GET    /api/v1/rto/requests/:id/status   # Track status
 ```
 
 ### **AI Assistant (8 endpoints)**
+
 ```
 POST   /api/v1/ai/chat                   # Send chat message
 GET    /api/v1/ai/sessions               # List chat sessions
@@ -770,6 +839,7 @@ POST   /api/v1/ai/feedback               # Submit feedback
 ```
 
 ### **Valet Tracking (8 endpoints)**
+
 ```
 GET    /api/v1/valet/active              # Get active valet job
 GET    /api/v1/valet/history             # Job history
@@ -782,6 +852,7 @@ GET    /api/v1/valet/jobs/:id/invoice    # Get job invoice
 ```
 
 ### **SOS & Emergency (6 endpoints)**
+
 ```
 POST   /api/v1/sos                       # Create SOS request
 GET    /api/v1/sos/:id                   # SOS request details
@@ -792,6 +863,7 @@ GET    /api/v1/emergency-contacts        # List emergency contacts
 ```
 
 ### **Notifications (8 endpoints)**
+
 ```
 GET    /api/v1/notifications             # List notifications
 GET    /api/v1/notifications/:id         # Notification details
@@ -805,6 +877,7 @@ PUT    /api/v1/notification-preferences  # Update preferences
 ```
 
 ### **Analytics (5 endpoints)**
+
 ```
 GET    /api/v1/analytics/dashboard       # Dashboard data
 GET    /api/v1/analytics/expenses        # Expense analytics
@@ -814,6 +887,7 @@ GET    /api/v1/analytics/insights        # AI-generated insights
 ```
 
 ### **Webhooks (4 endpoints)**
+
 ```
 POST   /api/v1/webhooks/payment          # Payment webhook (Razorpay)
 POST   /api/v1/webhooks/digilocker       # DigiLocker webhook
@@ -822,6 +896,7 @@ POST   /api/v1/webhooks/notifications    # Notification delivery webhook
 ```
 
 ### **Health & Monitoring (3 endpoints)**
+
 ```
 GET    /api/health                       # Basic health check
 GET    /api/health/detailed              # Detailed health (DB, Redis, etc.)
@@ -834,29 +909,30 @@ GET    /api/metrics                      # Prometheus metrics
 
 ## 📊 **PERFORMANCE TARGETS**
 
-| Metric | Target | Monitoring Tool |
-|--------|--------|-----------------|
-| **API Response Time (avg)** | < 200ms | Prometheus, APM |
-| **API Response Time (p95)** | < 500ms | Prometheus, APM |
-| **API Response Time (p99)** | < 1s | Prometheus, APM |
-| **Database Query Time (avg)** | < 50ms | Prisma metrics, Slow query log |
-| **Cache Hit Rate** | > 80% | Redis metrics |
-| **Concurrent Users** | 10,000+ | Load testing, monitoring |
-| **Requests per Second** | 5,000+ | Load balancer metrics |
-| **API Uptime** | 99.9% | Uptime monitoring |
-| **Error Rate** | < 0.1% | Sentry, logs |
-| **Queue Processing Time** | < 5 min | Bull Board |
-| **Database Connection Pool** | < 100 | Prisma metrics |
-| **Memory Usage per Instance** | < 2GB | APM, server monitoring |
-| **CPU Usage (avg)** | < 70% | Server monitoring |
-| **WebSocket Connections** | 5,000+ | Socket.IO metrics |
-| **Background Job Success Rate** | > 99% | Bull Board |
+| Metric                          | Target  | Monitoring Tool                |
+| ------------------------------- | ------- | ------------------------------ |
+| **API Response Time (avg)**     | < 200ms | Prometheus, APM                |
+| **API Response Time (p95)**     | < 500ms | Prometheus, APM                |
+| **API Response Time (p99)**     | < 1s    | Prometheus, APM                |
+| **Database Query Time (avg)**   | < 50ms  | Prisma metrics, Slow query log |
+| **Cache Hit Rate**              | > 80%   | Redis metrics                  |
+| **Concurrent Users**            | 10,000+ | Load testing, monitoring       |
+| **Requests per Second**         | 5,000+  | Load balancer metrics          |
+| **API Uptime**                  | 99.9%   | Uptime monitoring              |
+| **Error Rate**                  | < 0.1%  | Sentry, logs                   |
+| **Queue Processing Time**       | < 5 min | Bull Board                     |
+| **Database Connection Pool**    | < 100   | Prisma metrics                 |
+| **Memory Usage per Instance**   | < 2GB   | APM, server monitoring         |
+| **CPU Usage (avg)**             | < 70%   | Server monitoring              |
+| **WebSocket Connections**       | 5,000+  | Socket.IO metrics              |
+| **Background Job Success Rate** | > 99%   | Bull Board                     |
 
 ---
 
 ## ✅ **PRE-PRODUCTION CHECKLIST**
 
 ### **Infrastructure**
+
 - [ ] Production PostgreSQL database with replication
 - [ ] Automated database backups (hourly incremental, daily full)
 - [ ] Redis cluster for high availability
@@ -869,6 +945,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Rollback procedures tested
 
 ### **Security**
+
 - [ ] All API keys stored in environment variables
 - [ ] Database credentials encrypted
 - [ ] HTTPS enforced everywhere
@@ -889,6 +966,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] OWASP Top 10 vulnerabilities addressed
 
 ### **Monitoring & Observability**
+
 - [ ] Sentry error tracking configured
 - [ ] Sentry release tracking enabled
 - [ ] Prometheus metrics endpoint active
@@ -904,6 +982,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Custom business metrics tracked
 
 ### **API Quality**
+
 - [ ] All endpoints documented in Swagger
 - [ ] API documentation accessible at /api-docs
 - [ ] Postman collection updated and tested
@@ -919,6 +998,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Request ID in all responses
 
 ### **Testing**
+
 - [ ] Unit test coverage > 70%
 - [ ] Integration test coverage > 80%
 - [ ] E2E tests for critical flows
@@ -931,6 +1011,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Performance regression tests
 
 ### **External Integrations**
+
 - [ ] OpenAI API tested and rate limits understood
 - [ ] DigiLocker OAuth flow working end-to-end
 - [ ] Parivahan API integration tested
@@ -944,6 +1025,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Integration health checks in place
 
 ### **Data & Compliance**
+
 - [ ] Database backup automated and tested
 - [ ] Backup restoration tested
 - [ ] Data retention policy documented
@@ -958,6 +1040,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] PII data handling documented
 
 ### **Performance**
+
 - [ ] Database indexes optimized
 - [ ] Query performance profiled
 - [ ] N+1 queries eliminated
@@ -970,6 +1053,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Slow query logging enabled
 
 ### **Background Jobs**
+
 - [ ] All job processors tested
 - [ ] Job scheduling configured (cron expressions)
 - [ ] Job retry logic tested
@@ -982,6 +1066,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Job success rate > 99%
 
 ### **Documentation**
+
 - [ ] API documentation complete
 - [ ] Database schema documented
 - [ ] Architecture diagrams created
@@ -1001,9 +1086,10 @@ GET    /api/metrics                      # Prometheus metrics
 ### **High Priority Risks**
 
 **1. Database Performance Degradation**
+
 - **Risk:** Slow queries with millions of records
 - **Impact:** API response time > 1s, poor user experience
-- **Mitigation:** 
+- **Mitigation:**
   - Comprehensive database indexing
   - Query optimization and profiling
   - Read replicas for query load
@@ -1012,6 +1098,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Slow query logs, query explain analysis, APM
 
 **2. External API Failures**
+
 - **Risk:** OpenAI, DigiLocker, Parivahan API downtime
 - **Impact:** Features unavailable, user frustration
 - **Mitigation:**
@@ -1024,6 +1111,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Integration health checks, error rate tracking, uptime monitoring
 
 **3. Queue Backup**
+
 - **Risk:** Job queue overflow during peak load
 - **Impact:** Delayed notifications, processing delays
 - **Mitigation:**
@@ -1036,6 +1124,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Queue depth alerts (> 1000 jobs), processing time metrics
 
 **4. Memory Leaks**
+
 - **Risk:** Long-running processes consume excessive memory
 - **Impact:** Server crashes, service interruption
 - **Mitigation:**
@@ -1047,6 +1136,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Memory usage alerts (> 1.5GB), heap dump analysis
 
 **5. Race Conditions**
+
 - **Risk:** Concurrent request conflicts (e.g., duplicate expenses)
 - **Impact:** Data inconsistency, duplicate records
 - **Mitigation:**
@@ -1060,6 +1150,7 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Medium Priority Risks**
 
 **6. API Rate Limit Exceeded (External)**
+
 - **Risk:** Third-party API quotas exhausted
 - **Impact:** Service degradation, feature unavailable
 - **Mitigation:**
@@ -1071,6 +1162,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** API usage dashboards, quota alerts (> 80%)
 
 **7. Webhook Reliability**
+
 - **Risk:** Missed payment or integration webhooks
 - **Impact:** Payment status out of sync, user confusion
 - **Mitigation:**
@@ -1082,6 +1174,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Webhook success rate, failed webhook alerts
 
 **8. Cache Invalidation Issues**
+
 - **Risk:** Stale cached data shown to users
 - **Impact:** Incorrect information, poor UX
 - **Mitigation:**
@@ -1093,6 +1186,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Cache hit/miss rate, stale data reports
 
 **9. WebSocket Connection Issues**
+
 - **Risk:** Real-time tracking connection drops
 - **Impact:** No live updates, user frustration
 - **Mitigation:**
@@ -1104,6 +1198,7 @@ GET    /api/metrics                      # Prometheus metrics
 - **Monitoring:** Active connection count, reconnection rate, connection duration
 
 **10. Data Migration Failures**
+
 - **Risk:** Production database migration errors
 - **Impact:** Service downtime, data loss
 - **Mitigation:**
@@ -1122,6 +1217,7 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Horizontal Scaling**
 
 **Application Layer:**
+
 - Load balancer (NGINX/AWS ALB) distributing requests
 - Multiple Node.js instances (6-10 initially)
 - Stateless application design (no session storage in memory)
@@ -1130,6 +1226,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Blue-green deployment for zero-downtime updates
 
 **Database Layer:**
+
 - PostgreSQL primary for writes
 - 2-3 read replicas for query load distribution
 - Connection pooling (100 connections per instance)
@@ -1138,6 +1235,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Regular maintenance (VACUUM, ANALYZE, REINDEX)
 
 **Caching Strategy:**
+
 - Redis cluster (3 master, 3 replica nodes)
 - Multi-layer caching:
   - L1: In-memory cache (Node.js, 1 minute TTL)
@@ -1148,6 +1246,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Smart invalidation on updates
 
 **Queue System:**
+
 - Multiple BullMQ worker instances (4-8 workers)
 - Job prioritization (HIGH/MEDIUM/LOW)
 - Concurrent processing (10 jobs per worker)
@@ -1155,6 +1254,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Separate queues for critical vs non-critical jobs
 
 **Real-time Features:**
+
 - Socket.IO server cluster (2-4 instances)
 - Redis adapter for Socket.IO clustering
 - Room-based communication (one room per valet job)
@@ -1162,6 +1262,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Connection management (max 10k connections per instance)
 
 **Storage:**
+
 - CDN (CloudFront/Cloudflare) for static assets
 - Cloud storage (S3/Cloudinary) with regional replication
 - Image optimization pipeline (WebP, multiple sizes)
@@ -1169,6 +1270,7 @@ GET    /api/metrics                      # Prometheus metrics
 - 99.99% availability SLA
 
 **Monitoring & Observability:**
+
 - Distributed tracing (Jaeger/Zipkin)
 - Centralized logging (ELK/Datadog/CloudWatch)
 - Real-time metrics (Prometheus + Grafana)
@@ -1178,6 +1280,7 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Capacity Planning**
 
 **For 1 Million Active Users:**
+
 - API Servers: 8-10 instances (4 vCPU, 8GB RAM each)
 - Database: 1 primary (16 vCPU, 64GB RAM), 3 replicas (8 vCPU, 32GB RAM)
 - Redis Cluster: 6 nodes (4 vCPU, 16GB RAM each)
@@ -1186,6 +1289,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Estimated Cost: $5,000-8,000/month on AWS
 
 **For 10 Million Active Users:**
+
 - API Servers: 20-30 instances
 - Database: Sharded (5 primaries, 15 replicas)
 - Redis Cluster: 12 nodes
@@ -1198,6 +1302,7 @@ GET    /api/metrics                      # Prometheus metrics
 ## 🏆 **SUCCESS METRICS (Post-Launch)**
 
 ### **Week 1-2 After Launch**
+
 - API uptime: > 99.5%
 - Average response time: < 250ms
 - p95 response time: < 600ms
@@ -1207,6 +1312,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Background job success: > 95%
 
 ### **Month 1**
+
 - API uptime: > 99.9%
 - Average response time: < 200ms
 - p95 response time: < 500ms
@@ -1218,6 +1324,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Zero critical security incidents
 
 ### **Month 2-3**
+
 - API uptime: 99.95%
 - Average response time: < 150ms
 - p95 response time: < 400ms
@@ -1230,6 +1337,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Cost per active user: < ₹10/month
 
 ### **Key Performance Indicators (KPIs)**
+
 - **Technical KPIs:**
   - API availability: 99.9%+
   - Mean Time To Recovery (MTTR): < 15 minutes
@@ -1256,6 +1364,7 @@ GET    /api/metrics                      # Prometheus metrics
 ## 📚 **DOCUMENTATION DELIVERABLES**
 
 ### **Technical Documentation**
+
 1. **API Reference** - Complete Swagger/OpenAPI documentation
 2. **Database Schema** - ER diagrams, model relationships, index strategy
 3. **Architecture Diagrams** - System architecture, data flow, integration map
@@ -1263,6 +1372,7 @@ GET    /api/metrics                      # Prometheus metrics
 5. **Code Style Guide** - TypeScript conventions, naming patterns, best practices
 
 ### **Operational Documentation**
+
 1. **Deployment Procedures** - Step-by-step deployment guide, rollback procedures
 2. **Troubleshooting Guide** - Common issues, error codes, resolution steps
 3. **Incident Response Playbooks** - P0/P1/P2 incident handling
@@ -1272,6 +1382,7 @@ GET    /api/metrics                      # Prometheus metrics
 7. **Security Procedures** - Security incident response, vulnerability management
 
 ### **Developer Documentation**
+
 1. **Setup Guide** - Local development environment setup
 2. **Testing Guide** - Unit, integration, E2E testing guidelines
 3. **Contribution Guidelines** - Git workflow, PR process, code review checklist
@@ -1285,6 +1396,7 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Recommended 7-Person Team**
 
 **1. Tech Lead / Senior Backend Engineer (1 person)**
+
 - Architecture decisions and technical direction
 - Code review and quality assurance
 - Critical feature implementation (AI, real-time tracking)
@@ -1293,6 +1405,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Stakeholder communication
 
 **2. Backend Engineers (2 people)**
+
 - API development (controllers, routes, services)
 - Database schema design and migrations
 - Integration with external APIs
@@ -1301,6 +1414,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Bug fixes and maintenance
 
 **3. AI/ML Engineer (1 person)**
+
 - OpenAI integration and prompt engineering
 - Vector database setup and management
 - NLP parser for expense text
@@ -1309,6 +1423,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Conversation context management
 
 **4. DevOps Engineer (1 person - can be part-time)**
+
 - Infrastructure setup (AWS/Azure/GCP)
 - CI/CD pipeline configuration
 - Monitoring and alerting setup
@@ -1317,6 +1432,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Security hardening
 
 **5. QA Engineer (1 person)**
+
 - Test planning and strategy
 - Integration testing
 - Load and stress testing
@@ -1325,6 +1441,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Bug tracking and reporting
 
 **6. Product Manager / Tech Lead (1 person)**
+
 - Requirements clarification
 - Priority management
 - Sprint planning
@@ -1333,6 +1450,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Release planning
 
 ### **Weekly Sprint Structure**
+
 - Monday: Sprint planning, task assignment
 - Daily: 15-min standup (blockers, progress, plans)
 - Wednesday: Mid-week sync, demo progress
@@ -1346,6 +1464,7 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Post-Launch Activities**
 
 **Week 1-2 (Critical Period):**
+
 - 24/7 monitoring with on-call rotation
 - Rapid response to critical bugs (< 1 hour)
 - Performance tuning based on real traffic
@@ -1354,6 +1473,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Hot-fix deployment as needed
 
 **Month 1-3 (Stabilization):**
+
 - Feature enhancements based on usage
 - Optimization based on usage patterns
 - Integration improvements
@@ -1362,6 +1482,7 @@ GET    /api/metrics                      # Prometheus metrics
 - Monthly security audits
 
 **Ongoing (Steady State):**
+
 - Regular security updates (monthly)
 - Dependency updates (weekly for security, monthly for features)
 - Database optimization (quarterly)
@@ -1372,24 +1493,28 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Support Levels**
 
 **P0 - Critical (Response: 15 min, Resolution: 1 hour)**
+
 - API completely down
 - Database corruption
 - Security breach
 - Payment processing failure
 
 **P1 - High (Response: 1 hour, Resolution: 4 hours)**
+
 - Major feature not working (AI, valet tracking)
 - High error rate (> 5%)
 - Performance degradation (> 2x response time)
 - External integration failure
 
 **P2 - Medium (Response: 4 hours, Resolution: 1 day)**
+
 - Minor feature issues
 - Non-critical bugs
 - UI/UX improvements
 - Documentation issues
 
 **P3 - Low (Response: 1 day, Resolution: 1 week)**
+
 - Enhancement requests
 - Nice-to-have features
 - Code refactoring
@@ -1400,6 +1525,7 @@ GET    /api/metrics                      # Prometheus metrics
 ## 📞 **CRITICAL INTEGRATIONS SUMMARY**
 
 ### **Must-Have Integrations (Launch Blockers)**
+
 ✅ OpenAI GPT-4 - AI assistant, chat, insights generation  
 ✅ DigiLocker - Document authentication and fetch  
 ✅ Parivahan - RC and DL verification  
@@ -1409,22 +1535,24 @@ GET    /api/metrics                      # Prometheus metrics
 ✅ Twilio - SMS notifications  
 ✅ AWS S3 or Cloudinary - File storage  
 ✅ Sentry - Error tracking and monitoring  
-✅ Prometheus - Metrics collection  
+✅ Prometheus - Metrics collection
 
 ### **Nice-to-Have Integrations (Post-Launch)**
+
 ⭕ WhatsApp Business API - Customer communication  
 ⭕ Pinecone - Advanced vector search (or use pgvector)  
 ⭕ ElasticSearch - Advanced document search  
 ⭕ DataDog - Advanced monitoring and logs  
 ⭕ New Relic - Application performance monitoring  
 ⭕ Google Vision API - Advanced OCR (fallback for Tesseract)  
-⭕ AWS Textract - Invoice OCR  
+⭕ AWS Textract - Invoice OCR
 
 ---
 
 ## 🚀 **GO-LIVE CHECKLIST**
 
 ### **24 Hours Before Launch**
+
 - [ ] Run complete test suite on staging (all green)
 - [ ] Load test staging with 10k concurrent users
 - [ ] Verify all external integrations (API keys, webhooks)
@@ -1439,12 +1567,14 @@ GET    /api/metrics                      # Prometheus metrics
 ### **Launch Day (Hour-by-Hour)**
 
 **Hour 0 (12:00 AM):**
+
 - [ ] Deploy production build
 - [ ] Run database migrations
 - [ ] Verify health checks pass
 - [ ] Check error rates (should be 0%)
 
 **Hour 1:**
+
 - [ ] Monitor API response times
 - [ ] Check database connections
 - [ ] Verify Redis connectivity
@@ -1452,6 +1582,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Monitor WebSocket connections
 
 **Hour 2-6:**
+
 - [ ] Gradual traffic ramp-up
 - [ ] Monitor all metrics continuously
 - [ ] Check external integrations working
@@ -1459,6 +1590,7 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Monitor error rates and logs
 
 **Hour 6-12:**
+
 - [ ] Full traffic migration
 - [ ] Performance review
 - [ ] User feedback monitoring
@@ -1466,12 +1598,14 @@ GET    /api/metrics                      # Prometheus metrics
 - [ ] Team debrief
 
 **Hour 12-24:**
+
 - [ ] Continuous monitoring
 - [ ] Hot-fix deployment if needed
 - [ ] Metrics analysis
 - [ ] Post-launch report preparation
 
 ### **Post-Launch (First Week)**
+
 - [ ] Daily performance reviews (morning standup)
 - [ ] Monitor user feedback and support tickets
 - [ ] Track error patterns and trends
@@ -1484,6 +1618,7 @@ GET    /api/metrics                      # Prometheus metrics
 ## 🎯 **FINAL SUCCESS CRITERIA**
 
 ### **Technical Success**
+
 ✅ API uptime > 99.9%  
 ✅ Average response time < 200ms  
 ✅ Error rate < 0.1%  
@@ -1493,18 +1628,20 @@ GET    /api/metrics                      # Prometheus metrics
 ✅ Background jobs success > 99%  
 ✅ Zero critical security vulnerabilities  
 ✅ Load testing passed (10k+ concurrent users)  
-✅ All integrations working  
+✅ All integrations working
 
 ### **Operational Success**
+
 ✅ Complete documentation (API, architecture, runbooks)  
 ✅ CI/CD pipeline operational  
 ✅ Monitoring and alerting configured  
 ✅ On-call rotation established  
 ✅ Incident response procedures tested  
 ✅ Backup and recovery procedures verified  
-✅ Team trained on operations  
+✅ Team trained on operations
 
 ### **Business Success**
+
 ✅ Features ready for frontend integration  
 ✅ Mobile app backend support complete  
 ✅ AI assistant fully functional  
@@ -1514,7 +1651,7 @@ GET    /api/metrics                      # Prometheus metrics
 ✅ Expense tracking with voice input  
 ✅ RTO services end-to-end  
 ✅ Analytics and insights generating  
-✅ Ready for millions of users  
+✅ Ready for millions of users
 
 ---
 

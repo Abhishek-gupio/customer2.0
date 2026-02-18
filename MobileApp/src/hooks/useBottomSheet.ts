@@ -1,2 +1,0 @@
-// useBottomSheet - Gupio plan
-export {};

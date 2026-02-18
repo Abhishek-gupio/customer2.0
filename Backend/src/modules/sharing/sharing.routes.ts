@@ -16,6 +16,9 @@ router.get("/shared-with-me", sharingController.listIncoming);
 router.get("/vehicle/:vehicleId/access", sharingController.listOutgoing);
 
 // Revoke access
-router.delete("/vehicle/:vehicleId/access/:targetCustomerId", sharingController.revoke);
+router.delete(
+  "/vehicle/:vehicleId/access/:targetCustomerId",
+  sharingController.revoke,
+);
 
 export const sharingRoutes = router;

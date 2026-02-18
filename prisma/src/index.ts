@@ -1,16 +1,16 @@
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import "dotenv/config";
+import { PrismaClient } from "../generated/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 declare global {
   var prisma: PrismaClient | undefined;
 }
 
-let connectionString = process.env.DATABASE_URL ?? '';
-if (!connectionString || connectionString.trim() === '') {
+let connectionString = process.env.DATABASE_URL ?? "";
+if (!connectionString || connectionString.trim() === "") {
   throw new Error(
-    'DATABASE_URL is not set. For local dev, set it in Backend/.env (e.g. DATABASE_URL=postgresql://abhishekkumar@localhost:5432/valet_db?schema=customer)'
+    "DATABASE_URL is not set. For local dev, set it in Backend/.env (e.g. DATABASE_URL=postgresql://abhishekkumar@localhost:5432/valet_db?schema=customer)",
   );
 }
 
@@ -19,17 +19,19 @@ let ssl: boolean | { rejectUnauthorized: boolean } = false;
 if (connectionString) {
   try {
     const url = new URL(connectionString);
-    const sslmode = url.searchParams.get('sslmode');
+    const sslmode = url.searchParams.get("sslmode");
     const isLocalhost =
-      url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+      url.hostname === "localhost" || url.hostname === "127.0.0.1";
     if (
       !isLocalhost &&
-      (sslmode === 'require' || sslmode === 'verify-full' || sslmode === 'no-verify')
+      (sslmode === "require" ||
+        sslmode === "verify-full" ||
+        sslmode === "no-verify")
     ) {
-      ssl = { rejectUnauthorized: sslmode === 'verify-full' };
+      ssl = { rejectUnauthorized: sslmode === "verify-full" };
     }
     // Strip sslmode from URL so pg uses our ssl option instead
-    url.searchParams.delete('sslmode');
+    url.searchParams.delete("sslmode");
     connectionString = url.toString();
   } catch (e) {
     // Ignore URL parse errors
@@ -38,12 +40,15 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = (global.prisma ??
   new PrismaClient({ adapter })) as PrismaClient;
 
-if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
+if (process.env.NODE_ENV !== "production") global.prisma = dbInstances;
 
-export * from '@prisma/client';
+export * from "../generated/client";

@@ -2,12 +2,21 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { customerService } from "./customer.service";
-import { registerDeviceSchema, updateProfileSchema } from "./customer.validators";
+import {
+  registerDeviceSchema,
+  updateProfileSchema,
+} from "./customer.validators";
 import { AppError } from "../../utils/AppError";
 
 function parseBody<T>(
   req: Request,
-  schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { issues: { message: string }[] } } }
+  schema: {
+    safeParse: (v: unknown) => {
+      success: boolean;
+      data?: T;
+      error?: { issues: { message: string }[] };
+    };
+  },
 ): T {
   const result = schema.safeParse(req.body);
   if (!result.success && result.error) {

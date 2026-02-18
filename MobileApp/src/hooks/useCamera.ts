@@ -1,2 +1,0 @@
-// useCamera - Gupio plan
-export {};
