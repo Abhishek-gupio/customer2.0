@@ -1,2 +1,0 @@
-// Permissions - Gupio plan
-export {};
