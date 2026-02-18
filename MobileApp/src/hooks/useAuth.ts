@@ -1,0 +1,2 @@
+// useAuth - Gupio plan
+export {};

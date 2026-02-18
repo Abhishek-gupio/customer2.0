@@ -1,0 +1,2 @@
+// useLocation - Gupio plan
+export {};
