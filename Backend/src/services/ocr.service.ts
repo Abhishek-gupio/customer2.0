@@ -607,8 +607,8 @@ export const ocrService = {
 
     const isAuthorizedCenter = merchantName
       ? /maruti|honda|hyundai|toyota|tata|mahindra|kia|suzuki|volkswagen|skoda/i.test(
-          merchantName,
-        )
+        merchantName,
+      )
       : false;
 
     return {
