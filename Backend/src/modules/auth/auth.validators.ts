@@ -19,7 +19,10 @@ export const sendOtpSchema = z.object({
 
 export const verifyOtpSchema = z.object({
   phoneNumber: phoneSchema,
-  otp: z.string().length(6, "OTP must be 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),
+  otp: z
+    .string()
+    .length(6, "OTP must be 6 digits")
+    .regex(/^\d{6}$/, "OTP must be numeric"),
 });
 
 export const loginSchema = z.object({

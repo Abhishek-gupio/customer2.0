@@ -34,8 +34,8 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
       >
         <HomeVideo
-          onProfilePress={() => {}}
-          onHelpPress={() => {}}
+          onProfilePress={() => { }}
+          onHelpPress={() => { }}
         />
 
         <QuickServicesGrid
@@ -43,7 +43,7 @@ export default function Home() {
             if (label === 'Documents') {
               navigation.navigate('DocumentList');
             }
-            else if(label=='Expenses'){
+            else if (label === 'Expenses') {
               navigation.navigate('Expenses');
             }
           }}

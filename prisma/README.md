@@ -43,15 +43,19 @@ That’s expected: same DB URL means one connection, and Studio shows everything
 From the **repo root** (`customer2.0/`):
 
 1. **Start PostgreSQL** (requires [Docker](https://docs.docker.com/get-docker/) installed and running):
+
    ```bash
    pnpm db:up
    ```
+
    Or manually: `docker compose up -d`.
 
 2. **Wait a few seconds** for Postgres to accept connections, then run migrations:
+
    ```bash
    pnpm db:migrate
    ```
+
    Or do both in one go: `pnpm db:setup` (starts Docker, waits 5s, then migrates).
 
 3. Ensure `prisma/.env` uses the local URL (see `.env.local.example`). It should look like:
@@ -60,6 +64,7 @@ From the **repo root** (`customer2.0/`):
    ```
 
 **No Docker?** From repo root run:
+
 - **`pnpm db:up:local`** – tries to start PostgreSQL via **Homebrew** (macOS). If you don’t have PostgreSQL yet, run:
   ```bash
   brew install postgresql@16 && brew services start postgresql@16
@@ -77,12 +82,12 @@ Prisma is trying to use **localhost** but no PostgreSQL is running there.
 - **Option B – Use local PostgreSQL (Docker or Postgres.app):**
   - **Docker:** From repo root run `pnpm db:up` (or `docker compose up -d`). Then `pnpm db:migrate` or from `prisma/`: `pnpm prisma:migrate:dev`.
   - **Postgres.app:** Install [Postgres.app](https://postgresapp.com/) and start it. In **psql** run:
-     ```sql
-     CREATE USER abhishekkumar SUPERUSER;
-     CREATE DATABASE valet_db OWNER abhishekkumar;
-     ```
-     Then copy the local URL into `prisma/.env`: `cp prisma/.env.local.example prisma/.env`, and run `pnpm prisma:migrate:dev` from `prisma/`.
-  In Prisma Studio, choose schema **`customer`** to see this app's tables.
+    ```sql
+    CREATE USER abhishekkumar SUPERUSER;
+    CREATE DATABASE valet_db OWNER abhishekkumar;
+    ```
+    Then copy the local URL into `prisma/.env`: `cp prisma/.env.local.example prisma/.env`, and run `pnpm prisma:migrate:dev` from `prisma/`.
+    In Prisma Studio, choose schema **`customer`** to see this app's tables.
 
 ### P1010 (User was denied access on the database)
 

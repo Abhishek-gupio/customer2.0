@@ -6,34 +6,34 @@ import { vehicleService } from "../vehicle/vehicle.service";
 import { AppError } from "../../utils/AppError";
 
 export const challanController = {
-    listByVehicle: asyncHandler(async (req: Request, res: Response) => {
-        if (!req.customer?.id) throw AppError.unauthorized();
-        const { vehicleId } = req.params;
+  listByVehicle: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const { vehicleId } = req.params;
 
-        // Ownership check
-        await vehicleService.getVehicle(req.customer.id, vehicleId as string);
+    // Ownership check
+    await vehicleService.getVehicle(req.customer.id, vehicleId as string);
 
-        const challans = await challanService.getChallans(vehicleId as string);
-        success(res, challans);
-    }),
+    const challans = await challanService.getChallans(vehicleId as string);
+    success(res, challans);
+  }),
 
-    markAsPaid: asyncHandler(async (req: Request, res: Response) => {
-        if (!req.customer?.id) throw AppError.unauthorized();
-        const { id } = req.params;
+  markAsPaid: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const { id } = req.params;
 
-        // In a real app, we'd verify the challan belongs to a vehicle the customer owns
-        const updated = await challanService.markAsPaid(id as string);
-        success(res, updated);
-    }),
+    // In a real app, we'd verify the challan belongs to a vehicle the customer owns
+    const updated = await challanService.markAsPaid(id as string);
+    success(res, updated);
+  }),
 
-    sync: asyncHandler(async (req: Request, res: Response) => {
-        if (!req.customer?.id) throw AppError.unauthorized();
-        const { vehicleId } = req.params;
+  sync: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const { vehicleId } = req.params;
 
-        await vehicleService.getVehicle(req.customer.id, vehicleId as string);
-        await challanService.syncChallans(vehicleId as string);
+    await vehicleService.getVehicle(req.customer.id, vehicleId as string);
+    await challanService.syncChallans(vehicleId as string);
 
-        const challans = await challanService.getChallans(vehicleId as string);
-        success(res, challans);
-    })
+    const challans = await challanService.getChallans(vehicleId as string);
+    success(res, challans);
+  }),
 };

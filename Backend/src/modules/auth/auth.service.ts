@@ -42,7 +42,7 @@ export const authService = {
     const canSend = await otpStore.checkRateLimit(input.phoneNumber);
     if (!canSend) {
       throw AppError.tooManyRequests(
-        "Please wait before requesting another OTP"
+        "Please wait before requesting another OTP",
       );
     }
     const otp = generateOtp();
@@ -59,7 +59,7 @@ export const authService = {
     const canSend = await otpStore.checkRateLimit(phoneNumber);
     if (!canSend) {
       throw AppError.tooManyRequests(
-        "Please wait before requesting another OTP"
+        "Please wait before requesting another OTP",
       );
     }
     const otp = generateOtp();
@@ -108,7 +108,7 @@ export const authService = {
     const canSend = await otpStore.checkRateLimit(phoneNumber);
     if (!canSend) {
       throw AppError.tooManyRequests(
-        "Please wait before requesting another OTP"
+        "Please wait before requesting another OTP",
       );
     }
     const otp = generateOtp();
@@ -149,9 +149,9 @@ export const authService = {
       where: { id },
       include: {
         _count: {
-          select: { vehicles: true, documents: true }
-        }
-      }
+          select: { vehicles: true, documents: true },
+        },
+      },
     });
     if (!customer) throw AppError.notFound("Customer not found");
     return customer;

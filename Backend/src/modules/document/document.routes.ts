@@ -6,10 +6,10 @@ import { digilockerController } from "./digilocker.controller";
 
 const router = Router();
 const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 20 * 1024 * 1024, // 10MB
-    },
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 10MB
+  },
 });
 
 router.use(authMiddleware);

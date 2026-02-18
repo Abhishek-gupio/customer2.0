@@ -1,2 +1,0 @@
-// Shadows - Gupio plan
-export {};
