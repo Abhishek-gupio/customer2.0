@@ -1,27 +1,29 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
-import QuickServiceButton from './QuickServiceButton';
+} from "react-native-responsive-screen";
+import QuickServiceButton from "./QuickServiceButton";
 
 const SERVICES: { icon: string; label: string }[] = [
-  { icon: 'wrench', label: 'Service' },
-  { icon: 'calendar-check', label: 'Booking' },
-  { icon: 'clipboard-list', label: 'History' },
-  { icon: 'comments', label: 'Support' },
-  { icon: 'car', label: 'Vehicles' },
-  { icon: 'file-alt', label: 'Documents' },
-  { icon: 'wallet', label: 'Expenses' },
-  { icon: 'parking', label: 'Valet' },
+  { icon: "wrench", label: "Service" },
+  { icon: "calendar-check", label: "Booking" },
+  { icon: "clipboard-list", label: "History" },
+  { icon: "comments", label: "Support" },
+  { icon: "car", label: "Vehicles" },
+  { icon: "file-alt", label: "Documents" },
+  { icon: "wallet", label: "Expenses" },
+  { icon: "parking", label: "Valet" },
 ];
 
 type QuickServicesGridProps = {
   onServicePress?: (label: string) => void;
 };
 
-export default function QuickServicesGrid({ onServicePress }: QuickServicesGridProps) {
+export default function QuickServicesGrid({
+  onServicePress,
+}: QuickServicesGridProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Quick Services</Text>
@@ -43,7 +45,6 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
             label={item.label}
             onPress={() => onServicePress?.(item.label)}
           />
-          
         ))}
       </View>
     </View>
@@ -58,13 +59,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: wp(5),
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: "700",
+    color: "#fff",
     marginBottom: hp(2),
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: hp(2),
   },
 });

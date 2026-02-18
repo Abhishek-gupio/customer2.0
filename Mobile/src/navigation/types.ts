@@ -1,4 +1,4 @@
-import type { NavigatorScreenParams } from '../lib/react-navigation-native';
+import type { NavigatorScreenParams } from "../lib/react-navigation-native";
 
 export type RootStackParamList = {
   Splash: undefined;
