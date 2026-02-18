@@ -1,2 +1,0 @@
-// Formatters - Gupio plan
-export {};

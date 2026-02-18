@@ -1,2 +1,0 @@
-// useVehicle - Gupio plan
-export {};
