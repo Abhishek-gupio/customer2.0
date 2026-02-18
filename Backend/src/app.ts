@@ -14,7 +14,10 @@ const app = express();
 app.use(helmet());
 
 const corsOptions: cors.CorsOptions = {
-  origin: env.CORS_ORIGIN === "*" ? "*" : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
+  origin:
+    env.CORS_ORIGIN === "*"
+      ? "*"
+      : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -62,12 +65,10 @@ app.get("/health/detailed", async (_req: Request, res: Response) => {
   });
 });
 
-
 // Swagger setup
 setupSwagger(app);
 
 app.use("/api", apiRoutes);
-
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: "Not found" });

@@ -1,18 +1,28 @@
-/* eslint-disable quotes, object-property-newline, comma-dangle, no-console, max-lines, max-lines-per-function, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import "dotenv/config";
 
 import axios from "axios";
 import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
+import twilio from "twilio";
 
 export interface SMSService {
   sendOTP(phoneNumber: string, otp: string): Promise<boolean>;
-  sendSMS(phoneNumber: string, message: string, dltTemplateId?: string): Promise<boolean>;
+  sendSMS(
+    phoneNumber: string,
+    message: string,
+    dltTemplateId?: string,
+  ): Promise<boolean>;
+  sendVoice?(phoneNumber: string, message: string): Promise<boolean>;
 }
 
 export class Flash49SMSService implements SMSService {
-  private getConfig(): { username: string; password: string; from: string; dltContentId: string } | null {
+  private getConfig(): {
+    username: string;
+    password: string;
+    from: string;
+    dltContentId: string;
+  } | null {
     const username = process.env.FLASH49_USERNAME;
     const password = process.env.FLASH49_PASSWORD;
     const from = process.env.FLASH49_FROM;
@@ -35,9 +45,14 @@ export class Flash49SMSService implements SMSService {
   }
 
   private static buildParams(
-    cfg: { username: string; password: string; from: string; dltContentId: string },
+    cfg: {
+      username: string;
+      password: string;
+      from: string;
+      dltContentId: string;
+    },
     to: string,
-    otp: string
+    otp: string,
   ) {
     return {
       username: cfg.username,
@@ -71,12 +86,19 @@ export class Flash49SMSService implements SMSService {
       const { data } = await axios.get(url, { params });
       return Flash49SMSService.isAccepted(data);
     } catch (error: any) {
-      console.error("Error sending OTP:", error?.response?.data || error.message);
+      console.error(
+        "Error sending OTP:",
+        error?.response?.data || error.message,
+      );
       return false;
     }
   }
 
-  async sendSMS(phoneNumber: string, message: string, dltTemplateId?: string): Promise<boolean> {
+  async sendSMS(
+    phoneNumber: string,
+    message: string,
+    dltTemplateId?: string,
+  ): Promise<boolean> {
     try {
       const cfg = this.getConfig();
       if (!cfg) return false;
@@ -94,7 +116,57 @@ export class Flash49SMSService implements SMSService {
       const { data } = await axios.get(url, { params });
       return Flash49SMSService.isAccepted(data);
     } catch (error: any) {
-      console.error("Error sending SMS:", error?.response?.data || error.message);
+      console.error(
+        "Error sending SMS:",
+        error?.response?.data || error.message,
+      );
+      return false;
+    }
+  }
+}
+
+export class TwilioSMSService implements SMSService {
+  private client: twilio.Twilio;
+  private fromNumber: string;
+
+  constructor() {
+    this.client = twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN,
+    );
+    this.fromNumber = process.env.TWILIO_PHONE_NUMBER || "";
+  }
+
+  async sendOTP(phoneNumber: string, otp: string): Promise<boolean> {
+    return this.sendSMS(phoneNumber, `Your OTP is ${otp} to Login GUPIO.`);
+  }
+
+  async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      const result = await this.client.messages.create({
+        body: message,
+        from: this.fromNumber,
+        to: phoneNumber.startsWith("+") ? phoneNumber : `+91${phoneNumber}`,
+      });
+      return !!result.sid;
+    } catch (error: any) {
+      console.error("Twilio SMS Error:", error.message);
+      return false;
+    }
+  }
+
+  async sendVoice(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      // TwiML for reading the message
+      const twiml = `<Response><Say>${message}</Say></Response>`;
+      const result = await this.client.calls.create({
+        twiml,
+        to: phoneNumber.startsWith("+") ? phoneNumber : `+91${phoneNumber}`,
+        from: this.fromNumber,
+      });
+      return !!result.sid;
+    } catch (error: any) {
+      console.error("Twilio Voice Error:", error.message);
       return false;
     }
   }
@@ -114,10 +186,18 @@ export class GmailSMSService implements SMSService {
   }
 
   async sendOTP(emailAddress: string, otp: string): Promise<boolean> {
-    return this.sendSMS(emailAddress, `Your OTP is ${otp} to Login GUPIO.`, otp);
+    return this.sendSMS(
+      emailAddress,
+      `Your OTP is ${otp} to Login GUPIO.`,
+      otp,
+    );
   }
 
-  async sendSMS(emailAddress: string, message: string, otp?: string): Promise<boolean> {
+  async sendSMS(
+    emailAddress: string,
+    message: string,
+    otp?: string,
+  ): Promise<boolean> {
     try {
       const mailOptions = {
         from: process.env.GMAIL_USER,
@@ -291,7 +371,9 @@ export async function sendEmail(options: {
     const user = process.env.GMAIL_USER;
     const pass = process.env.GMAIL_APP_PASSWORD;
     if (!user || !pass) {
-      console.error("GMAIL credentials missing: set GMAIL_USER and GMAIL_APP_PASSWORD");
+      console.error(
+        "GMAIL credentials missing: set GMAIL_USER and GMAIL_APP_PASSWORD",
+      );
       return false;
     }
 
@@ -319,7 +401,7 @@ export async function sendEmail(options: {
         const logPath = path.join(logDir, "email.log");
         fs.appendFileSync(
           logPath,
-          `[${new Date().toISOString()}] SENT to=${options.to} subject="${options.subject}" messageId=${info.messageId}\n`
+          `[${new Date().toISOString()}] SENT to=${options.to} subject="${options.subject}" messageId=${info.messageId}\n`,
         );
       } catch (logErr: any) {
         console.warn("Email logging failed:", logErr?.message || logErr);
@@ -333,21 +415,24 @@ export async function sendEmail(options: {
       const logPath = path.join(logDir, "email.log");
       fs.appendFileSync(
         logPath,
-        `[${new Date().toISOString()}] FAILED to=${options.to} subject="${options.subject}" reason=no-message-id\n`
+        `[${new Date().toISOString()}] FAILED to=${options.to} subject="${options.subject}" reason=no-message-id\n`,
       );
-    } catch { }
+    } catch {}
     return false;
   } catch (error: any) {
-    console.error("Error sending email:", error?.response?.data || error.message);
+    console.error(
+      "Error sending email:",
+      error?.response?.data || error.message,
+    );
     try {
       const logDir = path.resolve(process.cwd(), "logs");
       if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
       const logPath = path.join(logDir, "email.log");
       fs.appendFileSync(
         logPath,
-        `[${new Date().toISOString()}] ERROR to=${options.to} subject="${options.subject}" error="${(error?.message || "").toString()}"\n`
+        `[${new Date().toISOString()}] ERROR to=${options.to} subject="${options.subject}" error="${(error?.message || "").toString()}"\n`,
       );
-    } catch { }
+    } catch {}
     return false;
   }
 }
@@ -384,7 +469,7 @@ export function buildContactFormEmailHTML(contact: {
       <td style="padding: 10px 12px; border-bottom: 1px solid #edf2f7; color: #4a5568; width: 220px; font-weight: 600;">${r.label}</td>
       <td style="padding: 10px 12px; border-bottom: 1px solid #edf2f7; color: #2d3748;">${String(r.value).replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>
     </tr>
-  `
+  `,
     )
     .join("");
 
@@ -446,6 +531,10 @@ export function getSMSService(): SMSService {
   if (svc === "GUPIO") {
     console.log("📱 Using Flash49 SMS Service");
     return new Flash49SMSService();
+  }
+  if (svc === "TWILIO") {
+    console.log("📱 Using Twilio SMS Service");
+    return new TwilioSMSService();
   }
   console.log("📧 Defaulting to Gmail SMS Service");
   return new GmailSMSService();

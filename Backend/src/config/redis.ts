@@ -12,7 +12,9 @@ export function getRedis(): Redis | null {
   if (redis !== null) return redis;
   const url = env.REDIS_URL;
   if (!url || url === "") {
-    logger.warn("REDIS_URL not set; OTP/refresh storage will use in-memory fallback");
+    logger.warn(
+      "REDIS_URL not set; OTP/refresh storage will use in-memory fallback",
+    );
     return null;
   }
   try {

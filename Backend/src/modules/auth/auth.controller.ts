@@ -12,7 +12,13 @@ import { AppError } from "../../utils/AppError";
 
 function parseBody<T>(
   req: Request,
-  schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { issues: { message: string }[] } } }
+  schema: {
+    safeParse: (v: unknown) => {
+      success: boolean;
+      data?: T;
+      error?: { issues: { message: string }[] };
+    };
+  },
 ): T {
   const result = schema.safeParse(req.body);
   if (!result.success && result.error) {
@@ -48,7 +54,8 @@ export const authController = {
   }),
 
   refresh: asyncHandler(async (req: Request, res: Response) => {
-    const refreshToken = req.body?.refreshToken ?? req.headers["x-refresh-token"];
+    const refreshToken =
+      req.body?.refreshToken ?? req.headers["x-refresh-token"];
     if (typeof refreshToken !== "string") {
       throw AppError.badRequest("refreshToken required");
     }
@@ -57,9 +64,10 @@ export const authController = {
   }),
 
   logout: asyncHandler(async (req: Request, res: Response) => {
-    const refreshToken = req.body?.refreshToken ?? req.headers["x-refresh-token"];
+    const refreshToken =
+      req.body?.refreshToken ?? req.headers["x-refresh-token"];
     const data = await authService.logout(
-      typeof refreshToken === "string" ? refreshToken : undefined
+      typeof refreshToken === "string" ? refreshToken : undefined,
     );
     success(res, data);
   }),
