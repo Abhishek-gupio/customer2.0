@@ -11,6 +11,13 @@ export interface Expense {
   color: string;
 }
 
+export interface TimePeriods{
+  fuelPercent: number;
+  maintainancePercent: number;
+  otherPercent: number;
+  id: string;
+}
+
 export const expenses: Expense[] = [
   {
     id: '1',
@@ -113,3 +120,25 @@ export const expenses: Expense[] = [
     color: '#4caf50',
   },
 ];
+
+export const timePeriods: TimePeriods[]=[
+  {
+  id: '1',
+  fuelPercent: 50,
+  maintainancePercent: 30,
+  otherPercent: 20,
+  },
+  {
+    id: '2',
+    fuelPercent: 40,
+    maintainancePercent: 30,
+    otherPercent: 30,
+  },
+  {
+    id: '3',
+    fuelPercent: 60,
+    maintainancePercent: 20,
+    otherPercent: 20,
+  }
+
+]

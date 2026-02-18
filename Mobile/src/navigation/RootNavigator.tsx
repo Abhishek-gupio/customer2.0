@@ -51,7 +51,9 @@ export function RootNavigator() {
       <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />
       <Stack.Screen name="Expenses" component={ExpensesList}/>
-      <Stack.Screen name="addExpense" component={addExpense}/>
+      <Stack.Screen name="addExpense" component={addExpense} options={{
+        presentation:'transparentModal',
+      }}/>
     </Stack.Navigator>
   );
 }
