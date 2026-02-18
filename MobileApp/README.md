@@ -33,8 +33,8 @@ pnpm web      # Web (Expo for web)
 
 ## Scripts
 
-| Script     | Description                    |
-|-----------|---------------------------------|
+| Script    | Description                    |
+| --------- | ------------------------------ |
 | `start`   | Start Expo dev server          |
 | `dev`     | Same as `start` (for turbo)    |
 | `ios`     | Open in iOS simulator          |

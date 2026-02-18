@@ -4,22 +4,22 @@ This folder follows **GUPIO_FRONTEND_PLAN.md**: folder structure and dependencie
 
 ## Structure
 
-| Folder        | Purpose |
-|---------------|---------|
-| `assets/`     | icons, images, fonts, animations |
-| `components/` | 40+ UI components (Button, Card, VehicleCard, etc.) |
-| `screens/`    | Auth, Main, Valet, Vehicles, Documents, Expenses, RTO, Profile, Other |
-| `navigation/` | RootNavigator, BottomTabNavigator, AuthNavigator, MainNavigator, linking |
-| `context/`   | Auth, Vehicle, Theme, Notification |
-| `hooks/`      | useAuth, useVehicle, useVoiceInput, useLocation, etc. |
-| `services/`  | api, auth, vehicle, expense, document, rto, ai, valet, analytics |
-| `store/`     | Zustand: auth, vehicle, chat, expense, notification |
-| `theme/`     | colors, typography, spacing, shadows, borderRadius |
-| `types/`     | navigation, vehicle, expense, document, api |
-| `utils/`     | formatters, validators, constants, dateHelpers, permissions, errorHandlers |
-| `validation/`| vehicleSchema, expenseSchema, profileSchema (zod) |
-| `lib/`       | queryClient, sentry |
-| `config/`    | app config |
+| Folder        | Purpose                                                                    |
+| ------------- | -------------------------------------------------------------------------- |
+| `assets/`     | icons, images, fonts, animations                                           |
+| `components/` | 40+ UI components (Button, Card, VehicleCard, etc.)                        |
+| `screens/`    | Auth, Main, Valet, Vehicles, Documents, Expenses, RTO, Profile, Other      |
+| `navigation/` | RootNavigator, BottomTabNavigator, AuthNavigator, MainNavigator, linking   |
+| `context/`    | Auth, Vehicle, Theme, Notification                                         |
+| `hooks/`      | useAuth, useVehicle, useVoiceInput, useLocation, etc.                      |
+| `services/`   | api, auth, vehicle, expense, document, rto, ai, valet, analytics           |
+| `store/`      | Zustand: auth, vehicle, chat, expense, notification                        |
+| `theme/`      | colors, typography, spacing, shadows, borderRadius                         |
+| `types/`      | navigation, vehicle, expense, document, api                                |
+| `utils/`      | formatters, validators, constants, dateHelpers, permissions, errorHandlers |
+| `validation/` | vehicleSchema, expenseSchema, profileSchema (zod)                          |
+| `lib/`        | queryClient, sentry                                                        |
+| `config/`     | app config                                                                 |
 
 ## Installed dependencies (from plan)
 
