@@ -41,7 +41,8 @@ function decodeJwtPayload(token: string): { id: string } | null {
 /** Normalize phone: 10 digits for Indian numbers. */
 export function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, '');
-  return digits.length > 10 ? digits.slice(-10) : digits;
+  // Always use last 10 digits for consistency (Indian phone format)
+  return digits.slice(-10);
 }
 
 export type SignupPayload = {

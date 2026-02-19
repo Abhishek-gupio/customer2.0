@@ -24,12 +24,27 @@ export function getRedis(): Redis | null {
         if (times > 3) return null;
         return Math.min(times * 200, 2000);
       },
+      enableReadyCheck: false,
+      enableOfflineQueue: false,
+      lazyConnect: true,
     });
-    redis.on("error", (err) => logger.error({ err }, "Redis error"));
+    redis.on("error", (err) => {
+      // Suppress repetitive connection errors in dev
+      if (process.env.NODE_ENV !== "development") {
+        logger.error({ err }, "Redis error");
+      }
+    });
     redis.on("connect", () => logger.info("Redis connected"));
+    redis.connect().catch(() => {
+      // Silently fail - will use in-memory fallback
+      redis = null;
+    });
     return redis;
   } catch (err) {
-    logger.error({ err }, "Redis connection failed");
+    // Silently fail in dev - will use in-memory fallback
+    if (process.env.NODE_ENV !== "development") {
+      logger.error({ err }, "Redis connection failed");
+    }
     return null;
   }
 }
