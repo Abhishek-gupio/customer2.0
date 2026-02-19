@@ -1,7 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  output          = "../generated/client"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "driverAdapters"]
 }
 
 datasource db {
@@ -37,6 +36,8 @@ model Customer {
   notifications  InAppNotification[]
   sharedVehicles VehicleAccess[]
   chats          ChatSession[]
+  sosRequests    SOSRequest[]
+  emergencyContacts EmergencyContact[]
 
   @@schema("customer")
 }
@@ -498,6 +499,57 @@ enum ServicePartType {
   WIPER_BLADES
   HEADLIGHT_BULB
   OTHER_PART
+
+  @@schema("customer")
+}
+
+model SOSRequest {
+  id               String   @id @default(cuid())
+  customerId       String
+  latitude         Float
+  longitude        Float
+  address          String?
+  status           SOSStatus @default(ACTIVE)
+  type             SOSType   @default(OTHER)
+  metadata         Json?    // For nearby help results, etc.
+  createdAt        DateTime @default(now())
+  resolvedAt       DateTime?
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@schema("customer")
+}
+
+model EmergencyContact {
+  id           String   @id @default(cuid())
+  customerId   String
+  name         String
+  phoneNumber  String
+  relation     String?
+  priority     Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+enum SOSStatus {
+  ACTIVE
+  RESOLVED
+  CANCELLED
+
+  @@schema("customer")
+}
+
+enum SOSType {
+  MEDICAL
+  POLICE
+  MECHANICAL
+  ACCIDENT
+  OTHER
 
   @@schema("customer")
 }
