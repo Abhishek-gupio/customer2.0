@@ -16,7 +16,7 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { expenses } from './data';
-import linearGradient, { LinearGradient } from 'react-native-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -52,7 +52,7 @@ const ProgressRow = ({ label, value, percent, color }: ProgressRowProps) => {
 const ExpenseFeed = () => {
   const navigation = useNavigation<DocListNavProp>();
 
-  const serviceTypes = ['All', 'Fuel', 'Service', 'Tolls', 'Insurance'];
+  const serviceTypes = ['All', 'Fuel', 'Service', 'Tolls', 'Insurance','Other'];
 
   const [selectedType, setSelectedType] = React.useState('All');
   const [timelineFilter, setTimelineFilter] = React.useState('Monthly');

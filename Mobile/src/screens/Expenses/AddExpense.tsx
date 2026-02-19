@@ -21,6 +21,9 @@ const openCamera = () => {
 };
 
 import Voice from "@react-native-voice/voice";
+import { useNavigation } from "@react-navigation/native";
+
+const navigation=useNavigation();
 
 const startVoiceRecording = async () => {
   try {
@@ -41,44 +44,42 @@ export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverla
 
   return (
     <>
-      <Modal
-        visible={visible}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-      >
-        <Pressable style={styles.backdrop} onPress={onClose}>
-          <Pressable style={styles.panel} onPress={() => {}}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.title}>Add Expense</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={22} color="#fff" />
-              </TouchableOpacity>
-            </View>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+    >
+      <Pressable style={styles.backdrop} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.panel} onPress={() => {}}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Add Expense</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="close" size={25} color="#fff" />
+            </TouchableOpacity>
+          </View>
 
-            <ActionCard
-              icon="camera-outline"
-              label="Scan Bills"
-              onPress={openCamera}
-            />
+          <ActionCard
+            icon="camera-outline"
+            label="Scan Bills"
+            onPress={openCamera}
+          />
 
-            <ActionCard
-              icon="mic-outline"
-              label="Add by Voice"
-              onPress={startVoiceRecording}
-            />
+          <ActionCard
+            icon="mic-outline"
+            label="Add by Voice"
+            onPress={startVoiceRecording}
+          />
 
-            <ActionCard
-              icon="create-outline"
-              label="Enter Manually"
-              onPress={() => setShowManual(true)}
-            />
-          </Pressable>
+          <ActionCard
+            icon="create-outline"
+            label="Enter Manually"
+            onPress={() => setShowManual(true)}
+          />
         </Pressable>
-      </Modal>
+      </Pressable>
+    </Modal>
 
-      {/* Manual Entry Overlay */}
       <ManualEntryOverlay
         visible={showManual}
         onClose={() => setShowManual(false)}
@@ -101,7 +102,7 @@ function ActionCard({ icon, label, onPress }: { icon: string; label: string; onP
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
+    backgroundColor: "rgba(0.1,0,0,0.95)",
     justifyContent: "center",
     paddingHorizontal: 16,
   },
