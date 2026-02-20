@@ -16,6 +16,9 @@ import DocumentDetail from '../screens/Documents/DocumentDetail';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
 import Settings from '../screens/Profile/Settings';
+import VehicleList from '../screens/Vehicles/VehicleList';
+import VehicleDetails from '../screens/Vehicles/VehicleDetails';
+import AddVehicle from '../screens/Vehicles/AddVehicle';
 import { MainBottomTabs } from './MainBottomTabs';
 // import { ProtectedRoute } from './ProtectedRoute';
 
