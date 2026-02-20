@@ -16,6 +16,7 @@ import DocumentDetail from '../screens/Documents/DocumentDetail';
 import { MainBottomTabs } from './MainBottomTabs';
 import ExpensesList from '../screens/Expenses/ExpenseList';
 import addExpense from '../screens/Expenses/AddExpense';
+import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,6 +55,7 @@ export function RootNavigator() {
       <Stack.Screen name="addExpense" component={addExpense} options={{
         presentation:'transparentModal',
       }}/>
+      <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
     </Stack.Navigator>
   );
 }

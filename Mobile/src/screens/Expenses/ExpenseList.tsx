@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { expenses } from './data';
 import LinearGradient from 'react-native-linear-gradient';
+import Bills from './Bills';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -112,16 +113,16 @@ const ExpenseFeed = () => {
     <ScrollView showsVerticalScrollIndicator={false}>
     <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
       <View style={styles.header}>
+        <View style={styles.subHeder}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.subHeder}>
-            <Text style={styles.headerTitle}>Expenses</Text>
 
+            <Text style={styles.headerTitle}>Expenses List</Text>
+        </View>
             <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
               <Icon name="plus" size={wp(5)} color="#fff" />
             </TouchableOpacity>
-        </View>
       </View>
 
 
@@ -230,16 +231,20 @@ const ExpenseFeed = () => {
           </View>
         ))}
 
+        <Bills />
+
         <TouchableOpacity
           style={styles.sectionTitleCentered}
-          onPress={() => navigation.navigate('Analytics')}
+          onPress={() => navigation.navigate('ExpenseAnalytics')}
         >
           <Icon name="chart-bar" size={wp(5)} color="#fff" />
           <Text style={{ color: '#fff', marginLeft: wp(2) }}>
             View Detailed Analytics
           </Text>
         </TouchableOpacity>
+
       </ScrollView>
+
     </SafeAreaView>
   );
 };
@@ -252,14 +257,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
   header: {
     paddingHorizontal: wp(6),
-    paddingVertical: hp(1.5),
-    gap: wp(3),
+    paddingVertical: hp(1),
+    // gap: wp(2),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  headerTitle: { color: '#fff', fontSize: wp(8), fontWeight: '700' },
+  headerTitle: { color: '#fff', fontSize: wp(6.5), fontWeight: '700' },
   subHeder: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: wp(5),
   },
   card: {
     marginHorizontal: wp(4),
@@ -344,7 +352,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: wp(4),
+    padding: wp(6),
     backgroundColor: '#1a1a1a',
     borderRadius: wp(6),
     borderWidth: 1,
