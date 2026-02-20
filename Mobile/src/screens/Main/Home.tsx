@@ -21,7 +21,9 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 
 export default function Home() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -38,72 +40,110 @@ export default function Home() {
           onHelpPress={() => navigation.navigate('HelpSupport')}
         />
 
+        {/* Quick Services Grid */}
         <QuickServicesGrid
-          onServicePress={(label) => {
+          onServicePress={label => {
             if (label === 'Documents') {
               navigation.navigate('DocumentList');
+            } else if (label === 'Vehicles') {
+              navigation.navigate('VehicleList');
             }
           }}
         />
 
+        {/* MY VEHICLES SECTION - MERGED DESIGN */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Vehicles</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('VehicleList')}
+            >
+              <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsScroll}>
-            <View style={styles.card}>
-              <Text style={styles.cardReg}>MH12XX</Text>
-              <Text style={styles.cardModel}>Swift</Text>
+
+          {/* Main Vehicle Preview Card - High Fidelity Design */}
+          <TouchableOpacity
+            style={styles.vehicleCard}
+            activeOpacity={0.9}
+            onPress={() =>
+              navigation.navigate('VehicleDetails', { vehicleId: '1' })
+            }
+          >
+            <View style={styles.row}>
+              <View style={styles.carImgPlaceholder}>
+                <Icon name="car" size={wp(8)} color="#333" />
+              </View>
+              <View style={styles.carInfo}>
+                <Text style={styles.carPlate}>DL 01 AB 1234</Text>
+                <Text style={styles.carModel}>Maruti Suzuki Swift</Text>
+              </View>
               <View style={styles.healthBadge}>
-                <Icon name="heart" size={14} color="#e74c3c" />
-                <Text style={styles.healthText}>85/100</Text>
+                <Text style={styles.healthText}>85% Health</Text>
               </View>
             </View>
-            <View style={styles.card}>
-              <Text style={styles.cardReg}>MH14YY</Text>
-              <Text style={styles.cardModel}>i20</Text>
-              <View style={styles.healthBadge}>
-                <Icon name="heart" size={14} color="#e74c3c" />
-                <Text style={styles.healthText}>62/100</Text>
-              </View>
-            </View>
-          </ScrollView>
+          </TouchableOpacity>
         </View>
 
+        {/* Expiring Soon Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitleCentered}>Expiring Soon</Text>
           <View style={styles.alertCard}>
-            <Icon name="exclamation-triangle" size={wp(5)} color="#FFBF00" style={styles.alertIcon} />
+            <Icon
+              name="exclamation-triangle"
+              size={wp(5)}
+              color="#FFBF00"
+              style={styles.alertIcon}
+            />
             <Text style={styles.alertText}>PUC expires in 15 days (Swift)</Text>
           </View>
           <View style={styles.alertCard}>
-            <Icon name="exclamation-triangle" size={wp(5)} color="#FFBF00" style={styles.alertIcon} />
+            <Icon
+              name="exclamation-triangle"
+              size={wp(5)}
+              color="#FFBF00"
+              style={styles.alertIcon}
+            />
             <Text style={styles.alertText}>Insurance exp in 30 days (i20)</Text>
           </View>
         </View>
 
+        {/* This Month Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitleCentered}>This Month</Text>
           <View style={styles.expenseRow}>
             <Text style={styles.expenseTotal}>Total: ₹12,450</Text>
           </View>
           <View style={styles.expenseItem}>
-            <Icon name="gas-pump" size={wp(4)} color="#888" style={styles.expenseIcon} />
+            <Icon
+              name="gas-pump"
+              size={wp(4)}
+              color="#888"
+              style={styles.expenseIcon}
+            />
             <Text style={styles.expenseLabel}>Fuel ₹6,200</Text>
           </View>
           <View style={styles.expenseItem}>
-            <Icon name="parking" size={wp(4)} color="#888" style={styles.expenseIcon} />
+            <Icon
+              name="parking"
+              size={wp(4)}
+              color="#888"
+              style={styles.expenseIcon}
+            />
             <Text style={styles.expenseLabel}>Parking ₹1,800</Text>
           </View>
           <View style={styles.expenseItem}>
-            <Icon name="wrench" size={wp(4)} color="#888" style={styles.expenseIcon} />
+            <Icon
+              name="wrench"
+              size={wp(4)}
+              color="#888"
+              style={styles.expenseIcon}
+            />
             <Text style={styles.expenseLabel}>Service ₹4,450</Text>
           </View>
         </View>
 
+        {/* Pending Challans Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitleCentered}>Pending Challans</Text>
           <Text style={styles.placeholderText}>No pending challans</Text>
@@ -134,12 +174,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: hp(1.5),
+    marginBottom: hp(2),
   },
   sectionTitle: {
+    color: '#fff',
     fontSize: wp(5),
     fontWeight: '700',
-    color: '#fff',
   },
   sectionTitleCentered: {
     fontSize: wp(5),
@@ -148,43 +188,54 @@ const styles = StyleSheet.create({
     marginBottom: hp(1.5),
     textAlign: 'center',
   },
-  seeAll: {
+  seeAllText: {
+    color: '#3b82f6',
     fontSize: wp(3.5),
     fontWeight: '600',
-    color: '#FFBF00',
   },
-  cardsScroll: {
-    marginHorizontal: -wp(5),
-  },
-  card: {
-    width: wp(55),
-    marginRight: wp(4),
+  vehicleCard: {
     backgroundColor: '#1a1a1a',
-    borderRadius: wp(3),
-    padding: wp(4),
+    borderRadius: 22,
+    padding: wp(4.5),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  cardReg: {
-    fontSize: wp(4.5),
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: hp(0.5),
-  },
-  cardModel: {
-    fontSize: wp(3.8),
-    color: '#888',
-    marginBottom: hp(1),
-  },
-  healthBadge: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(1.5),
+  },
+  carImgPlaceholder: {
+    width: wp(16),
+    height: wp(12),
+    backgroundColor: '#222',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  carInfo: {
+    marginLeft: wp(4),
+    flex: 1,
+  },
+  carPlate: {
+    color: '#fff',
+    fontSize: wp(4),
+    fontWeight: 'bold',
+  },
+  carModel: {
+    color: '#777',
+    fontSize: wp(3),
+    marginTop: 2,
+  },
+  healthBadge: {
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   healthText: {
-    fontSize: wp(3.5),
-    fontWeight: '600',
-    color: '#fff',
+    color: '#4ade80',
+    fontSize: wp(2.8),
+    fontWeight: 'bold',
   },
   alertCard: {
     flexDirection: 'row',

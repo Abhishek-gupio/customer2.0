@@ -48,6 +48,9 @@ export function RootNavigator() {
       {/* <Stack.Screen name="OTP" component={OTP} /> */}
       {/* <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} /> */}
       <Stack.Screen name="DocumentList" component={DocumentList} />
+      <Stack.Screen name="VehicleList" component={VehicleList} />
+      <Stack.Screen name="VehicleDetails" component={VehicleDetails} />
+      <Stack.Screen name="AddVehicle" component={AddVehicle} />
       <Stack.Screen name="UploadDocument" component={UploadDocument} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />

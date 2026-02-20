@@ -20,13 +20,16 @@ type HomeVideoProps = {
   onHelpPress?: () => void;
 };
 
-export default function HomeVideo({ onProfilePress, onHelpPress }: HomeVideoProps) {
+export default function HomeVideo({
+  onProfilePress,
+  onHelpPress,
+}: HomeVideoProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % VIDEOS.length);
+      setCurrentIndex(prev => (prev + 1) % VIDEOS.length);
     }, VIDEO_DURATION_MS);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -37,7 +40,7 @@ export default function HomeVideo({ onProfilePress, onHelpPress }: HomeVideoProp
     <View style={styles.wrapper}>
       <Video
         key={currentIndex}
-        source={VIDEOS[currentIndex]}
+        source={VIDEOS[currentIndex] as any}
         style={styles.video}
         resizeMode="cover"
         repeat
