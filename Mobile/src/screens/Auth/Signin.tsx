@@ -51,12 +51,22 @@ export default function Signin() {
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Sign in failed';
-      if (message.toLowerCase().includes('please sign up') || message.toLowerCase().includes('sign up')) {
+      if (
+        message.toLowerCase().includes('please sign up') ||
+        message.toLowerCase().includes('sign up')
+      ) {
         setError('Please sign up');
         Alert.alert('Not registered', 'This number is not registered. Please sign up.', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Sign Up', onPress: () => navigation.navigate('Signup') },
         ]);
+      } else if (
+        message.toLowerCase().includes('invalid phone') ||
+        message.toLowerCase().includes('invalid number') ||
+        message.toLowerCase().includes('not a valid')
+      ) {
+        setError('Invalid number');
+        Alert.alert('Invalid number', 'Please enter a valid phone number.');
       } else {
         setError(message);
         Alert.alert('Sign in failed', message);

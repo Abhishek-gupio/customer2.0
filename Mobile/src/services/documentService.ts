@@ -71,10 +71,17 @@ export async function uploadDocument(params: UploadDocumentParams): Promise<Docu
   if (params.vehicleId) formData.append('vehicleId', params.vehicleId);
   if (params.documentNumber) formData.append('documentNumber', params.documentNumber);
 
+  const token = getAccessToken();
+  if (!token) {
+    console.warn('No access token found for document upload');
+    throw new Error('You are not logged in. Please sign in again.');
+  }
   const headers: Record<string, string> = {
-    ...authHeaders(),
+    Authorization: `Bearer ${token}`,
     Accept: 'application/json',
   };
+  // Debug: log token (remove in production)
+  if (__DEV__) console.log('UploadDocument: using token', token);
 
   const res = await fetch(DOCUMENTS_URL, {
     method: 'POST',

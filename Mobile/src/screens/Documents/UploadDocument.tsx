@@ -99,9 +99,11 @@ export default function UploadDocument() {
     const cancelIndex = 3;
 
     const runPicker = (fn: () => void) => {
-      InteractionManager.runAfterInteractions(() => {
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(fn);
+      } else {
         setTimeout(fn, 100);
-      });
+      }
     };
 
     if (Platform.OS === 'ios' && ActionSheetIOS) {

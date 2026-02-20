@@ -34,9 +34,7 @@ export function RootNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Splash">
-        {({
-          navigation,
-        }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
+        {({ navigation }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
           <SplashScreen
             onComplete={() => {
               navigation.replace('SigninFirst');
