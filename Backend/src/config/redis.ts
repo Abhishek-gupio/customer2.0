@@ -3,6 +3,7 @@ import { env } from "./env";
 import { logger } from "./logger";
 
 let redis: Redis | null = null;
+let redisErrorLogged = false;
 
 /**
  * Get Redis client. Returns null if REDIS_URL is not set (e.g. dev without Redis).
@@ -18,18 +19,47 @@ export function getRedis(): Redis | null {
     return null;
   }
   try {
+    // Create client in lazy mode so we can attach handlers before attempting
+    // the network connect. This avoids noisy stack traces when Redis isn't
+    // running in development.
     redis = new Redis(url, {
       maxRetriesPerRequest: 3,
+      lazyConnect: true,
       retryStrategy(times) {
         if (times > 3) return null;
         return Math.min(times * 200, 2000);
       },
     });
-    redis.on("error", (err) => logger.error({ err }, "Redis error"));
-    redis.on("connect", () => logger.info("Redis connected"));
+
+    redis.on("error", (err) => {
+      if (!redisErrorLogged) {
+        logger.warn("Redis unreachable; using in-memory fallback for OTP/locks");
+        redisErrorLogged = true;
+      }
+    });
+
+    redis.on("connect", () => {
+      redisErrorLogged = false;
+      logger.info("Redis connected");
+    });
+
+    // Attempt to connect; if it fails the promise will be rejected and we
+    // switch to in-memory fallback without throwing an uncaught exception.
+    redis.connect().catch((err) => {
+      if (!redisErrorLogged) {
+        logger.warn("Redis connect failed; using in-memory fallback for OTP/locks");
+        redisErrorLogged = true;
+      }
+      try {
+        // Best-effort cleanup
+        redis?.quit();
+      } catch {}
+      redis = null;
+    });
+
     return redis;
   } catch (err) {
-    logger.error({ err }, "Redis connection failed");
+    logger.warn("Redis initialization failed; using in-memory fallback");
     return null;
   }
 }
