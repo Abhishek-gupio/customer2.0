@@ -258,7 +258,6 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: wp(6),
     paddingVertical: hp(1),
-    // gap: wp(2),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

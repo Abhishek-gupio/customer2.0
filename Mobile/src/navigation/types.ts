@@ -14,6 +14,9 @@ export type RootStackParamList = {
   Expenses: undefined;
   addExpense: undefined;
   ExpenseAnalytics: undefined;
+  ServiceHistory: undefined;
+  WarrantyStatus: undefined;
+  OptionModal: undefined;
 };
 
 export type MainTabParamList = {

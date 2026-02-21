@@ -17,6 +17,9 @@ import { MainBottomTabs } from './MainBottomTabs';
 import ExpensesList from '../screens/Expenses/ExpenseList';
 import addExpense from '../screens/Expenses/AddExpense';
 import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
+import OptionModal from '../screens/ServiceAndWarrenty/OptionModal';
+import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
+import {WarrantyStatus} from '../screens/ServiceAndWarrenty/WarrantyStatus';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,6 +59,12 @@ export function RootNavigator() {
         presentation:'transparentModal',
       }}/>
       <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
+      <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
+      <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
+      <Stack.Screen name="OptionModal" component={OptionModal} 
+      options={{presentation:'transparentModal'
+      }} />
+
     </Stack.Navigator>
   );
 }
