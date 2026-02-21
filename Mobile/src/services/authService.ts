@@ -80,7 +80,7 @@ export async function login(phoneNumber: string): Promise<LoginResponse> {
   const body = {
     phoneNumber: phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${phone}`,
   };
-  return api.post<LoginResponse>('/login', body);
+  return api.post<LoginResponse>('/v1/auth/login', body);
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
@@ -92,12 +92,12 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
       ? payload.phoneNumber.trim()
       : `+91${phone}`,
   };
-  return api.post<SignupResponse>('/signup', body);
+  return api.post<SignupResponse>('/v1/auth/signup', body);
 }
 
 export async function verifyOtp(phoneNumber: string, otp: string): Promise<VerifyOtpResponse & { userId?: string }> {
   const phone = phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${normalizePhone(phoneNumber)}`;
-  const data = await api.post<VerifyOtpResponse>('/verify-otp', {
+  const data = await api.post<VerifyOtpResponse>('/v1/auth/verify-otp', {
     phoneNumber: phone,
     otp,
   });

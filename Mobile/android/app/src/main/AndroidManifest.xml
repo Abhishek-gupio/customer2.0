@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Required for Add by Voice (expense voice commands) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
@@ -11,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        android:usesCleartextTraffic="true"
         android:supportsRtl="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         tools:replace="android:appComponentFactory">

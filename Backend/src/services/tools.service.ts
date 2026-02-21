@@ -7,6 +7,10 @@ import {
 } from "../modules/expense/expense.validators";
 import { warrantyService } from "./warranty.service";
 import { documentService } from "../modules/document/document.service";
+import {
+  suggestIntervalsFromAI,
+  saveSuggestedIntervals,
+} from "./oem-interval.service";
 
 const db = dbInstances as any;
 
@@ -348,6 +352,102 @@ export const toolRegistry = {
           expiringSoon: warranty.expiring.map((e) => e.message),
           expiredCount: warranty.expired.length,
         },
+      };
+    },
+  },
+
+  /**
+   * Tool: get_or_suggest_parts_interval
+   * Use when user asks "When should I change oil for my car?" or "What are the service intervals for my vehicle?" or "Get OEM intervals for my Swift".
+   * Fetches or suggests parts replacement intervals from public OEM knowledge (Indian market) and can save them for the vehicle.
+   */
+  get_or_suggest_parts_interval: {
+    name: "get_or_suggest_parts_interval",
+    description:
+      "Get or suggest OEM-style parts replacement intervals (engine oil, brake pads, etc.) for the customer's vehicle. Uses public Indian OEM schedule knowledge. Can save suggested intervals so future reminders use them.",
+    parameters: {
+      vehicleId: "string (optional; uses customer's vehicle if not provided)",
+      saveToDatabase: "string (optional; 'true' to save suggested intervals for this vehicle so they are used for reminders)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const vehicle = await db.customerVehicle.findFirst({
+        where: args.vehicleId
+          ? { id: args.vehicleId, customerId }
+          : { customerId, isActive: true },
+        select: { id: true, make: true, model: true, year: true },
+      });
+
+      if (!vehicle)
+        return { success: false, error: "No vehicle found for this customer." };
+
+      const make = (vehicle.make ?? "").trim() || "Unknown";
+      const model = (vehicle.model ?? "").trim() || "Unknown";
+      const year = vehicle.year ?? null;
+
+      // Check if we already have vehicle-specific intervals (not just DEFAULT/FALLBACK)
+      const existingLifecycle = await warrantyService.getLifecycleForVehiclePart(
+        vehicle.id,
+        "ENGINE_OIL",
+      );
+      const alreadyHasSpecific =
+        existingLifecycle.source &&
+        existingLifecycle.source !== "FALLBACK" &&
+        existingLifecycle.source !== "DEFAULT";
+
+      if (alreadyHasSpecific) {
+        const intervals = await warrantyService.getPartLifecycleInfo();
+        return {
+          success: true,
+          message: `Your ${make} ${model} already has vehicle-specific intervals in our system. Replacement reminders are based on these.`,
+          vehicle: `${make} ${model}${year ? ` (${year})` : ""}`,
+          source: existingLifecycle.source,
+        };
+      }
+
+      // Suggest intervals from AI (public OEM knowledge)
+      const suggested = await suggestIntervalsFromAI(make, model, year);
+      if (suggested.length === 0) {
+        return {
+          success: true,
+          message: `Could not suggest intervals for ${make} ${model}. You can add them manually from the OEM manual (see app help).`,
+          vehicle: `${make} ${model}${year ? ` (${year})` : ""}`,
+        };
+      }
+
+      const saveToDb =
+        args.saveToDatabase === "true" || args.saveToDatabase === true;
+      if (saveToDb) {
+        const { saved, errors } = await saveSuggestedIntervals(
+          make,
+          model,
+          year,
+          suggested,
+        );
+        return {
+          success: true,
+          message: `I've added suggested parts intervals for your ${make} ${model} based on typical Indian OEM schedules (${saved} parts). Future replacement reminders will use these. For exact values, verify with the manufacturer manual.`,
+          vehicle: `${make} ${model}${year ? ` (${year})` : ""}`,
+          intervalsSaved: saved,
+          intervals: suggested.map((p) => ({
+            part: p.partType,
+            everyKm: p.intervalKm,
+            everyMonths: p.intervalMonths,
+          })),
+          source: "AI_SUGGESTED",
+          errors: errors.length ? errors : undefined,
+        };
+      }
+
+      return {
+        success: true,
+        message: `Suggested intervals for ${make} ${model} (from typical Indian OEM schedules). Say "save these intervals" or ask to save if you want to use them for reminders.`,
+        vehicle: `${make} ${model}${year ? ` (${year})` : ""}`,
+        intervals: suggested.map((p) => ({
+          part: p.partType,
+          everyKm: p.intervalKm,
+          everyMonths: p.intervalMonths,
+        })),
+        source: "AI_SUGGESTED",
       };
     },
   },

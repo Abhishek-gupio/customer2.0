@@ -13,6 +13,7 @@ export type RootStackParamList = {
   DocumentDetail: { documentId: string };
   Expenses: undefined;
   addExpense: undefined;
+  Analytics: undefined;
 };
 
 export type MainTabParamList = {

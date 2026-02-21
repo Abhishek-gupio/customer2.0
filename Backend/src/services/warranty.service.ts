@@ -13,8 +13,8 @@ const db = dbInstances as any;
  * - Predict when parts need replacement based on driving patterns
  */
 
-// Default replacement intervals for common parts
-const PART_LIFECYCLE: Record<
+// In-memory fallback when DB has no PartReplacementInterval (e.g. before seed)
+const PART_LIFECYCLE_FALLBACK: Record<
   string,
   { months: number; km: number; defaultWarrantyMonths: number }
 > = {
@@ -57,6 +57,84 @@ export interface CreateServicePartInput {
   warrantyKm?: number;
 }
 
+/** Lifecycle for one part type (months, km, warranty). */
+export type PartLifecycle = {
+  months: number;
+  km: number;
+  defaultWarrantyMonths: number;
+  source?: string;
+};
+
+/**
+ * Get replacement interval for a part on a specific vehicle.
+ * Uses PartReplacementInterval (vehicle-specific) then DEFAULT rows, then in-memory fallback.
+ */
+async function getLifecycleForVehiclePart(
+  vehicleId: string,
+  partType: string,
+): Promise<PartLifecycle> {
+  const vehicle = await db.customerVehicle.findUnique({
+    where: { id: vehicleId },
+    select: { make: true, model: true, year: true },
+  });
+
+  const make = (vehicle?.make ?? "").trim() || null;
+  const model = (vehicle?.model ?? "").trim() || null;
+  const year = vehicle?.year ?? null;
+
+  try {
+    const rows = await db.partReplacementInterval.findMany({
+      where: { partType: partType as any },
+    });
+
+    const matches = rows.filter((r: any) => {
+      // Seeded DEFAULT row uses model='', yearMin=0, yearMax=9999 for unique constraint
+      const isDefault =
+        r.make === "DEFAULT" &&
+        (r.model == null || r.model === "") &&
+        (r.yearMin == null || r.yearMin === 0) &&
+        (r.yearMax == null || r.yearMax === 9999);
+      if (isDefault) return true;
+      if (!make) return false;
+      if (r.make.toLowerCase() !== make.toLowerCase()) return false;
+      if (r.model != null && (model == null || r.model.toLowerCase() !== model.toLowerCase()))
+        return false;
+      if (r.yearMin != null && (year == null || year < r.yearMin)) return false;
+      if (r.yearMax != null && (year == null || year > r.yearMax)) return false;
+      return true;
+    });
+
+    if (matches.length === 0) {
+      const fallback =
+        PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
+      return { ...fallback, source: "FALLBACK" };
+    }
+
+    // Sort by specificity: model+year > model > make > DEFAULT
+    const score = (r: any) => {
+      if (r.make === "DEFAULT") return 0;
+      let s = 1;
+      if (r.model) s += 2;
+      if (r.yearMin != null || r.yearMax != null) s += 4;
+      return s;
+    };
+    matches.sort((a, b) => score(b) - score(a));
+
+    const best = matches[0];
+    return {
+      months: best.intervalMonths,
+      km: best.intervalKm,
+      defaultWarrantyMonths: best.defaultWarrantyMonths,
+      source: best.source ?? (best.make === "DEFAULT" ? "DEFAULT" : "OEM"),
+    };
+  } catch (e) {
+    logger.warn({ err: e, vehicleId, partType }, "PartReplacementInterval lookup failed, using fallback");
+    const fallback =
+      PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
+    return { ...fallback, source: "FALLBACK" };
+  }
+}
+
 export const warrantyService = {
   /**
    * Create a full service record with parts
@@ -80,13 +158,15 @@ export const warrantyService = {
       },
     });
 
-    // 2. Add Parts
+    // 2. Add Parts (use vehicle-specific interval when available)
     const partsCreated = [];
     for (const part of input.parts) {
-      const lifecycle =
-        PART_LIFECYCLE[part.partType] || PART_LIFECYCLE.OTHER_PART;
+      const lifecycle = await getLifecycleForVehiclePart(
+        input.vehicleId,
+        part.partType,
+      );
       const warrantyMonths =
-        part.warrantyMonths || lifecycle.defaultWarrantyMonths;
+        part.warrantyMonths ?? lifecycle.defaultWarrantyMonths;
 
       // Calculate warranty expiry
       let warrantyExpiresAt: Date | null = null;
@@ -111,7 +191,7 @@ export const warrantyService = {
           brand: part.brand || null,
           cost: part.cost || null,
           warrantyMonths,
-          warrantyKm: part.warrantyKm || lifecycle.km,
+          warrantyKm: part.warrantyKm ?? lifecycle.km,
           warrantyExpiresAt,
           lastReplacedAt: serviceDate,
           nextReplacementDue,
@@ -252,8 +332,7 @@ export const warrantyService = {
     const due: any[] = [];
 
     for (const part of latestParts.values()) {
-      const lifecycle =
-        PART_LIFECYCLE[part.partType] || PART_LIFECYCLE.OTHER_PART;
+      const lifecycle = await getLifecycleForVehiclePart(vehicleId, part.partType);
       const replacedAt = new Date(part.lastReplacedAt);
       const odoAtService = part.serviceRecord?.odometerAtService || 0;
 
@@ -403,16 +482,22 @@ export const warrantyService = {
   },
 
   /**
-   * Get lifespan summary for all common parts
+   * Get lifespan summary for all common parts (default/fallback values).
+   * For vehicle-specific intervals use getLifecycleForVehiclePart(vehicleId, partType).
    */
   getPartLifecycleInfo() {
-    return Object.entries(PART_LIFECYCLE).map(([partType, lifecycle]) => ({
+    return Object.entries(PART_LIFECYCLE_FALLBACK).map(([partType, lifecycle]) => ({
       partType,
       recommendedIntervalMonths: lifecycle.months,
       recommendedIntervalKm: lifecycle.km,
       defaultWarrantyMonths: lifecycle.defaultWarrantyMonths,
     }));
   },
+
+  /**
+   * Get replacement interval for a part on a vehicle (vehicle-specific or default).
+   */
+  getLifecycleForVehiclePart,
 
   /**
    * Get list of service providers (garages) used by the customer

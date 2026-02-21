@@ -127,5 +127,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation project(':react-native-linear-gradient')
+    implementation project(':react-native-voice_voice')
 }
 

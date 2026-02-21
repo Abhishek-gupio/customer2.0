@@ -123,6 +123,23 @@ export type DrivingTrip = $Result.DefaultSelection<Prisma.$DrivingTripPayload>
  * 
  */
 export type DrivingEvent = $Result.DefaultSelection<Prisma.$DrivingEventPayload>
+/**
+ * Model PartReplacementInterval
+ * Vehicle-specific or default replacement intervals for parts.
+ * DEFAULT fallback: make='DEFAULT', model='', yearMin=0, yearMax=9999 (avoids unique null issues).
+ * OEM: make (e.g. "Maruti Suzuki"), model (e.g. "Swift"), yearMin/yearMax for year range.
+ */
+export type PartReplacementInterval = $Result.DefaultSelection<Prisma.$PartReplacementIntervalPayload>
+/**
+ * Model SOSRequest
+ * 
+ */
+export type SOSRequest = $Result.DefaultSelection<Prisma.$SOSRequestPayload>
+/**
+ * Model EmergencyContact
+ * 
+ */
+export type EmergencyContact = $Result.DefaultSelection<Prisma.$EmergencyContactPayload>
 
 /**
  * Enums
@@ -223,6 +240,26 @@ export const ServicePartType: {
 
 export type ServicePartType = (typeof ServicePartType)[keyof typeof ServicePartType]
 
+
+export const SOSStatus: {
+  ACTIVE: 'ACTIVE',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type SOSStatus = (typeof SOSStatus)[keyof typeof SOSStatus]
+
+
+export const SOSType: {
+  MEDICAL: 'MEDICAL',
+  POLICE: 'POLICE',
+  MECHANICAL: 'MECHANICAL',
+  ACCIDENT: 'ACCIDENT',
+  OTHER: 'OTHER'
+};
+
+export type SOSType = (typeof SOSType)[keyof typeof SOSType]
+
 }
 
 export type DocumentType = $Enums.DocumentType
@@ -256,6 +293,14 @@ export const ExpenseSource: typeof $Enums.ExpenseSource
 export type ServicePartType = $Enums.ServicePartType
 
 export const ServicePartType: typeof $Enums.ServicePartType
+
+export type SOSStatus = $Enums.SOSStatus
+
+export const SOSStatus: typeof $Enums.SOSStatus
+
+export type SOSType = $Enums.SOSType
+
+export const SOSType: typeof $Enums.SOSType
 
 /**
  * ##  Prisma Client ʲˢ
@@ -593,6 +638,36 @@ export class PrismaClient<
     * ```
     */
   get drivingEvent(): Prisma.DrivingEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.partReplacementInterval`: Exposes CRUD operations for the **PartReplacementInterval** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PartReplacementIntervals
+    * const partReplacementIntervals = await prisma.partReplacementInterval.findMany()
+    * ```
+    */
+  get partReplacementInterval(): Prisma.PartReplacementIntervalDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.sOSRequest`: Exposes CRUD operations for the **SOSRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SOSRequests
+    * const sOSRequests = await prisma.sOSRequest.findMany()
+    * ```
+    */
+  get sOSRequest(): Prisma.SOSRequestDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.emergencyContact`: Exposes CRUD operations for the **EmergencyContact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmergencyContacts
+    * const emergencyContacts = await prisma.emergencyContact.findMany()
+    * ```
+    */
+  get emergencyContact(): Prisma.EmergencyContactDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1048,7 +1123,10 @@ export namespace Prisma {
     ServicePart: 'ServicePart',
     TelematicsDevice: 'TelematicsDevice',
     DrivingTrip: 'DrivingTrip',
-    DrivingEvent: 'DrivingEvent'
+    DrivingEvent: 'DrivingEvent',
+    PartReplacementInterval: 'PartReplacementInterval',
+    SOSRequest: 'SOSRequest',
+    EmergencyContact: 'EmergencyContact'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1064,7 +1142,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent"
+      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "partReplacementInterval" | "sOSRequest" | "emergencyContact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2696,6 +2774,228 @@ export namespace Prisma {
           }
         }
       }
+      PartReplacementInterval: {
+        payload: Prisma.$PartReplacementIntervalPayload<ExtArgs>
+        fields: Prisma.PartReplacementIntervalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PartReplacementIntervalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          findFirst: {
+            args: Prisma.PartReplacementIntervalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          findMany: {
+            args: Prisma.PartReplacementIntervalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          create: {
+            args: Prisma.PartReplacementIntervalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          createMany: {
+            args: Prisma.PartReplacementIntervalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          delete: {
+            args: Prisma.PartReplacementIntervalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          update: {
+            args: Prisma.PartReplacementIntervalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          deleteMany: {
+            args: Prisma.PartReplacementIntervalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PartReplacementIntervalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          upsert: {
+            args: Prisma.PartReplacementIntervalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          aggregate: {
+            args: Prisma.PartReplacementIntervalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePartReplacementInterval>
+          }
+          groupBy: {
+            args: Prisma.PartReplacementIntervalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PartReplacementIntervalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PartReplacementIntervalCountArgs<ExtArgs>
+            result: $Utils.Optional<PartReplacementIntervalCountAggregateOutputType> | number
+          }
+        }
+      }
+      SOSRequest: {
+        payload: Prisma.$SOSRequestPayload<ExtArgs>
+        fields: Prisma.SOSRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SOSRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SOSRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.SOSRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SOSRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          findMany: {
+            args: Prisma.SOSRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>[]
+          }
+          create: {
+            args: Prisma.SOSRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          createMany: {
+            args: Prisma.SOSRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SOSRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.SOSRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          update: {
+            args: Prisma.SOSRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.SOSRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SOSRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SOSRequestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>[]
+          }
+          upsert: {
+            args: Prisma.SOSRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.SOSRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSOSRequest>
+          }
+          groupBy: {
+            args: Prisma.SOSRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SOSRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SOSRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<SOSRequestCountAggregateOutputType> | number
+          }
+        }
+      }
+      EmergencyContact: {
+        payload: Prisma.$EmergencyContactPayload<ExtArgs>
+        fields: Prisma.EmergencyContactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EmergencyContactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EmergencyContactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          findFirst: {
+            args: Prisma.EmergencyContactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EmergencyContactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          findMany: {
+            args: Prisma.EmergencyContactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>[]
+          }
+          create: {
+            args: Prisma.EmergencyContactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          createMany: {
+            args: Prisma.EmergencyContactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EmergencyContactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>[]
+          }
+          delete: {
+            args: Prisma.EmergencyContactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          update: {
+            args: Prisma.EmergencyContactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          deleteMany: {
+            args: Prisma.EmergencyContactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EmergencyContactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EmergencyContactUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>[]
+          }
+          upsert: {
+            args: Prisma.EmergencyContactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          aggregate: {
+            args: Prisma.EmergencyContactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEmergencyContact>
+          }
+          groupBy: {
+            args: Prisma.EmergencyContactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EmergencyContactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EmergencyContactCountArgs<ExtArgs>
+            result: $Utils.Optional<EmergencyContactCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2826,6 +3126,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceOmit
     drivingTrip?: DrivingTripOmit
     drivingEvent?: DrivingEventOmit
+    partReplacementInterval?: PartReplacementIntervalOmit
+    sOSRequest?: SOSRequestOmit
+    emergencyContact?: EmergencyContactOmit
   }
 
   /* Types for Logging */
@@ -2914,6 +3217,8 @@ export namespace Prisma {
     notifications: number
     sharedVehicles: number
     chats: number
+    sosRequests: number
+    emergencyContacts: number
   }
 
   export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2925,6 +3230,8 @@ export namespace Prisma {
     notifications?: boolean | CustomerCountOutputTypeCountNotificationsArgs
     sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs
     chats?: boolean | CustomerCountOutputTypeCountChatsArgs
+    sosRequests?: boolean | CustomerCountOutputTypeCountSosRequestsArgs
+    emergencyContacts?: boolean | CustomerCountOutputTypeCountEmergencyContactsArgs
   }
 
   // Custom InputTypes
@@ -2992,6 +3299,20 @@ export namespace Prisma {
    */
   export type CustomerCountOutputTypeCountChatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ChatSessionWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountSosRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SOSRequestWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountEmergencyContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmergencyContactWhereInput
   }
 
 
@@ -4361,6 +4682,8 @@ export namespace Prisma {
     notifications?: boolean | Customer$notificationsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
     chats?: boolean | Customer$chatsArgs<ExtArgs>
+    sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
+    emergencyContacts?: boolean | Customer$emergencyContactsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customer"]>
 
@@ -4405,6 +4728,8 @@ export namespace Prisma {
     notifications?: boolean | Customer$notificationsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
     chats?: boolean | Customer$chatsArgs<ExtArgs>
+    sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
+    emergencyContacts?: boolean | Customer$emergencyContactsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4422,6 +4747,8 @@ export namespace Prisma {
       notifications: Prisma.$InAppNotificationPayload<ExtArgs>[]
       sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[]
       chats: Prisma.$ChatSessionPayload<ExtArgs>[]
+      sosRequests: Prisma.$SOSRequestPayload<ExtArgs>[]
+      emergencyContacts: Prisma.$EmergencyContactPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4834,6 +5161,8 @@ export namespace Prisma {
     notifications<T extends Customer$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InAppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sharedVehicles<T extends Customer$sharedVehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sharedVehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     chats<T extends Customer$chatsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$chatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sosRequests<T extends Customer$sosRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sosRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    emergencyContacts<T extends Customer$emergencyContactsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$emergencyContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5466,6 +5795,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ChatSessionScalarFieldEnum | ChatSessionScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.sosRequests
+   */
+  export type Customer$sosRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    where?: SOSRequestWhereInput
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    cursor?: SOSRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.emergencyContacts
+   */
+  export type Customer$emergencyContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    where?: EmergencyContactWhereInput
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    cursor?: EmergencyContactWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
   }
 
   /**
@@ -28831,6 +29208,3430 @@ export namespace Prisma {
 
 
   /**
+   * Model PartReplacementInterval
+   */
+
+  export type AggregatePartReplacementInterval = {
+    _count: PartReplacementIntervalCountAggregateOutputType | null
+    _avg: PartReplacementIntervalAvgAggregateOutputType | null
+    _sum: PartReplacementIntervalSumAggregateOutputType | null
+    _min: PartReplacementIntervalMinAggregateOutputType | null
+    _max: PartReplacementIntervalMaxAggregateOutputType | null
+  }
+
+  export type PartReplacementIntervalAvgAggregateOutputType = {
+    yearMin: number | null
+    yearMax: number | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+  }
+
+  export type PartReplacementIntervalSumAggregateOutputType = {
+    yearMin: number | null
+    yearMax: number | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+  }
+
+  export type PartReplacementIntervalMinAggregateOutputType = {
+    id: string | null
+    make: string | null
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PartReplacementIntervalMaxAggregateOutputType = {
+    id: string | null
+    make: string | null
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PartReplacementIntervalCountAggregateOutputType = {
+    id: number
+    make: number
+    model: number
+    yearMin: number
+    yearMax: number
+    partType: number
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths: number
+    source: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PartReplacementIntervalAvgAggregateInputType = {
+    yearMin?: true
+    yearMax?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+  }
+
+  export type PartReplacementIntervalSumAggregateInputType = {
+    yearMin?: true
+    yearMax?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+  }
+
+  export type PartReplacementIntervalMinAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PartReplacementIntervalMaxAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PartReplacementIntervalCountAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PartReplacementIntervalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PartReplacementInterval to aggregate.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PartReplacementIntervals
+    **/
+    _count?: true | PartReplacementIntervalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PartReplacementIntervalAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PartReplacementIntervalSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PartReplacementIntervalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PartReplacementIntervalMaxAggregateInputType
+  }
+
+  export type GetPartReplacementIntervalAggregateType<T extends PartReplacementIntervalAggregateArgs> = {
+        [P in keyof T & keyof AggregatePartReplacementInterval]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePartReplacementInterval[P]>
+      : GetScalarType<T[P], AggregatePartReplacementInterval[P]>
+  }
+
+
+
+
+  export type PartReplacementIntervalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PartReplacementIntervalWhereInput
+    orderBy?: PartReplacementIntervalOrderByWithAggregationInput | PartReplacementIntervalOrderByWithAggregationInput[]
+    by: PartReplacementIntervalScalarFieldEnum[] | PartReplacementIntervalScalarFieldEnum
+    having?: PartReplacementIntervalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PartReplacementIntervalCountAggregateInputType | true
+    _avg?: PartReplacementIntervalAvgAggregateInputType
+    _sum?: PartReplacementIntervalSumAggregateInputType
+    _min?: PartReplacementIntervalMinAggregateInputType
+    _max?: PartReplacementIntervalMaxAggregateInputType
+  }
+
+  export type PartReplacementIntervalGroupByOutputType = {
+    id: string
+    make: string
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths: number
+    source: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PartReplacementIntervalCountAggregateOutputType | null
+    _avg: PartReplacementIntervalAvgAggregateOutputType | null
+    _sum: PartReplacementIntervalSumAggregateOutputType | null
+    _min: PartReplacementIntervalMinAggregateOutputType | null
+    _max: PartReplacementIntervalMaxAggregateOutputType | null
+  }
+
+  type GetPartReplacementIntervalGroupByPayload<T extends PartReplacementIntervalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PartReplacementIntervalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PartReplacementIntervalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PartReplacementIntervalGroupByOutputType[P]>
+            : GetScalarType<T[P], PartReplacementIntervalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PartReplacementIntervalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectScalar = {
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PartReplacementIntervalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "make" | "model" | "yearMin" | "yearMax" | "partType" | "intervalMonths" | "intervalKm" | "defaultWarrantyMonths" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["partReplacementInterval"]>
+
+  export type $PartReplacementIntervalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PartReplacementInterval"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      make: string
+      model: string | null
+      yearMin: number | null
+      yearMax: number | null
+      partType: $Enums.ServicePartType
+      intervalMonths: number
+      intervalKm: number
+      defaultWarrantyMonths: number
+      source: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["partReplacementInterval"]>
+    composites: {}
+  }
+
+  type PartReplacementIntervalGetPayload<S extends boolean | null | undefined | PartReplacementIntervalDefaultArgs> = $Result.GetResult<Prisma.$PartReplacementIntervalPayload, S>
+
+  type PartReplacementIntervalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PartReplacementIntervalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PartReplacementIntervalCountAggregateInputType | true
+    }
+
+  export interface PartReplacementIntervalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PartReplacementInterval'], meta: { name: 'PartReplacementInterval' } }
+    /**
+     * Find zero or one PartReplacementInterval that matches the filter.
+     * @param {PartReplacementIntervalFindUniqueArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PartReplacementIntervalFindUniqueArgs>(args: SelectSubset<T, PartReplacementIntervalFindUniqueArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PartReplacementInterval that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PartReplacementIntervalFindUniqueOrThrowArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PartReplacementIntervalFindUniqueOrThrowArgs>(args: SelectSubset<T, PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PartReplacementInterval that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindFirstArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PartReplacementIntervalFindFirstArgs>(args?: SelectSubset<T, PartReplacementIntervalFindFirstArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PartReplacementInterval that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindFirstOrThrowArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PartReplacementIntervalFindFirstOrThrowArgs>(args?: SelectSubset<T, PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PartReplacementIntervals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PartReplacementIntervals
+     * const partReplacementIntervals = await prisma.partReplacementInterval.findMany()
+     * 
+     * // Get first 10 PartReplacementIntervals
+     * const partReplacementIntervals = await prisma.partReplacementInterval.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PartReplacementIntervalFindManyArgs>(args?: SelectSubset<T, PartReplacementIntervalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PartReplacementInterval.
+     * @param {PartReplacementIntervalCreateArgs} args - Arguments to create a PartReplacementInterval.
+     * @example
+     * // Create one PartReplacementInterval
+     * const PartReplacementInterval = await prisma.partReplacementInterval.create({
+     *   data: {
+     *     // ... data to create a PartReplacementInterval
+     *   }
+     * })
+     * 
+     */
+    create<T extends PartReplacementIntervalCreateArgs>(args: SelectSubset<T, PartReplacementIntervalCreateArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PartReplacementIntervals.
+     * @param {PartReplacementIntervalCreateManyArgs} args - Arguments to create many PartReplacementIntervals.
+     * @example
+     * // Create many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PartReplacementIntervalCreateManyArgs>(args?: SelectSubset<T, PartReplacementIntervalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PartReplacementIntervals and returns the data saved in the database.
+     * @param {PartReplacementIntervalCreateManyAndReturnArgs} args - Arguments to create many PartReplacementIntervals.
+     * @example
+     * // Create many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PartReplacementIntervals and only return the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PartReplacementIntervalCreateManyAndReturnArgs>(args?: SelectSubset<T, PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PartReplacementInterval.
+     * @param {PartReplacementIntervalDeleteArgs} args - Arguments to delete one PartReplacementInterval.
+     * @example
+     * // Delete one PartReplacementInterval
+     * const PartReplacementInterval = await prisma.partReplacementInterval.delete({
+     *   where: {
+     *     // ... filter to delete one PartReplacementInterval
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PartReplacementIntervalDeleteArgs>(args: SelectSubset<T, PartReplacementIntervalDeleteArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PartReplacementInterval.
+     * @param {PartReplacementIntervalUpdateArgs} args - Arguments to update one PartReplacementInterval.
+     * @example
+     * // Update one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PartReplacementIntervalUpdateArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PartReplacementIntervals.
+     * @param {PartReplacementIntervalDeleteManyArgs} args - Arguments to filter PartReplacementIntervals to delete.
+     * @example
+     * // Delete a few PartReplacementIntervals
+     * const { count } = await prisma.partReplacementInterval.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PartReplacementIntervalDeleteManyArgs>(args?: SelectSubset<T, PartReplacementIntervalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PartReplacementIntervals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PartReplacementIntervalUpdateManyArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PartReplacementIntervals and returns the data updated in the database.
+     * @param {PartReplacementIntervalUpdateManyAndReturnArgs} args - Arguments to update many PartReplacementIntervals.
+     * @example
+     * // Update many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PartReplacementIntervals and only return the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PartReplacementIntervalUpdateManyAndReturnArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PartReplacementInterval.
+     * @param {PartReplacementIntervalUpsertArgs} args - Arguments to update or create a PartReplacementInterval.
+     * @example
+     * // Update or create a PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.upsert({
+     *   create: {
+     *     // ... data to create a PartReplacementInterval
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PartReplacementInterval we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PartReplacementIntervalUpsertArgs>(args: SelectSubset<T, PartReplacementIntervalUpsertArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PartReplacementIntervals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalCountArgs} args - Arguments to filter PartReplacementIntervals to count.
+     * @example
+     * // Count the number of PartReplacementIntervals
+     * const count = await prisma.partReplacementInterval.count({
+     *   where: {
+     *     // ... the filter for the PartReplacementIntervals we want to count
+     *   }
+     * })
+    **/
+    count<T extends PartReplacementIntervalCountArgs>(
+      args?: Subset<T, PartReplacementIntervalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PartReplacementIntervalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PartReplacementInterval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PartReplacementIntervalAggregateArgs>(args: Subset<T, PartReplacementIntervalAggregateArgs>): Prisma.PrismaPromise<GetPartReplacementIntervalAggregateType<T>>
+
+    /**
+     * Group by PartReplacementInterval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PartReplacementIntervalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PartReplacementIntervalGroupByArgs['orderBy'] }
+        : { orderBy?: PartReplacementIntervalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PartReplacementIntervalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPartReplacementIntervalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PartReplacementInterval model
+   */
+  readonly fields: PartReplacementIntervalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PartReplacementInterval.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PartReplacementIntervalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PartReplacementInterval model
+   */
+  interface PartReplacementIntervalFieldRefs {
+    readonly id: FieldRef<"PartReplacementInterval", 'String'>
+    readonly make: FieldRef<"PartReplacementInterval", 'String'>
+    readonly model: FieldRef<"PartReplacementInterval", 'String'>
+    readonly yearMin: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly yearMax: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly partType: FieldRef<"PartReplacementInterval", 'ServicePartType'>
+    readonly intervalMonths: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly intervalKm: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly defaultWarrantyMonths: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly source: FieldRef<"PartReplacementInterval", 'String'>
+    readonly createdAt: FieldRef<"PartReplacementInterval", 'DateTime'>
+    readonly updatedAt: FieldRef<"PartReplacementInterval", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PartReplacementInterval findUnique
+   */
+  export type PartReplacementIntervalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval findUniqueOrThrow
+   */
+  export type PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval findFirst
+   */
+  export type PartReplacementIntervalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval findFirstOrThrow
+   */
+  export type PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval findMany
+   */
+  export type PartReplacementIntervalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementIntervals to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval create
+   */
+  export type PartReplacementIntervalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data needed to create a PartReplacementInterval.
+     */
+    data: XOR<PartReplacementIntervalCreateInput, PartReplacementIntervalUncheckedCreateInput>
+  }
+
+  /**
+   * PartReplacementInterval createMany
+   */
+  export type PartReplacementIntervalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PartReplacementIntervals.
+     */
+    data: PartReplacementIntervalCreateManyInput | PartReplacementIntervalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PartReplacementInterval createManyAndReturn
+   */
+  export type PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data used to create many PartReplacementIntervals.
+     */
+    data: PartReplacementIntervalCreateManyInput | PartReplacementIntervalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PartReplacementInterval update
+   */
+  export type PartReplacementIntervalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data needed to update a PartReplacementInterval.
+     */
+    data: XOR<PartReplacementIntervalUpdateInput, PartReplacementIntervalUncheckedUpdateInput>
+    /**
+     * Choose, which PartReplacementInterval to update.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval updateMany
+   */
+  export type PartReplacementIntervalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PartReplacementIntervals.
+     */
+    data: XOR<PartReplacementIntervalUpdateManyMutationInput, PartReplacementIntervalUncheckedUpdateManyInput>
+    /**
+     * Filter which PartReplacementIntervals to update
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval updateManyAndReturn
+   */
+  export type PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data used to update PartReplacementIntervals.
+     */
+    data: XOR<PartReplacementIntervalUpdateManyMutationInput, PartReplacementIntervalUncheckedUpdateManyInput>
+    /**
+     * Filter which PartReplacementIntervals to update
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval upsert
+   */
+  export type PartReplacementIntervalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The filter to search for the PartReplacementInterval to update in case it exists.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+    /**
+     * In case the PartReplacementInterval found by the `where` argument doesn't exist, create a new PartReplacementInterval with this data.
+     */
+    create: XOR<PartReplacementIntervalCreateInput, PartReplacementIntervalUncheckedCreateInput>
+    /**
+     * In case the PartReplacementInterval was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PartReplacementIntervalUpdateInput, PartReplacementIntervalUncheckedUpdateInput>
+  }
+
+  /**
+   * PartReplacementInterval delete
+   */
+  export type PartReplacementIntervalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter which PartReplacementInterval to delete.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval deleteMany
+   */
+  export type PartReplacementIntervalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PartReplacementIntervals to delete
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval without action
+   */
+  export type PartReplacementIntervalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SOSRequest
+   */
+
+  export type AggregateSOSRequest = {
+    _count: SOSRequestCountAggregateOutputType | null
+    _avg: SOSRequestAvgAggregateOutputType | null
+    _sum: SOSRequestSumAggregateOutputType | null
+    _min: SOSRequestMinAggregateOutputType | null
+    _max: SOSRequestMaxAggregateOutputType | null
+  }
+
+  export type SOSRequestAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type SOSRequestSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type SOSRequestMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    latitude: number | null
+    longitude: number | null
+    address: string | null
+    status: $Enums.SOSStatus | null
+    type: $Enums.SOSType | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type SOSRequestMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    latitude: number | null
+    longitude: number | null
+    address: string | null
+    status: $Enums.SOSStatus | null
+    type: $Enums.SOSType | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type SOSRequestCountAggregateOutputType = {
+    id: number
+    customerId: number
+    latitude: number
+    longitude: number
+    address: number
+    status: number
+    type: number
+    metadata: number
+    createdAt: number
+    resolvedAt: number
+    _all: number
+  }
+
+
+  export type SOSRequestAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type SOSRequestSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type SOSRequestMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    latitude?: true
+    longitude?: true
+    address?: true
+    status?: true
+    type?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type SOSRequestMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    latitude?: true
+    longitude?: true
+    address?: true
+    status?: true
+    type?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type SOSRequestCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    latitude?: true
+    longitude?: true
+    address?: true
+    status?: true
+    type?: true
+    metadata?: true
+    createdAt?: true
+    resolvedAt?: true
+    _all?: true
+  }
+
+  export type SOSRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SOSRequest to aggregate.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SOSRequests
+    **/
+    _count?: true | SOSRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SOSRequestAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SOSRequestSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SOSRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SOSRequestMaxAggregateInputType
+  }
+
+  export type GetSOSRequestAggregateType<T extends SOSRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregateSOSRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSOSRequest[P]>
+      : GetScalarType<T[P], AggregateSOSRequest[P]>
+  }
+
+
+
+
+  export type SOSRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SOSRequestWhereInput
+    orderBy?: SOSRequestOrderByWithAggregationInput | SOSRequestOrderByWithAggregationInput[]
+    by: SOSRequestScalarFieldEnum[] | SOSRequestScalarFieldEnum
+    having?: SOSRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SOSRequestCountAggregateInputType | true
+    _avg?: SOSRequestAvgAggregateInputType
+    _sum?: SOSRequestSumAggregateInputType
+    _min?: SOSRequestMinAggregateInputType
+    _max?: SOSRequestMaxAggregateInputType
+  }
+
+  export type SOSRequestGroupByOutputType = {
+    id: string
+    customerId: string
+    latitude: number
+    longitude: number
+    address: string | null
+    status: $Enums.SOSStatus
+    type: $Enums.SOSType
+    metadata: JsonValue | null
+    createdAt: Date
+    resolvedAt: Date | null
+    _count: SOSRequestCountAggregateOutputType | null
+    _avg: SOSRequestAvgAggregateOutputType | null
+    _sum: SOSRequestSumAggregateOutputType | null
+    _min: SOSRequestMinAggregateOutputType | null
+    _max: SOSRequestMaxAggregateOutputType | null
+  }
+
+  type GetSOSRequestGroupByPayload<T extends SOSRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SOSRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SOSRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SOSRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], SOSRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SOSRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sOSRequest"]>
+
+  export type SOSRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sOSRequest"]>
+
+  export type SOSRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sOSRequest"]>
+
+  export type SOSRequestSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+  }
+
+  export type SOSRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "latitude" | "longitude" | "address" | "status" | "type" | "metadata" | "createdAt" | "resolvedAt", ExtArgs["result"]["sOSRequest"]>
+  export type SOSRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type SOSRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type SOSRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $SOSRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SOSRequest"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      latitude: number
+      longitude: number
+      address: string | null
+      status: $Enums.SOSStatus
+      type: $Enums.SOSType
+      metadata: Prisma.JsonValue | null
+      createdAt: Date
+      resolvedAt: Date | null
+    }, ExtArgs["result"]["sOSRequest"]>
+    composites: {}
+  }
+
+  type SOSRequestGetPayload<S extends boolean | null | undefined | SOSRequestDefaultArgs> = $Result.GetResult<Prisma.$SOSRequestPayload, S>
+
+  type SOSRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SOSRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SOSRequestCountAggregateInputType | true
+    }
+
+  export interface SOSRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SOSRequest'], meta: { name: 'SOSRequest' } }
+    /**
+     * Find zero or one SOSRequest that matches the filter.
+     * @param {SOSRequestFindUniqueArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SOSRequestFindUniqueArgs>(args: SelectSubset<T, SOSRequestFindUniqueArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SOSRequest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SOSRequestFindUniqueOrThrowArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SOSRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, SOSRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SOSRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestFindFirstArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SOSRequestFindFirstArgs>(args?: SelectSubset<T, SOSRequestFindFirstArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SOSRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestFindFirstOrThrowArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SOSRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, SOSRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SOSRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SOSRequests
+     * const sOSRequests = await prisma.sOSRequest.findMany()
+     * 
+     * // Get first 10 SOSRequests
+     * const sOSRequests = await prisma.sOSRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const sOSRequestWithIdOnly = await prisma.sOSRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SOSRequestFindManyArgs>(args?: SelectSubset<T, SOSRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SOSRequest.
+     * @param {SOSRequestCreateArgs} args - Arguments to create a SOSRequest.
+     * @example
+     * // Create one SOSRequest
+     * const SOSRequest = await prisma.sOSRequest.create({
+     *   data: {
+     *     // ... data to create a SOSRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends SOSRequestCreateArgs>(args: SelectSubset<T, SOSRequestCreateArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SOSRequests.
+     * @param {SOSRequestCreateManyArgs} args - Arguments to create many SOSRequests.
+     * @example
+     * // Create many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SOSRequestCreateManyArgs>(args?: SelectSubset<T, SOSRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SOSRequests and returns the data saved in the database.
+     * @param {SOSRequestCreateManyAndReturnArgs} args - Arguments to create many SOSRequests.
+     * @example
+     * // Create many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SOSRequests and only return the `id`
+     * const sOSRequestWithIdOnly = await prisma.sOSRequest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SOSRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, SOSRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SOSRequest.
+     * @param {SOSRequestDeleteArgs} args - Arguments to delete one SOSRequest.
+     * @example
+     * // Delete one SOSRequest
+     * const SOSRequest = await prisma.sOSRequest.delete({
+     *   where: {
+     *     // ... filter to delete one SOSRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SOSRequestDeleteArgs>(args: SelectSubset<T, SOSRequestDeleteArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SOSRequest.
+     * @param {SOSRequestUpdateArgs} args - Arguments to update one SOSRequest.
+     * @example
+     * // Update one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SOSRequestUpdateArgs>(args: SelectSubset<T, SOSRequestUpdateArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SOSRequests.
+     * @param {SOSRequestDeleteManyArgs} args - Arguments to filter SOSRequests to delete.
+     * @example
+     * // Delete a few SOSRequests
+     * const { count } = await prisma.sOSRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SOSRequestDeleteManyArgs>(args?: SelectSubset<T, SOSRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SOSRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SOSRequestUpdateManyArgs>(args: SelectSubset<T, SOSRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SOSRequests and returns the data updated in the database.
+     * @param {SOSRequestUpdateManyAndReturnArgs} args - Arguments to update many SOSRequests.
+     * @example
+     * // Update many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SOSRequests and only return the `id`
+     * const sOSRequestWithIdOnly = await prisma.sOSRequest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SOSRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, SOSRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SOSRequest.
+     * @param {SOSRequestUpsertArgs} args - Arguments to update or create a SOSRequest.
+     * @example
+     * // Update or create a SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.upsert({
+     *   create: {
+     *     // ... data to create a SOSRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SOSRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SOSRequestUpsertArgs>(args: SelectSubset<T, SOSRequestUpsertArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SOSRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestCountArgs} args - Arguments to filter SOSRequests to count.
+     * @example
+     * // Count the number of SOSRequests
+     * const count = await prisma.sOSRequest.count({
+     *   where: {
+     *     // ... the filter for the SOSRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends SOSRequestCountArgs>(
+      args?: Subset<T, SOSRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SOSRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SOSRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SOSRequestAggregateArgs>(args: Subset<T, SOSRequestAggregateArgs>): Prisma.PrismaPromise<GetSOSRequestAggregateType<T>>
+
+    /**
+     * Group by SOSRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SOSRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SOSRequestGroupByArgs['orderBy'] }
+        : { orderBy?: SOSRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SOSRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSOSRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SOSRequest model
+   */
+  readonly fields: SOSRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SOSRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SOSRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SOSRequest model
+   */
+  interface SOSRequestFieldRefs {
+    readonly id: FieldRef<"SOSRequest", 'String'>
+    readonly customerId: FieldRef<"SOSRequest", 'String'>
+    readonly latitude: FieldRef<"SOSRequest", 'Float'>
+    readonly longitude: FieldRef<"SOSRequest", 'Float'>
+    readonly address: FieldRef<"SOSRequest", 'String'>
+    readonly status: FieldRef<"SOSRequest", 'SOSStatus'>
+    readonly type: FieldRef<"SOSRequest", 'SOSType'>
+    readonly metadata: FieldRef<"SOSRequest", 'Json'>
+    readonly createdAt: FieldRef<"SOSRequest", 'DateTime'>
+    readonly resolvedAt: FieldRef<"SOSRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SOSRequest findUnique
+   */
+  export type SOSRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest findUniqueOrThrow
+   */
+  export type SOSRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest findFirst
+   */
+  export type SOSRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SOSRequests.
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SOSRequests.
+     */
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * SOSRequest findFirstOrThrow
+   */
+  export type SOSRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SOSRequests.
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SOSRequests.
+     */
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * SOSRequest findMany
+   */
+  export type SOSRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequests to fetch.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SOSRequests.
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * SOSRequest create
+   */
+  export type SOSRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SOSRequest.
+     */
+    data: XOR<SOSRequestCreateInput, SOSRequestUncheckedCreateInput>
+  }
+
+  /**
+   * SOSRequest createMany
+   */
+  export type SOSRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SOSRequests.
+     */
+    data: SOSRequestCreateManyInput | SOSRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SOSRequest createManyAndReturn
+   */
+  export type SOSRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * The data used to create many SOSRequests.
+     */
+    data: SOSRequestCreateManyInput | SOSRequestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SOSRequest update
+   */
+  export type SOSRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SOSRequest.
+     */
+    data: XOR<SOSRequestUpdateInput, SOSRequestUncheckedUpdateInput>
+    /**
+     * Choose, which SOSRequest to update.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest updateMany
+   */
+  export type SOSRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SOSRequests.
+     */
+    data: XOR<SOSRequestUpdateManyMutationInput, SOSRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which SOSRequests to update
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * Limit how many SOSRequests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SOSRequest updateManyAndReturn
+   */
+  export type SOSRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * The data used to update SOSRequests.
+     */
+    data: XOR<SOSRequestUpdateManyMutationInput, SOSRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which SOSRequests to update
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * Limit how many SOSRequests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SOSRequest upsert
+   */
+  export type SOSRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SOSRequest to update in case it exists.
+     */
+    where: SOSRequestWhereUniqueInput
+    /**
+     * In case the SOSRequest found by the `where` argument doesn't exist, create a new SOSRequest with this data.
+     */
+    create: XOR<SOSRequestCreateInput, SOSRequestUncheckedCreateInput>
+    /**
+     * In case the SOSRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SOSRequestUpdateInput, SOSRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * SOSRequest delete
+   */
+  export type SOSRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter which SOSRequest to delete.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest deleteMany
+   */
+  export type SOSRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SOSRequests to delete
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * Limit how many SOSRequests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SOSRequest without action
+   */
+  export type SOSRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EmergencyContact
+   */
+
+  export type AggregateEmergencyContact = {
+    _count: EmergencyContactCountAggregateOutputType | null
+    _avg: EmergencyContactAvgAggregateOutputType | null
+    _sum: EmergencyContactSumAggregateOutputType | null
+    _min: EmergencyContactMinAggregateOutputType | null
+    _max: EmergencyContactMaxAggregateOutputType | null
+  }
+
+  export type EmergencyContactAvgAggregateOutputType = {
+    priority: number | null
+  }
+
+  export type EmergencyContactSumAggregateOutputType = {
+    priority: number | null
+  }
+
+  export type EmergencyContactMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    relation: string | null
+    priority: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmergencyContactMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    relation: string | null
+    priority: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmergencyContactCountAggregateOutputType = {
+    id: number
+    customerId: number
+    name: number
+    phoneNumber: number
+    relation: number
+    priority: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EmergencyContactAvgAggregateInputType = {
+    priority?: true
+  }
+
+  export type EmergencyContactSumAggregateInputType = {
+    priority?: true
+  }
+
+  export type EmergencyContactMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    name?: true
+    phoneNumber?: true
+    relation?: true
+    priority?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmergencyContactMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    name?: true
+    phoneNumber?: true
+    relation?: true
+    priority?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmergencyContactCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    name?: true
+    phoneNumber?: true
+    relation?: true
+    priority?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EmergencyContactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmergencyContact to aggregate.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmergencyContacts
+    **/
+    _count?: true | EmergencyContactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EmergencyContactAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EmergencyContactSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmergencyContactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmergencyContactMaxAggregateInputType
+  }
+
+  export type GetEmergencyContactAggregateType<T extends EmergencyContactAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmergencyContact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmergencyContact[P]>
+      : GetScalarType<T[P], AggregateEmergencyContact[P]>
+  }
+
+
+
+
+  export type EmergencyContactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmergencyContactWhereInput
+    orderBy?: EmergencyContactOrderByWithAggregationInput | EmergencyContactOrderByWithAggregationInput[]
+    by: EmergencyContactScalarFieldEnum[] | EmergencyContactScalarFieldEnum
+    having?: EmergencyContactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmergencyContactCountAggregateInputType | true
+    _avg?: EmergencyContactAvgAggregateInputType
+    _sum?: EmergencyContactSumAggregateInputType
+    _min?: EmergencyContactMinAggregateInputType
+    _max?: EmergencyContactMaxAggregateInputType
+  }
+
+  export type EmergencyContactGroupByOutputType = {
+    id: string
+    customerId: string
+    name: string
+    phoneNumber: string
+    relation: string | null
+    priority: number
+    createdAt: Date
+    updatedAt: Date
+    _count: EmergencyContactCountAggregateOutputType | null
+    _avg: EmergencyContactAvgAggregateOutputType | null
+    _sum: EmergencyContactSumAggregateOutputType | null
+    _min: EmergencyContactMinAggregateOutputType | null
+    _max: EmergencyContactMaxAggregateOutputType | null
+  }
+
+  type GetEmergencyContactGroupByPayload<T extends EmergencyContactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EmergencyContactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmergencyContactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmergencyContactGroupByOutputType[P]>
+            : GetScalarType<T[P], EmergencyContactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmergencyContactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["emergencyContact"]>
+
+  export type EmergencyContactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["emergencyContact"]>
+
+  export type EmergencyContactSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["emergencyContact"]>
+
+  export type EmergencyContactSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EmergencyContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "name" | "phoneNumber" | "relation" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["emergencyContact"]>
+  export type EmergencyContactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type EmergencyContactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type EmergencyContactIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $EmergencyContactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EmergencyContact"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      name: string
+      phoneNumber: string
+      relation: string | null
+      priority: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["emergencyContact"]>
+    composites: {}
+  }
+
+  type EmergencyContactGetPayload<S extends boolean | null | undefined | EmergencyContactDefaultArgs> = $Result.GetResult<Prisma.$EmergencyContactPayload, S>
+
+  type EmergencyContactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EmergencyContactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EmergencyContactCountAggregateInputType | true
+    }
+
+  export interface EmergencyContactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EmergencyContact'], meta: { name: 'EmergencyContact' } }
+    /**
+     * Find zero or one EmergencyContact that matches the filter.
+     * @param {EmergencyContactFindUniqueArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmergencyContactFindUniqueArgs>(args: SelectSubset<T, EmergencyContactFindUniqueArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EmergencyContact that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EmergencyContactFindUniqueOrThrowArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmergencyContactFindUniqueOrThrowArgs>(args: SelectSubset<T, EmergencyContactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmergencyContact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactFindFirstArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmergencyContactFindFirstArgs>(args?: SelectSubset<T, EmergencyContactFindFirstArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmergencyContact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactFindFirstOrThrowArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmergencyContactFindFirstOrThrowArgs>(args?: SelectSubset<T, EmergencyContactFindFirstOrThrowArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EmergencyContacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmergencyContacts
+     * const emergencyContacts = await prisma.emergencyContact.findMany()
+     * 
+     * // Get first 10 EmergencyContacts
+     * const emergencyContacts = await prisma.emergencyContact.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const emergencyContactWithIdOnly = await prisma.emergencyContact.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EmergencyContactFindManyArgs>(args?: SelectSubset<T, EmergencyContactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EmergencyContact.
+     * @param {EmergencyContactCreateArgs} args - Arguments to create a EmergencyContact.
+     * @example
+     * // Create one EmergencyContact
+     * const EmergencyContact = await prisma.emergencyContact.create({
+     *   data: {
+     *     // ... data to create a EmergencyContact
+     *   }
+     * })
+     * 
+     */
+    create<T extends EmergencyContactCreateArgs>(args: SelectSubset<T, EmergencyContactCreateArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EmergencyContacts.
+     * @param {EmergencyContactCreateManyArgs} args - Arguments to create many EmergencyContacts.
+     * @example
+     * // Create many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EmergencyContactCreateManyArgs>(args?: SelectSubset<T, EmergencyContactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EmergencyContacts and returns the data saved in the database.
+     * @param {EmergencyContactCreateManyAndReturnArgs} args - Arguments to create many EmergencyContacts.
+     * @example
+     * // Create many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EmergencyContacts and only return the `id`
+     * const emergencyContactWithIdOnly = await prisma.emergencyContact.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EmergencyContactCreateManyAndReturnArgs>(args?: SelectSubset<T, EmergencyContactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EmergencyContact.
+     * @param {EmergencyContactDeleteArgs} args - Arguments to delete one EmergencyContact.
+     * @example
+     * // Delete one EmergencyContact
+     * const EmergencyContact = await prisma.emergencyContact.delete({
+     *   where: {
+     *     // ... filter to delete one EmergencyContact
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EmergencyContactDeleteArgs>(args: SelectSubset<T, EmergencyContactDeleteArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EmergencyContact.
+     * @param {EmergencyContactUpdateArgs} args - Arguments to update one EmergencyContact.
+     * @example
+     * // Update one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EmergencyContactUpdateArgs>(args: SelectSubset<T, EmergencyContactUpdateArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EmergencyContacts.
+     * @param {EmergencyContactDeleteManyArgs} args - Arguments to filter EmergencyContacts to delete.
+     * @example
+     * // Delete a few EmergencyContacts
+     * const { count } = await prisma.emergencyContact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EmergencyContactDeleteManyArgs>(args?: SelectSubset<T, EmergencyContactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmergencyContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EmergencyContactUpdateManyArgs>(args: SelectSubset<T, EmergencyContactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmergencyContacts and returns the data updated in the database.
+     * @param {EmergencyContactUpdateManyAndReturnArgs} args - Arguments to update many EmergencyContacts.
+     * @example
+     * // Update many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EmergencyContacts and only return the `id`
+     * const emergencyContactWithIdOnly = await prisma.emergencyContact.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EmergencyContactUpdateManyAndReturnArgs>(args: SelectSubset<T, EmergencyContactUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EmergencyContact.
+     * @param {EmergencyContactUpsertArgs} args - Arguments to update or create a EmergencyContact.
+     * @example
+     * // Update or create a EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.upsert({
+     *   create: {
+     *     // ... data to create a EmergencyContact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmergencyContact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmergencyContactUpsertArgs>(args: SelectSubset<T, EmergencyContactUpsertArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EmergencyContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactCountArgs} args - Arguments to filter EmergencyContacts to count.
+     * @example
+     * // Count the number of EmergencyContacts
+     * const count = await prisma.emergencyContact.count({
+     *   where: {
+     *     // ... the filter for the EmergencyContacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmergencyContactCountArgs>(
+      args?: Subset<T, EmergencyContactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmergencyContactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmergencyContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmergencyContactAggregateArgs>(args: Subset<T, EmergencyContactAggregateArgs>): Prisma.PrismaPromise<GetEmergencyContactAggregateType<T>>
+
+    /**
+     * Group by EmergencyContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmergencyContactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmergencyContactGroupByArgs['orderBy'] }
+        : { orderBy?: EmergencyContactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmergencyContactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmergencyContactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EmergencyContact model
+   */
+  readonly fields: EmergencyContactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmergencyContact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmergencyContactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EmergencyContact model
+   */
+  interface EmergencyContactFieldRefs {
+    readonly id: FieldRef<"EmergencyContact", 'String'>
+    readonly customerId: FieldRef<"EmergencyContact", 'String'>
+    readonly name: FieldRef<"EmergencyContact", 'String'>
+    readonly phoneNumber: FieldRef<"EmergencyContact", 'String'>
+    readonly relation: FieldRef<"EmergencyContact", 'String'>
+    readonly priority: FieldRef<"EmergencyContact", 'Int'>
+    readonly createdAt: FieldRef<"EmergencyContact", 'DateTime'>
+    readonly updatedAt: FieldRef<"EmergencyContact", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EmergencyContact findUnique
+   */
+  export type EmergencyContactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact findUniqueOrThrow
+   */
+  export type EmergencyContactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact findFirst
+   */
+  export type EmergencyContactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmergencyContacts.
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmergencyContacts.
+     */
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
+   * EmergencyContact findFirstOrThrow
+   */
+  export type EmergencyContactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmergencyContacts.
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmergencyContacts.
+     */
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
+   * EmergencyContact findMany
+   */
+  export type EmergencyContactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContacts to fetch.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmergencyContacts.
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
+   * EmergencyContact create
+   */
+  export type EmergencyContactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EmergencyContact.
+     */
+    data: XOR<EmergencyContactCreateInput, EmergencyContactUncheckedCreateInput>
+  }
+
+  /**
+   * EmergencyContact createMany
+   */
+  export type EmergencyContactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EmergencyContacts.
+     */
+    data: EmergencyContactCreateManyInput | EmergencyContactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmergencyContact createManyAndReturn
+   */
+  export type EmergencyContactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * The data used to create many EmergencyContacts.
+     */
+    data: EmergencyContactCreateManyInput | EmergencyContactCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EmergencyContact update
+   */
+  export type EmergencyContactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EmergencyContact.
+     */
+    data: XOR<EmergencyContactUpdateInput, EmergencyContactUncheckedUpdateInput>
+    /**
+     * Choose, which EmergencyContact to update.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact updateMany
+   */
+  export type EmergencyContactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EmergencyContacts.
+     */
+    data: XOR<EmergencyContactUpdateManyMutationInput, EmergencyContactUncheckedUpdateManyInput>
+    /**
+     * Filter which EmergencyContacts to update
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * Limit how many EmergencyContacts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmergencyContact updateManyAndReturn
+   */
+  export type EmergencyContactUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * The data used to update EmergencyContacts.
+     */
+    data: XOR<EmergencyContactUpdateManyMutationInput, EmergencyContactUncheckedUpdateManyInput>
+    /**
+     * Filter which EmergencyContacts to update
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * Limit how many EmergencyContacts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EmergencyContact upsert
+   */
+  export type EmergencyContactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EmergencyContact to update in case it exists.
+     */
+    where: EmergencyContactWhereUniqueInput
+    /**
+     * In case the EmergencyContact found by the `where` argument doesn't exist, create a new EmergencyContact with this data.
+     */
+    create: XOR<EmergencyContactCreateInput, EmergencyContactUncheckedCreateInput>
+    /**
+     * In case the EmergencyContact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmergencyContactUpdateInput, EmergencyContactUncheckedUpdateInput>
+  }
+
+  /**
+   * EmergencyContact delete
+   */
+  export type EmergencyContactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter which EmergencyContact to delete.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact deleteMany
+   */
+  export type EmergencyContactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmergencyContacts to delete
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * Limit how many EmergencyContacts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmergencyContact without action
+   */
+  export type EmergencyContactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -29201,6 +33002,54 @@ export namespace Prisma {
   export type DrivingEventScalarFieldEnum = (typeof DrivingEventScalarFieldEnum)[keyof typeof DrivingEventScalarFieldEnum]
 
 
+  export const PartReplacementIntervalScalarFieldEnum: {
+    id: 'id',
+    make: 'make',
+    model: 'model',
+    yearMin: 'yearMin',
+    yearMax: 'yearMax',
+    partType: 'partType',
+    intervalMonths: 'intervalMonths',
+    intervalKm: 'intervalKm',
+    defaultWarrantyMonths: 'defaultWarrantyMonths',
+    source: 'source',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PartReplacementIntervalScalarFieldEnum = (typeof PartReplacementIntervalScalarFieldEnum)[keyof typeof PartReplacementIntervalScalarFieldEnum]
+
+
+  export const SOSRequestScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    latitude: 'latitude',
+    longitude: 'longitude',
+    address: 'address',
+    status: 'status',
+    type: 'type',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    resolvedAt: 'resolvedAt'
+  };
+
+  export type SOSRequestScalarFieldEnum = (typeof SOSRequestScalarFieldEnum)[keyof typeof SOSRequestScalarFieldEnum]
+
+
+  export const EmergencyContactScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    name: 'name',
+    phoneNumber: 'phoneNumber',
+    relation: 'relation',
+    priority: 'priority',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EmergencyContactScalarFieldEnum = (typeof EmergencyContactScalarFieldEnum)[keyof typeof EmergencyContactScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -29434,6 +33283,34 @@ export namespace Prisma {
    */
   export type ListEnumServicePartTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ServicePartType[]'>
     
+
+
+  /**
+   * Reference to a field of type 'SOSStatus'
+   */
+  export type EnumSOSStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SOSStatus[]'
+   */
+  export type ListEnumSOSStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'SOSType'
+   */
+  export type EnumSOSTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSType'>
+    
+
+
+  /**
+   * Reference to a field of type 'SOSType[]'
+   */
+  export type ListEnumSOSTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSType[]'>
+    
   /**
    * Deep Input Types
    */
@@ -29511,6 +33388,8 @@ export namespace Prisma {
     notifications?: InAppNotificationListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
     chats?: ChatSessionListRelationFilter
+    sosRequests?: SOSRequestListRelationFilter
+    emergencyContacts?: EmergencyContactListRelationFilter
   }
 
   export type CustomerOrderByWithRelationInput = {
@@ -29530,6 +33409,8 @@ export namespace Prisma {
     notifications?: InAppNotificationOrderByRelationAggregateInput
     sharedVehicles?: VehicleAccessOrderByRelationAggregateInput
     chats?: ChatSessionOrderByRelationAggregateInput
+    sosRequests?: SOSRequestOrderByRelationAggregateInput
+    emergencyContacts?: EmergencyContactOrderByRelationAggregateInput
   }
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -29552,6 +33433,8 @@ export namespace Prisma {
     notifications?: InAppNotificationListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
     chats?: ChatSessionListRelationFilter
+    sosRequests?: SOSRequestListRelationFilter
+    emergencyContacts?: EmergencyContactListRelationFilter
   }, "id" | "phoneNumber">
 
   export type CustomerOrderByWithAggregationInput = {
@@ -31311,6 +35194,250 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"DrivingEvent"> | Date | string
   }
 
+  export type PartReplacementIntervalWhereInput = {
+    AND?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    OR?: PartReplacementIntervalWhereInput[]
+    NOT?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    id?: StringFilter<"PartReplacementInterval"> | string
+    make?: StringFilter<"PartReplacementInterval"> | string
+    model?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
+    source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+  }
+
+  export type PartReplacementIntervalOrderByWithRelationInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrderInput | SortOrder
+    yearMin?: SortOrderInput | SortOrder
+    yearMax?: SortOrderInput | SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    make_model_yearMin_yearMax_partType?: PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput
+    AND?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    OR?: PartReplacementIntervalWhereInput[]
+    NOT?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    make?: StringFilter<"PartReplacementInterval"> | string
+    model?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
+    source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+  }, "id" | "make_model_yearMin_yearMax_partType">
+
+  export type PartReplacementIntervalOrderByWithAggregationInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrderInput | SortOrder
+    yearMin?: SortOrderInput | SortOrder
+    yearMax?: SortOrderInput | SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PartReplacementIntervalCountOrderByAggregateInput
+    _avg?: PartReplacementIntervalAvgOrderByAggregateInput
+    _max?: PartReplacementIntervalMaxOrderByAggregateInput
+    _min?: PartReplacementIntervalMinOrderByAggregateInput
+    _sum?: PartReplacementIntervalSumOrderByAggregateInput
+  }
+
+  export type PartReplacementIntervalScalarWhereWithAggregatesInput = {
+    AND?: PartReplacementIntervalScalarWhereWithAggregatesInput | PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    OR?: PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    NOT?: PartReplacementIntervalScalarWhereWithAggregatesInput | PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PartReplacementInterval"> | string
+    make?: StringWithAggregatesFilter<"PartReplacementInterval"> | string
+    model?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableWithAggregatesFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableWithAggregatesFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeWithAggregatesFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    source?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
+  }
+
+  export type SOSRequestWhereInput = {
+    AND?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    OR?: SOSRequestWhereInput[]
+    NOT?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    id?: StringFilter<"SOSRequest"> | string
+    customerId?: StringFilter<"SOSRequest"> | string
+    latitude?: FloatFilter<"SOSRequest"> | number
+    longitude?: FloatFilter<"SOSRequest"> | number
+    address?: StringNullableFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableFilter<"SOSRequest">
+    createdAt?: DateTimeFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"SOSRequest"> | Date | string | null
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type SOSRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrderInput | SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    metadata?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type SOSRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    OR?: SOSRequestWhereInput[]
+    NOT?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    customerId?: StringFilter<"SOSRequest"> | string
+    latitude?: FloatFilter<"SOSRequest"> | number
+    longitude?: FloatFilter<"SOSRequest"> | number
+    address?: StringNullableFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableFilter<"SOSRequest">
+    createdAt?: DateTimeFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"SOSRequest"> | Date | string | null
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id">
+
+  export type SOSRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrderInput | SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    metadata?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    _count?: SOSRequestCountOrderByAggregateInput
+    _avg?: SOSRequestAvgOrderByAggregateInput
+    _max?: SOSRequestMaxOrderByAggregateInput
+    _min?: SOSRequestMinOrderByAggregateInput
+    _sum?: SOSRequestSumOrderByAggregateInput
+  }
+
+  export type SOSRequestScalarWhereWithAggregatesInput = {
+    AND?: SOSRequestScalarWhereWithAggregatesInput | SOSRequestScalarWhereWithAggregatesInput[]
+    OR?: SOSRequestScalarWhereWithAggregatesInput[]
+    NOT?: SOSRequestScalarWhereWithAggregatesInput | SOSRequestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SOSRequest"> | string
+    customerId?: StringWithAggregatesFilter<"SOSRequest"> | string
+    latitude?: FloatWithAggregatesFilter<"SOSRequest"> | number
+    longitude?: FloatWithAggregatesFilter<"SOSRequest"> | number
+    address?: StringNullableWithAggregatesFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusWithAggregatesFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeWithAggregatesFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableWithAggregatesFilter<"SOSRequest">
+    createdAt?: DateTimeWithAggregatesFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableWithAggregatesFilter<"SOSRequest"> | Date | string | null
+  }
+
+  export type EmergencyContactWhereInput = {
+    AND?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    OR?: EmergencyContactWhereInput[]
+    NOT?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    id?: StringFilter<"EmergencyContact"> | string
+    customerId?: StringFilter<"EmergencyContact"> | string
+    name?: StringFilter<"EmergencyContact"> | string
+    phoneNumber?: StringFilter<"EmergencyContact"> | string
+    relation?: StringNullableFilter<"EmergencyContact"> | string | null
+    priority?: IntFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type EmergencyContactOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrderInput | SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type EmergencyContactWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    OR?: EmergencyContactWhereInput[]
+    NOT?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    customerId?: StringFilter<"EmergencyContact"> | string
+    name?: StringFilter<"EmergencyContact"> | string
+    phoneNumber?: StringFilter<"EmergencyContact"> | string
+    relation?: StringNullableFilter<"EmergencyContact"> | string | null
+    priority?: IntFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id">
+
+  export type EmergencyContactOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrderInput | SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EmergencyContactCountOrderByAggregateInput
+    _avg?: EmergencyContactAvgOrderByAggregateInput
+    _max?: EmergencyContactMaxOrderByAggregateInput
+    _min?: EmergencyContactMinOrderByAggregateInput
+    _sum?: EmergencyContactSumOrderByAggregateInput
+  }
+
+  export type EmergencyContactScalarWhereWithAggregatesInput = {
+    AND?: EmergencyContactScalarWhereWithAggregatesInput | EmergencyContactScalarWhereWithAggregatesInput[]
+    OR?: EmergencyContactScalarWhereWithAggregatesInput[]
+    NOT?: EmergencyContactScalarWhereWithAggregatesInput | EmergencyContactScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    customerId?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    name?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    phoneNumber?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    relation?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
+    priority?: IntWithAggregatesFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -31384,6 +35511,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateInput = {
@@ -31403,6 +35532,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUpdateInput = {
@@ -31422,6 +35553,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateInput = {
@@ -31441,6 +35574,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateManyInput = {
@@ -33411,6 +37546,277 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PartReplacementIntervalCreateInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedCreateInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalCreateManyInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SOSRequestCreateInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+    customer: CustomerCreateNestedOneWithoutSosRequestsInput
+  }
+
+  export type SOSRequestUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    customer?: CustomerUpdateOneRequiredWithoutSosRequestsNestedInput
+  }
+
+  export type SOSRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestCreateManyInput = {
+    id?: string
+    customerId: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type EmergencyContactCreateInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutEmergencyContactsInput
+  }
+
+  export type EmergencyContactUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutEmergencyContactsNestedInput
+  }
+
+  export type EmergencyContactUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactCreateManyInput = {
+    id?: string
+    customerId: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -33584,6 +37990,18 @@ export namespace Prisma {
     none?: ChatSessionWhereInput
   }
 
+  export type SOSRequestListRelationFilter = {
+    every?: SOSRequestWhereInput
+    some?: SOSRequestWhereInput
+    none?: SOSRequestWhereInput
+  }
+
+  export type EmergencyContactListRelationFilter = {
+    every?: EmergencyContactWhereInput
+    some?: EmergencyContactWhereInput
+    none?: EmergencyContactWhereInput
+  }
+
   export type CustomerDeviceOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -33613,6 +38031,14 @@ export namespace Prisma {
   }
 
   export type ChatSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SOSRequestOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EmergencyContactOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -35036,6 +39462,197 @@ export namespace Prisma {
     speed?: SortOrder
   }
 
+  export type PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput = {
+    make: string
+    model: string
+    yearMin: number
+    yearMax: number
+    partType: $Enums.ServicePartType
+  }
+
+  export type PartReplacementIntervalCountOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalAvgOrderByAggregateInput = {
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+  }
+
+  export type PartReplacementIntervalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalMinOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalSumOrderByAggregateInput = {
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+  }
+
+  export type EnumSOSStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusFilter<$PrismaModel> | $Enums.SOSStatus
+  }
+
+  export type EnumSOSTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeFilter<$PrismaModel> | $Enums.SOSType
+  }
+
+  export type SOSRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type SOSRequestAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type SOSRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type SOSRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type SOSRequestSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type EnumSOSStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusWithAggregatesFilter<$PrismaModel> | $Enums.SOSStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSStatusFilter<$PrismaModel>
+    _max?: NestedEnumSOSStatusFilter<$PrismaModel>
+  }
+
+  export type EnumSOSTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeWithAggregatesFilter<$PrismaModel> | $Enums.SOSType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSTypeFilter<$PrismaModel>
+    _max?: NestedEnumSOSTypeFilter<$PrismaModel>
+  }
+
+  export type EmergencyContactCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmergencyContactAvgOrderByAggregateInput = {
+    priority?: SortOrder
+  }
+
+  export type EmergencyContactMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmergencyContactMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmergencyContactSumOrderByAggregateInput = {
+    priority?: SortOrder
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -35110,6 +39727,20 @@ export namespace Prisma {
     connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
   }
 
+  export type SOSRequestCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+  }
+
+  export type EmergencyContactCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+  }
+
   export type CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput = {
     create?: XOR<CustomerDeviceCreateWithoutCustomerInput, CustomerDeviceUncheckedCreateWithoutCustomerInput> | CustomerDeviceCreateWithoutCustomerInput[] | CustomerDeviceUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: CustomerDeviceCreateOrConnectWithoutCustomerInput | CustomerDeviceCreateOrConnectWithoutCustomerInput[]
@@ -35170,6 +39801,20 @@ export namespace Prisma {
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
     createMany?: ChatSessionCreateManyCustomerInputEnvelope
     connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+  }
+
+  export type SOSRequestUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+  }
+
+  export type EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
   }
 
   export type CustomerDeviceUpdateManyWithoutCustomerNestedInput = {
@@ -35294,6 +39939,34 @@ export namespace Prisma {
     deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
   }
 
+  export type SOSRequestUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    upsert?: SOSRequestUpsertWithWhereUniqueWithoutCustomerInput | SOSRequestUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    set?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    disconnect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    delete?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    update?: SOSRequestUpdateWithWhereUniqueWithoutCustomerInput | SOSRequestUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: SOSRequestUpdateManyWithWhereWithoutCustomerInput | SOSRequestUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+  }
+
+  export type EmergencyContactUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    upsert?: EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput | EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    set?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    disconnect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    delete?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    update?: EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput | EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: EmergencyContactUpdateManyWithWhereWithoutCustomerInput | EmergencyContactUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+  }
+
   export type CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<CustomerDeviceCreateWithoutCustomerInput, CustomerDeviceUncheckedCreateWithoutCustomerInput> | CustomerDeviceCreateWithoutCustomerInput[] | CustomerDeviceUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: CustomerDeviceCreateOrConnectWithoutCustomerInput | CustomerDeviceCreateOrConnectWithoutCustomerInput[]
@@ -35414,6 +40087,34 @@ export namespace Prisma {
     update?: ChatSessionUpdateWithWhereUniqueWithoutCustomerInput | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: ChatSessionUpdateManyWithWhereWithoutCustomerInput | ChatSessionUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
+  }
+
+  export type SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    upsert?: SOSRequestUpsertWithWhereUniqueWithoutCustomerInput | SOSRequestUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    set?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    disconnect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    delete?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    update?: SOSRequestUpdateWithWhereUniqueWithoutCustomerInput | SOSRequestUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: SOSRequestUpdateManyWithWhereWithoutCustomerInput | SOSRequestUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+  }
+
+  export type EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    upsert?: EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput | EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    set?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    disconnect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    delete?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    update?: EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput | EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: EmergencyContactUpdateManyWithWhereWithoutCustomerInput | EmergencyContactUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
   }
 
   export type CustomerCreateNestedOneWithoutDevicesInput = {
@@ -36270,6 +40971,42 @@ export namespace Prisma {
     update?: XOR<XOR<DrivingTripUpdateToOneWithWhereWithoutEventsInput, DrivingTripUpdateWithoutEventsInput>, DrivingTripUncheckedUpdateWithoutEventsInput>
   }
 
+  export type CustomerCreateNestedOneWithoutSosRequestsInput = {
+    create?: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutSosRequestsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type EnumSOSStatusFieldUpdateOperationsInput = {
+    set?: $Enums.SOSStatus
+  }
+
+  export type EnumSOSTypeFieldUpdateOperationsInput = {
+    set?: $Enums.SOSType
+  }
+
+  export type CustomerUpdateOneRequiredWithoutSosRequestsNestedInput = {
+    create?: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutSosRequestsInput
+    upsert?: CustomerUpsertWithoutSosRequestsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutSosRequestsInput, CustomerUpdateWithoutSosRequestsInput>, CustomerUncheckedUpdateWithoutSosRequestsInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutEmergencyContactsInput = {
+    create?: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutEmergencyContactsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutEmergencyContactsNestedInput = {
+    create?: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutEmergencyContactsInput
+    upsert?: CustomerUpsertWithoutEmergencyContactsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutEmergencyContactsInput, CustomerUpdateWithoutEmergencyContactsInput>, CustomerUncheckedUpdateWithoutEmergencyContactsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -36662,6 +41399,40 @@ export namespace Prisma {
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumSOSStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusFilter<$PrismaModel> | $Enums.SOSStatus
+  }
+
+  export type NestedEnumSOSTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeFilter<$PrismaModel> | $Enums.SOSType
+  }
+
+  export type NestedEnumSOSStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusWithAggregatesFilter<$PrismaModel> | $Enums.SOSStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSStatusFilter<$PrismaModel>
+    _max?: NestedEnumSOSStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumSOSTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeWithAggregatesFilter<$PrismaModel> | $Enums.SOSType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSTypeFilter<$PrismaModel>
+    _max?: NestedEnumSOSTypeFilter<$PrismaModel>
+  }
+
   export type CustomerDeviceCreateWithoutCustomerInput = {
     id?: string
     platform: string
@@ -37017,6 +41788,70 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SOSRequestCreateWithoutCustomerInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestCreateOrConnectWithoutCustomerInput = {
+    where: SOSRequestWhereUniqueInput
+    create: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type SOSRequestCreateManyCustomerInputEnvelope = {
+    data: SOSRequestCreateManyCustomerInput | SOSRequestCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EmergencyContactCreateWithoutCustomerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactCreateOrConnectWithoutCustomerInput = {
+    where: EmergencyContactWhereUniqueInput
+    create: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type EmergencyContactCreateManyCustomerInputEnvelope = {
+    data: EmergencyContactCreateManyCustomerInput | EmergencyContactCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CustomerDeviceUpsertWithWhereUniqueWithoutCustomerInput = {
     where: CustomerDeviceWhereUniqueInput
     update: XOR<CustomerDeviceUpdateWithoutCustomerInput, CustomerDeviceUncheckedUpdateWithoutCustomerInput>
@@ -37327,6 +42162,68 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
   }
 
+  export type SOSRequestUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: SOSRequestWhereUniqueInput
+    update: XOR<SOSRequestUpdateWithoutCustomerInput, SOSRequestUncheckedUpdateWithoutCustomerInput>
+    create: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type SOSRequestUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: SOSRequestWhereUniqueInput
+    data: XOR<SOSRequestUpdateWithoutCustomerInput, SOSRequestUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type SOSRequestUpdateManyWithWhereWithoutCustomerInput = {
+    where: SOSRequestScalarWhereInput
+    data: XOR<SOSRequestUpdateManyMutationInput, SOSRequestUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type SOSRequestScalarWhereInput = {
+    AND?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+    OR?: SOSRequestScalarWhereInput[]
+    NOT?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+    id?: StringFilter<"SOSRequest"> | string
+    customerId?: StringFilter<"SOSRequest"> | string
+    latitude?: FloatFilter<"SOSRequest"> | number
+    longitude?: FloatFilter<"SOSRequest"> | number
+    address?: StringNullableFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableFilter<"SOSRequest">
+    createdAt?: DateTimeFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"SOSRequest"> | Date | string | null
+  }
+
+  export type EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: EmergencyContactWhereUniqueInput
+    update: XOR<EmergencyContactUpdateWithoutCustomerInput, EmergencyContactUncheckedUpdateWithoutCustomerInput>
+    create: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: EmergencyContactWhereUniqueInput
+    data: XOR<EmergencyContactUpdateWithoutCustomerInput, EmergencyContactUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type EmergencyContactUpdateManyWithWhereWithoutCustomerInput = {
+    where: EmergencyContactScalarWhereInput
+    data: XOR<EmergencyContactUpdateManyMutationInput, EmergencyContactUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type EmergencyContactScalarWhereInput = {
+    AND?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+    OR?: EmergencyContactScalarWhereInput[]
+    NOT?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+    id?: StringFilter<"EmergencyContact"> | string
+    customerId?: StringFilter<"EmergencyContact"> | string
+    name?: StringFilter<"EmergencyContact"> | string
+    phoneNumber?: StringFilter<"EmergencyContact"> | string
+    relation?: StringNullableFilter<"EmergencyContact"> | string | null
+    priority?: IntFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+  }
+
   export type CustomerCreateWithoutDevicesInput = {
     id?: string
     phoneNumber: string
@@ -37343,6 +42240,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDevicesInput = {
@@ -37361,6 +42260,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDevicesInput = {
@@ -37395,6 +42296,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDevicesInput = {
@@ -37413,6 +42316,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutDocumentsInput = {
@@ -37431,6 +42336,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDocumentsInput = {
@@ -37449,6 +42356,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDocumentsInput = {
@@ -37546,6 +42455,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDocumentsInput = {
@@ -37564,6 +42475,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutDocumentsInput = {
@@ -37651,6 +42564,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDigilockerInput = {
@@ -37669,6 +42584,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDigilockerInput = {
@@ -37703,6 +42620,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDigilockerInput = {
@@ -37721,6 +42640,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChallanCreateWithoutVehicleInput = {
@@ -37831,6 +42752,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutVehiclesInput = {
@@ -37849,6 +42772,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutVehiclesInput = {
@@ -38173,6 +43098,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutVehiclesInput = {
@@ -38191,6 +43118,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ExpenseUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -38671,6 +43600,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
@@ -38689,6 +43620,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
@@ -38786,6 +43719,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
@@ -38804,6 +43739,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutAccessListInput = {
@@ -39023,6 +43960,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutNotificationsInput = {
@@ -39041,6 +43980,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutNotificationsInput = {
@@ -39075,6 +44016,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutNotificationsInput = {
@@ -39093,6 +44036,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChatMessageCreateWithoutSessionInput = {
@@ -39137,6 +44082,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutChatsInput = {
@@ -39155,6 +44102,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutChatsInput = {
@@ -39217,6 +44166,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutChatsInput = {
@@ -39235,6 +44186,8 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChatSessionCreateWithoutMessagesInput = {
@@ -39305,6 +44258,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutExpensesInput = {
@@ -39323,6 +44278,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutExpensesInput = {
@@ -39420,6 +44377,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutExpensesInput = {
@@ -39438,6 +44397,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutExpensesInput = {
@@ -39525,6 +44486,8 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutBudgetsInput = {
@@ -39543,6 +44506,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutBudgetsInput = {
@@ -39577,6 +44542,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutBudgetsInput = {
@@ -39595,6 +44562,8 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ServicePartCreateWithoutServiceRecordInput = {
@@ -40295,6 +45264,198 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CustomerCreateWithoutSosRequestsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutSosRequestsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutSosRequestsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+  }
+
+  export type CustomerUpsertWithoutSosRequestsInput = {
+    update: XOR<CustomerUpdateWithoutSosRequestsInput, CustomerUncheckedUpdateWithoutSosRequestsInput>
+    create: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutSosRequestsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutSosRequestsInput, CustomerUncheckedUpdateWithoutSosRequestsInput>
+  }
+
+  export type CustomerUpdateWithoutSosRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutSosRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerCreateWithoutEmergencyContactsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutEmergencyContactsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutEmergencyContactsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+  }
+
+  export type CustomerUpsertWithoutEmergencyContactsInput = {
+    update: XOR<CustomerUpdateWithoutEmergencyContactsInput, CustomerUncheckedUpdateWithoutEmergencyContactsInput>
+    create: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutEmergencyContactsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutEmergencyContactsInput, CustomerUncheckedUpdateWithoutEmergencyContactsInput>
+  }
+
+  export type CustomerUpdateWithoutEmergencyContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutEmergencyContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
   export type CustomerDeviceCreateManyCustomerInput = {
     id?: string
     platform: string
@@ -40402,6 +45563,28 @@ export namespace Prisma {
     id?: string
     title?: string | null
     isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SOSRequestCreateManyCustomerInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type EmergencyContactCreateManyCustomerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -40755,6 +45938,72 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SOSRequestUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type EmergencyContactUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
