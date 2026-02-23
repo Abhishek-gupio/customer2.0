@@ -16,7 +16,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { pick as pickDocument, types as docTypes } from 'react-native-document-picker';
+import { pick as pickDocument, types as docTypes } from '@react-native-documents/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -66,25 +66,25 @@ export default function UploadDocument() {
       const storage =
         Platform.Version >= 33
           ? await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-              {
-                title: 'Photo Library Permission',
-                message: 'App needs photo library access to select documents',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-              },
-            )
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+            {
+              title: 'Photo Library Permission',
+              message: 'App needs photo library access to select documents',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          )
           : await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-              {
-                title: 'Storage Permission',
-                message: 'App needs storage access to select documents',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-              },
-            );
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission',
+              message: 'App needs storage access to select documents',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
       return (
         camera === PermissionsAndroid.RESULTS.GRANTED &&
         storage === PermissionsAndroid.RESULTS.GRANTED

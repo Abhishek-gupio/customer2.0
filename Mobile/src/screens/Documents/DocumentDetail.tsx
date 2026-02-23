@@ -111,10 +111,16 @@ export default function DocumentDetail({ route }: Props) {
   const imageUri = doc.imageUri;
   const isImage = imageUri && !imageUri.toLowerCase().endsWith('.pdf');
 
+  // Ensure expiry date is used from dates array if expiryDate is not set
+  let expiryDate = doc.expiryDate;
+  if (!expiryDate && doc.dates && Array.isArray(doc.dates) && doc.dates.length > 1) {
+    expiryDate = doc.dates[1];
+  }
+
   const fields: { label: string; value: string }[] = [];
   if (doc.documentNumber) fields.push({ label: 'Doc Number', value: doc.documentNumber });
   if (doc.issueDate) fields.push({ label: 'Issue Date', value: formatDate(doc.issueDate) });
-  if (doc.expiryDate) fields.push({ label: 'Expiry', value: formatDate(doc.expiryDate) });
+  if (expiryDate) fields.push({ label: 'Expiry', value: formatDate(expiryDate) });
   if (doc.issuerName) fields.push({ label: 'Issuer', value: doc.issuerName });
   if (doc.vehicle) fields.push({ label: 'Vehicle', value: doc.vehicle });
 

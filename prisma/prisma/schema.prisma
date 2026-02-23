@@ -35,6 +35,7 @@ model Customer {
   chats          ChatSession[]
   sosRequests    SOSRequest[]
   emergencyContacts EmergencyContact[]
+
   @@schema("customer")
 }
 model CustomerDevice {

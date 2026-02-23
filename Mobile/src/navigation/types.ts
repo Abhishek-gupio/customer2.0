@@ -14,9 +14,11 @@ export type RootStackParamList = {
   AddVehicle: undefined;
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
+  Expenses: undefined;
+  addExpense: undefined;
+  Analytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
-  Settings: undefined;
 };
 
 export type MainTabParamList = {
@@ -29,6 +31,6 @@ export type MainTabParamList = {
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }

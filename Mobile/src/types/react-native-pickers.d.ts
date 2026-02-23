@@ -19,21 +19,3 @@ declare module 'react-native-image-picker' {
   ): Promise<ImagePickerResponse>;
 }
 
-declare module 'react-native-document-picker' {
-  export interface DocumentPickerResponse {
-    uri: string;
-    name: string | null;
-    type: string | null;
-    size: number | null;
-    fileCopyUri?: string | null;
-  }
-  export const types: {
-    pdf: string;
-    images: string;
-    allFiles: string;
-  };
-  export function pick(options?: {
-    type?: string[];
-    allowMultiSelection?: boolean;
-  }): Promise<DocumentPickerResponse[]>;
-}

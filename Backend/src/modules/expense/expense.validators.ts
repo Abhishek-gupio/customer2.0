@@ -47,6 +47,8 @@ export const createExpenseSchema = z.object({
     .optional()
     .default("MANUAL"),
   odometerReading: z.number().optional(),
+  receiptUrl: z.string().optional(),
+  mimeType: z.string().optional(),
 });
 
 export const updateExpenseSchema = z.object({

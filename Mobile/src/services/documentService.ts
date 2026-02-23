@@ -50,6 +50,7 @@ export interface DocumentResponse {
   createdAt: string;
   updatedAt: string;
   vehicle?: { registrationNumber?: string } | null;
+  dates?: string[];
 }
 
 function authHeaders(): Record<string, string> {

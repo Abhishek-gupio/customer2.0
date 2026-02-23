@@ -87,10 +87,15 @@ export default function DocumentList() {
     return FIXED_GRID_TYPES.map((type) => {
       const docs = byType.get(type) ?? [];
       const latest = docs[0];
+      // Always use expiryDate if present, else try dates[1] (expiry), else dates[0]
+      let expiryDate = latest?.expiryDate;
+      if (!expiryDate && latest?.dates && Array.isArray(latest.dates)) {
+        expiryDate = latest.dates[1] || latest.dates[0];
+      }
       return {
         id: latest?.id ?? `empty_${type}`,
         label: DOC_TYPE_LABELS[type] ?? type,
-        expiry: latest ? formatExpiry(latest.expiryDate) : 'Not uploaded',
+        expiry: latest ? formatExpiry(expiryDate) : 'Not uploaded',
         status: latest?.status ?? ('verified' as DocStatus),
         type,
         hasDoc: !!latest,
@@ -282,8 +287,14 @@ export default function DocumentList() {
                     {card.status === 'verified' && (
                       <Icon name="check-circle" size={wp(3)} color="#4CAF50" style={{ marginRight: wp(1) }} />
                     )}
-                    <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}>
-                      {card.status === 'expired' ? 'Expired' : `Expires: ${card.expiry}`}
+                    <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}> 
+                      {card.expiry && card.expiry !== 'Not uploaded' ? (
+                        card.status === 'expired' ? `Expired: ${card.expiry}` :
+                        card.status === 'verified' ? `Valid up to: ${card.expiry}` :
+                        `Expiring: ${card.expiry}`
+                      ) : (
+                        card.status === 'expired' ? 'Expired' : `Expires: ${card.expiry}`
+                      )}
                     </Text>
                   </>
                 ) : (
@@ -293,45 +304,6 @@ export default function DocumentList() {
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* All Documents List */}
-        <Text style={styles.sectionTitle}>All Documents</Text>
-
-        {!loading && filteredDocs.length === 0 && (
-          <View style={styles.emptyState}>
-            <Icon name="folder-open" size={wp(10)} color="#444" />
-            <Text style={styles.emptyStateText}>No documents found</Text>
-          </View>
-        )}
-
-        {filteredDocs.map((doc) => (
-          <TouchableOpacity
-            key={doc.id}
-            activeOpacity={0.85}
-            style={styles.docRow}
-            onPress={() =>
-              navigation.navigate('DocumentDetail', { documentId: doc.id })
-            }
-          >
-            <View style={styles.docRowIcon}>
-              <Icon name="file-alt" size={wp(5)} color="#FFBF00" />
-            </View>
-            <View style={styles.docRowInfo}>
-              <Text style={styles.docRowName}>{DOC_TYPE_LABELS[doc.type] ?? doc.type}</Text>
-              {doc.vehicle ? <Text style={styles.docRowVehicle}>{doc.vehicle}</Text> : null}
-              <View style={styles.docRowStatusRow}>
-                <View style={[styles.statusDot, { backgroundColor: statusColor(doc.status) }]} />
-                <Text style={[styles.docRowStatus, { color: statusColor(doc.status) }]}>
-                  {statusLabel(doc.status)}
-                </Text>
-              </View>
-              <Text style={styles.docRowExpiry}>
-                Exp: {formatExpiry(doc.expiryDate)}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={wp(4)} color="#555" />
-          </TouchableOpacity>
-        ))}
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>

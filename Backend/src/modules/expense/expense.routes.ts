@@ -36,6 +36,7 @@ router.post(
   upload.single("audio"),
   expenseController.parseVoice,
 ); // Voice Command (Audio → AI)
+router.post("/parse/voice/text", expenseController.parseVoiceText); // Voice Command (transcribed text → AI)
 
 // ============================================================
 // 3. ANALYTICS & BUDGETS

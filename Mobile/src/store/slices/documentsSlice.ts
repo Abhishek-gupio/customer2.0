@@ -21,6 +21,7 @@ export interface DocumentItem {
   extractedFields: any;
   status: 'verified' | 'expiring' | 'expired';
   createdAt: string;
+  dates?: string[]; 
 }
 
 function mapStatus(doc: DocumentResponse): 'verified' | 'expiring' | 'expired' {
@@ -36,6 +37,12 @@ function mapStatus(doc: DocumentResponse): 'verified' | 'expiring' | 'expired' {
 }
 
 function toDocumentItem(doc: DocumentResponse): DocumentItem {
+  // Ensure expiryDate is set from dates array if not provided
+  let expiryDate = doc.expiryDate;
+  if (!expiryDate && doc.dates && Array.isArray(doc.dates) && doc.dates.length > 1) {
+    expiryDate = doc.dates[1];
+  }
+  
   return {
     id: doc.id,
     type: BACKEND_TYPE_MAP[doc.type] || doc.type,
@@ -43,13 +50,14 @@ function toDocumentItem(doc: DocumentResponse): DocumentItem {
     imageUri: doc.fileUrl,
     documentNumber: doc.documentNumber,
     issueDate: doc.issueDate,
-    expiryDate: doc.expiryDate,
+    expiryDate: expiryDate,
     issuerName: doc.issuerName,
     verificationStatus: doc.verificationStatus,
     source: doc.source,
     extractedFields: doc.extractedFields,
     status: mapStatus(doc),
     createdAt: doc.createdAt,
+    dates: doc.dates,
   };
 }
 
