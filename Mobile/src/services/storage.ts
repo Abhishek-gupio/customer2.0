@@ -79,3 +79,14 @@ export function getVoiceLanguageIndex(): number {
 export function setVoiceLanguageIndex(index: number): void {
   storage!.set(VOICE_LANGUAGE_INDEX_KEY, String(index));
 }
+
+const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
+
+export function getAutoExpenseEnabled(): boolean {
+  const s = storage!.getString(AUTO_EXPENSE_ENABLED_KEY);
+  return s === 'true';
+}
+
+export function setAutoExpenseEnabled(val: boolean): void {
+  storage!.set(AUTO_EXPENSE_ENABLED_KEY, val ? 'true' : 'false');
+}

@@ -89,7 +89,7 @@ export default function ReceiptReviewer({
         try {
           const d = parse(date, "dd-MM-yyyy", new Date());
           if (!isNaN(d.getTime())) parsedDate = d.toISOString();
-        } catch (_) {}
+        } catch (_) { }
       }
 
       const payload = {
@@ -139,7 +139,7 @@ export default function ReceiptReviewer({
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%", alignItems: "center" }}
           >
-            <Pressable style={styles.panel} onPress={() => {}}>
+            <Pressable style={styles.panel} onPress={() => { }}>
               <View style={styles.header}>
                 <Text style={styles.title}>{title}</Text>
                 <TouchableOpacity onPress={onClose}>
@@ -207,7 +207,7 @@ export default function ReceiptReviewer({
           style={styles.backdrop}
           onPress={() => setShowCategoryPicker(false)}
         >
-          <Pressable style={styles.categoryPanel} onPress={() => {}}>
+          <Pressable style={styles.categoryPanel} onPress={() => { }}>
             {categories.map((item) => (
               <TouchableOpacity
                 key={item}

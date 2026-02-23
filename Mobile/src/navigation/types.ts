@@ -20,6 +20,7 @@ export type RootStackParamList = {
   MyProfile: undefined;
   HelpSupport: undefined;
   Settings: undefined;
+  BudgetSettings: undefined;
 };
 
 export type MainTabParamList = {
