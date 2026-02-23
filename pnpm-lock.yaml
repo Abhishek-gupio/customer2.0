@@ -8,6 +8,9 @@ patchedDependencies:
   '@react-native-voice/voice@3.2.4':
     hash: fcqxx3jgrww7xfvohg7nlqemqe
     path: patches/@react-native-voice__voice@3.2.4.patch
+  react-native-audio-recorder-player@3.6.14:
+    hash: ye6fbpuay2wmr5pfvvaatmncrq
+    path: patches/react-native-audio-recorder-player@3.6.14.patch
 
 importers:
 
@@ -250,7 +253,7 @@ importers:
         version: 0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0)
       react-native-audio-recorder-player:
         specifier: ^3.6.6
-        version: 3.6.14(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+        version: 3.6.14(patch_hash=ye6fbpuay2wmr5pfvvaatmncrq)(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       react-native-chart-kit:
         specifier: ^6.12.0
         version: 6.12.0(react-native-svg@15.15.3(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -15739,7 +15742,7 @@ snapshots:
 
   react-is@19.2.4: {}
 
-  react-native-audio-recorder-player@3.6.14(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
+  react-native-audio-recorder-player@3.6.14(patch_hash=ye6fbpuay2wmr5pfvvaatmncrq)(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
     dependencies:
       hyochan-welcome: 1.0.1
       react: 19.2.0
