@@ -76,13 +76,13 @@ export default function AddExpenseScreen() {
             processVoiceCommand(speechText);
           }
         };
-        Voice.onSpeechError = (error: any) => {
+        (Voice as any).onSpeechError = (error: any) => {
           setIsRecording(false);
-          const msg =
-            error?.error?.message?.includes('permission')
-              ? 'Microphone permission denied. Please enable it in settings.'
-              : 'Failed to recognize speech. Please try again.';
-          Alert.alert('Voice Recognition Error', msg);
+          const msgStr = typeof error?.error?.message === "string" ? error.error.message : String(error?.error || "");
+          console.log("Speech Error:", msgStr);
+          if (msgStr.toLowerCase().includes('permission') || msgStr.includes('9/')) {
+            Alert.alert('Voice Recognition Error', 'Microphone permission denied. Please enable it in settings.');
+          }
         };
 
         // Avoid calling isAvailable() – it can touch native code that may be null.
@@ -102,11 +102,11 @@ export default function AddExpenseScreen() {
         if (typeof Voice.destroy === 'function') {
           Voice.destroy().then(() => {
             if (typeof Voice.removeAllListeners === 'function') Voice.removeAllListeners();
-          }).catch(() => {});
+          }).catch(() => { });
         } else if (typeof Voice.removeAllListeners === 'function') {
           Voice.removeAllListeners();
         }
-      } catch (_) {}
+      } catch (_) { }
     };
   }, []);
 
@@ -118,7 +118,8 @@ export default function AddExpenseScreen() {
         text: speechText,
       });
 
-      const result = response?.data?.data ?? response?.data ?? response;
+      const resData = response as any;
+      const result = resData?.data?.data ?? resData?.data ?? resData;
 
       if (result?.success && result?.expense) {
         const exp = result.expense;
@@ -334,7 +335,7 @@ export default function AddExpenseScreen() {
       }
       try {
         if (typeof Voice.stop === "function") await Voice.stop();
-      } catch (_) {}
+      } catch (_) { }
       setVoiceText("");
 
       // Use saved default language (or Auto = device locale)
@@ -343,9 +344,9 @@ export default function AddExpenseScreen() {
         locale = VOICE_LANGUAGES[voiceLanguageIndex].locale;
       } else {
         try {
-          const deviceLocale = DeviceInfo.getDeviceLocale?.();
+          const deviceLocale = (DeviceInfo as any).getDeviceLocale?.();
           if (deviceLocale && typeof deviceLocale === "string") locale = deviceLocale.replace("_", "-");
-        } catch (_) {}
+        } catch (_) { }
       }
 
       try {
@@ -377,7 +378,7 @@ export default function AddExpenseScreen() {
     if (Voice && typeof Voice.stop === "function") {
       try {
         await Voice.stop();
-      } catch (_) {}
+      } catch (_) { }
     }
   };
 
@@ -469,7 +470,7 @@ export default function AddExpenseScreen() {
         onRequestClose={() => setShowVoiceLangPicker(false)}
       >
         <Pressable style={styles.langPickerBackdrop} onPress={() => setShowVoiceLangPicker(false)}>
-          <Pressable style={styles.langPickerPanel} onPress={() => {}}>
+          <Pressable style={styles.langPickerPanel} onPress={() => { }}>
             <Text style={styles.langPickerTitle}>Set default voice language</Text>
             <ScrollView style={styles.langPickerList} keyboardShouldPersistTaps="handled">
               {VOICE_LANGUAGES.map((item, index) => (
@@ -506,21 +507,21 @@ export default function AddExpenseScreen() {
   );
 }
 
-function ActionCard({ 
-  icon, 
-  label, 
-  onPress, 
-  disabled = false 
-}: { 
-  icon: string; 
-  label: string; 
+function ActionCard({
+  icon,
+  label,
+  onPress,
+  disabled = false
+}: {
+  icon: string;
+  label: string;
   onPress: () => void;
   disabled?: boolean;
 }) {
   return (
-    <TouchableOpacity 
-      style={[styles.card, disabled && styles.cardDisabled]} 
-      activeOpacity={disabled ? 1 : 0.85} 
+    <TouchableOpacity
+      style={[styles.card, disabled && styles.cardDisabled]}
+      activeOpacity={disabled ? 1 : 0.85}
       onPress={disabled ? undefined : onPress}
     >
       <View style={[styles.iconCircle, disabled && styles.iconCircleDisabled]}>
