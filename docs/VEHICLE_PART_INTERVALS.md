@@ -201,6 +201,24 @@ Because OEM interval data is publicly available (manuals, PMS charts), the **AI 
 - Intervals are **suggested** from public OEM-style knowledge in the prompt, not scraped live from the internet. For maximum accuracy, users can still verify with the manual (links in “How to get OEM manuals” above).
 - The agent does **not** fetch or parse PDFs/HTML automatically; that would require a separate pipeline (e.g. cron that fetches known OEM URLs and parses tables). The current flow is “AI suggests from embedded reference → user can save.”
 
+#### Auto-fetch from OEM websites (scraper)
+
+When a customer **adds or updates a vehicle** (make/model/year), the backend can **automatically fetch** part intervals from configured OEM URLs and save them with `source = 'OEM_WEBSITE'`.
+
+**Implementation:**
+
+- **Service:** `Backend/src/services/oem-scraper.service.ts` — `fetchAndSaveIntervalsForVehicle(vehicleId)`.
+- **Trigger:** Called fire-and-forget from `vehicle.service.ts` on **addVehicle** and **updateVehicle** (when make/model/year is present).
+- **Configured OEMs:** `OEM_URL_CONFIG` in the scraper:
+  - **Hyundai India:** HTML PMS page — [pms-charts.html](https://www.hyundai.com/in/en/connect-to-service/hyundai-service/pms-charts.html). Parsed with Cheerio (tables: Models, Air Filter, Engine Oil & Filter, Coolant, Spark Plug, Brake oil, etc.).
+  - **Maruti Suzuki:** One representative PDF (Alto owner's manual) — parsed with pdf-parse + Gemini to extract intervals. Model-specific PDFs can be added later.
+  - **Tata / Mahindra:** Placeholder; add URLs when needed (model-specific manuals at tmlcars.tatamotors.com, mvault.mahindra.com).
+- **Retries:** Up to 3 attempts with exponential backoff (1.5s base) for both HTML and PDF fetch.
+- **Cache:** In-memory 24h TTL per make+model. Re-fetch for the same vehicle within 24h is skipped to avoid hammering OEM sites.
+- **Matching:** `warranty.service.getLifecycleForVehiclePart` already prefers DB intervals (including `OEM_WEBSITE`) over DEFAULT, so "when to change" and reminders use scraped intervals once saved.
+
+**Demo:** To run a quick end-to-end demo (create Hyundai Creta vehicle, scrape PMS, print saved intervals), from `Backend`: `npx ts-node -r dotenv/config src/scripts/demo-oem-scraper.ts`. Prerequisites: at least one customer in DB, and `PartReplacementInterval` migration applied. Use `--cleanup` to remove the demo vehicle and Hyundai/Creta OEM intervals after the demo.
+
 ### Step 3: Normalize make/model in your app
 
 - Ensure **vehicle creation/update** stores make and model in a **consistent format** (e.g. “Maruti Suzuki” vs “Maruti” – pick one and use it in both `CustomerVehicle` and `PartReplacementInterval`).

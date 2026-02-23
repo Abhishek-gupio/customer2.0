@@ -8,6 +8,7 @@ import {
 import { logger } from "../../config/logger";
 import { predictionService } from "../../services/prediction.service";
 import { ocrService } from "../../services/ocr.service";
+import { fetchAndSaveIntervalsForVehicle } from "../../services/oem-scraper.service";
 
 export const vehicleService = {
   async addVehicle(customerId: string, input: AddVehicleInput) {
@@ -47,6 +48,11 @@ export const vehicleService = {
         date: new Date(),
       });
     }
+
+    // Fetch OEM intervals from official website (real data) in background
+    fetchAndSaveIntervalsForVehicle(vehicle.id).catch((err) =>
+      logger.warn({ err, vehicleId: vehicle.id }, "OEM interval fetch failed (non-blocking)"),
+    );
 
     return vehicle;
   },
@@ -134,10 +140,19 @@ export const vehicleService = {
   ) {
     await this.getVehicle(customerId, vehicleId);
 
-    return dbInstances.customerVehicle.update({
+    const updated = await dbInstances.customerVehicle.update({
       where: { id: vehicleId },
       data: input,
     });
+
+    // Re-fetch OEM intervals when make/model/year change (real data from website)
+    if (input.make !== undefined || input.model !== undefined || input.year !== undefined) {
+      fetchAndSaveIntervalsForVehicle(vehicleId).catch((err) =>
+        logger.warn({ err, vehicleId }, "OEM interval fetch failed on update (non-blocking)"),
+      );
+    }
+
+    return updated;
   },
 
   async deleteVehicle(customerId: string, vehicleId: string) {

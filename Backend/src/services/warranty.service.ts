@@ -118,7 +118,7 @@ async function getLifecycleForVehiclePart(
       if (r.yearMin != null || r.yearMax != null) s += 4;
       return s;
     };
-    matches.sort((a, b) => score(b) - score(a));
+    matches.sort((a: any, b: any) => score(b) - score(a));
 
     const best = matches[0];
     return {
