@@ -411,21 +411,6 @@ exports.Prisma.DrivingEventScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
-exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
-  id: 'id',
-  make: 'make',
-  model: 'model',
-  yearMin: 'yearMin',
-  yearMax: 'yearMax',
-  partType: 'partType',
-  intervalMonths: 'intervalMonths',
-  intervalKm: 'intervalKm',
-  defaultWarrantyMonths: 'defaultWarrantyMonths',
-  source: 'source',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.SOSRequestScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
@@ -584,7 +569,6 @@ exports.Prisma.ModelName = {
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
   DrivingEvent: 'DrivingEvent',
-  PartReplacementInterval: 'PartReplacementInterval',
   SOSRequest: 'SOSRequest',
   EmergencyContact: 'EmergencyContact'
 };

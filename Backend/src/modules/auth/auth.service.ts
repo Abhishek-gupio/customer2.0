@@ -20,7 +20,8 @@ function generateOtp(): string {
 /** Normalize phone for DB lookup (store without +91 for consistency). */
 function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
-  return digits.length > 10 ? digits.slice(-10) : digits;
+  // Always use last 10 digits for consistency (Indian phone format)
+  return digits.slice(-10);
 }
 
 export const authService = {
@@ -46,8 +47,17 @@ export const authService = {
       );
     }
     const otp = generateOtp();
+    console.log(`📱 Generating OTP for ${input.phoneNumber}: ${otp}`);
     await otpStore.set(input.phoneNumber, otp);
-    await getSMSService().sendOTP(input.phoneNumber, otp);
+    console.log(`✅ OTP stored for ${input.phoneNumber}`);
+    
+    try {
+      const result = await getSMSService().sendOTP(input.phoneNumber, otp);
+      console.log(`📤 SMS Service Result: ${result ? "Success" : "Failed"}`);
+    } catch (error) {
+      console.error(`❌ SMS Service Error:`, error);
+    }
+    
     return {
       message: "OTP sent to your phone",
       requiresOtpVerification: true,
@@ -63,8 +73,17 @@ export const authService = {
       );
     }
     const otp = generateOtp();
+    console.log(`📱 Generating OTP for ${phoneNumber}: ${otp}`);
     await otpStore.set(phoneNumber, otp);
-    await getSMSService().sendOTP(phoneNumber, otp);
+    console.log(`✅ OTP stored for ${phoneNumber}`);
+    
+    try {
+      const result = await getSMSService().sendOTP(phoneNumber, otp);
+      console.log(`📤 SMS Service Result: ${result ? "Success" : "Failed"}`);
+    } catch (error) {
+      console.error(`❌ SMS Service Error:`, error);
+    }
+    
     return {
       message: "OTP sent to your phone",
       ...(process.env.NODE_ENV === "development" && { otp }),
@@ -112,8 +131,17 @@ export const authService = {
       );
     }
     const otp = generateOtp();
+    console.log(`📱 Generating OTP for ${phoneNumber}: ${otp}`);
     await otpStore.set(phoneNumber, otp);
-    await getSMSService().sendOTP(phoneNumber, otp);
+    console.log(`✅ OTP stored for ${phoneNumber}`);
+    
+    try {
+      const result = await getSMSService().sendOTP(phoneNumber, otp);
+      console.log(`📤 SMS Service Result: ${result ? "Success" : "Failed"}`);
+    } catch (error) {
+      console.error(`❌ SMS Service Error:`, error);
+    }
+    
     return {
       message: "OTP sent to your phone",
       requiresOtpVerification: true,

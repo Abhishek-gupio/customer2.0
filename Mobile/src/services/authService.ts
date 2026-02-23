@@ -41,7 +41,8 @@ function decodeJwtPayload(token: string): { id: string } | null {
 /** Normalize phone: 10 digits for Indian numbers. */
 export function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, '');
-  return digits.length > 10 ? digits.slice(-10) : digits;
+  // Always use last 10 digits for consistency (Indian phone format)
+  return digits.slice(-10);
 }
 
 export type SignupPayload = {
@@ -97,15 +98,23 @@ export async function signup(payload: SignupPayload): Promise<SignupResponse> {
 
 export async function verifyOtp(phoneNumber: string, otp: string): Promise<VerifyOtpResponse & { userId?: string }> {
   const phone = phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${normalizePhone(phoneNumber)}`;
-  const data = await api.post<VerifyOtpResponse>('/v1/auth/verify-otp', {
+  const res = await api.post<any>('/v1/auth/verify-otp', {
     phoneNumber: phone,
     otp,
   });
-  setAccessToken(data.accessToken);
-  setRefreshToken(data.refreshToken);
-  const payload = decodeJwtPayload(data.accessToken);
-  if (payload?.id) setUserId(payload.id);
-  return { ...data, userId: payload?.id };
+  if (typeof console !== 'undefined') {
+    console.log('verifyOtp response:', res);
+  }
+  // Unwrap data property if present (backend wraps in { success, data })
+  const payload = res.data ? res.data : res;
+  setAccessToken(payload.accessToken);
+  setRefreshToken(payload.refreshToken);
+  if (typeof console !== 'undefined') {
+    console.log('Access token set:', payload.accessToken);
+  }
+  const jwtPayload = decodeJwtPayload(payload.accessToken);
+  if (jwtPayload?.id) setUserId(jwtPayload.id);
+  return { ...payload, userId: jwtPayload?.id };
 }
 
 export function getStoredAccessToken(): string | undefined {

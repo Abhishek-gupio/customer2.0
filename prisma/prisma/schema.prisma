@@ -3,23 +3,19 @@ generator client {
   output          = "../generated/client"
   previewFeatures = ["postgresqlExtensions", "driverAdapters"]
 }
-
 datasource db {
   provider   = "postgresql"
   schemas    = ["customer"]
-  extensions = [vector]
+  // extensions = [vector]  // Temporarily disabled - pgvector not available for pg16
 }
-
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@schema("customer")
 }
-
 model Customer {
   id             String                @id @default(cuid())
   phoneNumber    String                @unique
@@ -42,7 +38,6 @@ model Customer {
 
   @@schema("customer")
 }
-
 model CustomerDevice {
   id           String   @id @default(cuid())
   customerId   String
@@ -53,10 +48,8 @@ model CustomerDevice {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
-
 model CustomerDocument {
   id                 String             @id @default(cuid())
   customerId         String
@@ -80,13 +73,11 @@ model CustomerDocument {
   updatedAt          DateTime           @updatedAt
   customer           Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
   vehicle            CustomerVehicle?   @relation(fields: [vehicleId], references: [id])
-
   @@index([customerId])
   @@index([vehicleId])
   @@index([type])
   @@schema("customer")
 }
-
 model DigiLockerConnection {
   id           String           @id @default(cuid())
   customerId   String           @unique
@@ -101,10 +92,8 @@ model DigiLockerConnection {
   connectedAt  DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
   customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
-
 model CustomerVehicle {
   id                 String              @id @default(cuid())
   customerId         String
@@ -134,11 +123,9 @@ model CustomerVehicle {
   healthScore        VehicleHealthScore?
   telematicsDevice   TelematicsDevice?
   drivingTrips       DrivingTrip[]
-
   @@index([customerId])
   @@schema("customer")
 }
-
 model OdometerLog {
   id        String          @id @default(cuid())
   vehicleId String
@@ -146,11 +133,9 @@ model OdometerLog {
   date      DateTime        @default(now())
   createdAt DateTime        @default(now())
   vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@index([vehicleId])
   @@schema("customer")
 }
-
 model Challan {
   id            String          @id @default(cuid())
   vehicleId     String
@@ -165,11 +150,9 @@ model Challan {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@index([vehicleId])
   @@schema("customer")
 }
-
 model VehicleAccess {
   id         String          @id @default(cuid())
   vehicleId  String
@@ -179,11 +162,9 @@ model VehicleAccess {
   updatedAt  DateTime        @updatedAt
   customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   vehicle    CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@unique([vehicleId, customerId])
   @@schema("customer")
 }
-
 model VehicleHealthScore {
   id               String          @id @default(cuid())
   vehicleId        String          @unique
@@ -197,10 +178,8 @@ model VehicleHealthScore {
   lastCalculated   DateTime        @default(now())
   nextDueDate      DateTime?
   vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
-
 model InAppNotification {
   id         String    @id @default(cuid())
   customerId String
@@ -214,11 +193,9 @@ model InAppNotification {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@index([customerId])
   @@schema("customer")
 }
-
 model ChatSession {
   id         String        @id @default(cuid())
   customerId String
@@ -228,11 +205,9 @@ model ChatSession {
   updatedAt  DateTime      @updatedAt
   messages   ChatMessage[]
   customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@index([customerId])
   @@schema("customer")
 }
-
 model ChatMessage {
   id        String      @id @default(cuid())
   sessionId String
@@ -241,25 +216,21 @@ model ChatMessage {
   metadata  Json?       // For tool calls, citations, etc.
   createdAt DateTime    @default(now())
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
   @@index([sessionId])
   @@schema("customer")
 }
-
 model DocumentEmbedding {
   id         String                 @id @default(cuid())
   customerId String
   entityId   String                 // ID of Expense, Document, etc.
   entityType String                 // "EXPENSE", "DOCUMENT", "VEHICLE"
   content    String
-  vector     Unsupported("vector")?
+  // vector     Unsupported("vector")?  // Temporarily disabled - pgvector not available for pg16
   createdAt  DateTime               @default(now())
-
   @@index([customerId])
   @@index([entityId])
   @@schema("customer")
 }
-
 model Expense {
   id           String           @id @default(cuid())
   customerId   String
@@ -280,13 +251,11 @@ model Expense {
   updatedAt    DateTime         @updatedAt
   customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])
-
   @@index([customerId])
   @@index([vehicleId])
   @@index([category])
   @@schema("customer")
 }
-
 model ExpenseBudget {
   id              String          @id @default(cuid())
   customerId      String
@@ -298,11 +267,9 @@ model ExpenseBudget {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@unique([customerId, category])
   @@schema("customer")
 }
-
 model FuelPriceCache {
   id        String   @id @default(cuid())
   city      String
@@ -313,12 +280,10 @@ model FuelPriceCache {
   source    String   @default("IOCL_API")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@unique([city, fuelType, date])
   @@index([city, fuelType])
   @@schema("customer")
 }
-
 model ServiceRecord {
   id                String          @id @default(cuid())
   vehicleId         String
@@ -334,11 +299,9 @@ model ServiceRecord {
   updatedAt         DateTime        @updatedAt
   parts             ServicePart[]
   vehicle           CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@index([vehicleId])
   @@schema("customer")
 }
-
 model ServicePart {
   id                 String          @id @default(cuid())
   serviceRecordId    String
@@ -354,12 +317,10 @@ model ServicePart {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   serviceRecord      ServiceRecord   @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
-
   @@index([serviceRecordId])
   @@index([partType])
   @@schema("customer")
 }
-
 model TelematicsDevice {
   id           String          @id @default(cuid())
   vehicleId    String          @unique
@@ -370,10 +331,8 @@ model TelematicsDevice {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   vehicle      CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
-
 model DrivingTrip {
   id             String          @id @default(cuid())
   vehicleId      String
@@ -393,12 +352,10 @@ model DrivingTrip {
   
   vehicle        CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   events         DrivingEvent[]
-
   @@index([vehicleId])
   @@index([startTime])
   @@schema("customer")
 }
-
 model DrivingEvent {
   id           String       @id @default(cuid())
   tripId       String
@@ -411,11 +368,9 @@ model DrivingEvent {
   createdAt    DateTime     @default(now())
   
   trip         DrivingTrip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
-
   @@index([tripId])
   @@schema("customer")
 }
-
 enum DocumentType {
   RC
   INSURANCE
@@ -423,43 +378,33 @@ enum DocumentType {
   FASTAG
   DL
   OTHER
-
   @@schema("customer")
 }
-
 enum VerificationStatus {
   PENDING
   VERIFIED
   REJECTED
-
   @@schema("customer")
 }
-
 enum DocumentSource {
   UPLOAD
   DIGILOCKER
   PARIVAHAN
-
   @@schema("customer")
 }
-
 enum DigiLockerStatus {
   CONNECTED
   DISCONNECTED
   EXPIRED
   REVOKED
-
   @@schema("customer")
 }
-
 enum AccessRole {
   OWNER
   EDITOR
   VIEWER
-
   @@schema("customer")
 }
-
 enum ExpenseCategory {
   FUEL
   TOLL
@@ -469,20 +414,16 @@ enum ExpenseCategory {
   CHALLAN
   EMI
   OTHER
-
   @@schema("customer")
 }
-
 enum ExpenseSource {
   MANUAL
   SMS
   NOTIFICATION
   VOICE
   RECEIPT
-
   @@schema("customer")
 }
-
 enum ServicePartType {
   ENGINE_OIL
   OIL_FILTER
@@ -500,33 +441,8 @@ enum ServicePartType {
   WIPER_BLADES
   HEADLIGHT_BULB
   OTHER_PART
-
   @@schema("customer")
 }
-
-/// Vehicle-specific or default replacement intervals for parts.
-/// DEFAULT fallback: make='DEFAULT', model='', yearMin=0, yearMax=9999 (avoids unique null issues).
-/// OEM: make (e.g. "Maruti Suzuki"), model (e.g. "Swift"), yearMin/yearMax for year range.
-model PartReplacementInterval {
-  id                    String          @id @default(cuid())
-  make                  String          // "DEFAULT" for global fallback, else e.g. "Maruti Suzuki"
-  model                 String?         // null = all models for this make
-  yearMin               Int?            // null = all years
-  yearMax               Int?
-  partType              ServicePartType
-  intervalMonths        Int
-  intervalKm            Int
-  defaultWarrantyMonths Int             @default(0)
-  source                String?         // e.g. "OEM_MANUAL", "GENERIC", "TEAM_BHP"
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-
-  @@unique([make, model, yearMin, yearMax, partType])
-  @@index([partType])
-  @@index([make, model])
-  @@schema("customer")
-}
-
 model SOSRequest {
   id               String   @id @default(cuid())
   customerId       String
@@ -539,12 +455,10 @@ model SOSRequest {
   createdAt        DateTime @default(now())
   resolvedAt       DateTime?
   customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@index([customerId])
   @@index([status])
   @@schema("customer")
 }
-
 model EmergencyContact {
   id           String   @id @default(cuid())
   customerId   String
@@ -555,25 +469,20 @@ model EmergencyContact {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@index([customerId])
   @@schema("customer")
 }
-
 enum SOSStatus {
   ACTIVE
   RESOLVED
   CANCELLED
-
   @@schema("customer")
 }
-
 enum SOSType {
   MEDICAL
   POLICE
   MECHANICAL
   ACCIDENT
   OTHER
-
   @@schema("customer")
 }

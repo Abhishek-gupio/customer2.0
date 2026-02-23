@@ -9,11 +9,17 @@ export type RootStackParamList = {
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   DocumentList: undefined;
+  VehicleList: undefined;
+  VehicleDetails: { vehicleId: string };
+  AddVehicle: undefined;
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
   Expenses: undefined;
   addExpense: undefined;
   Analytics: undefined;
+  MyProfile: undefined;
+  HelpSupport: undefined;
+  Settings: undefined;
 };
 
 export type MainTabParamList = {

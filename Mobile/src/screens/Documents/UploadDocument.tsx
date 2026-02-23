@@ -12,6 +12,8 @@ import {
   ActionSheetIOS,
   PermissionsAndroid,
   InteractionManager,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { pick as pickDocument, types as docTypes } from '@react-native-documents/picker';
@@ -26,12 +28,18 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { useAppDispatch } from '../../store/hooks';
-import { addDocument } from '../../store/slices/documentsSlice';
-import type { OcrData } from '../../store/slices/documentsSlice';
+import { addDocumentFromResponse, toDocItem } from '../../store/slices/documentsSlice';
+import { uploadDocument } from '../../services/documentService';
 
 type UploadDocNavProp = NativeStackNavigationProp<RootStackParamList, 'UploadDocument'>;
 
 const DOC_TYPES = ['RC', 'Insurance', 'PUC', 'FASTag', 'DL', 'Other'];
+
+interface FileInfo {
+  uri: string;
+  name: string;
+  type: string;
+}
 
 export default function UploadDocument() {
   const navigation = useNavigation<UploadDocNavProp>();
@@ -39,7 +47,8 @@ export default function UploadDocument() {
   const [docType, setDocType] = useState('');
   const [vehicle, setVehicle] = useState('');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const requestAndroidPermissions = async (): Promise<boolean> => {
     if (Platform.OS !== 'android') return true;
@@ -90,9 +99,11 @@ export default function UploadDocument() {
     const cancelIndex = 3;
 
     const runPicker = (fn: () => void) => {
-      InteractionManager.runAfterInteractions(() => {
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(fn);
+      } else {
         setTimeout(fn, 100);
-      });
+      }
     };
 
     if (Platform.OS === 'ios' && ActionSheetIOS) {
@@ -120,7 +131,13 @@ export default function UploadDocument() {
         type: [docTypes.pdf, docTypes.images],
         allowMultiSelection: false,
       });
-      if (res?.[0]?.uri) setImageUri(res[0].uri);
+      if (res?.[0]) {
+        setFileInfo({
+          uri: res[0].uri,
+          name: res[0].name || `file_${Date.now()}`,
+          type: res[0].type || 'application/octet-stream',
+        });
+      }
     } catch (e: unknown) {
       const err = e as { code?: string };
       if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
@@ -138,11 +155,15 @@ export default function UploadDocument() {
       }
     }
     try {
-      const res = await launchImageLibrary({
-        mediaType: 'photo',
-        quality: 0.8,
-      });
-      if (res?.assets?.[0]?.uri) setImageUri(res.assets[0].uri);
+      const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
+      if (res?.assets?.[0]) {
+        const asset = res.assets[0];
+        setFileInfo({
+          uri: asset.uri!,
+          name: asset.fileName || `photo_${Date.now()}.jpg`,
+          type: asset.type || 'image/jpeg',
+        });
+      }
     } catch {
       Alert.alert('Error', 'Could not pick image');
     }
@@ -157,46 +178,52 @@ export default function UploadDocument() {
       }
     }
     try {
-      const res = await launchCamera({
-        mediaType: 'photo',
-        quality: 0.8,
-      });
-      if (res?.assets?.[0]?.uri) setImageUri(res.assets[0].uri);
+      const res = await launchCamera({ mediaType: 'photo', quality: 0.8 });
+      if (res?.assets?.[0]) {
+        const asset = res.assets[0];
+        setFileInfo({
+          uri: asset.uri!,
+          name: asset.fileName || `camera_${Date.now()}.jpg`,
+          type: asset.type || 'image/jpeg',
+        });
+      }
     } catch {
       Alert.alert('Error', 'Could not take photo');
     }
   };
 
-  const mockOcrFromUri = (_uri: string): OcrData => {
-    return {
-      docNumber: `DOC-${Date.now().toString(36).toUpperCase()}`,
-      issueDate: new Date().toLocaleDateString('en-IN'),
-      expiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
-      issuer: 'Extracted via OCR',
-      vehicleNumber: vehicle || undefined,
-    };
-  };
-
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!docType) {
       Alert.alert('Required', 'Please select document type');
       return;
     }
-    if (!imageUri) {
+    if (!fileInfo) {
       Alert.alert('Required', 'Please add a document (tap to upload)');
       return;
     }
-    const ocrData = mockOcrFromUri(imageUri);
-    dispatch(
-      addDocument({
+
+    setUploading(true);
+    try {
+      const result = await uploadDocument({
         type: docType,
-        vehicle: vehicle.trim(),
-        imageUri,
-        ocrData,
-      }),
-    );
-    navigation.goBack();
+        fileUri: fileInfo.uri,
+        fileName: fileInfo.name,
+        mimeType: fileInfo.type,
+        documentNumber: vehicle.trim() || undefined,
+      });
+
+      dispatch(addDocumentFromResponse(toDocItem(result)));
+      Alert.alert('Success', 'Document uploaded successfully', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (err: any) {
+      Alert.alert('Upload Failed', err.message || 'Something went wrong');
+    } finally {
+      setUploading(false);
+    }
   };
+
+  const isImage = fileInfo?.type?.startsWith('image/');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -205,7 +232,6 @@ export default function UploadDocument() {
         backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
       />
 
-      {/* ─── Header ─── */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -224,7 +250,7 @@ export default function UploadDocument() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ─── Document Type ─── */}
+        {/* Document Type */}
         <Text style={styles.label}>
           Document Type <Text style={styles.required}>*</Text>
         </Text>
@@ -273,7 +299,7 @@ export default function UploadDocument() {
           </View>
         )}
 
-        {/* ─── Link to Vehicle (Input Field) ─── */}
+        {/* Link to Vehicle */}
         <Text style={styles.label}>Link to Vehicle</Text>
         <TextInput
           style={styles.textInput}
@@ -284,66 +310,88 @@ export default function UploadDocument() {
           autoCapitalize="characters"
         />
 
-        {/* ─── Tap to Upload (File / Camera) ─── */}
+        {/* Tap to Upload / Preview */}
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.uploadArea}
           onPress={handleTapToUpload}
         >
-          <View style={styles.uploadIconWrap}>
-            <Icon
-              name={imageUri ? 'check-circle' : 'cloud-upload-alt'}
-              size={wp(8)}
-              color={imageUri ? '#4CAF50' : '#FFBF00'}
-            />
-          </View>
-          <Text style={styles.uploadTitle}>
-            {imageUri ? 'Document selected' : 'Tap to upload'}
-          </Text>
-          <Text style={styles.uploadSub}>
-            {imageUri ? 'Tap again to change' : 'Choose file or take a photo'}
-          </Text>
-          <View style={styles.uploadFileTypes}>
-            <View style={styles.fileTypeBadge}>
-              <Text style={styles.fileTypeBadgeText}>PDF</Text>
+          {fileInfo && isImage ? (
+            <Image source={{ uri: fileInfo.uri }} style={styles.previewImage} resizeMode="cover" />
+          ) : fileInfo ? (
+            <View style={styles.filePreview}>
+              <Icon name="file-pdf" size={wp(10)} color="#FFBF00" />
+              <Text style={styles.fileName} numberOfLines={2}>
+                {fileInfo.name}
+              </Text>
+              <Text style={styles.uploadSub}>Tap to change</Text>
             </View>
-            <View style={styles.fileTypeBadge}>
-              <Text style={styles.fileTypeBadgeText}>JPG</Text>
-            </View>
-            <View style={styles.fileTypeBadge}>
-              <Text style={styles.fileTypeBadgeText}>PNG</Text>
-            </View>
-          </View>
-          <Text style={styles.uploadHint}>Max file size: 10 MB</Text>
+          ) : (
+            <>
+              <View style={styles.uploadIconWrap}>
+                <Icon name="cloud-upload-alt" size={wp(8)} color="#FFBF00" />
+              </View>
+              <Text style={styles.uploadTitle}>Tap to upload</Text>
+              <Text style={styles.uploadSub}>Choose file or take a photo</Text>
+              <View style={styles.uploadFileTypes}>
+                <View style={styles.fileTypeBadge}>
+                  <Text style={styles.fileTypeBadgeText}>PDF</Text>
+                </View>
+                <View style={styles.fileTypeBadge}>
+                  <Text style={styles.fileTypeBadgeText}>JPG</Text>
+                </View>
+                <View style={styles.fileTypeBadge}>
+                  <Text style={styles.fileTypeBadgeText}>PNG</Text>
+                </View>
+              </View>
+              <Text style={styles.uploadHint}>Max file size: 10 MB</Text>
+            </>
+          )}
         </TouchableOpacity>
 
-        {/* ─── OCR Note ─── */}
+        {/* File name display when image is shown */}
+        {fileInfo && isImage && (
+          <View style={styles.fileNameRow}>
+            <Icon name="paperclip" size={wp(3.5)} color="#FFBF00" />
+            <Text style={styles.fileNameSmall} numberOfLines={1}>{fileInfo.name}</Text>
+            <TouchableOpacity onPress={() => setFileInfo(null)} activeOpacity={0.7}>
+              <Icon name="times-circle" size={wp(4)} color="#666" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* OCR Note */}
         <View style={styles.ocrNote}>
           <Icon name="magic" size={wp(4.5)} color="#FFBF00" style={{ marginRight: wp(3) }} />
           <Text style={styles.ocrNoteText}>
-            OCR will auto-extract document details
+            AI will auto-extract document details after upload
           </Text>
         </View>
 
-        {/* ─── Upload Button ─── */}
+        {/* Upload Button */}
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.submitBtn}
+          style={[styles.submitBtn, uploading && styles.submitBtnDisabled]}
           onPress={handleUpload}
+          disabled={uploading}
         >
-          <Text style={styles.submitBtnText}>Upload</Text>
-          <Icon name="arrow-right" size={wp(4)} color="#000" />
+          {uploading ? (
+            <ActivityIndicator color="#000" size="small" />
+          ) : (
+            <>
+              <Text style={styles.submitBtnText}>Upload</Text>
+              <Icon name="arrow-right" size={wp(4)} color="#000" />
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-/* ════════════════════ Styles ════════════════════ */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
 
-  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -364,7 +412,6 @@ const styles = StyleSheet.create({
     paddingBottom: hp(4),
   },
 
-  /* Labels */
   label: {
     fontSize: wp(3.8),
     fontWeight: '600',
@@ -373,7 +420,6 @@ const styles = StyleSheet.create({
   },
   required: { color: '#F44336' },
 
-  /* Select */
   selectInput: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,7 +435,6 @@ const styles = StyleSheet.create({
   selectText: { fontSize: wp(4), color: '#fff' },
   selectPlaceholder: { fontSize: wp(4), color: '#666' },
 
-  /* TextInput for Vehicle */
   textInput: {
     backgroundColor: '#1a1a1a',
     borderRadius: wp(3),
@@ -402,7 +447,6 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  /* Dropdown */
   dropdown: {
     backgroundColor: '#1a1a1a',
     borderRadius: wp(3),
@@ -425,17 +469,17 @@ const styles = StyleSheet.create({
   dropdownItemText: { fontSize: wp(4), color: '#ccc' },
   dropdownItemTextActive: { color: '#FFBF00', fontWeight: '600' },
 
-  /* Upload area */
   uploadArea: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#1a1a1a',
     borderRadius: wp(4),
-    paddingVertical: hp(5),
-    marginBottom: hp(2),
+    paddingVertical: hp(3),
+    marginBottom: hp(1.5),
     borderWidth: 2,
     borderColor: 'rgba(255,191,0,0.25)',
     borderStyle: 'dashed',
+    overflow: 'hidden',
   },
   uploadIconWrap: {
     width: wp(18),
@@ -467,7 +511,39 @@ const styles = StyleSheet.create({
   fileTypeBadgeText: { fontSize: wp(3), color: '#aaa', fontWeight: '600' },
   uploadHint: { fontSize: wp(3), color: '#555' },
 
-  /* OCR note */
+  previewImage: {
+    width: '100%',
+    height: hp(25),
+    borderRadius: wp(2),
+  },
+  filePreview: {
+    alignItems: 'center',
+    paddingVertical: hp(2),
+  },
+  fileName: {
+    fontSize: wp(3.8),
+    color: '#fff',
+    marginTop: hp(1),
+    textAlign: 'center',
+    paddingHorizontal: wp(4),
+  },
+
+  fileNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: wp(2.5),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    marginBottom: hp(1.5),
+    gap: wp(2),
+  },
+  fileNameSmall: {
+    flex: 1,
+    fontSize: wp(3.3),
+    color: '#ccc',
+  },
+
   ocrNote: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -480,7 +556,6 @@ const styles = StyleSheet.create({
   },
   ocrNoteText: { flex: 1, fontSize: wp(3.5), color: '#ccc' },
 
-  /* Submit */
   submitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -490,5 +565,6 @@ const styles = StyleSheet.create({
     borderRadius: wp(3.5),
     gap: wp(2),
   },
+  submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { fontSize: wp(4.5), fontWeight: '700', color: '#000' },
 });

@@ -5,9 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  schemas    = ["customer"]
-  extensions = [vector]
+  provider = "postgresql"
+  schemas  = ["customer"]
+  // extensions = [vector]  // Temporarily disabled - pgvector not available for pg16
 }
 
 model User {
@@ -247,13 +247,13 @@ model ChatMessage {
 }
 
 model DocumentEmbedding {
-  id         String                 @id @default(cuid())
+  id         String   @id @default(cuid())
   customerId String
   entityId   String // ID of Expense, Document, etc.
   entityType String // "EXPENSE", "DOCUMENT", "VEHICLE"
   content    String
-  vector     Unsupported("vector")?
-  createdAt  DateTime               @default(now())
+  // vector     Unsupported("vector")?  // Temporarily disabled - pgvector not available for pg16
+  createdAt  DateTime @default(now())
 
   @@index([customerId])
   @@index([entityId])
@@ -501,29 +501,6 @@ enum ServicePartType {
   HEADLIGHT_BULB
   OTHER_PART
 
-  @@schema("customer")
-}
-
-/// Vehicle-specific or default replacement intervals for parts.
-/// DEFAULT fallback: make='DEFAULT', model='', yearMin=0, yearMax=9999 (avoids unique null issues).
-/// OEM: make (e.g. "Maruti Suzuki"), model (e.g. "Swift"), yearMin/yearMax for year range.
-model PartReplacementInterval {
-  id                    String          @id @default(cuid())
-  make                  String // "DEFAULT" for global fallback, else e.g. "Maruti Suzuki"
-  model                 String? // null = all models for this make
-  yearMin               Int? // null = all years
-  yearMax               Int?
-  partType              ServicePartType
-  intervalMonths        Int
-  intervalKm            Int
-  defaultWarrantyMonths Int             @default(0)
-  source                String? // e.g. "OEM_MANUAL", "GENERIC", "TEAM_BHP"
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-
-  @@unique([make, model, yearMin, yearMax, partType])
-  @@index([partType])
-  @@index([make, model])
   @@schema("customer")
 }
 
