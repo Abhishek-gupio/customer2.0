@@ -12,6 +12,7 @@ export type RootStackParamList = {
   VehicleList: undefined;
   VehicleDetails: { vehicleId: string };
   AddVehicle: undefined;
+  Challans: { vehicle: any };
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
   Expenses: undefined;
@@ -19,7 +20,7 @@ export type RootStackParamList = {
   Analytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
-  Settings: undefined;
+  Settings: undefined
 };
 
 export type MainTabParamList = {

@@ -23,7 +23,7 @@ import { MainBottomTabs } from './MainBottomTabs';
 import ExpensesList from '../screens/Expenses/ExpenseList';
 import addExpense from '../screens/Expenses/AddExpense';
 import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
-// import { ProtectedRoute } from './ProtectedRoute';
+import Challans from '../screens/Vehicles/Challans';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -55,6 +55,7 @@ export function RootNavigator() {
       <Stack.Screen name="VehicleList" component={VehicleList} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetails} />
       <Stack.Screen name="AddVehicle" component={AddVehicle} />
+      <Stack.Screen name="Challans" component={Challans} />
       <Stack.Screen name="UploadDocument" component={UploadDocument} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />
