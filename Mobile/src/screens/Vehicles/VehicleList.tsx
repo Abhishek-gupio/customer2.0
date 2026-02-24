@@ -22,7 +22,8 @@ const VehicleList = ({ navigation, route }: any) => {
     {
       id: '1',
       plate: 'DL 01 AB 1234',
-      model: 'Maruti Suzuki Swift',
+      brand: 'Maruti Suzuki',
+      model: 'Swift',
       year: '2022',
       health: '85%',
       img: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=400',
@@ -30,7 +31,8 @@ const VehicleList = ({ navigation, route }: any) => {
     {
       id: '2',
       plate: 'DL 02 XY 5678',
-      model: 'Hyundai Creta',
+      brand: 'Hyundai',
+      model: 'Creta',
       year: '2023',
       health: '92%',
       img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=400',
@@ -53,7 +55,7 @@ const VehicleList = ({ navigation, route }: any) => {
       // 3. Clear the params after reading so it doesn't re-add on re-renders
       navigation.setParams({ newVehicle: undefined });
     }
-  }, [route.params?.newVehicle]);
+  }, [route.params?.newVehicle, navigation]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -102,15 +104,16 @@ const VehicleList = ({ navigation, route }: any) => {
               key={item.id}
               style={styles.card}
               activeOpacity={0.8}
+              // Updated: Passing the entire vehicle object as 'vehicle'
               onPress={() =>
-                navigation.navigate('VehicleDetails', { vehicleId: item.id })
+                navigation.navigate('VehicleDetails', { vehicle: item })
               }
             >
               <Image source={{ uri: item.img }} style={styles.carImg} />
               <View style={styles.cardContent}>
                 <Text style={styles.plateText}>{item.plate}</Text>
                 <Text style={styles.modelText}>
-                  {item.model} • {item.year}
+                  {item.brand} {item.model} • {item.year}
                 </Text>
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{item.health} Health</Text>
@@ -152,21 +155,6 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1, marginLeft: wp(2) },
   headerTitle: { color: '#fff', fontSize: wp(6), fontWeight: '700' },
   headerSub: { color: '#888', fontSize: wp(3.5), marginTop: hp(0.2) },
-  searchBtn: {
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: '#fff',
-    fontSize: wp(7.5),
-    fontWeight: 'bold',
-    marginTop: hp(1),
-  },
-  subtitle: { color: '#666', fontSize: wp(3.5), marginTop: 2 },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
