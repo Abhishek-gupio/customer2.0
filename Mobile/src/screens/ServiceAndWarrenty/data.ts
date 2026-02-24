@@ -1,4 +1,3 @@
-// data/vehicleParts.ts
 export const vehicleParts = [
   {
     id: 'engine-oil',
@@ -62,3 +61,87 @@ export const vehicleParts = [
     iconSet: 'MaterialCommunityIcons',
   },
 ];
+
+export const serviceHistory = [
+  {
+    id: '1',
+    title: 'Full Service',
+    garage: 'ABC Garage, Pune',
+    date: '12 Jan 2026',
+    odometer: '22,000 km',
+    parts: 'Engine Oil, Oil Filter, Air Filter',
+    nextService: '12 Jul 2026',
+    cost: '₹6,500',
+  },
+  {
+    id: '2',
+    title: 'Tyre Change',
+    garage: 'MRF Tyres & Services',
+    date: '05 Nov 2025',
+    odometer: '19,800 km',
+    parts: '4 × Radial Tyres',
+    cost: '₹18,000',
+  },
+  {
+    id: '3',
+    title: 'Brake Service',
+    garage: 'QuickFix Auto',
+    date: '18 Aug 2025',
+    odometer: '17,200 km',
+    parts: 'Front Brake Pads',
+    cost: '₹3,200',
+  },
+  {
+    id: '4',
+    title: 'Battery Replacement',
+    garage: 'Exide Care',
+    date: '02 May 2025',
+    odometer: '15,600 km',
+    parts: 'Amaron 60Ah Battery',
+    cost: '₹5,400',
+    warranty: '48 months',
+  },
+  {
+    id: '5',
+    title: 'Wheel Alignment & Balancing',
+    garage: 'Tyre Plus',
+    date: '10 Feb 2025',
+    odometer: '14,900 km',
+    cost: '₹1,200',
+  },
+  {
+    id: '6',
+    title: 'AC Service',
+    garage: 'CoolRide Auto',
+    date: '22 Oct 2024',
+    odometer: '12,300 km',
+    parts: 'AC Gas Refill, Cabin Filter',
+    cost: '₹2,800',
+  },
+  {
+    id: '7',
+    title: 'Insurance Claim Repair',
+    garage: 'Authorized Service Center',
+    date: '14 Jul 2024',
+    odometer: '10,750 km',
+    parts: 'Front Bumper, Paint Job',
+    cost: 'Covered by Insurance',
+  },
+  {
+    id: '8',
+    title: 'General Checkup',
+    garage: 'Local Garage',
+    date: '01 Apr 2024',
+    odometer: '9,500 km',
+    notes: 'No issues found',
+    cost: '₹500',
+  },
+];
+
+export const COLORS = {
+  background: '#24262a',
+  textPrimary: '#ddd6d6',
+  textSecondary: '#d4d0d0',
+  accent: '#1E88E5',
+  border: '#DDD',
+};
