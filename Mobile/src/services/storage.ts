@@ -1,6 +1,7 @@
 const ACCESS_TOKEN_KEY = 'auth_access_token';
 const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
+const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
 
 type StorageImpl = {
   set: (k: string, v: string) => void;
@@ -20,6 +21,15 @@ try {
     getString: (k: string) => mem[k],
     remove: (k: string) => { delete mem[k]; },
   };
+}
+
+// DEV ONLY: Seed a valid JWT only if storage is empty (don't overwrite real login)
+if (__DEV__ && !storage!.getString(ACCESS_TOKEN_KEY)) {
+  // Token signed with default dev secret; expires in 30 days. Login via OTP to get real tokens + refresh.
+  const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtbHQ1emxuODAwMDBqMnV0am1haHhqMzQiLCJwaG9uZU51bWJlciI6Ijk5OTk5OTk5OTkiLCJpYXQiOjE3NzE0ODc3NDksImV4cCI6MTc3NDA3OTc0OX0.BwokEb4KaF-rmX2Vpz8zXaJ2WV197pJTKW6Ijj1sv0A';
+  storage!.set(ACCESS_TOKEN_KEY, DEV_TOKEN);
+  storage!.set(USER_ID_KEY, 'cmlt5zln80000j2utjmahxj34');
+  console.log('[DEV] Seeded dummy auth token (login via OTP for refresh token)');
 }
 
 export function setAccessToken(token: string) {
@@ -56,4 +66,16 @@ export function clearAuthStorage() {
     storage!.set(REFRESH_TOKEN_KEY, '');
     storage!.set(USER_ID_KEY, '');
   }
+}
+
+/** Default voice language for Add by Voice (0 = Auto/device, 1+ = specific locale). Persisted. */
+export function getVoiceLanguageIndex(): number {
+  const s = storage!.getString(VOICE_LANGUAGE_INDEX_KEY);
+  if (s == null) return 0;
+  const n = parseInt(s, 10);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+export function setVoiceLanguageIndex(index: number): void {
+  storage!.set(VOICE_LANGUAGE_INDEX_KEY, String(index));
 }

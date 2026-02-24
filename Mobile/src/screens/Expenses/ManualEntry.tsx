@@ -9,33 +9,114 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { api } from "../../services/api";
+import { parse } from "date-fns";
+import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
+
+interface ManualEntryData {
+  amount?: string;
+  category?: string;
+  description?: string;
+  date?: string;
+  receiptUrl?: string;
+  mimeType?: string;
+}
 
 interface ManualEntryOverlayProps {
   visible: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  initialData?: ManualEntryData | null;
 }
 
-export default function ManualEntryOverlay({ visible, onClose }: ManualEntryOverlayProps) {
+export default function ManualEntryOverlay({ visible, onClose, onSuccess, initialData }: ManualEntryOverlayProps) {
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [mimeType, setMimeType] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
-  const categories = ['Other', 'Fuel', 'Service', 'Tolls', 'Insurance'];
+  React.useEffect(() => {
+    if (visible && initialData) {
+      if (initialData.amount) setAmount(initialData.amount);
+      if (initialData.category) {
+        // Simple case matching or default
+        const cat = initialData.category.charAt(0).toUpperCase() + initialData.category.slice(1).toLowerCase();
+        setCategory(cat);
+      }
+      if (initialData.description) setDescription(initialData.description);
+      if (initialData.date) setDate(initialData.date);
+      if (initialData.receiptUrl) setReceiptUrl(initialData.receiptUrl);
+      if (initialData.mimeType) setMimeType(initialData.mimeType);
+    }
+  }, [visible, initialData]);
+  const [loading, setLoading] = useState(false);
+
+  const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
 
   const isValid = amount.trim().length > 0;
 
-  const handleSave = () => {
-    console.log({ category, amount, description, date });
-    setCategory("Fuel");
-    setAmount("");
-    setDescription("");
-    setDate("");
-    setShowCategoryPicker(false);
-    onClose();
+  const handleSave = async () => {
+    if (!isValid) return;
+
+    setLoading(true);
+    try {
+      // Parse Date (dd-mm-yyyy -> ISO)
+      let parsedDate;
+      if (date) {
+        try {
+          const d = parse(date, 'dd-MM-yyyy', new Date());
+          if (!isNaN(d.getTime())) {
+            parsedDate = d.toISOString();
+          }
+        } catch (e) {
+          console.log("Date parse error", e);
+        }
+      }
+
+      const payload = {
+        amount: parseFloat(amount),
+        category: category.toUpperCase(), // Backend expects uppercase
+        notes: description,
+        date: parsedDate,
+        source: "MANUAL",
+        receiptUrl: receiptUrl || undefined,
+        mimeType: mimeType || undefined,
+      };
+
+      await api.post('/v1/expenses', payload);
+
+      // Mark expense list for refresh
+      setExpenseListNeedsRefresh();
+
+      // Reset Form
+      setCategory("Fuel");
+      setAmount("");
+      setDescription("");
+      setDate("");
+      setReceiptUrl(null);
+      setMimeType(null);
+
+      // Close modal first
+      onClose();
+      
+      // Show success and trigger callback after modal closes
+      setTimeout(() => {
+        Alert.alert("Success", "Expense added successfully");
+        if (onSuccess) onSuccess();
+      }, 300);
+    } catch (error: any) {
+      console.error("Add Expense Error:", error);
+      Alert.alert("Error", error?.message || "Failed to add expense");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,7 +128,7 @@ export default function ManualEntryOverlay({ visible, onClose }: ManualEntryOver
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%", alignItems: "center" }}
           >
-            <Pressable style={styles.panel} onPress={() => {}}>
+            <Pressable style={styles.panel} onPress={() => { }}>
 
               <View style={styles.header}>
                 <Text style={styles.title}>Add Manual Entry</Text>
@@ -89,13 +170,17 @@ export default function ManualEntryOverlay({ visible, onClose }: ManualEntryOver
 
 
               <TouchableOpacity
-                style={[styles.saveBtn, isValid && styles.saveBtnActive]}
-                disabled={!isValid}
+                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
+                disabled={!isValid || loading}
                 onPress={handleSave}
               >
-                <Text style={[styles.saveText, isValid && styles.saveTextActive]}>
-                  Save Entry
-                </Text>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={[styles.saveText, isValid && styles.saveTextActive]}>
+                    Save Entry
+                  </Text>
+                )}
               </TouchableOpacity>
             </Pressable>
           </KeyboardAvoidingView>
@@ -108,7 +193,7 @@ export default function ManualEntryOverlay({ visible, onClose }: ManualEntryOver
           style={styles.backdrop}
           onPress={() => setShowCategoryPicker(false)}
         >
-          <Pressable style={styles.categoryPanel} onPress={() => {}}>
+          <Pressable style={styles.categoryPanel} onPress={() => { }}>
             {categories.map((item) => (
               <TouchableOpacity
                 key={item}

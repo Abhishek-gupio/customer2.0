@@ -1,0 +1,556 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/client"
+  previewFeatures = ["postgresqlExtensions", "driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["customer"]
+  // extensions = [vector]  // Temporarily disabled - pgvector not available for pg16
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("customer")
+}
+
+model Customer {
+  id                String                @id @default(cuid())
+  phoneNumber       String                @unique
+  email             String?
+  fullName          String?
+  profilePic        String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  devices           CustomerDevice[]
+  documents         CustomerDocument[]
+  vehicles          CustomerVehicle[]
+  digilocker        DigiLockerConnection?
+  expenses          Expense[]
+  budgets           ExpenseBudget[]
+  notifications     InAppNotification[]
+  sharedVehicles    VehicleAccess[]
+  chats             ChatSession[]
+  sosRequests       SOSRequest[]
+  emergencyContacts EmergencyContact[]
+
+  @@schema("customer")
+}
+
+model CustomerDevice {
+  id           String   @id @default(cuid())
+  customerId   String
+  platform     String
+  deviceToken  String?
+  deviceInfo   String?
+  lastActiveAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model CustomerDocument {
+  id                 String             @id @default(cuid())
+  customerId         String
+  vehicleId          String?
+  type               DocumentType
+  documentNumber     String?
+  issueDate          DateTime?
+  expiryDate         DateTime?
+  issuerName         String?
+  fileUrl            String
+  thumbnailUrl       String?
+  fileSize           Int?
+  mimeType           String?
+  ocrData            Json?
+  extractedFields    Json?
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  verifiedBy         String?
+  source             DocumentSource     @default(UPLOAD)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  customer           Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle            CustomerVehicle?   @relation(fields: [vehicleId], references: [id])
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([type])
+  @@schema("customer")
+}
+
+model DigiLockerConnection {
+  id           String           @id @default(cuid())
+  customerId   String           @unique
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scope        String?
+  consentId    String?
+  consentDate  DateTime?
+  status       DigiLockerStatus @default(CONNECTED)
+  lastSyncAt   DateTime?
+  connectedAt  DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model CustomerVehicle {
+  id                 String              @id @default(cuid())
+  customerId         String
+  registrationNumber String              @unique
+  make               String?
+  model              String?
+  variant            String?
+  year               Int?
+  fuelType           String?
+  vehicleType        String?
+  engineNumber       String?
+  chassisNumber      String?
+  currentOdometer    Int?                @default(0)
+  registrationDate   DateTime?
+  rcVerified         Boolean             @default(false)
+  isActive           Boolean             @default(true)
+  isPrimary          Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  challans           Challan[]
+  documents          CustomerDocument[]
+  customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expenses           Expense[]
+  odometerLogs       OdometerLog[]
+  serviceRecords     ServiceRecord[]
+  accessList         VehicleAccess[]
+  healthScore        VehicleHealthScore?
+  telematicsDevice   TelematicsDevice?
+  drivingTrips       DrivingTrip[]
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model OdometerLog {
+  id        String          @id @default(cuid())
+  vehicleId String
+  reading   Int
+  date      DateTime        @default(now())
+  createdAt DateTime        @default(now())
+  vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@schema("customer")
+}
+
+model Challan {
+  id            String          @id @default(cuid())
+  vehicleId     String
+  challanNumber String          @unique
+  amount        Int
+  status        String
+  date          DateTime
+  violationType String
+  location      String?
+  source        String
+  lastCheckedAt DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@schema("customer")
+}
+
+model VehicleAccess {
+  id         String          @id @default(cuid())
+  vehicleId  String
+  customerId String
+  role       AccessRole      @default(VIEWER)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle    CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, customerId])
+  @@schema("customer")
+}
+
+model VehicleHealthScore {
+  id               String          @id @default(cuid())
+  vehicleId        String          @unique
+  overallScore     Int             @default(100)
+  ageScore         Int?
+  mileageScore     Int?
+  maintenanceScore Int?
+  drivingScore     Int?
+  explanations     Json?
+  recommendations  Json?
+  lastCalculated   DateTime        @default(now())
+  nextDueDate      DateTime?
+  vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model InAppNotification {
+  id         String    @id @default(cuid())
+  customerId String
+  title      String
+  body       String
+  type       String
+  link       String?
+  metadata   Json?
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model ChatSession {
+  id         String        @id @default(cuid())
+  customerId String
+  title      String?
+  isActive   Boolean       @default(true)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  messages   ChatMessage[]
+  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  role      String // "user", "assistant", "system"
+  content   String
+  metadata  Json? // For tool calls, citations, etc.
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@schema("customer")
+}
+
+model DocumentEmbedding {
+  id         String   @id @default(cuid())
+  customerId String
+  entityId   String // ID of Expense, Document, etc.
+  entityType String // "EXPENSE", "DOCUMENT", "VEHICLE"
+  content    String
+  // vector     Unsupported("vector")?  // Temporarily disabled - pgvector not available for pg16
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([entityId])
+  @@schema("customer")
+}
+
+model Expense {
+  id           String           @id @default(cuid())
+  customerId   String
+  vehicleId    String?
+  amount       Float
+  currency     String           @default("INR")
+  category     ExpenseCategory
+  date         DateTime         @default(now())
+  merchantName String?
+  location     String?
+  notes        String?
+  source       ExpenseSource    @default(MANUAL)
+  receiptUrl   String?
+  mimeType     String?
+  rawText      String?
+  isAutomated  Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([category])
+  @@schema("customer")
+}
+
+model ExpenseBudget {
+  id              String          @id @default(cuid())
+  customerId      String
+  category        ExpenseCategory
+  amount          Float
+  period          String          @default("MONTHLY")
+  notifyThreshold Int             @default(80)
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, category])
+  @@schema("customer")
+}
+
+model FuelPriceCache {
+  id        String   @id @default(cuid())
+  city      String
+  state     String
+  fuelType  String
+  price     Float
+  date      DateTime @default(now())
+  source    String   @default("IOCL_API")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([city, fuelType, date])
+  @@index([city, fuelType])
+  @@schema("customer")
+}
+
+model ServiceRecord {
+  id                String          @id @default(cuid())
+  vehicleId         String
+  expenseId         String?
+  serviceType       String
+  garageName        String?
+  odometerAtService Int?
+  serviceDate       DateTime        @default(now())
+  nextServiceDate   DateTime?
+  nextServiceKm     Int?
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  parts             ServicePart[]
+  vehicle           CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@schema("customer")
+}
+
+model ServicePart {
+  id                 String          @id @default(cuid())
+  serviceRecordId    String
+  partType           ServicePartType
+  partName           String?
+  brand              String?
+  cost               Float?
+  warrantyMonths     Int?
+  warrantyKm         Int?
+  warrantyExpiresAt  DateTime?
+  lastReplacedAt     DateTime        @default(now())
+  nextReplacementDue DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  serviceRecord      ServiceRecord   @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+
+  @@index([serviceRecordId])
+  @@index([partType])
+  @@schema("customer")
+}
+
+model TelematicsDevice {
+  id          String          @id @default(cuid())
+  vehicleId   String          @unique
+  instanceId  String          @unique // Damoov Instance ID
+  deviceToken String? // Damoov Device Token
+  platform    String? // iOS/Android
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model DrivingTrip {
+  id            String   @id @default(cuid())
+  vehicleId     String
+  tripId        String   @unique // Damoov Trip ID
+  startTime     DateTime
+  endTime       DateTime
+  distanceKm    Float
+  durationMin   Float
+  maxSpeed      Float?
+  avgSpeed      Float?
+  fuelConsumed  Float?
+  safetyScore   Int // 0-100
+  startLocation Json? // {lat, lng, address}
+  endLocation   Json? // {lat, lng, address}
+  status        String // COMPLETED, ONGOING
+  createdAt     DateTime @default(now())
+
+  vehicle CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  events  DrivingEvent[]
+
+  @@index([vehicleId])
+  @@index([startTime])
+  @@schema("customer")
+}
+
+model DrivingEvent {
+  id        String   @id @default(cuid())
+  tripId    String
+  eventType String // HARSH_BRAKING, HARSH_ACCEL, PHONE_USAGE, SPEEDING
+  timestamp DateTime
+  latitude  Float
+  longitude Float
+  severity  Float? // 0.0 - 1.0 (g-force or other metric)
+  speed     Float?
+  createdAt DateTime @default(now())
+
+  trip DrivingTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@schema("customer")
+}
+
+enum DocumentType {
+  RC
+  INSURANCE
+  PUC
+  FASTAG
+  DL
+  OTHER
+
+  @@schema("customer")
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+
+  @@schema("customer")
+}
+
+enum DocumentSource {
+  UPLOAD
+  DIGILOCKER
+  PARIVAHAN
+
+  @@schema("customer")
+}
+
+enum DigiLockerStatus {
+  CONNECTED
+  DISCONNECTED
+  EXPIRED
+  REVOKED
+
+  @@schema("customer")
+}
+
+enum AccessRole {
+  OWNER
+  EDITOR
+  VIEWER
+
+  @@schema("customer")
+}
+
+enum ExpenseCategory {
+  FUEL
+  TOLL
+  PARKING
+  SERVICE
+  INSURANCE
+  CHALLAN
+  EMI
+  OTHER
+
+  @@schema("customer")
+}
+
+enum ExpenseSource {
+  MANUAL
+  SMS
+  NOTIFICATION
+  VOICE
+  RECEIPT
+
+  @@schema("customer")
+}
+
+enum ServicePartType {
+  ENGINE_OIL
+  OIL_FILTER
+  AIR_FILTER
+  BRAKE_PADS
+  BRAKE_DISCS
+  BATTERY
+  TYRES_FRONT
+  TYRES_REAR
+  CLUTCH_PLATE
+  SPARK_PLUGS
+  COOLANT
+  TIMING_BELT
+  AC_FILTER
+  WIPER_BLADES
+  HEADLIGHT_BULB
+  OTHER_PART
+
+  @@schema("customer")
+}
+
+model SOSRequest {
+  id         String    @id @default(cuid())
+  customerId String
+  latitude   Float
+  longitude  Float
+  address    String?
+  status     SOSStatus @default(ACTIVE)
+  type       SOSType   @default(OTHER)
+  metadata   Json? // For nearby help results, etc.
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@schema("customer")
+}
+
+model EmergencyContact {
+  id          String   @id @default(cuid())
+  customerId  String
+  name        String
+  phoneNumber String
+  relation    String?
+  priority    Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@schema("customer")
+}
+
+enum SOSStatus {
+  ACTIVE
+  RESOLVED
+  CANCELLED
+
+  @@schema("customer")
+}
+
+enum SOSType {
+  MEDICAL
+  POLICE
+  MECHANICAL
+  ACCIDENT
+  OTHER
+
+  @@schema("customer")
+}

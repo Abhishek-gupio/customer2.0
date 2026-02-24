@@ -18,7 +18,11 @@ router.delete("/:id", vehicleController.delete);
 router.put("/:id/primary", vehicleController.setPrimary);
 router.post("/:id/health/recalculate", vehicleController.recalculateHealth);
 router.post("/:id/odometer", vehicleController.addOdometer);
-router.post("/:id/odometer-ai", upload.single("photo"), vehicleController.addOdometerViaAI);
+router.post(
+  "/:id/odometer-ai",
+  upload.single("photo"),
+  vehicleController.addOdometerViaAI,
+);
 
 // Challan Routes
 router.get("/:vehicleId/challans", challanController.listByVehicle);

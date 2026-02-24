@@ -46,6 +46,8 @@ web-build/
 expo-env.d.ts
 .metro-health-check*
 # Native (when not using prebuild)
+/ios
+/android
 
 # Certificates & keys
 .kotlin/

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   StatusBar,
   Platform,
   Alert,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -19,73 +21,33 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { RouteProp } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import type { RootState } from '../../store';
+import { removeDocumentAsync, fetchDocumentById } from '../../store/slices/documentsSlice';
 
 type DetailNavProp = NativeStackNavigationProp<RootStackParamList, 'DocumentDetail'>;
 
-/* ── mock detail data (would come from API) ── */
-interface DocDetail {
-  id: string;
-  type: string;
-  vehicle: string;
-  status: 'Verified' | 'Pending' | 'Expired';
-  source: 'Upload' | 'DigiLocker';
-  docNumber: string;
-  issueDate: string;
-  expiry: string;
-  issuer: string;
+function statusColor(s: string) {
+  if (s === 'verified') return '#4CAF50';
+  if (s === 'expiring') return '#FFA000';
+  return '#F44336';
 }
 
-const MOCK_DETAIL: Record<string, DocDetail> = {
-  '1': {
-    id: '1',
-    type: 'RC',
-    vehicle: 'MH12AB1234',
-    status: 'Verified',
-    source: 'Upload',
-    docNumber: 'MH12 20200012345',
-    issueDate: '01 Jan 2022',
-    expiry: '15 Mar 2030',
-    issuer: 'RTO Pune',
-  },
-  '2': {
-    id: '2',
-    type: 'Insurance',
-    vehicle: 'ICICI Lombard',
-    status: 'Verified',
-    source: 'Upload',
-    docNumber: 'POL-2024-789456',
-    issueDate: '01 Mar 2024',
-    expiry: '28 Feb 2026',
-    issuer: 'ICICI Lombard',
-  },
-  '3': {
-    id: '3',
-    type: 'PUC',
-    vehicle: 'MH12AB1234',
-    status: 'Expired',
-    source: 'Upload',
-    docNumber: 'PUC-2023-654321',
-    issueDate: '10 Aug 2023',
-    expiry: '10 Aug 2025',
-    issuer: 'Govt. Testing Center',
-  },
-  '4': {
-    id: '4',
-    type: 'DL',
-    vehicle: '',
-    status: 'Verified',
-    source: 'DigiLocker',
-    docNumber: 'MH03 20190078901',
-    issueDate: '15 Jun 2019',
-    expiry: '01 Jan 2030',
-    issuer: 'RTO Mumbai',
-  },
-};
+function statusLabel(s: string) {
+  if (s === 'verified') return 'Verified';
+  if (s === 'expiring') return 'Expiring Soon';
+  return 'Expired';
+}
 
-function statusColor(s: string) {
-  if (s === 'Verified') return '#4CAF50';
-  if (s === 'Pending') return '#FFA000';
-  return '#F44336';
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return 'N/A';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
 }
 
 interface Props {
@@ -94,19 +56,84 @@ interface Props {
 
 export default function DocumentDetail({ route }: Props) {
   const navigation = useNavigation<DetailNavProp>();
+  const dispatch = useAppDispatch();
   const { documentId } = route.params;
-  const doc = MOCK_DETAIL[documentId] ?? MOCK_DETAIL['1'];
+  const doc = useAppSelector((state: RootState) =>
+    state.documents.documents.find((d) => d.id === documentId),
+  );
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!doc) {
+      dispatch(fetchDocumentById(documentId));
+    }
+  }, [doc, documentId, dispatch]);
 
   const handleDelete = () => {
+    if (!doc) return;
     Alert.alert('Delete Document', 'Are you sure you want to delete this document?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => navigation.goBack(),
+        onPress: async () => {
+          setDeleting(true);
+          try {
+            await dispatch(removeDocumentAsync(documentId)).unwrap();
+            navigation.goBack();
+          } catch (err: any) {
+            Alert.alert('Error', err.message || 'Failed to delete');
+            setDeleting(false);
+          }
+        },
       },
     ]);
   };
+
+  if (!doc) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Icon name="arrow-left" size={wp(5)} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Document</Text>
+          <View style={{ width: wp(10) }} />
+        </View>
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color="#FFBF00" />
+          <Text style={styles.emptyStateText}>Loading document...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const imageUri = doc.imageUri;
+  const isImage = imageUri && !imageUri.toLowerCase().endsWith('.pdf');
+
+  // Ensure expiry date is used from dates array if expiryDate is not set
+  
+
+  const fields: { label: string; value: string }[] = [];
+  if (doc.documentNumber) fields.push({ label: 'Doc Number', value: doc.documentNumber });
+  if (doc.issueDate) fields.push({ label: 'Issue Date', value: formatDate(doc.issueDate) });
+  if (doc.expiryDate) fields.push({ label: 'Expiry', value: formatDate(doc.expiryDate) });
+  if (doc.issuerName) fields.push({ label: 'Issuer', value: doc.issuerName });
+  if (doc.vehicle) fields.push({ label: 'Vehicle', value: doc.vehicle });
+
+  if (doc.extractedFields) {
+    const ef = doc.extractedFields;
+    if (ef.ownerName && !fields.find((f) => f.label === 'Owner'))
+      fields.push({ label: 'Owner', value: ef.ownerName });
+    if (ef.vehicleDetails?.make)
+      fields.push({ label: 'Make', value: ef.vehicleDetails.make });
+    if (ef.vehicleDetails?.model)
+      fields.push({ label: 'Model', value: ef.vehicleDetails.model });
+    if (ef.vehicleDetails?.engineNumber)
+      fields.push({ label: 'Engine No', value: ef.vehicleDetails.engineNumber });
+    if (ef.vehicleDetails?.chassisNumber)
+      fields.push({ label: 'Chassis No', value: ef.vehicleDetails.chassisNumber });
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -115,7 +142,6 @@ export default function DocumentDetail({ route }: Props) {
         backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
       />
 
-      {/* ─── Header ─── */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -125,14 +151,19 @@ export default function DocumentDetail({ route }: Props) {
           <Icon name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {doc.type} – {doc.vehicle || 'Document'}
+          {doc.type} {doc.vehicle ? `– ${doc.vehicle}` : ''}
         </Text>
         <TouchableOpacity
           onPress={handleDelete}
           style={styles.deleteBtn}
           activeOpacity={0.85}
+          disabled={deleting}
         >
-          <Icon name="trash-alt" size={wp(4.5)} color="#F44336" />
+          {deleting ? (
+            <ActivityIndicator size="small" color="#F44336" />
+          ) : (
+            <Icon name="trash-alt" size={wp(4.5)} color="#F44336" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -141,15 +172,28 @@ export default function DocumentDetail({ route }: Props) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ─── Document Preview ─── */}
+        {/* Document Preview */}
         <View style={styles.previewCard}>
-          <View style={styles.previewPlaceholder}>
-            <Icon name="file-pdf" size={wp(14)} color="#555" />
-            <Text style={styles.previewText}>Document Preview</Text>
-          </View>
+          {isImage ? (
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          ) : imageUri ? (
+            <View style={styles.previewPlaceholder}>
+              <Icon name="file-pdf" size={wp(14)} color="#FFBF00" />
+              <Text style={styles.previewText}>PDF Document</Text>
+            </View>
+          ) : (
+            <View style={styles.previewPlaceholder}>
+              <Icon name="file-alt" size={wp(14)} color="#555" />
+              <Text style={styles.previewText}>No Preview</Text>
+            </View>
+          )}
         </View>
 
-        {/* ─── Status & Source ─── */}
+        {/* Status & Source */}
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Status</Text>
@@ -158,7 +202,7 @@ export default function DocumentDetail({ route }: Props) {
                 style={[styles.statusDot, { backgroundColor: statusColor(doc.status) }]}
               />
               <Text style={[styles.statusText, { color: statusColor(doc.status) }]}>
-                {doc.status}
+                {statusLabel(doc.status)}
               </Text>
             </View>
           </View>
@@ -166,32 +210,37 @@ export default function DocumentDetail({ route }: Props) {
             <Text style={styles.infoLabel}>Source</Text>
             <View style={styles.sourceBadge}>
               <Icon
-                name={doc.source === 'DigiLocker' ? 'link' : 'cloud-upload-alt'}
+                name={doc.source === 'DIGILOCKER' ? 'link' : 'cloud-upload-alt'}
                 size={wp(3.5)}
                 color="#aaa"
                 style={{ marginRight: wp(1.5) }}
               />
-              <Text style={styles.sourceText}>{doc.source.toUpperCase()}</Text>
+              <Text style={styles.sourceText}>{doc.source}</Text>
             </View>
           </View>
         </View>
 
-        {/* ─── Extracted Fields ─── */}
+        {/* Extracted Fields */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Icon name="magic" size={wp(4)} color="#FFBF00" style={{ marginRight: wp(2) }} />
-            <Text style={styles.sectionTitle}>Extracted Fields</Text>
+            <Text style={styles.sectionTitle}>Document Details</Text>
           </View>
 
           <View style={styles.fieldCard}>
-            <FieldRow label="Doc Number" value={doc.docNumber} />
-            <FieldRow label="Issue Date" value={doc.issueDate} />
-            <FieldRow label="Expiry" value={doc.expiry} />
-            <FieldRow label="Issuer" value={doc.issuer} last />
+            {fields.length > 0 ? (
+              fields.map((f, i) => (
+                <FieldRow key={f.label} label={f.label} value={f.value} last={i === fields.length - 1} />
+              ))
+            ) : (
+              <View style={styles.noOcrRow}>
+                <Text style={styles.noOcrText}>No details extracted yet</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {/* ─── Action Buttons ─── */}
+        {/* Action Buttons */}
         <View style={styles.actionsRow}>
           <TouchableOpacity activeOpacity={0.85} style={styles.verifyBtn}>
             <Icon name="check-circle" size={wp(4.5)} color="#000" style={{ marginRight: wp(2) }} />
@@ -207,16 +256,7 @@ export default function DocumentDetail({ route }: Props) {
   );
 }
 
-/* ── Extracted Field Row ── */
-function FieldRow({
-  label,
-  value,
-  last,
-}: {
-  label: string;
-  value: string;
-  last?: boolean;
-}) {
+function FieldRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
     <View style={[styles.fieldRow, !last && styles.fieldRowBorder]}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -225,11 +265,9 @@ function FieldRow({
   );
 }
 
-/* ════════════════════ Styles ════════════════════ */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
 
-  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -251,7 +289,6 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: wp(4), paddingTop: hp(2), paddingBottom: hp(4) },
 
-  /* Preview */
   previewCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: wp(4),
@@ -265,13 +302,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  previewImage: {
+    width: '100%',
+    height: hp(28),
+  },
   previewText: {
     fontSize: wp(3.5),
     color: '#666',
     marginTop: hp(1.5),
   },
 
-  /* Info row */
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: wp(5),
+  },
+  emptyStateText: { fontSize: wp(4), color: '#888', marginTop: hp(1.5) },
+
   infoRow: {
     flexDirection: 'row',
     gap: wp(3),
@@ -303,7 +351,6 @@ const styles = StyleSheet.create({
   sourceBadge: { flexDirection: 'row', alignItems: 'center' },
   sourceText: { fontSize: wp(3.8), fontWeight: '600', color: '#ccc' },
 
-  /* Section */
   section: { marginBottom: hp(3) },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -312,7 +359,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: wp(4.5), fontWeight: '700', color: '#fff' },
 
-  /* Fields */
   fieldCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: wp(3.5),
@@ -332,9 +378,10 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.04)',
   },
   fieldLabel: { fontSize: wp(3.5), color: '#888' },
-  fieldValue: { fontSize: wp(3.8), color: '#fff', fontWeight: '500' },
+  fieldValue: { fontSize: wp(3.8), color: '#fff', fontWeight: '500', flexShrink: 1, textAlign: 'right' },
+  noOcrRow: { padding: wp(4) },
+  noOcrText: { fontSize: wp(3.5), color: '#666' },
 
-  /* Actions */
   actionsRow: {
     flexDirection: 'row',
     gap: wp(3),
