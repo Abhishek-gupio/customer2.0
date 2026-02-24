@@ -86,19 +86,37 @@ export default function DocumentList() {
     });
     return FIXED_GRID_TYPES.map((type) => {
       const docs = byType.get(type) ?? [];
-      const latest = docs[0];
+      if (docs.length === 0) {
+        return {
+          id: `empty_${type}`,
+          label: DOC_TYPE_LABELS[type] ?? type,
+          expiry: 'Not uploaded',
+          status: 'verified' as DocStatus,
+          type,
+          hasDoc: false,
+        };
+      }
+
+      // Prefer a document that has an explicit expiryDate. If multiple, pick the most
+      // recently created one. Otherwise fall back to the most recently created document.
+      const docsWithExpiry = docs.filter((d) => d.expiryDate);
+      let latest = docsWithExpiry.length > 0
+        ? docsWithExpiry.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0]
+        : docs.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0];
+
       // Always use expiryDate if present, else try dates[1] (expiry), else dates[0]
       let expiryDate = latest?.expiryDate;
       if (!expiryDate && latest?.dates && Array.isArray(latest.dates)) {
         expiryDate = latest.dates[1] || latest.dates[0];
       }
+
       return {
-        id: latest?.id ?? `empty_${type}`,
+        id: latest.id,
         label: DOC_TYPE_LABELS[type] ?? type,
-        expiry: latest ? formatExpiry(expiryDate) : 'Not uploaded',
-        status: latest?.status ?? ('verified' as DocStatus),
+        expiry: formatExpiry(expiryDate),
+        status: latest.status,
         type,
-        hasDoc: !!latest,
+        hasDoc: true,
       };
     });
   }, [documents]);
