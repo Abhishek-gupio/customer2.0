@@ -15,7 +15,6 @@
     "@babel/runtime": "^7.28.6",
     "@react-native-documents/picker": "^12.0.1",
     "@react-native-firebase/analytics": "^23.8.6",
-    "@react-native-firebase/app": "^23.8.6",
     "@react-native-firebase/perf": "^23.8.6",
     "@react-native-voice/voice": "^3.2.4",
     "@react-native/codegen": "^0.83.1",
@@ -43,6 +42,7 @@
     "react-native-image-picker": "^8.2.1",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-mmkv": "^2.12.2",
+    "react-native-onesignal": "^5.3.1",
     "react-native-paper": "^5.15.0",
     "react-native-pdf": "^7.0.3",
     "react-native-responsive-screen": "^1.4.2",
@@ -53,6 +53,7 @@
     "react-native-vector-icons": "^10.3.0",
     "react-native-video": "^6.19.0",
     "react-redux": "^9.2.0",
+    "socket.io-client": "^4.8.3",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },

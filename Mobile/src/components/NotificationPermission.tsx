@@ -20,7 +20,7 @@ let RNAndroidNotificationListener: any = null;
 if (Platform.OS === 'android') {
     try {
         RNAndroidNotificationListener =
-            require('react-native-android-notification-listener').default;
+            (require('react-native-android-notification-listener') as any).default;
     } catch { }
 }
 
