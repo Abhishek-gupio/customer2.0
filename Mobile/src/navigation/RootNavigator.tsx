@@ -16,6 +16,7 @@ import DocumentDetail from '../screens/Documents/DocumentDetail';
 import VehicleList from '../screens/Vehicles/VehicleList';
 import VehicleDetails from '../screens/Vehicles/VehicleDetails';
 import AddVehicle from '../screens/Vehicles/AddVehicle';
+import Challans from '../screens/Vehicles/Challans';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
 import Settings from '../screens/Profile/Settings';
@@ -55,6 +56,7 @@ export function RootNavigator() {
       <Stack.Screen name="VehicleList" component={VehicleList} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetails} />
       <Stack.Screen name="AddVehicle" component={AddVehicle} />
+      <Stack.Screen name="Challans" component={Challans} />
       <Stack.Screen name="UploadDocument" component={UploadDocument} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />

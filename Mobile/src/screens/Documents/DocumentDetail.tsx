@@ -10,6 +10,9 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Modal,
+  Linking,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -24,6 +27,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
 import { removeDocumentAsync, fetchDocumentById } from '../../store/slices/documentsSlice';
+import { API_BASE_URL } from '../../config';
 
 type DetailNavProp = NativeStackNavigationProp<RootStackParamList, 'DocumentDetail'>;
 
@@ -39,14 +43,14 @@ function statusLabel(s: string) {
   return 'Expired';
 }
 
-function formatDate(dateStr?: string | null): string {
-  if (!dateStr) return 'N/A';
+function formatDate(dateVal?: string | number | null): string {
+  if (!dateVal) return 'N/A';
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return String(dateVal);
     return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   } catch {
-    return dateStr;
+    return String(dateVal);
   }
 }
 
@@ -62,6 +66,8 @@ export default function DocumentDetail({ route }: Props) {
     state.documents.documents.find((d) => d.id === documentId),
   );
   const [deleting, setDeleting] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
 
   useEffect(() => {
     if (!doc) {
@@ -90,6 +96,36 @@ export default function DocumentDetail({ route }: Props) {
     ]);
   };
 
+  const imageUri = doc?.imageUri;
+  const fullImageUri = imageUri
+    ? imageUri.startsWith('http')
+      ? imageUri
+      : `${API_BASE_URL}${imageUri}`
+    : null;
+
+  const handleDownload = () => {
+    if (fullImageUri) {
+      Linking.openURL(fullImageUri).catch((err) =>
+        Alert.alert('Error', 'Could not open download link'),
+      );
+    } else {
+      Alert.alert('Error', 'Download link not available');
+    }
+  };
+
+  const handleShare = async () => {
+    if (!doc || !fullImageUri) return;
+    try {
+      await Share.share({
+        title: `${doc.type} Document`,
+        message: `Check out this ${doc.type} document for vehicle ${doc.vehicle || 'N/A'}.\n\nDownload: ${fullImageUri}`,
+        url: fullImageUri, // url is mainly for iOS sharing
+      });
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
   if (!doc) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -108,16 +144,24 @@ export default function DocumentDetail({ route }: Props) {
     );
   }
 
-  const imageUri = doc.imageUri;
-  const isImage = imageUri && !imageUri.toLowerCase().endsWith('.pdf');
-
-  // Ensure expiry date is used from dates array if expiryDate is not set
-  
+  const isPdf = imageUri?.toLowerCase().endsWith('.pdf');
+  const isImage = imageUri && !isPdf;
 
   const fields: { label: string; value: string }[] = [];
   if (doc.documentNumber) fields.push({ label: 'Doc Number', value: doc.documentNumber });
-  if (doc.issueDate) fields.push({ label: 'Issue Date', value: formatDate(doc.issueDate) });
-  if (doc.expiryDate) fields.push({ label: 'Expiry', value: formatDate(doc.expiryDate) });
+
+  // Expiry Date logic: prioritize 'expirydate' or 'expiryDate' from extracted fields
+  let displayExpiry: any = doc.expiryDate;
+  if (doc.extractedFields?.expirydate) {
+    displayExpiry = doc.extractedFields.expirydate;
+  } else if (doc.extractedFields?.expiryDate) {
+    displayExpiry = doc.extractedFields.expiryDate;
+  }
+
+  if (displayExpiry) {
+    fields.push({ label: 'Expiry', value: formatDate(displayExpiry) });
+  }
+
   if (doc.issuerName) fields.push({ label: 'Issuer', value: doc.issuerName });
   if (doc.vehicle) fields.push({ label: 'Vehicle', value: doc.vehicle });
 
@@ -173,17 +217,21 @@ export default function DocumentDetail({ route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {/* Document Preview */}
-        <View style={styles.previewCard}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => (isImage ? setShowFullImage(true) : isPdf ? setShowPdf(true) : null)}
+          style={styles.previewCard}
+        >
           {isImage ? (
             <Image
-              source={{ uri: imageUri }}
+              source={{ uri: fullImageUri || '' }}
               style={styles.previewImage}
               resizeMode="contain"
             />
-          ) : imageUri ? (
+          ) : isPdf ? (
             <View style={styles.previewPlaceholder}>
               <Icon name="file-pdf" size={wp(14)} color="#FFBF00" />
-              <Text style={styles.previewText}>PDF Document</Text>
+              <Text style={styles.previewText}>Tap to view PDF</Text>
             </View>
           ) : (
             <View style={styles.previewPlaceholder}>
@@ -191,7 +239,7 @@ export default function DocumentDetail({ route }: Props) {
               <Text style={styles.previewText}>No Preview</Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* Status & Source */}
         <View style={styles.infoRow}>
@@ -242,16 +290,87 @@ export default function DocumentDetail({ route }: Props) {
 
         {/* Action Buttons */}
         <View style={styles.actionsRow}>
-          <TouchableOpacity activeOpacity={0.85} style={styles.verifyBtn}>
-            <Icon name="check-circle" size={wp(4.5)} color="#000" style={{ marginRight: wp(2) }} />
-            <Text style={styles.verifyBtnText}>Verify</Text>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.shareBtn}
+            onPress={handleShare}
+          >
+            <Icon name="share-alt" size={wp(4.5)} color="#000" style={{ marginRight: wp(2) }} />
+            <Text style={styles.shareBtnText}>Share</Text>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.85} style={styles.downloadBtn}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.downloadBtn}
+            onPress={handleDownload}
+          >
             <Icon name="download" size={wp(4.5)} color="#fff" style={{ marginRight: wp(2) }} />
             <Text style={styles.downloadBtnText}>Download</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Full Image Modal */}
+      <Modal
+        visible={showFullImage}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => setShowFullImage(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowFullImage(false)} style={styles.modalCloseBtn}>
+              <Icon name="times" size={wp(6)} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Image Preview</Text>
+            <TouchableOpacity onPress={handleDownload} style={styles.modalDownloadIcon}>
+              <Icon name="download" size={wp(5)} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.modalImageWrap}>
+            <Image
+              source={{ uri: fullImageUri || '' }}
+              style={styles.modalFullImage}
+              resizeMode="contain"
+            />
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* PDF View Modal placeholder */}
+      {showPdf && (
+        <Modal
+          visible={showPdf}
+          transparent={false}
+          animationType="slide"
+          onRequestClose={() => setShowPdf(false)}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowPdf(false)} style={styles.modalCloseBtn}>
+                <Icon name="arrow-left" size={wp(5)} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>PDF Viewer</Text>
+              <TouchableOpacity onPress={handleDownload} style={styles.modalDownloadIcon}>
+                <Icon name="download" size={wp(5)} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1, backgroundColor: '#eee' }}>
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="file-pdf" size={wp(14)} color="#FFBF00" />
+                <Text style={{ marginTop: hp(2), color: '#333', fontSize: wp(4) }}>
+                  Opening PDF Download Link...
+                </Text>
+                <TouchableOpacity
+                  style={[styles.shareBtn, { marginTop: hp(3), paddingHorizontal: wp(6) }]}
+                  onPress={handleDownload}
+                >
+                  <Text style={styles.shareBtnText}>Download to View</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -296,20 +415,21 @@ const styles = StyleSheet.create({
     marginBottom: hp(2.5),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
+    height: hp(30),
+    justifyContent: 'center',
   },
   previewPlaceholder: {
-    height: hp(28),
     alignItems: 'center',
     justifyContent: 'center',
   },
   previewImage: {
     width: '100%',
-    height: hp(28),
+    height: '100%',
   },
   previewText: {
     fontSize: wp(3.5),
     color: '#666',
-    marginTop: hp(1.5),
+    marginTop: hp(1.5)
   },
 
   emptyState: {
@@ -386,7 +506,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: wp(3),
   },
-  verifyBtn: {
+  shareBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -395,7 +515,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     borderRadius: wp(3.5),
   },
-  verifyBtnText: { fontSize: wp(4), fontWeight: '700', color: '#000' },
+  shareBtnText: { fontSize: wp(4), fontWeight: '700', color: '#000' },
   downloadBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -408,4 +528,37 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   downloadBtnText: { fontSize: wp(4), fontWeight: '700', color: '#fff' },
+
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
+    backgroundColor: '#0a0a0a',
+  },
+  modalCloseBtn: {
+    padding: wp(2),
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontWeight: '700',
+  },
+  modalDownloadIcon: {
+    padding: wp(2),
+  },
+  modalImageWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalFullImage: {
+    width: '100%',
+    height: '100%',
+  },
 });
