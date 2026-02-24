@@ -142,3 +142,25 @@ export const timePeriods: TimePeriods[]=[
   }
 
 ]
+
+import { Bill } from "../../navigation/types";
+
+export const billsData: Bill[] = [
+  {
+    id: "1",
+    title: "Engine oil",
+    amount: 1200,
+    status: "verified",
+    uploadedAt: "2 days ago",
+    warrantyMonths: 6,
+    image: "https://picsum.photos/400/300",
+  },
+  {
+    id: "2",
+    title: "Car Service",
+    amount: 4500,
+    status: "pending",
+    uploadedAt: "Today",
+    image: null,
+  },
+];

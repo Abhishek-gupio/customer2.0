@@ -16,11 +16,15 @@ export type RootStackParamList = {
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
   Expenses: undefined;
-  addExpense: undefined;
+  AddExpense: undefined;
+  ExpenseAnalytics: undefined;
+  ServiceHistory: undefined;
+  WarrantyStatus: undefined;
+  OptionModal: undefined;
   Analytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
-  Settings: undefined
+  Settings: undefined;
 };
 
 export type MainTabParamList = {
@@ -35,4 +39,24 @@ declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList { }
   }
+}
+
+
+export interface Bill {
+  id: string;
+  title: string;
+  amount: number;
+  uploadedAt: string;
+  warrantyMonths?: number | null;
+  image?: string | number | null; // string = remote, number = local require()
+}
+
+
+export interface Bill {
+  id: string;
+  title: string;
+  amount: number;
+  uploadedAt: string;
+  warrantyMonths?: number | null;
+  image?: string | number | null; // string = remote, number = local require()
 }

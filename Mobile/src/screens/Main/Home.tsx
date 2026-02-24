@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,11 @@ import QuickServicesGrid from '../../components/QuickServicesGrid';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 
 export default function Home() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [serviceModalVisible, setServiceModalVisible] = useState(false);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleProfilePress = () => {
     // Access the root navigator using getParent()
@@ -80,6 +81,11 @@ export default function Home() {
         <QuickServicesGrid
           onServicePress={label => {
             if (label === 'Documents') {
+              navigation.navigate('DocumentList');
+            } else if (label === 'Expenses') {
+              navigation.navigate('Expenses');
+            } else if (label === 'Service') {
+              setServiceModalVisible(true); 
               navigateToRootScreen('DocumentList');
             } else if (label === 'Vehicles') {
               navigateToRootScreen('VehicleList');
@@ -189,6 +195,14 @@ export default function Home() {
         </View>
 
         <View style={{ height: hp(4) }} />
+        <ServiceOptionsOverlay
+          visible={serviceModalVisible}
+          onClose={() => setServiceModalVisible(false)}
+          onSelect={(screen) => {
+            setServiceModalVisible(false);
+            navigation.navigate(screen);
+          }}
+/>
       </ScrollView>
     </SafeAreaView>
   );

@@ -21,8 +21,12 @@ import HelpSupport from '../screens/Profile/HelpSupport';
 import Settings from '../screens/Profile/Settings';
 import { MainBottomTabs } from './MainBottomTabs';
 import ExpensesList from '../screens/Expenses/ExpenseList';
-import addExpense from '../screens/Expenses/AddExpense';
+import AddExpenseScreen from '../screens/Expenses/AddExpense';
 import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
+import OptionModal from '../screens/ServiceAndWarrenty/OptionModal';
+import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
+import {WarrantyStatus} from '../screens/ServiceAndWarrenty/WarrantyStatus';
+// import { ProtectedRoute } from './ProtectedRoute';
 import Challans from '../screens/Vehicles/Challans';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -60,9 +64,15 @@ export function RootNavigator() {
       <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />
       <Stack.Screen name="Expenses" component={ExpensesList} />
-      <Stack.Screen name="addExpense" component={addExpense} options={{
-        presentation: 'transparentModal',
+      <Stack.Screen name="AddExpense" component={AddExpenseScreen}  />
+      <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
+      <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
+      <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
+      {/*
+      <Stack.Screen name="OptionModal" component={OptionModal} 
+      options={{presentation:'transparentModal'
       }} />
+      */}
       <Stack.Screen name="Analytics" component={ExpenseAnalytics} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
