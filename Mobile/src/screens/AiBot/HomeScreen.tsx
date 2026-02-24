@@ -1,185 +1,85 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import React, { useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  Easing,
+} from "react-native-reanimated";
 
-export default function HomeScreen() {
+const SIZE = 180;
+
+export default function AnimatedOrb() {
+  const scale = useSharedValue(1);
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    // Breathing pulse
+    scale.value = withRepeat(
+      withTiming(1.08, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
+    );
+
+    // Slow rotation
+    rotation.value = withRepeat(
+      withTiming(360, {
+        duration: 20000,
+        easing: Easing.linear,
+      }),
+      -1
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: scale.value },
+      { rotate: `${rotation.value}deg` },
+    ],
+  }));
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Ionicons name="chevron-back" size={22} color="#fff" />
-        <View style={styles.status}>
-          <View style={styles.dot} />
-          <Text style={styles.headerText}>GUPIO AI</Text>
-        </View>
-      </View>
+    <View style={styles.container}>
+      <Animated.View style={[styles.glow, animatedStyle]}>
+        <Svg width={SIZE} height={SIZE}>
+          <Defs>
+            <RadialGradient id="grad" cx="50%" cy="50%" r="50%">
+              <Stop offset="0%" stopColor="#5DA9FF" stopOpacity="0.9" />
+              <Stop offset="60%" stopColor="#1B3A6F" stopOpacity="0.8" />
+              <Stop offset="100%" stopColor="#020617" stopOpacity="1" />
+            </RadialGradient>
+          </Defs>
 
-      {/* Orb */}
-      <View style={styles.orbContainer}>
-        <View style={styles.orb} />
-      </View>
-
-      {/* Text */}
-      <Text style={styles.hello}>Hello Robin</Text>
-      <Text style={styles.title}>How can I help{"\n"}you today?</Text>
-
-      {/* Cards */}
-      <View style={styles.cards}>
-        <ActionCard
-          icon="car"
-          title="Vehicle Health"
-          subtitle="Check my car"
-        />
-        <ActionCard
-          icon="shield-checkmark"
-          title="Insurance Status"
-          subtitle="Policy details"
-        />
-        <ActionCard
-          icon="cash"
-          title="Monthly Expenses"
-          subtitle="Spending report"
-        />
-        <ActionCard
-          icon="build"
-          title="Schedule Service"
-          subtitle="Book service"
-        />
-      </View>
-
-      {/* Input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Ask anything..."
-          placeholderTextColor="#7a8599"
-          style={styles.input}
-        />
-        <Ionicons name="mic" size={20} color="#9fb3ff" />
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function ActionCard({ icon ={icon}, title, subtitle }) {
-  return (
-    <TouchableOpacity style={styles.card}>
-      <Ionicons name={icon} size={22} color="#9fb3ff" />
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardSubtitle}>{subtitle}</Text>
-    </TouchableOpacity>
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={SIZE / 2}
+            fill="url(#grad)"
+          />
+        </Svg>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#050b17",
-    paddingHorizontal: 20,
-  },
-
-  header: {
-    flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+    justifyContent: "center",
   },
 
-  status: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: 12,
-  },
-
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#00ff9c",
-    marginRight: 6,
-  },
-
-  headerText: {
-    color: "#bfc9ff",
-    fontSize: 14,
-    letterSpacing: 1,
-  },
-
-  orbContainer: {
-    alignItems: "center",
-    marginVertical: 40,
-  },
-
-  orb: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: "#0b1c38",
-    shadowColor: "#5da9ff",
+  glow: {
+    width: SIZE,
+    height: SIZE,
+    borderRadius: SIZE / 2,
+    shadowColor: "#5DA9FF",
     shadowOpacity: 0.8,
     shadowRadius: 40,
-  },
-
-  hello: {
-    color: "#7a8599",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-
-  title: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 30,
-  },
-
-  cards: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  card: {
-    width: "48%",
-    backgroundColor: "#0b1326",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
-  },
-
-  cardTitle: {
-    color: "#fff",
-    fontWeight: "600",
-    marginTop: 10,
-  },
-
-  cardSubtitle: {
-    color: "#7a8599",
-    fontSize: 12,
-    marginTop: 4,
-  },
-
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0b1326",
-    borderRadius: 30,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginTop: "auto",
-    marginBottom: 20,
-  },
-
-  input: {
-    flex: 1,
-    color: "#fff",
-    marginRight: 10,
+    elevation: 20, // Android glow
   },
 });

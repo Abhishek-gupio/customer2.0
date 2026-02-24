@@ -17,6 +17,8 @@ export type RootStackParamList = {
   ServiceHistory: undefined;
   WarrantyStatus: undefined;
   OptionModal: undefined;
+  AiBotHome: undefined;
+  // AiBotChat: undefined;
 };
 
 export type MainTabParamList = {
