@@ -20,6 +20,7 @@ import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
 import OptionModal from '../screens/ServiceAndWarrenty/OptionModal';
 import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
 import {WarrantyStatus} from '../screens/ServiceAndWarrenty/WarrantyStatus';
+import AiBotHome from '../screens/AiBot/HomeScreen';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -63,7 +64,9 @@ export function RootNavigator() {
       <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
       <Stack.Screen name="OptionModal" component={OptionModal} 
       options={{presentation:'transparentModal'
+
       }} />
+      <Stack.Screen name="AiBotHome" component={AiBotHome} />
 
     </Stack.Navigator>
   );

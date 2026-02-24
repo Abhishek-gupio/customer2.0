@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
     activeTimeTab: {
-    backgroundColor: "#afafb2",
+    backgroundColor: '#ffbf00',
     color: "#18191a",
   },
   activeTimeTabText: {
@@ -308,7 +308,7 @@ toggleBtn: {
 },
 
 activeBtn: {
-  backgroundColor: "#d7d5d5",
+  backgroundColor: '#ffbf00',
   borderRadius: wp(6),
 },
 

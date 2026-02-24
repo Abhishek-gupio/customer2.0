@@ -111,7 +111,7 @@ const ExpenseFeed = () => {
 
     <SafeAreaView style={styles.container} edges={['top']}>
     <ScrollView showsVerticalScrollIndicator={false}>
-    <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
+    <View style={styles.shader}>
       <View style={styles.header}>
         <View style={styles.subHeder}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -135,7 +135,7 @@ const ExpenseFeed = () => {
             <Text style={styles.growthText}> +8% from last month</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
         <View style={[styles.card, { marginTop: hp(-4),backgroundColor: 'transparentrgb(18, 18, 23)'}]}>
           <View style={styles.rowBetween}>
             <Text style={styles.cardLabel}>Total Spent</Text>
@@ -250,8 +250,6 @@ const ExpenseFeed = () => {
 };
 
 export default ExpenseFeed;
-
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
@@ -373,7 +371,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     borderRadius: wp(5),
   },
-  activeTimelineItem: { backgroundColor: '#e5e5e2' },
+  activeTimelineItem: { backgroundColor: '#ffbf00' },
   timelineText: { 
     color: 'rgb(164, 164, 166)',
     fontWeight:'600' 

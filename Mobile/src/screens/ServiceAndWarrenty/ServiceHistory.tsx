@@ -21,7 +21,7 @@ import {
 export default function ServiceHistoryScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.safe}>
-      <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
+      <View style={styles.shader}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation?.goBack()}>
@@ -32,11 +32,12 @@ export default function ServiceHistoryScreen({ navigation }: any) {
 
         {/* Vehicle Number */}
         <Text style={styles.vehicle}>MH12AB1234</Text>
-        </LinearGradient>
+        </View>
         <View style={styles.container}>
 
         {/* Service List */}
         <FlatList
+        // ListHeaderComponent={}
           data={serviceHistory}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ServiceCard item={item} />}

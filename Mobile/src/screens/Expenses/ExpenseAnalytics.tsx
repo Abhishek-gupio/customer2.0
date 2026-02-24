@@ -35,11 +35,7 @@ export default function ExpenseAnalytics() {
       >
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-
-      <LinearGradient
-        colors={["rgb(62, 59, 59)", "rgba(27, 26, 26, 0.95)"]}
-        style={styles.shader}
-      >
+     <View style={styles.shader}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-left" size={wp(8)} color="#fff" />
@@ -54,7 +50,7 @@ export default function ExpenseAnalytics() {
           <Text style={styles.title}>Detailed Analytics</Text>
           <Text style={styles.subtitle}>Comprehensive expense insights</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <View style={styles.cardRow}>
         <StatCard title="Total Spent" value="₹172K" change="+12%" positive />

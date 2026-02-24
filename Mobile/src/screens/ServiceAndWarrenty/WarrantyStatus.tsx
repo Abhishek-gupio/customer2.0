@@ -20,7 +20,7 @@ export const WarrantyStatus = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-            <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
+            <View style={styles.shader}>
               <View style={styles.header}>
                 <View style={styles.subHeder}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -31,7 +31,7 @@ export const WarrantyStatus = () => {
                 </View>
               </View>
               <WarrantySummary active={5} expired={1} />
-            </LinearGradient>
+            </View>
 
     <FlatList
       data={vehicleParts}

@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   saveBtnActive: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: '#ffbf00',
     opacity: 1,
   },
   saveText: {
