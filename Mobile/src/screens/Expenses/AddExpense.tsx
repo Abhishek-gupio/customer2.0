@@ -19,6 +19,10 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import ManualEntryOverlay from "./ManualEntry";
 import ReceiptReviewer from "./ReceiptReviewer";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import Voice from "@react-native-voice/voice";
 import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "@react-navigation/native";
@@ -57,7 +61,6 @@ export default function AddExpenseScreen() {
   React.useEffect(() => {
     const initVoice = async () => {
       try {
-        // Only treat as unavailable if the module is missing; we assign handlers below
         if (!Voice) {
           setVoiceAvailable(false);
           return;
@@ -85,8 +88,6 @@ export default function AddExpenseScreen() {
           }
         };
 
-        // Avoid calling isAvailable() – it can touch native code that may be null.
-        // We'll discover availability when user taps "Add by Voice" (start() will throw if unavailable).
         setVoiceAvailable(true);
       } catch (err) {
         console.error('Voice init error:', err);
@@ -113,7 +114,6 @@ export default function AddExpenseScreen() {
   const processVoiceCommand = async (speechText: string) => {
     setLoading(true);
     try {
-      // Get extracted data only (dryRun) so we can show confirmation screen
       const response = await api.post('/v1/expenses/parse/voice/text?dryRun=true', {
         text: speechText,
       });
@@ -123,7 +123,6 @@ export default function AddExpenseScreen() {
 
       if (result?.success && result?.expense) {
         const exp = result.expense;
-        // Convert date from YYYY-MM-DD to dd-MM-yyyy for ManualEntry
         let dateStr = "";
         if (exp.date) {
           const d = new Date(exp.date);
@@ -151,8 +150,7 @@ export default function AddExpenseScreen() {
       }
     } catch (error: any) {
       console.error("Voice processing error:", error);
-      const msg =
-        error?.error?.message ?? error?.message ?? "Failed to process voice command. Please try again.";
+      const msg = error?.error?.message ?? error?.message ?? "Failed to process voice command. Please try again.";
       Alert.alert("Error", msg);
     } finally {
       setLoading(false);
@@ -338,7 +336,6 @@ export default function AddExpenseScreen() {
       } catch (_) { }
       setVoiceText("");
 
-      // Use saved default language (or Auto = device locale)
       let locale = "en-US";
       if (voiceLanguageIndex > 0 && VOICE_LANGUAGES[voiceLanguageIndex]?.locale) {
         locale = VOICE_LANGUAGES[voiceLanguageIndex].locale;
@@ -535,50 +532,50 @@ function ActionCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end', // Align panel to bottom or center? The original was centered.
+    justifyContent: 'flex-end',
   },
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)", // Darker backdrop
+    backgroundColor: "rgba(0,0,0,0.8)",
     justifyContent: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(5),
   },
   panel: {
-    borderRadius: 28,
-    padding: 20,
+    borderRadius: wp(7),
+    padding: wp(5),
     backgroundColor: "rgba(28,28,28,0.95)",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: hp(2),
   },
   title: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: hp(2.3),
     fontWeight: "600",
   },
   card: {
     backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 22,
-    paddingVertical: 26,
+    borderRadius: wp(6),
+    paddingVertical: hp(3),
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: wp(16),
+    height: wp(16),
+    borderRadius: wp(8),
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp(1),
   },
   cardText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: hp(1.9),
     fontWeight: "500",
   },
   cardDisabled: {

@@ -20,6 +20,10 @@ export type RootStackParamList = {
   MyProfile: undefined;
   HelpSupport: undefined;
   Settings: undefined;
+  ExpenseAnalytics: undefined;
+  ServiceHistory: undefined;
+  WarrantyStatus: undefined;
+  OptionModal: undefined;
 };
 
 export type MainTabParamList = {
@@ -34,4 +38,16 @@ declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList { }
   }
+}
+
+export type BillStatus = "verified" | "pending";
+
+export interface Bill {
+  id: string;
+  title: string;
+  amount: number;
+  status: BillStatus;
+  uploadedAt: string;
+  warrantyMonths?: number | null;
+  image?: string | number | null; // string = remote, number = local require()
 }

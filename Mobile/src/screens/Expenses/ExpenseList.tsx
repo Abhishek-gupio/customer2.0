@@ -20,6 +20,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
+import Bills from './Bills';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -118,7 +119,7 @@ const ExpenseFeed = () => {
       // Check if refresh was requested and apply appropriate delay
       const needsRefresh = getAndClearExpenseListRefresh();
       const delay = needsRefresh ? 100 : 0;
-      
+
       setTimeout(() => {
         fetchExpenses();
       }, delay);
@@ -238,32 +239,45 @@ const ExpenseFeed = () => {
             </TouchableOpacity>
             <View style={styles.subHeder}>
               <Text style={styles.headerTitle}>Expenses</Text>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
+                  <View style={styles.header}>
+                    <View style={styles.subHeder}>
+                      <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Icon name="arrow-left" size={wp(5)} color="#fff" />
+                      </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
-                <Icon name="plus" size={wp(5)} color="#fff" />
-              </TouchableOpacity>
+                      <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
+                        <Icon name="plus" size={wp(5)} color="#fff" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Text style={styles.headerTitle}>Expenses List</Text>
+                </View>
+                <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
+                  <Icon name="plus" size={wp(5)} color="#fff" />
+                </TouchableOpacity>
             </View>
-          </View>
 
 
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Total This Month</Text>
-            <Text style={styles.amount}>{formatCurrency(totalThisMonth)}</Text>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>Total This Month</Text>
+              <Text style={styles.amount}>{formatCurrency(totalThisMonth)}</Text>
 
-            <View style={styles.row}>
-              <Icon
-                name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
-                size={wp(3)}
-                color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
-              />
-              <Text style={[
-                styles.growthText,
-                { color: growthPercent >= 0 ? '#ff5252' : '#00c853' }
-              ]}>
-                {' '}{growthPercent >= 0 ? '+' : ''}{growthPercent}% from last month
-              </Text>
+              <View style={styles.row}>
+                <Icon
+                  name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
+                  size={wp(3)}
+                  color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
+                />
+                <Text style={[
+                  styles.growthText,
+                  { color: growthPercent >= 0 ? '#ff5252' : '#00c853' }
+                ]}>
+                  {' '}{growthPercent >= 0 ? '+' : ''}{growthPercent}% from last month
+                </Text>
+              </View>
             </View>
-          </View>
         </LinearGradient>
         <View style={[styles.card, { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' }]}>
           <View style={styles.rowBetween}>
@@ -374,18 +388,25 @@ const ExpenseFeed = () => {
             </View>
           ))
         )}
+        <Text style={styles.itemAmount}>₹{item.amount}</Text>
+      </View>
+        ))}
 
-        <TouchableOpacity
-          style={styles.sectionTitleCentered}
-          onPress={() => navigation.navigate('Analytics')}
-        >
-          <Icon name="chart-bar" size={wp(5)} color="#fff" />
-          <Text style={{ color: '#fff', marginLeft: wp(2) }}>
-            View Detailed Analytics
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      <Bills />
+
+      <TouchableOpacity
+        style={styles.sectionTitleCentered}
+        onPress={() => navigation.navigate('ExpenseAnalytics')}
+      >
+        <Icon name="chart-bar" size={wp(5)} color="#fff" />
+        <Text style={{ color: '#fff', marginLeft: wp(2) }}>
+          View Detailed Analytics
+        </Text>
+      </TouchableOpacity>
+
+    </ScrollView>
+
+    </SafeAreaView >
   );
 };
 
@@ -397,14 +418,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
   header: {
     paddingHorizontal: wp(6),
-    paddingVertical: hp(1.5),
-    gap: wp(3),
+    paddingVertical: hp(1),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  headerTitle: { color: '#fff', fontSize: wp(8), fontWeight: '700' },
+  headerTitle: { color: '#fff', fontSize: wp(6.5), fontWeight: '700' },
   subHeder: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: wp(5),
   },
   card: {
     marginHorizontal: wp(4),
@@ -489,7 +512,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: wp(4),
+    padding: wp(6),
     backgroundColor: '#1a1a1a',
     borderRadius: wp(6),
     borderWidth: 1,
