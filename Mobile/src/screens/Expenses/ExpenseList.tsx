@@ -21,6 +21,7 @@ import { api } from '../../services/api';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
 import NotificationPermission from '../../components/NotificationPermission';
+import Bills from './Bills';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -237,16 +238,15 @@ const ExpenseFeed = () => {
       >
         <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon name="arrow-left" size={wp(5)} color="#fff" />
-            </TouchableOpacity>
             <View style={styles.subHeder}>
-              <Text style={styles.headerTitle}>Expenses</Text>
-
-              <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
-                <Icon name="plus" size={wp(5)} color="#fff" />
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon name="arrow-left" size={wp(5)} color="#fff" />
               </TouchableOpacity>
+              <Text style={styles.headerTitle}>Expenses</Text>
             </View>
+            <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
+              <Icon name="plus" size={wp(5)} color="#fff" />
+            </TouchableOpacity>
           </View>
 
           <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
@@ -399,6 +399,8 @@ const ExpenseFeed = () => {
           </TouchableOpacity>
         )}
 
+        <Bills />
+
         <TouchableOpacity
           style={styles.sectionTitleCentered}
           onPress={() => navigation.navigate('BudgetSettings')}
@@ -411,34 +413,36 @@ const ExpenseFeed = () => {
 
         <TouchableOpacity
           style={styles.sectionTitleCenteredAnalytics}
-          onPress={() => navigation.navigate('Analytics')}
+          onPress={() => navigation.navigate('ExpenseAnalytics')}
         >
           <Icon name="chart-bar" size={wp(5)} color="#fff" />
           <Text style={{ color: '#fff', marginLeft: wp(2) }}>
             View Detailed Analytics
           </Text>
         </TouchableOpacity>
+
       </ScrollView>
+
     </SafeAreaView>
   );
 };
 
 export default ExpenseFeed;
 
-
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
   header: {
     paddingHorizontal: wp(6),
-    paddingVertical: hp(1.5),
-    gap: wp(3),
+    paddingVertical: hp(1),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  headerTitle: { color: '#fff', fontSize: wp(8), fontWeight: '700' },
+  headerTitle: { color: '#fff', fontSize: wp(6.5), fontWeight: '700' },
   subHeder: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: wp(5),
   },
   card: {
     marginHorizontal: wp(4),

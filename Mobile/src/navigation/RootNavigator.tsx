@@ -24,6 +24,9 @@ import ExpensesList from '../screens/Expenses/ExpenseList';
 import addExpense from '../screens/Expenses/AddExpense';
 import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
 import BudgetSettings from '../screens/Expenses/BudgetSettings';
+import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
+import { WarrantyStatus } from '../screens/ServiceAndWarrenty/WarrantyStatus';
+import AiBotHome from '../screens/AiBot/HomeScreen';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -63,11 +66,19 @@ export function RootNavigator() {
       <Stack.Screen name="addExpense" component={addExpense} options={{
         presentation: 'transparentModal',
       }} />
-      <Stack.Screen name="Analytics" component={ExpenseAnalytics} />
+
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
       <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen name="BudgetSettings" component={BudgetSettings} />
+      <Stack.Screen name="BudgetSettings" component={BudgetSettings} options={{
+        presentation: 'transparentModal',
+      }} />
+      <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
+      <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
+      <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
+
+      <Stack.Screen name="AiBotHome" component={AiBotHome} />
+
     </Stack.Navigator>
   );
 }

@@ -19,6 +19,14 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import ManualEntryOverlay from "./ManualEntry";
 import ReceiptReviewer from "./ReceiptReviewer";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+
+
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
+
 import Voice from "@react-native-voice/voice";
 import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "@react-navigation/native";
@@ -539,46 +547,52 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)", // Darker backdrop
+    backgroundColor: "rgba(0,0,0,0.95)",
     justifyContent: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(5),
   },
+
   panel: {
-    borderRadius: 28,
-    padding: 20,
+    borderRadius: wp(7),
+    padding: wp(5),
     backgroundColor: "rgba(28,28,28,0.95)",
   },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: hp(2),
   },
+
   title: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: hp(2.3),
     fontWeight: "600",
   },
+
   card: {
     backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 22,
-    paddingVertical: 26,
+    borderRadius: wp(6),
+    paddingVertical: hp(3),
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
+
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: wp(16),
+    height: wp(16),
+    borderRadius: wp(8),
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp(1),
   },
+
   cardText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: hp(1.9),
     fontWeight: "500",
   },
   cardDisabled: {
@@ -660,3 +674,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+
