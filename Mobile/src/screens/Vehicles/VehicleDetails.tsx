@@ -3,19 +3,22 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Image,
   Animated,
   Easing,
+  StatusBar,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { launchCamera } from 'react-native-image-picker';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -78,29 +81,85 @@ const VehicleDetails = ({ navigation, route }: any) => {
     outputRange: ['0deg', '360deg'],
   });
 
+  const handleUpdateOdometer = async () => {
+    try {
+      const result: any = await launchCamera({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
+      console.log('Camera result:', result);
+    } catch (error) {
+      console.log('Camera error:', error);
+    }
+  };
+
   const strokeDashoffset = animatedValue.interpolate({
     inputRange: [0, 100],
     outputRange: [circumference, 0],
   });
 
-  const ActionBox = ({ icon, label }: { icon: string; label: string }) => (
-    <TouchableOpacity style={styles.actionCard} activeOpacity={0.5}>
-      <View style={styles.actionIcon}>
-        <FontAwesome5 name={icon} size={wp(5)} color="#888" />
-      </View>
-      <Text style={styles.actionLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
+  const ActionBox = ({
+    icon,
+    label,
+    onPress,
+  }: {
+    icon: string;
+    label: string;
+    onPress?: () => void;
+  }) => {
+    const scaleValue = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+      Animated.spring(scaleValue, {
+        toValue: 0.9,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    return (
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        <TouchableOpacity
+          style={styles.actionCard}
+          activeOpacity={1}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+        >
+          <View style={styles.actionIcon}>
+            <FontAwesome5 name={icon} size={wp(5)} color="#888" />
+          </View>
+          <Text style={styles.actionLabel}>{label}</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
+      />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
+          activeOpacity={0.85}
         >
           <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Vehicle Details</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -223,20 +282,24 @@ const VehicleDetails = ({ navigation, route }: any) => {
               <Text style={styles.infoValue}>{item.v}</Text>
             </View>
           ))}
-          <TouchableOpacity style={styles.updateBtn}>
+          <TouchableOpacity
+            style={styles.updateBtn}
+            onPress={handleUpdateOdometer}
+          >
             <Text style={styles.updateBtnText}>Update Odometer</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.actionCardContainer}>
-          <View style={styles.actionHeader}>
-            <FontAwesome5 name="chevron-up" size={wp(3)} color="#666" />
-            <Text style={styles.actionsTitle}>Actions</Text>
-          </View>
+          <Text style={styles.actionsTitle}>Actions</Text>
           <View style={styles.quickActionsGrid}>
             <ActionBox icon="file-alt" label="Docs" />
             <ActionBox icon="wrench" label="Service" />
-            <ActionBox icon="history" label="History" />
+            <ActionBox
+              icon="receipt"
+              label="Challans"
+              onPress={() => navigation.navigate('Challans', { vehicle })}
+            />
             <ActionBox icon="share-alt" label="Share" />
           </View>
         </View>
@@ -247,8 +310,16 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
-  header: { paddingHorizontal: wp(6), paddingVertical: hp(1) },
-  backBtn: { width: wp(10), height: wp(10), justifyContent: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    marginBottom: hp(3),
+  },
+  backBtn: { padding: wp(2) },
+  headerCenter: { flex: 1, marginLeft: wp(2) },
+  headerTitle: { color: '#fff', fontSize: wp(6), fontWeight: '700' },
   scrollContent: { paddingHorizontal: wp(5), paddingBottom: hp(5) },
   heroCard: {
     backgroundColor: '#121212',
@@ -384,28 +455,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  actionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(1),
-  },
   actionsTitle: {
     color: '#fff',
     fontSize: wp(4.5),
     fontWeight: 'bold',
-    marginBottom: 0,
-    marginLeft: wp(2),
+    marginBottom: hp(1.5),
   },
-  quickActionsGrid: { flexDirection: 'row', justifyContent: 'space-between' },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: hp(1.5),
+  },
   actionCard: {
-    backgroundColor: '#121212',
-    width: wp(21),
-    paddingVertical: wp(4.5),
-    borderRadius: 22,
+    backgroundColor: '#1a1a1a',
+    width: wp(18),
+    paddingVertical: hp(2.2),
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   actionIcon: { marginBottom: 10 },
   actionLabel: {

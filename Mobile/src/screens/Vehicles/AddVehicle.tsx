@@ -67,6 +67,7 @@ const AddVehicle = ({ navigation }: any) => {
     navigation.navigate('VehicleList', {
       newVehicle: {
         plate: form.plate,
+        brand: form.brand || form.model,
         model: form.model,
         year: form.year || '2024',
       },
