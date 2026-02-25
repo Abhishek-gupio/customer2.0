@@ -206,7 +206,7 @@ model InAppNotification {
   customerId String
   title      String
   body       String
-  type       String
+  type       String // e.g., 'DOC_EXPIRY', 'SYSTEM_ALERT'
   link       String?
   metadata   Json?
   isRead     Boolean   @default(false)

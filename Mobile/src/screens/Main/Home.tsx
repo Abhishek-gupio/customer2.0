@@ -22,7 +22,13 @@ import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 
 export default function Home() {
+<<<<<<< HEAD
   const navigation =useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+=======
+  const [serviceModalVisible, setServiceModalVisible] = useState(false);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
 
   const handleProfilePress = () => {
     // Access the root navigator using getParent()
@@ -60,9 +66,12 @@ export default function Home() {
       }
     }
   };
+<<<<<<< HEAD
 
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   // const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+=======
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -85,14 +94,21 @@ export default function Home() {
               navigateToRootScreen('DocumentList');
             } else if (label === 'Vehicles') {
               navigateToRootScreen('VehicleList');
+<<<<<<< HEAD
             }
             else if(label=='Expenses'){
               navigateToRootScreen('Expenses');
               navigation.navigate('DocumentList');
+=======
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
             } else if (label === 'Expenses') {
-              navigation.navigate('Expenses');
+              navigateToRootScreen('Expenses');
             } else if (label === 'Service') {
+<<<<<<< HEAD
               setServiceModalVisible(true); 
+=======
+              setServiceModalVisible(true);
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
             }
           }}
         />
@@ -203,7 +219,7 @@ export default function Home() {
             setServiceModalVisible(false);
             navigation.navigate(screen);
           }}
-/>
+        />
       </ScrollView>
     </SafeAreaView>
   );

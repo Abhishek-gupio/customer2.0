@@ -36,7 +36,7 @@ export default function Settings() {
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: () => {} },
+      { text: 'Logout', style: 'destructive', onPress: () => { } },
     ]);
   };
 
@@ -58,6 +58,7 @@ export default function Settings() {
   const SERVICES_ITEMS: MenuItem[] = [
     { icon: 'map-marker-alt', label: 'Valet History' },
     { icon: 'file-contract', label: 'RTO Services' },
+    { icon: 'wallet', label: 'Set Budget', route: 'BudgetSettings' },
   ];
 
   const SETTINGS_ITEMS: MenuItem[] = [

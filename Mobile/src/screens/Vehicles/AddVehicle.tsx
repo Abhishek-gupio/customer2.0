@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Modal,
   FlatList,
   Pressable,
-  Keyboard,
   StatusBar,
   Platform,
 } from 'react-native';
@@ -39,11 +38,6 @@ const FUEL_TYPES = ['Petrol', 'Diesel', 'Electric', 'CNG', 'Hybrid'];
 const TRANSMISSIONS = ['Manual', 'Automatic'];
 
 const AddVehicle = ({ navigation }: any) => {
-  const [showTypePicker, setShowTypePicker] = useState(false);
-  const [showBrandPicker, setShowBrandPicker] = useState(false);
-  const [showFuelPicker, setShowFuelPicker] = useState(false);
-  const [showTransPicker, setShowTransPicker] = useState(false);
-
   const updateForm = (key: string, value: string) => {
     setForm((prev: any) => ({ ...prev, [key]: value }));
   };
@@ -73,50 +67,12 @@ const AddVehicle = ({ navigation }: any) => {
     navigation.navigate('VehicleList', {
       newVehicle: {
         plate: form.plate,
+        brand: form.brand || form.model,
         model: form.model,
         year: form.year || '2024',
       },
     });
   };
-
-  // Reusable Component Helpers
-  const InputField = ({
-    label,
-    placeholder,
-    value,
-    onChangeText,
-    icon,
-    keyboardType,
-  }: {
-    label: string;
-    placeholder: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    icon?: string;
-    keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
-  }) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor="#444"
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType || 'default'}
-        />
-        {icon && (
-          <FontAwesome5
-            name={icon}
-            size={wp(4)}
-            color="#666"
-            style={styles.inputIcon}
-          />
-        )}
-      </View>
-    </View>
-  );
 
   const DropdownField = ({
     label,

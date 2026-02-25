@@ -18,12 +18,24 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import ManualEntryOverlay from "./ManualEntry";
+<<<<<<< HEAD
+=======
+import ReceiptReviewer from "./ReceiptReviewer";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+
+
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+<<<<<<< HEAD
 import ReceiptReviewer from "./ReceiptReviewer";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+=======
+
+
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
 import Voice from "@react-native-voice/voice";
 import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "@react-navigation/native";
@@ -545,7 +557,10 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.95)",
+<<<<<<< HEAD
     backgroundColor: "rgba(0,0,0,0.8)", // Darker backdrop
+=======
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
     justifyContent: "center",
     paddingHorizontal: wp(5),
   },

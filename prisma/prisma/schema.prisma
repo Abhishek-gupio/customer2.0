@@ -180,12 +180,13 @@ model VehicleHealthScore {
   vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   @@schema("customer")
 }
+
 model InAppNotification {
   id         String    @id @default(cuid())
   customerId String
   title      String
   body       String
-  type       String
+  type       String    // e.g., 'DOC_EXPIRY', 'SYSTEM_ALERT'
   link       String?
   metadata   Json?
   isRead     Boolean   @default(false)
@@ -193,9 +194,11 @@ model InAppNotification {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
   @@index([customerId])
   @@schema("customer")
 }
+
 model ChatSession {
   id         String        @id @default(cuid())
   customerId String

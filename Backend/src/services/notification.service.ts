@@ -3,57 +3,17 @@ import { getSMSService } from "./sms.service";
 import { logger } from "../config/logger";
 import cron from "node-cron";
 import { challanService } from "./challan.service";
+import * as OneSignal from '@onesignal/node-onesignal';
+
+// Initialize OneSignal with API keys from environment
+const configuration = OneSignal.createConfiguration({
+  restApiKey: process.env.ONESIGNAL_REST_API_KEY || '',
+});
+const onesignalClient = new OneSignal.DefaultApi(configuration);
 
 export const notificationService = {
   /**
-   * Sends a push notification via FCM (Placeholder)
-   */
-  async sendPushNotification(
-    customerId: string,
-    title: string,
-    body: string,
-    metadata?: any,
-  ) {
-    const devices = await dbInstances.customerDevice.findMany({
-      where: { customerId, deviceToken: { not: null } },
-    });
-
-    for (const device of devices) {
-      logger.info(
-        { customerId, token: device.deviceToken, title },
-        "📱 [PUSH NOTIFICATION MOCK] Sent to device",
-      );
-      // Integration: admin.messaging().send(...) would go here
-    }
-  },
-
-  /**
-   * Creates an in-app notification
-   */
-  async createInAppNotification(
-    customerId: string,
-    input: {
-      title: string;
-      body: string;
-      type: string;
-      link?: string;
-      metadata?: any;
-    },
-  ) {
-    return (dbInstances as any).inAppNotification.create({
-      data: {
-        customerId,
-        title: input.title,
-        body: input.body,
-        type: input.type,
-        link: input.link,
-        metadata: input.metadata || {},
-      },
-    });
-  },
-
-  /**
-   * Send notification across all channels (Push + InApp + optionally SMS)
+   * Send notification across all channels (Custom In-App, OneSignal Push, SMS Fallback)
    */
   async notifyCustomer(
     customerId: string,
@@ -67,21 +27,54 @@ export const notificationService = {
       phoneNumber?: string;
     },
   ) {
-    // 1. In-App
-    await this.createInAppNotification(customerId, payload);
+    try {
+      // 1. In-App Notification (Stored in Postgres)
+      const inApp = await (dbInstances as any).inAppNotification.create({
+        data: {
+          customerId,
+          title: payload.title,
+          body: payload.body,
+          type: payload.type,
+          link: payload.link,
+          metadata: payload.metadata || {},
+        },
+      });
 
-    // 2. Push
-    await this.sendPushNotification(
-      customerId,
-      payload.title,
-      payload.body,
-      payload.metadata,
-    );
+      // Emit WebSocket event to the connected mobile app
+      try {
+        const { getIO } = require("../socket");
+        getIO().to(customerId).emit("new_notification", inApp);
+      } catch (wsError) {
+        logger.error({ wsError, customerId }, "Failed to emit WebSocket notification");
+      }
 
-    // 3. SMS (Optional)
-    if (payload.sendSMS && payload.phoneNumber) {
-      const smsService = getSMSService();
-      await smsService.sendSMS(payload.phoneNumber, payload.body);
+      // 2. OneSignal Push Notification
+      if (process.env.ONESIGNAL_APP_ID && process.env.ONESIGNAL_REST_API_KEY) {
+        const notification = new OneSignal.Notification();
+        notification.app_id = process.env.ONESIGNAL_APP_ID;
+        notification.include_aliases = { external_id: [customerId] }; // Send to specific customer via OneSignal external ID
+        notification.target_channel = "push";
+        notification.headings = { en: payload.title };
+        notification.contents = { en: payload.body };
+        notification.data = { type: payload.type, link: payload.link, ...payload.metadata };
+
+        try {
+          await onesignalClient.createNotification(notification);
+          logger.info({ customerId, title: payload.title }, "Triggered OneSignal push notification.");
+        } catch (pushErr) {
+          logger.error({ err: pushErr, customerId }, "Failed to send OneSignal push");
+        }
+      } else {
+        logger.warn("OneSignal API Keys not provided. Skipping Push Notification.");
+      }
+
+      // 3. SMS Fallback
+      if (payload.sendSMS && payload.phoneNumber) {
+        const smsService = getSMSService();
+        await smsService.sendSMS(payload.phoneNumber, payload.body);
+      }
+    } catch (error) {
+      logger.error({ error, customerId }, "Failed to complete notification delivery flow");
     }
   },
 

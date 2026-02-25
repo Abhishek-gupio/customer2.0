@@ -12,18 +12,26 @@ export type RootStackParamList = {
   VehicleList: undefined;
   VehicleDetails: { vehicleId: string };
   AddVehicle: undefined;
+  Challans: { vehicle: any };
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
   Expenses: undefined;
   addExpense: undefined;
+<<<<<<< HEAD
   Analytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
   Settings: undefined;
   ExpenseAnalytics: undefined;
+=======
+  ExpenseAnalytics: undefined;
+  MyProfile: undefined;
+  HelpSupport: undefined;
+  Settings: undefined;
+  BudgetSettings: undefined;
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
   ServiceHistory: undefined;
   WarrantyStatus: undefined;
-  OptionModal: undefined;
   AiBotHome: undefined;
   // AiBotChat: undefined;
 };

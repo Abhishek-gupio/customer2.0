@@ -23,6 +23,15 @@ const db = dbInstances as any;
 
 import { ingestionService } from "../../services/ingestion.service";
 
+const ALLOWED_NOTIFICATION_CATEGORIES: ExpenseCategory[] = [
+  "FUEL",
+  "SERVICE",
+  "TOLL",
+  "INSURANCE",
+  "PARKING",
+  "CHALLAN",
+];
+
 export const expenseService = {
   /**
    * Core: Add Manual Expense
@@ -106,7 +115,7 @@ export const expenseService = {
   async parseExpenseText(
     customerId: string,
     input: ParseExpenseInput,
-    opts?: { returnOnNoAmount?: boolean },
+    opts?: { returnOnNoAmount?: boolean; dryRun?: boolean },
   ) {
     const text = input.text;
 
@@ -124,6 +133,22 @@ export const expenseService = {
       const aiResult = await ocrService.parseExpenseNotification(text);
 
       if (aiResult.amount > 0 && !aiResult.error) {
+        // DRY RUN: return preview without creating expense
+        if (opts?.dryRun) {
+          return {
+            success: true,
+            dryRun: true,
+            expense: {
+              amount: aiResult.amount,
+              category: aiResult.category,
+              merchantName: aiResult.merchantName || null,
+              date: aiResult.date ? new Date(aiResult.date) : new Date(),
+              notes: aiResult.notes || null,
+            },
+            parserMeta: { method: 'GEMINI_AI', confidence: aiResult.confidence },
+          };
+        }
+
         // AI succeeded — dedup check on amount+category
         const dupCheck = await expenseIntelligenceService.isDuplicate(
           customerId,
@@ -137,6 +162,20 @@ export const expenseService = {
             skipped: true,
             reason: dupCheck.reason,
             existingExpenseId: dupCheck.existingExpenseId,
+          };
+        }
+
+        // Filter Notification sources
+        if (
+          input.source === "NOTIFICATION" &&
+          !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+            aiResult.category as ExpenseCategory,
+          )
+        ) {
+          return {
+            success: false,
+            skipped: true,
+            reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
           };
         }
 
@@ -235,6 +274,22 @@ export const expenseService = {
     if (upiParserService.isTransactionNotification(text)) {
       const upiResult = upiParserService.parse(text);
       if (upiResult && upiResult.amount > 0) {
+        // DRY RUN: return preview without creating expense
+        if (opts?.dryRun) {
+          return {
+            success: true,
+            dryRun: true,
+            expense: {
+              amount: upiResult.amount,
+              category: upiResult.category,
+              merchantName: upiResult.merchantName || 'Unknown Merchant',
+              date: upiResult.date,
+              notes: null,
+            },
+            parserMeta: { method: 'UPI_REGEX_FALLBACK', confidence: upiResult.confidence },
+          };
+        }
+
         const dupCheck = await expenseIntelligenceService.isDuplicate(
           customerId,
           upiResult.amount,
@@ -247,6 +302,20 @@ export const expenseService = {
             skipped: true,
             reason: dupCheck.reason,
             existingExpenseId: dupCheck.existingExpenseId,
+          };
+        }
+
+        // Filter Notification sources
+        if (
+          input.source === "NOTIFICATION" &&
+          !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+            upiResult.category as ExpenseCategory,
+          )
+        ) {
+          return {
+            success: false,
+            skipped: true,
+            reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
           };
         }
 
@@ -373,6 +442,34 @@ export const expenseService = {
     let merchantName = "Unknown Merchant";
     const mMatch = text.match(/(?:at|to|via)\s+([a-zA-Z0-9\s]+)/i);
     if (mMatch && mMatch[1]) merchantName = mMatch[1].trim().substring(0, 30);
+
+    // Filter Notification sources
+    if (
+      input.source === "NOTIFICATION" &&
+      !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
+    ) {
+      return {
+        success: false,
+        skipped: true,
+        reason: `Category '${category}' is not allowed for auto-notification parsing.`,
+      };
+    }
+
+    // DRY RUN: return preview without creating expense
+    if (opts?.dryRun) {
+      return {
+        success: true,
+        dryRun: true,
+        expense: {
+          amount,
+          category,
+          merchantName,
+          date: input.timestamp ? new Date(input.timestamp) : new Date(),
+          notes: null,
+        },
+        parserMeta: { method: 'BASIC_REGEX_LAST_RESORT', confidence },
+      };
+    }
 
     const expense = await db.expense.create({
       data: {

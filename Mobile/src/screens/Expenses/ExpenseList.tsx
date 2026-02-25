@@ -13,13 +13,17 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
+<<<<<<< HEAD
+=======
+import NotificationPermission from '../../components/NotificationPermission';
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
 import Bills from './Bills';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
@@ -63,6 +67,7 @@ const ExpenseFeed = () => {
   const [expensesList, setExpensesList] = React.useState<any[]>([]);
   const [rawExpenses, setRawExpenses] = React.useState<any[]>([]); // Raw data with Date objects
   const [loading, setLoading] = React.useState(false);
+  const [showAllExpenses, setShowAllExpenses] = React.useState(false);
 
   // ── Computed stats ──
   const [totalThisMonth, setTotalThisMonth] = React.useState(0);
@@ -119,7 +124,7 @@ const ExpenseFeed = () => {
       // Check if refresh was requested and apply appropriate delay
       const needsRefresh = getAndClearExpenseListRefresh();
       const delay = needsRefresh ? 100 : 0;
-      
+
       setTimeout(() => {
         fetchExpenses();
       }, delay);
@@ -217,6 +222,8 @@ const ExpenseFeed = () => {
       ? expensesList
       : expensesList.filter(item => item.type.toUpperCase() === selectedType.toUpperCase());
 
+  const displayedExpenses = showAllExpenses ? filteredExpenses : filteredExpenses.slice(0, 3);
+
   const formatCurrency = (val: number) => {
     if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
     if (val >= 1000) return `₹${val.toLocaleString('en-IN')}`;
@@ -234,15 +241,27 @@ const ExpenseFeed = () => {
       >
         <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
           <View style={styles.header}>
+<<<<<<< HEAD
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Icon name="arrow-left" size={wp(5)} color="#fff" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Expenses</Text>
+=======
+            <View style={styles.subHeder}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon name="arrow-left" size={wp(5)} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Expenses</Text>
+            </View>
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
             <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
               <Icon name="plus" size={wp(5)} color="#fff" />
             </TouchableOpacity>
           </View>
 
+          <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
+            <NotificationPermission />
+          </View>
 
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>Total This Month</Text>
@@ -355,7 +374,7 @@ const ExpenseFeed = () => {
             <Text style={styles.emptyText}>No expenses found</Text>
           </View>
         ) : (
-          filteredExpenses.map(item => (
+          displayedExpenses.map(item => (
             <View key={item.id} style={styles.listCard}>
               <View style={[styles.iconCircle, { borderColor: item.color }]}>
                 <Icon name={item.icon} size={wp(5)} color={item.color} />
@@ -373,10 +392,37 @@ const ExpenseFeed = () => {
           ))
         )}
 
+        {filteredExpenses.length > 3 && (
+          <TouchableOpacity
+            style={styles.viewMoreBtn}
+            onPress={() => setShowAllExpenses(!showAllExpenses)}
+          >
+            <Text style={styles.viewMoreText}>
+              {showAllExpenses ? 'View Less' : 'View More'}
+            </Text>
+            <Icon
+              name={showAllExpenses ? 'chevron-up' : 'chevron-down'}
+              size={wp(3)}
+              color="#4CAF50"
+              style={{ marginLeft: 6 }}
+            />
+          </TouchableOpacity>
+        )}
+
         <Bills />
 
         <TouchableOpacity
           style={styles.sectionTitleCentered}
+          onPress={() => navigation.navigate('BudgetSettings')}
+        >
+          <Icon name="wallet" size={wp(5)} color="#fff" />
+          <Text style={{ color: '#fff', marginLeft: wp(2) }}>
+            Set Budget
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.sectionTitleCenteredAnalytics}
           onPress={() => navigation.navigate('ExpenseAnalytics')}
         >
           <Icon name="chart-bar" size={wp(5)} color="#fff" />
@@ -491,7 +537,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: wp(6),
+    padding: wp(4),
+    backgroundColor: '#4CAF50',
+    borderRadius: wp(6),
+    marginHorizontal: wp(4),
+    marginTop: wp(4),
+  },
+  sectionTitleCenteredAnalytics: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(4),
     backgroundColor: '#1a1a1a',
     borderRadius: wp(6),
     borderWidth: 1,
@@ -513,7 +569,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     borderRadius: wp(5),
   },
+<<<<<<< HEAD
   activeTimelineItem: { backgroundColor: '#ffbf00' },
+=======
+  activeTimelineItem: { backgroundColor: '#e5e5e2' },
+>>>>>>> 1ef372507707254381e521169982f91bb18e1870
   timelineText: {
     color: 'rgb(164, 164, 166)',
     fontWeight: '600',
@@ -527,5 +587,18 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#888',
     fontSize: wp(4),
+  },
+  viewMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    marginHorizontal: wp(4),
+    marginBottom: hp(1),
+  },
+  viewMoreText: {
+    color: '#4CAF50',
+    fontSize: wp(3.8),
+    fontWeight: '600',
   },
 });

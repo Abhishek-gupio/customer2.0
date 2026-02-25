@@ -46,12 +46,13 @@ export const expenseController = {
     success(res, expense, 201);
   }),
 
-  // 2. Parse Text (SMS/Voice/Notif)
+  // 2. Parse Text (SMS/Voice/Notif). dryRun=true returns preview only.
   parse: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
     const body = parseBody<ParseExpenseInput>(req, parseExpenseSchema);
 
-    const result = await expenseService.parseExpenseText(req.customer.id, body);
+    const dryRun = req.query.dryRun === 'true';
+    const result = await expenseService.parseExpenseText(req.customer.id, body, { dryRun });
     success(res, result);
   }),
 
