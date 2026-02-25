@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
 
 // Copy react-native-vector-icons font files into the app so icons display
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
@@ -76,6 +77,9 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
+    configurations.all {
+        exclude group: 'com.android.support'
+    }
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
@@ -87,11 +91,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        externalNativeBuild {
-            cmake {
-                cppFlags "-fexceptions"
-            }
-        }
     }
     signingConfigs {
         debug {
@@ -124,4 +123,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation project(':react-native-linear-gradient')
+    implementation project(':react-native-voice_voice')
 }
+

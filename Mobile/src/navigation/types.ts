@@ -15,9 +15,17 @@ export type RootStackParamList = {
   Challans: { vehicle: any };
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
+  Expenses: undefined;
+  addExpense: undefined;
+  ExpenseAnalytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
   Settings: undefined;
+  BudgetSettings: undefined;
+  ServiceHistory: undefined;
+  WarrantyStatus: undefined;
+  AiBotHome: undefined;
+  // AiBotChat: undefined;
 };
 
 export type MainTabParamList = {
@@ -30,6 +38,18 @@ export type MainTabParamList = {
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
+}
+
+export type BillStatus = "verified" | "pending";
+
+export interface Bill {
+  id: string;
+  title: string;
+  amount: number;
+  status: BillStatus;
+  uploadedAt: string;
+  warrantyMonths?: number | null;
+  image?: string | number | null; // string = remote, number = local require()
 }

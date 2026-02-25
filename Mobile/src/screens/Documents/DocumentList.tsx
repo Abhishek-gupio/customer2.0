@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TextInput,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -18,13 +19,13 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
+import { fetchDocuments } from '../../store/slices/documentsSlice';
 import type { DocumentItem } from '../../store/slices/documentsSlice';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
-/* ── filter categories ── */
 const CATEGORIES = ['All', 'RC', 'Insurance', 'PUC', 'FASTag', 'DL', 'Other'];
 
 const DOC_TYPE_LABELS: Record<string, string> = {
@@ -36,24 +37,10 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   Other: 'Other',
 };
 
-/* Fixed grid: RC, Insurance, PUC, DL – always visible with defaults */
 const FIXED_GRID_TYPES = ['RC', 'Insurance', 'PUC', 'DL'] as const;
 
-/* ── helpers ── */
 type DocStatus = 'verified' | 'expiring' | 'expired';
 
-const DEFAULT_EXPIRY: Record<string, string> = {
-  RC: 'Dec 2028',
-  Insurance: 'Mar 2026',
-  PUC: 'Aug 2025',
-  DL: 'Jan 2030',
-};
-const DEFAULT_STATUS: Record<string, DocStatus> = {
-  RC: 'verified',
-  Insurance: 'expiring',
-  PUC: 'expired',
-  DL: 'verified',
-};
 function statusColor(s: DocStatus) {
   if (s === 'verified') return '#4CAF50';
   if (s === 'expiring') return '#FFA000';
@@ -65,23 +52,30 @@ function statusLabel(s: DocStatus) {
   return 'Expired';
 }
 
-function formatExpiry(ocrExpiry?: string): string {
-  if (!ocrExpiry) return 'N/A';
+function formatExpiry(dateStr?: string | null): string {
+  if (!dateStr) return 'N/A';
   try {
-    const d = new Date(ocrExpiry);
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
   } catch {
-    return ocrExpiry;
+    return dateStr;
   }
 }
 
 export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
+  const dispatch = useAppDispatch();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchText, setSearchText] = useState('');
   const [searchVisible, setSearchVisible] = useState(false);
   const searchRef = useRef<TextInput>(null);
-  const documents = useAppSelector((state: RootState) => state.documents.documents);
+
+  const { documents, loading } = useAppSelector((state: RootState) => state.documents);
+
+  useEffect(() => {
+    dispatch(fetchDocuments());
+  }, [dispatch]);
 
   const gridCards = useMemo(() => {
     const byType = new Map<string, DocumentItem[]>();
@@ -92,14 +86,37 @@ export default function DocumentList() {
     });
     return FIXED_GRID_TYPES.map((type) => {
       const docs = byType.get(type) ?? [];
-      const latest = docs[0];
+      if (docs.length === 0) {
+        return {
+          id: `empty_${type}`,
+          label: DOC_TYPE_LABELS[type] ?? type,
+          expiry: 'Not uploaded',
+          status: 'verified' as DocStatus,
+          type,
+          hasDoc: false,
+        };
+      }
+
+      // Prefer a document that has an explicit expiryDate. If multiple, pick the most
+      // recently created one. Otherwise fall back to the most recently created document.
+      const docsWithExpiry = docs.filter((d) => d.expiryDate);
+      let latest = docsWithExpiry.length > 0
+        ? docsWithExpiry.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0]
+        : docs.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0];
+
+      // Always use expiryDate if present, else try dates[1] (expiry), else dates[0]
+      let expiryDate = latest?.expiryDate;
+      if (!expiryDate && latest?.dates && Array.isArray(latest.dates)) {
+        expiryDate = latest.dates[1] || latest.dates[0];
+      }
+
       return {
-        id: latest?.id ?? `default_${type}`,
+        id: latest.id,
         label: DOC_TYPE_LABELS[type] ?? type,
-        expiry: latest ? formatExpiry(latest.ocrData.expiry) : DEFAULT_EXPIRY[type],
-        status: latest?.status ?? DEFAULT_STATUS[type],
+        expiry: formatExpiry(expiryDate),
+        status: latest.status,
         type,
-        hasDoc: !!latest,
+        hasDoc: true,
       };
     });
   }, [documents]);
@@ -116,7 +133,7 @@ export default function DocumentList() {
           d.type.toLowerCase().includes(q) ||
           (DOC_TYPE_LABELS[d.type] ?? '').toLowerCase().includes(q) ||
           d.vehicle.toLowerCase().includes(q) ||
-          (d.ocrData.docNumber ?? '').toLowerCase().includes(q),
+          (d.documentNumber ?? '').toLowerCase().includes(q),
       );
     }
     return docs;
@@ -139,7 +156,6 @@ export default function DocumentList() {
         backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
       />
 
-      {/* ─── Header ─── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
           <Icon name="arrow-left" size={wp(5)} color="#fff" />
@@ -167,7 +183,6 @@ export default function DocumentList() {
         </TouchableOpacity>
       </View>
 
-      {/* ─── Search Bar (hidden until icon tapped) ─── */}
       {searchVisible && (
         <TouchableOpacity
           activeOpacity={1}
@@ -203,7 +218,7 @@ export default function DocumentList() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ─── Connect DigiLocker Banner ─── */}
+        {/* DigiLocker Banner */}
         <TouchableOpacity activeOpacity={0.85} style={styles.digilockerBanner}>
           <View style={styles.digilockerIcon}>
             <Icon name="file-alt" size={wp(6)} color="#aaa" />
@@ -215,7 +230,7 @@ export default function DocumentList() {
           <Icon name="arrow-right" size={wp(4.5)} color="#888" />
         </TouchableOpacity>
 
-        {/* ─── Scan New Document ─── */}
+        {/* Scan New Document */}
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.scanCard}
@@ -228,7 +243,7 @@ export default function DocumentList() {
           <Text style={styles.scanSub}>RC / Insurance / Bills / Warranty</Text>
         </TouchableOpacity>
 
-        {/* ─── Category Filter Chips ─── */}
+        {/* Category Filter Chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -249,7 +264,15 @@ export default function DocumentList() {
           ))}
         </ScrollView>
 
-        {/* ─── Vehicle Documents: RC, Insurance, PUC, DL ─── */}
+        {/* Loading */}
+        {loading && documents.length === 0 && (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator size="large" color="#FFBF00" />
+            <Text style={styles.loadingText}>Loading documents...</Text>
+          </View>
+        )}
+
+        {/* Vehicle Documents Grid */}
         <Text style={styles.sectionTitle}>Vehicle Documents</Text>
 
         <View style={styles.gridWrap}>
@@ -258,65 +281,49 @@ export default function DocumentList() {
               key={card.type}
               activeOpacity={0.85}
               style={styles.gridCard}
-              onPress={() =>
-                navigation.navigate('DocumentDetail', { documentId: card.id })
-              }
+              onPress={() => {
+                if (card.hasDoc) {
+                  navigation.navigate('DocumentDetail', { documentId: card.id });
+                } else {
+                  navigation.navigate('UploadDocument');
+                }
+              }}
             >
               <View style={styles.gridCardIconWrap}>
                 <Icon name="file-alt" size={wp(6)} color="#aaa" />
               </View>
               <Text style={styles.gridCardLabel}>{card.label}</Text>
               <View style={styles.gridCardExpiryRow}>
-                {card.status === 'expiring' && (
-                  <Icon name="exclamation-triangle" size={wp(3)} color="#FFA000" style={{ marginRight: wp(1) }} />
+                {card.hasDoc ? (
+                  <>
+                    {card.status === 'expiring' && (
+                      <Icon name="exclamation-triangle" size={wp(3)} color="#FFA000" style={{ marginRight: wp(1) }} />
+                    )}
+                    {card.status === 'expired' && (
+                      <Icon name="times-circle" size={wp(3)} color="#F44336" style={{ marginRight: wp(1) }} />
+                    )}
+                    {card.status === 'verified' && (
+                      <Icon name="check-circle" size={wp(3)} color="#4CAF50" style={{ marginRight: wp(1) }} />
+                    )}
+                    <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}> 
+                      {card.expiry && card.expiry !== 'Not uploaded' ? (
+                        card.status === 'expired' ? `Expired: ${card.expiry}` :
+                        card.status === 'verified' ? `Valid up to: ${card.expiry}` :
+                        `Expiring: ${card.expiry}`
+                      ) : (
+                        card.status === 'expired' ? 'Expired' : `Expires: ${card.expiry}`
+                      )}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={styles.gridCardNoDoc}>Not uploaded</Text>
                 )}
-                {card.status === 'expired' && (
-                  <Icon name="times-circle" size={wp(3)} color="#F44336" style={{ marginRight: wp(1) }} />
-                )}
-                {card.status === 'verified' && (
-                  <Icon name="check-circle" size={wp(3)} color="#4CAF50" style={{ marginRight: wp(1) }} />
-                )}
-                <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}>
-                  {card.status === 'expired' ? 'Expired' : `Expires: ${card.expiry}`}
-                </Text>
               </View>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* ─── Document List ─── */}
-        <Text style={styles.sectionTitle}>All Documents</Text>
-
-        {filteredDocs.map((doc) => (
-          <TouchableOpacity
-            key={doc.id}
-            activeOpacity={0.85}
-            style={styles.docRow}
-            onPress={() =>
-              navigation.navigate('DocumentDetail', { documentId: doc.id })
-            }
-          >
-            <View style={styles.docRowIcon}>
-              <Icon name="file-alt" size={wp(5)} color="#FFBF00" />
-            </View>
-            <View style={styles.docRowInfo}>
-              <Text style={styles.docRowName}>{DOC_TYPE_LABELS[doc.type] ?? doc.type}</Text>
-              {doc.vehicle ? <Text style={styles.docRowVehicle}>{doc.vehicle}</Text> : null}
-              <View style={styles.docRowStatusRow}>
-                <View style={[styles.statusDot, { backgroundColor: statusColor(doc.status) }]} />
-                <Text style={[styles.docRowStatus, { color: statusColor(doc.status) }]}>
-                  {statusLabel(doc.status)}
-                </Text>
-              </View>
-              <Text style={styles.docRowExpiry}>
-                Exp: {formatExpiry(doc.ocrData.expiry) || 'N/A'}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={wp(4)} color="#555" />
-          </TouchableOpacity>
-        ))}
-
-        {/* ─── Quick Actions ─── */}
+        {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
         <TouchableOpacity activeOpacity={0.85} style={styles.quickAction}>
@@ -339,11 +346,9 @@ export default function DocumentList() {
   );
 }
 
-/* ════════════════════ Styles ════════════════════ */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
 
-  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -363,7 +368,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  /* Search Bar */
   searchBarWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -383,14 +387,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     padding: 0,
   },
-  searchBarClear: {
-    padding: wp(1.5),
-  },
+  searchBarClear: { padding: wp(1.5) },
 
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: wp(4), paddingTop: hp(1.5) },
 
-  /* DigiLocker */
   digilockerBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -414,7 +415,6 @@ const styles = StyleSheet.create({
   digilockerTitle: { fontSize: wp(4.5), fontWeight: '700', color: '#fff' },
   digilockerSub: { fontSize: wp(3.2), color: '#bbb', marginTop: hp(0.3) },
 
-  /* Scan */
   scanCard: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -438,7 +438,6 @@ const styles = StyleSheet.create({
   scanTitle: { fontSize: wp(4.5), fontWeight: '700', color: '#fff' },
   scanSub: { fontSize: wp(3.3), color: '#888', marginTop: hp(0.5) },
 
-  /* Chips */
   chipScroll: { marginBottom: hp(2) },
   chipContainer: { paddingRight: wp(4), gap: wp(2) },
   chip: {
@@ -453,7 +452,6 @@ const styles = StyleSheet.create({
   chipText: { fontSize: wp(3.5), color: '#aaa' },
   chipTextActive: { color: '#000', fontWeight: '600' },
 
-  /* Section */
   sectionTitle: {
     fontSize: wp(4.8),
     fontWeight: '700',
@@ -462,7 +460,17 @@ const styles = StyleSheet.create({
     marginTop: hp(1),
   },
 
-  /* Grid */
+  loadingWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(4),
+  },
+  loadingText: {
+    fontSize: wp(3.5),
+    color: '#888',
+    marginTop: hp(1),
+  },
+
   gridWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -497,11 +505,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  gridCardExpiry: {
-    fontSize: wp(3.2),
-  },
+  gridCardExpiry: { fontSize: wp(3.2) },
+  gridCardNoDoc: { fontSize: wp(3.2), color: '#666' },
 
-  /* Doc rows */
   docRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -529,7 +535,6 @@ const styles = StyleSheet.create({
   docRowStatus: { fontSize: wp(3.2), fontWeight: '500' },
   docRowExpiry: { fontSize: wp(3), color: '#666', marginTop: hp(0.2) },
 
-  /* Quick Actions */
   quickAction: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -551,7 +556,6 @@ const styles = StyleSheet.create({
   },
   quickActionText: { fontSize: wp(4), fontWeight: '600', color: '#fff' },
 
-  /* Empty state */
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',

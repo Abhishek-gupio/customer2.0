@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,11 +19,49 @@ import QuickServicesGrid from '../../components/QuickServicesGrid';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 
 export default function Home() {
+  const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  const handleProfilePress = () => {
+    // Access the root navigator using getParent()
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('MyProfile');
+    } else {
+      navigation.navigate('MyProfile');
+    }
+  };
+
+  const handleHelpPress = () => {
+    // Access the root navigator using getParent()
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('HelpSupport');
+    } else {
+      navigation.navigate('HelpSupport');
+    }
+  };
+
+  const navigateToRootScreen = (screenName: keyof RootStackParamList, params?: any) => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      if (params) {
+        rootNav.navigate(screenName as any, params);
+      } else {
+        rootNav.navigate(screenName as any);
+      }
+    } else {
+      if (params) {
+        navigation.navigate(screenName as any, params);
+      } else {
+        navigation.navigate(screenName as any);
+      }
+    }
+  };
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -36,17 +74,20 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
       >
         <HomeVideo
-          onProfilePress={() => navigation.navigate('MyProfile')}
-          onHelpPress={() => navigation.navigate('HelpSupport')}
+          onProfilePress={handleProfilePress}
+          onHelpPress={handleHelpPress}
         />
 
-        {/* Quick Services Grid */}
         <QuickServicesGrid
           onServicePress={label => {
             if (label === 'Documents') {
-              navigation.navigate('DocumentList');
+              navigateToRootScreen('DocumentList');
             } else if (label === 'Vehicles') {
-              navigation.navigate('VehicleList');
+              navigateToRootScreen('VehicleList');
+            } else if (label === 'Expenses') {
+              navigateToRootScreen('Expenses');
+            } else if (label === 'Service') {
+              setServiceModalVisible(true);
             }
           }}
         />
@@ -56,7 +97,7 @@ export default function Home() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Vehicles</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('VehicleList')}
+              onPress={() => navigateToRootScreen('VehicleList')}
             >
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
@@ -67,7 +108,7 @@ export default function Home() {
             style={styles.vehicleCard}
             activeOpacity={0.9}
             onPress={() =>
-              navigation.navigate('VehicleDetails', { vehicleId: '1' })
+              navigateToRootScreen('VehicleDetails', { vehicleId: '1' })
             }
           >
             <View style={styles.row}>
@@ -150,6 +191,14 @@ export default function Home() {
         </View>
 
         <View style={{ height: hp(4) }} />
+        <ServiceOptionsOverlay
+          visible={serviceModalVisible}
+          onClose={() => setServiceModalVisible(false)}
+          onSelect={(screen) => {
+            setServiceModalVisible(false);
+            navigation.navigate(screen);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

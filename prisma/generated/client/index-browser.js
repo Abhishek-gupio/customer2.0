@@ -411,6 +411,30 @@ exports.Prisma.DrivingEventScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.SOSRequestScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  address: 'address',
+  status: 'status',
+  type: 'type',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+};
+
+exports.Prisma.EmergencyContactScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  relation: 'relation',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -508,6 +532,20 @@ exports.ServicePartType = exports.$Enums.ServicePartType = {
   OTHER_PART: 'OTHER_PART'
 };
 
+exports.SOSStatus = exports.$Enums.SOSStatus = {
+  ACTIVE: 'ACTIVE',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.SOSType = exports.$Enums.SOSType = {
+  MEDICAL: 'MEDICAL',
+  POLICE: 'POLICE',
+  MECHANICAL: 'MECHANICAL',
+  ACCIDENT: 'ACCIDENT',
+  OTHER: 'OTHER'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Customer: 'Customer',
@@ -530,7 +568,9 @@ exports.Prisma.ModelName = {
   ServicePart: 'ServicePart',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
-  DrivingEvent: 'DrivingEvent'
+  DrivingEvent: 'DrivingEvent',
+  SOSRequest: 'SOSRequest',
+  EmergencyContact: 'EmergencyContact'
 };
 
 /**

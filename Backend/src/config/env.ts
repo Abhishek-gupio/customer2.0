@@ -22,6 +22,20 @@ const envSchema = z.object({
   OTP_EXPIRY_SEC: z.coerce.number().default(300),
   OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(60),
 
+  // SMS Service
+  SMS_SERVICE: z
+    .enum(["MOCK", "GMAIL", "GUPIO", "TWILIO"])
+    .default("MOCK"),
+  FLASH49_USERNAME: z.string().optional(),
+  FLASH49_PASSWORD: z.string().optional(),
+  FLASH49_FROM: z.string().optional(),
+  FLASH49_DLT_CONTENT_ID: z.string().optional(),
+  GMAIL_USER: z.string().optional(),
+  GMAIL_APP_PASSWORD: z.string().optional(),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_PHONE_NUMBER: z.string().optional(),
+
   // Storage
   AWS_S3_BUCKET: z.string().optional(),
   AWS_ACCESS_KEY_ID: z.string().optional(),
@@ -38,6 +52,8 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().default("uploads"),
   // AI Features
   GEMINI_API_KEY: z.string().optional(),
+  /** Model for voice expense parsing; use gemini-1.5-pro for best accuracy. */
+  GEMINI_VOICE_MODEL: z.string().default("gemini-1.5-flash"),
 
   // Weather
   WEATHER_API_KEY: z.string().optional(),
