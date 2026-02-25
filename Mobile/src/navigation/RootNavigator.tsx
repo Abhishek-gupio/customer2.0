@@ -5,11 +5,11 @@ import {
 } from '../lib/react-navigation-native-stack';
 import type { RootStackParamList } from './types';
 import SplashScreen from '../components/SplashScreen';
-import SigninFirst from '../screens/Auth/Signin_first';
-import Signin from '../screens/Auth/Signin';
-import Signup from '../screens/Auth/Signup';
-import OTP from '../screens/Auth/OTP';
-import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
+// import SigninFirst from '../screens/Auth/Signin_first';
+// import Signin from '../screens/Auth/Signin';
+// import Signup from '../screens/Auth/Signup';
+// import OTP from '../screens/Auth/OTP';
+// import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
 import DocumentList from '../screens/Documents/DocumentList';
 import UploadDocument from '../screens/Documents/UploadDocument';
 import DocumentDetail from '../screens/Documents/DocumentDetail';
@@ -42,7 +42,7 @@ export function RootNavigator() {
       initialRouteName="Splash"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="Splash">
+      {/* <Stack.Screen name="Splash">
         {({ navigation }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
           <SplashScreen
             onComplete={() => {
@@ -50,12 +50,12 @@ export function RootNavigator() {
             }}
           />
         )}
-      </Stack.Screen>
-      <Stack.Screen name="SigninFirst" component={SigninFirst} />
+      </Stack.Screen> */}
+      {/* <Stack.Screen name="SigninFirst" component={SigninFirst} />
       <Stack.Screen name="Signin" component={Signin} />
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="OTP" component={OTP} />
-      <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
+      <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} /> */}
       <Stack.Screen name="DocumentList" component={DocumentList} />
       {/* <Stack.Screen name="VehicleList" component={VehicleList} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetails} />

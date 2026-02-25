@@ -22,8 +22,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 
 export default function Home() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleProfilePress = () => {
     // Access the root navigator using getParent()
@@ -63,7 +62,7 @@ export default function Home() {
   };
 
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  // const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar

@@ -237,113 +237,90 @@ const ExpenseFeed = () => {
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Icon name="arrow-left" size={wp(5)} color="#fff" />
             </TouchableOpacity>
-            <View style={styles.subHeder}>
-              <Text style={styles.headerTitle}>Expenses</Text>
-    <ScrollView showsVerticalScrollIndicator={false}>
-    <View style={styles.shader}>
-      <View style={styles.header}>
-        <View style={styles.subHeder}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
-                <Icon name="plus" size={wp(5)} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-            <Text style={styles.headerTitle}>Expenses List</Text>
-        </View>
+            <Text style={styles.headerTitle}>Expenses</Text>
             <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
               <Icon name="plus" size={wp(5)} color="#fff" />
             </TouchableOpacity>
-      </View>
-
-
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Total This Month</Text>
-            <Text style={styles.amount}>{formatCurrency(totalThisMonth)}</Text>
-
-            <View style={styles.row}>
-              <Icon
-                name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
-                size={wp(3)}
-                color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
-              />
-              <Text style={[
-                styles.growthText,
-                { color: growthPercent >= 0 ? '#ff5252' : '#00c853' }
-              ]}>
-                {' '}{growthPercent >= 0 ? '+' : ''}{growthPercent}% from last month
-              </Text>
-            </View>
           </View>
-        </LinearGradient>
-        <View style={[styles.card, { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' }]}>
-          <View style={styles.row}>
-            <Icon name="arrow-up" size={wp(3)} color="#00c853" />
-            <Text style={styles.growthText}> +8% from last month</Text>
-          </View>
-        </View>
-      </View>
-        <View style={[styles.card, { marginTop: hp(-4),backgroundColor: 'transparentrgb(18, 18, 23)'}]}>
-          <View style={styles.rowBetween}>
-            <Text style={styles.cardLabel}>Total Spent</Text>
-            {growthPercent !== 0 && (
-              <View style={[styles.percentBadge, growthPercent < 0 && { backgroundColor: '#002a00' }]}>
-                <Icon
-                  name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
-                  size={wp(3)}
-                  color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
-                />
-                <Text style={[styles.percentText, growthPercent < 0 && { color: '#00c853' }]}>
-                  {' '}{Math.abs(growthPercent)}%
-                </Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
 
-          <View style={styles.timelineContainer}>
-            <View style={styles.timelineSubContainer}>
-              {['Daily', 'Weekly', 'Monthly', 'Yearly'].map(item => (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.timelineItem,
-                    timelineFilter === item && styles.activeTimelineItem,
-                  ]}
-                  onPress={() => setTimelineFilter(item)}
-                >
-                  <Text
-                    style={[
-                      styles.timelineText,
-                      timelineFilter === item && styles.activeTimelineText,
-                    ]}
-                  >
-                    {item}
+
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>Total This Month</Text>
+                <Text style={styles.amount}>{formatCurrency(totalThisMonth)}</Text>
+
+                <View style={styles.row}>
+                  <Icon
+                    name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
+                    size={wp(3)}
+                    color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
+                  />
+                  <Text style={[
+                    styles.growthText,
+                    { color: growthPercent >= 0 ? '#ff5252' : '#00c853' }
+                  ]}>
+                    {' '}{growthPercent >= 0 ? '+' : ''}{growthPercent}% from last month
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                </View>
+              </View>
+            </LinearGradient>
+            <View style={[styles.card, { marginTop: hp(-4),backgroundColor: 'rgb(18, 18, 23)'}]}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.cardLabel}>Total Spent</Text>
+                {growthPercent !== 0 && (
+                  <View style={[styles.percentBadge, growthPercent < 0 && { backgroundColor: '#002a00' }]}>
+                    <Icon
+                      name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
+                      size={wp(3)}
+                      color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
+                    />
+                    <Text style={[styles.percentText, growthPercent < 0 && { color: '#00c853' }]}>
+                      {' '}{Math.abs(growthPercent)}%
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
 
-          {categoryBreakdown.length > 0 ? (
-            categoryBreakdown.map(item => (
-              <ProgressRow
-                key={item.key}
-                label={item.label}
-                percent={item.percent}
-                color={item.color}
-                value={`₹${item.amount.toLocaleString('en-IN')} (${item.percent}%)`}
-              />
-            ))
-          ) : (
-            <View style={{ paddingVertical: hp(2), alignItems: 'center' }}>
-              <Text style={{ color: '#666', fontSize: wp(3.5) }}>No data for this period</Text>
+              <View style={styles.timelineContainer}>
+                <View style={styles.timelineSubContainer}>
+                  {['Daily', 'Weekly', 'Monthly', 'Yearly'].map(item => (
+                    <TouchableOpacity
+                      key={item}
+                      style={[
+                        styles.timelineItem,
+                        timelineFilter === item && styles.activeTimelineItem,
+                      ]}
+                      onPress={() => setTimelineFilter(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.timelineText,
+                          timelineFilter === item && styles.activeTimelineText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {categoryBreakdown.length > 0 ? (
+                categoryBreakdown.map(item => (
+                  <ProgressRow
+                    key={item.key}
+                    label={item.label}
+                    percent={item.percent}
+                    color={item.color}
+                    value={`₹${item.amount.toLocaleString('en-IN')} (${item.percent}%)`}
+                  />
+                ))
+              ) : (
+                <View style={{ paddingVertical: hp(2), alignItems: 'center' }}>
+                  <Text style={{ color: '#666', fontSize: wp(3.5) }}>No data for this period</Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.filterRow}>
@@ -395,9 +372,6 @@ const ExpenseFeed = () => {
             </View>
           ))
         )}
-            <Text style={styles.itemAmount}>₹{item.amount}</Text>
-          </View>
-        ))}
 
         <Bills />
 
@@ -539,12 +513,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     borderRadius: wp(5),
   },
-  activeTimelineItem: { backgroundColor: '#e5e5e2' },
-  timelineText: {
   activeTimelineItem: { backgroundColor: '#ffbf00' },
-  timelineText: { 
+  timelineText: {
     color: 'rgb(164, 164, 166)',
-    fontWeight: '600'
+    fontWeight: '600',
   },
   activeTimelineText: { color: '#000' },
   emptyContainer: {

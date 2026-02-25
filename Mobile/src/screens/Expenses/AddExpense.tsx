@@ -18,28 +18,20 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import ManualEntryOverlay from "./ManualEntry";
-
-import { launchCamera } from "react-native-image-picker";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-
-
-const openCamera = () => {
-  launchCamera({ mediaType: "photo" }, (response) => {
-    if (!response.didCancel && response.assets) {
-      console.log("Image:", response.assets[0].uri);
-    }
-  });
-};
-
 import ReceiptReviewer from "./ReceiptReviewer";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import Voice from "@react-native-voice/voice";
 import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "@react-navigation/native";
 import { api } from "../../services/api";
+import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
+import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
+
+// Option A: device STT → send text only (fast, no upload). User picks default language.
 const VOICE_LANGUAGES: { label: string; locale: string }[] = [
   { label: "Auto (device language)", locale: "" },
   { label: "Hindi", locale: "hi-IN" },
@@ -153,7 +145,6 @@ export default function AddExpenseScreen() {
           description: [exp.merchantName, exp.notes].filter(Boolean).join(" · ") || exp.transcription || "",
           date: dateStr,
           source: "voice",
-          source: "VOICE",
         });
         setReviewSource("VOICE");
         setShowReviewer(true);
@@ -167,7 +158,6 @@ export default function AddExpenseScreen() {
       console.error("Voice processing error:", error);
       const msg =
         error?.error?.message ?? error?.message ?? "Failed to process voice command. Please try again.";
-      const msg = error?.error?.message ?? error?.message ?? "Failed to process voice command. Please try again.";
       Alert.alert("Error", msg);
     } finally {
       setLoading(false);
@@ -222,7 +212,6 @@ export default function AddExpenseScreen() {
       const msg = e?.message ?? "";
       const isParseFailed = msg.includes("Could not detect expense amount");
       if (isParseFailed) {
-      if (msg.includes("Could not detect expense amount")) {
         Alert.alert(
           "Couldn't Read Amount",
           "We couldn't detect the amount from the receipt. Would you like to enter it manually?",
@@ -284,15 +273,6 @@ export default function AddExpenseScreen() {
     if (Platform.OS === "android") {
       const granted = await requestStoragePermission();
       if (!granted) {
-      const perm = Platform.Version >= 33
-        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
-        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-      const granted = await PermissionsAndroid.request(perm, {
-        title: "Photo Library Permission",
-        message: "App needs access to select receipt images",
-        buttonPositive: "OK",
-      });
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
         Alert.alert("Permission needed", "Photo library access is required to select receipts.");
         return;
       }
@@ -330,24 +310,6 @@ export default function AddExpenseScreen() {
     }
   };
 
-const startVoiceRecording = async () => {
-  try {
-    await Voice.start("en-US");
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-
-interface AddExpenseOverlayProps {
-  visible: boolean;
-  onClose: () => void;
-}
-
-export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverlayProps) {
-  const [showManual, setShowManual] = useState(false);
-  
-  const navigation=useNavigation();
   const startVoiceRecording = async () => {
     if (!voiceAvailable) {
       Alert.alert("Voice Not Available", "Please use manual entry or scan bills instead.");
@@ -379,8 +341,6 @@ export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverla
       try {
         if (typeof Voice.stop === "function") await Voice.stop();
       } catch (_) { }
-      
-      try { await Voice.stop(); } catch (_) { }
       setVoiceText("");
 
       // Use saved default language (or Auto = device locale)
@@ -403,7 +363,6 @@ export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverla
           } catch (_) {
             throw nativeErr;
           }
-          try { await Voice.start("en-US"); } catch (_) { throw nativeErr; }
         } else throw nativeErr;
       }
       setIsRecording(true);
@@ -425,7 +384,6 @@ export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverla
       try {
         await Voice.stop();
       } catch (_) { }
-      try { await Voice.stop(); } catch (_) { }
     }
   };
 
@@ -459,7 +417,6 @@ export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverla
             onPress={isRecording ? stopVoiceRecording : startVoiceRecording}
             disabled={!voiceAvailable}
           />
-
           <TouchableOpacity
             style={styles.voiceLangRow}
             onPress={() => setShowVoiceLangPicker(true)}
@@ -488,7 +445,6 @@ export default function AddExpenseOverlay({ visible, onClose }: AddExpenseOverla
         onClose={() => {
           setShowManual(false);
         }}
-        onClose={() => setShowManual(false)}
         onSuccess={() => {
           setExpenseListNeedsRefresh();
           setShowManual(false);
@@ -590,7 +546,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.95)",
     backgroundColor: "rgba(0,0,0,0.8)", // Darker backdrop
-    backgroundColor: "rgba(0,0,0,0.8)",
     justifyContent: "center",
     paddingHorizontal: wp(5),
   },
@@ -717,4 +672,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
