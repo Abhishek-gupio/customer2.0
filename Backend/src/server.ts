@@ -9,7 +9,9 @@ import { initSocket } from "./socket";
 
 // Initialize Background Tasks (Cron Jobs)
 notificationService.initCronJobs();
-schedulerService.init();
+void schedulerService
+  .init()
+  .catch((err) => logger.error({ err }, "Scheduler initialization failed"));
 
 const httpServer = createServer(app);
 initSocket(httpServer);

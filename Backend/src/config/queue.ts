@@ -1,18 +1,33 @@
-import { Queue, Worker, QueueOptions, WorkerOptions, Job } from "bullmq";
+import { Queue, QueueOptions, WorkerOptions } from "bullmq";
 import { env } from "./env";
 import { logger } from "./logger";
-import Redis from "ioredis";
 
-// Shared Redis connection for BullMQ
-// BullMQ needs 3 connections: one for client, one for subscriber, one for blocking commands
-// We will let BullMQ manage its own connections but provide the shared Redis config
+const redisUrl = env.REDIS_URL;
+let redisConfig:
+  | {
+      host: string;
+      port: number;
+      password?: string;
+      maxRetriesPerRequest: null;
+    }
+  | null = null;
 
-const redisConfig = {
-  host: env.REDIS_URL ? new URL(env.REDIS_URL).hostname : "localhost",
-  port: env.REDIS_URL ? Number(new URL(env.REDIS_URL).port) : 6379,
-  password: env.REDIS_URL ? new URL(env.REDIS_URL).password : undefined,
-  maxRetriesPerRequest: null, // Critical: BullMQ requires this to be null
-};
+if (redisUrl) {
+  try {
+    const parsed = new URL(redisUrl);
+    redisConfig = {
+      host: parsed.hostname,
+      port: parsed.port ? Number(parsed.port) : 6379,
+      password: parsed.password || undefined,
+      maxRetriesPerRequest: null,
+    };
+  } catch {
+    logger.warn("Invalid REDIS_URL; BullMQ scheduler/workers disabled");
+    redisConfig = null;
+  }
+}
+
+export const isQueueEnabled = redisConfig !== null;
 
 // Queue Definitions
 export const QUEUE_NAMES = {
@@ -24,7 +39,7 @@ export const QUEUE_NAMES = {
 
 // Queue Options
 const defaultQueueOptions: QueueOptions = {
-  connection: redisConfig,
+  connection: redisConfig!,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -42,18 +57,25 @@ const defaultQueueOptions: QueueOptions = {
 };
 
 // Create Queues
-export const queues = {
-  maintenance: new Queue(QUEUE_NAMES.MAINTENANCE, defaultQueueOptions),
-  notifications: new Queue(QUEUE_NAMES.NOTIFICATIONS, defaultQueueOptions),
-  healthScore: new Queue(QUEUE_NAMES.HEALTH_SCORE, defaultQueueOptions),
-  dataProcessing: new Queue(QUEUE_NAMES.DATA_PROCESSING, defaultQueueOptions),
-};
+export const queues = isQueueEnabled
+  ? {
+      maintenance: new Queue(QUEUE_NAMES.MAINTENANCE, defaultQueueOptions),
+      notifications: new Queue(QUEUE_NAMES.NOTIFICATIONS, defaultQueueOptions),
+      healthScore: new Queue(QUEUE_NAMES.HEALTH_SCORE, defaultQueueOptions),
+      dataProcessing: new Queue(
+        QUEUE_NAMES.DATA_PROCESSING,
+        defaultQueueOptions,
+      ),
+    }
+  : null;
 
 // Worker Options
-export const defaultWorkerOptions: WorkerOptions = {
-  connection: redisConfig,
-  concurrency: 5, // Process 5 jobs at once per worker
-};
+export const defaultWorkerOptions: WorkerOptions | null = isQueueEnabled
+  ? {
+      connection: redisConfig!,
+      concurrency: 5, // Process 5 jobs at once per worker
+    }
+  : null;
 
 // Type definition for Job Data
 export interface JobData {

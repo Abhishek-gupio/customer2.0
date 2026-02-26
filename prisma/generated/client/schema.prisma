@@ -1,13 +1,12 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../generated/client"
-  previewFeatures = ["postgresqlExtensions", "driverAdapters"]
+  previewFeatures = ["driverAdapters", "postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   schemas  = ["customer"]
-  // extensions = [vector]  // Temporarily disabled - pgvector not available for pg16
 }
 
 model User {
@@ -28,17 +27,17 @@ model Customer {
   profilePic        String?
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
+  chats             ChatSession[]
   devices           CustomerDevice[]
   documents         CustomerDocument[]
   vehicles          CustomerVehicle[]
   digilocker        DigiLockerConnection?
+  emergencyContacts EmergencyContact[]
   expenses          Expense[]
   budgets           ExpenseBudget[]
   notifications     InAppNotification[]
-  sharedVehicles    VehicleAccess[]
-  chats             ChatSession[]
   sosRequests       SOSRequest[]
-  emergencyContacts EmergencyContact[]
+  sharedVehicles    VehicleAccess[]
 
   @@schema("customer")
 }
@@ -115,8 +114,6 @@ model CustomerVehicle {
   year               Int?
   fuelType           String?
   vehicleType        String?
-  engineNumber       String?
-  chassisNumber      String?
   currentOdometer    Int?                @default(0)
   registrationDate   DateTime?
   rcVerified         Boolean             @default(false)
@@ -124,16 +121,18 @@ model CustomerVehicle {
   isPrimary          Boolean             @default(false)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  chassisNumber      String?
+  engineNumber       String?
   challans           Challan[]
   documents          CustomerDocument[]
   customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  drivingTrips       DrivingTrip[]
   expenses           Expense[]
   odometerLogs       OdometerLog[]
   serviceRecords     ServiceRecord[]
+  telematicsDevice   TelematicsDevice?
   accessList         VehicleAccess[]
   healthScore        VehicleHealthScore?
-  telematicsDevice   TelematicsDevice?
-  drivingTrips       DrivingTrip[]
 
   @@index([customerId])
   @@schema("customer")
@@ -206,7 +205,7 @@ model InAppNotification {
   customerId String
   title      String
   body       String
-  type       String // e.g., 'DOC_EXPIRY', 'SYSTEM_ALERT'
+  type       String
   link       String?
   metadata   Json?
   isRead     Boolean   @default(false)
@@ -236,9 +235,9 @@ model ChatSession {
 model ChatMessage {
   id        String      @id @default(cuid())
   sessionId String
-  role      String // "user", "assistant", "system"
+  role      String
   content   String
-  metadata  Json? // For tool calls, citations, etc.
+  metadata  Json?
   createdAt DateTime    @default(now())
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
@@ -249,10 +248,9 @@ model ChatMessage {
 model DocumentEmbedding {
   id         String   @id @default(cuid())
   customerId String
-  entityId   String // ID of Expense, Document, etc.
-  entityType String // "EXPENSE", "DOCUMENT", "VEHICLE"
+  entityId   String
+  entityType String
   content    String
-  // vector     Unsupported("vector")?  // Temporarily disabled - pgvector not available for pg16
   createdAt  DateTime @default(now())
 
   @@index([customerId])
@@ -363,9 +361,9 @@ model ServicePart {
 model TelematicsDevice {
   id          String          @id @default(cuid())
   vehicleId   String          @unique
-  instanceId  String          @unique // Damoov Instance ID
-  deviceToken String? // Damoov Device Token
-  platform    String? // iOS/Android
+  instanceId  String          @unique
+  deviceToken String?
+  platform    String?
   isActive    Boolean         @default(true)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
@@ -375,9 +373,9 @@ model TelematicsDevice {
 }
 
 model DrivingTrip {
-  id            String   @id @default(cuid())
+  id            String          @id @default(cuid())
   vehicleId     String
-  tripId        String   @unique // Damoov Trip ID
+  tripId        String          @unique
   startTime     DateTime
   endTime       DateTime
   distanceKm    Float
@@ -385,14 +383,13 @@ model DrivingTrip {
   maxSpeed      Float?
   avgSpeed      Float?
   fuelConsumed  Float?
-  safetyScore   Int // 0-100
-  startLocation Json? // {lat, lng, address}
-  endLocation   Json? // {lat, lng, address}
-  status        String // COMPLETED, ONGOING
-  createdAt     DateTime @default(now())
-
-  vehicle CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  events  DrivingEvent[]
+  safetyScore   Int
+  startLocation Json?
+  endLocation   Json?
+  status        String
+  createdAt     DateTime        @default(now())
+  events        DrivingEvent[]
+  vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@index([vehicleId])
   @@index([startTime])
@@ -400,19 +397,51 @@ model DrivingTrip {
 }
 
 model DrivingEvent {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   tripId    String
-  eventType String // HARSH_BRAKING, HARSH_ACCEL, PHONE_USAGE, SPEEDING
+  eventType String
   timestamp DateTime
   latitude  Float
   longitude Float
-  severity  Float? // 0.0 - 1.0 (g-force or other metric)
+  severity  Float?
   speed     Float?
-  createdAt DateTime @default(now())
-
-  trip DrivingTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  trip      DrivingTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@index([tripId])
+  @@schema("customer")
+}
+
+model SOSRequest {
+  id         String    @id @default(cuid())
+  customerId String
+  latitude   Float
+  longitude  Float
+  address    String?
+  status     SOSStatus @default(ACTIVE)
+  type       SOSType   @default(OTHER)
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@schema("customer")
+}
+
+model EmergencyContact {
+  id          String   @id @default(cuid())
+  customerId  String
+  name        String
+  phoneNumber String
+  relation    String?
+  priority    Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
   @@schema("customer")
 }
 
@@ -501,39 +530,6 @@ enum ServicePartType {
   HEADLIGHT_BULB
   OTHER_PART
 
-  @@schema("customer")
-}
-
-model SOSRequest {
-  id         String    @id @default(cuid())
-  customerId String
-  latitude   Float
-  longitude  Float
-  address    String?
-  status     SOSStatus @default(ACTIVE)
-  type       SOSType   @default(OTHER)
-  metadata   Json? // For nearby help results, etc.
-  createdAt  DateTime  @default(now())
-  resolvedAt DateTime?
-  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  @@index([customerId])
-  @@index([status])
-  @@schema("customer")
-}
-
-model EmergencyContact {
-  id          String   @id @default(cuid())
-  customerId  String
-  name        String
-  phoneNumber String
-  relation    String?
-  priority    Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  @@index([customerId])
   @@schema("customer")
 }
 
