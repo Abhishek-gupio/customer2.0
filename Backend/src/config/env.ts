@@ -15,7 +15,9 @@ const envSchema = z.object({
   REDIS_URL: z
     .string()
     .optional()
-    .transform((v) => (v === "" ? undefined : v)),
+    .transform((v) =>
+      !v || v === "" || v.toLowerCase() === "false" ? undefined : v,
+    ),
   JWT_SECRET: z.string().min(1).default("dev-secret-change-in-production"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
   JWT_REFRESH_EXPIRY: z.string().default("7d"),

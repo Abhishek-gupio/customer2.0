@@ -17,6 +17,36 @@ function generateOtp(): string {
   return randomInt(100_000, 999_999).toString();
 }
 
+function isTransientDbError(error: unknown): boolean {
+  const message =
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as any).message === "string"
+      ? (error as any).message.toLowerCase()
+      : "";
+
+  return (
+    message.includes("connection terminated unexpectedly") ||
+    message.includes("connection closed") ||
+    message.includes("terminating connection") ||
+    message.includes("econnreset") ||
+    message.includes("timeout")
+  );
+}
+
+async function withDbRetry<T>(op: () => Promise<T>, retries = 1): Promise<T> {
+  try {
+    return await op();
+  } catch (error) {
+    if (retries > 0 && isTransientDbError(error)) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      return withDbRetry(op, retries - 1);
+    }
+    throw error;
+  }
+}
+
 /** Normalize phone for DB lookup (store without +91 for consistency). */
 function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -97,13 +127,17 @@ export const authService = {
     }
     await otpStore.delete(input.phoneNumber);
     const phone = normalizePhone(input.phoneNumber);
-    let customer = await dbInstances.customer.findUnique({
-      where: { phoneNumber: phone },
-    });
+    let customer = await withDbRetry(() =>
+      dbInstances.customer.findUnique({
+        where: { phoneNumber: phone },
+      }),
+    );
     if (!customer) {
-      customer = await dbInstances.customer.create({
-        data: { phoneNumber: phone },
-      });
+      customer = await withDbRetry(() =>
+        dbInstances.customer.create({
+          data: { phoneNumber: phone },
+        }),
+      );
     }
     const payload = { id: customer.id, phoneNumber: customer.phoneNumber };
     const accessToken = signAccess(payload);

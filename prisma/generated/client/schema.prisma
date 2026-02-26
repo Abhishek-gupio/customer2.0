@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["customer"]
+  schemas  = ["public", "customer"]
   // extensions = [vector]  // Temporarily disabled - pgvector not available for pg16
 }
 

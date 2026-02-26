@@ -187,6 +187,13 @@ export const documentService = {
           { vehicle: { accessList: { some: { customerId } } } },
         ],
       },
+      include: {
+        vehicle: {
+          select: {
+            registrationNumber: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
   },
@@ -252,6 +259,13 @@ export const documentService = {
           not: null,
           lte: threshold,
           gte: new Date(),
+        },
+      },
+      include: {
+        vehicle: {
+          select: {
+            registrationNumber: true,
+          },
         },
       },
       orderBy: { expiryDate: "asc" },

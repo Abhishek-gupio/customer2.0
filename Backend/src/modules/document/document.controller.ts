@@ -11,7 +11,8 @@ const DEV_CUSTOMER_ID = "cmlj50qq00000ohti713c0bwy";
 
 function getCustomerId(req: Request): string {
   if (req.customer?.id) return req.customer.id;
-  return DEV_CUSTOMER_ID;
+  if (process.env.NODE_ENV === "development") return DEV_CUSTOMER_ID;
+  throw AppError.unauthorized();
 }
 
 function parseBody<T>(

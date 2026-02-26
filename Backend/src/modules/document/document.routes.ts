@@ -12,6 +12,9 @@ const upload = multer({
   },
 });
 
+// DigiLocker callback must be reachable after OAuth redirect without Bearer header.
+router.get("/digilocker/callback", digilockerController.callback);
+
 router.use(authMiddleware);
 
 // Local Documents
@@ -24,7 +27,6 @@ router.delete("/:id", documentController.delete);
 
 // DigiLocker
 router.get("/digilocker/connect", digilockerController.connect);
-router.get("/digilocker/callback", digilockerController.callback);
 router.post("/digilocker/sync", digilockerController.sync);
 
 export const documentRoutes = router;

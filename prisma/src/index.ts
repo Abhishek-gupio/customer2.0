@@ -38,7 +38,20 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl,
+  max: Number(process.env.PG_POOL_MAX ?? 20),
+  connectionTimeoutMillis: Number(process.env.PG_CONNECT_TIMEOUT_MS ?? 10_000),
+  idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS ?? 30_000),
+  keepAlive: true,
+  keepAliveInitialDelayMillis: Number(
+    process.env.PG_KEEPALIVE_DELAY_MS ?? 10_000,
+  ),
+  maxLifetimeSeconds: Number(process.env.PG_MAX_LIFETIME_SEC ?? 300),
+});
+
+pool.on('error', (err) => {
+  // Prevent uncaught pool errors from crashing request handlers.
+  console.warn('[db-customer] PostgreSQL pool error:', err?.message ?? err);
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = (global.prisma ??
