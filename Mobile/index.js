@@ -1,8 +1,13 @@
-/**
- * @format
- */
+import 'react-native-gesture-handler';
+import { AppRegistry, NativeModules } from 'react-native';
 
-import { AppRegistry } from 'react-native';
+// Polyfill for legacy native modules that haven't updated to the new NativeEventEmitter requirements
+// specifically for @react-native-voice/voice
+if (NativeModules.Voice && !NativeModules.Voice.addListener) {
+    NativeModules.Voice.addListener = () => { };
+    NativeModules.Voice.removeListeners = () => { };
+}
+
 import App from './App';
 import { name as appName } from './app.json';
 import { RNAndroidNotificationListenerHeadlessJsName } from 'react-native-android-notification-listener';
