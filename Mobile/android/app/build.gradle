@@ -1,7 +1,13 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
+
+// Only apply Google Services if the config file exists to prevent build failures
+if (file("google-services.json").exists()) {
+    apply plugin: "com.google.gms.google-services"
+} else {
+    println "WARNING: google-services.json not found, skipping com.google.gms.google-services plugin. Firebase features will be disabled."
+}
 
 // Copy react-native-vector-icons font files into the app so icons display
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
@@ -123,8 +129,5 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-
-    implementation project(':react-native-linear-gradient')
-    implementation project(':react-native-voice_voice')
 }
 

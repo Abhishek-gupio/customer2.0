@@ -43,14 +43,14 @@ function statusLabel(s: string) {
   return 'Expired';
 }
 
-function formatDate(dateVal?: string | number | null): string {
-  if (!dateVal) return 'N/A';
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return 'N/A';
   try {
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return String(dateVal);
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   } catch {
-    return String(dateVal);
+    return dateStr;
   }
 }
 
@@ -149,19 +149,8 @@ export default function DocumentDetail({ route }: Props) {
 
   const fields: { label: string; value: string }[] = [];
   if (doc.documentNumber) fields.push({ label: 'Doc Number', value: doc.documentNumber });
-
-  // Expiry Date logic: prioritize 'expirydate' or 'expiryDate' from extracted fields
-  let displayExpiry: any = doc.expiryDate;
-  if (doc.extractedFields?.expirydate) {
-    displayExpiry = doc.extractedFields.expirydate;
-  } else if (doc.extractedFields?.expiryDate) {
-    displayExpiry = doc.extractedFields.expiryDate;
-  }
-
-  if (displayExpiry) {
-    fields.push({ label: 'Expiry', value: formatDate(displayExpiry) });
-  }
-
+  if (doc.issueDate) fields.push({ label: 'Issue Date', value: formatDate(doc.issueDate) });
+  if (doc.expiryDate) fields.push({ label: 'Expiry', value: formatDate(doc.expiryDate) });
   if (doc.issuerName) fields.push({ label: 'Issuer', value: doc.issuerName });
   if (doc.vehicle) fields.push({ label: 'Vehicle', value: doc.vehicle });
 
