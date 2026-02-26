@@ -1,10 +1,16 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
 
 // Copy react-native-vector-icons font files into the app so icons display
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+
+def googleServicesFile = file("google-services.json")
+if (googleServicesFile.exists()) {
+    apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
+} else {
+    logger.lifecycle("google-services.json not found in app module; skipping Google Services plugin for this build.")
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.
