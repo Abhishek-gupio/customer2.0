@@ -136,5 +136,8 @@ dependencies {
 
     implementation project(':react-native-linear-gradient')
     implementation project(':react-native-voice_voice')
+    implementation project(':react-native-screens')
+    implementation project(':react-native-video')
+    implementation project(':react-native-svg')
 }
 
