@@ -21,6 +21,8 @@ import SpendingAnalysis from "../../components/SpendingAnalysis";
 import CostPerKmCard from "../../components/CostPerKm";
 import TopSpendingCard from "../../components/TopSpending";
 import Iconi from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from "../../theme/colors";
+import { fontSizes } from "../../theme/Fontsize";
 
 
 
@@ -105,14 +107,14 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: "#fff",
-    fontSize: hp(2.9),
+    color: colors.Primary,
+    fontSize: fontSizes.header,
     fontWeight: "700",
   },
 
   subtitle: {
-    color: "#888",
-    fontSize: hp(1.8),
+    color: colors.Secondary,
+    fontSize: fontSizes.subHeader,
     marginBottom: hp(2),
   },
 
