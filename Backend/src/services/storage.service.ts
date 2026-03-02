@@ -46,12 +46,12 @@ export const storageService = {
     const filePath = path.join(uploadDir, `${Date.now()}-${file.originalname}`);
     await fs.writeFile(filePath, file.buffer);
 
-    // The key here is the relative path from the upload root
-    const relativeKey = path.relative(
-      path.join(process.cwd(), env.UPLOAD_DIR),
-      filePath,
-    );
-    const url = `/uploads/${relativeKey}`; // This needs to be served by express
+    // Normalize path separators for URL usage across platforms (Windows -> URL-safe '/').
+    const relativeKey = path
+      .relative(path.join(process.cwd(), env.UPLOAD_DIR), filePath)
+      .replace(/\\/g, "/");
+
+    const url = `/uploads/${relativeKey}`;
 
     return { url, key: relativeKey };
   },

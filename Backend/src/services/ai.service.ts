@@ -18,6 +18,13 @@ const cacheManager = env.GEMINI_API_KEY
 
 // Global singleton to store the current cache name
 let activeCache: { name: string; expiry: number } | null = null;
+let cacheDisabledUntil = 0;
+const chatModelCandidates = [
+  env.GEMINI_CHAT_MODEL,
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+].filter(Boolean) as string[];
 
 export const aiService = {
   /**
@@ -60,9 +67,13 @@ export const aiService = {
    * This saves 70% of tokens by freezing the base logic.
    */
   async getOrUpdateCache() {
+    if (!env.GEMINI_CACHE_ENABLED) return null;
     if (!cacheManager) return null;
 
     const now = Date.now();
+    if (cacheDisabledUntil > now) {
+      return null;
+    }
     if (activeCache && activeCache.expiry > now + 300000) {
       // 5 mins buffer
       return activeCache.name;
@@ -71,22 +82,34 @@ export const aiService = {
     logger.info("Creating new Gemini Context Cache for Gupio Tools...");
     const declarations = this.getFunctionDeclarations();
 
-    const cache = await cacheManager.create({
-      model: "models/gemini-1.5-flash-002", // Stable model for Caching
-      displayName: "gupio-base-logic",
-      systemInstruction: `You are an intelligent automotive assistant for 'Gupio'. 
-            Always reply in the user's language. Be concise and proactive.`,
-      contents: [], // Required by SDK
-      tools: [{ functionDeclarations: declarations } as any],
-      ttlSeconds: 3600, // 1 hour cache
-    });
+    try {
+      const cache = await cacheManager.create({
+        // Keep generic model id for better compatibility across Gemini API versions.
+        model: "models/gemini-1.5-flash",
+        displayName: "gupio-base-logic",
+        systemInstruction: `You are an intelligent automotive assistant for 'Gupio'. 
+              Always reply in the user's language. Be concise and proactive.`,
+        contents: [], // Required by SDK
+        tools: [{ functionDeclarations: declarations } as any],
+        ttlSeconds: 3600, // 1 hour cache
+      });
 
-    activeCache = {
-      name: cache.name!,
-      expiry: now + 3600 * 1000,
-    };
+      activeCache = {
+        name: cache.name!,
+        expiry: now + 3600 * 1000,
+      };
 
-    return cache.name!;
+      return cache.name!;
+    } catch (err) {
+      // Do not fail chat when cache creation is unsupported/unavailable.
+      cacheDisabledUntil = now + 15 * 60 * 1000;
+      activeCache = null;
+      logger.warn(
+        { err },
+        "Gemini cache unavailable; falling back to non-cached chat for 15 minutes",
+      );
+      return null;
+    }
   },
 
   async chat(customerId: string, message: string, sessionId?: string) {
@@ -123,12 +146,6 @@ export const aiService = {
 
     if (!genAI) throw new Error("AI not configured");
 
-    // 🚀 COST SAVER: Use Cached Model
-    const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-flash-002", cachedContent: cacheName } as any,
-      { apiVersion: "v1beta" },
-    );
-
     // Dynamic prompt part
     const userPrompt = `
             USER CONTEXT (RELEVANT RECORDS):
@@ -141,14 +158,67 @@ export const aiService = {
         `;
 
     try {
-      const result = await model.generateContent(userPrompt);
+      let result: any = null;
+      let selectedModel = "";
+      let lastError: unknown = null;
+
+      for (const modelName of chatModelCandidates) {
+        try {
+          const model = cacheName
+            ? genAI.getGenerativeModel(
+                { model: modelName, cachedContent: cacheName } as any,
+                { apiVersion: "v1beta" },
+              )
+            : genAI.getGenerativeModel(
+                { model: modelName },
+                { apiVersion: "v1beta" },
+              );
+
+          result = await model.generateContent(userPrompt);
+          selectedModel = modelName;
+          break;
+        } catch (err) {
+          lastError = err;
+          logger.warn(
+            { err, modelName },
+            "Chat model failed, trying next fallback",
+          );
+        }
+      }
+
+      if (!result && cacheName) {
+        logger.warn("Cached chat model path failed; retrying without cache");
+        for (const modelName of chatModelCandidates) {
+          try {
+            const model = genAI.getGenerativeModel(
+              { model: modelName },
+              { apiVersion: "v1beta" },
+            );
+            result = await model.generateContent(userPrompt);
+            selectedModel = modelName;
+            break;
+          } catch (err) {
+            lastError = err;
+            logger.warn(
+              { err, modelName },
+              "Non-cached chat model failed, trying next fallback",
+            );
+          }
+        }
+      }
+
+      if (!result) {
+        throw lastError || new Error("No chat model available");
+      }
+
+      logger.info({ model: selectedModel }, "AI chat generated");
       let responseText = result.response.text();
       let toolExecutionResult = null;
 
       // 4. Handle Native Function Calls
       const firstCandidate = result.response.candidates?.[0];
       const functionCalls = firstCandidate?.content.parts.filter(
-        (p) => p.functionCall,
+        (p: { functionCall?: unknown }) => Boolean(p.functionCall),
       );
 
       if (functionCalls && functionCalls.length > 0) {

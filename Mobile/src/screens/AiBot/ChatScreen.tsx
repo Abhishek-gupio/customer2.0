@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +15,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../navigation/types";
+import { aiService } from "../../services/aiService";
 
 type ChatRouteProp = RouteProp<RootStackParamList, "Chat">;
 
@@ -28,28 +30,71 @@ type ChatMessage = {
 };
 
 export default function ChatScreen({ route }: Props) {
-  const { userMessage } = route.params;
+  const initialUserMessage = route.params?.userMessage ?? "";
   const [message, setMessage] = useState("");
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+  const [sending, setSending] = useState(false);
+  const hasBootstrappedRef = useRef(false);
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { id: "1", text: userMessage, sender: "user" },
-    { id: "2", text: "Hi! How can I help you with that?", sender: "bot" },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const canSend = useMemo(() => message.trim().length > 0, [message]);
 
+  const sendToBackend = useCallback(
+    async (text: string) => {
+      const nextMessage: ChatMessage = {
+        id: `${Date.now()}-user`,
+        text,
+        sender: "user",
+      };
+
+      setMessages((prev) => [...prev, nextMessage]);
+      setSending(true);
+
+      try {
+        const result = await aiService.sendMessage(text, sessionId);
+        setSessionId(result.sessionId);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `${Date.now()}-bot`,
+            text: result.message,
+            sender: "bot",
+          },
+        ]);
+      } catch (error: any) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `${Date.now()}-error`,
+            text:
+              error?.message ??
+              "Could not reach AI assistant. Please try again.",
+            sender: "bot",
+          },
+        ]);
+      } finally {
+        setSending(false);
+      }
+    },
+    [sessionId],
+  );
+
+  useEffect(() => {
+    if (hasBootstrappedRef.current) return;
+    hasBootstrappedRef.current = true;
+
+    const text = initialUserMessage.trim();
+    if (!text) return;
+    sendToBackend(text);
+  }, [initialUserMessage, sendToBackend]);
+
   const onSend = () => {
-    if (!canSend) return;
-
+    if (!canSend || sending) return;
     const nextText = message.trim();
-    const nextMessage: ChatMessage = {
-      id: Date.now().toString(),
-      text: nextText,
-      sender: "user",
-    };
-
-    setMessages((prev) => [...prev, nextMessage]);
     setMessage("");
+    sendToBackend(nextText);
   };
 
   return (
@@ -85,14 +130,19 @@ export default function ChatScreen({ route }: Props) {
             style={styles.input}
             returnKeyType="send"
             onSubmitEditing={onSend}
+            editable={!sending}
           />
-          <Pressable onPress={onSend} hitSlop={8}>
-            <Ionicons
-              name="send"
-              size={20}
-              color={canSend ? "#9fb3ff" : "#5d6780"}
-            />
-          </Pressable>
+          {sending ? (
+            <ActivityIndicator size="small" color="#9fb3ff" />
+          ) : (
+            <Pressable onPress={onSend} hitSlop={8}>
+              <Ionicons
+                name="send"
+                size={20}
+                color={canSend ? "#9fb3ff" : "#5d6780"}
+              />
+            </Pressable>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

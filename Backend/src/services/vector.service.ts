@@ -21,14 +21,31 @@ export const vectorService = {
   async generateEmbedding(text: string): Promise<number[] | null> {
     if (!genAI || !text) return null;
 
+    const candidates = [
+      env.GEMINI_EMBEDDING_MODEL,
+      "text-embedding-004",
+      "embedding-001",
+    ].filter(Boolean) as string[];
+
+    let lastError: unknown = null;
     try {
-      // Using embedding-001 model for broader regional availability vs 004
-      const model = genAI.getGenerativeModel({ model: "embedding-001" });
+      for (const modelName of candidates) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const result = await model.embedContent(text);
+          const embedding = result.embedding;
+          return embedding.values;
+        } catch (error: any) {
+          lastError = error;
+          logger.warn(
+            { error, modelName },
+            "Embedding model failed, trying next fallback",
+          );
+        }
+      }
 
-      const result = await model.embedContent(text);
-      const embedding = result.embedding;
-
-      return embedding.values;
+      logger.error({ error: lastError }, "Failed to generate embedding");
+      return null;
     } catch (error) {
       logger.error({ error }, "Failed to generate embedding");
       return null;

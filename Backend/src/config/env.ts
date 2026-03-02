@@ -52,6 +52,12 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().default("uploads"),
   // AI Features
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_CHAT_MODEL: z.string().default("gemini-2.0-flash"),
+  GEMINI_EMBEDDING_MODEL: z.string().default("text-embedding-004"),
+  GEMINI_CACHE_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
   /** Model for voice expense parsing; use gemini-1.5-pro for best accuracy. */
   GEMINI_VOICE_MODEL: z.string().default("gemini-1.5-flash"),
 

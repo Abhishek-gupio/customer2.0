@@ -402,7 +402,7 @@ const ExpenseFeed = () => {
           </TouchableOpacity>
         )}
 
-        <Bills />
+        <Bills expenses={rawExpenses} />
 
         <TouchableOpacity
           style={styles.sectionTitleCentered}
@@ -591,3 +591,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
