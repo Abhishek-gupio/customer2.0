@@ -70,8 +70,14 @@ async function request<T>(
 
   if (!res.ok) {
     console.error(`API Error [${res.status}] ${url}:`, JSON.stringify(data));
-    const message = (data as { message?: string })?.message ?? res.statusText ?? 'Request failed';
-    throw new Error(`${res.status}: ${message}`);
+    const err = data as any;
+    const message =
+      err?.error?.message ??
+      err?.message ??
+      err?.error ??
+      res.statusText ??
+      'Request failed';
+    throw new Error(`${message}`); // Only throw the message, without the status code for cleaner UI
   }
   return data as T;
 }
@@ -112,6 +118,8 @@ export const api = {
     request<T>(path, { method: 'GET' }),
   patch: <T>(path: string, body?: object) =>
     request<T>(path, { method: 'PATCH', body }),
+  put: <T>(path: string, body?: object) =>
+    request<T>(path, { method: 'PUT', body }),
   upload: <T>(path: string, formData: FormData) =>
     upload<T>(path, formData),
 };
