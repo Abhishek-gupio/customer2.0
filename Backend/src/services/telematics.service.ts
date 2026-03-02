@@ -1,9 +1,46 @@
 import { dbInstances } from "@repo/db-customer";
 import { logger } from "../config/logger";
+import { env } from "../config/env";
+import axios from "axios";
 
 const db = dbInstances as any;
 
+const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
+
 export const telematicsService = {
+  /**
+   * Register a user with Damoov explicitly to get a DeviceToken
+   */
+  async registerUserWithDamoov(clientCustomId: string) {
+    logger.info({ clientCustomId }, "Registering user with Damoov");
+
+    if (!env.DAMOOV_INSTANCE_ID || !env.DAMOOV_INSTANCE_KEY) {
+      logger.error("Missing Damoov Instance Credentials in environment");
+      throw new Error("Telematics configuration error");
+    }
+
+    try {
+      const response = await axios.post(
+        `${DAMOOV_API_BASE}/Registration/create`,
+        {},
+        {
+          headers: {
+            InstanceId: env.DAMOOV_INSTANCE_ID,
+            InstanceKey: env.DAMOOV_INSTANCE_KEY,
+          },
+        }
+      );
+
+      // The response.data should contain the DeviceToken
+      return response.data;
+    } catch (error: any) {
+      logger.error(
+        { error: error.response?.data || error.message },
+        "Damoov user registration failed"
+      );
+      throw new Error("Failed to register user with Telematics API: " + JSON.stringify(error.response?.data || error.message));
+    }
+  },
   /**
    * Link a mobile SDK instance to a vehicle
    */

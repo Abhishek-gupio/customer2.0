@@ -57,6 +57,11 @@ const envSchema = z.object({
 
   // Weather
   WEATHER_API_KEY: z.string().optional(),
+
+  // Telematics
+  DAMOOV_WEBHOOK_SECRET: z.string().optional(),
+  DAMOOV_INSTANCE_ID: z.string().optional(),
+  DAMOOV_INSTANCE_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

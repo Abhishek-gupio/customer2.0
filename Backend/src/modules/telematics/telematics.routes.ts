@@ -3,6 +3,9 @@ import { telematicsController } from "./telematics.controller";
 
 const router = Router();
 
+// Register User to Damoov
+router.post("/register", telematicsController.register);
+
 // Webhook from Damoov (Unauthenticated or specific signature check)
 router.post("/webhook", telematicsController.webhook);
 
