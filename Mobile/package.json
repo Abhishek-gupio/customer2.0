@@ -14,8 +14,6 @@
   "dependencies": {
     "@babel/runtime": "^7.28.6",
     "@react-native-documents/picker": "^12.0.1",
-    "@react-native-firebase/analytics": "^23.8.6",
-    "@react-native-firebase/perf": "^23.8.6",
     "@react-native-voice/voice": "^3.2.4",
     "@react-native/codegen": "^0.83.1",
     "@react-native/gradle-plugin": "^0.83.1",
@@ -51,7 +49,6 @@
     "react-native-safe-area-context": "^5.6.2",
     "react-native-screens": "^4.23.0",
     "react-native-svg": "^15.15.3",
-    "react-native-telematics": "^2.0.0",
     "react-native-tts": "^4.1.1",
     "react-native-vector-icons": "^10.3.0",
     "react-native-video": "^6.19.0",

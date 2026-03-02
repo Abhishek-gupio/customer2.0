@@ -26,10 +26,15 @@ export default function HomeVideo({
 }: HomeVideoProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRef = useRef<any>(null);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % VIDEOS.length);
+          // Reset video player for next video
+          if (videoRef.current) {
+            videoRef.current.seek(0);
+          }
     }, VIDEO_DURATION_MS);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -39,13 +44,17 @@ export default function HomeVideo({
   return (
     <View style={styles.wrapper}>
       <Video
+          ref={videoRef}
         key={currentIndex}
         source={VIDEOS[currentIndex] as any}
         style={styles.video}
         resizeMode="cover"
-        repeat
-        muted
+        repeat={false}
+        muted={true}
         paused={false}
+        progressUpdateInterval={250}
+        onError={(error) => console.log('Video Error:', error)}
+        onLoad={() => console.log('Video Loaded')}
       />
       <View style={styles.overlay} pointerEvents="box-none">
         <TouchableOpacity
