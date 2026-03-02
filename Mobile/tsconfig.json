@@ -3,7 +3,6 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "types": ["jest"],
     "lib": [
       "es2019",
       "es2020.bigint",
@@ -36,10 +35,24 @@
     "forceConsistentCasingInFileNames": false,
     "baseUrl": ".",
     "paths": {
-      "@react-navigation/*": ["./node_modules/@react-navigation/*"],
-      "react-redux": ["./node_modules/react-redux"]
-    }
+      "@react-navigation/*": [
+        "./node_modules/@react-navigation/*"
+      ],
+      "react-redux": [
+        "./node_modules/react-redux"
+      ]
+    },
+    "types": [
+      "three"
+    ]
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods"
+  ]
 }

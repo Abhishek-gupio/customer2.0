@@ -4,6 +4,9 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 rootProject.name = 'Mobile'
 include ':app'
 
+apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle");
+useExpoModules()
+
 // If pnpm hoists packages, react-native-nitro-modules may live under node_modules/.pnpm/*/node_modules
 def pnpmRoot = new File(rootDir, 'node_modules/.pnpm')
 if (pnpmRoot.exists()) {

@@ -1,6 +1,8 @@
 package com.mobile
 
 import android.app.Application
+import android.content.res.Configuration
+
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -10,22 +12,33 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.BV.LinearGradient.LinearGradientPackage
 import com.wenkesj.voice.VoicePackage
 
+import expo.modules.ApplicationDelegate
+import expo.modules.ReactNativePackageWrapper
+
 class MainApplication : Application(), ReactApplication {
 
   override val reactHost: ReactHost by lazy {
     getDefaultReactHost(
       context = applicationContext,
-      packageList =
+      packageList = ReactNativePackageWrapper(
+        this,
         PackageList(this).packages.apply {
           // Packages that cannot be autolinked yet can be added manually here, for example:
             add(LinearGradientPackage())
             add(VoicePackage())
-        },
+        }
+      ),
     )
   }
 
   override fun onCreate() {
     super.onCreate()
     loadReactNative(this)
+    ApplicationDelegate.onCreate(this)
+  }
+
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    ApplicationDelegate.onConfigurationChanged(this, newConfig)
   }
 }

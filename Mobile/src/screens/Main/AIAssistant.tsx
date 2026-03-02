@@ -35,7 +35,7 @@ export default function HomeScreen() {
       {/* Cards */}
       <View style={styles.cards}>
         <ActionCard
-          icon ="car"
+          icon="car"
           title="Vehicle Health"
           subtitle="Check my car"
         />
@@ -69,7 +69,13 @@ export default function HomeScreen() {
   );
 }
 
-function ActionCard({ icon ={icon}, title, subtitle }) {
+interface ActionCardProps {
+  icon: string;
+  title: string;
+  subtitle: string;
+}
+
+function ActionCard({ icon, title, subtitle }: ActionCardProps) {
   return (
     <TouchableOpacity style={styles.card}>
       <Ionicons name={icon} size={22} color="#9fb3ff" />

@@ -11,6 +11,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Keyboard,
   type ImageSourcePropType,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
@@ -43,12 +44,27 @@ export default function OTP() {
     return Array(OTP_LENGTH).fill('');
   });
   const [loading, setLoading] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
     if (otpFromParams && /^\d{6}$/.test(otpFromParams)) {
       setOtp(otpFromParams.split(''));
     }
+
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, [otpFromParams]);
 
   const handleChange = (value: string, index: number) => {
@@ -117,11 +133,13 @@ export default function OTP() {
         <Text style={styles.title}>ENTER OTP</Text>
         <Text style={styles.subtitle}>OTP sent on Your registered Phone number</Text>
 
-        <Image
-          source={require('../../assets/images/Car_OTP.png') as ImageSourcePropType}
-          style={styles.illustration}
-          resizeMode="contain"
-        />
+        {!isKeyboardVisible && (
+          <Image
+            source={require('../../assets/images/Car_OTP.png') as ImageSourcePropType}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+        )}
 
         <Text style={styles.inputCodeLabel}>Input code</Text>
 

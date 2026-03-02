@@ -10,6 +10,9 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '..');
 
+const defaultConfig = getDefaultConfig(projectRoot);
+const { assetExts, sourceExts } = defaultConfig.resolver;
+
 const config = {
   projectRoot,
   watchFolders: [monorepoRoot],
@@ -20,7 +23,9 @@ const config = {
     ],
     unstable_enableSymlinks: true,
     unstable_enablePackageExports: true,
+    assetExts: [...assetExts, 'glb', 'gltf', 'mtl', 'obj'],
+    sourceExts: [...sourceExts, 'js', 'jsx', 'json', 'ts', 'tsx', 'cjs', 'mjs'],
   },
 };
 
-module.exports = mergeConfig(getDefaultConfig(projectRoot), config);
+module.exports = mergeConfig(defaultConfig, config);

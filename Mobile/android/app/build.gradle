@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: "expo-modules-core"
 
 // Only apply Google Services if the config file exists to prevent build failures
 if (file("google-services.json").exists()) {

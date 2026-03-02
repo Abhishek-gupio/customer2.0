@@ -21,7 +21,18 @@ export type RootStackParamList = {
   MyProfile: undefined;
   HelpSupport: undefined;
   Settings: undefined;
+  BudgetSettings: undefined;
 };
+
+export interface Bill {
+  id: string;
+  title: string;
+  amount: number;
+  status: string;
+  uploadedAt: string;
+  warrantyMonths?: number;
+  image: string | null;
+}
 
 export type MainTabParamList = {
   Home: undefined;

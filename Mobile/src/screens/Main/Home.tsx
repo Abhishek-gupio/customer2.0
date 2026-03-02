@@ -19,6 +19,8 @@ import QuickServicesGrid from '../../components/QuickServicesGrid';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import Vehicle3D from '../../components/Vehicle3D';
+import { useState } from 'react';
 
 export default function Home() {
   const navigation =
@@ -44,8 +46,38 @@ export default function Home() {
     }
   };
 
-  const navigateToRootScreen = (screenName: keyof RootStackParamList, params?: any) => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+  const [vehicles, setVehicles] = useState([
+    {
+      id: '1',
+      plate: 'DL 01 AB 1234',
+      model: 'Swift',
+      brand: 'Maruti Suzuki',
+      color: 'Yellow',
+      health: '85%',
+    },
+  ]);
+
+  const addVehicle = () => {
+    const newId = (vehicles.length + 1).toString();
+    setVehicles([
+      ...vehicles,
+      {
+        id: newId,
+        plate: `DL 0${newId} XY ${Math.floor(Math.random() * 9000) + 1000}`,
+        model: 'i20',
+        brand: 'Hyundai',
+        color: 'Blue',
+        health: '90%',
+      },
+    ]);
+  };
+
+  const navigateToRootScreen = (
+    screenName: keyof RootStackParamList,
+    params?: any,
+  ) => {
+    const rootNav =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
       if (params) {
         rootNav.navigate(screenName as any, params);
@@ -84,44 +116,56 @@ export default function Home() {
             } else if (label === 'Vehicles') {
               navigateToRootScreen('VehicleList');
             }
-            else if(label=='Expenses'){
+            else if (label == 'Expenses') {
               navigateToRootScreen('Expenses');
             }
           }}
         />
 
-        {/* MY VEHICLES SECTION - MERGED DESIGN */}
+        {/* MY VEHICLES SECTION - 3D DESIGN */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Vehicles</Text>
-            <TouchableOpacity
-              onPress={() => navigateToRootScreen('VehicleList')}
-            >
-              <Text style={styles.seeAllText}>See All</Text>
+            <TouchableOpacity onPress={addVehicle} style={styles.addButton}>
+              <Icon name="plus" size={wp(3.5)} color="#000" />
+              <Text style={styles.addButtonText}>Add One</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Main Vehicle Preview Card - High Fidelity Design */}
-          <TouchableOpacity
-            style={styles.vehicleCard}
-            activeOpacity={0.9}
-            onPress={() =>
-              navigateToRootScreen('VehicleDetails', { vehicleId: '1' })
-            }
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.vehicleScroll}
           >
-            <View style={styles.row}>
-              <View style={styles.carImgPlaceholder}>
-                <Icon name="car" size={wp(8)} color="#333" />
-              </View>
-              <View style={styles.carInfo}>
-                <Text style={styles.carPlate}>DL 01 AB 1234</Text>
-                <Text style={styles.carModel}>Maruti Suzuki Swift</Text>
-              </View>
-              <View style={styles.healthBadge}>
-                <Text style={styles.healthText}>85% Health</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+            {vehicles.map(vehicle => (
+              <TouchableOpacity
+                key={vehicle.id}
+                style={styles.vehicle3DCard}
+                activeOpacity={0.9}
+                onPress={() =>
+                  navigateToRootScreen('VehicleDetails', {
+                    vehicleId: vehicle.id,
+                  })
+                }
+              >
+                <Vehicle3D style={styles.v3d} />
+                <View style={styles.v3dInfo}>
+                  <Text style={styles.v3dPlate}>{vehicle.plate}</Text>
+                  <Text style={styles.v3dDetail}>
+                    {vehicle.brand} {vehicle.model}
+                  </Text>
+                  <View style={styles.v3dRow}>
+                    <Text style={styles.v3dSubDetail}>Color: {vehicle.color}</Text>
+                    <View style={styles.v3dHealthBadge}>
+                      <Text style={styles.v3dHealthText}>
+                        {vehicle.health} Health
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         {/* Expiring Soon Section */}
@@ -216,21 +260,18 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   sectionTitle: {
-    color: '#fff',
-    fontSize: wp(5),
-    fontWeight: '700',
+    color: '#FFBF00',
+    fontSize: wp(5.5),
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   sectionTitleCentered: {
-    fontSize: wp(5),
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: hp(1.5),
+    fontSize: wp(5.5),
+    fontWeight: '800',
+    color: '#FFBF00',
+    marginBottom: hp(2),
     textAlign: 'center',
-  },
-  seeAllText: {
-    color: '#3b82f6',
-    fontSize: wp(3.5),
-    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   vehicleCard: {
     backgroundColor: '#1a1a1a',
@@ -239,50 +280,85 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  row: {
+  addButton: {
+    backgroundColor: '#FFBF00',
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(0.8),
+    borderRadius: 20,
   },
-  carImgPlaceholder: {
-    width: wp(16),
-    height: wp(12),
-    backgroundColor: '#222',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+  addButtonText: {
+    color: '#000',
+    fontSize: wp(3.5),
+    fontWeight: '700',
+    marginLeft: wp(1.5),
   },
-  carInfo: {
-    marginLeft: wp(4),
-    flex: 1,
+  vehicleScroll: {
+    paddingRight: wp(5),
   },
-  carPlate: {
+  vehicle3DCard: {
+    width: wp(80),
+    backgroundColor: '#1a1a1a',
+    borderRadius: 25,
+    marginRight: wp(5),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.1)',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+  },
+  v3d: {
+    height: hp(25),
+    width: '100%',
+  },
+  v3dInfo: {
+    padding: wp(4),
+    backgroundColor: '#1a1a1a',
+  },
+  v3dPlate: {
+    color: '#FFBF00',
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  v3dDetail: {
     color: '#fff',
     fontSize: wp(4),
-    fontWeight: 'bold',
-  },
-  carModel: {
-    color: '#777',
-    fontSize: wp(3),
+    fontWeight: '600',
     marginTop: 2,
   },
-  healthBadge: {
-    backgroundColor: 'rgba(74, 222, 128, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  v3dRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: hp(1),
   },
-  healthText: {
+  v3dSubDetail: {
+    color: '#777',
+    fontSize: wp(3.5),
+  },
+  v3dHealthBadge: {
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  v3dHealthText: {
     color: '#4ade80',
-    fontSize: wp(2.8),
+    fontSize: wp(3),
     fontWeight: 'bold',
   },
   alertCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1a1a1a',
-    borderRadius: wp(2.5),
+    borderRadius: wp(3),
     padding: wp(4),
-    marginBottom: hp(1),
+    marginBottom: hp(1.5),
     borderWidth: 1,
     borderColor: 'rgba(255,191,0,0.2)',
   },
@@ -296,26 +372,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   expenseRow: {
-    marginBottom: hp(1),
+    marginBottom: hp(1.5),
+    alignItems: 'center',
   },
   expenseTotal: {
-    fontSize: wp(5),
-    fontWeight: '700',
+    fontSize: wp(6),
+    fontWeight: '800',
     color: '#FFBF00',
   },
   expenseItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(1),
+    paddingVertical: hp(1.2),
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   expenseIcon: {
-    marginRight: wp(3),
+    marginRight: wp(4),
   },
   expenseLabel: {
     fontSize: wp(4),
     color: '#fff',
+    fontWeight: '500',
   },
   placeholderText: {
     fontSize: wp(3.8),
