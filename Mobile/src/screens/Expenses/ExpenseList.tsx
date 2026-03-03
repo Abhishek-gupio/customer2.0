@@ -22,6 +22,9 @@ import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
 import NotificationPermission from '../../components/NotificationPermission';
 import Bills from './Bills';
+import { colors }from '../../theme/colors';
+import { fontSizes } from '../../theme/Fontsize';
+
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -236,7 +239,7 @@ const ExpenseFeed = () => {
           <RefreshControl refreshing={loading} onRefresh={fetchExpenses} tintColor="#fff" />
         }
       >
-        <LinearGradient colors={['rgb(62, 59, 59)', 'rgba(27, 26, 26, 0.95)']} style={styles.shader}>
+        <View style={styles.shader}>
           <View style={styles.header}>
             <View style={styles.subHeder}>
               <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -271,7 +274,7 @@ const ExpenseFeed = () => {
               </Text>
             </View>
           </View>
-        </LinearGradient>
+        </View>
         <View style={[styles.card, { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' }]}>
           <View style={styles.rowBetween}>
             <Text style={styles.cardLabel}>Total Spent</Text>
@@ -438,7 +441,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerTitle: { color: '#fff', fontSize: wp(6.5), fontWeight: '700' },
+  headerTitle: { color: colors.Primary, fontSize: fontSizes.header, fontWeight: '700' },
   subHeder: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -497,7 +500,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1),
     marginRight: wp(3),
   },
-  activeChip: { backgroundColor: '#ddd' },
+  activeChip: { backgroundColor: colors.Yellow },  
   filterText: { color: '#fff', fontSize: wp(3.8) },
   activeText: { color: '#000', fontWeight: '600' },
   listCard: {
@@ -559,7 +562,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     borderRadius: wp(5),
   },
-  activeTimelineItem: { backgroundColor: '#e5e5e2' },
+  activeTimelineItem: { backgroundColor: colors.Yellow },
   timelineText: {
     color: 'rgb(164, 164, 166)',
     fontWeight: '600'
