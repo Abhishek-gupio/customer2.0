@@ -1,12 +1,12 @@
 generator client {
   provider        = "prisma-client-js"
-  output          = "../generated/client"
-  previewFeatures = ["driverAdapters", "postgresqlExtensions"]
+  output          = "../src/generated/client"
+  previewFeatures = ["driverAdapters", "postgresqlExtensions", "multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["customer"]
+  schemas  = ["customer", "public"]
 }
 
 model User {
@@ -15,7 +15,6 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@schema("customer")
 }
 
@@ -38,7 +37,6 @@ model Customer {
   notifications     InAppNotification[]
   sosRequests       SOSRequest[]
   sharedVehicles    VehicleAccess[]
-
   @@schema("customer")
 }
 
@@ -52,7 +50,6 @@ model CustomerDevice {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
 
@@ -100,7 +97,6 @@ model DigiLockerConnection {
   connectedAt  DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
   customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
 
@@ -196,7 +192,6 @@ model VehicleHealthScore {
   lastCalculated   DateTime        @default(now())
   nextDueDate      DateTime?
   vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
 
@@ -368,7 +363,6 @@ model TelematicsDevice {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
   @@schema("customer")
 }
 
@@ -452,7 +446,6 @@ enum DocumentType {
   FASTAG
   DL
   OTHER
-
   @@schema("customer")
 }
 
@@ -460,7 +453,6 @@ enum VerificationStatus {
   PENDING
   VERIFIED
   REJECTED
-
   @@schema("customer")
 }
 
@@ -468,7 +460,6 @@ enum DocumentSource {
   UPLOAD
   DIGILOCKER
   PARIVAHAN
-
   @@schema("customer")
 }
 
@@ -477,7 +468,6 @@ enum DigiLockerStatus {
   DISCONNECTED
   EXPIRED
   REVOKED
-
   @@schema("customer")
 }
 
@@ -485,7 +475,6 @@ enum AccessRole {
   OWNER
   EDITOR
   VIEWER
-
   @@schema("customer")
 }
 
@@ -498,7 +487,6 @@ enum ExpenseCategory {
   CHALLAN
   EMI
   OTHER
-
   @@schema("customer")
 }
 
@@ -508,7 +496,6 @@ enum ExpenseSource {
   NOTIFICATION
   VOICE
   RECEIPT
-
   @@schema("customer")
 }
 
@@ -529,7 +516,6 @@ enum ServicePartType {
   WIPER_BLADES
   HEADLIGHT_BULB
   OTHER_PART
-
   @@schema("customer")
 }
 
@@ -537,7 +523,6 @@ enum SOSStatus {
   ACTIVE
   RESOLVED
   CANCELLED
-
   @@schema("customer")
 }
 
@@ -547,6 +532,5 @@ enum SOSType {
   MECHANICAL
   ACCIDENT
   OTHER
-
   @@schema("customer")
 }
