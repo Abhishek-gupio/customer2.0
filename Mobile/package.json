@@ -14,6 +14,9 @@
   "dependencies": {
     "@babel/runtime": "^7.28.6",
     "@react-native-documents/picker": "^12.0.1",
+    "@react-native-firebase/analytics": "^23.8.6",
+    "@react-native-firebase/app": "^23.8.6",
+    "@react-native-firebase/perf": "^23.8.6",
     "@react-native-voice/voice": "^3.2.4",
     "@react-native/codegen": "^0.83.1",
     "@react-native/gradle-plugin": "^0.83.1",

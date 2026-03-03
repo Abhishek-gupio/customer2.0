@@ -3,7 +3,7 @@ import { z } from "zod";
 export const updateProfileSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   fullName: z.string().max(200).optional(),
-  profilePic: z.string().url().optional().or(z.literal("")),
+  profilePic: z.string().optional().or(z.literal("")),
 });
 
 export const registerDeviceSchema = z.object({

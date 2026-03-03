@@ -29,9 +29,9 @@ export const customerService = {
     const customer = await dbInstances.customer.update({
       where: { id: customerId },
       data: {
-        email: data.email?.trim() || null,
-        fullName: data.fullName?.trim() ?? undefined,
-        profilePic: data.profilePic?.trim() || null,
+        email: data.email !== undefined ? (data.email.trim() || null) : undefined,
+        fullName: data.fullName !== undefined ? (data.fullName.trim() || null) : undefined,
+        profilePic: data.profilePic !== undefined ? (data.profilePic.trim() || null) : undefined,
       },
       select: {
         id: true,

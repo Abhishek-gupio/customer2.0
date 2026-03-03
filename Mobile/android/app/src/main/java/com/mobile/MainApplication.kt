@@ -9,6 +9,9 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 
 import com.BV.LinearGradient.LinearGradientPackage
 import com.wenkesj.voice.VoicePackage
+import com.swmansion.rnscreens.RNScreensPackage
+import com.brentvatne.react.ReactVideoPackage
+import com.horcrux.svg.SvgPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -20,6 +23,9 @@ class MainApplication : Application(), ReactApplication {
           // Packages that cannot be autolinked yet can be added manually here, for example:
             add(LinearGradientPackage())
             add(VoicePackage())
+            add(RNScreensPackage())
+            add(ReactVideoPackage())
+            add(SvgPackage())
         },
     )
   }

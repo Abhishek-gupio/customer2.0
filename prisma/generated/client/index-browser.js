@@ -197,15 +197,15 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   year: 'year',
   fuelType: 'fuelType',
   vehicleType: 'vehicleType',
-  engineNumber: 'engineNumber',
-  chassisNumber: 'chassisNumber',
   currentOdometer: 'currentOdometer',
   registrationDate: 'registrationDate',
   rcVerified: 'rcVerified',
   isActive: 'isActive',
   isPrimary: 'isPrimary',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  chassisNumber: 'chassisNumber',
+  engineNumber: 'engineNumber'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {

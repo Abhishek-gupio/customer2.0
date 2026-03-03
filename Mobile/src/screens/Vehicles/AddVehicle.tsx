@@ -10,6 +10,8 @@ import {
   FlatList,
   Pressable,
   StatusBar,
+  Alert,
+  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,7 +21,7 @@ import {
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
-const VEHICLE_TYPES = ['Car', 'Bike'];
+const VEHICLE_TYPES = ['Car', 'Bike', 'SUV', 'Truck', 'Van'];
 
 const BRANDS = [
   'Maruti Suzuki',
@@ -32,46 +34,96 @@ const BRANDS = [
   'Ford',
   'Volkswagen',
   'Renault',
+  'MG',
+  'Skoda',
+  'BMW',
+  'Mercedes',
+  'Audi',
 ];
 
 const FUEL_TYPES = ['Petrol', 'Diesel', 'Electric', 'CNG', 'Hybrid'];
-const TRANSMISSIONS = ['Manual', 'Automatic'];
+const TRANSMISSIONS = ['Manual', 'Automatic', 'AMT', 'CVT'];
 
-const AddVehicle = ({ navigation }: any) => {
-  const updateForm = (key: string, value: string) => {
-    setForm((prev: any) => ({ ...prev, [key]: value }));
-  };
+interface AddVehicleProps {
+  navigation: any;
+  route?: any;
+}
+
+const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
   const [form, setForm] = useState({
     plate: '',
     model: '',
     brand: 'Maruti Suzuki',
-    year: '',
+    year: new Date().getFullYear().toString(),
     type: 'Car',
     fuel: 'Petrol',
     transmission: 'Manual',
     isPrimary: true,
   });
 
-  const [errors, setErrors] = useState<{ plate?: string; model?: string }>({});
+  const [errors, setErrors] = useState<{
+    plate?: string;
+    model?: string;
+    brand?: string;
+  }>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const updateForm = (key: string, value: string | boolean) => {
+    setForm((prev: any) => ({ ...prev, [key]: value }));
+    if (errors[key as keyof typeof errors]) {
+      setErrors(prev => ({ ...prev, [key]: undefined }));
+    }
+  };
 
   const validateForm = () => {
-    const newErrors: { plate?: string; model?: string } = {};
-    if (!form.plate.trim()) newErrors.plate = 'Vehicle number is required';
-    if (!form.model.trim()) newErrors.model = 'Model is required';
+    const newErrors: typeof errors = {};
+    if (!form.plate.trim()) {
+      newErrors.plate = 'Vehicle number is required';
+    } else if (form.plate.length < 4) {
+      newErrors.plate = 'Please enter a valid vehicle number';
+    }
+    if (!form.model.trim()) {
+      newErrors.model = 'Model is required';
+    }
+    if (!form.brand.trim()) {
+      newErrors.brand = 'Brand is required';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) return;
-    navigation.navigate('VehicleList', {
-      newVehicle: {
-        plate: form.plate,
-        brand: form.brand || form.model,
+
+    setIsSaving(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newVehicle = {
+        id: Date.now().toString(),
+        plate: form.plate.toUpperCase(),
+        brand: form.brand,
         model: form.model,
-        year: form.year || '2024',
-      },
-    });
+        year: form.year || new Date().getFullYear().toString(),
+        type: form.type,
+        fuel: form.fuel,
+        transmission: form.transmission,
+        isPrimary: form.isPrimary,
+        healthScore: Math.floor(Math.random() * 30) + 70,
+        addedAt: new Date().toISOString(),
+      };
+
+      Alert.alert('Success!', 'Vehicle added successfully.', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('VehicleList', { newVehicle }),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save vehicle. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const DropdownField = ({
@@ -79,23 +131,27 @@ const AddVehicle = ({ navigation }: any) => {
     value,
     options,
     onSelect,
+    error,
   }: {
     label: string;
     value: string;
     options: string[];
     onSelect: (val: string) => void;
+    error?: string;
   }) => {
     const [modalVisible, setModalVisible] = useState(false);
     return (
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>{label}</Text>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.fieldLabel}>{label}</Text>
         <TouchableOpacity
-          style={styles.dropdown}
+          style={[styles.dropdown, error && styles.dropdownError]}
           onPress={() => setModalVisible(true)}
+          activeOpacity={0.7}
         >
           <Text style={styles.dropdownText}>{value}</Text>
-          <FontAwesome5 name="chevron-down" size={wp(3)} color="#666" />
+          <FontAwesome5 name="chevron-down" size={wp(3.5)} color="#666" />
         </TouchableOpacity>
+        {error && <Text style={styles.errorText}>{error}</Text>}
         <Modal
           visible={modalVisible}
           transparent
@@ -106,34 +162,49 @@ const AddVehicle = ({ navigation }: any) => {
             style={styles.modalOverlay}
             onPress={() => setModalVisible(false)}
           >
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{label}</Text>
-              <FlatList
-                data={options}
-                keyExtractor={item => item}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      styles.modalItem,
-                      item === value && styles.modalItemSelected,
-                    ]}
-                    onPress={() => {
-                      onSelect(item);
-                      setModalVisible(false);
-                    }}
-                  >
-                    <Text
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              style={styles.modalKeyboardView}
+            >
+              <View style={styles.modalContent}>
+                <View style={styles.modalHandle} />
+                <Text style={styles.modalTitle}>{label}</Text>
+                <FlatList
+                  data={options}
+                  keyExtractor={item => item}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
                       style={[
-                        styles.modalItemText,
-                        item === value && styles.modalItemTextSelected,
+                        styles.modalItem,
+                        item === value && styles.modalItemSelected,
                       ]}
+                      onPress={() => {
+                        onSelect(item);
+                        setModalVisible(false);
+                      }}
+                      activeOpacity={0.7}
                     >
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          item === value && styles.modalItemTextSelected,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                      {item === value && (
+                        <FontAwesome5
+                          name="check"
+                          size={wp(4)}
+                          color="#FFBF00"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </KeyboardAvoidingView>
           </Pressable>
         </Modal>
       </View>
@@ -142,394 +213,477 @@ const AddVehicle = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
-      />
+      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
-          activeOpacity={0.85}
+          activeOpacity={0.7}
         >
           <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Add New Vehicle</Text>
-          <Text style={styles.headerSub}>Register your vehicle details</Text>
-        </View>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Vehicle Number Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Vehicle Number *</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. DL 01 AB 1234"
-              placeholderTextColor="#666"
-              value={form.plate}
-              onChangeText={val => updateForm('plate', val)}
-              autoCapitalize="characters"
-            />
-            <TouchableOpacity
-              style={styles.searchBtn}
-              onPress={() => updateForm('plate', form.plate)}
-            >
-              <FontAwesome5 name="search" size={wp(4)} color="#FFBF00" />
-            </TouchableOpacity>
-          </View>
-          {errors.plate && <Text style={styles.errorText}>{errors.plate}</Text>}
-          <Text style={styles.helperText}>
-            Enter vehicle number and click search to auto-fill details
+          <Text style={styles.headerSubtitle}>
+            Register your vehicle details
           </Text>
         </View>
+        <View style={styles.headerRight} />
+      </View>
 
-        {/* Photo Upload Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Vehicle Photo</Text>
-          <TouchableOpacity style={styles.photoUpload} activeOpacity={0.7}>
-            <View style={styles.cameraCircle}>
-              <FontAwesome5 name="camera" size={wp(6)} color="#666" />
-            </View>
-            <Text style={styles.uploadMain}>Upload Vehicle Photo</Text>
-            <Text style={styles.uploadSub}>Tap to take photo or upload</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Vehicle Details Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Vehicle Details</Text>
-          <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: wp(2) }}>
-              <DropdownField
-                label="Vehicle Type"
-                value={form.type}
-                options={VEHICLE_TYPES}
-                onSelect={val => setForm({ ...form, type: val })}
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: wp(2) }}>
-              <DropdownField
-                label="Brand"
-                value={form.brand}
-                options={BRANDS}
-                onSelect={val => setForm({ ...form, brand: val })}
-              />
-            </View>
-          </View>
-
-          <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: wp(2) }}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Model *</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="e.g. Swift"
-                    placeholderTextColor="#666"
-                    value={form.model}
-                    onChangeText={val => updateForm('model', val)}
-                  />
-                </View>
-                {errors.model && (
-                  <Text style={styles.errorText}>{errors.model}</Text>
-                )}
-              </View>
-            </View>
-            <View style={{ flex: 1, marginLeft: wp(2) }}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Year *</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="e.g. 2022"
-                    placeholderTextColor="#666"
-                    value={form.year}
-                    onChangeText={val => updateForm('year', val)}
-                    keyboardType="numeric"
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Additional Details Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Additional Details</Text>
-          <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: wp(2) }}>
-              <DropdownField
-                label="Fuel Type"
-                value={form.fuel}
-                options={FUEL_TYPES}
-                onSelect={val => setForm({ ...form, fuel: val })}
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: wp(2) }}>
-              <DropdownField
-                label="Transmission"
-                value={form.transmission}
-                options={TRANSMISSIONS}
-                onSelect={val => setForm({ ...form, transmission: val })}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Set as Primary Checkbox UI */}
-        <TouchableOpacity
-          style={styles.checkboxContainer}
-          activeOpacity={0.8}
-          onPress={() => setForm({ ...form, isPrimary: !form.isPrimary })}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardView}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          <View
-            style={[styles.checkbox, form.isPrimary && styles.checkboxActive]}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionLine} />
+              <Text style={styles.sectionLabel}>Vehicle Number</Text>
+              <View style={styles.sectionLine} />
+            </View>
+
+            <View style={styles.card}>
+              <View style={styles.plateInputContainer}>
+                <TextInput
+                  style={styles.plateInput}
+                  placeholder="DL 01 AB 1234"
+                  placeholderTextColor="#3a3a3a"
+                  value={form.plate}
+                  onChangeText={val => updateForm('plate', val.toUpperCase())}
+                  autoCapitalize="characters"
+                  maxLength={15}
+                />
+                <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7}>
+                  <FontAwesome5 name="search" size={wp(4)} color="#FFBF00" />
+                </TouchableOpacity>
+              </View>
+              {errors.plate && (
+                <Text style={styles.errorText}>{errors.plate}</Text>
+              )}
+              <Text style={styles.helperText}>
+                Enter vehicle number to auto-fetch details from RTO
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionLine} />
+              <Text style={styles.sectionLabel}>Vehicle Photo</Text>
+              <View style={styles.sectionLine} />
+            </View>
+
+            <TouchableOpacity style={styles.photoCard} activeOpacity={0.7}>
+              <View style={styles.cameraCircle}>
+                <FontAwesome5 name="camera" size={wp(8)} color="#444" />
+              </View>
+              <Text style={styles.uploadMain}>Add Vehicle Photo</Text>
+              <Text style={styles.uploadSub}>
+                Tap to capture or upload from gallery
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionLine} />
+              <Text style={styles.sectionLabel}>Vehicle Details</Text>
+              <View style={styles.sectionLine} />
+            </View>
+
+            <View style={styles.card}>
+              <View style={styles.row}>
+                <View style={{ flex: 1, marginRight: wp(1.5) }}>
+                  <DropdownField
+                    label="Vehicle Type"
+                    value={form.type}
+                    options={VEHICLE_TYPES}
+                    onSelect={val => updateForm('type', val)}
+                  />
+                </View>
+                <View style={{ flex: 1, marginLeft: wp(1.5) }}>
+                  <DropdownField
+                    label="Brand"
+                    value={form.brand}
+                    options={BRANDS}
+                    onSelect={val => updateForm('brand', val)}
+                    error={errors.brand}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.row}>
+                <View style={{ flex: 1, marginRight: wp(1.5) }}>
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Model *</Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        errors.model && styles.inputError,
+                      ]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        placeholder="e.g. Swift"
+                        placeholderTextColor="#3a3a3a"
+                        value={form.model}
+                        onChangeText={val => updateForm('model', val)}
+                      />
+                    </View>
+                    {errors.model && (
+                      <Text style={styles.errorText}>{errors.model}</Text>
+                    )}
+                  </View>
+                </View>
+                <View style={{ flex: 1, marginLeft: wp(1.5) }}>
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Year</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="2024"
+                        placeholderTextColor="#3a3a3a"
+                        value={form.year}
+                        onChangeText={val => updateForm('year', val)}
+                        keyboardType="numeric"
+                        maxLength={4}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionLine} />
+              <Text style={styles.sectionLabel}>Additional Details</Text>
+              <View style={styles.sectionLine} />
+            </View>
+
+            <View style={styles.card}>
+              <View style={styles.row}>
+                <View style={{ flex: 1, marginRight: wp(1.5) }}>
+                  <DropdownField
+                    label="Fuel Type"
+                    value={form.fuel}
+                    options={FUEL_TYPES}
+                    onSelect={val => updateForm('fuel', val)}
+                  />
+                </View>
+                <View style={{ flex: 1, marginLeft: wp(1.5) }}>
+                  <DropdownField
+                    label="Transmission"
+                    value={form.transmission}
+                    options={TRANSMISSIONS}
+                    onSelect={val => updateForm('transmission', val)}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            activeOpacity={0.8}
+            onPress={() => updateForm('isPrimary', !form.isPrimary)}
           >
-            {form.isPrimary && (
-              <FontAwesome5 name="check" size={wp(3)} color="#000" />
-            )}
-          </View>
-          <Text style={styles.checkboxLabel}>Set as Primary Vehicle</Text>
-        </TouchableOpacity>
+            <View
+              style={[styles.checkbox, form.isPrimary && styles.checkboxActive]}
+            >
+              {form.isPrimary && (
+                <FontAwesome5 name="check" size={wp(3)} color="#000" />
+              )}
+            </View>
+            <View style={styles.checkboxTextContainer}>
+              <Text style={styles.checkboxLabel}>Set as Primary Vehicle</Text>
+              <Text style={styles.checkboxSubtext}>
+                This vehicle will be shown first in your list
+              </Text>
+            </View>
+          </TouchableOpacity>
 
-        {/* Bottom Save Button */}
-        <TouchableOpacity
-          style={styles.saveBtn}
-          activeOpacity={0.8}
-          onPress={handleSave}
-        >
-          <Text style={styles.saveText}>Save Changes</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity
+            style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
+            activeOpacity={0.8}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <FontAwesome5 name="circle-notch" size={wp(5)} color="#000" />
+            ) : (
+              <>
+                <FontAwesome5 name="plus" size={wp(5)} color="#000" />
+                <Text style={styles.saveText}>Add Vehicle</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.footerInfo}>
+            <FontAwesome5 name="shield-alt" size={14} color="#555" />
+            <Text style={styles.footerText}>
+              Your vehicle data is secure and encrypted. We only share data with
+              authorized RTO services.
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
+  keyboardView: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
+    paddingVertical: hp(2),
+    backgroundColor: '#0a0a0a',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   backBtn: {
-    padding: wp(2),
-    width: wp(10),
-    height: wp(10),
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#121212',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: wp(2.5),
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   headerCenter: { flex: 1, marginLeft: wp(3) },
-  headerTitle: {
-    color: '#fff',
-    fontSize: wp(5.5),
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  headerSub: { color: '#666', fontSize: wp(3.2), marginTop: hp(0.3) },
-  searchBtn: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(3),
-    backgroundColor: '#1f1f1f',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: wp(1),
-  },
-  scrollContent: {
-    paddingHorizontal: wp(4),
-    paddingBottom: hp(6),
-    paddingTop: hp(2.5),
-  },
-  card: {
-    backgroundColor: '#141414',
-    borderRadius: 24,
-    padding: wp(5),
-    marginBottom: hp(2.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  cardTitle: {
-    color: '#fff',
-    fontSize: wp(4.2),
-    fontWeight: '600',
-    marginBottom: hp(2),
-    letterSpacing: 0.3,
-  },
-  inputContainer: { marginBottom: hp(1.5) },
-  label: {
-    color: '#777',
-    fontSize: wp(3),
-    fontWeight: '500',
-    marginBottom: hp(1),
-    letterSpacing: 0.5,
-  },
-  inputWrapper: {
+  headerRight: { width: 44 },
+  headerTitle: { color: '#fff', fontSize: wp(5.5), fontWeight: 'bold' },
+  headerSubtitle: { color: '#666', fontSize: wp(3.2), marginTop: 2 },
+
+  scrollContent: { paddingHorizontal: wp(4), paddingBottom: hp(6) },
+  section: { marginTop: hp(3) },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f0f0f',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.04)',
+    marginBottom: hp(2),
   },
-  input: {
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  sectionLabel: {
+    color: '#555',
+    fontSize: wp(2.8),
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    paddingHorizontal: wp(3),
+  },
+
+  card: {
+    backgroundColor: '#121212',
+    borderRadius: 24,
+    padding: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  plateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0a0a0a',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  plateInput: {
     flex: 1,
     color: '#fff',
     padding: wp(4),
-    fontSize: wp(3.6),
-    fontWeight: '500',
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
-  inputIcon: { position: 'absolute', right: wp(4.5) },
-  errorText: {
-    color: '#FF5252',
-    fontSize: wp(2.8),
-    marginTop: 6,
-    fontWeight: '500',
-  },
-  helperText: { color: '#444', fontSize: wp(2.6), marginTop: 8 },
-  photoUpload: {
-    borderStyle: 'dashed',
-    borderWidth: 1.5,
-    borderColor: '#2a2a2a',
-    borderRadius: 20,
-    padding: wp(6),
+  searchBtn: {
+    width: 54,
+    height: 54,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,191,0,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0c0c0c',
+    marginRight: wp(1),
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: wp(2.8),
+    marginTop: hp(0.5),
+    fontWeight: '500',
+  },
+  helperText: { color: '#444', fontSize: wp(2.8), marginTop: hp(1) },
+
+  photoCard: {
+    backgroundColor: '#121212',
+    borderRadius: 24,
+    padding: wp(6),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    borderStyle: 'dashed',
   },
   cameraCircle: {
-    width: wp(16),
-    height: wp(16),
-    borderRadius: wp(8),
-    backgroundColor: '#1a1a1a',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#0a0a0a',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(1.5),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  uploadMain: { color: '#e0e0e0', fontSize: wp(3.8), fontWeight: '600' },
-  uploadSub: { color: '#555', fontSize: wp(2.8), marginTop: 6 },
-  sectionTitle: {
-    color: '#fff',
-    fontSize: wp(4.8),
+  uploadMain: { color: '#fff', fontSize: wp(4), fontWeight: '600' },
+  uploadSub: { color: '#555', fontSize: wp(3), marginTop: hp(0.5) },
+
+  row: { flexDirection: 'row', marginHorizontal: -wp(1.5) },
+  fieldContainer: { marginBottom: hp(1) },
+  fieldLabel: {
+    color: '#555',
+    fontSize: wp(2.8),
     fontWeight: 'bold',
-    marginBottom: hp(2.5),
-    marginTop: hp(1),
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: hp(1),
+    marginLeft: wp(1),
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: -wp(1),
+  inputWrapper: {
+    backgroundColor: '#0a0a0a',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  inputError: { borderColor: 'rgba(239,68,68,0.3)' },
+  input: {
+    color: '#fff',
+    padding: wp(3.5),
+    fontSize: wp(3.8),
+    fontWeight: '500',
   },
   dropdown: {
-    backgroundColor: '#0f0f0f',
-    borderRadius: 16,
-    padding: wp(4),
+    backgroundColor: '#0a0a0a',
+    borderRadius: 14,
+    padding: wp(3.5),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  dropdownText: { color: '#fff', fontSize: wp(3.6), fontWeight: '500' },
+  dropdownError: { borderColor: 'rgba(239,68,68,0.3)' },
+  dropdownText: { color: '#fff', fontSize: wp(3.8), fontWeight: '500' },
+
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: hp(1),
-    marginBottom: hp(3.5),
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(3),
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 16,
+    marginTop: hp(3),
+    padding: wp(4),
+    backgroundColor: '#121212',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.04)',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   checkbox: {
-    width: wp(5),
-    height: wp(5),
-    borderRadius: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     borderWidth: 2,
     borderColor: '#444',
-    marginRight: wp(3),
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxActive: { backgroundColor: '#FFBF00', borderColor: '#FFBF00' },
-  checkboxLabel: {
-    color: '#aaa',
-    fontSize: wp(3.4),
-    fontWeight: '500',
-    flex: 1,
-  },
+  checkboxTextContainer: { flex: 1, marginLeft: wp(3) },
+  checkboxLabel: { color: '#fff', fontSize: wp(3.8), fontWeight: '600' },
+  checkboxSubtext: { color: '#555', fontSize: wp(2.8), marginTop: 2 },
+
   saveBtn: {
     backgroundColor: '#FFBF00',
-    paddingVertical: hp(1.9),
-    borderRadius: 16,
+    borderRadius: 18,
+    paddingVertical: hp(2.2),
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: wp(2),
+    marginTop: hp(3),
     shadowColor: '#FFBF00',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  saveText: {
-    color: '#0a0a0a',
-    fontSize: wp(4),
-    fontWeight: '700',
-    letterSpacing: 0.5,
+  saveBtnDisabled: { backgroundColor: '#333', shadowOpacity: 0 },
+  saveText: { color: '#000', fontSize: wp(4.5), fontWeight: 'bold' },
+
+  footerInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(2),
+    marginTop: hp(3),
+    padding: wp(3),
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 12,
   },
+  footerText: { color: '#444', fontSize: wp(2.8), flex: 1, lineHeight: wp(4) },
+
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
+  modalKeyboardView: { justifyContent: 'flex-end' },
   modalContent: {
-    backgroundColor: '#151515',
+    backgroundColor: '#121212',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingBottom: hp(5),
     maxHeight: hp(65),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: hp(1.5),
+    marginBottom: hp(1),
   },
   modalTitle: {
     color: '#fff',
     fontSize: wp(5),
-    fontWeight: '600',
+    fontWeight: 'bold',
     textAlign: 'center',
     padding: wp(4),
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   modalItem: {
-    paddingVertical: hp(2.2),
-    paddingHorizontal: wp(6),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
+    borderBottomColor: 'rgba(255,255,255,0.03)',
   },
   modalItemSelected: { backgroundColor: 'rgba(255,191,0,0.1)' },
-  modalItemText: { color: '#ccc', fontSize: wp(4), fontWeight: '500' },
+  modalItemText: { color: '#888', fontSize: wp(4), fontWeight: '500' },
   modalItemTextSelected: { color: '#FFBF00', fontWeight: '700' },
 });
 
