@@ -166,18 +166,19 @@ export const expenseService = {
         }
 
         // Filter Notification sources
-        if (
-          input.source === "NOTIFICATION" &&
-          !ALLOWED_NOTIFICATION_CATEGORIES.includes(
-            aiResult.category as ExpenseCategory,
-          )
-        ) {
-          return {
-            success: false,
-            skipped: true,
-            reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
-          };
-        }
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     aiResult.category as ExpenseCategory,
+        //   )
+        // ) 
+        // {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
 
         // Skip credit/refund transactions
         if (aiResult.notes?.includes("CREDIT_TXN")) {
@@ -198,7 +199,7 @@ export const expenseService = {
               ? new Date(aiResult.date)
               : input.timestamp
                 ? new Date(input.timestamp)
-                : new Date(),
+              : new Date(),
             source: input.source as ExpenseSource,
             rawText: text,
             isAutomated: true,
@@ -306,18 +307,19 @@ export const expenseService = {
         }
 
         // Filter Notification sources
-        if (
-          input.source === "NOTIFICATION" &&
-          !ALLOWED_NOTIFICATION_CATEGORIES.includes(
-            upiResult.category as ExpenseCategory,
-          )
-        ) {
-          return {
-            success: false,
-            skipped: true,
-            reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
-          };
-        }
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     upiResult.category as ExpenseCategory,
+        //   )
+        // )
+        //  {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
 
         const expense = await db.expense.create({
           data: {
@@ -444,16 +446,16 @@ export const expenseService = {
     if (mMatch && mMatch[1]) merchantName = mMatch[1].trim().substring(0, 30);
 
     // Filter Notification sources
-    if (
-      input.source === "NOTIFICATION" &&
-      !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
-    ) {
-      return {
-        success: false,
-        skipped: true,
-        reason: `Category '${category}' is not allowed for auto-notification parsing.`,
-      };
-    }
+    // if (
+    //   input.source === "NOTIFICATION" &&
+    //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
+    // ) {
+    //   return {
+    //     success: false,
+    //     skipped: true,
+    //     reason: `Category '${category}' is not allowed for auto-notification parsing.`,
+    //   };
+    // }
 
     // DRY RUN: return preview without creating expense
     if (opts?.dryRun) {
