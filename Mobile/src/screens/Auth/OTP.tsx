@@ -11,6 +11,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Keyboard,
   type ImageSourcePropType,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
@@ -43,6 +44,7 @@ export default function OTP() {
     return Array(OTP_LENGTH).fill('');
   });
   const [loading, setLoading] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
@@ -50,6 +52,20 @@ export default function OTP() {
       setOtp(otpFromParams.split(''));
     }
   }, [otpFromParams]);
+
+  useEffect(() => {
+    const keyboardDidShow = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      keyboardDidShow.remove();
+      keyboardDidHide.remove();
+    };
+  }, []);
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d*$/.test(value)) return;
@@ -108,20 +124,23 @@ export default function OTP() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Image
-          source={require('../../assets/images/logo.png') as ImageSourcePropType}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+          <Image
+            source={require('../../assets/images/logo.png') as ImageSourcePropType}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+      
 
         <Text style={styles.title}>ENTER OTP</Text>
         <Text style={styles.subtitle}>OTP sent on Your registered Phone number</Text>
 
-        <Image
-          source={require('../../assets/images/Car_OTP.png') as ImageSourcePropType}
-          style={styles.illustration}
-          resizeMode="contain"
-        />
+        {!keyboardVisible && (
+          <Image
+            source={require('../../assets/images/Car_OTP.png') as ImageSourcePropType}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+        )}
 
         <Text style={styles.inputCodeLabel}>Input code</Text>
 
