@@ -2,12 +2,12 @@
     "name": "@repo/db-customer",
     "version": "0.0.1",
     "private": true,
-    "main": "./dist/src/index.js",
-    "types": "./dist/src/index.d.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/src/index.d.ts",
-            "default": "./dist/src/index.js"
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
         }
     },
     "scripts": {
@@ -16,7 +16,7 @@
         "prisma:studio": "prisma studio",
         "db:up:local": "bash ../scripts/db-start.sh",
         "db:migrate": "prisma migrate dev",
-        "build": "tsc -p tsconfig.json && cp -r generated dist/",
+        "build": "tsc -p tsconfig.json && node -e \"const fs = require('fs'); if (fs.existsSync('src/generated')) { fs.cpSync('src/generated', 'dist/generated', {recursive: true}); }\"",
         "prepare": "pnpm prisma:generate"
     },
     "devDependencies": {

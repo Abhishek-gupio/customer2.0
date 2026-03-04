@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from '../generated/client';
+import { PrismaClient } from './generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
@@ -38,7 +38,7 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: ssl
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = (global.prisma ??
@@ -46,4 +46,4 @@ export const dbInstances = (global.prisma ??
 
 if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
 
-export * from '../generated/client';
+export * from './generated/client';
