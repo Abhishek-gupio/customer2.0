@@ -4,6 +4,7 @@ export const updateProfileSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   fullName: z.string().max(200).optional(),
   profilePic: z.string().optional().or(z.literal("")),
+  phoneNumber: z.string().min(10).max(15).optional(),
 });
 
 export const registerDeviceSchema = z.object({

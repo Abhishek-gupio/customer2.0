@@ -13,6 +13,7 @@ export type UpdateProfilePayload = {
     fullName?: string;
     email?: string;
     profilePic?: string;
+    phoneNumber?: string;
 };
 
 /** Get logged-in customer profile */

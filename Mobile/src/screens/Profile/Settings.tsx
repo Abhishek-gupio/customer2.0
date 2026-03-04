@@ -18,8 +18,11 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation } from '../../lib/react-navigation-native';
+// @ts-ignore pnpm symlink resolution
+import { CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { logoutStorage } from '../../services/authService';
 
 type SettingsNavProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -36,7 +39,19 @@ export default function Settings() {
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: () => { } },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: () => {
+          logoutStorage();
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'Signin' }],
+            })
+          );
+        },
+      },
     ]);
   };
 
@@ -91,10 +106,10 @@ export default function Settings() {
           >
             <Icon name="arrow-left" size={wp(4)} color="#fff" />
           </TouchableOpacity>
+          <Text style={styles.title}>More</Text>
         </View>
 
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>More</Text>
+        <View style={styles.subtitleWrap}>
           <Text style={styles.subtitle}>Settings & Preferences</Text>
         </View>
 
@@ -216,6 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(5),
     paddingTop: hp(1.5),
+    paddingBottom: hp(0.5),
   },
   backBtn: {
     width: wp(10),
@@ -229,20 +245,20 @@ const styles = StyleSheet.create({
   },
 
   /* Title */
-  titleWrap: {
-    paddingHorizontal: wp(5),
-    paddingTop: hp(2),
-    paddingBottom: hp(2.5),
-  },
   title: {
-    fontSize: wp(7),
+    fontSize: wp(6.5),
     fontWeight: '800',
     color: '#fff',
+    marginLeft: wp(3),
+  },
+  subtitleWrap: {
+    paddingHorizontal: wp(5),
+    paddingTop: hp(0.5),
+    paddingBottom: hp(2),
   },
   subtitle: {
     fontSize: wp(3.8),
     color: '#888',
-    marginTop: hp(0.5),
   },
 
   /* Section */
