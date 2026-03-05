@@ -16,8 +16,10 @@ import {
   Dimensions,
   PermissionsAndroid,
   Platform,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -77,24 +79,126 @@ export default function MyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [editData, setEditData] = useState<ProfileData | null>(null);
+  const [errors, setErrors] = useState<{ fullName?: string; email?: string; phone?: string; }>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(false);
   const [profilePicModal, setProfilePicModal] = useState(false);
   const [avatarModal, setAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [popup, setPopup] = useState<{ visible: boolean; title: string; message: string; type: 'success' | 'error' }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+  });
   const dispatch = useDispatch();
+
+  // Animation handling for pinch-to-zoom
+  const zoomScale = React.useRef(new Animated.Value(1)).current;
+
+  const onPinchEvent = Animated.event(
+    [{ nativeEvent: { scale: zoomScale } }],
+    { useNativeDriver: true }
+  );
+
+  const onPinchStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      Animated.spring(zoomScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        bounciness: 1,
+      }).start();
+    }
+  };
+
+  const showPopup = (title: string, message: string, type: 'success' | 'error' = 'success') => {
+    setPopup({ visible: true, title, message, type });
+  };
+
+  const validate = () => {
+    let isValid = true;
+    const newErrors: { fullName?: string; email?: string; phone?: string; } = {};
+
+    if (!editData?.fullName || editData.fullName.trim() === '') {
+      newErrors.fullName = 'Full name is required';
+      isValid = false;
+    } else if (editData.fullName.length > 200) {
+      newErrors.fullName = 'Full name must be less than 200 characters';
+      isValid = false;
+    } else if (/^\d+$/.test(editData.fullName.trim())) {
+      newErrors.fullName = 'Full name cannot contain only numbers';
+      isValid = false;
+    }
+
+    if (editData?.email && editData.email.trim() !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(editData.email)) {
+        newErrors.email = 'Please enter a valid email address';
+        isValid = false;
+      }
+    }
+
+    if (editData?.phone && editData.phone.trim() !== '') {
+      const phoneStr = editData.phone.trim();
+      if (phoneStr.length !== 10) {
+        newErrors.phone = 'Phone number must be exactly 10 digits';
+        isValid = false;
+      } else if (!/^\d{10}$/.test(phoneStr)) {
+        newErrors.phone = 'Please enter a valid 10-digit phone number';
+        isValid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   useEffect(() => {
     fetchProfile();
   }, []);
 
-  // Auto-detect user location based on IP address (fast, reliable, no GPS needed)
+  // Auto-detect user location based on IP address
   const fetchUserLocation = async () => {
     try {
-      const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
-      if (!res.ok) throw new Error('Network response was not ok');
-      const geo = await res.json();
+      let geo: any = null;
+
+      // Provider 1: ipapi (Good mobile IP resolution)
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        if (data?.city && data?.region) {
+          geo = data;
+        }
+      } catch (err) {
+        console.log('ipapi error:', err);
+      }
+
+      // Provider 2: ipinfo (Very reliable fallback)
+      if (!geo) {
+        try {
+          const res = await fetch('https://ipinfo.io/json');
+          const data = await res.json();
+          if (data?.city && data?.region) {
+            geo = data;
+          }
+        } catch (err) {
+          console.log('ipinfo error:', err);
+        }
+      }
+
+      // Provider 3: geojs (Original fallback)
+      if (!geo) {
+        try {
+          const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+          const data = await res.json();
+          if (data?.city && data?.region) {
+            geo = data;
+          }
+        } catch (err) {
+          console.log('geojs error:', err);
+        }
+      }
 
       if (geo?.city && geo?.region) {
         const locationStr = `${geo.city}, ${geo.region}`;
@@ -102,7 +206,7 @@ export default function MyProfile() {
         setEditData((prev) => (prev ? { ...prev, location: locationStr } : prev));
         return;
       }
-      throw new Error('Incomplete location data');
+      throw new Error('Incomplete location data from IP services');
     } catch (error) {
       console.log('Location detection failed:', error);
       const fallback = 'Location not available';
@@ -119,7 +223,7 @@ export default function MyProfile() {
       // Wait for profile data mapping to finish, then fetch location
       fetchUserLocation();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch profile');
+      showPopup('Error', error.message || 'Failed to fetch profile', 'error');
     } finally {
       setLoading(false);
     }
@@ -146,12 +250,14 @@ export default function MyProfile() {
   const handleEdit = () => {
     if (profile) {
       setEditData({ ...profile });
+      setErrors({});
       setIsEditing(true);
     }
   };
 
   const handleSave = async () => {
     if (!editData) return;
+    if (!validate()) return;
 
     try {
       setSaving(true);
@@ -166,9 +272,15 @@ export default function MyProfile() {
 
       mapProfileData(updated);
       setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      showPopup('Success', 'Profile updated successfully', 'success');
     } catch (error: any) {
-      Alert.alert('Update Failed', error.message || 'Could not save changes');
+      let errorMessage = error.response?.data?.message || error.message || 'Could not save changes';
+      if (Array.isArray(errorMessage)) {
+        errorMessage = errorMessage.join('\n');
+      } else if (typeof errorMessage === 'object') {
+        errorMessage = JSON.stringify(errorMessage);
+      }
+      showPopup('Update Failed', errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -177,6 +289,7 @@ export default function MyProfile() {
   const handleCancel = () => {
     if (profile) {
       setEditData({ ...profile });
+      setErrors({});
       setIsEditing(false);
     }
   };
@@ -184,6 +297,7 @@ export default function MyProfile() {
   const updateField = (field: keyof ProfileData, value: string) => {
     if (!editData) return;
     setEditData((prev) => (prev ? { ...prev, [field]: value } : prev));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
   const handleImagePick = () => {
@@ -220,8 +334,9 @@ export default function MyProfile() {
       setAvatarModal(false);
       const updated = await updateProfile({ profilePic: avatarUrl });
       mapProfileData(updated);
+      mapProfileData(updated);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to set avatar');
+      showPopup('Error', err.message || 'Failed to set avatar', 'error');
     } finally {
       setSaving(false);
     }
@@ -243,9 +358,10 @@ export default function MyProfile() {
               setSaving(true);
               const updated = await updateProfile({ profilePic: '' });
               mapProfileData(updated);
-              Alert.alert('Success', 'Profile picture removed!');
+              mapProfileData(updated);
+              showPopup('Success', 'Profile picture removed!', 'success');
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to remove picture');
+              showPopup('Error', err.message || 'Failed to remove picture', 'error');
             } finally {
               setSaving(false);
             }
@@ -266,9 +382,9 @@ export default function MyProfile() {
             setSaving(true);
             const updated = await updateProfile({ profilePic: selectedImage });
             mapProfileData(updated);
-            Alert.alert('Success', 'Profile picture updated!');
+            showPopup('Success', 'Profile picture updated!', 'success');
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to update picture');
+            showPopup('Error', err.message || 'Failed to update picture', 'error');
           } finally {
             setSaving(false);
           }
@@ -293,6 +409,41 @@ export default function MyProfile() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#111" />
 
+      {/* ── Custom Minimal Alert Popup Modal ── */}
+      <Modal
+        visible={popup.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPopup(prev => ({ ...prev, visible: false }))}
+        statusBarTranslucent
+      >
+        <TouchableWithoutFeedback onPress={() => setPopup(prev => ({ ...prev, visible: false }))}>
+          <View style={styles.popupOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.popupCard}>
+                <View style={styles.popupHeader}>
+                  <Icon
+                    name={popup.type === 'success' ? 'check-circle' : 'exclamation-triangle'}
+                    size={20}
+                    color={popup.type === 'success' ? '#25D366' : '#ff4444'}
+                  />
+                  <Text style={styles.popupTitle}>{popup.title}</Text>
+                </View>
+
+                <Text style={styles.popupMessage}>{popup.message}</Text>
+
+                <TouchableOpacity
+                  style={styles.popupBtnMinimal}
+                  activeOpacity={0.7}
+                  onPress={() => setPopup(prev => ({ ...prev, visible: false }))}
+                >
+                  <Text style={styles.popupBtnTextMinimal}>Okay</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* ── Full-screen Photo Preview Modal ── */}
       <Modal
@@ -302,26 +453,36 @@ export default function MyProfile() {
         onRequestClose={() => setPhotoPreview(false)}
         statusBarTranslucent
       >
-        <TouchableWithoutFeedback onPress={() => setPhotoPreview(false)}>
-          <View style={styles.previewOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.previewContent}>
-                <Image
-                  source={{ uri: currentPic }}
-                  style={styles.previewImage}
-                  resizeMode="contain"
-                />
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableOpacity
-              style={styles.previewCloseBtn}
-              onPress={() => setPhotoPreview(false)}
-              activeOpacity={0.8}
-            >
-              <Icon name="times" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </TouchableWithoutFeedback>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <TouchableWithoutFeedback onPress={() => setPhotoPreview(false)}>
+            <View style={styles.previewOverlay}>
+              <TouchableWithoutFeedback>
+                <View style={styles.previewContent}>
+                  <PinchGestureHandler
+                    onGestureEvent={onPinchEvent}
+                    onHandlerStateChange={onPinchStateChange}
+                  >
+                    <Animated.Image
+                      source={{ uri: currentPic }}
+                      style={[
+                        styles.previewImage,
+                        { transform: [{ scale: zoomScale }] }
+                      ]}
+                      resizeMode="contain"
+                    />
+                  </PinchGestureHandler>
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableOpacity
+                style={styles.previewCloseBtn}
+                onPress={() => setPhotoPreview(false)}
+                activeOpacity={0.8}
+              >
+                <Icon name="times" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </GestureHandlerRootView>
       </Modal>
 
       {/* ── Profile Picture Bottom Sheet Modal ── */}
@@ -537,7 +698,7 @@ export default function MyProfile() {
             <View style={styles.headerActions}>
               {!isEditing ? (
                 <TouchableOpacity style={styles.editPill} onPress={handleEdit}>
-                  <Icon name="pen" size={10} color="#e5e5e5" />
+                  <Icon name="pen" size={10} color="#FFC107" />
                   <Text style={styles.editPillText}>Edit</Text>
                 </TouchableOpacity>
               ) : (
@@ -570,6 +731,7 @@ export default function MyProfile() {
             value={isEditing ? editData.fullName : profile.fullName}
             isEditing={isEditing}
             onChange={(v: string) => updateField('fullName', v)}
+            error={errors.fullName}
           />
 
           <VerticalInfoRow
@@ -579,6 +741,7 @@ export default function MyProfile() {
             isEditing={isEditing}
             onChange={(v: string) => updateField('email', v)}
             keyboardType="email-address"
+            error={errors.email}
           />
 
           <VerticalInfoRow
@@ -588,6 +751,7 @@ export default function MyProfile() {
             isEditing={isEditing}
             onChange={(v: string) => updateField('phone', v)}
             keyboardType="phone-pad"
+            error={errors.phone}
           />
 
           <VerticalInfoRow
@@ -637,6 +801,7 @@ function VerticalInfoRow({
   isEditing,
   onChange,
   keyboardType = 'default',
+  error,
 }: any) {
   return (
     <View style={styles.verticalRow}>
@@ -645,7 +810,11 @@ function VerticalInfoRow({
       </View>
       <View style={styles.vContentWrap}>
         <Text style={styles.vLabel}>{label}</Text>
-        <View style={[styles.inputContainer, isEditing && styles.inputContainerActive]}>
+        <View style={[
+          styles.inputContainer,
+          isEditing ? styles.inputContainerActive : undefined,
+          (isEditing && error) ? styles.inputContainerError : undefined
+        ]}>
           {isEditing && onChange ? (
             <TextInput
               value={value}
@@ -660,6 +829,9 @@ function VerticalInfoRow({
             <Text style={styles.vValue}>{value || 'Not provided'}</Text>
           )}
         </View>
+        {isEditing && error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -796,16 +968,16 @@ const styles = StyleSheet.create({
   editPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 193, 7, 0.1)',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#FFC107',
     gap: 6,
   },
   editPillText: {
-    color: '#e5e5e5',
+    color: '#FFC107',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -870,6 +1042,16 @@ const styles = StyleSheet.create({
   inputContainerActive: {
     borderColor: '#e5e5e5',
     backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  inputContainerError: {
+    borderColor: '#ff4444',
+    backgroundColor: 'rgba(255,68,68,0.05)',
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 11,
+    marginTop: 4,
+    marginLeft: 4,
   },
   vValue: {
     color: '#fff',
@@ -1108,5 +1290,55 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: '700',
+  },
+
+  /* ── Custom Alert Popup ── */
+  popupOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)', // Softer background
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(8),
+  },
+  popupCard: {
+    backgroundColor: '#1c1d21',
+    width: '100%',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  popupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 10,
+  },
+  popupTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  popupMessage: {
+    color: '#a0a0a0',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  popupBtnMinimal: {
+    alignSelf: 'flex-end',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  popupBtnTextMinimal: {
+    color: '#FFC107',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
