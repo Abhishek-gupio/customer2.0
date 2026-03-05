@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,12 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  TextInput,
+  FlatList,
+  ActivityIndicator,
+  Modal,
+  Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -14,6 +20,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import HomeVideo from '../../components/HomeVideo';
 import QuickServicesGrid from '../../components/QuickServicesGrid';
 import { useNavigation } from '../../lib/react-navigation-native';
@@ -21,13 +28,43 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 
+const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
+
 export default function Home() {
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
+  const [numberPlate, setNumberPlate] = useState('');
+  const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number } | null>(null);
+  const [selectedState, setSelectedState] = useState('Kerala');
+  const [showStateModal, setShowStateModal] = useState(false);
+  const [stateSearchQuery, setStateSearchQuery] = useState('');
+  const [fuelLoading, setFuelLoading] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  // Fetch fuel prices on component mount
+  useEffect(() => {
+    fetchFuelPrices();
+  }, [selectedState]);
+
+  const fetchFuelPrices = async () => {
+    try {
+      setFuelLoading(true);
+      const response = await fetch(`http://localhost:9000/api/v1/fuel/state?name=${selectedState}`);
+      const data = await response.json();
+      if (data.success && data.data.petrol) {
+        setFuelPrices(data.data);
+      } else {
+        console.warn('No fuel data available for', selectedState);
+      }
+    } catch (error) {
+      console.error('Error fetching fuel prices:', error);
+    } finally {
+      setFuelLoading(false);
+    }
+  };
+
   const handleProfilePress = () => {
-    // Access the root navigator using getParent()
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
       rootNav.navigate('MyProfile');
@@ -37,7 +74,6 @@ export default function Home() {
   };
 
   const handleHelpPress = () => {
-    // Access the root navigator using getParent()
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
       rootNav.navigate('HelpSupport');
@@ -62,6 +98,59 @@ export default function Home() {
       }
     }
   };
+
+  const trendingVideos = [
+    { 
+      id: '1', 
+      title: 'What could the future of cars look like?', 
+      views: '450K', 
+      tag: 'Popular', 
+      url: 'https://www.youtube.com/watch?v=Lz5moT15ZgI',
+      thumbnail: 'https://img.youtube.com/vi/Lz5moT15ZgI/hqdefault.jpg'
+    },
+    { 
+      id: '2', 
+      title: 'Tesla overtaken by Chinese carmaker BYD as world\'s biggest seller', 
+      views: '320K', 
+      url: 'https://www.youtube.com/watch?v=d2ezNAf9vjw',
+      thumbnail: 'https://img.youtube.com/vi/d2ezNAf9vjw/hqdefault.jpg'
+    },
+    { 
+      id: '3', 
+      title: 'Future of car technology that may hit our shores', 
+      views: '285K', 
+      url: 'https://www.youtube.com/watch?v=zSiV8rLna_s',
+      thumbnail: 'https://img.youtube.com/vi/zSiV8rLna_s/hqdefault.jpg'
+    },
+    { 
+      id: '4', 
+      title: 'Electric Vehicles Revolution 2026', 
+      views: '156K', 
+      url: 'https://www.youtube.com/watch?v=piMHbmX7vBM',
+      thumbnail: 'https://img.youtube.com/vi/piMHbmX7vBM/hqdefault.jpg'
+    },
+  ];
+
+  const trendingNews = [
+    { id: '1', title: 'India-made suzuki evitara launch prices', snippet: 'RS 48 lakh', time: '2 hours ago', url: 'https://www.rushlane.com/india-made-suzuki-evitara-brazil-launch-price-r-269990-rs-48-lakh-12541176.html' },
+    { id: '2', title: 'Maruti e Vitara vs Tata Curvv EV compared: Which should you buy?', snippet: 'Electric SUV comparison guide', time: '5 hours ago', url: 'https://www.autocarindia.com/auto-features/maruti-e-vitara-vs-tata-curvv-ev-compared-which-should-you-buy-440302' },
+  ];
+
+  const handleVideoPress = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Error opening URL:', error);
+    }
+  };
+
+  const handleNewsPress = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Error opening URL:', error);
+    }
+  };;
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -73,133 +162,290 @@ export default function Home() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* VIDEO SECTION */}
         <HomeVideo
           onProfilePress={handleProfilePress}
           onHelpPress={handleHelpPress}
         />
 
+        {/* NUMBER PLATE INPUT */}
+        <View style={styles.numberPlateSection}>
+          <View style={styles.numberPlateContainer}>
+            <Text style={styles.numberPlatePlaceholder}>IND</Text>
+            <TextInput
+              style={styles.numberPlateInput}
+              placeholder="MH01CH4322"
+              placeholderTextColor="#666"
+              value={numberPlate}
+              onChangeText={setNumberPlate}
+              autoCapitalize="characters"
+              maxLength={15}
+            />
+            <TouchableOpacity style={styles.searchButton}>
+              <MaterialIcon name="magnify" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* QUICK SERVICES GRID */}
         <QuickServicesGrid
           onServicePress={label => {
-            if (label === 'Documents') {
+            if (label === 'Document') {
               navigateToRootScreen('DocumentList');
-            } else if (label === 'Vehicles') {
+            } else if (label === 'My Vehicle') {
               navigateToRootScreen('VehicleList');
-            } else if (label === 'Expenses') {
+            } else if (label === 'Expense') {
               navigateToRootScreen('Expenses');
-            } else if (label === 'Service') {
-              setServiceModalVisible(true);
+            } else if (label === 'Valet') {
+              navigateToRootScreen('VehicleList');
             }
           }}
         />
 
-        {/* MY VEHICLES SECTION - MERGED DESIGN */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Vehicles</Text>
-            <TouchableOpacity
-              onPress={() => navigateToRootScreen('VehicleList')}
-            >
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Main Vehicle Preview Card - High Fidelity Design */}
-          <TouchableOpacity
-            style={styles.vehicleCard}
-            activeOpacity={0.9}
-            onPress={() =>
-              navigateToRootScreen('VehicleDetails', { vehicleId: '1' })
-            }
-          >
-            <View style={styles.row}>
-              <View style={styles.carImgPlaceholder}>
-                <Icon name="car" size={wp(8)} color="#333" />
+        {/* DEMO VEHICLE CARD */}
+        <View style={styles.vehicleSection}>
+          <Text style={styles.vehicleTitle}>My Vehicle</Text>
+          <TouchableOpacity style={styles.vehicleCard}>
+            <View style={styles.vehicleImageContainer}>
+              <Image 
+                source={require('../../assets/images/car_vehicle_demo.png') as any}
+                style={styles.vehicleImage}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.vehicleDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Brand</Text>
+                <Text style={styles.detailValue}>Tata</Text>
               </View>
-              <View style={styles.carInfo}>
-                <Text style={styles.carPlate}>DL 01 AB 1234</Text>
-                <Text style={styles.carModel}>Maruti Suzuki Swift</Text>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Model</Text>
+                <Text style={styles.detailValue}>Punch</Text>
               </View>
-              <View style={styles.healthBadge}>
-                <Text style={styles.healthText}>85% Health</Text>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Color</Text>
+                <Text style={styles.detailValue}>White</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Vehicle No.</Text>
+                <Text style={styles.detailValue}>AP39CH5622</Text>
               </View>
             </View>
+            <MaterialIcon name="chevron-right" size={24} color="#999" style={styles.chevronIcon} />
           </TouchableOpacity>
         </View>
 
-        {/* Expiring Soon Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitleCentered}>Expiring Soon</Text>
-          <View style={styles.alertCard}>
-            <Icon
-              name="exclamation-triangle"
-              size={wp(5)}
-              color="#FFBF00"
-              style={styles.alertIcon}
+        {/* INSURANCE BANNER */}
+        <View style={styles.bannerSection}>
+          <View style={styles.insuranceBanner}>
+            <Image 
+              source={require('../../assets/images/challan.png') as any}
+              style={styles.bannerImage}
+              resizeMode="contain"
             />
-            <Text style={styles.alertText}>PUC expires in 15 days (Swift)</Text>
-          </View>
-          <View style={styles.alertCard}>
-            <Icon
-              name="exclamation-triangle"
-              size={wp(5)}
-              color="#FFBF00"
-              style={styles.alertIcon}
-            />
-            <Text style={styles.alertText}>Insurance exp in 30 days (i20)</Text>
+            <View style={styles.bannerContent}>
+              <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
+              <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
+              <TouchableOpacity style={styles.payNowButton}>
+                <Text style={styles.payNowText}>Pay Now</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* This Month Section */}
+        {/* TRENDING CAR VIDEOS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitleCentered}>This Month</Text>
-          <View style={styles.expenseRow}>
-            <Text style={styles.expenseTotal}>Total: ₹12,450</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Trending Videos</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAllText}>View all</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.expenseItem}>
-            <Icon
-              name="gas-pump"
-              size={wp(4)}
-              color="#888"
-              style={styles.expenseIcon}
-            />
-            <Text style={styles.expenseLabel}>Fuel ₹6,200</Text>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={trendingVideos}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.videoListContent}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={styles.videoCard}
+                onPress={() => handleVideoPress(item.url)}
+              >
+                {item.tag && <View style={styles.videoTag}><Text style={styles.tagText}>{item.tag}</Text></View>}
+                <View style={styles.videoThumbnail}>
+                  <Image
+                    source={{ uri: item.thumbnail }}
+                    style={styles.thumbnailImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.playButtonOverlay}>
+                    <MaterialIcon name="play-circle" size={50} color="#fff" />
+                  </View>
+                  <Text style={styles.viewCount}>{item.views}</Text>
+                </View>
+                <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+
+        {/* FUEL PRICES SECTION */}
+        <View style={styles.fuelSection}>
+          <View style={styles.fuelHeaderBanner}>
+            <Text style={styles.fuelHeaderTitle}>Current Fuel Prices in</Text>
+            <TouchableOpacity 
+              style={styles.stateButton}
+              onPress={() => setShowStateModal(true)}
+            >
+              <Text style={styles.stateButtonText}>{selectedState.split(' ')[0]}</Text>
+              <MaterialIcon name="chevron-down" size={14} color="#0a0a0a" />
+            </TouchableOpacity>
           </View>
-          <View style={styles.expenseItem}>
-            <Icon
-              name="parking"
-              size={wp(4)}
-              color="#888"
-              style={styles.expenseIcon}
-            />
-            <Text style={styles.expenseLabel}>Parking ₹1,800</Text>
+
+          {fuelLoading ? (
+            <View style={styles.fuelContentCard}>
+              <ActivityIndicator size="large" color="#fff" style={styles.fuelLoader} />
+            </View>
+          ) : fuelPrices ? (
+            <View style={styles.fuelContentCard}>
+              <View style={styles.fuelInlineContainer}>
+                <View style={styles.fuelInlineItem}>
+                  <Text style={styles.fuelInlineLabel}>Petrol:</Text>
+                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.petrol}</Text>
+                </View>
+                <View style={styles.fuelInlineSpacer} />
+                <View style={styles.fuelInlineItem}>
+                  <Text style={styles.fuelInlineLabel}>Diesel:</Text>
+                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.diesel}</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.viewTrendsButton}>
+                <Text style={styles.viewTrendsText}>View Trends</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.fuelContentCard}>
+              <Text style={styles.loadingText}>Unable to load fuel prices</Text>
+            </View>
+          )}
+        </View>
+
+        {/* TRENDING CAR NEWS */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Car News</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAllText}>View Trends</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.expenseItem}>
-            <Icon
-              name="wrench"
-              size={wp(4)}
-              color="#888"
-              style={styles.expenseIcon}
-            />
-            <Text style={styles.expenseLabel}>Service ₹4,450</Text>
+          {trendingNews.map((news) => (
+            <TouchableOpacity 
+              key={news.id} 
+              style={styles.newsCard}
+              onPress={() => handleNewsPress(news.url)}
+            >
+              <View style={styles.newsContent}>
+                <Text style={styles.newsTitle}>{news.title}</Text>
+                <Text style={styles.newsSnippet} numberOfLines={1}>{news.snippet}</Text>
+                <Text style={styles.newsTime}>{news.time}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* COMING SOON FEATURES */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleCenter}>Coming Soon</Text>
+          <View style={styles.featureRow}>
+            <View style={styles.featureCard}>
+              <MaterialIcon name="car-electric" size={36} color="#999" />
+              <Text style={styles.featureTitle}>EV Charging</Text>
+            </View>
+            <View style={styles.featureCard}>
+              <MaterialIcon name="car-wash" size={36} color="#999" />
+              <Text style={styles.featureTitle}>Car Wash</Text>
+            </View>
+            <View style={styles.featureCard}>
+              <MaterialIcon name="tow-truck" size={36} color="#999" />
+              <Text style={styles.featureTitle}>Emergency</Text>
+            </View>
           </View>
         </View>
 
-        {/* Pending Challans Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitleCentered}>Pending Challans</Text>
-          <Text style={styles.placeholderText}>No pending challans</Text>
-        </View>
-
-        <View style={{ height: hp(4) }} />
-        <ServiceOptionsOverlay
-          visible={serviceModalVisible}
-          onClose={() => setServiceModalVisible(false)}
-          onSelect={(screen) => {
-            setServiceModalVisible(false);
-            navigation.navigate(screen);
-          }}
-        />
+        <View style={{ height: hp(3) }} />
       </ScrollView>
+
+      {/* STATE SELECTION MODAL */}
+      <Modal
+        visible={showStateModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowStateModal(false);
+          setStateSearchQuery('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select State</Text>
+              <TouchableOpacity onPress={() => {
+                setShowStateModal(false);
+                setStateSearchQuery('');
+              }}>
+                <MaterialIcon name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            
+            {/* SEARCH BAR */}
+            <View style={styles.stateSearchContainer}>
+              <MaterialIcon name="magnify" size={20} color="#999" style={styles.searchIcon} />
+              <TextInput
+                style={styles.stateSearchInput}
+                placeholder="Search state..."
+                placeholderTextColor="#666"
+                value={stateSearchQuery}
+                onChangeText={setStateSearchQuery}
+              />
+              {stateSearchQuery && (
+                <TouchableOpacity onPress={() => setStateSearchQuery('')}>
+                  <MaterialIcon name="close-circle" size={20} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            <FlatList
+              data={STATES.filter(state => 
+                state.toLowerCase().includes(stateSearchQuery.toLowerCase())
+              )}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.stateOption, selectedState === item && styles.selectedStateOption]}
+                  onPress={() => {
+                    setSelectedState(item);
+                    setShowStateModal(false);
+                    setStateSearchQuery('');
+                  }}
+                >
+                  <Text style={styles.stateOptionText}>{item}</Text>
+                  {selectedState === item && <MaterialIcon name="check" size={20} color="#fff" />}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <ServiceOptionsOverlay
+        visible={serviceModalVisible}
+        onClose={() => setServiceModalVisible(false)}
+        onSelect={(screen) => {
+          setServiceModalVisible(false);
+          navigation.navigate(screen);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -230,107 +476,454 @@ const styles = StyleSheet.create({
     fontSize: wp(5),
     fontWeight: '700',
   },
-  sectionTitleCentered: {
+  sectionTitleCenter: {
     fontSize: wp(5),
     fontWeight: '700',
     color: '#fff',
-    marginBottom: hp(1.5),
+    marginBottom: hp(2),
     textAlign: 'center',
   },
-  seeAllText: {
-    color: '#3b82f6',
+  viewAllText: {
+    color: '#ccc',
     fontSize: wp(3.5),
+    fontWeight: '500',
+  },
+
+  /* CAROUSEL INDICATORS */
+  carouselIndicators: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: hp(2),
+    gap: wp(2),
+  },
+  indicator: {
+    width: wp(2),
+    height: wp(2),
+    borderRadius: wp(1),
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  activeIndicator: {
+    backgroundColor: '#FFD700',
+    width: wp(6),
+  },
+
+  /* NUMBER PLATE SECTION */
+  numberPlateSection: {
+    paddingHorizontal: wp(12),
+    marginTop: hp(2),
+    marginBottom: hp(2.5),
+    justifyContent: 'center',
+  },
+  numberPlateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    borderWidth: 0,
+    paddingHorizontal: wp(2.5),
+    height: hp(5),
+    gap: wp(1.5),
+  },
+  numberPlatePlaceholder: {
+    color: '#fff',
+    fontSize: wp(3.5),
+    fontWeight: '700',
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(2),
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.1)',
+  },
+  numberPlateInput: {
+    flex: 1,
+    color: '#fff',
+    fontSize: wp(3.8),
     fontWeight: '600',
+    paddingHorizontal: wp(2),
+  },
+  searchButton: {
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(1),
+  },
+
+  /* VEHICLE SECTION */
+  vehicleSection: {
+    paddingHorizontal: wp(5),
+    marginBottom: hp(2.5),
+  },
+  vehicleTitle: {
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontWeight: '700',
+    marginBottom: hp(1.5),
   },
   vehicleCard: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 22,
-    padding: wp(4.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  row: {
+    borderRadius: 12,
+    padding: wp(4),
     flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(3),
   },
-  carImgPlaceholder: {
-    width: wp(16),
-    height: wp(12),
-    backgroundColor: '#222',
-    borderRadius: 12,
+  vehicleImageContainer: {
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    padding: wp(1),
     justifyContent: 'center',
     alignItems: 'center',
+    width: wp(28),
+    height: wp(28),
   },
-  carInfo: {
-    marginLeft: wp(4),
+  vehicleImage: {
+    width: '100%',
+    height: '100%',
+  },
+  vehicleDetails: {
     flex: 1,
   },
-  carPlate: {
-    color: '#fff',
-    fontSize: wp(4),
-    fontWeight: 'bold',
-  },
-  carModel: {
-    color: '#777',
-    fontSize: wp(3),
-    marginTop: 2,
-  },
-  healthBadge: {
-    backgroundColor: 'rgba(74, 222, 128, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  healthText: {
-    color: '#4ade80',
-    fontSize: wp(2.8),
-    fontWeight: 'bold',
-  },
-  alertCard: {
+  detailRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(2.5),
-    padding: wp(4),
-    marginBottom: hp(1),
-    borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    marginBottom: hp(0.8),
   },
-  alertIcon: {
-    marginRight: wp(3),
-  },
-  alertText: {
-    flex: 1,
-    fontSize: wp(3.8),
-    color: '#fff',
+  detailLabel: {
+    color: '#999',
+    fontSize: wp(3),
     fontWeight: '500',
   },
-  expenseRow: {
-    marginBottom: hp(1),
+  detailValue: {
+    color: '#fff',
+    fontSize: wp(3.2),
+    fontWeight: '600',
   },
-  expenseTotal: {
-    fontSize: wp(5),
-    fontWeight: '700',
-    color: '#FFBF00',
+  chevronIcon: {
+    alignSelf: 'center',
   },
-  expenseItem: {
+
+  /* BANNER SECTION */
+  bannerSection: {
+    paddingHorizontal: wp(5),
+    marginBottom: hp(2.5),
+  },
+  insuranceBanner: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    paddingHorizontal: wp(3),
+    paddingVertical: wp(3),
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(1),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 0,
+    gap: wp(2),
   },
-  expenseIcon: {
-    marginRight: wp(3),
+  bannerImage: {
+    width: wp(20),
+    height: wp(20),
+    marginRight: wp(1),
   },
-  expenseLabel: {
-    fontSize: wp(4),
+  bannerContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  bannerTitle: {
     color: '#fff',
+    fontSize: wp(4),
+    fontWeight: '700',
+    marginBottom: hp(0.5),
   },
-  placeholderText: {
+  bannerDesc: {
+    color: '#999',
+    fontSize: wp(3.2),
+    lineHeight: hp(2.2),
+  },
+  payNowButton: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(0.6),
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: hp(1),
+    alignSelf: 'flex-start',
+  },
+  payNowText: {
+    color: '#0a0a0a',
+    fontSize: wp(3.2),
+    fontWeight: '700',
+  },
+
+  /* TRENDING VIDEOS */
+  videoListContent: {
+    paddingHorizontal: wp(5),
+  },
+  videoCard: {
+    width: wp(45),
+    marginRight: wp(3),
+    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 0,
+  },
+  videoTag: {
+    position: 'absolute',
+    top: wp(2),
+    left: wp(2),
+    backgroundColor: 'rgba(255,215,0,0.9)',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.4),
+    borderRadius: 4,
+    zIndex: 10,
+  },
+  tagText: {
+    color: '#0a0a0a',
+    fontSize: wp(2.8),
+    fontWeight: '700',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: hp(15),
+    backgroundColor: '#222',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 8,
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  playButtonOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  viewCount: {
+    position: 'absolute',
+    bottom: wp(2),
+    right: wp(2),
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    color: '#fff',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.3),
+    borderRadius: 4,
+    fontSize: wp(3),
+    fontWeight: '600',
+    zIndex: 11,
+  },
+  videoTitle: {
+    color: '#fff',
+    fontSize: wp(3.5),
+    fontWeight: '600',
+    padding: wp(3),
+    lineHeight: hp(2.2),
+  },
+
+  /* NEWS CARDS */
+  newsCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    borderWidth: 0,
+  },
+  newsContent: {
+    flex: 1,
+  },
+  newsTitle: {
+    color: '#fff',
+    fontSize: wp(4),
+    fontWeight: '600',
+    marginBottom: hp(0.5),
+  },
+  newsSnippet: {
+    color: '#999',
+    fontSize: wp(3.5),
+    marginBottom: hp(0.5),
+  },
+  newsTime: {
+    color: '#666',
+    fontSize: wp(3),
+  },
+
+  /* FUEL PRICES */
+  fuelSection: {
+    marginHorizontal: wp(5),
+    marginBottom: hp(2.5),
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#1a1a1a',
+  },
+  fuelHeaderBanner: {
+    backgroundColor: '#FFF9E6',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  fuelHeaderTitle: {
+    color: '#333',
     fontSize: wp(3.8),
+    fontWeight: '600',
+  },
+  stateButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(0.8),
+  },
+  stateButtonText: {
+    color: '#0a0a0a',
+    fontSize: wp(3.2),
+    fontWeight: '700',
+  },
+  fuelContentCard: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
+    gap: hp(1.5),
+  },
+  fuelInlineContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+  },
+  fuelInlineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  fuelInlineLabel: {
+    color: '#999',
+    fontSize: wp(3.5),
+    fontWeight: '500',
+  },
+  fuelInlineValue: {
+    color: '#FFC107',
+    fontSize: wp(4.2),
+    fontWeight: '700',
+  },
+  fuelInlineSpacer: {
+    width: 1,
+    height: hp(3),
+    backgroundColor: '#333',
+  },
+  viewTrendsButton: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(0.8),
+    borderRadius: 6,
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  viewTrendsText: {
+    color: '#fff',
+    fontSize: wp(3.2),
+    fontWeight: '600',
+  },
+  fuelLoader: {
+    marginVertical: hp(2),
+  },
+  loadingText: {
     color: '#888',
+    fontSize: wp(4),
     textAlign: 'center',
     paddingVertical: hp(2),
+  },
+
+  /* COMING SOON */
+  featureRow: {
+    flexDirection: 'row',
+    gap: wp(3),
+    justifyContent: 'space-between',
+  },
+  featureCard: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
+    padding: wp(3),
+    alignItems: 'center',
+    borderWidth: 0,
+  },
+  featureTitle: {
+    color: '#fff',
+    fontSize: wp(3.2),
+    fontWeight: '600',
+    marginTop: hp(1),
+    textAlign: 'center',
+  },
+
+  /* STATE SELECTION MODAL */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: hp(80),
+    paddingTop: hp(2),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(2),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: wp(5),
+    fontWeight: '700',
+  },
+  stateOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  selectedStateOption: {
+    backgroundColor: 'rgba(255,215,0,0.1)',
+  },
+  stateOptionText: {
+    color: '#fff',
+    fontSize: wp(4),
+    fontWeight: '500',
+  },
+
+  /* STATE SEARCH */
+  stateSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2a2a2a',
+    borderRadius: 10,
+    marginHorizontal: wp(5),
+    marginBottom: hp(2),
+    paddingHorizontal: wp(3),
+    height: hp(5),
+    gap: wp(2),
+    borderWidth: 0,
+  },
+  searchIcon: {
+    marginRight: wp(1),
+  },
+  stateSearchInput: {
+    flex: 1,
+    color: '#fff',
+    fontSize: wp(3.8),
+    fontWeight: '500',
+    paddingVertical: hp(1),
   },
 });

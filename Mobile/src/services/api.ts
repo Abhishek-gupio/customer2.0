@@ -55,7 +55,7 @@ async function request<T>(
     ...((rest.headers as Record<string, string>) ?? {}),
   };
   const token = getAccessToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   const fetchBody: RequestInit['body'] =
     body != null ? JSON.stringify(body) : undefined;
@@ -90,7 +90,7 @@ async function upload<T>(
   const url = path.startsWith('http') ? path : `${base}${path}`;
   const token = getAccessToken();
   const headers: Record<string, string> = { Accept: 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(url, { method: 'POST', headers, body: formData });
   const data = await res.json().catch(() => ({}));
