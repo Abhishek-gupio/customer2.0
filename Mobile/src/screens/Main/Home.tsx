@@ -21,7 +21,6 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import HomeVideo from '../../components/HomeVideo';
 import QuickServicesGrid from '../../components/QuickServicesGrid';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
@@ -100,34 +99,34 @@ export default function Home() {
   };
 
   const trendingVideos = [
-    { 
-      id: '1', 
-      title: 'What could the future of cars look like?', 
-      views: '450K', 
-      tag: 'Popular', 
-      url: 'https://www.youtube.com/watch?v=Lz5moT15ZgI',
-      thumbnail: 'https://img.youtube.com/vi/Lz5moT15ZgI/hqdefault.jpg'
-    },
-    { 
-      id: '2', 
-      title: 'Tesla overtaken by Chinese carmaker BYD as world\'s biggest seller', 
-      views: '320K', 
-      url: 'https://www.youtube.com/watch?v=d2ezNAf9vjw',
-      thumbnail: 'https://img.youtube.com/vi/d2ezNAf9vjw/hqdefault.jpg'
-    },
-    { 
-      id: '3', 
-      title: 'Future of car technology that may hit our shores', 
-      views: '285K', 
+    {
+      id: '3',
+      title: 'Future of car technology that may hit our shores',
+      views: '285K',
       url: 'https://www.youtube.com/watch?v=zSiV8rLna_s',
       thumbnail: 'https://img.youtube.com/vi/zSiV8rLna_s/hqdefault.jpg'
     },
-    { 
-      id: '4', 
-      title: 'Electric Vehicles Revolution 2026', 
-      views: '156K', 
+    {
+      id: '4',
+      title: 'Electric Vehicles Revolution 2026',
+      views: '156K',
       url: 'https://www.youtube.com/watch?v=piMHbmX7vBM',
       thumbnail: 'https://img.youtube.com/vi/piMHbmX7vBM/hqdefault.jpg'
+    },
+    {
+      id: '1',
+      title: 'What could the future of cars look like?',
+      views: '450K',
+      tag: 'Popular',
+      url: 'https://www.youtube.com/watch?v=Lz5moT15ZgI',
+      thumbnail: 'https://img.youtube.com/vi/Lz5moT15ZgI/hqdefault.jpg'
+    },
+    {
+      id: '2',
+      title: 'Tesla overtaken by Chinese carmaker BYD as world\'s biggest seller',
+      views: '320K',
+      url: 'https://www.youtube.com/watch?v=d2ezNAf9vjw',
+      thumbnail: 'https://img.youtube.com/vi/d2ezNAf9vjw/hqdefault.jpg'
     },
   ];
 
@@ -162,16 +161,63 @@ export default function Home() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* VIDEO SECTION */}
-        <HomeVideo
-          onProfilePress={handleProfilePress}
-          onHelpPress={handleHelpPress}
-        />
+        {/* PREMIUM VEHICLE HEADER */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.headerContent}>
+            {/* Left Info Column */}
+            <View style={styles.headerLeft}>
+              <Text style={styles.headerNumberPlate}>DL 01 AB 1234</Text>
+              <Text style={styles.headerCarModel}>Maruti Suzuki Swift</Text>
+
+              <View style={styles.healthSection}>
+                <Text style={styles.healthText}>
+                  85% <Text style={styles.healthLabel}>Health</Text>
+                </Text>
+                <View style={styles.healthBarBg}>
+                  <View style={[styles.healthBarFill, { width: '85%' }]} />
+                </View>
+              </View>
+            </View>
+
+            {/* Right Car Image Column */}
+            <View style={styles.headerRight}>
+              <Image
+                source={require('../../assets/images/car_vehicle_demo.png') as any}
+                style={styles.headerCarImage}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+
+          {/* Bottom Footer Section - Now Full Width */}
+          <View style={styles.headerFooter}>
+            <View style={styles.footerItem}>
+              <Text style={styles.footerLabel}>Service due in</Text>
+              <Text style={styles.footerValue}>420 km</Text>
+            </View>
+            <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
+              <Text style={styles.footerLabel}>FASTag</Text>
+              <Text style={styles.footerValue}>₹ 860</Text>
+            </View>
+          </View>
+
+          {/* Top Overlays */}
+          <View style={styles.headerOverlay}>
+            <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
+              <Icon name="user-circle" size={wp(6.5)} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleHelpPress} style={styles.overlayIconButton}>
+              <Icon name="question-circle" size={wp(6.5)} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* NUMBER PLATE INPUT */}
         <View style={styles.numberPlateSection}>
           <View style={styles.numberPlateContainer}>
-            <Text style={styles.numberPlatePlaceholder}>IND</Text>
+            <View style={styles.indContainer}>
+              <Text style={styles.indText}>IND</Text>
+            </View>
             <TextInput
               style={styles.numberPlateInput}
               placeholder="MH01CH4322"
@@ -202,43 +248,10 @@ export default function Home() {
           }}
         />
 
-        {/* DEMO VEHICLE CARD */}
-        <View style={styles.vehicleSection}>
-          <Text style={styles.vehicleTitle}>My Vehicle</Text>
-          <TouchableOpacity style={styles.vehicleCard}>
-            <View style={styles.vehicleImageContainer}>
-              <Image 
-                source={require('../../assets/images/car_vehicle_demo.png') as any}
-                style={styles.vehicleImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.vehicleDetails}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Brand</Text>
-                <Text style={styles.detailValue}>Tata</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Model</Text>
-                <Text style={styles.detailValue}>Punch</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Color</Text>
-                <Text style={styles.detailValue}>White</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Vehicle No.</Text>
-                <Text style={styles.detailValue}>AP39CH5622</Text>
-              </View>
-            </View>
-            <MaterialIcon name="chevron-right" size={24} color="#999" style={styles.chevronIcon} />
-          </TouchableOpacity>
-        </View>
-
         {/* INSURANCE BANNER */}
         <View style={styles.bannerSection}>
           <View style={styles.insuranceBanner}>
-            <Image 
+            <Image
               source={require('../../assets/images/challan.png') as any}
               style={styles.bannerImage}
               resizeMode="contain"
@@ -268,7 +281,7 @@ export default function Home() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.videoListContent}
             renderItem={({ item }) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.videoCard}
                 onPress={() => handleVideoPress(item.url)}
               >
@@ -294,7 +307,7 @@ export default function Home() {
         <View style={styles.fuelSection}>
           <View style={styles.fuelHeaderBanner}>
             <Text style={styles.fuelHeaderTitle}>Current Fuel Prices in</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.stateButton}
               onPress={() => setShowStateModal(true)}
             >
@@ -340,8 +353,8 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           {trendingNews.map((news) => (
-            <TouchableOpacity 
-              key={news.id} 
+            <TouchableOpacity
+              key={news.id}
               style={styles.newsCard}
               onPress={() => handleNewsPress(news.url)}
             >
@@ -359,18 +372,23 @@ export default function Home() {
           <Text style={styles.sectionTitleCenter}>Coming Soon</Text>
           <View style={styles.featureRow}>
             <View style={styles.featureCard}>
-              <MaterialIcon name="car-electric" size={36} color="#999" />
+              <MaterialIcon name="car-electric" size={wp(8)} color="#555" />
               <Text style={styles.featureTitle}>EV Charging</Text>
             </View>
             <View style={styles.featureCard}>
-              <MaterialIcon name="car-wash" size={36} color="#999" />
+              <MaterialIcon name="car-wash" size={wp(8)} color="#555" />
               <Text style={styles.featureTitle}>Car Wash</Text>
             </View>
             <View style={styles.featureCard}>
-              <MaterialIcon name="tow-truck" size={36} color="#999" />
+              <MaterialIcon name="tow-truck" size={wp(8)} color="#555" />
               <Text style={styles.featureTitle}>Emergency</Text>
             </View>
           </View>
+          <Image
+            source={require('../../assets/images/coming_soon.png') as any}
+            style={styles.comingSoonBadge}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={{ height: hp(3) }} />
@@ -397,7 +415,7 @@ export default function Home() {
                 <MaterialIcon name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
-            
+
             {/* SEARCH BAR */}
             <View style={styles.stateSearchContainer}>
               <MaterialIcon name="magnify" size={20} color="#999" style={styles.searchIcon} />
@@ -414,9 +432,9 @@ export default function Home() {
                 </TouchableOpacity>
               )}
             </View>
-            
+
             <FlatList
-              data={STATES.filter(state => 
+              data={STATES.filter(state =>
                 state.toLowerCase().includes(stateSearchQuery.toLowerCase())
               )}
               keyExtractor={(item) => item}
@@ -489,23 +507,107 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  /* CAROUSEL INDICATORS */
-  carouselIndicators: {
+  /* PREMIUM VEHICLE HEADER */
+  headerWrapper: {
+    width: '100%',
+    height: hp(32),
+    backgroundColor: '#1a1c2e',
+    paddingTop: Platform.OS === 'ios' ? hp(0) : hp(1),
+  },
+  headerContent: {
+    flex: 1,
     flexDirection: 'row',
+    paddingHorizontal: wp(6),
+    paddingTop: hp(6), // Offset for top icons
+  },
+  headerLeft: {
+    flex: 1.3,
+    justifyContent: 'flex-start',
+  },
+  headerRight: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  headerNumberPlate: {
+    color: '#fff',
+    fontSize: wp(7),
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  headerCarModel: {
+    color: '#aaa',
+    fontSize: wp(4),
+    fontWeight: '500',
+    marginTop: hp(0.2),
+  },
+  healthSection: {
+    marginTop: hp(2.5),
+  },
+  healthText: {
+    color: '#fff',
+    fontSize: wp(5.5),
+    fontWeight: '700',
+  },
+  healthLabel: {
+    color: '#4ade80', // Greenish
+    fontSize: wp(4.5),
+    fontWeight: '600',
+  },
+  healthBarBg: {
+    width: wp(45),
+    height: hp(0.8),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 4,
+    marginTop: hp(1),
+    overflow: 'hidden',
+  },
+  healthBarFill: {
+    height: '100%',
+    backgroundColor: '#4ade80',
+    borderRadius: 4,
+  },
+  headerFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: hp(2),
-    gap: wp(2),
+    marginTop: hp(1),
+    paddingHorizontal: wp(6),
+    paddingBottom: hp(2.5),
   },
-  indicator: {
-    width: wp(2),
-    height: wp(2),
-    borderRadius: wp(1),
-    backgroundColor: 'rgba(255,255,255,0.3)',
+  footerItem: {
+    justifyContent: 'center',
   },
-  activeIndicator: {
-    backgroundColor: '#FFD700',
-    width: wp(6),
+  footerLabel: {
+    color: '#999',
+    fontSize: wp(3),
+    fontWeight: '500',
+  },
+  footerValue: {
+    color: '#fff',
+    fontSize: wp(3.8),
+    fontWeight: '700',
+    marginTop: hp(0.2),
+  },
+  headerCarImage: {
+    width: wp(45),
+    height: hp(20),
+    transform: [{ scale: 1.2 }, { translateX: wp(5) }],
+  },
+  headerOverlay: {
+    position: 'absolute',
+    top: hp(1),
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(5),
+    zIndex: 10,
+  },
+  overlayIconButton: {
+    padding: wp(2.5),
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 20,
   },
 
   /* NUMBER PLATE SECTION */
@@ -520,19 +622,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#1a1a1a',
     borderRadius: 8,
-    borderWidth: 0,
-    paddingHorizontal: wp(2.5),
-    height: hp(5),
-    gap: wp(1.5),
+    borderWidth: 1,
+    borderColor: '#333',
+    height: hp(5.5),
+    overflow: 'hidden',
   },
-  numberPlatePlaceholder: {
+  indContainer: {
+    backgroundColor: '#003399',
+    height: '100%',
+    paddingHorizontal: wp(2.5),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  indText: {
     color: '#fff',
-    fontSize: wp(3.5),
-    fontWeight: '700',
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(2),
-    borderRightWidth: 1,
-    borderRightColor: 'rgba(255,255,255,0.1)',
+    fontSize: wp(2.6),
+    fontWeight: '800',
   },
   numberPlateInput: {
     flex: 1,
@@ -657,10 +762,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
   },
   videoCard: {
-    width: wp(45),
-    marginRight: wp(3),
+    width: wp(60),
+    marginRight: wp(4),
     backgroundColor: '#1a1a1a',
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 0,
   },
@@ -681,13 +786,13 @@ const styles = StyleSheet.create({
   },
   videoThumbnail: {
     width: '100%',
-    height: hp(15),
+    height: hp(18),
     backgroundColor: '#222',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: 8,
+    borderRadius: 10,
   },
   thumbnailImage: {
     width: '100%',
@@ -756,7 +861,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
   },
   fuelHeaderBanner: {
-    backgroundColor: '#FFF9E6',
+    backgroundColor: '#bbec50ff', // Sky Blue background
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
     flexDirection: 'row',
@@ -845,10 +950,19 @@ const styles = StyleSheet.create({
   featureCard: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    borderRadius: 10,
-    padding: wp(3),
+    borderRadius: 14,
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(2),
     alignItems: 'center',
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  comingSoonBadge: {
+    width: wp(90),
+    height: hp(40),
+    alignSelf: 'center',
+    marginTop: hp(-4),
+    marginBottom: hp(-15),
   },
   featureTitle: {
     color: '#fff',
