@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   StatusBar,
   ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -15,21 +15,120 @@ import {
 } from "react-native-responsive-screen";
 import Icon from "react-native-vector-icons/Feather";
 import { useNavigation } from "@react-navigation/native";
-import LinearGradient from "react-native-linear-gradient";
 import { Alert } from "react-native";
-import SpendingAnalysis from "../../components/SpendingAnalysis";
+import SpendingAnalysis, { type SpendingAnalysisHandle } from "../../components/SpendingAnalysis";
 import CostPerKmCard from "../../components/CostPerKm";
 import TopSpendingCard from "../../components/TopSpending";
 import Iconi from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from "../../theme/colors";
 import { fontSizes } from "../../theme/Fontsize";
-
-
-
-const screenWidth = Dimensions.get("window").width;
+import RNFS from "react-native-fs";
 
 export default function ExpenseAnalytics() {
   const navigation = useNavigation();
+  const spendingAnalysisRef = useRef<SpendingAnalysisHandle>(null);
+
+  const normalizePath = (path: string) => path.replace("file://", "");
+  const reportInsights = [
+    "Your fuel expenses are 5% higher than average this month.",
+    "Maintenance costs decreased by 15% compared to last quarter.",
+    "You can save INR 2,450/month by optimizing fuel purchases.",
+  ];
+
+  const buildAnalyticsReport = () =>
+    [
+      "Expense Analytics Report",
+      `Generated: ${new Date().toLocaleString("en-IN")}`,
+      "",
+      "Summary",
+      "Total Spent: INR 172K",
+      "Avg Monthly: INR 14.3K",
+      "Cost/Km: INR 7.51",
+      "",
+      "Key Insights",
+      ...reportInsights.map((item) => `- ${item}`),
+    ];
+
+  const buildAnalyticsPdf = () => {
+    const lines = buildAnalyticsReport();
+    const esc = (value: string) =>
+      value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+
+    let y = 800;
+    let stream = "BT\n/F1 12 Tf\n";
+    lines.forEach((line) => {
+      stream += `1 0 0 1 50 ${y} Tm\n(${esc(line)}) Tj\n`;
+      y -= 18;
+    });
+    stream += "ET\n";
+
+    const objects = [
+      "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
+      "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
+      "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n",
+      `4 0 obj\n<< /Length ${stream.length} >>\nstream\n${stream}endstream\nendobj\n`,
+      "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n",
+    ];
+
+    let pdf = "%PDF-1.4\n";
+    const offsets: number[] = [0];
+    objects.forEach((obj) => {
+      offsets.push(pdf.length);
+      pdf += obj;
+    });
+    const xrefOffset = pdf.length;
+
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += "0000000000 65535 f \n";
+    for (let i = 1; i < offsets.length; i += 1) {
+      pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+    }
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n`;
+    pdf += `startxref\n${xrefOffset}\n%%EOF`;
+    return pdf;
+  };
+
+  const onDownloadAnalytics = async () => {
+    try {
+      if (!spendingAnalysisRef.current) {
+        throw new Error("Charts are not ready yet");
+      }
+
+      const { lineChartPath, pieChartPath } = await spendingAnalysisRef.current.captureCharts();
+      const linePath = normalizePath(lineChartPath);
+      const piePath = normalizePath(pieChartPath);
+      const reportPdf = buildAnalyticsPdf();
+
+      const baseDir =
+        Platform.OS === "android" && RNFS.DownloadDirectoryPath
+          ? RNFS.DownloadDirectoryPath
+          : RNFS.DocumentDirectoryPath;
+      const stamp = Date.now();
+      const lineImageName = `expense-linegraph-${stamp}.jpg`;
+      const pieImageName = `expense-piechart-${stamp}.jpg`;
+      const fileName = `expense-analytics-report-${stamp}.pdf`;
+      const lineImageDest = `${baseDir}/${lineImageName}`;
+      const pieImageDest = `${baseDir}/${pieImageName}`;
+      const reportDest = `${baseDir}/${fileName}`;
+
+      try {
+        await RNFS.copyFile(linePath, lineImageDest);
+        await RNFS.copyFile(piePath, pieImageDest);
+        await RNFS.writeFile(reportDest, reportPdf, "utf8");
+      } catch {
+        const fallbackLineDest = `${RNFS.DocumentDirectoryPath}/${lineImageName}`;
+        const fallbackPieDest = `${RNFS.DocumentDirectoryPath}/${pieImageName}`;
+        const fallbackReportDest = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        await RNFS.copyFile(linePath, fallbackLineDest);
+        await RNFS.copyFile(piePath, fallbackPieDest);
+        await RNFS.writeFile(fallbackReportDest, reportPdf, "utf8");
+      }
+
+      Alert.alert("Downloaded", "Analytics PDF report and graph images saved to your device.");
+    } catch (error) {
+      Alert.alert("Download Failed", "Unable to generate analytics PDF right now.");
+    }
+  };
 
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="automatic"
@@ -43,7 +142,7 @@ export default function ExpenseAnalytics() {
             <Icon name="arrow-left" size={wp(8)} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.downloadBtn} onPress={() => Alert.alert("Download", "Chart download functionality coming soon!")}>
+          <TouchableOpacity style={styles.downloadBtn} onPress={onDownloadAnalytics}>
             <Icon name="download" size={wp(8)} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -60,7 +159,7 @@ export default function ExpenseAnalytics() {
         <StatCard title="Cost/Km" value="₹7.51" change="-5%" positive />
       </View>
 
-      <SpendingAnalysis/>
+      <SpendingAnalysis ref={spendingAnalysisRef} />
       <CostPerKmCard/>
       <TopSpendingCard/>
     </SafeAreaView>

@@ -52,6 +52,8 @@ export interface Bill {
   title: string;
   amount: number;
   status: BillStatus;
+  createdAt?: string;
+  updatedAt?: string;
   uploadedAt: string;
   warrantyMonths?: number | null;
   image?: string | number | null; // string = remote, number = local require()

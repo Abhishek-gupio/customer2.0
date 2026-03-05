@@ -262,9 +262,21 @@ export default function AddExpenseScreen() {
       }
     }
     try {
-      const response = await launchCamera({ mediaType: "photo", quality: 0.8 });
+      const response = await launchCamera({
+        mediaType: "photo",
+        quality: 0.5,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      });
+      if (response.errorCode) {
+        Alert.alert("Camera Error", response.errorMessage || "Could not capture image.");
+        return;
+      }
       if (!response.didCancel && response.assets?.[0]) {
-        await uploadAndParseReceipt(response.assets[0]);
+        const asset = response.assets[0];
+        setTimeout(() => {
+          uploadAndParseReceipt(asset);
+        }, 500);
       }
     } catch (error: any) {
       setLoading(false);
@@ -281,9 +293,21 @@ export default function AddExpenseScreen() {
       }
     }
     try {
-      const response = await launchImageLibrary({ mediaType: "photo", quality: 0.8 });
+      const response = await launchImageLibrary({
+        mediaType: "photo",
+        quality: 0.5,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      });
+      if (response.errorCode) {
+        Alert.alert("Error", response.errorMessage || "Could not pick image.");
+        return;
+      }
       if (!response.didCancel && response.assets?.[0]) {
-        await uploadAndParseReceipt(response.assets[0]);
+        const asset = response.assets[0];
+        setTimeout(() => {
+          uploadAndParseReceipt(asset);
+        }, 500);
       }
     } catch (error: any) {
       setLoading(false);
@@ -393,10 +417,7 @@ export default function AddExpenseScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.backdrop}>
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={() => navigation.goBack()}
-        />
+        <Pressable style={StyleSheet.absoluteFill} />
         <View style={styles.panel}>
           <View style={styles.header}>
             <Text style={styles.title}>Add Expense</Text>
@@ -674,4 +695,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-

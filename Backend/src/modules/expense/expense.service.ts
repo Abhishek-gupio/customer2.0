@@ -31,6 +31,7 @@ const ALLOWED_NOTIFICATION_CATEGORIES: ExpenseCategory[] = [
   "PARKING",
   "CHALLAN",
 ];
+const MAX_RECEIPT_IMAGES_PER_CUSTOMER = 15;
 
 export const expenseService = {
   /**
@@ -105,6 +106,12 @@ export const expenseService = {
     ingestionService
       .ingestExpense(expense.id)
       .catch((err) => logger.error({ err }, "Expense ingestion failed"));
+
+    if (expense.receiptUrl) {
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+    }
 
     return { expense, fuelIntelligence };
   },
@@ -925,6 +932,11 @@ export const expenseService = {
           notes: aiResult.notes,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+
       return { success: true, expense };
     }
 
@@ -976,6 +988,10 @@ export const expenseService = {
           mimeType: file.mimetype,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
     }
 
     return parsed;
@@ -1406,6 +1422,39 @@ export const expenseService = {
     });
 
     return { expenses, totalAmount: total._sum.amount || 0 };
+  },
+
+  /**
+   * Keep only the latest receipt images per customer and remove older files.
+   */
+  async pruneOldReceiptImages(customerId: string, keep = MAX_RECEIPT_IMAGES_PER_CUSTOMER) {
+    const oldReceipts = await db.expense.findMany({
+      where: {
+        customerId,
+        receiptUrl: { not: null },
+      },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      skip: keep,
+      select: { id: true, receiptUrl: true },
+    });
+
+    if (!oldReceipts.length) return;
+
+    await Promise.all(
+      oldReceipts.map(async (row: { id: string; receiptUrl: string | null }) => {
+        if (!row.receiptUrl) return;
+        try {
+          await storageService.deleteFile(row.receiptUrl);
+        } catch (err) {
+          logger.warn({ err, customerId, expenseId: row.id }, "Could not delete old receipt file");
+        }
+      }),
+    );
+
+    await db.expense.updateMany({
+      where: { id: { in: oldReceipts.map((row: { id: string }) => row.id) } },
+      data: { receiptUrl: null, mimeType: null },
+    });
   },
 
   /**

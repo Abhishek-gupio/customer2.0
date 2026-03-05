@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, ImageSourcePropType } from "react-native";
+import React, { use, useState } from "react";
+import { View, Text, StyleSheet, Image, ImageSourcePropType, Pressable, TouchableOpacity,Alert, Modal } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { Bill } from "../navigation/types";
@@ -9,12 +9,14 @@ interface Props {
 }
 
 const BillCard: React.FC<Props> = ({ item }) => {
+  const [imgError, setImgError] = useState(false);
   const isVerified = item.status === "verified";
+  const [visible, setVisible]=useState(false);
 
   const imageSource: ImageSourcePropType | undefined =
-    typeof item.image === "string"
+    !imgError && typeof item.image === "string" && item.image
       ? { uri: item.image }
-      : typeof item.image === "number"
+      : !imgError && typeof item.image === "number"
       ? item.image
       : undefined;
 
@@ -33,13 +35,35 @@ const BillCard: React.FC<Props> = ({ item }) => {
       </View>
 
       {/* Image */}
+      <TouchableOpacity onPress={()=>setVisible(true)}>
       {imageSource ? (
-        <Image source={imageSource} style={styles.billImage} resizeMode="contain" />
+        <Image
+          source={imageSource}
+          style={styles.billImage}
+          resizeMode="cover"
+          onError={() => setImgError(true)}
+        />
       ) : (
         <View style={styles.imageFallback}>
           <Text style={styles.fallbackText}>No Bill Image</Text>
         </View>
       )}
+      </TouchableOpacity>
+
+      <Modal transparent visible={visible}>
+      <TouchableOpacity
+        style={styles.overlay}
+        onPress={() => setVisible(false)}
+      >
+        {imageSource && (
+          <Image
+            source={imageSource}
+            style={styles.fullImage}
+            resizeMode="contain"
+          />
+        )}
+      </TouchableOpacity>
+    </Modal>
 
       {/* Bottom */}
       <View style={styles.bottomRow}>
@@ -94,6 +118,7 @@ const styles = StyleSheet.create({
     height: hp(14),
     borderRadius: wp(3),
     marginVertical: hp(1),
+    backgroundColor: "#2a2a2a",
   },
 
   imageFallback: {
@@ -149,4 +174,15 @@ const styles = StyleSheet.create({
     fontSize: hp(1.3),
     fontWeight: "700",
   },
+  overlay: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.9)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+fullImage: {
+  width: "90%",
+  height: "80%",
+},
 });

@@ -44,10 +44,14 @@ export const getExpenseColor = (category: string) => {
     }
 };
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string, formatStr?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     if (!isValid(date)) return dateString;
+
+    if (formatStr) {
+        return format(date, formatStr);
+    }
 
     const today = new Date();
     const yesterday = new Date();
