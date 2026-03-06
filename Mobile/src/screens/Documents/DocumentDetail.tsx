@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,17 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Share,
+  Animated,
+  Dimensions,
+  TouchableWithoutFeedback,
   Modal,
   Linking,
-  Share,
+  Image as RNImage,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import RNShare from 'react-native-share';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -28,6 +34,8 @@ import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
 import { removeDocumentAsync, fetchDocumentById } from '../../store/slices/documentsSlice';
 import { API_BASE_URL } from '../../config';
+import { jsPDF } from 'jspdf';
+import RNFS from 'react-native-fs';
 
 type DetailNavProp = NativeStackNavigationProp<RootStackParamList, 'DocumentDetail'>;
 
@@ -69,6 +77,24 @@ export default function DocumentDetail({ route }: Props) {
   const [showFullImage, setShowFullImage] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
 
+  // Animation handling for pinch-to-zoom (similar to MyProfile pattern)
+  const zoomScale = useRef(new Animated.Value(1)).current;
+
+  const onPinchEvent = Animated.event(
+    [{ nativeEvent: { scale: zoomScale } }],
+    { useNativeDriver: true }
+  );
+
+  const onPinchStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      Animated.spring(zoomScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        bounciness: 1,
+      }).start();
+    }
+  };
+
   useEffect(() => {
     if (!doc) {
       dispatch(fetchDocumentById(documentId));
@@ -103,26 +129,111 @@ export default function DocumentDetail({ route }: Props) {
       : `${API_BASE_URL}${imageUri}`
     : null;
 
-  const handleDownload = () => {
-    if (fullImageUri) {
-      Linking.openURL(fullImageUri).catch((err) =>
-        Alert.alert('Error', 'Could not open download link'),
-      );
+  const isPdf = imageUri?.toLowerCase().endsWith('.pdf');
+  const isImage = imageUri && !isPdf;
+
+  const getReadyDocumentPath = async () => {
+    if (!fullImageUri) throw new Error('Download link not available');
+
+    const fileName = `${(doc?.type || 'Document').replace(/\s+/g, '_')}_${Date.now()}`;
+    const tempPath = `${RNFS.TemporaryDirectoryPath}/${fileName}${isPdf ? '.pdf' : '.jpg'}`;
+
+    // 1. Download source file
+    if (fullImageUri.startsWith('http')) {
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: fullImageUri,
+        toFile: tempPath,
+      }).promise;
+      if (downloadResult.statusCode !== 200) throw new Error('Failed to download source file');
     } else {
-      Alert.alert('Error', 'Download link not available');
+      await RNFS.copyFile(fullImageUri.replace('file://', ''), tempPath).catch(() => null);
+    }
+
+    let finalPdfPath = tempPath;
+
+    // 2. Convert to PDF if image
+    if (!isPdf) {
+      const base64Data = await RNFS.readFile(tempPath, 'base64');
+      const imgType = fullImageUri.toLowerCase().endsWith('.png') ? 'PNG' : 'JPEG';
+
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 30;
+      const maxWidth = pageWidth - (margin * 2);
+      const maxHeight = pageHeight - (margin * 2);
+
+      pdf.addImage(`data:image/${imgType.toLowerCase()};base64,${base64Data}`, imgType, margin, margin, maxWidth, maxHeight, undefined, 'FAST');
+
+      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+      // Use CachesDirectoryPath for sharing compatibility on Android
+      finalPdfPath = `${RNFS.CachesDirectoryPath}/${fileName}.pdf`;
+      await RNFS.writeFile(finalPdfPath, pdfBase64, 'base64');
+      await RNFS.unlink(tempPath).catch(() => null);
+    }
+
+    // Ensure the returned filename has the correct extension for the intent
+    const finalFileName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+
+    return { path: finalPdfPath, fileName: finalFileName };
+  };
+
+  const handleDownload = async () => {
+    try {
+      Alert.alert('Processing', 'Preparing your document...');
+      const { path, fileName } = await getReadyDocumentPath();
+
+      if (Platform.OS === 'android' && RNFS.DownloadDirectoryPath) {
+        try {
+          const publicPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+          await RNFS.copyFile(path, publicPath);
+          Alert.alert('Download Complete', 'Document saved to your Downloads folder.', [
+            {
+              text: 'Open/Share',
+              onPress: () => RNShare.open({ urls: [`file://${publicPath}`], type: 'application/pdf' }).catch(() => null)
+            },
+            { text: 'OK' }
+          ]);
+          return;
+        } catch (err) {
+          console.log('Android Save Error:', err);
+        }
+      }
+
+      RNShare.open({ urls: [`file://${path}`], type: 'application/pdf' }).catch(() => null);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Processing failed');
     }
   };
 
   const handleShare = async () => {
-    if (!doc || !fullImageUri) return;
     try {
-      await Share.share({
-        title: `${doc.type} Document`,
-        message: `Check out this ${doc.type} document for vehicle ${doc.vehicle || 'N/A'}.\n\nDownload: ${fullImageUri}`,
-        url: fullImageUri, // url is mainly for iOS sharing
+      Alert.alert('Preparing Share', 'Generating document PDF...');
+      const { path, fileName } = await getReadyDocumentPath();
+
+      const fileUrl = `file://${path}`;
+
+      // Plural "urls" is more compatible with recent versions of react-native-share
+      await RNShare.open({
+        urls: [fileUrl],
+        type: 'application/pdf',
+        title: fileName,
+        subject: fileName,
+        failOnCancel: false,
       });
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
+    } catch (err: any) {
+      console.error('Share Error Detail:', err);
+      // Fallback: simpler call if the above fails
+      try {
+        const { path } = await getReadyDocumentPath();
+        await RNShare.open({
+          url: `file://${path}`,
+          type: 'application/pdf',
+          failOnCancel: false,
+        });
+      } catch (fallbackErr) {
+        Alert.alert('Error', err.message || 'Share failed');
+      }
     }
   };
 
@@ -144,8 +255,8 @@ export default function DocumentDetail({ route }: Props) {
     );
   }
 
-  const isPdf = imageUri?.toLowerCase().endsWith('.pdf');
-  const isImage = imageUri && !isPdf;
+
+
 
   const fields: { label: string; value: string }[] = [];
   if (doc.documentNumber) fields.push({ label: 'Doc Number', value: doc.documentNumber });
@@ -316,24 +427,34 @@ export default function DocumentDetail({ route }: Props) {
         animationType="fade"
         onRequestClose={() => setShowFullImage(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowFullImage(false)} style={styles.modalCloseBtn}>
-              <Icon name="times" size={wp(6)} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Image Preview</Text>
-            <TouchableOpacity onPress={handleDownload} style={styles.modalDownloadIcon}>
-              <Icon name="download" size={wp(5)} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.modalImageWrap}>
-            <Image
-              source={{ uri: fullImageUri || '' }}
-              style={styles.modalFullImage}
-              resizeMode="contain"
-            />
-          </View>
-        </SafeAreaView>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowFullImage(false)} style={styles.modalCloseBtn}>
+                <Icon name="times" size={wp(6)} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Image Preview</Text>
+              <TouchableOpacity onPress={handleDownload} style={styles.modalDownloadIcon}>
+                <Icon name="download" size={wp(5)} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalImageWrap}>
+              <PinchGestureHandler
+                onGestureEvent={onPinchEvent}
+                onHandlerStateChange={onPinchStateChange}
+              >
+                <Animated.Image
+                  source={{ uri: fullImageUri || '' }}
+                  style={[
+                    styles.modalFullImage,
+                    { transform: [{ scale: zoomScale }] }
+                  ]}
+                  resizeMode="contain"
+                />
+              </PinchGestureHandler>
+            </View>
+          </SafeAreaView>
+        </GestureHandlerRootView>
       </Modal>
 
       {/* PDF View Modal placeholder */}
