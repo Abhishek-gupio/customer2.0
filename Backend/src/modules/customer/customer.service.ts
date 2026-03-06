@@ -32,6 +32,7 @@ export const customerService = {
         email: data.email !== undefined ? (data.email.trim() || null) : undefined,
         fullName: data.fullName !== undefined ? (data.fullName.trim() || null) : undefined,
         profilePic: data.profilePic !== undefined ? (data.profilePic.trim() || null) : undefined,
+        phoneNumber: data.phoneNumber !== undefined ? data.phoneNumber.trim() : undefined,
       },
       select: {
         id: true,
