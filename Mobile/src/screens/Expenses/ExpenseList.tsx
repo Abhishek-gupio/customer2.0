@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,15 +16,17 @@ import {
 } from 'react-native-responsive-screen';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../navigation/types';
+import type { RootStackParamList, Bill } from '../../navigation/types';
 import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
+import { API_BASE_URL } from '../../config';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
 import NotificationPermission from '../../components/NotificationPermission';
 import Bills from './Bills';
 import { colors }from '../../theme/colors';
 import { fontSizes } from '../../theme/Fontsize';
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
@@ -57,6 +60,43 @@ const ProgressRow = ({ label, value, percent, color }: ProgressRowProps) => {
   );
 };
 
+const toAbsoluteUrl = (url?: string | null) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_BASE_URL}${url}`;
+};
+
+const toNumber = (value: unknown) => {
+  const parsed = typeof value === 'number' ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const toDate = (value: unknown) => {
+  if (!value) return null;
+  const d = new Date(value as any);
+  if (!Number.isNaN(d.getTime())) return d;
+
+  if (typeof value === 'string') {
+    const parts = value.split('-');
+    if (parts.length === 3 && parts[0].length === 2) {
+      const day = Number(parts[0]);
+      const month = Number(parts[1]);
+      const year = Number(parts[2]);
+      const parsed = new Date(year, month - 1, day);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+  }
+  return null;
+};
+
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
 const ExpenseFeed = () => {
   const navigation = useNavigation<DocListNavProp>();
 
@@ -67,7 +107,16 @@ const ExpenseFeed = () => {
   const [expensesList, setExpensesList] = React.useState<any[]>([]);
   const [rawExpenses, setRawExpenses] = React.useState<any[]>([]); // Raw data with Date objects
   const [loading, setLoading] = React.useState(false);
+  const [bills, setBills] = React.useState<Bill[]>([]);
   const [showAllExpenses, setShowAllExpenses] = React.useState(false);
+  const [isCalendarVisible, setIsCalendarVisible] = React.useState(false);
+  const [calendarMonth, setCalendarMonth] = React.useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedFromDate, setSelectedFromDate] = React.useState<Date | null>(null);
+  const [selectedToDate, setSelectedToDate] = React.useState<Date | null>(null);
+  const [calendarSelectionTarget, setCalendarSelectionTarget] = React.useState<'from' | 'to'>('from');
 
   // ── Computed stats ──
   const [totalThisMonth, setTotalThisMonth] = React.useState(0);
@@ -94,24 +143,52 @@ const ExpenseFeed = () => {
     try {
       const response = await api.get<any>('/v1/expenses');
       console.log("response", response);
-      const items = response?.data?.expenses ?? response?.data ?? [];
+      const items =
+        response?.data?.expenses ??
+        response?.data?.data?.expenses ??
+        response?.data?.data ??
+        response?.expenses ??
+        response?.data ??
+        [];
       const list = Array.isArray(items) ? items : [];
 
       setRawExpenses(list);
 
-      const mappedExpenses = list.map((item: any) => ({
-        id: item.id,
-        title: item.category,
-        type: item.category.charAt(0) + item.category.slice(1).toLowerCase(),
-        amount: item.amount,
-        date: formatDate(item.date),
-        rawDate: new Date(item.date),
-        source: item.source,
-        icon: getExpenseIcon(item.category),
-        color: getExpenseColor(item.category),
-        category: item.category,
-      }));
+      const mappedExpenses = list.map((item: any) => {
+        const category = String(item.category || 'OTHER').toUpperCase();
+        return {
+          id: item.id,
+          title: category,
+          type: category.charAt(0) + category.slice(1).toLowerCase(),
+          amount: toNumber(item.amount),
+          date: formatDate(item.date),
+          rawDate: toDate(item.date),
+          source: item.source,
+          icon: getExpenseIcon(category),
+          color: getExpenseColor(category),
+          category,
+        };
+      });
       setExpensesList(mappedExpenses);
+
+      const recentBills = list
+        .filter((item: any) => !!item.receiptUrl)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5)
+        .map((item: any): Bill => {
+          const category = String(item.category || 'OTHER').toUpperCase();
+          return {
+            id: item.id,
+            title: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
+            amount: toNumber(item.amount),
+            uploadedAt: formatDate(item.date, 'dd MMM'),
+            status: String(item.status || '').toLowerCase() === 'pending' ? 'pending' : 'verified',
+            image: toAbsoluteUrl(item.receiptUrl),
+            warrantyMonths: item.warrantyMonths,
+          };
+        });
+
+      setBills(recentBills);
     } catch (error) {
       console.error("Fetch Expenses Error:", error);
     } finally {
@@ -123,11 +200,19 @@ const ExpenseFeed = () => {
     React.useCallback(() => {
       // Check if refresh was requested and apply appropriate delay
       const needsRefresh = getAndClearExpenseListRefresh();
-      const delay = needsRefresh ? 100 : 0;
+      const timers: ReturnType<typeof setTimeout>[] = [];
 
-      setTimeout(() => {
-        fetchExpenses();
-      }, delay);
+      fetchExpenses();
+      if (needsRefresh) {
+        // Follow-up fetch helps when backend write/indexing is slightly delayed.
+        timers.push(setTimeout(() => {
+          fetchExpenses();
+        }, 1000));
+      }
+
+      return () => {
+        timers.forEach(clearTimeout);
+      };
     }, [fetchExpenses])
   );
 
@@ -142,20 +227,22 @@ const ExpenseFeed = () => {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
     const thisMonthExpenses = rawExpenses.filter((e: any) => {
-      const d = new Date(e.date);
+      const d = toDate(e.date);
+      if (!d) return false;
       return d >= monthStart && d <= monthEnd;
     });
-    const total = thisMonthExpenses.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+    const total = thisMonthExpenses.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
     setTotalThisMonth(total);
 
     // Growth: compare with last month
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
     const lastMonthExpenses = rawExpenses.filter((e: any) => {
-      const d = new Date(e.date);
+      const d = toDate(e.date);
+      if (!d) return false;
       return d >= lastMonthStart && d <= lastMonthEnd;
     });
-    const lastTotal = lastMonthExpenses.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+    const lastTotal = lastMonthExpenses.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
     if (lastTotal > 0) {
       setGrowthPercent(Math.round(((total - lastTotal) / lastTotal) * 100));
     } else {
@@ -192,16 +279,24 @@ const ExpenseFeed = () => {
         break;
     }
 
-    const filtered = rawExpenses.filter((e: any) => new Date(e.date) >= filterStart);
-    const total = filtered.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
-    console.log("Calculated totalFiltered:", total, "for timelineFilter:", timelineFilter);
+    const filtered = rawExpenses.filter((e: any) => {
+      const d = toDate(e.date);
+      if (!d) return false;
+      if (selectedFromDate && selectedToDate) {
+        return d >= startOfDay(selectedFromDate) && d <= endOfDay(selectedToDate);
+      }
+      if (selectedFromDate) return sameDay(d, selectedFromDate);
+      return d >= filterStart;
+    });
+    const total = filtered.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
+    console.log("Calculated totalFiltered:", total, "for timelineFilter:", timelineFilter, "selectedFromDate:", selectedFromDate, "selectedToDate:", selectedToDate);
     setTotalFiltered(total);
 
     // Category breakdown
     const catMap: Record<string, number> = {};
     filtered.forEach((e: any) => {
       const cat = e.category || 'OTHER';
-      catMap[cat] = (catMap[cat] || 0) + (e.amount || 0);
+      catMap[cat] = (catMap[cat] || 0) + toNumber(e.amount);
     });
 
     const breakdown = Object.entries(catMap)
@@ -215,14 +310,78 @@ const ExpenseFeed = () => {
       .sort((a, b) => b.amount - a.amount);
 
     setCategoryBreakdown(breakdown);
-  }, [rawExpenses, timelineFilter]);
+  }, [rawExpenses, timelineFilter, selectedFromDate, selectedToDate]);
+
+  const dateFilteredExpenses = React.useMemo(() => {
+    if (!selectedFromDate && !selectedToDate) return expensesList;
+    return expensesList.filter(item => {
+      if (!item.rawDate) return false;
+      if (selectedFromDate && selectedToDate) {
+        return item.rawDate >= startOfDay(selectedFromDate) && item.rawDate <= endOfDay(selectedToDate);
+      }
+      if (selectedFromDate) return sameDay(item.rawDate, selectedFromDate);
+      return true;
+    });
+  }, [expensesList, selectedFromDate, selectedToDate]);
 
   const filteredExpenses =
     selectedType === 'All'
-      ? expensesList
-      : expensesList.filter(item => item.type.toUpperCase() === selectedType.toUpperCase());
+      ? dateFilteredExpenses
+      : dateFilteredExpenses.filter(item => item.type.toUpperCase() === selectedType.toUpperCase());
 
   const displayedExpenses = showAllExpenses ? filteredExpenses : filteredExpenses.slice(0, 3);
+
+  const calendarTitle = calendarMonth.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const formatRangeDate = (date: Date) =>
+    date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+
+  const selectedDateLabel =
+    selectedFromDate && selectedToDate
+      ? `${formatRangeDate(selectedFromDate)} - ${formatRangeDate(selectedToDate)}`
+      : selectedFromDate
+        ? `${formatRangeDate(selectedFromDate)} - Select end date`
+        : 'All Dates';
+
+  const onSelectCalendarDay = (day: Date) => {
+    if (calendarSelectionTarget === 'from' || !selectedFromDate) {
+      setSelectedFromDate(day);
+      if (selectedToDate && day > selectedToDate) {
+        setSelectedToDate(null);
+      }
+      setCalendarSelectionTarget('to');
+      return;
+    }
+
+    if (day < selectedFromDate) {
+      setSelectedToDate(selectedFromDate);
+      setSelectedFromDate(day);
+    } else {
+      setSelectedToDate(day);
+    }
+    setIsCalendarVisible(false);
+  };
+
+  const buildCalendarDays = React.useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells: (Date | null)[] = [];
+
+    for (let i = 0; i < firstDay; i += 1) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d += 1) cells.push(new Date(year, month, d));
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    return cells;
+  }, [calendarMonth]);
 
   const formatCurrency = (val: number) => {
     if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
@@ -278,18 +437,18 @@ const ExpenseFeed = () => {
         <View style={[styles.card, { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' }]}>
           <View style={styles.rowBetween}>
             <Text style={styles.cardLabel}>Total Spent</Text>
-            {growthPercent !== 0 && (
-              <View style={[styles.percentBadge, growthPercent < 0 && { backgroundColor: '#002a00' }]}>
-                <Icon
-                  name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
-                  size={wp(3)}
-                  color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
-                />
-                <Text style={[styles.percentText, growthPercent < 0 && { color: '#00c853' }]}>
-                  {' '}{Math.abs(growthPercent)}%
-                </Text>
-              </View>
-            )}
+            <View style={styles.percentBadge}>
+              <TouchableOpacity
+                onPress={() => {
+                  setCalendarSelectionTarget(selectedFromDate ? 'to' : 'from');
+                  setIsCalendarVisible(true);
+                }}
+                style={styles.calendarButton}
+              >
+                <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+              <Text style={styles.selectedDateText}>{selectedDateLabel}</Text>
+            </View>
           </View>
           <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
 
@@ -372,9 +531,9 @@ const ExpenseFeed = () => {
               <View style={[styles.iconCircle, { borderColor: item.color }]}>
                 <Icon name={item.icon} size={wp(5)} color={item.color} />
               </View>
-
               <View style={{ flex: 1 }}>
                 <Text style={styles.itemTitle}>{item.title}</Text>
+
                 <Text style={styles.itemSub}>
                   {item.date} · {item.source}
                 </Text>
@@ -402,7 +561,7 @@ const ExpenseFeed = () => {
           </TouchableOpacity>
         )}
 
-        <Bills />
+        <Bills bills={bills} />
 
         <TouchableOpacity
           style={styles.sectionTitleCentered}
@@ -425,6 +584,115 @@ const ExpenseFeed = () => {
         </TouchableOpacity>
 
       </ScrollView>
+      <Modal
+        visible={isCalendarVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsCalendarVisible(false)}
+      >
+        <View style={styles.calendarModalBackdrop}>
+          <View style={styles.calendarModalCard}>
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity
+                onPress={() =>
+                  setCalendarMonth(
+                    prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+                  )
+                }
+              >
+                <Ionicons name="chevron-back" size={22} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.calendarTitle}>{calendarTitle}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setCalendarMonth(
+                    prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+                  )
+                }
+              >
+                <Ionicons name="chevron-forward" size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weekHeader}>
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
+                <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>{day}</Text>
+              ))}
+            </View>
+
+            <View style={styles.rangePickerRow}>
+              <TouchableOpacity
+                style={[styles.rangeChip, calendarSelectionTarget === 'from' && styles.rangeChipActive]}
+                onPress={() => setCalendarSelectionTarget('from')}
+              >
+                <Text style={styles.rangeChipLabel}>From</Text>
+                <Text style={styles.rangeChipValue}>
+                  {selectedFromDate ? formatRangeDate(selectedFromDate) : 'Select date'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rangeChip, calendarSelectionTarget === 'to' && styles.rangeChipActive]}
+                onPress={() => setCalendarSelectionTarget('to')}
+              >
+                <Text style={styles.rangeChipLabel}>To</Text>
+                <Text style={styles.rangeChipValue}>
+                  {selectedToDate ? formatRangeDate(selectedToDate) : 'Select date'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.calendarGrid}>
+              {buildCalendarDays.map((day, index) => {
+                if (!day) {
+                  return <View key={`empty-${index}`} style={styles.dayCell} />;
+                }
+                const isFrom = selectedFromDate ? sameDay(day, selectedFromDate) : false;
+                const isTo = selectedToDate ? sameDay(day, selectedToDate) : false;
+                const isInRange =
+                  selectedFromDate && selectedToDate
+                    ? day >= startOfDay(selectedFromDate) && day <= endOfDay(selectedToDate)
+                    : false;
+                const isSelected = isFrom || isTo;
+                return (
+                  <TouchableOpacity
+                    key={day.toISOString()}
+                    style={[
+                      styles.dayCell,
+                      isInRange && styles.dayCellInRange,
+                      isSelected && styles.dayCellSelected,
+                    ]}
+                    onPress={() => onSelectCalendarDay(day)}
+                  >
+                    <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                      {day.getDate()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.calendarActionRow}>
+              <TouchableOpacity
+                style={styles.calendarActionBtn}
+                onPress={() => {
+                  setSelectedFromDate(null);
+                  setSelectedToDate(null);
+                  setCalendarSelectionTarget('from');
+                  setIsCalendarVisible(false);
+                }}
+              >
+                <Text style={styles.calendarActionText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.calendarActionBtn}
+                onPress={() => setIsCalendarVisible(false)}
+              >
+                <Text style={styles.calendarActionText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </SafeAreaView>
   );
@@ -473,13 +741,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  calendarButton: {
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+  },
+  selectedDateText: {
+    color: '#aaa',
+    fontSize: wp(3.2),
+    marginTop: hp(1),
+  },
   growthText: { color: '#00c853', fontSize: wp(3.5) },
   percentBadge: {
     flexDirection: 'row',
-    backgroundColor: '#2a0000',
+    backgroundColor: '#9999',
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.7),
-    borderRadius: wp(5),
+    borderRadius: wp(8),
   },
   percentText: { color: '#ff5252', fontSize: wp(3.5) },
   progressLabel: { color: '#fff', fontSize: wp(4) },
@@ -588,6 +865,109 @@ const styles = StyleSheet.create({
   viewMoreText: {
     color: '#4CAF50',
     fontSize: wp(3.8),
+    fontWeight: '600',
+  },
+  calendarModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    paddingHorizontal: wp(6),
+  },
+  calendarModalCard: {
+    backgroundColor: '#161616',
+    borderRadius: wp(5),
+    padding: wp(4),
+    borderWidth: 1,
+    borderColor: '#2d2d2d',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(1.5),
+  },
+  calendarTitle: {
+    color: '#fff',
+    fontSize: wp(4.3),
+    fontWeight: '600',
+  },
+  weekHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: hp(1),
+  },
+  weekHeaderText: {
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    color: '#8e8e8e',
+    fontWeight: '600',
+  },
+  rangePickerRow: {
+    flexDirection: 'row',
+    gap: wp(2),
+    marginBottom: hp(1.2),
+  },
+  rangeChip: {
+    flex: 1,
+    backgroundColor: '#1f1f1f',
+    borderRadius: wp(3),
+    borderWidth: 1,
+    borderColor: '#2f2f2f',
+    paddingVertical: hp(0.8),
+    paddingHorizontal: wp(2.5),
+  },
+  rangeChipActive: {
+    borderColor: colors.Yellow,
+  },
+  rangeChipLabel: {
+    color: '#9ca3af',
+    fontSize: wp(3),
+    marginBottom: hp(0.3),
+  },
+  rangeChipValue: {
+    color: '#fff',
+    fontSize: wp(3.4),
+    fontWeight: '600',
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dayCell: {
+    width: `${100 / 7}%`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.2),
+    borderRadius: wp(3),
+  },
+  dayCellSelected: {
+    backgroundColor: colors.Yellow,
+  },
+  dayCellInRange: {
+    backgroundColor: '#3a341a',
+  },
+  dayText: {
+    color: '#fff',
+    fontSize: wp(3.8),
+  },
+  dayTextSelected: {
+    color: '#000',
+    fontWeight: '700',
+  },
+  calendarActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: hp(1.5),
+    gap: wp(2),
+  },
+  calendarActionBtn: {
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(0.8),
+    borderRadius: wp(4),
+    backgroundColor: '#222',
+  },
+  calendarActionText: {
+    color: '#fff',
     fontWeight: '600',
   },
 });

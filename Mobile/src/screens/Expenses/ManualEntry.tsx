@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
-import { parse } from "date-fns";
+import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 
 interface ManualEntryData {
@@ -33,6 +33,27 @@ interface ManualEntryOverlayProps {
   initialData?: ManualEntryData | null;
 }
 
+const parseManualDate = (value: string): Date | null => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const formats = ["dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd", "yyyy/MM/dd"];
+  for (const fmt of formats) {
+    const d = parse(trimmed, fmt, new Date());
+    if (isValid(d)) return d;
+  }
+
+  const native = new Date(trimmed);
+  if (isValid(native)) return native;
+
+  return null;
+};
+
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
 export default function ManualEntryOverlay({ visible, onClose, onSuccess, initialData }: ManualEntryOverlayProps) {
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
@@ -41,6 +62,11 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
 
   React.useEffect(() => {
     if (visible && initialData) {
@@ -62,22 +88,50 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
   const isValid = amount.trim().length > 0;
 
+  const openDatePicker = () => {
+    const parsed = parseManualDate(date);
+    const refDate = parsed || new Date();
+    setCalendarMonth(new Date(refDate.getFullYear(), refDate.getMonth(), 1));
+    setShowDatePicker(true);
+  };
+
+  const calendarTitle = calendarMonth.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const buildCalendarDays = React.useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells: (Date | null)[] = [];
+
+    for (let i = 0; i < firstDay; i += 1) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d += 1) cells.push(new Date(year, month, d));
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    return cells;
+  }, [calendarMonth]);
+
   const handleSave = async () => {
     if (!isValid) return;
 
     setLoading(true);
     try {
-      // Parse Date (dd-mm-yyyy -> ISO)
-      let parsedDate;
-      if (date) {
-        try {
-          const d = parse(date, 'dd-MM-yyyy', new Date());
-          if (!isNaN(d.getTime())) {
-            parsedDate = d.toISOString();
-          }
-        } catch (e) {
-          console.log("Date parse error", e);
+      // Parse date from supported text formats.
+      let parsedDate: string;
+
+      if (date && date.trim().length > 0) {
+        const parsed = parseManualDate(date);
+        if (!parsed) {
+          Alert.alert("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).");
+          setLoading(false);
+          return;
         }
+        parsedDate = parsed.toISOString();
+      } else {
+        parsedDate = new Date().toISOString();
       }
 
       const payload = {
@@ -162,10 +216,11 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
               <Label text="Date" />
               <Input
-                placeholder="dd-mm-yyyy"
+                placeholder="dd-MM-yyyy"
                 value={date}
                 onChangeText={setDate}
                 icon="calendar-outline"
+                onIconPress={openDatePicker}
               />
 
 
@@ -209,6 +264,84 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
           </Pressable>
         </Pressable>
       </Modal>
+
+      <Modal transparent visible={showDatePicker} animationType="fade">
+        <Pressable style={styles.backdrop} onPress={() => setShowDatePicker(false)}>
+          <Pressable style={styles.calendarPanel} onPress={() => {}}>
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity
+                onPress={() =>
+                  setCalendarMonth(
+                    prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+                  )
+                }
+              >
+                <Ionicons name="chevron-back" size={20} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.calendarTitle}>{calendarTitle}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setCalendarMonth(
+                    prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+                  )
+                }
+              >
+                <Ionicons name="chevron-forward" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weekHeader}>
+              {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
+                <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>{day}</Text>
+              ))}
+            </View>
+
+            <View style={styles.calendarGrid}>
+              {buildCalendarDays.map((day, index) => {
+                if (!day) {
+                  return <View key={`empty-${index}`} style={styles.dayCell} />;
+                }
+
+                const selectedDate = parseManualDate(date);
+                const isSelected = selectedDate ? sameDay(day, selectedDate) : false;
+
+                return (
+                  <TouchableOpacity
+                    key={day.toISOString()}
+                    style={[styles.dayCell, isSelected && styles.dayCellSelected]}
+                    onPress={() => {
+                      setDate(format(day, "dd-MM-yyyy"));
+                      setShowDatePicker(false);
+                    }}
+                  >
+                    <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                      {day.getDate()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.calendarActions}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => {
+                  setDate("");
+                  setShowDatePicker(false);
+                }}
+              >
+                <Text style={styles.actionBtnText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.actionBtnText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </>
   );
 }
@@ -224,6 +357,7 @@ const Input = ({
   onChangeText,
   keyboardType,
   editable = true,
+  onIconPress,
 }: {
   placeholder?: string;
   value?: string;
@@ -231,6 +365,7 @@ const Input = ({
   onChangeText?: (t: string) => void;
   keyboardType?: "default" | "numeric";
   editable?: boolean;
+  onIconPress?: () => void;
 }) => (
   <View style={styles.input}>
     <TextInput
@@ -242,7 +377,11 @@ const Input = ({
       editable={editable}
       style={styles.inputText}
     />
-    {icon && <Ionicons name={icon} size={18} color="#aaa" />}
+    {icon && (
+      <TouchableOpacity onPress={onIconPress} disabled={!onIconPress}>
+        <Ionicons name={icon} size={18} color="#aaa" />
+      </TouchableOpacity>
+    )}
   </View>
 );
 
@@ -323,5 +462,71 @@ const styles = StyleSheet.create({
   categoryText: {
     color: "#fff",
     fontSize: 16,
+  },
+  calendarPanel: {
+    width: "92%",
+    maxWidth: 420,
+    backgroundColor: "rgba(28,28,28,0.98)",
+    borderRadius: 20,
+    padding: 16,
+  },
+  calendarHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  calendarTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  weekHeader: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  weekHeaderText: {
+    width: `${100 / 7}%`,
+    textAlign: "center",
+    color: "#8e8e8e",
+    fontWeight: "600",
+  },
+  calendarGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  dayCell: {
+    width: `${100 / 7}%`,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  dayCellSelected: {
+    backgroundColor: "#ffbf00",
+  },
+  dayText: {
+    color: "#fff",
+    fontSize: 14,
+  },
+  dayTextSelected: {
+    color: "#111",
+    fontWeight: "700",
+  },
+  calendarActions: {
+    marginTop: 12,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+  actionBtn: {
+    backgroundColor: "#222",
+    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  actionBtnText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });

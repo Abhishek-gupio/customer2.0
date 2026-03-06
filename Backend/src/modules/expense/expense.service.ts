@@ -31,6 +31,7 @@ const ALLOWED_NOTIFICATION_CATEGORIES: ExpenseCategory[] = [
   "PARKING",
   "CHALLAN",
 ];
+const MAX_RECEIPT_IMAGES_PER_CUSTOMER = 15;
 
 export const expenseService = {
   /**
@@ -106,6 +107,12 @@ export const expenseService = {
       .ingestExpense(expense.id)
       .catch((err) => logger.error({ err }, "Expense ingestion failed"));
 
+    if (expense.receiptUrl) {
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+    }
+
     return { expense, fuelIntelligence };
   },
   /**
@@ -166,18 +173,19 @@ export const expenseService = {
         }
 
         // Filter Notification sources
-        if (
-          input.source === "NOTIFICATION" &&
-          !ALLOWED_NOTIFICATION_CATEGORIES.includes(
-            aiResult.category as ExpenseCategory,
-          )
-        ) {
-          return {
-            success: false,
-            skipped: true,
-            reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
-          };
-        }
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     aiResult.category as ExpenseCategory,
+        //   )
+        // ) 
+        // {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
 
         // Skip credit/refund transactions
         if (aiResult.notes?.includes("CREDIT_TXN")) {
@@ -198,7 +206,7 @@ export const expenseService = {
               ? new Date(aiResult.date)
               : input.timestamp
                 ? new Date(input.timestamp)
-                : new Date(),
+              : new Date(),
             source: input.source as ExpenseSource,
             rawText: text,
             isAutomated: true,
@@ -306,18 +314,19 @@ export const expenseService = {
         }
 
         // Filter Notification sources
-        if (
-          input.source === "NOTIFICATION" &&
-          !ALLOWED_NOTIFICATION_CATEGORIES.includes(
-            upiResult.category as ExpenseCategory,
-          )
-        ) {
-          return {
-            success: false,
-            skipped: true,
-            reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
-          };
-        }
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     upiResult.category as ExpenseCategory,
+        //   )
+        // )
+        //  {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
 
         const expense = await db.expense.create({
           data: {
@@ -444,16 +453,16 @@ export const expenseService = {
     if (mMatch && mMatch[1]) merchantName = mMatch[1].trim().substring(0, 30);
 
     // Filter Notification sources
-    if (
-      input.source === "NOTIFICATION" &&
-      !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
-    ) {
-      return {
-        success: false,
-        skipped: true,
-        reason: `Category '${category}' is not allowed for auto-notification parsing.`,
-      };
-    }
+    // if (
+    //   input.source === "NOTIFICATION" &&
+    //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
+    // ) {
+    //   return {
+    //     success: false,
+    //     skipped: true,
+    //     reason: `Category '${category}' is not allowed for auto-notification parsing.`,
+    //   };
+    // }
 
     // DRY RUN: return preview without creating expense
     if (opts?.dryRun) {
@@ -923,6 +932,11 @@ export const expenseService = {
           notes: aiResult.notes,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+
       return { success: true, expense };
     }
 
@@ -974,6 +988,10 @@ export const expenseService = {
           mimeType: file.mimetype,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
     }
 
     return parsed;
@@ -1404,6 +1422,39 @@ export const expenseService = {
     });
 
     return { expenses, totalAmount: total._sum.amount || 0 };
+  },
+
+  /**
+   * Keep only the latest receipt images per customer and remove older files.
+   */
+  async pruneOldReceiptImages(customerId: string, keep = MAX_RECEIPT_IMAGES_PER_CUSTOMER) {
+    const oldReceipts = await db.expense.findMany({
+      where: {
+        customerId,
+        receiptUrl: { not: null },
+      },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      skip: keep,
+      select: { id: true, receiptUrl: true },
+    });
+
+    if (!oldReceipts.length) return;
+
+    await Promise.all(
+      oldReceipts.map(async (row: { id: string; receiptUrl: string | null }) => {
+        if (!row.receiptUrl) return;
+        try {
+          await storageService.deleteFile(row.receiptUrl);
+        } catch (err) {
+          logger.warn({ err, customerId, expenseId: row.id }, "Could not delete old receipt file");
+        }
+      }),
+    );
+
+    await db.expense.updateMany({
+      where: { id: { in: oldReceipts.map((row: { id: string }) => row.id) } },
+      data: { receiptUrl: null, mimeType: null },
+    });
   },
 
   /**

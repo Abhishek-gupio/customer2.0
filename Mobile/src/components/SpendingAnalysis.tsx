@@ -11,8 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import React, { forwardRef } from "react";
-import { useState } from "react";
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import ViewShot from "react-native-view-shot";
 
 const screenWidth = Dimensions.get("window").width - wp(10);
@@ -113,9 +112,28 @@ const chartData: Record<TimeFrame, { trend: any; breakdown: any }> = {
 };
 
 /* ---------- Component ---------- */
-export default function SpendingAnalysis(): JSX.Element {
+export type SpendingAnalysisHandle = {
+  captureCharts: () => Promise<{ lineChartPath: string; pieChartPath: string }>;
+};
+
+const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never>>((_, ref): JSX.Element => {
   const [view, setView] = useState<ViewMode>("trend");
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("Month");
+  const lineChartRef = useRef<ViewShot>(null);
+  const pieChartRef = useRef<ViewShot>(null);
+
+  useImperativeHandle(ref, () => ({
+    captureCharts: async () => {
+      const lineChartPath = await lineChartRef.current?.capture?.();
+      const pieChartPath = await pieChartRef.current?.capture?.();
+
+      if (!lineChartPath || !pieChartPath) {
+        throw new Error("Unable to capture charts");
+      }
+
+      return { lineChartPath, pieChartPath };
+    },
+  }));
 
   return (
     <View style={styles.container}>
@@ -223,9 +241,53 @@ export default function SpendingAnalysis(): JSX.Element {
     </View>
   )}
       </View>
+
+      <View style={styles.exportCaptureContainer}>
+        <ViewShot
+          ref={lineChartRef}
+          collapsable={false}
+          options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
+        >
+          <View style={styles.exportCard}>
+            <Text style={styles.exportTitle}>Spending Trend ({timeFrame})</Text>
+            <LineChart
+              data={chartData[timeFrame].trend}
+              width={screenWidth - wp(7)}
+              height={hp(32)}
+              chartConfig={chartConfig}
+              bezier
+              style={styles.chart}
+            />
+          </View>
+        </ViewShot>
+
+        <ViewShot
+          ref={pieChartRef}
+          collapsable={false}
+          options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
+        >
+          <View style={styles.exportCard}>
+            <Text style={styles.exportTitle}>Spending Breakdown ({timeFrame})</Text>
+            <PieChart
+              data={chartData[timeFrame].breakdown}
+              width={screenWidth - wp(10)}
+              height={hp(32)}
+              chartConfig={chartConfig}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft={String(wp(21))}
+              hasLegend={false}
+              absolute={false}
+            />
+          </View>
+        </ViewShot>
+      </View>
     </View>
   );
-}
+});
+
+SpendingAnalysis.displayName = "SpendingAnalysis";
+export default SpendingAnalysis;
 
 /* ---------- Chart Config ---------- */
 const chartConfig = {
@@ -292,7 +354,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#fff",
-    fontSize: hp(2.2),
+    fontSize: hp(2),
     fontWeight: "600",
   },
 
@@ -300,10 +362,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#2c2c2e",
     borderRadius: wp(6),
-    padding: wp(1),
+    padding: wp(0.7),
   },
 toggleBtn: {
-  paddingHorizontal: wp(4),
+  paddingHorizontal: wp(3.5),
   paddingVertical: hp(0.8),
 },
 
@@ -352,6 +414,21 @@ inactiveText: {
     marginVertical: hp(1),
     // borderRadius: wp(4),
     backgroundColor: "#151515",
+  },
+  exportCaptureContainer: {
+    position: "absolute",
+    left: -10000,
+    top: -10000,
+  },
+  exportCard: {
+    backgroundColor: "#151515",
+    padding: wp(3),
+  },
+  exportTitle: {
+    color: "#fff",
+    fontSize: hp(1.8),
+    fontWeight: "600",
+    marginBottom: hp(1),
   },
 });
 
