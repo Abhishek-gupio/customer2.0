@@ -25,7 +25,7 @@ import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
 import NotificationPermission from '../../components/NotificationPermission';
 import Bills from './Bills';
 import { colors }from '../../theme/colors';
-import { fontSizes } from '../../theme/Fontsize';
+import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerTitle: { color: colors.Primary, fontSize: fontSizes.header, fontWeight: '700' },
+  headerTitle: { color: colors.Primary, fontSize: FS.header, fontWeight: FW.header },
   subHeder: {
     flexDirection: 'row',
     alignItems: 'center',

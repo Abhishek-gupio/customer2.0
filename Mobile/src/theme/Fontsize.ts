@@ -15,3 +15,12 @@ export const fontSizes: Fontsize=
         subHeader: hp(1.8),
         text: hp(1.6)
     }
+
+
+
+export const fontWeights=
+    {
+        header: '700',
+        subHeader: '600',
+        text: '400'
+    } as const
