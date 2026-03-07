@@ -25,7 +25,7 @@ export type RootStackParamList = {
   ServiceHistory: undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;
-    Chat: {
+  Chat: {
     userMessage: string;
   };
   // AiBotChat: undefined;
@@ -33,7 +33,7 @@ export type RootStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
-  Search: undefined;
+  Services: undefined;
   AIAssistant: undefined;
   Alerts: undefined;
   History: undefined;
