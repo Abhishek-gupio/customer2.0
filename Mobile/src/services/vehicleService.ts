@@ -9,7 +9,7 @@ export interface Vehicle {
 
 export const vehicleService = {
     getVehicles: async () => {
-        const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicle');
+        const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicles');
         return response.data || [];
     }
 };

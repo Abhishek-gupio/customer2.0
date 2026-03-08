@@ -88,6 +88,8 @@ export default function Home() {
               navigateToRootScreen('Expenses');
             } else if (label === 'Service') {
               setServiceModalVisible(true);
+            } else if (label === 'Driving') {
+              navigateToRootScreen('DrivingSummary');
             }
           }}
         />

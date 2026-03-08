@@ -25,6 +25,7 @@ export type RootStackParamList = {
   ServiceHistory: undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;
+  DrivingSummary: undefined;
   // AiBotChat: undefined;
 };
 

@@ -6,12 +6,13 @@ import { documentService } from "../modules/document/document.service";
 import { expenseIntelligenceService } from "../services/expense-intelligence.service";
 import { warrantyService } from "../services/warranty.service";
 import { predictionService } from "../services/prediction.service";
+import { telematicsService } from "../services/telematics.service";
 
 const db = dbInstances as any;
 
 /**
  * WORKER: Maintenance & Alerts
- * Handles: Daily Warranty Checks, Document Expiry
+ * Handles: Daily Warranty Checks, Document Expiry, Telematics Sync
  */
 export const maintenanceWorker = new Worker<JobData>(
   QUEUE_NAMES.MAINTENANCE,
@@ -23,6 +24,8 @@ export const maintenanceWorker = new Worker<JobData>(
     try {
       if (job.name === "daily-maintenance") {
         await runDailyMaintenance();
+      } else if (job.name === "sync-telematics") {
+        await telematicsService.syncTripsForAllDevices();
       }
     } catch (err) {
       logger.error({ err, jobId: job.id }, "[MaintenanceWorker] Job failed");

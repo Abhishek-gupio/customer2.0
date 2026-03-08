@@ -9,7 +9,7 @@ import QuickServiceButton from './QuickServiceButton';
 const SERVICES: { icon: string; label: string }[] = [
   { icon: 'wrench', label: 'Service' },
   { icon: 'calendar-check', label: 'Booking' },
-  { icon: 'clipboard-list', label: 'History' },
+  { icon: 'tachometer-alt', label: 'Driving' },
   { icon: 'comments', label: 'Support' },
   { icon: 'car', label: 'Vehicles' },
   { icon: 'file-alt', label: 'Documents' },
@@ -43,7 +43,7 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
             label={item.label}
             onPress={() => onServicePress?.(item.label)}
           />
-          
+
         ))}
       </View>
     </View>

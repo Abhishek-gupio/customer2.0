@@ -25614,6 +25614,7 @@ export namespace Prisma {
     deviceToken: string | null
     platform: string | null
     isActive: boolean | null
+    lastSyncAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -25625,6 +25626,7 @@ export namespace Prisma {
     deviceToken: string | null
     platform: string | null
     isActive: boolean | null
+    lastSyncAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -25636,6 +25638,7 @@ export namespace Prisma {
     deviceToken: number
     platform: number
     isActive: number
+    lastSyncAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -25649,6 +25652,7 @@ export namespace Prisma {
     deviceToken?: true
     platform?: true
     isActive?: true
+    lastSyncAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -25660,6 +25664,7 @@ export namespace Prisma {
     deviceToken?: true
     platform?: true
     isActive?: true
+    lastSyncAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -25671,6 +25676,7 @@ export namespace Prisma {
     deviceToken?: true
     platform?: true
     isActive?: true
+    lastSyncAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -25755,6 +25761,7 @@ export namespace Prisma {
     deviceToken: string | null
     platform: string | null
     isActive: boolean
+    lastSyncAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: TelematicsDeviceCountAggregateOutputType | null
@@ -25783,6 +25790,7 @@ export namespace Prisma {
     deviceToken?: boolean
     platform?: boolean
     isActive?: boolean
+    lastSyncAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
@@ -25795,6 +25803,7 @@ export namespace Prisma {
     deviceToken?: boolean
     platform?: boolean
     isActive?: boolean
+    lastSyncAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
@@ -25807,6 +25816,7 @@ export namespace Prisma {
     deviceToken?: boolean
     platform?: boolean
     isActive?: boolean
+    lastSyncAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
@@ -25819,11 +25829,12 @@ export namespace Prisma {
     deviceToken?: boolean
     platform?: boolean
     isActive?: boolean
+    lastSyncAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type TelematicsDeviceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "instanceId" | "deviceToken" | "platform" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["telematicsDevice"]>
+  export type TelematicsDeviceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "instanceId" | "deviceToken" | "platform" | "isActive" | "lastSyncAt" | "createdAt" | "updatedAt", ExtArgs["result"]["telematicsDevice"]>
   export type TelematicsDeviceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
   }
@@ -25846,6 +25857,7 @@ export namespace Prisma {
       deviceToken: string | null
       platform: string | null
       isActive: boolean
+      lastSyncAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["telematicsDevice"]>
@@ -26278,6 +26290,7 @@ export namespace Prisma {
     readonly deviceToken: FieldRef<"TelematicsDevice", 'String'>
     readonly platform: FieldRef<"TelematicsDevice", 'String'>
     readonly isActive: FieldRef<"TelematicsDevice", 'Boolean'>
+    readonly lastSyncAt: FieldRef<"TelematicsDevice", 'DateTime'>
     readonly createdAt: FieldRef<"TelematicsDevice", 'DateTime'>
     readonly updatedAt: FieldRef<"TelematicsDevice", 'DateTime'>
   }
@@ -31730,6 +31743,7 @@ export namespace Prisma {
     deviceToken: 'deviceToken',
     platform: 'platform',
     isActive: 'isActive',
+    lastSyncAt: 'lastSyncAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -33700,6 +33714,7 @@ export namespace Prisma {
     deviceToken?: StringNullableFilter<"TelematicsDevice"> | string | null
     platform?: StringNullableFilter<"TelematicsDevice"> | string | null
     isActive?: BoolFilter<"TelematicsDevice"> | boolean
+    lastSyncAt?: DateTimeNullableFilter<"TelematicsDevice"> | Date | string | null
     createdAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
     updatedAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
     vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
@@ -33712,6 +33727,7 @@ export namespace Prisma {
     deviceToken?: SortOrderInput | SortOrder
     platform?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    lastSyncAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     vehicle?: CustomerVehicleOrderByWithRelationInput
@@ -33727,6 +33743,7 @@ export namespace Prisma {
     deviceToken?: StringNullableFilter<"TelematicsDevice"> | string | null
     platform?: StringNullableFilter<"TelematicsDevice"> | string | null
     isActive?: BoolFilter<"TelematicsDevice"> | boolean
+    lastSyncAt?: DateTimeNullableFilter<"TelematicsDevice"> | Date | string | null
     createdAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
     updatedAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
     vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
@@ -33739,6 +33756,7 @@ export namespace Prisma {
     deviceToken?: SortOrderInput | SortOrder
     platform?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    lastSyncAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: TelematicsDeviceCountOrderByAggregateInput
@@ -33756,6 +33774,7 @@ export namespace Prisma {
     deviceToken?: StringNullableWithAggregatesFilter<"TelematicsDevice"> | string | null
     platform?: StringNullableWithAggregatesFilter<"TelematicsDevice"> | string | null
     isActive?: BoolWithAggregatesFilter<"TelematicsDevice"> | boolean
+    lastSyncAt?: DateTimeNullableWithAggregatesFilter<"TelematicsDevice"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"TelematicsDevice"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"TelematicsDevice"> | Date | string
   }
@@ -35927,6 +35946,7 @@ export namespace Prisma {
     deviceToken?: string | null
     platform?: string | null
     isActive?: boolean
+    lastSyncAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     vehicle: CustomerVehicleCreateNestedOneWithoutTelematicsDeviceInput
@@ -35939,6 +35959,7 @@ export namespace Prisma {
     deviceToken?: string | null
     platform?: string | null
     isActive?: boolean
+    lastSyncAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -35949,6 +35970,7 @@ export namespace Prisma {
     deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vehicle?: CustomerVehicleUpdateOneRequiredWithoutTelematicsDeviceNestedInput
@@ -35961,6 +35983,7 @@ export namespace Prisma {
     deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -35972,6 +35995,7 @@ export namespace Prisma {
     deviceToken?: string | null
     platform?: string | null
     isActive?: boolean
+    lastSyncAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -35982,6 +36006,7 @@ export namespace Prisma {
     deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -35993,6 +36018,7 @@ export namespace Prisma {
     deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -37861,6 +37887,7 @@ export namespace Prisma {
     deviceToken?: SortOrder
     platform?: SortOrder
     isActive?: SortOrder
+    lastSyncAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -37872,6 +37899,7 @@ export namespace Prisma {
     deviceToken?: SortOrder
     platform?: SortOrder
     isActive?: SortOrder
+    lastSyncAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -37883,6 +37911,7 @@ export namespace Prisma {
     deviceToken?: SortOrder
     platform?: SortOrder
     isActive?: SortOrder
+    lastSyncAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -41445,6 +41474,7 @@ export namespace Prisma {
     deviceToken?: string | null
     platform?: string | null
     isActive?: boolean
+    lastSyncAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -41455,6 +41485,7 @@ export namespace Prisma {
     deviceToken?: string | null
     platform?: string | null
     isActive?: boolean
+    lastSyncAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -41758,6 +41789,7 @@ export namespace Prisma {
     deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -41768,6 +41800,7 @@ export namespace Prisma {
     deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

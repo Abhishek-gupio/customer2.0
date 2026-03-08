@@ -1,51 +1,51 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, Animated, Easing } from "react-native";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
-  Easing,
-} from "react-native-reanimated";
 
 const SIZE = 180;
 
 export default function AnimatedOrb() {
-  const scale = useSharedValue(1);
-  const rotation = useSharedValue(0);
+  const scale = useRef(new Animated.Value(1)).current;
+  const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Breathing pulse
-    scale.value = withRepeat(
-      withTiming(1.08, {
-        duration: 3000,
-        easing: Easing.inOut(Easing.ease),
-      }),
-      -1,
-      true
-    );
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 1.08,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
 
     // Slow rotation
-    rotation.value = withRepeat(
-      withTiming(360, {
+    Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
         duration: 20000,
         easing: Easing.linear,
-      }),
-      -1
-    );
-  }, []);
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [scale, rotation]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotation.value}deg` },
-    ],
-  }));
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.glow, animatedStyle]}>
+      <Animated.View style={[styles.glow, { transform: [{ scale }, { rotate: spin }] }]}>
         <Svg width={SIZE} height={SIZE}>
           <Defs>
             <RadialGradient id="grad" cx="50%" cy="50%" r="50%">
