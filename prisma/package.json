@@ -12,10 +12,11 @@
     },
     "scripts": {
         "prisma:generate": "prisma generate",
-        "prisma:migrate:dev": "prisma migrate dev",
-        "prisma:studio": "prisma studio",
+        "prisma:migrate:dev": "node ./run-prisma-with-fallback.js db push --accept-data-loss",
+        "prisma:studio": "node ./run-prisma-with-fallback.js studio",
+        "migrate:docker": "docker compose -f ../docker-compose.yml up postgres prisma-migrate",
         "db:up:local": "bash ../scripts/db-start.sh",
-        "db:migrate": "prisma migrate dev",
+        "db:migrate": "node ./run-prisma-with-fallback.js db push --accept-data-loss",
         "build": "tsc -p tsconfig.json && cp -r generated dist/",
         "prepare": "pnpm prisma:generate"
     },

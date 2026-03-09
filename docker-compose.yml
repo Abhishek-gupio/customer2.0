@@ -12,8 +12,38 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abhishekkumar -d valet_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    command: >
+      bash -c "
+      /usr/local/bin/docker-entrypoint.sh postgres &
+      until pg_isready -h localhost -U abhishekkumar; do sleep 1; done;
+      psql -U abhishekkumar -d valet_db -c 'CREATE SCHEMA IF NOT EXISTS customer;'
+      wait
+      "
     volumes:
       - postgres_valet_data:/var/lib/postgresql/data
+
+  prisma-migrate:
+    image: node:18-alpine
+    container_name: customer-prisma-migrate
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://abhishekkumar@postgres:5432/valet_db?schema=customer&sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+      cd prisma &&
+      npx prisma generate &&
+      npx prisma db push --accept-data-loss
+      "
 
 volumes:
   postgres_valet_data:

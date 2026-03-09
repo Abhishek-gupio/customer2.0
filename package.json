@@ -12,7 +12,8 @@
         "db:setup": "bash scripts/db-start.sh && sleep 3 && pnpm db:migrate",
         "prisma:migrate:dev": "pnpm --filter @repo/db-customer prisma:migrate:dev",
         "prisma:generate": "pnpm --filter @repo/db-customer prisma:generate",
-        "prisma:studio": "pnpm --filter @repo/db-customer prisma:studio"
+        "prisma:studio": "pnpm --filter @repo/db-customer prisma:studio",
+        "db:migrate:docker": "docker compose up postgres prisma-migrate"
     },
     "devDependencies": {
         "prettier": "latest",

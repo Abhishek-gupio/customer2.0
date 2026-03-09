@@ -1,3 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS "customer";
+SET search_path TO "customer";
+
 -- CreateTable
 CREATE TABLE "OdometerLog" (
     "id" TEXT NOT NULL,

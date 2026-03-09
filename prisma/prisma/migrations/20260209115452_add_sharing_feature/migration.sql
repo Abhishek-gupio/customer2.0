@@ -1,3 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS "customer";
+SET search_path TO "customer";
+
 -- CreateEnum
 CREATE TYPE "DocumentType" AS ENUM ('RC', 'INSURANCE', 'PUC', 'FASTAG', 'DL', 'OTHER');
 

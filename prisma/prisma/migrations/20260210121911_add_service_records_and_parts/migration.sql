@@ -1,3 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS "customer";
+SET search_path TO "customer";
+
 -- CreateEnum
 CREATE TYPE "ExpenseCategory" AS ENUM ('FUEL', 'TOLL', 'PARKING', 'SERVICE', 'INSURANCE', 'CHALLAN', 'EMI', 'OTHER');
 
