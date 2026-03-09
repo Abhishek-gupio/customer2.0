@@ -28,6 +28,7 @@ export type RootStackParamList = {
   Chat: {
     userMessage: string;
   };
+  DrivingSummary: undefined;
   // AiBotChat: undefined;
 };
 

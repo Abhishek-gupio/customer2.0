@@ -359,15 +359,16 @@ model ServicePart {
 }
 
 model TelematicsDevice {
-  id          String          @id @default(cuid())
-  vehicleId   String          @unique
-  instanceId  String          @unique
-  deviceToken String?
-  platform    String?
-  isActive    Boolean         @default(true)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  id           String          @id @default(cuid())
+  vehicleId    String          @unique
+  instanceId   String          @unique // Damoov Instance ID
+  deviceToken  String?         // Damoov Device Token
+  platform     String?         // iOS/Android
+  isActive     Boolean         @default(true)
+  lastSyncAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  vehicle      CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@schema("customer")
 }

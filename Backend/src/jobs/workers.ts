@@ -11,9 +11,84 @@ import { documentService } from "../modules/document/document.service";
 import { expenseIntelligenceService } from "../services/expense-intelligence.service";
 import { warrantyService } from "../services/warranty.service";
 import { predictionService } from "../services/prediction.service";
+import { telematicsService } from "../services/telematics.service";
 
 const db = dbInstances as any;
-let workersInitialized = false;
+
+/**
+ * WORKER: Maintenance & Alerts
+ * Handles: Daily Warranty Checks, Document Expiry, Telematics Sync
+ */
+export const maintenanceWorker = new Worker<JobData>(
+  QUEUE_NAMES.MAINTENANCE,
+  async (job: Job) => {
+    logger.info(
+      `[MaintenanceWorker] Processing job ${job.name} (ID: ${job.id})`,
+    );
+
+    try {
+      if (job.name === "daily-maintenance") {
+        await runDailyMaintenance();
+      } else if (job.name === "sync-telematics") {
+        await telematicsService.syncTripsForAllDevices();
+      }
+    } catch (err) {
+      logger.error({ err, jobId: job.id }, "[MaintenanceWorker] Job failed");
+      throw err;
+    }
+  },
+  defaultWorkerOptions,
+);
+
+/**
+ * WORKER: Notifications & Digests
+ * Handles: Weekly Expense Digest, Marketing Emails
+ */
+export const notificationWorker = new Worker<JobData>(
+  QUEUE_NAMES.NOTIFICATIONS,
+  async (job: Job) => {
+    logger.info(
+      `[NotificationWorker] Processing job ${job.name} (ID: ${job.id})`,
+    );
+
+    try {
+      if (job.name === "weekly-digest") {
+        await runWeeklyDigest();
+      }
+    } catch (err) {
+      logger.error({ err, jobId: job.id }, "[NotificationWorker] Job failed");
+      throw err;
+    }
+  },
+  defaultWorkerOptions,
+);
+
+/**
+ * WORKER: Health Score & Analytics
+ * Handles: Vehicle Health Score updates
+ */
+export const healthScoreWorker = new Worker<JobData>(
+  QUEUE_NAMES.HEALTH_SCORE,
+  async (job: Job) => {
+    logger.info(
+      `[HealthScoreWorker] Processing job ${job.name} (ID: ${job.id})`,
+    );
+
+    try {
+      if (job.name === "update-health-scores") {
+        await runHealthScoreUpdate();
+      }
+    } catch (err) {
+      logger.error({ err, jobId: job.id }, "[HealthScoreWorker] Job failed");
+      throw err;
+    }
+  },
+  defaultWorkerOptions,
+);
+
+// ============================================================================
+// JOB HANDLERS (Migrated from Scheduler Service)
+// ============================================================================
 
 // 1. Daily Maintenance (Warranty + Docs)
 async function runDailyMaintenance() {

@@ -29,6 +29,7 @@ import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
 import { WarrantyStatus } from '../screens/ServiceAndWarrenty/WarrantyStatus';
 import AiBotHome from '../screens/AiBot/HomeScreen';
 import ChatScreen from '../screens/AiBot/ChatScreen';
+import DrivingSummary from '../screens/Telematics/DrivingSummary';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -83,6 +84,7 @@ export function RootNavigator() {
       <Stack.Screen name="AiBotHome" component={AiBotHome} />
       <Stack.Screen name="Chat" component={ChatScreen} />
 
+      <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
 
     </Stack.Navigator>
   );

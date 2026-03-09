@@ -7,10 +7,14 @@ import {
 import QuickServiceButton from './QuickServiceButton';
 
 const SERVICES: { icon: string; label: string }[] = [
-  { icon: 'car', label: 'My Vehicle' },
-  { icon: 'file-alt', label: 'Document' },
-  { icon: 'wallet', label: 'Expense' },
-  { icon: 'user-tie', label: 'Valet' },
+  { icon: 'wrench', label: 'Service' },
+  { icon: 'calendar-check', label: 'Booking' },
+  { icon: 'tachometer-alt', label: 'Driving' },
+  { icon: 'comments', label: 'Support' },
+  { icon: 'car', label: 'Vehicles' },
+  { icon: 'file-alt', label: 'Documents' },
+  { icon: 'wallet', label: 'Expenses' },
+  { icon: 'parking', label: 'Valet' },
 ];
 
 type QuickServicesGridProps = {
@@ -28,6 +32,17 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
             label={item.label}
             onPress={() => onServicePress?.(item.label)}
           />
+        ))}
+      </View>
+      <View style={styles.row}>
+        {SERVICES.slice(4, 8).map((item) => (
+          <QuickServiceButton
+            key={item.label}
+            icon={item.icon}
+            label={item.label}
+            onPress={() => onServicePress?.(item.label)}
+          />
+
         ))}
       </View>
     </View>

@@ -377,6 +377,7 @@ exports.Prisma.TelematicsDeviceScalarFieldEnum = {
   deviceToken: 'deviceToken',
   platform: 'platform',
   isActive: 'isActive',
+  lastSyncAt: 'lastSyncAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
