@@ -197,15 +197,15 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   year: 'year',
   fuelType: 'fuelType',
   vehicleType: 'vehicleType',
-  engineNumber: 'engineNumber',
-  chassisNumber: 'chassisNumber',
   currentOdometer: 'currentOdometer',
   registrationDate: 'registrationDate',
   rcVerified: 'rcVerified',
   isActive: 'isActive',
   isPrimary: 'isPrimary',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  chassisNumber: 'chassisNumber',
+  engineNumber: 'engineNumber'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {
@@ -377,6 +377,7 @@ exports.Prisma.TelematicsDeviceScalarFieldEnum = {
   deviceToken: 'deviceToken',
   platform: 'platform',
   isActive: 'isActive',
+  lastSyncAt: 'lastSyncAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -409,6 +410,30 @@ exports.Prisma.DrivingEventScalarFieldEnum = {
   severity: 'severity',
   speed: 'speed',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.SOSRequestScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  address: 'address',
+  status: 'status',
+  type: 'type',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+};
+
+exports.Prisma.EmergencyContactScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  relation: 'relation',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -508,6 +533,20 @@ exports.ServicePartType = exports.$Enums.ServicePartType = {
   OTHER_PART: 'OTHER_PART'
 };
 
+exports.SOSStatus = exports.$Enums.SOSStatus = {
+  ACTIVE: 'ACTIVE',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.SOSType = exports.$Enums.SOSType = {
+  MEDICAL: 'MEDICAL',
+  POLICE: 'POLICE',
+  MECHANICAL: 'MECHANICAL',
+  ACCIDENT: 'ACCIDENT',
+  OTHER: 'OTHER'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Customer: 'Customer',
@@ -530,7 +569,9 @@ exports.Prisma.ModelName = {
   ServicePart: 'ServicePart',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
-  DrivingEvent: 'DrivingEvent'
+  DrivingEvent: 'DrivingEvent',
+  SOSRequest: 'SOSRequest',
+  EmergencyContact: 'EmergencyContact'
 };
 
 /**

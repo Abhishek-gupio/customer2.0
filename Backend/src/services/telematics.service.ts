@@ -1,9 +1,46 @@
 import { dbInstances } from "@repo/db-customer";
 import { logger } from "../config/logger";
+import { env } from "../config/env";
+import axios from "axios";
 
 const db = dbInstances as any;
 
+const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
+
 export const telematicsService = {
+  /**
+   * Register a user with Damoov explicitly to get a DeviceToken
+   */
+  async registerUserWithDamoov(clientCustomId: string) {
+    logger.info({ clientCustomId }, "Registering user with Damoov");
+
+    if (!env.DAMOOV_INSTANCE_ID || !env.DAMOOV_INSTANCE_KEY) {
+      logger.error("Missing Damoov Instance Credentials in environment");
+      throw new Error("Telematics configuration error");
+    }
+
+    try {
+      const response = await axios.post(
+        `${DAMOOV_API_BASE}/Registration/create`,
+        {},
+        {
+          headers: {
+            InstanceId: env.DAMOOV_INSTANCE_ID,
+            InstanceKey: env.DAMOOV_INSTANCE_KEY,
+          },
+        }
+      );
+
+      // The response.data should contain the DeviceToken
+      return response.data;
+    } catch (error: any) {
+      logger.error(
+        { error: error.response?.data || error.message },
+        "Damoov user registration failed"
+      );
+      throw new Error("Failed to register user with Telematics API: " + JSON.stringify(error.response?.data || error.message));
+    }
+  },
   /**
    * Link a mobile SDK instance to a vehicle
    */
@@ -166,5 +203,111 @@ export const telematicsService = {
         totalPages: Math.ceil(total / limit),
       },
     };
+  },
+
+  /**
+   * Pull trips for all active devices from Damoov API (Cron job Alternative)
+   */
+  async syncTripsForAllDevices() {
+    logger.info("Starting Damoov API sync for all devices (Admin Method)");
+
+    if (!env.DAMOOV_ADMIN_EMAIL || !env.DAMOOV_ADMIN_PASSWORD) {
+      logger.error("Missing DAMOOV_ADMIN_EMAIL or DAMOOV_ADMIN_PASSWORD for sync");
+      return;
+    }
+
+    const devices = await db.telematicsDevice.findMany({
+      where: { isActive: true },
+      include: { vehicle: true },
+    });
+
+    if (!devices.length) return;
+
+    let accessToken = "";
+    try {
+      // 1. Authenticate as Admin
+      const authRes = await axios.post("https://user.telematicssdk.com/v1/Auth/Login", {
+        LoginFields: JSON.stringify({ email: env.DAMOOV_ADMIN_EMAIL }),
+        Password: env.DAMOOV_ADMIN_PASSWORD
+      }, {
+        headers: { "accept": "application/json", "content-type": "application/json" }
+      });
+      accessToken = authRes.data?.Result?.AccessToken?.Token;
+      if (!accessToken) throw new Error("No AccessToken in response");
+    } catch (err: any) {
+      logger.error({ error: err.response?.data || err.message }, "Failed to login to Damoov Admin API");
+      return;
+    }
+
+    // 2. Poll for each device
+    for (const device of devices) {
+      try {
+        const startDate = device.lastSyncAt
+          ? new Date(device.lastSyncAt.getTime() - 5 * 60000)
+          : new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const endDate = new Date();
+
+        const response = await axios.post(
+          `https://api.telematicssdk.com/trips/get/admin/v1`,
+          {
+            Identifiers: { UserId: device.instanceId },
+            IncludeDetails: true,
+            IncludeStatistics: true,
+            IncludeScores: true,
+            IncludeEvents: true, // We want harsh braking events
+            StartDateTimestampSec: Math.floor(startDate.getTime() / 1000),
+            EndDateTimestampSec: Math.floor(endDate.getTime() / 1000)
+          },
+          {
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${accessToken}`
+            },
+          }
+        );
+
+        // API sometimes returns trips inside Result.Trips
+        const fetchedTrips = response.data?.Result?.Trips || response.data?.Trips || [];
+
+        for (const trip of fetchedTrips) {
+          const tripId = trip.TripID || trip.Id;
+          const existingTrip = await db.drivingTrip.findUnique({
+            where: { tripId }
+          });
+
+          if (!existingTrip) {
+            await this.processWebhook({
+              InstanceID: device.instanceId,
+              TripID: tripId,
+              StartDate: trip.StartDate || Math.floor(new Date(trip.StartDateUtc || Date.now()).getTime() / 1000),
+              EndDate: trip.EndDate || Math.floor(new Date(trip.EndDateUtc || Date.now()).getTime() / 1000),
+              Distance: trip.Distance || trip.Statistics?.Distance || 0,
+              Duration: trip.Duration || trip.Statistics?.Duration || 0,
+              Score_Overall: trip.Score_Overall || trip.Scores?.Overall || trip.Score || 100,
+              Events: trip.Events || []
+            });
+          }
+        }
+
+        await db.telematicsDevice.update({
+          where: { id: device.id },
+          data: { lastSyncAt: endDate }
+        });
+
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          logger.warn(
+            { deviceId: device.id, instanceId: device.instanceId },
+            "Device not found in Damoov Datahub (user hasn't driven yet)"
+          );
+        } else {
+          logger.error(
+            { deviceId: device.id, error: error.response?.data || error.message },
+            "Failed to sync trips for device"
+          );
+        }
+      }
+    }
   },
 };

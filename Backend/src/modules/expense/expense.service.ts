@@ -23,6 +23,16 @@ const db = dbInstances as any;
 
 import { ingestionService } from "../../services/ingestion.service";
 
+const ALLOWED_NOTIFICATION_CATEGORIES: ExpenseCategory[] = [
+  "FUEL",
+  "SERVICE",
+  "TOLL",
+  "INSURANCE",
+  "PARKING",
+  "CHALLAN",
+];
+const MAX_RECEIPT_IMAGES_PER_CUSTOMER = 15;
+
 export const expenseService = {
   /**
    * Core: Add Manual Expense
@@ -33,8 +43,8 @@ export const expenseService = {
     file?: UploadedFile,
   ) {
     // Handle receipt upload if present
-    let receiptUrl = null;
-    let mimeType = null;
+    let receiptUrl = input.receiptUrl || null;
+    let mimeType = input.mimeType || null;
     if (file) {
       const uploaded = await storageService.uploadFile(
         file,
@@ -97,13 +107,23 @@ export const expenseService = {
       .ingestExpense(expense.id)
       .catch((err) => logger.error({ err }, "Expense ingestion failed"));
 
+    if (expense.receiptUrl) {
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+    }
+
     return { expense, fuelIntelligence };
   },
   /**
    * SMART EXPENSE PARSER
    * Priority: Dedup Check → Gemini AI (primary) → UPI Regex (fallback) → Basic Regex (last resort)
    */
-  async parseExpenseText(customerId: string, input: ParseExpenseInput) {
+  async parseExpenseText(
+    customerId: string,
+    input: ParseExpenseInput,
+    opts?: { returnOnNoAmount?: boolean; dryRun?: boolean },
+  ) {
     const text = input.text;
 
     // ===== STEP 0: DEDUPLICATION CHECK =====
@@ -120,6 +140,22 @@ export const expenseService = {
       const aiResult = await ocrService.parseExpenseNotification(text);
 
       if (aiResult.amount > 0 && !aiResult.error) {
+        // DRY RUN: return preview without creating expense
+        if (opts?.dryRun) {
+          return {
+            success: true,
+            dryRun: true,
+            expense: {
+              amount: aiResult.amount,
+              category: aiResult.category,
+              merchantName: aiResult.merchantName || null,
+              date: aiResult.date ? new Date(aiResult.date) : new Date(),
+              notes: aiResult.notes || null,
+            },
+            parserMeta: { method: 'GEMINI_AI', confidence: aiResult.confidence },
+          };
+        }
+
         // AI succeeded — dedup check on amount+category
         const dupCheck = await expenseIntelligenceService.isDuplicate(
           customerId,
@@ -135,6 +171,21 @@ export const expenseService = {
             existingExpenseId: dupCheck.existingExpenseId,
           };
         }
+
+        // Filter Notification sources
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     aiResult.category as ExpenseCategory,
+        //   )
+        // ) 
+        // {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
 
         // Skip credit/refund transactions
         if (aiResult.notes?.includes("CREDIT_TXN")) {
@@ -155,7 +206,7 @@ export const expenseService = {
               ? new Date(aiResult.date)
               : input.timestamp
                 ? new Date(input.timestamp)
-                : new Date(),
+              : new Date(),
             source: input.source as ExpenseSource,
             rawText: text,
             isAutomated: true,
@@ -231,6 +282,22 @@ export const expenseService = {
     if (upiParserService.isTransactionNotification(text)) {
       const upiResult = upiParserService.parse(text);
       if (upiResult && upiResult.amount > 0) {
+        // DRY RUN: return preview without creating expense
+        if (opts?.dryRun) {
+          return {
+            success: true,
+            dryRun: true,
+            expense: {
+              amount: upiResult.amount,
+              category: upiResult.category,
+              merchantName: upiResult.merchantName || 'Unknown Merchant',
+              date: upiResult.date,
+              notes: null,
+            },
+            parserMeta: { method: 'UPI_REGEX_FALLBACK', confidence: upiResult.confidence },
+          };
+        }
+
         const dupCheck = await expenseIntelligenceService.isDuplicate(
           customerId,
           upiResult.amount,
@@ -245,6 +312,21 @@ export const expenseService = {
             existingExpenseId: dupCheck.existingExpenseId,
           };
         }
+
+        // Filter Notification sources
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     upiResult.category as ExpenseCategory,
+        //   )
+        // )
+        //  {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
 
         const expense = await db.expense.create({
           data: {
@@ -274,7 +356,7 @@ export const expenseService = {
               "Delhi",
               "PETROL",
             );
-          } catch (_) {}
+          } catch (_) { }
         }
 
         return {
@@ -311,6 +393,9 @@ export const expenseService = {
     }
 
     if (!amount) {
+      if (opts?.returnOnNoAmount) {
+        return { success: false, parseFailed: true };
+      }
       throw AppError.badRequest(
         "Could not detect expense amount in text. Try voice command instead.",
       );
@@ -367,6 +452,34 @@ export const expenseService = {
     const mMatch = text.match(/(?:at|to|via)\s+([a-zA-Z0-9\s]+)/i);
     if (mMatch && mMatch[1]) merchantName = mMatch[1].trim().substring(0, 30);
 
+    // Filter Notification sources
+    // if (
+    //   input.source === "NOTIFICATION" &&
+    //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
+    // ) {
+    //   return {
+    //     success: false,
+    //     skipped: true,
+    //     reason: `Category '${category}' is not allowed for auto-notification parsing.`,
+    //   };
+    // }
+
+    // DRY RUN: return preview without creating expense
+    if (opts?.dryRun) {
+      return {
+        success: true,
+        dryRun: true,
+        expense: {
+          amount,
+          category,
+          merchantName,
+          date: input.timestamp ? new Date(input.timestamp) : new Date(),
+          notes: null,
+        },
+        parserMeta: { method: 'BASIC_REGEX_LAST_RESORT', confidence },
+      };
+    }
+
     const expense = await db.expense.create({
       data: {
         customerId,
@@ -391,7 +504,7 @@ export const expenseService = {
           "Delhi",
           "PETROL",
         );
-      } catch (_) {}
+      } catch (_) { }
     }
 
     return {
@@ -706,7 +819,11 @@ export const expenseService = {
   /**
    * OCR Method for Files (if user uploads a bill)
    */
-  async parseReceiptImage(customerId: string, file: UploadedFile) {
+  async parseReceiptImage(
+    customerId: string,
+    file: UploadedFile,
+    dryRun = false,
+  ) {
     // 1. Upload
     const uploaded = await storageService.uploadFile(
       file,
@@ -722,8 +839,32 @@ export const expenseService = {
       aiResult = { rawText: await ocrService.extractText(file.buffer) };
     }
 
+    // 2b. Reject if the image is not a receipt/bill/invoice
+    if (aiResult.isReceipt === false && aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Please scan a receipt or bill. This image does not look like a receipt.",
+      );
+    }
+
     // 3. If AI found structured data (amount is key), use it directly
     if (aiResult.amount) {
+      // DRY RUN: Return data without creating expense
+      if (dryRun) {
+        return {
+          success: true,
+          dryRun: true,
+          expense: {
+            amount: aiResult.amount,
+            category: aiResult.category || "OTHER",
+            merchantName: aiResult.merchantName || "Unknown Merchant",
+            date: aiResult.date ? new Date(aiResult.date) : new Date(),
+            notes: aiResult.notes,
+            receiptUrl: uploaded.url,
+            mimeType: file.mimetype,
+          },
+        };
+      }
+
       // Deduplication Check
       const dupCheck = await expenseIntelligenceService.isDuplicate(
         customerId,
@@ -791,15 +932,52 @@ export const expenseService = {
           notes: aiResult.notes,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+
       return { success: true, expense };
     }
 
     // 4. Fallback: Feed raw text into Parser if AI failed structured parse
-    const parsed = await this.parseExpenseText(customerId, {
-      text: aiResult.rawText || "",
-      source: "RECEIPT",
-      timestamp: new Date().toISOString(),
-    });
+    let parsed: Awaited<ReturnType<typeof this.parseExpenseText>>;
+    try {
+      parsed = await this.parseExpenseText(
+        customerId,
+        {
+          text: aiResult.rawText || "",
+          source: "RECEIPT",
+          timestamp: new Date().toISOString(),
+        },
+        { returnOnNoAmount: true },
+      );
+    } catch {
+      // parseExpenseText threw (e.g. old code path) — return receipt URL so user can enter manually
+      return {
+        success: false,
+        receiptUrl: uploaded.url,
+        mimeType: file.mimetype,
+        error: {
+          message:
+            "Could not detect expense amount in text. You can enter it manually.",
+          code: "PARSE_FAILED",
+        },
+      };
+    }
+
+    if (parsed.parseFailed) {
+      return {
+        success: false,
+        receiptUrl: uploaded.url,
+        mimeType: file.mimetype,
+        error: {
+          message:
+            "Could not detect expense amount in text. You can enter it manually.",
+          code: "PARSE_FAILED",
+        },
+      };
+    }
 
     // Update the receipt URL on the created expense
     if (parsed.expense) {
@@ -810,6 +988,10 @@ export const expenseService = {
           mimeType: file.mimetype,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
     }
 
     return parsed;
@@ -830,7 +1012,7 @@ export const expenseService = {
     if (aiResult.error || !aiResult.amount) {
       throw AppError.badRequest(
         aiResult.error ||
-          "Could not understand the voice command. Please try again clearly.",
+        "Could not understand the voice command. Please try again clearly.",
       );
     }
 
@@ -960,6 +1142,259 @@ export const expenseService = {
   },
 
   /**
+   * Preview only: parse voice text and return extracted expense data without creating.
+   * Used to show confirmation screen before saving.
+   */
+  async previewExpenseFromVoiceText(text: string) {
+    const aiResult = await ocrService.parseVoiceExpenseFromText(text);
+
+    if (aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Could not understand the voice command. Please try again clearly.",
+      );
+    }
+
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) {
+      throw AppError.badRequest(
+        "Could not detect expense amount. Please say the amount clearly (e.g. 500 rupees on fuel).",
+      );
+    }
+
+    const validCategories = [
+      "FUEL",
+      "TOLL",
+      "PARKING",
+      "SERVICE",
+      "INSURANCE",
+      "CHALLAN",
+      "EMI",
+      "OTHER",
+    ];
+    const category = validCategories.includes(aiResult.category)
+      ? aiResult.category
+      : "OTHER";
+
+    let expenseDate = new Date();
+    if (aiResult.date) {
+      const parsed = new Date(aiResult.date);
+      const now = new Date();
+      if (parsed.getFullYear() < now.getFullYear()) {
+        parsed.setFullYear(now.getFullYear());
+      }
+      expenseDate = parsed;
+    }
+
+    return {
+      success: true,
+      dryRun: true,
+      expense: {
+        amount,
+        category,
+        merchantName: aiResult.merchantName || null,
+        date: expenseDate.toISOString().split("T")[0],
+        notes: aiResult.notes || `Voice: "${aiResult.transcription || text}"`,
+        transcription: aiResult.transcription || text,
+      },
+    };
+  },
+
+  /**
+   * Preview only: parse voice audio (Gemini transcribes + extracts; auto language).
+   * Used when app uploads recording for language-auto flow.
+   */
+  async previewExpenseFromVoiceAudio(customerId: string, file: UploadedFile) {
+    const aiResult = await ocrService.parseVoiceExpense(
+      file.buffer,
+      file.mimetype,
+    );
+
+    if (aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Could not understand the voice. Please try again clearly.",
+      );
+    }
+
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) {
+      throw AppError.badRequest(
+        "Could not detect expense amount. Please say the amount clearly.",
+      );
+    }
+
+    const validCategories = [
+      "FUEL",
+      "TOLL",
+      "PARKING",
+      "SERVICE",
+      "INSURANCE",
+      "CHALLAN",
+      "EMI",
+      "OTHER",
+    ];
+    const category = validCategories.includes(aiResult.category)
+      ? aiResult.category
+      : "OTHER";
+
+    let expenseDate = new Date();
+    if (aiResult.date) {
+      const parsed = new Date(aiResult.date);
+      const now = new Date();
+      if (parsed.getFullYear() < now.getFullYear()) {
+        parsed.setFullYear(now.getFullYear());
+      }
+      expenseDate = parsed;
+    }
+
+    return {
+      success: true,
+      dryRun: true,
+      expense: {
+        amount,
+        category,
+        merchantName: aiResult.merchantName || null,
+        date: expenseDate.toISOString().split("T")[0],
+        notes: aiResult.notes || `Voice: "${aiResult.transcription || ""}"`,
+        transcription: aiResult.transcription || "",
+      },
+    };
+  },
+
+  /**
+   * Voice command from already-transcribed text (e.g. device speech-to-text).
+   * Same flow as createExpenseFromVoice but uses parseVoiceExpenseFromText.
+   */
+  async createExpenseFromVoiceText(customerId: string, text: string) {
+    const aiResult = await ocrService.parseVoiceExpenseFromText(text);
+
+    if (aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Could not understand the voice command. Please try again clearly.",
+      );
+    }
+
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) {
+      throw AppError.badRequest(
+        "Could not detect expense amount. Please say the amount clearly (e.g. 500 rupees on fuel).",
+      );
+    }
+
+    const validCategories = [
+      "FUEL",
+      "TOLL",
+      "PARKING",
+      "SERVICE",
+      "INSURANCE",
+      "CHALLAN",
+      "EMI",
+      "OTHER",
+    ];
+    const category = validCategories.includes(aiResult.category)
+      ? aiResult.category
+      : "OTHER";
+
+    // Normalize date: if AI returned a past year (e.g. 2024), use current year so "yesterday" is correct
+    let expenseDate = new Date();
+    if (aiResult.date) {
+      const parsed = new Date(aiResult.date);
+      const now = new Date();
+      if (parsed.getFullYear() < now.getFullYear()) {
+        parsed.setFullYear(now.getFullYear());
+      }
+      expenseDate = parsed;
+    }
+
+    const expense = await db.expense.create({
+      data: {
+        customerId,
+        amount,
+        category,
+        merchantName: aiResult.merchantName || null,
+        date: expenseDate,
+        source: "VOICE",
+        rawText: aiResult.transcription || text,
+        isAutomated: true,
+        notes: aiResult.notes || `Voice: "${aiResult.transcription || text}"`,
+      },
+    });
+
+    this.checkBudget(customerId, category, amount).catch(console.error);
+
+    let serviceRecord = null;
+    if (
+      (category === "SERVICE" || category === "REPAIR") &&
+      aiResult.parts &&
+      Array.isArray(aiResult.parts) &&
+      aiResult.parts.length > 0
+    ) {
+      try {
+        const vehicles = await dbInstances.customerVehicle.findMany({
+          where: { customerId },
+          select: { id: true },
+          take: 1,
+        });
+        if (vehicles.length > 0) {
+          const vehicleId = vehicles[0].id;
+          const partsToCreate = aiResult.parts.map((p: any) => {
+            let type = "OTHER";
+            const name = (p.partName || "").toUpperCase();
+            if (name.includes("OIL") && name.includes("ENGINE")) type = "ENGINE_OIL";
+            else if (name.includes("FILTER") && name.includes("OIL")) type = "OIL_FILTER";
+            else if (name.includes("FILTER") && name.includes("AIR")) type = "AIR_FILTER";
+            else if (name.includes("BRAKE") && name.includes("PAD")) type = "BRAKE_PADS";
+            else if (name.includes("BATTERY")) type = "BATTERY";
+            else if (name.includes("TYRE")) type = "TYRES";
+            else if (name.includes("COOLANT")) type = "COOLANT";
+            else if (name.includes("PLUG")) type = "SPARK_PLUGS";
+            return {
+              partType: type,
+              partName: p.partName,
+              cost: p.amount,
+              warrantyMonths: this.getDefaultWarranty(type),
+            };
+          });
+          serviceRecord = await warrantyService.createServiceRecord({
+            vehicleId: vehicleId!,
+            expenseId: expense.id,
+            serviceType: "REGULAR_SERVICE",
+            garageName: aiResult.merchantName || undefined,
+            serviceDate: aiResult.date ? new Date(aiResult.date).toISOString() : new Date().toISOString(),
+            notes: `🎤 Created from voice: "${aiResult.transcription || text}"`,
+            parts: partsToCreate,
+          });
+          await db.inAppNotification.create({
+            data: {
+              customerId,
+              title: "✅ Service Details Captured via Voice",
+              body: `Captured ${partsToCreate.length} items from your voice command.`,
+              type: "SUCCESS",
+              link: "/expenses/warranty",
+              metadata: { expenseId: expense.id, partsCount: partsToCreate.length },
+            },
+          });
+        }
+      } catch (err) {
+        logger.error({ err }, "Failed to create service record from voice text");
+      }
+    }
+
+    return {
+      success: true,
+      expense,
+      serviceRecord,
+      voiceMeta: {
+        transcription: aiResult.transcription ?? text,
+        confidence: aiResult.confidence || "MEDIUM",
+        detectedAmount: amount,
+        detectedCategory: category,
+        detectedMerchant: aiResult.merchantName,
+        partsExtracted: aiResult.parts ? aiResult.parts.length : 0,
+      },
+    };
+  },
+
+  /**
    * Listing with Filters
    */
   async listExpenses(customerId: string, query: any) {
@@ -987,6 +1422,39 @@ export const expenseService = {
     });
 
     return { expenses, totalAmount: total._sum.amount || 0 };
+  },
+
+  /**
+   * Keep only the latest receipt images per customer and remove older files.
+   */
+  async pruneOldReceiptImages(customerId: string, keep = MAX_RECEIPT_IMAGES_PER_CUSTOMER) {
+    const oldReceipts = await db.expense.findMany({
+      where: {
+        customerId,
+        receiptUrl: { not: null },
+      },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      skip: keep,
+      select: { id: true, receiptUrl: true },
+    });
+
+    if (!oldReceipts.length) return;
+
+    await Promise.all(
+      oldReceipts.map(async (row: { id: string; receiptUrl: string | null }) => {
+        if (!row.receiptUrl) return;
+        try {
+          await storageService.deleteFile(row.receiptUrl);
+        } catch (err) {
+          logger.warn({ err, customerId, expenseId: row.id }, "Could not delete old receipt file");
+        }
+      }),
+    );
+
+    await db.expense.updateMany({
+      where: { id: { in: oldReceipts.map((row: { id: string }) => row.id) } },
+      data: { receiptUrl: null, mimeType: null },
+    });
   },
 
   /**

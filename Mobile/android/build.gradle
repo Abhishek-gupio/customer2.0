@@ -15,6 +15,7 @@ buildscript {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.google.gms:google-services:4.4.1")
     }
 }
 
@@ -27,5 +28,33 @@ gradle.projectsLoaded {
             config.exclude group: "com.android.support", module: "support-v4"
             config.exclude group: "com.android.support", module: "versionedparcelable"
         }
+    }
+}
+
+// Some third-party RN Android libraries (for example older Firebase wrappers)
+// may omit compileSdk; force a safe default from root ext to keep AGP happy.
+def ensureCompileSdk = { proj ->
+    def androidExt = proj.extensions.findByName("android")
+    if (androidExt == null) return
+    def sdk = (rootProject.ext.compileSdkVersion as Integer)
+    try {
+        if (!androidExt.compileSdk || (androidExt.compileSdk as Integer) == 0) {
+            androidExt.compileSdk = sdk
+        }
+    } catch (ignored) {
+        try {
+            androidExt.compileSdkVersion sdk
+        } catch (ignoredToo) {
+            // no-op for non-Android modules
+        }
+    }
+}
+
+subprojects { subproject ->
+    subproject.plugins.withId("com.android.application") {
+        ensureCompileSdk(subproject)
+    }
+    subproject.plugins.withId("com.android.library") {
+        ensureCompileSdk(subproject)
     }
 }

@@ -9,15 +9,32 @@ export type RootStackParamList = {
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   DocumentList: undefined;
+  VehicleList: undefined;
+  VehicleDetails: { vehicleId: string };
+  AddVehicle: undefined;
+  Challans: { vehicle: any };
   UploadDocument: undefined;
   DocumentDetail: { documentId: string };
   Expenses: undefined;
   addExpense: undefined;
+  ExpenseAnalytics: undefined;
+  MyProfile: undefined;
+  HelpSupport: undefined;
+  Settings: undefined;
+  BudgetSettings: undefined;
+  ServiceHistory: undefined;
+  WarrantyStatus: undefined;
+  AiBotHome: undefined;
+  Chat: {
+    userMessage: string;
+  };
+  DrivingSummary: undefined;
+  // AiBotChat: undefined;
 };
 
 export type MainTabParamList = {
   Home: undefined;
-  Search: undefined;
+  Services: undefined;
   AIAssistant: undefined;
   Alerts: undefined;
   History: undefined;
@@ -25,6 +42,20 @@ export type MainTabParamList = {
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
+}
+
+export type BillStatus = "verified" | "pending";
+
+export interface Bill {
+  id: string;
+  title: string;
+  amount: number;
+  status: BillStatus;
+  createdAt?: string;
+  updatedAt?: string;
+  uploadedAt: string;
+  warrantyMonths?: number | null;
+  image?: string | number | null; // string = remote, number = local require()
 }

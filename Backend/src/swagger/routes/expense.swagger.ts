@@ -60,6 +60,12 @@
  *     tags: [Expenses]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dryRun
+ *         schema:
+ *           type: boolean
+ *         description: If true, returns parsed data without creating expense
  *     requestBody:
  *       required: true
  *       content:
@@ -71,6 +77,10 @@
  *             properties:
  *               text:
  *                 type: string
+ *               source:
+ *                 type: string
+ *                 enum: [SMS, NOTIFICATION, UPI]
+ *                 default: SMS
  *     responses:
  *       200:
  *         description: Parsed expense data

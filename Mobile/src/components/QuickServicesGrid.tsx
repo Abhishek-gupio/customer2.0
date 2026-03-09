@@ -7,14 +7,14 @@ import {
 import QuickServiceButton from "./QuickServiceButton";
 
 const SERVICES: { icon: string; label: string }[] = [
-  { icon: "wrench", label: "Service" },
-  { icon: "calendar-check", label: "Booking" },
-  { icon: "clipboard-list", label: "History" },
-  { icon: "comments", label: "Support" },
-  { icon: "car", label: "Vehicles" },
-  { icon: "file-alt", label: "Documents" },
-  { icon: "wallet", label: "Expenses" },
-  { icon: "parking", label: "Valet" },
+  { icon: 'wrench', label: 'Service' },
+  { icon: 'calendar-check', label: 'Booking' },
+  { icon: 'tachometer-alt', label: 'Driving' },
+  { icon: 'comments', label: 'Support' },
+  { icon: 'car', label: 'Vehicles' },
+  { icon: 'file-alt', label: 'Documents' },
+  { icon: 'wallet', label: 'Expenses' },
+  { icon: 'parking', label: 'Valet' },
 ];
 
 type QuickServicesGridProps = {
@@ -26,9 +26,8 @@ export default function QuickServicesGrid({
 }: QuickServicesGridProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Quick Services</Text>
       <View style={styles.row}>
-        {SERVICES.slice(0, 4).map((item) => (
+        {SERVICES.map((item) => (
           <QuickServiceButton
             key={item.label}
             icon={item.icon}
@@ -45,6 +44,7 @@ export default function QuickServicesGrid({
             label={item.label}
             onPress={() => onServicePress?.(item.label)}
           />
+
         ))}
       </View>
     </View>
@@ -54,18 +54,13 @@ export default function QuickServicesGrid({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: hp(2),
-    paddingHorizontal: wp(4),
-    marginBottom: hp(2),
-  },
-  title: {
-    fontSize: wp(5),
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: hp(2),
+    paddingHorizontal: wp(5),
+    marginBottom: hp(2.5),
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: hp(2),
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    gap: wp(2),
   },
 });

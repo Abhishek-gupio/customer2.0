@@ -1,4 +1,4 @@
-import { queues } from "../config/queue";
+import { isQueueEnabled, queues } from "../config/queue";
 import { logger } from "../config/logger";
 import { initWorkers } from "../jobs/workers";
 
@@ -8,6 +8,10 @@ export const schedulerService = {
    * This replaces the old node-cron setup.
    */
   async init() {
+    if (!isQueueEnabled || !queues) {
+      logger.info("BullMQ scheduler disabled (REDIS_URL not set)");
+      return;
+    }
     logger.info("Initializing BullMQ Scheduler Service...");
 
     // 1. Start Workers
@@ -27,6 +31,17 @@ export const schedulerService = {
       },
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
+
+    // A2. Telematics Sync (Every 10 minutes)
+    await queues.maintenance.add(
+      "sync-telematics",
+      {},
+      {
+        repeat: { pattern: "*/10 * * * *" },
+        jobId: "sync-telematics-job",
+      },
+    );
+    logger.info("Scheduled: Telematics Sync (*/10 * * * *)");
 
     // B. Weekly Expense Digest (Every Monday at 10:00 AM)
     await queues.notifications.add(
@@ -57,11 +72,13 @@ export const schedulerService = {
    * Ad-hoc Job Scheduling Helpers
    */
   async scheduleHealthCheck(vehicleId: string) {
+    if (!queues) return;
     // Add a one-off job
     await queues.healthScore.add("update-health-scores-single", { vehicleId });
   },
 
   async scheduleNotification(customerId: string, type: string, payload: any) {
+    if (!queues) return;
     await queues.notifications.add("send-notification", {
       customerId,
       type,

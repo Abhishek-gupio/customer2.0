@@ -1,4 +1,4 @@
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "fs/promises";
 import path from "path";
@@ -72,5 +72,52 @@ export const storageService = {
 
     // Local URLs are stable
     return key.startsWith("http") ? key : `/uploads/${key}`;
+  },
+
+  async deleteFile(urlOrKey: string): Promise<void> {
+    if (!urlOrKey) return;
+
+    let key = urlOrKey.trim();
+
+    if (key.startsWith("/uploads/")) {
+      key = key.replace(/^\/uploads\//, "");
+    } else if (key.startsWith("http://") || key.startsWith("https://")) {
+      try {
+        const parsed = new URL(key);
+        key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
+      } catch {
+        logger.warn({ urlOrKey }, "Failed to parse storage URL for deletion");
+        return;
+      }
+    }
+
+    key = key.replace(/^uploads\//, "");
+
+    if (!key) return;
+
+    if (env.STORAGE_DRIVER === "s3" && env.AWS_S3_BUCKET) {
+      try {
+        await s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: env.AWS_S3_BUCKET,
+            Key: key,
+          }),
+        );
+        return;
+      } catch (error) {
+        logger.error({ error, key }, "Failed to delete file from S3");
+        throw error;
+      }
+    }
+
+    try {
+      const uploadRoot = path.join(process.cwd(), env.UPLOAD_DIR);
+      const filePath = path.join(uploadRoot, key);
+      await fs.unlink(filePath);
+    } catch (error: any) {
+      if (error?.code === "ENOENT") return;
+      logger.error({ error, key }, "Failed to delete local file");
+      throw error;
+    }
   },
 };

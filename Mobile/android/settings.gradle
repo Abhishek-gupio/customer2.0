@@ -18,3 +18,39 @@ if (pnpmRoot.exists()) {
 	}
 }
 includeBuild('../node_modules/@react-native/gradle-plugin')
+
+// Locate the 'expo' package (supports pnpm layout) and apply autolinking if found
+def findExpoDir = { ->
+	def nm = new File(rootDir, 'node_modules')
+	def plain = new File(nm, 'expo')
+	if (plain.exists()) return plain
+	def pnpm = new File(nm, '.pnpm')
+	if (pnpm.exists()) {
+		pnpm.eachDir { d ->
+			def candidate = new File(d, 'node_modules/expo')
+			if (candidate.exists()) {
+				return candidate
+			}
+		}
+	}
+	return null
+}
+
+def expoDir = findExpoDir()
+if (expoDir != null) {
+	apply from: new File(expoDir, 'scripts/autolinking.gradle')
+	useExpoModules()
+}
+
+include ':react-native-linear-gradient'
+project(':react-native-linear-gradient').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-linear-gradient/android')
+
+// Voice: use same project name as RN autolinking to avoid duplicate project / task ordering issues
+include ':react-native-voice_voice'
+project(':react-native-voice_voice').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-voice/voice/android')
+include ':react-native-screens'
+project(':react-native-screens').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-screens/android')
+include ':react-native-video'
+project(':react-native-video').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android')
+include ':react-native-svg'
+project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-svg/android')

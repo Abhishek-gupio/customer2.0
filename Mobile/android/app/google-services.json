@@ -1,0 +1,22 @@
+{
+  "project_info": {
+    "project_number": "123456789012",
+    "project_id": "mock-firebase-project",
+    "storage_bucket": "mock-firebase-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789012:android:1234567890abcdef123456",
+        "android_client_info": {
+          "package_name": "com.mobile"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1234567890abcdefghijklmnopqrstuv"
+        }
+      ]
+    }
+  ]
+}

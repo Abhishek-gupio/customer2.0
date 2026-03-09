@@ -132,8 +132,17 @@ export type DrivingTrip = $Result.DefaultSelection<Prisma.$DrivingTripPayload>;
  * Model DrivingEvent
  *
  */
-export type DrivingEvent =
-  $Result.DefaultSelection<Prisma.$DrivingEventPayload>;
+export type DrivingEvent = $Result.DefaultSelection<Prisma.$DrivingEventPayload>
+/**
+ * Model SOSRequest
+ * 
+ */
+export type SOSRequest = $Result.DefaultSelection<Prisma.$SOSRequestPayload>
+/**
+ * Model EmergencyContact
+ * 
+ */
+export type EmergencyContact = $Result.DefaultSelection<Prisma.$EmergencyContactPayload>
 
 /**
  * Enums
@@ -230,8 +239,72 @@ export namespace $Enums {
     OTHER_PART: "OTHER_PART";
   };
 
-  export type ServicePartType =
-    (typeof ServicePartType)[keyof typeof ServicePartType];
+export const ExpenseCategory: {
+  FUEL: 'FUEL',
+  TOLL: 'TOLL',
+  PARKING: 'PARKING',
+  SERVICE: 'SERVICE',
+  INSURANCE: 'INSURANCE',
+  CHALLAN: 'CHALLAN',
+  EMI: 'EMI',
+  OTHER: 'OTHER'
+};
+
+export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCategory]
+
+
+export const ExpenseSource: {
+  MANUAL: 'MANUAL',
+  SMS: 'SMS',
+  NOTIFICATION: 'NOTIFICATION',
+  VOICE: 'VOICE',
+  RECEIPT: 'RECEIPT'
+};
+
+export type ExpenseSource = (typeof ExpenseSource)[keyof typeof ExpenseSource]
+
+
+export const ServicePartType: {
+  ENGINE_OIL: 'ENGINE_OIL',
+  OIL_FILTER: 'OIL_FILTER',
+  AIR_FILTER: 'AIR_FILTER',
+  BRAKE_PADS: 'BRAKE_PADS',
+  BRAKE_DISCS: 'BRAKE_DISCS',
+  BATTERY: 'BATTERY',
+  TYRES_FRONT: 'TYRES_FRONT',
+  TYRES_REAR: 'TYRES_REAR',
+  CLUTCH_PLATE: 'CLUTCH_PLATE',
+  SPARK_PLUGS: 'SPARK_PLUGS',
+  COOLANT: 'COOLANT',
+  TIMING_BELT: 'TIMING_BELT',
+  AC_FILTER: 'AC_FILTER',
+  WIPER_BLADES: 'WIPER_BLADES',
+  HEADLIGHT_BULB: 'HEADLIGHT_BULB',
+  OTHER_PART: 'OTHER_PART'
+};
+
+export type ServicePartType = (typeof ServicePartType)[keyof typeof ServicePartType]
+
+
+export const SOSStatus: {
+  ACTIVE: 'ACTIVE',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type SOSStatus = (typeof SOSStatus)[keyof typeof SOSStatus]
+
+
+export const SOSType: {
+  MEDICAL: 'MEDICAL',
+  POLICE: 'POLICE',
+  MECHANICAL: 'MECHANICAL',
+  ACCIDENT: 'ACCIDENT',
+  OTHER: 'OTHER'
+};
+
+export type SOSType = (typeof SOSType)[keyof typeof SOSType]
+
 }
 
 export type DocumentType = $Enums.DocumentType;
@@ -265,6 +338,14 @@ export const ExpenseSource: typeof $Enums.ExpenseSource;
 export type ServicePartType = $Enums.ServicePartType;
 
 export const ServicePartType: typeof $Enums.ServicePartType;
+
+export type SOSStatus = $Enums.SOSStatus
+
+export const SOSStatus: typeof $Enums.SOSStatus
+
+export type SOSType = $Enums.SOSType
+
+export const SOSType: typeof $Enums.SOSType
 
 /**
  * ##  Prisma Client ʲˢ
@@ -662,6 +743,26 @@ export class PrismaClient<
    * ```
    */
   get drivingEvent(): Prisma.DrivingEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.sOSRequest`: Exposes CRUD operations for the **SOSRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SOSRequests
+    * const sOSRequests = await prisma.sOSRequest.findMany()
+    * ```
+    */
+  get sOSRequest(): Prisma.SOSRequestDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.emergencyContact`: Exposes CRUD operations for the **EmergencyContact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmergencyContacts
+    * const emergencyContacts = await prisma.emergencyContact.findMany()
+    * ```
+    */
+  get emergencyContact(): Prisma.EmergencyContactDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1114,28 +1215,30 @@ export namespace Prisma {
     : FieldRef<Model, FieldType>;
 
   export const ModelName: {
-    User: "User";
-    Customer: "Customer";
-    CustomerDevice: "CustomerDevice";
-    CustomerDocument: "CustomerDocument";
-    DigiLockerConnection: "DigiLockerConnection";
-    CustomerVehicle: "CustomerVehicle";
-    OdometerLog: "OdometerLog";
-    Challan: "Challan";
-    VehicleAccess: "VehicleAccess";
-    VehicleHealthScore: "VehicleHealthScore";
-    InAppNotification: "InAppNotification";
-    ChatSession: "ChatSession";
-    ChatMessage: "ChatMessage";
-    DocumentEmbedding: "DocumentEmbedding";
-    Expense: "Expense";
-    ExpenseBudget: "ExpenseBudget";
-    FuelPriceCache: "FuelPriceCache";
-    ServiceRecord: "ServiceRecord";
-    ServicePart: "ServicePart";
-    TelematicsDevice: "TelematicsDevice";
-    DrivingTrip: "DrivingTrip";
-    DrivingEvent: "DrivingEvent";
+    User: 'User',
+    Customer: 'Customer',
+    CustomerDevice: 'CustomerDevice',
+    CustomerDocument: 'CustomerDocument',
+    DigiLockerConnection: 'DigiLockerConnection',
+    CustomerVehicle: 'CustomerVehicle',
+    OdometerLog: 'OdometerLog',
+    Challan: 'Challan',
+    VehicleAccess: 'VehicleAccess',
+    VehicleHealthScore: 'VehicleHealthScore',
+    InAppNotification: 'InAppNotification',
+    ChatSession: 'ChatSession',
+    ChatMessage: 'ChatMessage',
+    DocumentEmbedding: 'DocumentEmbedding',
+    Expense: 'Expense',
+    ExpenseBudget: 'ExpenseBudget',
+    FuelPriceCache: 'FuelPriceCache',
+    ServiceRecord: 'ServiceRecord',
+    ServicePart: 'ServicePart',
+    TelematicsDevice: 'TelematicsDevice',
+    DrivingTrip: 'DrivingTrip',
+    DrivingEvent: 'DrivingEvent',
+    SOSRequest: 'SOSRequest',
+    EmergencyContact: 'EmergencyContact'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -1158,31 +1261,9 @@ export namespace Prisma {
       omit: GlobalOmitOptions;
     };
     meta: {
-      modelProps:
-        | "user"
-        | "customer"
-        | "customerDevice"
-        | "customerDocument"
-        | "digiLockerConnection"
-        | "customerVehicle"
-        | "odometerLog"
-        | "challan"
-        | "vehicleAccess"
-        | "vehicleHealthScore"
-        | "inAppNotification"
-        | "chatSession"
-        | "chatMessage"
-        | "documentEmbedding"
-        | "expense"
-        | "expenseBudget"
-        | "fuelPriceCache"
-        | "serviceRecord"
-        | "servicePart"
-        | "telematicsDevice"
-        | "drivingTrip"
-        | "drivingEvent";
-      txIsolationLevel: Prisma.TransactionIsolationLevel;
-    };
+      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
+      txIsolationLevel: Prisma.TransactionIsolationLevel
+    }
     model: {
       User: {
         payload: Prisma.$UserPayload<ExtArgs>;
@@ -2841,14 +2922,160 @@ export namespace Prisma {
             result: $Utils.Optional<DrivingEventGroupByOutputType>[];
           };
           count: {
-            args: Prisma.DrivingEventCountArgs<ExtArgs>;
-            result:
-              | $Utils.Optional<DrivingEventCountAggregateOutputType>
-              | number;
-          };
-        };
-      };
-    };
+            args: Prisma.DrivingEventCountArgs<ExtArgs>
+            result: $Utils.Optional<DrivingEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      SOSRequest: {
+        payload: Prisma.$SOSRequestPayload<ExtArgs>
+        fields: Prisma.SOSRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SOSRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SOSRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.SOSRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SOSRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          findMany: {
+            args: Prisma.SOSRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>[]
+          }
+          create: {
+            args: Prisma.SOSRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          createMany: {
+            args: Prisma.SOSRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SOSRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.SOSRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          update: {
+            args: Prisma.SOSRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.SOSRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SOSRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SOSRequestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>[]
+          }
+          upsert: {
+            args: Prisma.SOSRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SOSRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.SOSRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSOSRequest>
+          }
+          groupBy: {
+            args: Prisma.SOSRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SOSRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SOSRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<SOSRequestCountAggregateOutputType> | number
+          }
+        }
+      }
+      EmergencyContact: {
+        payload: Prisma.$EmergencyContactPayload<ExtArgs>
+        fields: Prisma.EmergencyContactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EmergencyContactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EmergencyContactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          findFirst: {
+            args: Prisma.EmergencyContactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EmergencyContactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          findMany: {
+            args: Prisma.EmergencyContactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>[]
+          }
+          create: {
+            args: Prisma.EmergencyContactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          createMany: {
+            args: Prisma.EmergencyContactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EmergencyContactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>[]
+          }
+          delete: {
+            args: Prisma.EmergencyContactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          update: {
+            args: Prisma.EmergencyContactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          deleteMany: {
+            args: Prisma.EmergencyContactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EmergencyContactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EmergencyContactUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>[]
+          }
+          upsert: {
+            args: Prisma.EmergencyContactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmergencyContactPayload>
+          }
+          aggregate: {
+            args: Prisma.EmergencyContactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEmergencyContact>
+          }
+          groupBy: {
+            args: Prisma.EmergencyContactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EmergencyContactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EmergencyContactCountArgs<ExtArgs>
+            result: $Utils.Optional<EmergencyContactCountAggregateOutputType> | number
+          }
+        }
+      }
+    }
   } & {
     other: {
       payload: any;
@@ -2960,29 +3187,31 @@ export namespace Prisma {
     comments?: runtime.SqlCommenterPlugin[];
   }
   export type GlobalOmitConfig = {
-    user?: UserOmit;
-    customer?: CustomerOmit;
-    customerDevice?: CustomerDeviceOmit;
-    customerDocument?: CustomerDocumentOmit;
-    digiLockerConnection?: DigiLockerConnectionOmit;
-    customerVehicle?: CustomerVehicleOmit;
-    odometerLog?: OdometerLogOmit;
-    challan?: ChallanOmit;
-    vehicleAccess?: VehicleAccessOmit;
-    vehicleHealthScore?: VehicleHealthScoreOmit;
-    inAppNotification?: InAppNotificationOmit;
-    chatSession?: ChatSessionOmit;
-    chatMessage?: ChatMessageOmit;
-    documentEmbedding?: DocumentEmbeddingOmit;
-    expense?: ExpenseOmit;
-    expenseBudget?: ExpenseBudgetOmit;
-    fuelPriceCache?: FuelPriceCacheOmit;
-    serviceRecord?: ServiceRecordOmit;
-    servicePart?: ServicePartOmit;
-    telematicsDevice?: TelematicsDeviceOmit;
-    drivingTrip?: DrivingTripOmit;
-    drivingEvent?: DrivingEventOmit;
-  };
+    user?: UserOmit
+    customer?: CustomerOmit
+    customerDevice?: CustomerDeviceOmit
+    customerDocument?: CustomerDocumentOmit
+    digiLockerConnection?: DigiLockerConnectionOmit
+    customerVehicle?: CustomerVehicleOmit
+    odometerLog?: OdometerLogOmit
+    challan?: ChallanOmit
+    vehicleAccess?: VehicleAccessOmit
+    vehicleHealthScore?: VehicleHealthScoreOmit
+    inAppNotification?: InAppNotificationOmit
+    chatSession?: ChatSessionOmit
+    chatMessage?: ChatMessageOmit
+    documentEmbedding?: DocumentEmbeddingOmit
+    expense?: ExpenseOmit
+    expenseBudget?: ExpenseBudgetOmit
+    fuelPriceCache?: FuelPriceCacheOmit
+    serviceRecord?: ServiceRecordOmit
+    servicePart?: ServicePartOmit
+    telematicsDevice?: TelematicsDeviceOmit
+    drivingTrip?: DrivingTripOmit
+    drivingEvent?: DrivingEventOmit
+    sOSRequest?: SOSRequestOmit
+    emergencyContact?: EmergencyContactOmit
+  }
 
   /* Types for Logging */
   export type LogLevel = "info" | "query" | "warn" | "error";
@@ -3064,28 +3293,30 @@ export namespace Prisma {
    */
 
   export type CustomerCountOutputType = {
-    devices: number;
-    documents: number;
-    vehicles: number;
-    expenses: number;
-    budgets: number;
-    notifications: number;
-    sharedVehicles: number;
-    chats: number;
-  };
+    chats: number
+    devices: number
+    documents: number
+    vehicles: number
+    emergencyContacts: number
+    expenses: number
+    budgets: number
+    notifications: number
+    sosRequests: number
+    sharedVehicles: number
+  }
 
-  export type CustomerCountOutputTypeSelect<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    devices?: boolean | CustomerCountOutputTypeCountDevicesArgs;
-    documents?: boolean | CustomerCountOutputTypeCountDocumentsArgs;
-    vehicles?: boolean | CustomerCountOutputTypeCountVehiclesArgs;
-    expenses?: boolean | CustomerCountOutputTypeCountExpensesArgs;
-    budgets?: boolean | CustomerCountOutputTypeCountBudgetsArgs;
-    notifications?: boolean | CustomerCountOutputTypeCountNotificationsArgs;
-    sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs;
-    chats?: boolean | CustomerCountOutputTypeCountChatsArgs;
-  };
+  export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    chats?: boolean | CustomerCountOutputTypeCountChatsArgs
+    devices?: boolean | CustomerCountOutputTypeCountDevicesArgs
+    documents?: boolean | CustomerCountOutputTypeCountDocumentsArgs
+    vehicles?: boolean | CustomerCountOutputTypeCountVehiclesArgs
+    emergencyContacts?: boolean | CustomerCountOutputTypeCountEmergencyContactsArgs
+    expenses?: boolean | CustomerCountOutputTypeCountExpensesArgs
+    budgets?: boolean | CustomerCountOutputTypeCountBudgetsArgs
+    notifications?: boolean | CustomerCountOutputTypeCountNotificationsArgs
+    sosRequests?: boolean | CustomerCountOutputTypeCountSosRequestsArgs
+    sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs
+  }
 
   // Custom InputTypes
   /**
@@ -3103,11 +3334,16 @@ export namespace Prisma {
   /**
    * CustomerCountOutputType without action
    */
-  export type CustomerCountOutputTypeCountDevicesArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    where?: CustomerDeviceWhereInput;
-  };
+  export type CustomerCountOutputTypeCountChatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChatSessionWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountDevicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerDeviceWhereInput
+  }
 
   /**
    * CustomerCountOutputType without action
@@ -3130,11 +3366,16 @@ export namespace Prisma {
   /**
    * CustomerCountOutputType without action
    */
-  export type CustomerCountOutputTypeCountExpensesArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    where?: ExpenseWhereInput;
-  };
+  export type CustomerCountOutputTypeCountEmergencyContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmergencyContactWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountExpensesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ExpenseWhereInput
+  }
 
   /**
    * CustomerCountOutputType without action
@@ -3157,52 +3398,41 @@ export namespace Prisma {
   /**
    * CustomerCountOutputType without action
    */
-  export type CustomerCountOutputTypeCountSharedVehiclesArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    where?: VehicleAccessWhereInput;
-  };
+  export type CustomerCountOutputTypeCountSosRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SOSRequestWhereInput
+  }
 
   /**
    * CustomerCountOutputType without action
    */
-  export type CustomerCountOutputTypeCountChatsArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    where?: ChatSessionWhereInput;
-  };
+  export type CustomerCountOutputTypeCountSharedVehiclesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VehicleAccessWhereInput
+  }
+
 
   /**
    * Count Type CustomerVehicleCountOutputType
    */
 
   export type CustomerVehicleCountOutputType = {
-    challans: number;
-    documents: number;
-    expenses: number;
-    odometerLogs: number;
-    serviceRecords: number;
-    accessList: number;
-    drivingTrips: number;
-  };
+    challans: number
+    documents: number
+    drivingTrips: number
+    expenses: number
+    odometerLogs: number
+    serviceRecords: number
+    accessList: number
+  }
 
-  export type CustomerVehicleCountOutputTypeSelect<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    challans?: boolean | CustomerVehicleCountOutputTypeCountChallansArgs;
-    documents?: boolean | CustomerVehicleCountOutputTypeCountDocumentsArgs;
-    expenses?: boolean | CustomerVehicleCountOutputTypeCountExpensesArgs;
-    odometerLogs?:
-      | boolean
-      | CustomerVehicleCountOutputTypeCountOdometerLogsArgs;
-    serviceRecords?:
-      | boolean
-      | CustomerVehicleCountOutputTypeCountServiceRecordsArgs;
-    accessList?: boolean | CustomerVehicleCountOutputTypeCountAccessListArgs;
-    drivingTrips?:
-      | boolean
-      | CustomerVehicleCountOutputTypeCountDrivingTripsArgs;
-  };
+  export type CustomerVehicleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    challans?: boolean | CustomerVehicleCountOutputTypeCountChallansArgs
+    documents?: boolean | CustomerVehicleCountOutputTypeCountDocumentsArgs
+    drivingTrips?: boolean | CustomerVehicleCountOutputTypeCountDrivingTripsArgs
+    expenses?: boolean | CustomerVehicleCountOutputTypeCountExpensesArgs
+    odometerLogs?: boolean | CustomerVehicleCountOutputTypeCountOdometerLogsArgs
+    serviceRecords?: boolean | CustomerVehicleCountOutputTypeCountServiceRecordsArgs
+    accessList?: boolean | CustomerVehicleCountOutputTypeCountAccessListArgs
+  }
 
   // Custom InputTypes
   /**
@@ -3238,11 +3468,16 @@ export namespace Prisma {
   /**
    * CustomerVehicleCountOutputType without action
    */
-  export type CustomerVehicleCountOutputTypeCountExpensesArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    where?: ExpenseWhereInput;
-  };
+  export type CustomerVehicleCountOutputTypeCountDrivingTripsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DrivingTripWhereInput
+  }
+
+  /**
+   * CustomerVehicleCountOutputType without action
+   */
+  export type CustomerVehicleCountOutputTypeCountExpensesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ExpenseWhereInput
+  }
 
   /**
    * CustomerVehicleCountOutputType without action
@@ -3271,14 +3506,6 @@ export namespace Prisma {
     where?: VehicleAccessWhereInput;
   };
 
-  /**
-   * CustomerVehicleCountOutputType without action
-   */
-  export type CustomerVehicleCountOutputTypeCountDrivingTripsArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    where?: DrivingTripWhereInput;
-  };
 
   /**
    * Count Type ChatSessionCountOutputType
@@ -4800,20 +5027,27 @@ export namespace Prisma {
     ExtArgs["result"]["customer"]
   >;
 
-  export type CustomerSelectCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetSelect<
-    {
-      id?: boolean;
-      phoneNumber?: boolean;
-      email?: boolean;
-      fullName?: boolean;
-      profilePic?: boolean;
-      createdAt?: boolean;
-      updatedAt?: boolean;
-    },
-    ExtArgs["result"]["customer"]
-  >;
+  export type CustomerSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    phoneNumber?: boolean
+    email?: boolean
+    fullName?: boolean
+    profilePic?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    chats?: boolean | Customer$chatsArgs<ExtArgs>
+    devices?: boolean | Customer$devicesArgs<ExtArgs>
+    documents?: boolean | Customer$documentsArgs<ExtArgs>
+    vehicles?: boolean | Customer$vehiclesArgs<ExtArgs>
+    digilocker?: boolean | Customer$digilockerArgs<ExtArgs>
+    emergencyContacts?: boolean | Customer$emergencyContactsArgs<ExtArgs>
+    expenses?: boolean | Customer$expensesArgs<ExtArgs>
+    budgets?: boolean | Customer$budgetsArgs<ExtArgs>
+    notifications?: boolean | Customer$notificationsArgs<ExtArgs>
+    sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
+    sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
+    _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customer"]>
 
   export type CustomerSelectUpdateManyAndReturn<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
@@ -4840,68 +5074,52 @@ export namespace Prisma {
     updatedAt?: boolean;
   };
 
-  export type CustomerOmit<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetOmit<
-    | "id"
-    | "phoneNumber"
-    | "email"
-    | "fullName"
-    | "profilePic"
-    | "createdAt"
-    | "updatedAt",
-    ExtArgs["result"]["customer"]
-  >;
-  export type CustomerInclude<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    devices?: boolean | Customer$devicesArgs<ExtArgs>;
-    documents?: boolean | Customer$documentsArgs<ExtArgs>;
-    vehicles?: boolean | Customer$vehiclesArgs<ExtArgs>;
-    digilocker?: boolean | Customer$digilockerArgs<ExtArgs>;
-    expenses?: boolean | Customer$expensesArgs<ExtArgs>;
-    budgets?: boolean | Customer$budgetsArgs<ExtArgs>;
-    notifications?: boolean | Customer$notificationsArgs<ExtArgs>;
-    sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>;
-    chats?: boolean | Customer$chatsArgs<ExtArgs>;
-    _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>;
-  };
-  export type CustomerIncludeCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {};
-  export type CustomerIncludeUpdateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {};
+  export type CustomerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phoneNumber" | "email" | "fullName" | "profilePic" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+  export type CustomerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    chats?: boolean | Customer$chatsArgs<ExtArgs>
+    devices?: boolean | Customer$devicesArgs<ExtArgs>
+    documents?: boolean | Customer$documentsArgs<ExtArgs>
+    vehicles?: boolean | Customer$vehiclesArgs<ExtArgs>
+    digilocker?: boolean | Customer$digilockerArgs<ExtArgs>
+    emergencyContacts?: boolean | Customer$emergencyContactsArgs<ExtArgs>
+    expenses?: boolean | Customer$expensesArgs<ExtArgs>
+    budgets?: boolean | Customer$budgetsArgs<ExtArgs>
+    notifications?: boolean | Customer$notificationsArgs<ExtArgs>
+    sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
+    sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
+    _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type CustomerIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $CustomerPayload<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     name: "Customer";
     objects: {
-      devices: Prisma.$CustomerDevicePayload<ExtArgs>[];
-      documents: Prisma.$CustomerDocumentPayload<ExtArgs>[];
-      vehicles: Prisma.$CustomerVehiclePayload<ExtArgs>[];
-      digilocker: Prisma.$DigiLockerConnectionPayload<ExtArgs> | null;
-      expenses: Prisma.$ExpensePayload<ExtArgs>[];
-      budgets: Prisma.$ExpenseBudgetPayload<ExtArgs>[];
-      notifications: Prisma.$InAppNotificationPayload<ExtArgs>[];
-      sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[];
-      chats: Prisma.$ChatSessionPayload<ExtArgs>[];
-    };
-    scalars: $Extensions.GetPayloadResult<
-      {
-        id: string;
-        phoneNumber: string;
-        email: string | null;
-        fullName: string | null;
-        profilePic: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      },
-      ExtArgs["result"]["customer"]
-    >;
-    composites: {};
-  };
+      chats: Prisma.$ChatSessionPayload<ExtArgs>[]
+      devices: Prisma.$CustomerDevicePayload<ExtArgs>[]
+      documents: Prisma.$CustomerDocumentPayload<ExtArgs>[]
+      vehicles: Prisma.$CustomerVehiclePayload<ExtArgs>[]
+      digilocker: Prisma.$DigiLockerConnectionPayload<ExtArgs> | null
+      emergencyContacts: Prisma.$EmergencyContactPayload<ExtArgs>[]
+      expenses: Prisma.$ExpensePayload<ExtArgs>[]
+      budgets: Prisma.$ExpenseBudgetPayload<ExtArgs>[]
+      notifications: Prisma.$InAppNotificationPayload<ExtArgs>[]
+      sosRequests: Prisma.$SOSRequestPayload<ExtArgs>[]
+      sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      phoneNumber: string
+      email: string | null
+      fullName: string | null
+      profilePic: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["customer"]>
+    composites: {}
+  }
 
   type CustomerGetPayload<
     S extends boolean | null | undefined | CustomerDefaultArgs,
@@ -5437,114 +5655,19 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__CustomerClient<
-    T,
-    Null = never,
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-    GlobalOmitOptions = {},
-  > extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise";
-    devices<T extends Customer$devicesArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$devicesArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$CustomerDevicePayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    documents<T extends Customer$documentsArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$documentsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$CustomerDocumentPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    vehicles<T extends Customer$vehiclesArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$vehiclesArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$CustomerVehiclePayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    digilocker<T extends Customer$digilockerArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$digilockerArgs<ExtArgs>>,
-    ): Prisma__DigiLockerConnectionClient<
-      $Result.GetResult<
-        Prisma.$DigiLockerConnectionPayload<ExtArgs>,
-        T,
-        "findUniqueOrThrow",
-        GlobalOmitOptions
-      > | null,
-      null,
-      ExtArgs,
-      GlobalOmitOptions
-    >;
-    expenses<T extends Customer$expensesArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$expensesArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$ExpensePayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    budgets<T extends Customer$budgetsArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$budgetsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$ExpenseBudgetPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    notifications<T extends Customer$notificationsArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$notificationsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$InAppNotificationPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    sharedVehicles<T extends Customer$sharedVehiclesArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$sharedVehiclesArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$VehicleAccessPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    chats<T extends Customer$chatsArgs<ExtArgs> = {}>(
-      args?: Subset<T, Customer$chatsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$ChatSessionPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
+  export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    chats<T extends Customer$chatsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$chatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    devices<T extends Customer$devicesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$devicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDevicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    documents<T extends Customer$documentsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    vehicles<T extends Customer$vehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    digilocker<T extends Customer$digilockerArgs<ExtArgs> = {}>(args?: Subset<T, Customer$digilockerArgs<ExtArgs>>): Prisma__DigiLockerConnectionClient<$Result.GetResult<Prisma.$DigiLockerConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    emergencyContacts<T extends Customer$emergencyContactsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$emergencyContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    expenses<T extends Customer$expensesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    budgets<T extends Customer$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpenseBudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    notifications<T extends Customer$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InAppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sosRequests<T extends Customer$sosRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sosRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sharedVehicles<T extends Customer$sharedVehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sharedVehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6019,6 +6142,30 @@ export namespace Prisma {
   };
 
   /**
+   * Customer.chats
+   */
+  export type Customer$chatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatSession
+     */
+    select?: ChatSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatSession
+     */
+    omit?: ChatSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChatSessionInclude<ExtArgs> | null
+    where?: ChatSessionWhereInput
+    orderBy?: ChatSessionOrderByWithRelationInput | ChatSessionOrderByWithRelationInput[]
+    cursor?: ChatSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ChatSessionScalarFieldEnum | ChatSessionScalarFieldEnum[]
+  }
+
+  /**
    * Customer.devices
    */
   export type Customer$devicesArgs<
@@ -6128,6 +6275,30 @@ export namespace Prisma {
   };
 
   /**
+   * Customer.emergencyContacts
+   */
+  export type Customer$emergencyContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    where?: EmergencyContactWhereInput
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    cursor?: EmergencyContactWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
    * Customer.expenses
    */
   export type Customer$expensesArgs<
@@ -6214,6 +6385,30 @@ export namespace Prisma {
   };
 
   /**
+   * Customer.sosRequests
+   */
+  export type Customer$sosRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    where?: SOSRequestWhereInput
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    cursor?: SOSRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
    * Customer.sharedVehicles
    */
   export type Customer$sharedVehiclesArgs<
@@ -6239,34 +6434,6 @@ export namespace Prisma {
     take?: number;
     skip?: number;
     distinct?: VehicleAccessScalarFieldEnum | VehicleAccessScalarFieldEnum[];
-  };
-
-  /**
-   * Customer.chats
-   */
-  export type Customer$chatsArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    /**
-     * Select specific fields to fetch from the ChatSession
-     */
-    select?: ChatSessionSelect<ExtArgs> | null;
-    /**
-     * Omit specific fields from the ChatSession
-     */
-    omit?: ChatSessionOmit<ExtArgs> | null;
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ChatSessionInclude<ExtArgs> | null;
-    where?: ChatSessionWhereInput;
-    orderBy?:
-      | ChatSessionOrderByWithRelationInput
-      | ChatSessionOrderByWithRelationInput[];
-    cursor?: ChatSessionWhereUniqueInput;
-    take?: number;
-    skip?: number;
-    distinct?: ChatSessionScalarFieldEnum | ChatSessionScalarFieldEnum[];
   };
 
   /**
@@ -10740,68 +10907,69 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleMinAggregateOutputType = {
-    id: string | null;
-    customerId: string | null;
-    registrationNumber: string | null;
-    make: string | null;
-    model: string | null;
-    variant: string | null;
-    year: number | null;
-    fuelType: string | null;
-    vehicleType: string | null;
-    engineNumber: string | null;
-    chassisNumber: string | null;
-    currentOdometer: number | null;
-    registrationDate: Date | null;
-    rcVerified: boolean | null;
-    isActive: boolean | null;
-    isPrimary: boolean | null;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-  };
+    id: string | null
+    customerId: string | null
+    registrationNumber: string | null
+    make: string | null
+    model: string | null
+    variant: string | null
+    year: number | null
+    fuelType: string | null
+    vehicleType: string | null
+    currentOdometer: number | null
+    registrationDate: Date | null
+    rcVerified: boolean | null
+    isActive: boolean | null
+    isPrimary: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    chassisNumber: string | null
+    engineNumber: string | null
+  }
 
   export type CustomerVehicleMaxAggregateOutputType = {
-    id: string | null;
-    customerId: string | null;
-    registrationNumber: string | null;
-    make: string | null;
-    model: string | null;
-    variant: string | null;
-    year: number | null;
-    fuelType: string | null;
-    vehicleType: string | null;
-    engineNumber: string | null;
-    chassisNumber: string | null;
-    currentOdometer: number | null;
-    registrationDate: Date | null;
-    rcVerified: boolean | null;
-    isActive: boolean | null;
-    isPrimary: boolean | null;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-  };
+    id: string | null
+    customerId: string | null
+    registrationNumber: string | null
+    make: string | null
+    model: string | null
+    variant: string | null
+    year: number | null
+    fuelType: string | null
+    vehicleType: string | null
+    currentOdometer: number | null
+    registrationDate: Date | null
+    rcVerified: boolean | null
+    isActive: boolean | null
+    isPrimary: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    chassisNumber: string | null
+    engineNumber: string | null
+  }
 
   export type CustomerVehicleCountAggregateOutputType = {
-    id: number;
-    customerId: number;
-    registrationNumber: number;
-    make: number;
-    model: number;
-    variant: number;
-    year: number;
-    fuelType: number;
-    vehicleType: number;
-    engineNumber: number;
-    chassisNumber: number;
-    currentOdometer: number;
-    registrationDate: number;
-    rcVerified: number;
-    isActive: number;
-    isPrimary: number;
-    createdAt: number;
-    updatedAt: number;
-    _all: number;
-  };
+    id: number
+    customerId: number
+    registrationNumber: number
+    make: number
+    model: number
+    variant: number
+    year: number
+    fuelType: number
+    vehicleType: number
+    currentOdometer: number
+    registrationDate: number
+    rcVerified: number
+    isActive: number
+    isPrimary: number
+    createdAt: number
+    updatedAt: number
+    chassisNumber: number
+    engineNumber: number
+    _all: number
+  }
+
 
   export type CustomerVehicleAvgAggregateInputType = {
     year?: true;
@@ -10814,68 +10982,68 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleMinAggregateInputType = {
-    id?: true;
-    customerId?: true;
-    registrationNumber?: true;
-    make?: true;
-    model?: true;
-    variant?: true;
-    year?: true;
-    fuelType?: true;
-    vehicleType?: true;
-    engineNumber?: true;
-    chassisNumber?: true;
-    currentOdometer?: true;
-    registrationDate?: true;
-    rcVerified?: true;
-    isActive?: true;
-    isPrimary?: true;
-    createdAt?: true;
-    updatedAt?: true;
-  };
+    id?: true
+    customerId?: true
+    registrationNumber?: true
+    make?: true
+    model?: true
+    variant?: true
+    year?: true
+    fuelType?: true
+    vehicleType?: true
+    currentOdometer?: true
+    registrationDate?: true
+    rcVerified?: true
+    isActive?: true
+    isPrimary?: true
+    createdAt?: true
+    updatedAt?: true
+    chassisNumber?: true
+    engineNumber?: true
+  }
 
   export type CustomerVehicleMaxAggregateInputType = {
-    id?: true;
-    customerId?: true;
-    registrationNumber?: true;
-    make?: true;
-    model?: true;
-    variant?: true;
-    year?: true;
-    fuelType?: true;
-    vehicleType?: true;
-    engineNumber?: true;
-    chassisNumber?: true;
-    currentOdometer?: true;
-    registrationDate?: true;
-    rcVerified?: true;
-    isActive?: true;
-    isPrimary?: true;
-    createdAt?: true;
-    updatedAt?: true;
-  };
+    id?: true
+    customerId?: true
+    registrationNumber?: true
+    make?: true
+    model?: true
+    variant?: true
+    year?: true
+    fuelType?: true
+    vehicleType?: true
+    currentOdometer?: true
+    registrationDate?: true
+    rcVerified?: true
+    isActive?: true
+    isPrimary?: true
+    createdAt?: true
+    updatedAt?: true
+    chassisNumber?: true
+    engineNumber?: true
+  }
 
   export type CustomerVehicleCountAggregateInputType = {
-    id?: true;
-    customerId?: true;
-    registrationNumber?: true;
-    make?: true;
-    model?: true;
-    variant?: true;
-    year?: true;
-    fuelType?: true;
-    vehicleType?: true;
-    engineNumber?: true;
-    chassisNumber?: true;
-    currentOdometer?: true;
-    registrationDate?: true;
-    rcVerified?: true;
-    isActive?: true;
-    isPrimary?: true;
-    createdAt?: true;
-    updatedAt?: true;
-    _all?: true;
-  };
+    id?: true
+    customerId?: true
+    registrationNumber?: true
+    make?: true
+    model?: true
+    variant?: true
+    year?: true
+    fuelType?: true
+    vehicleType?: true
+    currentOdometer?: true
+    registrationDate?: true
+    rcVerified?: true
+    isActive?: true
+    isPrimary?: true
+    createdAt?: true
+    updatedAt?: true
+    chassisNumber?: true
+    engineNumber?: true
+    _all?: true
+  }
 
   export type CustomerVehicleAggregateArgs<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
@@ -10973,30 +11141,30 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleGroupByOutputType = {
-    id: string;
-    customerId: string;
-    registrationNumber: string;
-    make: string | null;
-    model: string | null;
-    variant: string | null;
-    year: number | null;
-    fuelType: string | null;
-    vehicleType: string | null;
-    engineNumber: string | null;
-    chassisNumber: string | null;
-    currentOdometer: number | null;
-    registrationDate: Date | null;
-    rcVerified: boolean;
-    isActive: boolean;
-    isPrimary: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    _count: CustomerVehicleCountAggregateOutputType | null;
-    _avg: CustomerVehicleAvgAggregateOutputType | null;
-    _sum: CustomerVehicleSumAggregateOutputType | null;
-    _min: CustomerVehicleMinAggregateOutputType | null;
-    _max: CustomerVehicleMaxAggregateOutputType | null;
-  };
+    id: string
+    customerId: string
+    registrationNumber: string
+    make: string | null
+    model: string | null
+    variant: string | null
+    year: number | null
+    fuelType: string | null
+    vehicleType: string | null
+    currentOdometer: number | null
+    registrationDate: Date | null
+    rcVerified: boolean
+    isActive: boolean
+    isPrimary: boolean
+    createdAt: Date
+    updatedAt: Date
+    chassisNumber: string | null
+    engineNumber: string | null
+    _count: CustomerVehicleCountAggregateOutputType | null
+    _avg: CustomerVehicleAvgAggregateOutputType | null
+    _sum: CustomerVehicleSumAggregateOutputType | null
+    _min: CustomerVehicleMinAggregateOutputType | null
+    _max: CustomerVehicleMaxAggregateOutputType | null
+  }
 
   type GetCustomerVehicleGroupByPayload<T extends CustomerVehicleGroupByArgs> =
     Prisma.PrismaPromise<
@@ -11051,171 +11219,162 @@ export namespace Prisma {
     ExtArgs["result"]["customerVehicle"]
   >;
 
-  export type CustomerVehicleSelectCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetSelect<
-    {
-      id?: boolean;
-      customerId?: boolean;
-      registrationNumber?: boolean;
-      make?: boolean;
-      model?: boolean;
-      variant?: boolean;
-      year?: boolean;
-      fuelType?: boolean;
-      vehicleType?: boolean;
-      engineNumber?: boolean;
-      chassisNumber?: boolean;
-      currentOdometer?: boolean;
-      registrationDate?: boolean;
-      rcVerified?: boolean;
-      isActive?: boolean;
-      isPrimary?: boolean;
-      createdAt?: boolean;
-      updatedAt?: boolean;
-      customer?: boolean | CustomerDefaultArgs<ExtArgs>;
-    },
-    ExtArgs["result"]["customerVehicle"]
-  >;
+  export type CustomerVehicleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    registrationNumber?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    year?: boolean
+    fuelType?: boolean
+    vehicleType?: boolean
+    currentOdometer?: boolean
+    registrationDate?: boolean
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    chassisNumber?: boolean
+    engineNumber?: boolean
+    challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
+    documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    drivingTrips?: boolean | CustomerVehicle$drivingTripsArgs<ExtArgs>
+    expenses?: boolean | CustomerVehicle$expensesArgs<ExtArgs>
+    odometerLogs?: boolean | CustomerVehicle$odometerLogsArgs<ExtArgs>
+    serviceRecords?: boolean | CustomerVehicle$serviceRecordsArgs<ExtArgs>
+    telematicsDevice?: boolean | CustomerVehicle$telematicsDeviceArgs<ExtArgs>
+    accessList?: boolean | CustomerVehicle$accessListArgs<ExtArgs>
+    healthScore?: boolean | CustomerVehicle$healthScoreArgs<ExtArgs>
+    _count?: boolean | CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerVehicle"]>
 
-  export type CustomerVehicleSelectUpdateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetSelect<
-    {
-      id?: boolean;
-      customerId?: boolean;
-      registrationNumber?: boolean;
-      make?: boolean;
-      model?: boolean;
-      variant?: boolean;
-      year?: boolean;
-      fuelType?: boolean;
-      vehicleType?: boolean;
-      engineNumber?: boolean;
-      chassisNumber?: boolean;
-      currentOdometer?: boolean;
-      registrationDate?: boolean;
-      rcVerified?: boolean;
-      isActive?: boolean;
-      isPrimary?: boolean;
-      createdAt?: boolean;
-      updatedAt?: boolean;
-      customer?: boolean | CustomerDefaultArgs<ExtArgs>;
-    },
-    ExtArgs["result"]["customerVehicle"]
-  >;
+  export type CustomerVehicleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    registrationNumber?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    year?: boolean
+    fuelType?: boolean
+    vehicleType?: boolean
+    currentOdometer?: boolean
+    registrationDate?: boolean
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    chassisNumber?: boolean
+    engineNumber?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerVehicle"]>
+
+  export type CustomerVehicleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    registrationNumber?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    year?: boolean
+    fuelType?: boolean
+    vehicleType?: boolean
+    currentOdometer?: boolean
+    registrationDate?: boolean
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    chassisNumber?: boolean
+    engineNumber?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerVehicle"]>
 
   export type CustomerVehicleSelectScalar = {
-    id?: boolean;
-    customerId?: boolean;
-    registrationNumber?: boolean;
-    make?: boolean;
-    model?: boolean;
-    variant?: boolean;
-    year?: boolean;
-    fuelType?: boolean;
-    vehicleType?: boolean;
-    engineNumber?: boolean;
-    chassisNumber?: boolean;
-    currentOdometer?: boolean;
-    registrationDate?: boolean;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: boolean;
-    updatedAt?: boolean;
-  };
+    id?: boolean
+    customerId?: boolean
+    registrationNumber?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    year?: boolean
+    fuelType?: boolean
+    vehicleType?: boolean
+    currentOdometer?: boolean
+    registrationDate?: boolean
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    chassisNumber?: boolean
+    engineNumber?: boolean
+  }
 
-  export type CustomerVehicleOmit<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetOmit<
-    | "id"
-    | "customerId"
-    | "registrationNumber"
-    | "make"
-    | "model"
-    | "variant"
-    | "year"
-    | "fuelType"
-    | "vehicleType"
-    | "engineNumber"
-    | "chassisNumber"
-    | "currentOdometer"
-    | "registrationDate"
-    | "rcVerified"
-    | "isActive"
-    | "isPrimary"
-    | "createdAt"
-    | "updatedAt",
-    ExtArgs["result"]["customerVehicle"]
-  >;
-  export type CustomerVehicleInclude<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>;
-    documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>;
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>;
-    expenses?: boolean | CustomerVehicle$expensesArgs<ExtArgs>;
-    odometerLogs?: boolean | CustomerVehicle$odometerLogsArgs<ExtArgs>;
-    serviceRecords?: boolean | CustomerVehicle$serviceRecordsArgs<ExtArgs>;
-    accessList?: boolean | CustomerVehicle$accessListArgs<ExtArgs>;
-    healthScore?: boolean | CustomerVehicle$healthScoreArgs<ExtArgs>;
-    telematicsDevice?: boolean | CustomerVehicle$telematicsDeviceArgs<ExtArgs>;
-    drivingTrips?: boolean | CustomerVehicle$drivingTripsArgs<ExtArgs>;
-    _count?: boolean | CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>;
-  };
-  export type CustomerVehicleIncludeCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>;
-  };
-  export type CustomerVehicleIncludeUpdateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>;
-  };
+  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber", ExtArgs["result"]["customerVehicle"]>
+  export type CustomerVehicleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
+    documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    drivingTrips?: boolean | CustomerVehicle$drivingTripsArgs<ExtArgs>
+    expenses?: boolean | CustomerVehicle$expensesArgs<ExtArgs>
+    odometerLogs?: boolean | CustomerVehicle$odometerLogsArgs<ExtArgs>
+    serviceRecords?: boolean | CustomerVehicle$serviceRecordsArgs<ExtArgs>
+    telematicsDevice?: boolean | CustomerVehicle$telematicsDeviceArgs<ExtArgs>
+    accessList?: boolean | CustomerVehicle$accessListArgs<ExtArgs>
+    healthScore?: boolean | CustomerVehicle$healthScoreArgs<ExtArgs>
+    _count?: boolean | CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CustomerVehicleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type CustomerVehicleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
 
   export type $CustomerVehiclePayload<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     name: "CustomerVehicle";
     objects: {
-      challans: Prisma.$ChallanPayload<ExtArgs>[];
-      documents: Prisma.$CustomerDocumentPayload<ExtArgs>[];
-      customer: Prisma.$CustomerPayload<ExtArgs>;
-      expenses: Prisma.$ExpensePayload<ExtArgs>[];
-      odometerLogs: Prisma.$OdometerLogPayload<ExtArgs>[];
-      serviceRecords: Prisma.$ServiceRecordPayload<ExtArgs>[];
-      accessList: Prisma.$VehicleAccessPayload<ExtArgs>[];
-      healthScore: Prisma.$VehicleHealthScorePayload<ExtArgs> | null;
-      telematicsDevice: Prisma.$TelematicsDevicePayload<ExtArgs> | null;
-      drivingTrips: Prisma.$DrivingTripPayload<ExtArgs>[];
-    };
-    scalars: $Extensions.GetPayloadResult<
-      {
-        id: string;
-        customerId: string;
-        registrationNumber: string;
-        make: string | null;
-        model: string | null;
-        variant: string | null;
-        year: number | null;
-        fuelType: string | null;
-        vehicleType: string | null;
-        engineNumber: string | null;
-        chassisNumber: string | null;
-        currentOdometer: number | null;
-        registrationDate: Date | null;
-        rcVerified: boolean;
-        isActive: boolean;
-        isPrimary: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-      },
-      ExtArgs["result"]["customerVehicle"]
-    >;
-    composites: {};
-  };
+      challans: Prisma.$ChallanPayload<ExtArgs>[]
+      documents: Prisma.$CustomerDocumentPayload<ExtArgs>[]
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      drivingTrips: Prisma.$DrivingTripPayload<ExtArgs>[]
+      expenses: Prisma.$ExpensePayload<ExtArgs>[]
+      odometerLogs: Prisma.$OdometerLogPayload<ExtArgs>[]
+      serviceRecords: Prisma.$ServiceRecordPayload<ExtArgs>[]
+      telematicsDevice: Prisma.$TelematicsDevicePayload<ExtArgs> | null
+      accessList: Prisma.$VehicleAccessPayload<ExtArgs>[]
+      healthScore: Prisma.$VehicleHealthScorePayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      registrationNumber: string
+      make: string | null
+      model: string | null
+      variant: string | null
+      year: number | null
+      fuelType: string | null
+      vehicleType: string | null
+      currentOdometer: number | null
+      registrationDate: Date | null
+      rcVerified: boolean
+      isActive: boolean
+      isPrimary: boolean
+      createdAt: Date
+      updatedAt: Date
+      chassisNumber: string | null
+      engineNumber: string | null
+    }, ExtArgs["result"]["customerVehicle"]>
+    composites: {}
+  }
 
   type CustomerVehicleGetPayload<
     S extends boolean | null | undefined | CustomerVehicleDefaultArgs,
@@ -11754,132 +11913,18 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__CustomerVehicleClient<
-    T,
-    Null = never,
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-    GlobalOmitOptions = {},
-  > extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise";
-    challans<T extends CustomerVehicle$challansArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$challansArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$ChallanPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    documents<T extends CustomerVehicle$documentsArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$documentsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$CustomerDocumentPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerDefaultArgs<ExtArgs>>,
-    ): Prisma__CustomerClient<
-      | $Result.GetResult<
-          Prisma.$CustomerPayload<ExtArgs>,
-          T,
-          "findUniqueOrThrow",
-          GlobalOmitOptions
-        >
-      | Null,
-      Null,
-      ExtArgs,
-      GlobalOmitOptions
-    >;
-    expenses<T extends CustomerVehicle$expensesArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$expensesArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$ExpensePayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    odometerLogs<T extends CustomerVehicle$odometerLogsArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$odometerLogsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$OdometerLogPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    serviceRecords<T extends CustomerVehicle$serviceRecordsArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$serviceRecordsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$ServiceRecordPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    accessList<T extends CustomerVehicle$accessListArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$accessListArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$VehicleAccessPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
-    healthScore<T extends CustomerVehicle$healthScoreArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$healthScoreArgs<ExtArgs>>,
-    ): Prisma__VehicleHealthScoreClient<
-      $Result.GetResult<
-        Prisma.$VehicleHealthScorePayload<ExtArgs>,
-        T,
-        "findUniqueOrThrow",
-        GlobalOmitOptions
-      > | null,
-      null,
-      ExtArgs,
-      GlobalOmitOptions
-    >;
-    telematicsDevice<
-      T extends CustomerVehicle$telematicsDeviceArgs<ExtArgs> = {},
-    >(
-      args?: Subset<T, CustomerVehicle$telematicsDeviceArgs<ExtArgs>>,
-    ): Prisma__TelematicsDeviceClient<
-      $Result.GetResult<
-        Prisma.$TelematicsDevicePayload<ExtArgs>,
-        T,
-        "findUniqueOrThrow",
-        GlobalOmitOptions
-      > | null,
-      null,
-      ExtArgs,
-      GlobalOmitOptions
-    >;
-    drivingTrips<T extends CustomerVehicle$drivingTripsArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicle$drivingTripsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$DrivingTripPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
+  export interface Prisma__CustomerVehicleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    challans<T extends CustomerVehicle$challansArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$challansArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChallanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    documents<T extends CustomerVehicle$documentsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    drivingTrips<T extends CustomerVehicle$drivingTripsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$drivingTripsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DrivingTripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    expenses<T extends CustomerVehicle$expensesArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    odometerLogs<T extends CustomerVehicle$odometerLogsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$odometerLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OdometerLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    serviceRecords<T extends CustomerVehicle$serviceRecordsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$serviceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ServiceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    telematicsDevice<T extends CustomerVehicle$telematicsDeviceArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$telematicsDeviceArgs<ExtArgs>>): Prisma__TelematicsDeviceClient<$Result.GetResult<Prisma.$TelematicsDevicePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    accessList<T extends CustomerVehicle$accessListArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$accessListArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    healthScore<T extends CustomerVehicle$healthScoreArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$healthScoreArgs<ExtArgs>>): Prisma__VehicleHealthScoreClient<$Result.GetResult<Prisma.$VehicleHealthScorePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11920,24 +11965,24 @@ export namespace Prisma {
    * Fields of the CustomerVehicle model
    */
   interface CustomerVehicleFieldRefs {
-    readonly id: FieldRef<"CustomerVehicle", "String">;
-    readonly customerId: FieldRef<"CustomerVehicle", "String">;
-    readonly registrationNumber: FieldRef<"CustomerVehicle", "String">;
-    readonly make: FieldRef<"CustomerVehicle", "String">;
-    readonly model: FieldRef<"CustomerVehicle", "String">;
-    readonly variant: FieldRef<"CustomerVehicle", "String">;
-    readonly year: FieldRef<"CustomerVehicle", "Int">;
-    readonly fuelType: FieldRef<"CustomerVehicle", "String">;
-    readonly vehicleType: FieldRef<"CustomerVehicle", "String">;
-    readonly engineNumber: FieldRef<"CustomerVehicle", "String">;
-    readonly chassisNumber: FieldRef<"CustomerVehicle", "String">;
-    readonly currentOdometer: FieldRef<"CustomerVehicle", "Int">;
-    readonly registrationDate: FieldRef<"CustomerVehicle", "DateTime">;
-    readonly rcVerified: FieldRef<"CustomerVehicle", "Boolean">;
-    readonly isActive: FieldRef<"CustomerVehicle", "Boolean">;
-    readonly isPrimary: FieldRef<"CustomerVehicle", "Boolean">;
-    readonly createdAt: FieldRef<"CustomerVehicle", "DateTime">;
-    readonly updatedAt: FieldRef<"CustomerVehicle", "DateTime">;
+    readonly id: FieldRef<"CustomerVehicle", 'String'>
+    readonly customerId: FieldRef<"CustomerVehicle", 'String'>
+    readonly registrationNumber: FieldRef<"CustomerVehicle", 'String'>
+    readonly make: FieldRef<"CustomerVehicle", 'String'>
+    readonly model: FieldRef<"CustomerVehicle", 'String'>
+    readonly variant: FieldRef<"CustomerVehicle", 'String'>
+    readonly year: FieldRef<"CustomerVehicle", 'Int'>
+    readonly fuelType: FieldRef<"CustomerVehicle", 'String'>
+    readonly vehicleType: FieldRef<"CustomerVehicle", 'String'>
+    readonly currentOdometer: FieldRef<"CustomerVehicle", 'Int'>
+    readonly registrationDate: FieldRef<"CustomerVehicle", 'DateTime'>
+    readonly rcVerified: FieldRef<"CustomerVehicle", 'Boolean'>
+    readonly isActive: FieldRef<"CustomerVehicle", 'Boolean'>
+    readonly isPrimary: FieldRef<"CustomerVehicle", 'Boolean'>
+    readonly createdAt: FieldRef<"CustomerVehicle", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomerVehicle", 'DateTime'>
+    readonly chassisNumber: FieldRef<"CustomerVehicle", 'String'>
+    readonly engineNumber: FieldRef<"CustomerVehicle", 'String'>
   }
 
   // Custom InputTypes
@@ -12443,6 +12488,30 @@ export namespace Prisma {
   };
 
   /**
+   * CustomerVehicle.drivingTrips
+   */
+  export type CustomerVehicle$drivingTripsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingTrip
+     */
+    select?: DrivingTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingTrip
+     */
+    omit?: DrivingTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingTripInclude<ExtArgs> | null
+    where?: DrivingTripWhereInput
+    orderBy?: DrivingTripOrderByWithRelationInput | DrivingTripOrderByWithRelationInput[]
+    cursor?: DrivingTripWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DrivingTripScalarFieldEnum | DrivingTripScalarFieldEnum[]
+  }
+
+  /**
    * CustomerVehicle.expenses
    */
   export type CustomerVehicle$expensesArgs<
@@ -12527,6 +12596,25 @@ export namespace Prisma {
   };
 
   /**
+   * CustomerVehicle.telematicsDevice
+   */
+  export type CustomerVehicle$telematicsDeviceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TelematicsDevice
+     */
+    select?: TelematicsDeviceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TelematicsDevice
+     */
+    omit?: TelematicsDeviceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TelematicsDeviceInclude<ExtArgs> | null
+    where?: TelematicsDeviceWhereInput
+  }
+
+  /**
    * CustomerVehicle.accessList
    */
   export type CustomerVehicle$accessListArgs<
@@ -12573,55 +12661,6 @@ export namespace Prisma {
      */
     include?: VehicleHealthScoreInclude<ExtArgs> | null;
     where?: VehicleHealthScoreWhereInput;
-  };
-
-  /**
-   * CustomerVehicle.telematicsDevice
-   */
-  export type CustomerVehicle$telematicsDeviceArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    /**
-     * Select specific fields to fetch from the TelematicsDevice
-     */
-    select?: TelematicsDeviceSelect<ExtArgs> | null;
-    /**
-     * Omit specific fields from the TelematicsDevice
-     */
-    omit?: TelematicsDeviceOmit<ExtArgs> | null;
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TelematicsDeviceInclude<ExtArgs> | null;
-    where?: TelematicsDeviceWhereInput;
-  };
-
-  /**
-   * CustomerVehicle.drivingTrips
-   */
-  export type CustomerVehicle$drivingTripsArgs<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    /**
-     * Select specific fields to fetch from the DrivingTrip
-     */
-    select?: DrivingTripSelect<ExtArgs> | null;
-    /**
-     * Omit specific fields from the DrivingTrip
-     */
-    omit?: DrivingTripOmit<ExtArgs> | null;
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: DrivingTripInclude<ExtArgs> | null;
-    where?: DrivingTripWhereInput;
-    orderBy?:
-      | DrivingTripOrderByWithRelationInput
-      | DrivingTripOrderByWithRelationInput[];
-    cursor?: DrivingTripWhereUniqueInput;
-    take?: number;
-    skip?: number;
-    distinct?: DrivingTripScalarFieldEnum | DrivingTripScalarFieldEnum[];
   };
 
   /**
@@ -30887,72 +30926,79 @@ export namespace Prisma {
   };
 
   export type TelematicsDeviceMinAggregateOutputType = {
-    id: string | null;
-    vehicleId: string | null;
-    instanceId: string | null;
-    deviceToken: string | null;
-    platform: string | null;
-    isActive: boolean | null;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-  };
+    id: string | null
+    vehicleId: string | null
+    instanceId: string | null
+    deviceToken: string | null
+    platform: string | null
+    isActive: boolean | null
+    lastSyncAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
 
   export type TelematicsDeviceMaxAggregateOutputType = {
-    id: string | null;
-    vehicleId: string | null;
-    instanceId: string | null;
-    deviceToken: string | null;
-    platform: string | null;
-    isActive: boolean | null;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-  };
+    id: string | null
+    vehicleId: string | null
+    instanceId: string | null
+    deviceToken: string | null
+    platform: string | null
+    isActive: boolean | null
+    lastSyncAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
 
   export type TelematicsDeviceCountAggregateOutputType = {
-    id: number;
-    vehicleId: number;
-    instanceId: number;
-    deviceToken: number;
-    platform: number;
-    isActive: number;
-    createdAt: number;
-    updatedAt: number;
-    _all: number;
-  };
+    id: number
+    vehicleId: number
+    instanceId: number
+    deviceToken: number
+    platform: number
+    isActive: number
+    lastSyncAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
 
   export type TelematicsDeviceMinAggregateInputType = {
-    id?: true;
-    vehicleId?: true;
-    instanceId?: true;
-    deviceToken?: true;
-    platform?: true;
-    isActive?: true;
-    createdAt?: true;
-    updatedAt?: true;
-  };
+    id?: true
+    vehicleId?: true
+    instanceId?: true
+    deviceToken?: true
+    platform?: true
+    isActive?: true
+    lastSyncAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
 
   export type TelematicsDeviceMaxAggregateInputType = {
-    id?: true;
-    vehicleId?: true;
-    instanceId?: true;
-    deviceToken?: true;
-    platform?: true;
-    isActive?: true;
-    createdAt?: true;
-    updatedAt?: true;
-  };
+    id?: true
+    vehicleId?: true
+    instanceId?: true
+    deviceToken?: true
+    platform?: true
+    isActive?: true
+    lastSyncAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
 
   export type TelematicsDeviceCountAggregateInputType = {
-    id?: true;
-    vehicleId?: true;
-    instanceId?: true;
-    deviceToken?: true;
-    platform?: true;
-    isActive?: true;
-    createdAt?: true;
-    updatedAt?: true;
-    _all?: true;
-  };
+    id?: true
+    vehicleId?: true
+    instanceId?: true
+    deviceToken?: true
+    platform?: true
+    isActive?: true
+    lastSyncAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
 
   export type TelematicsDeviceAggregateArgs<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
@@ -31036,18 +31082,19 @@ export namespace Prisma {
   };
 
   export type TelematicsDeviceGroupByOutputType = {
-    id: string;
-    vehicleId: string;
-    instanceId: string;
-    deviceToken: string | null;
-    platform: string | null;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    _count: TelematicsDeviceCountAggregateOutputType | null;
-    _min: TelematicsDeviceMinAggregateOutputType | null;
-    _max: TelematicsDeviceMaxAggregateOutputType | null;
-  };
+    id: string
+    vehicleId: string
+    instanceId: string
+    deviceToken: string | null
+    platform: string | null
+    isActive: boolean
+    lastSyncAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: TelematicsDeviceCountAggregateOutputType | null
+    _min: TelematicsDeviceMinAggregateOutputType | null
+    _max: TelematicsDeviceMaxAggregateOutputType | null
+  }
 
   type GetTelematicsDeviceGroupByPayload<
     T extends TelematicsDeviceGroupByArgs,
@@ -31081,102 +31128,88 @@ export namespace Prisma {
     ExtArgs["result"]["telematicsDevice"]
   >;
 
-  export type TelematicsDeviceSelectCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetSelect<
-    {
-      id?: boolean;
-      vehicleId?: boolean;
-      instanceId?: boolean;
-      deviceToken?: boolean;
-      platform?: boolean;
-      isActive?: boolean;
-      createdAt?: boolean;
-      updatedAt?: boolean;
-      vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-    },
-    ExtArgs["result"]["telematicsDevice"]
-  >;
+  export type TelematicsDeviceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    instanceId?: boolean
+    deviceToken?: boolean
+    platform?: boolean
+    isActive?: boolean
+    lastSyncAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["telematicsDevice"]>
 
-  export type TelematicsDeviceSelectUpdateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetSelect<
-    {
-      id?: boolean;
-      vehicleId?: boolean;
-      instanceId?: boolean;
-      deviceToken?: boolean;
-      platform?: boolean;
-      isActive?: boolean;
-      createdAt?: boolean;
-      updatedAt?: boolean;
-      vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-    },
-    ExtArgs["result"]["telematicsDevice"]
-  >;
+  export type TelematicsDeviceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    instanceId?: boolean
+    deviceToken?: boolean
+    platform?: boolean
+    isActive?: boolean
+    lastSyncAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["telematicsDevice"]>
+
+  export type TelematicsDeviceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    instanceId?: boolean
+    deviceToken?: boolean
+    platform?: boolean
+    isActive?: boolean
+    lastSyncAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["telematicsDevice"]>
 
   export type TelematicsDeviceSelectScalar = {
-    id?: boolean;
-    vehicleId?: boolean;
-    instanceId?: boolean;
-    deviceToken?: boolean;
-    platform?: boolean;
-    isActive?: boolean;
-    createdAt?: boolean;
-    updatedAt?: boolean;
-  };
+    id?: boolean
+    vehicleId?: boolean
+    instanceId?: boolean
+    deviceToken?: boolean
+    platform?: boolean
+    isActive?: boolean
+    lastSyncAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
 
-  export type TelematicsDeviceOmit<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetOmit<
-    | "id"
-    | "vehicleId"
-    | "instanceId"
-    | "deviceToken"
-    | "platform"
-    | "isActive"
-    | "createdAt"
-    | "updatedAt",
-    ExtArgs["result"]["telematicsDevice"]
-  >;
-  export type TelematicsDeviceInclude<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-  };
-  export type TelematicsDeviceIncludeCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-  };
-  export type TelematicsDeviceIncludeUpdateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-  };
+  export type TelematicsDeviceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "instanceId" | "deviceToken" | "platform" | "isActive" | "lastSyncAt" | "createdAt" | "updatedAt", ExtArgs["result"]["telematicsDevice"]>
+  export type TelematicsDeviceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
+  export type TelematicsDeviceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
+  export type TelematicsDeviceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
 
   export type $TelematicsDevicePayload<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     name: "TelematicsDevice";
     objects: {
-      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>;
-    };
-    scalars: $Extensions.GetPayloadResult<
-      {
-        id: string;
-        vehicleId: string;
-        instanceId: string;
-        deviceToken: string | null;
-        platform: string | null;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-      },
-      ExtArgs["result"]["telematicsDevice"]
-    >;
-    composites: {};
-  };
+      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      vehicleId: string
+      instanceId: string
+      deviceToken: string | null
+      platform: string | null
+      isActive: boolean
+      lastSyncAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["telematicsDevice"]>
+    composites: {}
+  }
 
   type TelematicsDeviceGetPayload<
     S extends boolean | null | undefined | TelematicsDeviceDefaultArgs,
@@ -31776,14 +31809,15 @@ export namespace Prisma {
    * Fields of the TelematicsDevice model
    */
   interface TelematicsDeviceFieldRefs {
-    readonly id: FieldRef<"TelematicsDevice", "String">;
-    readonly vehicleId: FieldRef<"TelematicsDevice", "String">;
-    readonly instanceId: FieldRef<"TelematicsDevice", "String">;
-    readonly deviceToken: FieldRef<"TelematicsDevice", "String">;
-    readonly platform: FieldRef<"TelematicsDevice", "String">;
-    readonly isActive: FieldRef<"TelematicsDevice", "Boolean">;
-    readonly createdAt: FieldRef<"TelematicsDevice", "DateTime">;
-    readonly updatedAt: FieldRef<"TelematicsDevice", "DateTime">;
+    readonly id: FieldRef<"TelematicsDevice", 'String'>
+    readonly vehicleId: FieldRef<"TelematicsDevice", 'String'>
+    readonly instanceId: FieldRef<"TelematicsDevice", 'String'>
+    readonly deviceToken: FieldRef<"TelematicsDevice", 'String'>
+    readonly platform: FieldRef<"TelematicsDevice", 'String'>
+    readonly isActive: FieldRef<"TelematicsDevice", 'Boolean'>
+    readonly lastSyncAt: FieldRef<"TelematicsDevice", 'DateTime'>
+    readonly createdAt: FieldRef<"TelematicsDevice", 'DateTime'>
+    readonly updatedAt: FieldRef<"TelematicsDevice", 'DateTime'>
   }
 
   // Custom InputTypes
@@ -32561,29 +32595,26 @@ export namespace Prisma {
     ExtArgs["result"]["drivingTrip"]
   >;
 
-  export type DrivingTripSelectCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetSelect<
-    {
-      id?: boolean;
-      vehicleId?: boolean;
-      tripId?: boolean;
-      startTime?: boolean;
-      endTime?: boolean;
-      distanceKm?: boolean;
-      durationMin?: boolean;
-      maxSpeed?: boolean;
-      avgSpeed?: boolean;
-      fuelConsumed?: boolean;
-      safetyScore?: boolean;
-      startLocation?: boolean;
-      endLocation?: boolean;
-      status?: boolean;
-      createdAt?: boolean;
-      vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-    },
-    ExtArgs["result"]["drivingTrip"]
-  >;
+  export type DrivingTripSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    tripId?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    distanceKm?: boolean
+    durationMin?: boolean
+    maxSpeed?: boolean
+    avgSpeed?: boolean
+    fuelConsumed?: boolean
+    safetyScore?: boolean
+    startLocation?: boolean
+    endLocation?: boolean
+    status?: boolean
+    createdAt?: boolean
+    events?: boolean | DrivingTrip$eventsArgs<ExtArgs>
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    _count?: boolean | DrivingTripCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["drivingTrip"]>
 
   export type DrivingTripSelectUpdateManyAndReturn<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
@@ -32627,74 +32658,46 @@ export namespace Prisma {
     createdAt?: boolean;
   };
 
-  export type DrivingTripOmit<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = $Extensions.GetOmit<
-    | "id"
-    | "vehicleId"
-    | "tripId"
-    | "startTime"
-    | "endTime"
-    | "distanceKm"
-    | "durationMin"
-    | "maxSpeed"
-    | "avgSpeed"
-    | "fuelConsumed"
-    | "safetyScore"
-    | "startLocation"
-    | "endLocation"
-    | "status"
-    | "createdAt",
-    ExtArgs["result"]["drivingTrip"]
-  >;
-  export type DrivingTripInclude<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-    events?: boolean | DrivingTrip$eventsArgs<ExtArgs>;
-    _count?: boolean | DrivingTripCountOutputTypeDefaultArgs<ExtArgs>;
-  };
-  export type DrivingTripIncludeCreateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-  };
-  export type DrivingTripIncludeUpdateManyAndReturn<
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  > = {
-    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>;
-  };
+  export type DrivingTripOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "tripId" | "startTime" | "endTime" | "distanceKm" | "durationMin" | "maxSpeed" | "avgSpeed" | "fuelConsumed" | "safetyScore" | "startLocation" | "endLocation" | "status" | "createdAt", ExtArgs["result"]["drivingTrip"]>
+  export type DrivingTripInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    events?: boolean | DrivingTrip$eventsArgs<ExtArgs>
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    _count?: boolean | DrivingTripCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type DrivingTripIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
+  export type DrivingTripIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
 
   export type $DrivingTripPayload<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     name: "DrivingTrip";
     objects: {
-      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>;
-      events: Prisma.$DrivingEventPayload<ExtArgs>[];
-    };
-    scalars: $Extensions.GetPayloadResult<
-      {
-        id: string;
-        vehicleId: string;
-        tripId: string;
-        startTime: Date;
-        endTime: Date;
-        distanceKm: number;
-        durationMin: number;
-        maxSpeed: number | null;
-        avgSpeed: number | null;
-        fuelConsumed: number | null;
-        safetyScore: number;
-        startLocation: Prisma.JsonValue | null;
-        endLocation: Prisma.JsonValue | null;
-        status: string;
-        createdAt: Date;
-      },
-      ExtArgs["result"]["drivingTrip"]
-    >;
-    composites: {};
-  };
+      events: Prisma.$DrivingEventPayload<ExtArgs>[]
+      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      vehicleId: string
+      tripId: string
+      startTime: Date
+      endTime: Date
+      distanceKm: number
+      durationMin: number
+      maxSpeed: number | null
+      avgSpeed: number | null
+      fuelConsumed: number | null
+      safetyScore: number
+      startLocation: Prisma.JsonValue | null
+      endLocation: Prisma.JsonValue | null
+      status: string
+      createdAt: Date
+    }, ExtArgs["result"]["drivingTrip"]>
+    composites: {}
+  }
 
   type DrivingTripGetPayload<
     S extends boolean | null | undefined | DrivingTripDefaultArgs,
@@ -33233,38 +33236,10 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__DrivingTripClient<
-    T,
-    Null = never,
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-    GlobalOmitOptions = {},
-  > extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise";
-    vehicle<T extends CustomerVehicleDefaultArgs<ExtArgs> = {}>(
-      args?: Subset<T, CustomerVehicleDefaultArgs<ExtArgs>>,
-    ): Prisma__CustomerVehicleClient<
-      | $Result.GetResult<
-          Prisma.$CustomerVehiclePayload<ExtArgs>,
-          T,
-          "findUniqueOrThrow",
-          GlobalOmitOptions
-        >
-      | Null,
-      Null,
-      ExtArgs,
-      GlobalOmitOptions
-    >;
-    events<T extends DrivingTrip$eventsArgs<ExtArgs> = {}>(
-      args?: Subset<T, DrivingTrip$eventsArgs<ExtArgs>>,
-    ): Prisma.PrismaPromise<
-      | $Result.GetResult<
-          Prisma.$DrivingEventPayload<ExtArgs>,
-          T,
-          "findMany",
-          GlobalOmitOptions
-        >
-      | Null
-    >;
+  export interface Prisma__DrivingTripClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    events<T extends DrivingTrip$eventsArgs<ExtArgs> = {}>(args?: Subset<T, DrivingTrip$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DrivingEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    vehicle<T extends CustomerVehicleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicleDefaultArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -35222,6 +35197,2294 @@ export namespace Prisma {
   };
 
   /**
+   * Model SOSRequest
+   */
+
+  export type AggregateSOSRequest = {
+    _count: SOSRequestCountAggregateOutputType | null
+    _avg: SOSRequestAvgAggregateOutputType | null
+    _sum: SOSRequestSumAggregateOutputType | null
+    _min: SOSRequestMinAggregateOutputType | null
+    _max: SOSRequestMaxAggregateOutputType | null
+  }
+
+  export type SOSRequestAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type SOSRequestSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type SOSRequestMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    latitude: number | null
+    longitude: number | null
+    address: string | null
+    status: $Enums.SOSStatus | null
+    type: $Enums.SOSType | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type SOSRequestMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    latitude: number | null
+    longitude: number | null
+    address: string | null
+    status: $Enums.SOSStatus | null
+    type: $Enums.SOSType | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type SOSRequestCountAggregateOutputType = {
+    id: number
+    customerId: number
+    latitude: number
+    longitude: number
+    address: number
+    status: number
+    type: number
+    metadata: number
+    createdAt: number
+    resolvedAt: number
+    _all: number
+  }
+
+
+  export type SOSRequestAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type SOSRequestSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type SOSRequestMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    latitude?: true
+    longitude?: true
+    address?: true
+    status?: true
+    type?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type SOSRequestMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    latitude?: true
+    longitude?: true
+    address?: true
+    status?: true
+    type?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type SOSRequestCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    latitude?: true
+    longitude?: true
+    address?: true
+    status?: true
+    type?: true
+    metadata?: true
+    createdAt?: true
+    resolvedAt?: true
+    _all?: true
+  }
+
+  export type SOSRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SOSRequest to aggregate.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SOSRequests
+    **/
+    _count?: true | SOSRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SOSRequestAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SOSRequestSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SOSRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SOSRequestMaxAggregateInputType
+  }
+
+  export type GetSOSRequestAggregateType<T extends SOSRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregateSOSRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSOSRequest[P]>
+      : GetScalarType<T[P], AggregateSOSRequest[P]>
+  }
+
+
+
+
+  export type SOSRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SOSRequestWhereInput
+    orderBy?: SOSRequestOrderByWithAggregationInput | SOSRequestOrderByWithAggregationInput[]
+    by: SOSRequestScalarFieldEnum[] | SOSRequestScalarFieldEnum
+    having?: SOSRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SOSRequestCountAggregateInputType | true
+    _avg?: SOSRequestAvgAggregateInputType
+    _sum?: SOSRequestSumAggregateInputType
+    _min?: SOSRequestMinAggregateInputType
+    _max?: SOSRequestMaxAggregateInputType
+  }
+
+  export type SOSRequestGroupByOutputType = {
+    id: string
+    customerId: string
+    latitude: number
+    longitude: number
+    address: string | null
+    status: $Enums.SOSStatus
+    type: $Enums.SOSType
+    metadata: JsonValue | null
+    createdAt: Date
+    resolvedAt: Date | null
+    _count: SOSRequestCountAggregateOutputType | null
+    _avg: SOSRequestAvgAggregateOutputType | null
+    _sum: SOSRequestSumAggregateOutputType | null
+    _min: SOSRequestMinAggregateOutputType | null
+    _max: SOSRequestMaxAggregateOutputType | null
+  }
+
+  type GetSOSRequestGroupByPayload<T extends SOSRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SOSRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SOSRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SOSRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], SOSRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SOSRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sOSRequest"]>
+
+  export type SOSRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sOSRequest"]>
+
+  export type SOSRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sOSRequest"]>
+
+  export type SOSRequestSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    address?: boolean
+    status?: boolean
+    type?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+  }
+
+  export type SOSRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "latitude" | "longitude" | "address" | "status" | "type" | "metadata" | "createdAt" | "resolvedAt", ExtArgs["result"]["sOSRequest"]>
+  export type SOSRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type SOSRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type SOSRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $SOSRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SOSRequest"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      latitude: number
+      longitude: number
+      address: string | null
+      status: $Enums.SOSStatus
+      type: $Enums.SOSType
+      metadata: Prisma.JsonValue | null
+      createdAt: Date
+      resolvedAt: Date | null
+    }, ExtArgs["result"]["sOSRequest"]>
+    composites: {}
+  }
+
+  type SOSRequestGetPayload<S extends boolean | null | undefined | SOSRequestDefaultArgs> = $Result.GetResult<Prisma.$SOSRequestPayload, S>
+
+  type SOSRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SOSRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SOSRequestCountAggregateInputType | true
+    }
+
+  export interface SOSRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SOSRequest'], meta: { name: 'SOSRequest' } }
+    /**
+     * Find zero or one SOSRequest that matches the filter.
+     * @param {SOSRequestFindUniqueArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SOSRequestFindUniqueArgs>(args: SelectSubset<T, SOSRequestFindUniqueArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SOSRequest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SOSRequestFindUniqueOrThrowArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SOSRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, SOSRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SOSRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestFindFirstArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SOSRequestFindFirstArgs>(args?: SelectSubset<T, SOSRequestFindFirstArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SOSRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestFindFirstOrThrowArgs} args - Arguments to find a SOSRequest
+     * @example
+     * // Get one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SOSRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, SOSRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SOSRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SOSRequests
+     * const sOSRequests = await prisma.sOSRequest.findMany()
+     * 
+     * // Get first 10 SOSRequests
+     * const sOSRequests = await prisma.sOSRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const sOSRequestWithIdOnly = await prisma.sOSRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SOSRequestFindManyArgs>(args?: SelectSubset<T, SOSRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SOSRequest.
+     * @param {SOSRequestCreateArgs} args - Arguments to create a SOSRequest.
+     * @example
+     * // Create one SOSRequest
+     * const SOSRequest = await prisma.sOSRequest.create({
+     *   data: {
+     *     // ... data to create a SOSRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends SOSRequestCreateArgs>(args: SelectSubset<T, SOSRequestCreateArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SOSRequests.
+     * @param {SOSRequestCreateManyArgs} args - Arguments to create many SOSRequests.
+     * @example
+     * // Create many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SOSRequestCreateManyArgs>(args?: SelectSubset<T, SOSRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SOSRequests and returns the data saved in the database.
+     * @param {SOSRequestCreateManyAndReturnArgs} args - Arguments to create many SOSRequests.
+     * @example
+     * // Create many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SOSRequests and only return the `id`
+     * const sOSRequestWithIdOnly = await prisma.sOSRequest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SOSRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, SOSRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SOSRequest.
+     * @param {SOSRequestDeleteArgs} args - Arguments to delete one SOSRequest.
+     * @example
+     * // Delete one SOSRequest
+     * const SOSRequest = await prisma.sOSRequest.delete({
+     *   where: {
+     *     // ... filter to delete one SOSRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SOSRequestDeleteArgs>(args: SelectSubset<T, SOSRequestDeleteArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SOSRequest.
+     * @param {SOSRequestUpdateArgs} args - Arguments to update one SOSRequest.
+     * @example
+     * // Update one SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SOSRequestUpdateArgs>(args: SelectSubset<T, SOSRequestUpdateArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SOSRequests.
+     * @param {SOSRequestDeleteManyArgs} args - Arguments to filter SOSRequests to delete.
+     * @example
+     * // Delete a few SOSRequests
+     * const { count } = await prisma.sOSRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SOSRequestDeleteManyArgs>(args?: SelectSubset<T, SOSRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SOSRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SOSRequestUpdateManyArgs>(args: SelectSubset<T, SOSRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SOSRequests and returns the data updated in the database.
+     * @param {SOSRequestUpdateManyAndReturnArgs} args - Arguments to update many SOSRequests.
+     * @example
+     * // Update many SOSRequests
+     * const sOSRequest = await prisma.sOSRequest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SOSRequests and only return the `id`
+     * const sOSRequestWithIdOnly = await prisma.sOSRequest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SOSRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, SOSRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SOSRequest.
+     * @param {SOSRequestUpsertArgs} args - Arguments to update or create a SOSRequest.
+     * @example
+     * // Update or create a SOSRequest
+     * const sOSRequest = await prisma.sOSRequest.upsert({
+     *   create: {
+     *     // ... data to create a SOSRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SOSRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SOSRequestUpsertArgs>(args: SelectSubset<T, SOSRequestUpsertArgs<ExtArgs>>): Prisma__SOSRequestClient<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SOSRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestCountArgs} args - Arguments to filter SOSRequests to count.
+     * @example
+     * // Count the number of SOSRequests
+     * const count = await prisma.sOSRequest.count({
+     *   where: {
+     *     // ... the filter for the SOSRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends SOSRequestCountArgs>(
+      args?: Subset<T, SOSRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SOSRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SOSRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SOSRequestAggregateArgs>(args: Subset<T, SOSRequestAggregateArgs>): Prisma.PrismaPromise<GetSOSRequestAggregateType<T>>
+
+    /**
+     * Group by SOSRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SOSRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SOSRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SOSRequestGroupByArgs['orderBy'] }
+        : { orderBy?: SOSRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SOSRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSOSRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SOSRequest model
+   */
+  readonly fields: SOSRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SOSRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SOSRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SOSRequest model
+   */
+  interface SOSRequestFieldRefs {
+    readonly id: FieldRef<"SOSRequest", 'String'>
+    readonly customerId: FieldRef<"SOSRequest", 'String'>
+    readonly latitude: FieldRef<"SOSRequest", 'Float'>
+    readonly longitude: FieldRef<"SOSRequest", 'Float'>
+    readonly address: FieldRef<"SOSRequest", 'String'>
+    readonly status: FieldRef<"SOSRequest", 'SOSStatus'>
+    readonly type: FieldRef<"SOSRequest", 'SOSType'>
+    readonly metadata: FieldRef<"SOSRequest", 'Json'>
+    readonly createdAt: FieldRef<"SOSRequest", 'DateTime'>
+    readonly resolvedAt: FieldRef<"SOSRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SOSRequest findUnique
+   */
+  export type SOSRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest findUniqueOrThrow
+   */
+  export type SOSRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest findFirst
+   */
+  export type SOSRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SOSRequests.
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SOSRequests.
+     */
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * SOSRequest findFirstOrThrow
+   */
+  export type SOSRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequest to fetch.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SOSRequests.
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SOSRequests.
+     */
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * SOSRequest findMany
+   */
+  export type SOSRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which SOSRequests to fetch.
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SOSRequests to fetch.
+     */
+    orderBy?: SOSRequestOrderByWithRelationInput | SOSRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SOSRequests.
+     */
+    cursor?: SOSRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SOSRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SOSRequests.
+     */
+    skip?: number
+    distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
+  }
+
+  /**
+   * SOSRequest create
+   */
+  export type SOSRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SOSRequest.
+     */
+    data: XOR<SOSRequestCreateInput, SOSRequestUncheckedCreateInput>
+  }
+
+  /**
+   * SOSRequest createMany
+   */
+  export type SOSRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SOSRequests.
+     */
+    data: SOSRequestCreateManyInput | SOSRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SOSRequest createManyAndReturn
+   */
+  export type SOSRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * The data used to create many SOSRequests.
+     */
+    data: SOSRequestCreateManyInput | SOSRequestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SOSRequest update
+   */
+  export type SOSRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SOSRequest.
+     */
+    data: XOR<SOSRequestUpdateInput, SOSRequestUncheckedUpdateInput>
+    /**
+     * Choose, which SOSRequest to update.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest updateMany
+   */
+  export type SOSRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SOSRequests.
+     */
+    data: XOR<SOSRequestUpdateManyMutationInput, SOSRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which SOSRequests to update
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * Limit how many SOSRequests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SOSRequest updateManyAndReturn
+   */
+  export type SOSRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * The data used to update SOSRequests.
+     */
+    data: XOR<SOSRequestUpdateManyMutationInput, SOSRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which SOSRequests to update
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * Limit how many SOSRequests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SOSRequest upsert
+   */
+  export type SOSRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SOSRequest to update in case it exists.
+     */
+    where: SOSRequestWhereUniqueInput
+    /**
+     * In case the SOSRequest found by the `where` argument doesn't exist, create a new SOSRequest with this data.
+     */
+    create: XOR<SOSRequestCreateInput, SOSRequestUncheckedCreateInput>
+    /**
+     * In case the SOSRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SOSRequestUpdateInput, SOSRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * SOSRequest delete
+   */
+  export type SOSRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+    /**
+     * Filter which SOSRequest to delete.
+     */
+    where: SOSRequestWhereUniqueInput
+  }
+
+  /**
+   * SOSRequest deleteMany
+   */
+  export type SOSRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SOSRequests to delete
+     */
+    where?: SOSRequestWhereInput
+    /**
+     * Limit how many SOSRequests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SOSRequest without action
+   */
+  export type SOSRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SOSRequest
+     */
+    select?: SOSRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SOSRequest
+     */
+    omit?: SOSRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SOSRequestInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EmergencyContact
+   */
+
+  export type AggregateEmergencyContact = {
+    _count: EmergencyContactCountAggregateOutputType | null
+    _avg: EmergencyContactAvgAggregateOutputType | null
+    _sum: EmergencyContactSumAggregateOutputType | null
+    _min: EmergencyContactMinAggregateOutputType | null
+    _max: EmergencyContactMaxAggregateOutputType | null
+  }
+
+  export type EmergencyContactAvgAggregateOutputType = {
+    priority: number | null
+  }
+
+  export type EmergencyContactSumAggregateOutputType = {
+    priority: number | null
+  }
+
+  export type EmergencyContactMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    relation: string | null
+    priority: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmergencyContactMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    relation: string | null
+    priority: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmergencyContactCountAggregateOutputType = {
+    id: number
+    customerId: number
+    name: number
+    phoneNumber: number
+    relation: number
+    priority: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EmergencyContactAvgAggregateInputType = {
+    priority?: true
+  }
+
+  export type EmergencyContactSumAggregateInputType = {
+    priority?: true
+  }
+
+  export type EmergencyContactMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    name?: true
+    phoneNumber?: true
+    relation?: true
+    priority?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmergencyContactMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    name?: true
+    phoneNumber?: true
+    relation?: true
+    priority?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmergencyContactCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    name?: true
+    phoneNumber?: true
+    relation?: true
+    priority?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EmergencyContactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmergencyContact to aggregate.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmergencyContacts
+    **/
+    _count?: true | EmergencyContactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EmergencyContactAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EmergencyContactSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmergencyContactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmergencyContactMaxAggregateInputType
+  }
+
+  export type GetEmergencyContactAggregateType<T extends EmergencyContactAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmergencyContact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmergencyContact[P]>
+      : GetScalarType<T[P], AggregateEmergencyContact[P]>
+  }
+
+
+
+
+  export type EmergencyContactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmergencyContactWhereInput
+    orderBy?: EmergencyContactOrderByWithAggregationInput | EmergencyContactOrderByWithAggregationInput[]
+    by: EmergencyContactScalarFieldEnum[] | EmergencyContactScalarFieldEnum
+    having?: EmergencyContactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmergencyContactCountAggregateInputType | true
+    _avg?: EmergencyContactAvgAggregateInputType
+    _sum?: EmergencyContactSumAggregateInputType
+    _min?: EmergencyContactMinAggregateInputType
+    _max?: EmergencyContactMaxAggregateInputType
+  }
+
+  export type EmergencyContactGroupByOutputType = {
+    id: string
+    customerId: string
+    name: string
+    phoneNumber: string
+    relation: string | null
+    priority: number
+    createdAt: Date
+    updatedAt: Date
+    _count: EmergencyContactCountAggregateOutputType | null
+    _avg: EmergencyContactAvgAggregateOutputType | null
+    _sum: EmergencyContactSumAggregateOutputType | null
+    _min: EmergencyContactMinAggregateOutputType | null
+    _max: EmergencyContactMaxAggregateOutputType | null
+  }
+
+  type GetEmergencyContactGroupByPayload<T extends EmergencyContactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EmergencyContactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmergencyContactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmergencyContactGroupByOutputType[P]>
+            : GetScalarType<T[P], EmergencyContactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmergencyContactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["emergencyContact"]>
+
+  export type EmergencyContactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["emergencyContact"]>
+
+  export type EmergencyContactSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["emergencyContact"]>
+
+  export type EmergencyContactSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    relation?: boolean
+    priority?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EmergencyContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "name" | "phoneNumber" | "relation" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["emergencyContact"]>
+  export type EmergencyContactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type EmergencyContactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type EmergencyContactIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $EmergencyContactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EmergencyContact"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      name: string
+      phoneNumber: string
+      relation: string | null
+      priority: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["emergencyContact"]>
+    composites: {}
+  }
+
+  type EmergencyContactGetPayload<S extends boolean | null | undefined | EmergencyContactDefaultArgs> = $Result.GetResult<Prisma.$EmergencyContactPayload, S>
+
+  type EmergencyContactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EmergencyContactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EmergencyContactCountAggregateInputType | true
+    }
+
+  export interface EmergencyContactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EmergencyContact'], meta: { name: 'EmergencyContact' } }
+    /**
+     * Find zero or one EmergencyContact that matches the filter.
+     * @param {EmergencyContactFindUniqueArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmergencyContactFindUniqueArgs>(args: SelectSubset<T, EmergencyContactFindUniqueArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EmergencyContact that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EmergencyContactFindUniqueOrThrowArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmergencyContactFindUniqueOrThrowArgs>(args: SelectSubset<T, EmergencyContactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmergencyContact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactFindFirstArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmergencyContactFindFirstArgs>(args?: SelectSubset<T, EmergencyContactFindFirstArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmergencyContact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactFindFirstOrThrowArgs} args - Arguments to find a EmergencyContact
+     * @example
+     * // Get one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmergencyContactFindFirstOrThrowArgs>(args?: SelectSubset<T, EmergencyContactFindFirstOrThrowArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EmergencyContacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmergencyContacts
+     * const emergencyContacts = await prisma.emergencyContact.findMany()
+     * 
+     * // Get first 10 EmergencyContacts
+     * const emergencyContacts = await prisma.emergencyContact.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const emergencyContactWithIdOnly = await prisma.emergencyContact.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EmergencyContactFindManyArgs>(args?: SelectSubset<T, EmergencyContactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EmergencyContact.
+     * @param {EmergencyContactCreateArgs} args - Arguments to create a EmergencyContact.
+     * @example
+     * // Create one EmergencyContact
+     * const EmergencyContact = await prisma.emergencyContact.create({
+     *   data: {
+     *     // ... data to create a EmergencyContact
+     *   }
+     * })
+     * 
+     */
+    create<T extends EmergencyContactCreateArgs>(args: SelectSubset<T, EmergencyContactCreateArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EmergencyContacts.
+     * @param {EmergencyContactCreateManyArgs} args - Arguments to create many EmergencyContacts.
+     * @example
+     * // Create many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EmergencyContactCreateManyArgs>(args?: SelectSubset<T, EmergencyContactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EmergencyContacts and returns the data saved in the database.
+     * @param {EmergencyContactCreateManyAndReturnArgs} args - Arguments to create many EmergencyContacts.
+     * @example
+     * // Create many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EmergencyContacts and only return the `id`
+     * const emergencyContactWithIdOnly = await prisma.emergencyContact.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EmergencyContactCreateManyAndReturnArgs>(args?: SelectSubset<T, EmergencyContactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EmergencyContact.
+     * @param {EmergencyContactDeleteArgs} args - Arguments to delete one EmergencyContact.
+     * @example
+     * // Delete one EmergencyContact
+     * const EmergencyContact = await prisma.emergencyContact.delete({
+     *   where: {
+     *     // ... filter to delete one EmergencyContact
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EmergencyContactDeleteArgs>(args: SelectSubset<T, EmergencyContactDeleteArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EmergencyContact.
+     * @param {EmergencyContactUpdateArgs} args - Arguments to update one EmergencyContact.
+     * @example
+     * // Update one EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EmergencyContactUpdateArgs>(args: SelectSubset<T, EmergencyContactUpdateArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EmergencyContacts.
+     * @param {EmergencyContactDeleteManyArgs} args - Arguments to filter EmergencyContacts to delete.
+     * @example
+     * // Delete a few EmergencyContacts
+     * const { count } = await prisma.emergencyContact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EmergencyContactDeleteManyArgs>(args?: SelectSubset<T, EmergencyContactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmergencyContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EmergencyContactUpdateManyArgs>(args: SelectSubset<T, EmergencyContactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmergencyContacts and returns the data updated in the database.
+     * @param {EmergencyContactUpdateManyAndReturnArgs} args - Arguments to update many EmergencyContacts.
+     * @example
+     * // Update many EmergencyContacts
+     * const emergencyContact = await prisma.emergencyContact.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EmergencyContacts and only return the `id`
+     * const emergencyContactWithIdOnly = await prisma.emergencyContact.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EmergencyContactUpdateManyAndReturnArgs>(args: SelectSubset<T, EmergencyContactUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EmergencyContact.
+     * @param {EmergencyContactUpsertArgs} args - Arguments to update or create a EmergencyContact.
+     * @example
+     * // Update or create a EmergencyContact
+     * const emergencyContact = await prisma.emergencyContact.upsert({
+     *   create: {
+     *     // ... data to create a EmergencyContact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmergencyContact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmergencyContactUpsertArgs>(args: SelectSubset<T, EmergencyContactUpsertArgs<ExtArgs>>): Prisma__EmergencyContactClient<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EmergencyContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactCountArgs} args - Arguments to filter EmergencyContacts to count.
+     * @example
+     * // Count the number of EmergencyContacts
+     * const count = await prisma.emergencyContact.count({
+     *   where: {
+     *     // ... the filter for the EmergencyContacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmergencyContactCountArgs>(
+      args?: Subset<T, EmergencyContactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmergencyContactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmergencyContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmergencyContactAggregateArgs>(args: Subset<T, EmergencyContactAggregateArgs>): Prisma.PrismaPromise<GetEmergencyContactAggregateType<T>>
+
+    /**
+     * Group by EmergencyContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmergencyContactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmergencyContactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmergencyContactGroupByArgs['orderBy'] }
+        : { orderBy?: EmergencyContactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmergencyContactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmergencyContactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EmergencyContact model
+   */
+  readonly fields: EmergencyContactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmergencyContact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmergencyContactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EmergencyContact model
+   */
+  interface EmergencyContactFieldRefs {
+    readonly id: FieldRef<"EmergencyContact", 'String'>
+    readonly customerId: FieldRef<"EmergencyContact", 'String'>
+    readonly name: FieldRef<"EmergencyContact", 'String'>
+    readonly phoneNumber: FieldRef<"EmergencyContact", 'String'>
+    readonly relation: FieldRef<"EmergencyContact", 'String'>
+    readonly priority: FieldRef<"EmergencyContact", 'Int'>
+    readonly createdAt: FieldRef<"EmergencyContact", 'DateTime'>
+    readonly updatedAt: FieldRef<"EmergencyContact", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EmergencyContact findUnique
+   */
+  export type EmergencyContactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact findUniqueOrThrow
+   */
+  export type EmergencyContactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact findFirst
+   */
+  export type EmergencyContactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmergencyContacts.
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmergencyContacts.
+     */
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
+   * EmergencyContact findFirstOrThrow
+   */
+  export type EmergencyContactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContact to fetch.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmergencyContacts.
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmergencyContacts.
+     */
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
+   * EmergencyContact findMany
+   */
+  export type EmergencyContactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter, which EmergencyContacts to fetch.
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmergencyContacts to fetch.
+     */
+    orderBy?: EmergencyContactOrderByWithRelationInput | EmergencyContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmergencyContacts.
+     */
+    cursor?: EmergencyContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmergencyContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmergencyContacts.
+     */
+    skip?: number
+    distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
+  }
+
+  /**
+   * EmergencyContact create
+   */
+  export type EmergencyContactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EmergencyContact.
+     */
+    data: XOR<EmergencyContactCreateInput, EmergencyContactUncheckedCreateInput>
+  }
+
+  /**
+   * EmergencyContact createMany
+   */
+  export type EmergencyContactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EmergencyContacts.
+     */
+    data: EmergencyContactCreateManyInput | EmergencyContactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmergencyContact createManyAndReturn
+   */
+  export type EmergencyContactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * The data used to create many EmergencyContacts.
+     */
+    data: EmergencyContactCreateManyInput | EmergencyContactCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EmergencyContact update
+   */
+  export type EmergencyContactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EmergencyContact.
+     */
+    data: XOR<EmergencyContactUpdateInput, EmergencyContactUncheckedUpdateInput>
+    /**
+     * Choose, which EmergencyContact to update.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact updateMany
+   */
+  export type EmergencyContactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EmergencyContacts.
+     */
+    data: XOR<EmergencyContactUpdateManyMutationInput, EmergencyContactUncheckedUpdateManyInput>
+    /**
+     * Filter which EmergencyContacts to update
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * Limit how many EmergencyContacts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmergencyContact updateManyAndReturn
+   */
+  export type EmergencyContactUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * The data used to update EmergencyContacts.
+     */
+    data: XOR<EmergencyContactUpdateManyMutationInput, EmergencyContactUncheckedUpdateManyInput>
+    /**
+     * Filter which EmergencyContacts to update
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * Limit how many EmergencyContacts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EmergencyContact upsert
+   */
+  export type EmergencyContactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EmergencyContact to update in case it exists.
+     */
+    where: EmergencyContactWhereUniqueInput
+    /**
+     * In case the EmergencyContact found by the `where` argument doesn't exist, create a new EmergencyContact with this data.
+     */
+    create: XOR<EmergencyContactCreateInput, EmergencyContactUncheckedCreateInput>
+    /**
+     * In case the EmergencyContact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmergencyContactUpdateInput, EmergencyContactUncheckedUpdateInput>
+  }
+
+  /**
+   * EmergencyContact delete
+   */
+  export type EmergencyContactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+    /**
+     * Filter which EmergencyContact to delete.
+     */
+    where: EmergencyContactWhereUniqueInput
+  }
+
+  /**
+   * EmergencyContact deleteMany
+   */
+  export type EmergencyContactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmergencyContacts to delete
+     */
+    where?: EmergencyContactWhereInput
+    /**
+     * Limit how many EmergencyContacts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmergencyContact without action
+   */
+  export type EmergencyContactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmergencyContact
+     */
+    select?: EmergencyContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmergencyContact
+     */
+    omit?: EmergencyContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmergencyContactInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -35318,24 +37581,24 @@ export namespace Prisma {
     (typeof DigiLockerConnectionScalarFieldEnum)[keyof typeof DigiLockerConnectionScalarFieldEnum];
 
   export const CustomerVehicleScalarFieldEnum: {
-    id: "id";
-    customerId: "customerId";
-    registrationNumber: "registrationNumber";
-    make: "make";
-    model: "model";
-    variant: "variant";
-    year: "year";
-    fuelType: "fuelType";
-    vehicleType: "vehicleType";
-    engineNumber: "engineNumber";
-    chassisNumber: "chassisNumber";
-    currentOdometer: "currentOdometer";
-    registrationDate: "registrationDate";
-    rcVerified: "rcVerified";
-    isActive: "isActive";
-    isPrimary: "isPrimary";
-    createdAt: "createdAt";
-    updatedAt: "updatedAt";
+    id: 'id',
+    customerId: 'customerId',
+    registrationNumber: 'registrationNumber',
+    make: 'make',
+    model: 'model',
+    variant: 'variant',
+    year: 'year',
+    fuelType: 'fuelType',
+    vehicleType: 'vehicleType',
+    currentOdometer: 'currentOdometer',
+    registrationDate: 'registrationDate',
+    rcVerified: 'rcVerified',
+    isActive: 'isActive',
+    isPrimary: 'isPrimary',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    chassisNumber: 'chassisNumber',
+    engineNumber: 'engineNumber'
   };
 
   export type CustomerVehicleScalarFieldEnum =
@@ -35543,14 +37806,15 @@ export namespace Prisma {
     (typeof ServicePartScalarFieldEnum)[keyof typeof ServicePartScalarFieldEnum];
 
   export const TelematicsDeviceScalarFieldEnum: {
-    id: "id";
-    vehicleId: "vehicleId";
-    instanceId: "instanceId";
-    deviceToken: "deviceToken";
-    platform: "platform";
-    isActive: "isActive";
-    createdAt: "createdAt";
-    updatedAt: "updatedAt";
+    id: 'id',
+    vehicleId: 'vehicleId',
+    instanceId: 'instanceId',
+    deviceToken: 'deviceToken',
+    platform: 'platform',
+    isActive: 'isActive',
+    lastSyncAt: 'lastSyncAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type TelematicsDeviceScalarFieldEnum =
@@ -35591,6 +37855,36 @@ export namespace Prisma {
 
   export type DrivingEventScalarFieldEnum =
     (typeof DrivingEventScalarFieldEnum)[keyof typeof DrivingEventScalarFieldEnum];
+
+  export const SOSRequestScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    latitude: 'latitude',
+    longitude: 'longitude',
+    address: 'address',
+    status: 'status',
+    type: 'type',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    resolvedAt: 'resolvedAt'
+  };
+
+  export type SOSRequestScalarFieldEnum = (typeof SOSRequestScalarFieldEnum)[keyof typeof SOSRequestScalarFieldEnum]
+
+
+  export const EmergencyContactScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    name: 'name',
+    phoneNumber: 'phoneNumber',
+    relation: 'relation',
+    priority: 'priority',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EmergencyContactScalarFieldEnum = (typeof EmergencyContactScalarFieldEnum)[keyof typeof EmergencyContactScalarFieldEnum]
+
 
   export const SortOrder: {
     asc: "asc";
@@ -35825,9 +38119,36 @@ export namespace Prisma {
   /**
    * Reference to a field of type 'ServicePartType[]'
    */
-  export type ListEnumServicePartTypeFieldRefInput<$PrismaModel> =
-    FieldRefInputType<$PrismaModel, "ServicePartType[]">;
+  export type ListEnumServicePartTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ServicePartType[]'>
+    
 
+
+  /**
+   * Reference to a field of type 'SOSStatus'
+   */
+  export type EnumSOSStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SOSStatus[]'
+   */
+  export type ListEnumSOSStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'SOSType'
+   */
+  export type EnumSOSTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSType'>
+    
+
+
+  /**
+   * Reference to a field of type 'SOSType[]'
+   */
+  export type ListEnumSOSTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SOSType[]'>
+    
   /**
    * Deep Input Types
    */
@@ -35892,76 +38213,73 @@ export namespace Prisma {
   };
 
   export type CustomerWhereInput = {
-    AND?: CustomerWhereInput | CustomerWhereInput[];
-    OR?: CustomerWhereInput[];
-    NOT?: CustomerWhereInput | CustomerWhereInput[];
-    id?: StringFilter<"Customer"> | string;
-    phoneNumber?: StringFilter<"Customer"> | string;
-    email?: StringNullableFilter<"Customer"> | string | null;
-    fullName?: StringNullableFilter<"Customer"> | string | null;
-    profilePic?: StringNullableFilter<"Customer"> | string | null;
-    createdAt?: DateTimeFilter<"Customer"> | Date | string;
-    updatedAt?: DateTimeFilter<"Customer"> | Date | string;
-    devices?: CustomerDeviceListRelationFilter;
-    documents?: CustomerDocumentListRelationFilter;
-    vehicles?: CustomerVehicleListRelationFilter;
-    digilocker?: XOR<
-      DigiLockerConnectionNullableScalarRelationFilter,
-      DigiLockerConnectionWhereInput
-    > | null;
-    expenses?: ExpenseListRelationFilter;
-    budgets?: ExpenseBudgetListRelationFilter;
-    notifications?: InAppNotificationListRelationFilter;
-    sharedVehicles?: VehicleAccessListRelationFilter;
-    chats?: ChatSessionListRelationFilter;
-  };
+    AND?: CustomerWhereInput | CustomerWhereInput[]
+    OR?: CustomerWhereInput[]
+    NOT?: CustomerWhereInput | CustomerWhereInput[]
+    id?: StringFilter<"Customer"> | string
+    phoneNumber?: StringFilter<"Customer"> | string
+    email?: StringNullableFilter<"Customer"> | string | null
+    fullName?: StringNullableFilter<"Customer"> | string | null
+    profilePic?: StringNullableFilter<"Customer"> | string | null
+    createdAt?: DateTimeFilter<"Customer"> | Date | string
+    updatedAt?: DateTimeFilter<"Customer"> | Date | string
+    chats?: ChatSessionListRelationFilter
+    devices?: CustomerDeviceListRelationFilter
+    documents?: CustomerDocumentListRelationFilter
+    vehicles?: CustomerVehicleListRelationFilter
+    digilocker?: XOR<DigiLockerConnectionNullableScalarRelationFilter, DigiLockerConnectionWhereInput> | null
+    emergencyContacts?: EmergencyContactListRelationFilter
+    expenses?: ExpenseListRelationFilter
+    budgets?: ExpenseBudgetListRelationFilter
+    notifications?: InAppNotificationListRelationFilter
+    sosRequests?: SOSRequestListRelationFilter
+    sharedVehicles?: VehicleAccessListRelationFilter
+  }
 
   export type CustomerOrderByWithRelationInput = {
-    id?: SortOrder;
-    phoneNumber?: SortOrder;
-    email?: SortOrderInput | SortOrder;
-    fullName?: SortOrderInput | SortOrder;
-    profilePic?: SortOrderInput | SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-    devices?: CustomerDeviceOrderByRelationAggregateInput;
-    documents?: CustomerDocumentOrderByRelationAggregateInput;
-    vehicles?: CustomerVehicleOrderByRelationAggregateInput;
-    digilocker?: DigiLockerConnectionOrderByWithRelationInput;
-    expenses?: ExpenseOrderByRelationAggregateInput;
-    budgets?: ExpenseBudgetOrderByRelationAggregateInput;
-    notifications?: InAppNotificationOrderByRelationAggregateInput;
-    sharedVehicles?: VehicleAccessOrderByRelationAggregateInput;
-    chats?: ChatSessionOrderByRelationAggregateInput;
-  };
+    id?: SortOrder
+    phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
+    fullName?: SortOrderInput | SortOrder
+    profilePic?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    chats?: ChatSessionOrderByRelationAggregateInput
+    devices?: CustomerDeviceOrderByRelationAggregateInput
+    documents?: CustomerDocumentOrderByRelationAggregateInput
+    vehicles?: CustomerVehicleOrderByRelationAggregateInput
+    digilocker?: DigiLockerConnectionOrderByWithRelationInput
+    emergencyContacts?: EmergencyContactOrderByRelationAggregateInput
+    expenses?: ExpenseOrderByRelationAggregateInput
+    budgets?: ExpenseBudgetOrderByRelationAggregateInput
+    notifications?: InAppNotificationOrderByRelationAggregateInput
+    sosRequests?: SOSRequestOrderByRelationAggregateInput
+    sharedVehicles?: VehicleAccessOrderByRelationAggregateInput
+  }
 
-  export type CustomerWhereUniqueInput = Prisma.AtLeast<
-    {
-      id?: string;
-      phoneNumber?: string;
-      AND?: CustomerWhereInput | CustomerWhereInput[];
-      OR?: CustomerWhereInput[];
-      NOT?: CustomerWhereInput | CustomerWhereInput[];
-      email?: StringNullableFilter<"Customer"> | string | null;
-      fullName?: StringNullableFilter<"Customer"> | string | null;
-      profilePic?: StringNullableFilter<"Customer"> | string | null;
-      createdAt?: DateTimeFilter<"Customer"> | Date | string;
-      updatedAt?: DateTimeFilter<"Customer"> | Date | string;
-      devices?: CustomerDeviceListRelationFilter;
-      documents?: CustomerDocumentListRelationFilter;
-      vehicles?: CustomerVehicleListRelationFilter;
-      digilocker?: XOR<
-        DigiLockerConnectionNullableScalarRelationFilter,
-        DigiLockerConnectionWhereInput
-      > | null;
-      expenses?: ExpenseListRelationFilter;
-      budgets?: ExpenseBudgetListRelationFilter;
-      notifications?: InAppNotificationListRelationFilter;
-      sharedVehicles?: VehicleAccessListRelationFilter;
-      chats?: ChatSessionListRelationFilter;
-    },
-    "id" | "phoneNumber"
-  >;
+  export type CustomerWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneNumber?: string
+    AND?: CustomerWhereInput | CustomerWhereInput[]
+    OR?: CustomerWhereInput[]
+    NOT?: CustomerWhereInput | CustomerWhereInput[]
+    email?: StringNullableFilter<"Customer"> | string | null
+    fullName?: StringNullableFilter<"Customer"> | string | null
+    profilePic?: StringNullableFilter<"Customer"> | string | null
+    createdAt?: DateTimeFilter<"Customer"> | Date | string
+    updatedAt?: DateTimeFilter<"Customer"> | Date | string
+    chats?: ChatSessionListRelationFilter
+    devices?: CustomerDeviceListRelationFilter
+    documents?: CustomerDocumentListRelationFilter
+    vehicles?: CustomerVehicleListRelationFilter
+    digilocker?: XOR<DigiLockerConnectionNullableScalarRelationFilter, DigiLockerConnectionWhereInput> | null
+    emergencyContacts?: EmergencyContactListRelationFilter
+    expenses?: ExpenseListRelationFilter
+    budgets?: ExpenseBudgetListRelationFilter
+    notifications?: InAppNotificationListRelationFilter
+    sosRequests?: SOSRequestListRelationFilter
+    sharedVehicles?: VehicleAccessListRelationFilter
+  }, "id" | "phoneNumber">
 
   export type CustomerOrderByWithAggregationInput = {
     id?: SortOrder;
@@ -36447,208 +38765,153 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleWhereInput = {
-    AND?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[];
-    OR?: CustomerVehicleWhereInput[];
-    NOT?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[];
-    id?: StringFilter<"CustomerVehicle"> | string;
-    customerId?: StringFilter<"CustomerVehicle"> | string;
-    registrationNumber?: StringFilter<"CustomerVehicle"> | string;
-    make?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    model?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    variant?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    year?: IntNullableFilter<"CustomerVehicle"> | number | null;
-    fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null;
-    registrationDate?:
-      | DateTimeNullableFilter<"CustomerVehicle">
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFilter<"CustomerVehicle"> | boolean;
-    isActive?: BoolFilter<"CustomerVehicle"> | boolean;
-    isPrimary?: BoolFilter<"CustomerVehicle"> | boolean;
-    createdAt?: DateTimeFilter<"CustomerVehicle"> | Date | string;
-    updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string;
-    challans?: ChallanListRelationFilter;
-    documents?: CustomerDocumentListRelationFilter;
-    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>;
-    expenses?: ExpenseListRelationFilter;
-    odometerLogs?: OdometerLogListRelationFilter;
-    serviceRecords?: ServiceRecordListRelationFilter;
-    accessList?: VehicleAccessListRelationFilter;
-    healthScore?: XOR<
-      VehicleHealthScoreNullableScalarRelationFilter,
-      VehicleHealthScoreWhereInput
-    > | null;
-    telematicsDevice?: XOR<
-      TelematicsDeviceNullableScalarRelationFilter,
-      TelematicsDeviceWhereInput
-    > | null;
-    drivingTrips?: DrivingTripListRelationFilter;
-  };
+    AND?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[]
+    OR?: CustomerVehicleWhereInput[]
+    NOT?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[]
+    id?: StringFilter<"CustomerVehicle"> | string
+    customerId?: StringFilter<"CustomerVehicle"> | string
+    registrationNumber?: StringFilter<"CustomerVehicle"> | string
+    make?: StringNullableFilter<"CustomerVehicle"> | string | null
+    model?: StringNullableFilter<"CustomerVehicle"> | string | null
+    variant?: StringNullableFilter<"CustomerVehicle"> | string | null
+    year?: IntNullableFilter<"CustomerVehicle"> | number | null
+    fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null
+    registrationDate?: DateTimeNullableFilter<"CustomerVehicle"> | Date | string | null
+    rcVerified?: BoolFilter<"CustomerVehicle"> | boolean
+    isActive?: BoolFilter<"CustomerVehicle"> | boolean
+    isPrimary?: BoolFilter<"CustomerVehicle"> | boolean
+    createdAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
+    chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    challans?: ChallanListRelationFilter
+    documents?: CustomerDocumentListRelationFilter
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    drivingTrips?: DrivingTripListRelationFilter
+    expenses?: ExpenseListRelationFilter
+    odometerLogs?: OdometerLogListRelationFilter
+    serviceRecords?: ServiceRecordListRelationFilter
+    telematicsDevice?: XOR<TelematicsDeviceNullableScalarRelationFilter, TelematicsDeviceWhereInput> | null
+    accessList?: VehicleAccessListRelationFilter
+    healthScore?: XOR<VehicleHealthScoreNullableScalarRelationFilter, VehicleHealthScoreWhereInput> | null
+  }
 
   export type CustomerVehicleOrderByWithRelationInput = {
-    id?: SortOrder;
-    customerId?: SortOrder;
-    registrationNumber?: SortOrder;
-    make?: SortOrderInput | SortOrder;
-    model?: SortOrderInput | SortOrder;
-    variant?: SortOrderInput | SortOrder;
-    year?: SortOrderInput | SortOrder;
-    fuelType?: SortOrderInput | SortOrder;
-    vehicleType?: SortOrderInput | SortOrder;
-    engineNumber?: SortOrderInput | SortOrder;
-    chassisNumber?: SortOrderInput | SortOrder;
-    currentOdometer?: SortOrderInput | SortOrder;
-    registrationDate?: SortOrderInput | SortOrder;
-    rcVerified?: SortOrder;
-    isActive?: SortOrder;
-    isPrimary?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-    challans?: ChallanOrderByRelationAggregateInput;
-    documents?: CustomerDocumentOrderByRelationAggregateInput;
-    customer?: CustomerOrderByWithRelationInput;
-    expenses?: ExpenseOrderByRelationAggregateInput;
-    odometerLogs?: OdometerLogOrderByRelationAggregateInput;
-    serviceRecords?: ServiceRecordOrderByRelationAggregateInput;
-    accessList?: VehicleAccessOrderByRelationAggregateInput;
-    healthScore?: VehicleHealthScoreOrderByWithRelationInput;
-    telematicsDevice?: TelematicsDeviceOrderByWithRelationInput;
-    drivingTrips?: DrivingTripOrderByRelationAggregateInput;
-  };
+    id?: SortOrder
+    customerId?: SortOrder
+    registrationNumber?: SortOrder
+    make?: SortOrderInput | SortOrder
+    model?: SortOrderInput | SortOrder
+    variant?: SortOrderInput | SortOrder
+    year?: SortOrderInput | SortOrder
+    fuelType?: SortOrderInput | SortOrder
+    vehicleType?: SortOrderInput | SortOrder
+    currentOdometer?: SortOrderInput | SortOrder
+    registrationDate?: SortOrderInput | SortOrder
+    rcVerified?: SortOrder
+    isActive?: SortOrder
+    isPrimary?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    chassisNumber?: SortOrderInput | SortOrder
+    engineNumber?: SortOrderInput | SortOrder
+    challans?: ChallanOrderByRelationAggregateInput
+    documents?: CustomerDocumentOrderByRelationAggregateInput
+    customer?: CustomerOrderByWithRelationInput
+    drivingTrips?: DrivingTripOrderByRelationAggregateInput
+    expenses?: ExpenseOrderByRelationAggregateInput
+    odometerLogs?: OdometerLogOrderByRelationAggregateInput
+    serviceRecords?: ServiceRecordOrderByRelationAggregateInput
+    telematicsDevice?: TelematicsDeviceOrderByWithRelationInput
+    accessList?: VehicleAccessOrderByRelationAggregateInput
+    healthScore?: VehicleHealthScoreOrderByWithRelationInput
+  }
 
-  export type CustomerVehicleWhereUniqueInput = Prisma.AtLeast<
-    {
-      id?: string;
-      registrationNumber?: string;
-      AND?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[];
-      OR?: CustomerVehicleWhereInput[];
-      NOT?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[];
-      customerId?: StringFilter<"CustomerVehicle"> | string;
-      make?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      model?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      variant?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      year?: IntNullableFilter<"CustomerVehicle"> | number | null;
-      fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null;
-      currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null;
-      registrationDate?:
-        | DateTimeNullableFilter<"CustomerVehicle">
-        | Date
-        | string
-        | null;
-      rcVerified?: BoolFilter<"CustomerVehicle"> | boolean;
-      isActive?: BoolFilter<"CustomerVehicle"> | boolean;
-      isPrimary?: BoolFilter<"CustomerVehicle"> | boolean;
-      createdAt?: DateTimeFilter<"CustomerVehicle"> | Date | string;
-      updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string;
-      challans?: ChallanListRelationFilter;
-      documents?: CustomerDocumentListRelationFilter;
-      customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>;
-      expenses?: ExpenseListRelationFilter;
-      odometerLogs?: OdometerLogListRelationFilter;
-      serviceRecords?: ServiceRecordListRelationFilter;
-      accessList?: VehicleAccessListRelationFilter;
-      healthScore?: XOR<
-        VehicleHealthScoreNullableScalarRelationFilter,
-        VehicleHealthScoreWhereInput
-      > | null;
-      telematicsDevice?: XOR<
-        TelematicsDeviceNullableScalarRelationFilter,
-        TelematicsDeviceWhereInput
-      > | null;
-      drivingTrips?: DrivingTripListRelationFilter;
-    },
-    "id" | "registrationNumber"
-  >;
+  export type CustomerVehicleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    registrationNumber?: string
+    AND?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[]
+    OR?: CustomerVehicleWhereInput[]
+    NOT?: CustomerVehicleWhereInput | CustomerVehicleWhereInput[]
+    customerId?: StringFilter<"CustomerVehicle"> | string
+    make?: StringNullableFilter<"CustomerVehicle"> | string | null
+    model?: StringNullableFilter<"CustomerVehicle"> | string | null
+    variant?: StringNullableFilter<"CustomerVehicle"> | string | null
+    year?: IntNullableFilter<"CustomerVehicle"> | number | null
+    fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null
+    registrationDate?: DateTimeNullableFilter<"CustomerVehicle"> | Date | string | null
+    rcVerified?: BoolFilter<"CustomerVehicle"> | boolean
+    isActive?: BoolFilter<"CustomerVehicle"> | boolean
+    isPrimary?: BoolFilter<"CustomerVehicle"> | boolean
+    createdAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
+    chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    challans?: ChallanListRelationFilter
+    documents?: CustomerDocumentListRelationFilter
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    drivingTrips?: DrivingTripListRelationFilter
+    expenses?: ExpenseListRelationFilter
+    odometerLogs?: OdometerLogListRelationFilter
+    serviceRecords?: ServiceRecordListRelationFilter
+    telematicsDevice?: XOR<TelematicsDeviceNullableScalarRelationFilter, TelematicsDeviceWhereInput> | null
+    accessList?: VehicleAccessListRelationFilter
+    healthScore?: XOR<VehicleHealthScoreNullableScalarRelationFilter, VehicleHealthScoreWhereInput> | null
+  }, "id" | "registrationNumber">
 
   export type CustomerVehicleOrderByWithAggregationInput = {
-    id?: SortOrder;
-    customerId?: SortOrder;
-    registrationNumber?: SortOrder;
-    make?: SortOrderInput | SortOrder;
-    model?: SortOrderInput | SortOrder;
-    variant?: SortOrderInput | SortOrder;
-    year?: SortOrderInput | SortOrder;
-    fuelType?: SortOrderInput | SortOrder;
-    vehicleType?: SortOrderInput | SortOrder;
-    engineNumber?: SortOrderInput | SortOrder;
-    chassisNumber?: SortOrderInput | SortOrder;
-    currentOdometer?: SortOrderInput | SortOrder;
-    registrationDate?: SortOrderInput | SortOrder;
-    rcVerified?: SortOrder;
-    isActive?: SortOrder;
-    isPrimary?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-    _count?: CustomerVehicleCountOrderByAggregateInput;
-    _avg?: CustomerVehicleAvgOrderByAggregateInput;
-    _max?: CustomerVehicleMaxOrderByAggregateInput;
-    _min?: CustomerVehicleMinOrderByAggregateInput;
-    _sum?: CustomerVehicleSumOrderByAggregateInput;
-  };
+    id?: SortOrder
+    customerId?: SortOrder
+    registrationNumber?: SortOrder
+    make?: SortOrderInput | SortOrder
+    model?: SortOrderInput | SortOrder
+    variant?: SortOrderInput | SortOrder
+    year?: SortOrderInput | SortOrder
+    fuelType?: SortOrderInput | SortOrder
+    vehicleType?: SortOrderInput | SortOrder
+    currentOdometer?: SortOrderInput | SortOrder
+    registrationDate?: SortOrderInput | SortOrder
+    rcVerified?: SortOrder
+    isActive?: SortOrder
+    isPrimary?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    chassisNumber?: SortOrderInput | SortOrder
+    engineNumber?: SortOrderInput | SortOrder
+    _count?: CustomerVehicleCountOrderByAggregateInput
+    _avg?: CustomerVehicleAvgOrderByAggregateInput
+    _max?: CustomerVehicleMaxOrderByAggregateInput
+    _min?: CustomerVehicleMinOrderByAggregateInput
+    _sum?: CustomerVehicleSumOrderByAggregateInput
+  }
 
   export type CustomerVehicleScalarWhereWithAggregatesInput = {
-    AND?:
-      | CustomerVehicleScalarWhereWithAggregatesInput
-      | CustomerVehicleScalarWhereWithAggregatesInput[];
-    OR?: CustomerVehicleScalarWhereWithAggregatesInput[];
-    NOT?:
-      | CustomerVehicleScalarWhereWithAggregatesInput
-      | CustomerVehicleScalarWhereWithAggregatesInput[];
-    id?: StringWithAggregatesFilter<"CustomerVehicle"> | string;
-    customerId?: StringWithAggregatesFilter<"CustomerVehicle"> | string;
-    registrationNumber?: StringWithAggregatesFilter<"CustomerVehicle"> | string;
-    make?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    model?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    variant?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    year?: IntNullableWithAggregatesFilter<"CustomerVehicle"> | number | null;
-    fuelType?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    vehicleType?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    engineNumber?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    chassisNumber?:
-      | StringNullableWithAggregatesFilter<"CustomerVehicle">
-      | string
-      | null;
-    currentOdometer?:
-      | IntNullableWithAggregatesFilter<"CustomerVehicle">
-      | number
-      | null;
-    registrationDate?:
-      | DateTimeNullableWithAggregatesFilter<"CustomerVehicle">
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolWithAggregatesFilter<"CustomerVehicle"> | boolean;
-    isActive?: BoolWithAggregatesFilter<"CustomerVehicle"> | boolean;
-    isPrimary?: BoolWithAggregatesFilter<"CustomerVehicle"> | boolean;
-    createdAt?: DateTimeWithAggregatesFilter<"CustomerVehicle"> | Date | string;
-    updatedAt?: DateTimeWithAggregatesFilter<"CustomerVehicle"> | Date | string;
-  };
+    AND?: CustomerVehicleScalarWhereWithAggregatesInput | CustomerVehicleScalarWhereWithAggregatesInput[]
+    OR?: CustomerVehicleScalarWhereWithAggregatesInput[]
+    NOT?: CustomerVehicleScalarWhereWithAggregatesInput | CustomerVehicleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomerVehicle"> | string
+    customerId?: StringWithAggregatesFilter<"CustomerVehicle"> | string
+    registrationNumber?: StringWithAggregatesFilter<"CustomerVehicle"> | string
+    make?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    model?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    variant?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    year?: IntNullableWithAggregatesFilter<"CustomerVehicle"> | number | null
+    fuelType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    vehicleType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    currentOdometer?: IntNullableWithAggregatesFilter<"CustomerVehicle"> | number | null
+    registrationDate?: DateTimeNullableWithAggregatesFilter<"CustomerVehicle"> | Date | string | null
+    rcVerified?: BoolWithAggregatesFilter<"CustomerVehicle"> | boolean
+    isActive?: BoolWithAggregatesFilter<"CustomerVehicle"> | boolean
+    isPrimary?: BoolWithAggregatesFilter<"CustomerVehicle"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"CustomerVehicle"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomerVehicle"> | Date | string
+    chassisNumber?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    engineNumber?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+  }
 
   export type OdometerLogWhereInput = {
     AND?: OdometerLogWhereInput | OdometerLogWhereInput[];
@@ -37942,174 +40205,145 @@ export namespace Prisma {
   };
 
   export type TelematicsDeviceWhereInput = {
-    AND?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[];
-    OR?: TelematicsDeviceWhereInput[];
-    NOT?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[];
-    id?: StringFilter<"TelematicsDevice"> | string;
-    vehicleId?: StringFilter<"TelematicsDevice"> | string;
-    instanceId?: StringFilter<"TelematicsDevice"> | string;
-    deviceToken?: StringNullableFilter<"TelematicsDevice"> | string | null;
-    platform?: StringNullableFilter<"TelematicsDevice"> | string | null;
-    isActive?: BoolFilter<"TelematicsDevice"> | boolean;
-    createdAt?: DateTimeFilter<"TelematicsDevice"> | Date | string;
-    updatedAt?: DateTimeFilter<"TelematicsDevice"> | Date | string;
-    vehicle?: XOR<
-      CustomerVehicleScalarRelationFilter,
-      CustomerVehicleWhereInput
-    >;
-  };
+    AND?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[]
+    OR?: TelematicsDeviceWhereInput[]
+    NOT?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[]
+    id?: StringFilter<"TelematicsDevice"> | string
+    vehicleId?: StringFilter<"TelematicsDevice"> | string
+    instanceId?: StringFilter<"TelematicsDevice"> | string
+    deviceToken?: StringNullableFilter<"TelematicsDevice"> | string | null
+    platform?: StringNullableFilter<"TelematicsDevice"> | string | null
+    isActive?: BoolFilter<"TelematicsDevice"> | boolean
+    lastSyncAt?: DateTimeNullableFilter<"TelematicsDevice"> | Date | string | null
+    createdAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
+    updatedAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+  }
 
   export type TelematicsDeviceOrderByWithRelationInput = {
-    id?: SortOrder;
-    vehicleId?: SortOrder;
-    instanceId?: SortOrder;
-    deviceToken?: SortOrderInput | SortOrder;
-    platform?: SortOrderInput | SortOrder;
-    isActive?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-    vehicle?: CustomerVehicleOrderByWithRelationInput;
-  };
+    id?: SortOrder
+    vehicleId?: SortOrder
+    instanceId?: SortOrder
+    deviceToken?: SortOrderInput | SortOrder
+    platform?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    lastSyncAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    vehicle?: CustomerVehicleOrderByWithRelationInput
+  }
 
-  export type TelematicsDeviceWhereUniqueInput = Prisma.AtLeast<
-    {
-      id?: string;
-      vehicleId?: string;
-      instanceId?: string;
-      AND?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[];
-      OR?: TelematicsDeviceWhereInput[];
-      NOT?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[];
-      deviceToken?: StringNullableFilter<"TelematicsDevice"> | string | null;
-      platform?: StringNullableFilter<"TelematicsDevice"> | string | null;
-      isActive?: BoolFilter<"TelematicsDevice"> | boolean;
-      createdAt?: DateTimeFilter<"TelematicsDevice"> | Date | string;
-      updatedAt?: DateTimeFilter<"TelematicsDevice"> | Date | string;
-      vehicle?: XOR<
-        CustomerVehicleScalarRelationFilter,
-        CustomerVehicleWhereInput
-      >;
-    },
-    "id" | "vehicleId" | "instanceId"
-  >;
+  export type TelematicsDeviceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    vehicleId?: string
+    instanceId?: string
+    AND?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[]
+    OR?: TelematicsDeviceWhereInput[]
+    NOT?: TelematicsDeviceWhereInput | TelematicsDeviceWhereInput[]
+    deviceToken?: StringNullableFilter<"TelematicsDevice"> | string | null
+    platform?: StringNullableFilter<"TelematicsDevice"> | string | null
+    isActive?: BoolFilter<"TelematicsDevice"> | boolean
+    lastSyncAt?: DateTimeNullableFilter<"TelematicsDevice"> | Date | string | null
+    createdAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
+    updatedAt?: DateTimeFilter<"TelematicsDevice"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+  }, "id" | "vehicleId" | "instanceId">
 
   export type TelematicsDeviceOrderByWithAggregationInput = {
-    id?: SortOrder;
-    vehicleId?: SortOrder;
-    instanceId?: SortOrder;
-    deviceToken?: SortOrderInput | SortOrder;
-    platform?: SortOrderInput | SortOrder;
-    isActive?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-    _count?: TelematicsDeviceCountOrderByAggregateInput;
-    _max?: TelematicsDeviceMaxOrderByAggregateInput;
-    _min?: TelematicsDeviceMinOrderByAggregateInput;
-  };
+    id?: SortOrder
+    vehicleId?: SortOrder
+    instanceId?: SortOrder
+    deviceToken?: SortOrderInput | SortOrder
+    platform?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    lastSyncAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: TelematicsDeviceCountOrderByAggregateInput
+    _max?: TelematicsDeviceMaxOrderByAggregateInput
+    _min?: TelematicsDeviceMinOrderByAggregateInput
+  }
 
   export type TelematicsDeviceScalarWhereWithAggregatesInput = {
-    AND?:
-      | TelematicsDeviceScalarWhereWithAggregatesInput
-      | TelematicsDeviceScalarWhereWithAggregatesInput[];
-    OR?: TelematicsDeviceScalarWhereWithAggregatesInput[];
-    NOT?:
-      | TelematicsDeviceScalarWhereWithAggregatesInput
-      | TelematicsDeviceScalarWhereWithAggregatesInput[];
-    id?: StringWithAggregatesFilter<"TelematicsDevice"> | string;
-    vehicleId?: StringWithAggregatesFilter<"TelematicsDevice"> | string;
-    instanceId?: StringWithAggregatesFilter<"TelematicsDevice"> | string;
-    deviceToken?:
-      | StringNullableWithAggregatesFilter<"TelematicsDevice">
-      | string
-      | null;
-    platform?:
-      | StringNullableWithAggregatesFilter<"TelematicsDevice">
-      | string
-      | null;
-    isActive?: BoolWithAggregatesFilter<"TelematicsDevice"> | boolean;
-    createdAt?:
-      | DateTimeWithAggregatesFilter<"TelematicsDevice">
-      | Date
-      | string;
-    updatedAt?:
-      | DateTimeWithAggregatesFilter<"TelematicsDevice">
-      | Date
-      | string;
-  };
+    AND?: TelematicsDeviceScalarWhereWithAggregatesInput | TelematicsDeviceScalarWhereWithAggregatesInput[]
+    OR?: TelematicsDeviceScalarWhereWithAggregatesInput[]
+    NOT?: TelematicsDeviceScalarWhereWithAggregatesInput | TelematicsDeviceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"TelematicsDevice"> | string
+    vehicleId?: StringWithAggregatesFilter<"TelematicsDevice"> | string
+    instanceId?: StringWithAggregatesFilter<"TelematicsDevice"> | string
+    deviceToken?: StringNullableWithAggregatesFilter<"TelematicsDevice"> | string | null
+    platform?: StringNullableWithAggregatesFilter<"TelematicsDevice"> | string | null
+    isActive?: BoolWithAggregatesFilter<"TelematicsDevice"> | boolean
+    lastSyncAt?: DateTimeNullableWithAggregatesFilter<"TelematicsDevice"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"TelematicsDevice"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"TelematicsDevice"> | Date | string
+  }
 
   export type DrivingTripWhereInput = {
-    AND?: DrivingTripWhereInput | DrivingTripWhereInput[];
-    OR?: DrivingTripWhereInput[];
-    NOT?: DrivingTripWhereInput | DrivingTripWhereInput[];
-    id?: StringFilter<"DrivingTrip"> | string;
-    vehicleId?: StringFilter<"DrivingTrip"> | string;
-    tripId?: StringFilter<"DrivingTrip"> | string;
-    startTime?: DateTimeFilter<"DrivingTrip"> | Date | string;
-    endTime?: DateTimeFilter<"DrivingTrip"> | Date | string;
-    distanceKm?: FloatFilter<"DrivingTrip"> | number;
-    durationMin?: FloatFilter<"DrivingTrip"> | number;
-    maxSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-    avgSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-    fuelConsumed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-    safetyScore?: IntFilter<"DrivingTrip"> | number;
-    startLocation?: JsonNullableFilter<"DrivingTrip">;
-    endLocation?: JsonNullableFilter<"DrivingTrip">;
-    status?: StringFilter<"DrivingTrip"> | string;
-    createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string;
-    vehicle?: XOR<
-      CustomerVehicleScalarRelationFilter,
-      CustomerVehicleWhereInput
-    >;
-    events?: DrivingEventListRelationFilter;
-  };
+    AND?: DrivingTripWhereInput | DrivingTripWhereInput[]
+    OR?: DrivingTripWhereInput[]
+    NOT?: DrivingTripWhereInput | DrivingTripWhereInput[]
+    id?: StringFilter<"DrivingTrip"> | string
+    vehicleId?: StringFilter<"DrivingTrip"> | string
+    tripId?: StringFilter<"DrivingTrip"> | string
+    startTime?: DateTimeFilter<"DrivingTrip"> | Date | string
+    endTime?: DateTimeFilter<"DrivingTrip"> | Date | string
+    distanceKm?: FloatFilter<"DrivingTrip"> | number
+    durationMin?: FloatFilter<"DrivingTrip"> | number
+    maxSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    avgSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    fuelConsumed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    safetyScore?: IntFilter<"DrivingTrip"> | number
+    startLocation?: JsonNullableFilter<"DrivingTrip">
+    endLocation?: JsonNullableFilter<"DrivingTrip">
+    status?: StringFilter<"DrivingTrip"> | string
+    createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string
+    events?: DrivingEventListRelationFilter
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+  }
 
   export type DrivingTripOrderByWithRelationInput = {
-    id?: SortOrder;
-    vehicleId?: SortOrder;
-    tripId?: SortOrder;
-    startTime?: SortOrder;
-    endTime?: SortOrder;
-    distanceKm?: SortOrder;
-    durationMin?: SortOrder;
-    maxSpeed?: SortOrderInput | SortOrder;
-    avgSpeed?: SortOrderInput | SortOrder;
-    fuelConsumed?: SortOrderInput | SortOrder;
-    safetyScore?: SortOrder;
-    startLocation?: SortOrderInput | SortOrder;
-    endLocation?: SortOrderInput | SortOrder;
-    status?: SortOrder;
-    createdAt?: SortOrder;
-    vehicle?: CustomerVehicleOrderByWithRelationInput;
-    events?: DrivingEventOrderByRelationAggregateInput;
-  };
+    id?: SortOrder
+    vehicleId?: SortOrder
+    tripId?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    distanceKm?: SortOrder
+    durationMin?: SortOrder
+    maxSpeed?: SortOrderInput | SortOrder
+    avgSpeed?: SortOrderInput | SortOrder
+    fuelConsumed?: SortOrderInput | SortOrder
+    safetyScore?: SortOrder
+    startLocation?: SortOrderInput | SortOrder
+    endLocation?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    events?: DrivingEventOrderByRelationAggregateInput
+    vehicle?: CustomerVehicleOrderByWithRelationInput
+  }
 
-  export type DrivingTripWhereUniqueInput = Prisma.AtLeast<
-    {
-      id?: string;
-      tripId?: string;
-      AND?: DrivingTripWhereInput | DrivingTripWhereInput[];
-      OR?: DrivingTripWhereInput[];
-      NOT?: DrivingTripWhereInput | DrivingTripWhereInput[];
-      vehicleId?: StringFilter<"DrivingTrip"> | string;
-      startTime?: DateTimeFilter<"DrivingTrip"> | Date | string;
-      endTime?: DateTimeFilter<"DrivingTrip"> | Date | string;
-      distanceKm?: FloatFilter<"DrivingTrip"> | number;
-      durationMin?: FloatFilter<"DrivingTrip"> | number;
-      maxSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-      avgSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-      fuelConsumed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-      safetyScore?: IntFilter<"DrivingTrip"> | number;
-      startLocation?: JsonNullableFilter<"DrivingTrip">;
-      endLocation?: JsonNullableFilter<"DrivingTrip">;
-      status?: StringFilter<"DrivingTrip"> | string;
-      createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string;
-      vehicle?: XOR<
-        CustomerVehicleScalarRelationFilter,
-        CustomerVehicleWhereInput
-      >;
-      events?: DrivingEventListRelationFilter;
-    },
-    "id" | "tripId"
-  >;
+  export type DrivingTripWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tripId?: string
+    AND?: DrivingTripWhereInput | DrivingTripWhereInput[]
+    OR?: DrivingTripWhereInput[]
+    NOT?: DrivingTripWhereInput | DrivingTripWhereInput[]
+    vehicleId?: StringFilter<"DrivingTrip"> | string
+    startTime?: DateTimeFilter<"DrivingTrip"> | Date | string
+    endTime?: DateTimeFilter<"DrivingTrip"> | Date | string
+    distanceKm?: FloatFilter<"DrivingTrip"> | number
+    durationMin?: FloatFilter<"DrivingTrip"> | number
+    maxSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    avgSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    fuelConsumed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    safetyScore?: IntFilter<"DrivingTrip"> | number
+    startLocation?: JsonNullableFilter<"DrivingTrip">
+    endLocation?: JsonNullableFilter<"DrivingTrip">
+    status?: StringFilter<"DrivingTrip"> | string
+    createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string
+    events?: DrivingEventListRelationFilter
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+  }, "id" | "tripId">
 
   export type DrivingTripOrderByWithAggregationInput = {
     id?: SortOrder;
@@ -38249,6 +40483,160 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"DrivingEvent"> | Date | string;
   };
 
+  export type SOSRequestWhereInput = {
+    AND?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    OR?: SOSRequestWhereInput[]
+    NOT?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    id?: StringFilter<"SOSRequest"> | string
+    customerId?: StringFilter<"SOSRequest"> | string
+    latitude?: FloatFilter<"SOSRequest"> | number
+    longitude?: FloatFilter<"SOSRequest"> | number
+    address?: StringNullableFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableFilter<"SOSRequest">
+    createdAt?: DateTimeFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"SOSRequest"> | Date | string | null
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type SOSRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrderInput | SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    metadata?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type SOSRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    OR?: SOSRequestWhereInput[]
+    NOT?: SOSRequestWhereInput | SOSRequestWhereInput[]
+    customerId?: StringFilter<"SOSRequest"> | string
+    latitude?: FloatFilter<"SOSRequest"> | number
+    longitude?: FloatFilter<"SOSRequest"> | number
+    address?: StringNullableFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableFilter<"SOSRequest">
+    createdAt?: DateTimeFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"SOSRequest"> | Date | string | null
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id">
+
+  export type SOSRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrderInput | SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    metadata?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    _count?: SOSRequestCountOrderByAggregateInput
+    _avg?: SOSRequestAvgOrderByAggregateInput
+    _max?: SOSRequestMaxOrderByAggregateInput
+    _min?: SOSRequestMinOrderByAggregateInput
+    _sum?: SOSRequestSumOrderByAggregateInput
+  }
+
+  export type SOSRequestScalarWhereWithAggregatesInput = {
+    AND?: SOSRequestScalarWhereWithAggregatesInput | SOSRequestScalarWhereWithAggregatesInput[]
+    OR?: SOSRequestScalarWhereWithAggregatesInput[]
+    NOT?: SOSRequestScalarWhereWithAggregatesInput | SOSRequestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SOSRequest"> | string
+    customerId?: StringWithAggregatesFilter<"SOSRequest"> | string
+    latitude?: FloatWithAggregatesFilter<"SOSRequest"> | number
+    longitude?: FloatWithAggregatesFilter<"SOSRequest"> | number
+    address?: StringNullableWithAggregatesFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusWithAggregatesFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeWithAggregatesFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableWithAggregatesFilter<"SOSRequest">
+    createdAt?: DateTimeWithAggregatesFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableWithAggregatesFilter<"SOSRequest"> | Date | string | null
+  }
+
+  export type EmergencyContactWhereInput = {
+    AND?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    OR?: EmergencyContactWhereInput[]
+    NOT?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    id?: StringFilter<"EmergencyContact"> | string
+    customerId?: StringFilter<"EmergencyContact"> | string
+    name?: StringFilter<"EmergencyContact"> | string
+    phoneNumber?: StringFilter<"EmergencyContact"> | string
+    relation?: StringNullableFilter<"EmergencyContact"> | string | null
+    priority?: IntFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type EmergencyContactOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrderInput | SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type EmergencyContactWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    OR?: EmergencyContactWhereInput[]
+    NOT?: EmergencyContactWhereInput | EmergencyContactWhereInput[]
+    customerId?: StringFilter<"EmergencyContact"> | string
+    name?: StringFilter<"EmergencyContact"> | string
+    phoneNumber?: StringFilter<"EmergencyContact"> | string
+    relation?: StringNullableFilter<"EmergencyContact"> | string | null
+    priority?: IntFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id">
+
+  export type EmergencyContactOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrderInput | SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EmergencyContactCountOrderByAggregateInput
+    _avg?: EmergencyContactAvgOrderByAggregateInput
+    _max?: EmergencyContactMaxOrderByAggregateInput
+    _min?: EmergencyContactMinOrderByAggregateInput
+    _sum?: EmergencyContactSumOrderByAggregateInput
+  }
+
+  export type EmergencyContactScalarWhereWithAggregatesInput = {
+    AND?: EmergencyContactScalarWhereWithAggregatesInput | EmergencyContactScalarWhereWithAggregatesInput[]
+    OR?: EmergencyContactScalarWhereWithAggregatesInput[]
+    NOT?: EmergencyContactScalarWhereWithAggregatesInput | EmergencyContactScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    customerId?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    name?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    phoneNumber?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    relation?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
+    priority?: IntWithAggregatesFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string;
     email: string;
@@ -38306,80 +40694,88 @@ export namespace Prisma {
   };
 
   export type CustomerCreateInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerCreateManyInput = {
     id?: string;
@@ -38855,202 +41251,186 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleCreateManyInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+  }
 
   export type CustomerVehicleUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+  }
 
   export type CustomerVehicleUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+  }
 
   export type OdometerLogCreateInput = {
     id?: string;
@@ -40270,99 +42650,106 @@ export namespace Prisma {
   };
 
   export type TelematicsDeviceCreateInput = {
-    id?: string;
-    instanceId: string;
-    deviceToken?: string | null;
-    platform?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    vehicle: CustomerVehicleCreateNestedOneWithoutTelematicsDeviceInput;
-  };
+    id?: string
+    instanceId: string
+    deviceToken?: string | null
+    platform?: string | null
+    isActive?: boolean
+    lastSyncAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutTelematicsDeviceInput
+  }
 
   export type TelematicsDeviceUncheckedCreateInput = {
-    id?: string;
-    vehicleId: string;
-    instanceId: string;
-    deviceToken?: string | null;
-    platform?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
+    id?: string
+    vehicleId: string
+    instanceId: string
+    deviceToken?: string | null
+    platform?: string | null
+    isActive?: boolean
+    lastSyncAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
 
   export type TelematicsDeviceUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    instanceId?: StringFieldUpdateOperationsInput | string;
-    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null;
-    platform?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    vehicle?: CustomerVehicleUpdateOneRequiredWithoutTelematicsDeviceNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    instanceId?: StringFieldUpdateOperationsInput | string
+    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutTelematicsDeviceNestedInput
+  }
 
   export type TelematicsDeviceUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    vehicleId?: StringFieldUpdateOperationsInput | string;
-    instanceId?: StringFieldUpdateOperationsInput | string;
-    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null;
-    platform?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    instanceId?: StringFieldUpdateOperationsInput | string
+    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
 
   export type TelematicsDeviceCreateManyInput = {
-    id?: string;
-    vehicleId: string;
-    instanceId: string;
-    deviceToken?: string | null;
-    platform?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
+    id?: string
+    vehicleId: string
+    instanceId: string
+    deviceToken?: string | null
+    platform?: string | null
+    isActive?: boolean
+    lastSyncAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
 
   export type TelematicsDeviceUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    instanceId?: StringFieldUpdateOperationsInput | string;
-    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null;
-    platform?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    instanceId?: StringFieldUpdateOperationsInput | string
+    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
 
   export type TelematicsDeviceUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    vehicleId?: StringFieldUpdateOperationsInput | string;
-    instanceId?: StringFieldUpdateOperationsInput | string;
-    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null;
-    platform?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    instanceId?: StringFieldUpdateOperationsInput | string
+    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
 
   export type DrivingTripCreateInput = {
-    id?: string;
-    tripId: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    distanceKm: number;
-    durationMin: number;
-    maxSpeed?: number | null;
-    avgSpeed?: number | null;
-    fuelConsumed?: number | null;
-    safetyScore: number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status: string;
-    createdAt?: Date | string;
-    vehicle: CustomerVehicleCreateNestedOneWithoutDrivingTripsInput;
-    events?: DrivingEventCreateNestedManyWithoutTripInput;
-  };
+    id?: string
+    tripId: string
+    startTime: Date | string
+    endTime: Date | string
+    distanceKm: number
+    durationMin: number
+    maxSpeed?: number | null
+    avgSpeed?: number | null
+    fuelConsumed?: number | null
+    safetyScore: number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status: string
+    createdAt?: Date | string
+    events?: DrivingEventCreateNestedManyWithoutTripInput
+    vehicle: CustomerVehicleCreateNestedOneWithoutDrivingTripsInput
+  }
 
   export type DrivingTripUncheckedCreateInput = {
     id?: string;
@@ -40384,23 +42771,23 @@ export namespace Prisma {
   };
 
   export type DrivingTripUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    tripId?: StringFieldUpdateOperationsInput | string;
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    distanceKm?: FloatFieldUpdateOperationsInput | number;
-    durationMin?: FloatFieldUpdateOperationsInput | number;
-    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    safetyScore?: IntFieldUpdateOperationsInput | number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    vehicle?: CustomerVehicleUpdateOneRequiredWithoutDrivingTripsNestedInput;
-    events?: DrivingEventUpdateManyWithoutTripNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    tripId?: StringFieldUpdateOperationsInput | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    distanceKm?: FloatFieldUpdateOperationsInput | number
+    durationMin?: FloatFieldUpdateOperationsInput | number
+    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null
+    safetyScore?: IntFieldUpdateOperationsInput | number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: DrivingEventUpdateManyWithoutTripNestedInput
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutDrivingTripsNestedInput
+  }
 
   export type DrivingTripUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string;
@@ -40557,6 +42944,172 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
+  export type SOSRequestCreateInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+    customer: CustomerCreateNestedOneWithoutSosRequestsInput
+  }
+
+  export type SOSRequestUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    customer?: CustomerUpdateOneRequiredWithoutSosRequestsNestedInput
+  }
+
+  export type SOSRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestCreateManyInput = {
+    id?: string
+    customerId: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type EmergencyContactCreateInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutEmergencyContactsInput
+  }
+
+  export type EmergencyContactUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutEmergencyContactsNestedInput
+  }
+
+  export type EmergencyContactUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactCreateManyInput = {
+    id?: string
+    customerId: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
     in?: string[] | ListStringFieldRefInput<$PrismaModel>;
@@ -40680,6 +43233,12 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>;
   };
 
+  export type ChatSessionListRelationFilter = {
+    every?: ChatSessionWhereInput
+    some?: ChatSessionWhereInput
+    none?: ChatSessionWhereInput
+  }
+
   export type CustomerDeviceListRelationFilter = {
     every?: CustomerDeviceWhereInput;
     some?: CustomerDeviceWhereInput;
@@ -40703,6 +43262,12 @@ export namespace Prisma {
     isNot?: DigiLockerConnectionWhereInput | null;
   };
 
+  export type EmergencyContactListRelationFilter = {
+    every?: EmergencyContactWhereInput
+    some?: EmergencyContactWhereInput
+    none?: EmergencyContactWhereInput
+  }
+
   export type ExpenseListRelationFilter = {
     every?: ExpenseWhereInput;
     some?: ExpenseWhereInput;
@@ -40721,17 +43286,21 @@ export namespace Prisma {
     none?: InAppNotificationWhereInput;
   };
 
+  export type SOSRequestListRelationFilter = {
+    every?: SOSRequestWhereInput
+    some?: SOSRequestWhereInput
+    none?: SOSRequestWhereInput
+  }
+
   export type VehicleAccessListRelationFilter = {
     every?: VehicleAccessWhereInput;
     some?: VehicleAccessWhereInput;
     none?: VehicleAccessWhereInput;
   };
 
-  export type ChatSessionListRelationFilter = {
-    every?: ChatSessionWhereInput;
-    some?: ChatSessionWhereInput;
-    none?: ChatSessionWhereInput;
-  };
+  export type ChatSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
 
   export type CustomerDeviceOrderByRelationAggregateInput = {
     _count?: SortOrder;
@@ -40745,6 +43314,10 @@ export namespace Prisma {
     _count?: SortOrder;
   };
 
+  export type EmergencyContactOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type ExpenseOrderByRelationAggregateInput = {
     _count?: SortOrder;
   };
@@ -40757,13 +43330,13 @@ export namespace Prisma {
     _count?: SortOrder;
   };
 
-  export type VehicleAccessOrderByRelationAggregateInput = {
-    _count?: SortOrder;
-  };
+  export type SOSRequestOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
 
-  export type ChatSessionOrderByRelationAggregateInput = {
-    _count?: SortOrder;
-  };
+  export type VehicleAccessOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
 
   export type CustomerCountOrderByAggregateInput = {
     id?: SortOrder;
@@ -41225,6 +43798,12 @@ export namespace Prisma {
     none?: ChallanWhereInput;
   };
 
+  export type DrivingTripListRelationFilter = {
+    every?: DrivingTripWhereInput
+    some?: DrivingTripWhereInput
+    none?: DrivingTripWhereInput
+  }
+
   export type OdometerLogListRelationFilter = {
     every?: OdometerLogWhereInput;
     some?: OdometerLogWhereInput;
@@ -41237,25 +43816,23 @@ export namespace Prisma {
     none?: ServiceRecordWhereInput;
   };
 
-  export type VehicleHealthScoreNullableScalarRelationFilter = {
-    is?: VehicleHealthScoreWhereInput | null;
-    isNot?: VehicleHealthScoreWhereInput | null;
-  };
-
   export type TelematicsDeviceNullableScalarRelationFilter = {
     is?: TelematicsDeviceWhereInput | null;
     isNot?: TelematicsDeviceWhereInput | null;
   };
 
-  export type DrivingTripListRelationFilter = {
-    every?: DrivingTripWhereInput;
-    some?: DrivingTripWhereInput;
-    none?: DrivingTripWhereInput;
-  };
+  export type VehicleHealthScoreNullableScalarRelationFilter = {
+    is?: VehicleHealthScoreWhereInput | null
+    isNot?: VehicleHealthScoreWhereInput | null
+  }
 
   export type ChallanOrderByRelationAggregateInput = {
     _count?: SortOrder;
   };
+
+  export type DrivingTripOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
 
   export type OdometerLogOrderByRelationAggregateInput = {
     _count?: SortOrder;
@@ -41265,30 +43842,26 @@ export namespace Prisma {
     _count?: SortOrder;
   };
 
-  export type DrivingTripOrderByRelationAggregateInput = {
-    _count?: SortOrder;
-  };
-
   export type CustomerVehicleCountOrderByAggregateInput = {
-    id?: SortOrder;
-    customerId?: SortOrder;
-    registrationNumber?: SortOrder;
-    make?: SortOrder;
-    model?: SortOrder;
-    variant?: SortOrder;
-    year?: SortOrder;
-    fuelType?: SortOrder;
-    vehicleType?: SortOrder;
-    engineNumber?: SortOrder;
-    chassisNumber?: SortOrder;
-    currentOdometer?: SortOrder;
-    registrationDate?: SortOrder;
-    rcVerified?: SortOrder;
-    isActive?: SortOrder;
-    isPrimary?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-  };
+    id?: SortOrder
+    customerId?: SortOrder
+    registrationNumber?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrder
+    year?: SortOrder
+    fuelType?: SortOrder
+    vehicleType?: SortOrder
+    currentOdometer?: SortOrder
+    registrationDate?: SortOrder
+    rcVerified?: SortOrder
+    isActive?: SortOrder
+    isPrimary?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    chassisNumber?: SortOrder
+    engineNumber?: SortOrder
+  }
 
   export type CustomerVehicleAvgOrderByAggregateInput = {
     year?: SortOrder;
@@ -41296,46 +43869,46 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleMaxOrderByAggregateInput = {
-    id?: SortOrder;
-    customerId?: SortOrder;
-    registrationNumber?: SortOrder;
-    make?: SortOrder;
-    model?: SortOrder;
-    variant?: SortOrder;
-    year?: SortOrder;
-    fuelType?: SortOrder;
-    vehicleType?: SortOrder;
-    engineNumber?: SortOrder;
-    chassisNumber?: SortOrder;
-    currentOdometer?: SortOrder;
-    registrationDate?: SortOrder;
-    rcVerified?: SortOrder;
-    isActive?: SortOrder;
-    isPrimary?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-  };
+    id?: SortOrder
+    customerId?: SortOrder
+    registrationNumber?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrder
+    year?: SortOrder
+    fuelType?: SortOrder
+    vehicleType?: SortOrder
+    currentOdometer?: SortOrder
+    registrationDate?: SortOrder
+    rcVerified?: SortOrder
+    isActive?: SortOrder
+    isPrimary?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    chassisNumber?: SortOrder
+    engineNumber?: SortOrder
+  }
 
   export type CustomerVehicleMinOrderByAggregateInput = {
-    id?: SortOrder;
-    customerId?: SortOrder;
-    registrationNumber?: SortOrder;
-    make?: SortOrder;
-    model?: SortOrder;
-    variant?: SortOrder;
-    year?: SortOrder;
-    fuelType?: SortOrder;
-    vehicleType?: SortOrder;
-    engineNumber?: SortOrder;
-    chassisNumber?: SortOrder;
-    currentOdometer?: SortOrder;
-    registrationDate?: SortOrder;
-    rcVerified?: SortOrder;
-    isActive?: SortOrder;
-    isPrimary?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-  };
+    id?: SortOrder
+    customerId?: SortOrder
+    registrationNumber?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrder
+    year?: SortOrder
+    fuelType?: SortOrder
+    vehicleType?: SortOrder
+    currentOdometer?: SortOrder
+    registrationDate?: SortOrder
+    rcVerified?: SortOrder
+    isActive?: SortOrder
+    isPrimary?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    chassisNumber?: SortOrder
+    engineNumber?: SortOrder
+  }
 
   export type CustomerVehicleSumOrderByAggregateInput = {
     year?: SortOrder;
@@ -42157,37 +44730,40 @@ export namespace Prisma {
   };
 
   export type TelematicsDeviceCountOrderByAggregateInput = {
-    id?: SortOrder;
-    vehicleId?: SortOrder;
-    instanceId?: SortOrder;
-    deviceToken?: SortOrder;
-    platform?: SortOrder;
-    isActive?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-  };
+    id?: SortOrder
+    vehicleId?: SortOrder
+    instanceId?: SortOrder
+    deviceToken?: SortOrder
+    platform?: SortOrder
+    isActive?: SortOrder
+    lastSyncAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
 
   export type TelematicsDeviceMaxOrderByAggregateInput = {
-    id?: SortOrder;
-    vehicleId?: SortOrder;
-    instanceId?: SortOrder;
-    deviceToken?: SortOrder;
-    platform?: SortOrder;
-    isActive?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-  };
+    id?: SortOrder
+    vehicleId?: SortOrder
+    instanceId?: SortOrder
+    deviceToken?: SortOrder
+    platform?: SortOrder
+    isActive?: SortOrder
+    lastSyncAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
 
   export type TelematicsDeviceMinOrderByAggregateInput = {
-    id?: SortOrder;
-    vehicleId?: SortOrder;
-    instanceId?: SortOrder;
-    deviceToken?: SortOrder;
-    platform?: SortOrder;
-    isActive?: SortOrder;
-    createdAt?: SortOrder;
-    updatedAt?: SortOrder;
-  };
+    id?: SortOrder
+    vehicleId?: SortOrder
+    instanceId?: SortOrder
+    deviceToken?: SortOrder
+    platform?: SortOrder
+    isActive?: SortOrder
+    lastSyncAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
 
   export type DrivingEventListRelationFilter = {
     every?: DrivingEventWhereInput;
@@ -42322,6 +44898,128 @@ export namespace Prisma {
     speed?: SortOrder;
   };
 
+  export type EnumSOSStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusFilter<$PrismaModel> | $Enums.SOSStatus
+  }
+
+  export type EnumSOSTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeFilter<$PrismaModel> | $Enums.SOSType
+  }
+
+  export type SOSRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type SOSRequestAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type SOSRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type SOSRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    address?: SortOrder
+    status?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type SOSRequestSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type EnumSOSStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusWithAggregatesFilter<$PrismaModel> | $Enums.SOSStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSStatusFilter<$PrismaModel>
+    _max?: NestedEnumSOSStatusFilter<$PrismaModel>
+  }
+
+  export type EnumSOSTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeWithAggregatesFilter<$PrismaModel> | $Enums.SOSType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSTypeFilter<$PrismaModel>
+    _max?: NestedEnumSOSTypeFilter<$PrismaModel>
+  }
+
+  export type EmergencyContactCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmergencyContactAvgOrderByAggregateInput = {
+    priority?: SortOrder
+  }
+
+  export type EmergencyContactMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmergencyContactMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    relation?: SortOrder
+    priority?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmergencyContactSumOrderByAggregateInput = {
+    priority?: SortOrder
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string;
   };
@@ -42333,6 +45031,13 @@ export namespace Prisma {
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string;
   };
+
+  export type ChatSessionCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
+    createMany?: ChatSessionCreateManyCustomerInputEnvelope
+    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+  }
 
   export type CustomerDeviceCreateNestedManyWithoutCustomerInput = {
     create?:
@@ -42392,6 +45097,13 @@ export namespace Prisma {
     connect?: DigiLockerConnectionWhereUniqueInput;
   };
 
+  export type EmergencyContactCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+  }
+
   export type ExpenseCreateNestedManyWithoutCustomerInput = {
     create?:
       | XOR<
@@ -42439,6 +45151,13 @@ export namespace Prisma {
       | InAppNotificationWhereUniqueInput[];
   };
 
+  export type SOSRequestCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+  }
+
   export type VehicleAccessCreateNestedManyWithoutCustomerInput = {
     create?:
       | XOR<
@@ -42454,20 +45173,12 @@ export namespace Prisma {
     connect?: VehicleAccessWhereUniqueInput | VehicleAccessWhereUniqueInput[];
   };
 
-  export type ChatSessionCreateNestedManyWithoutCustomerInput = {
-    create?:
-      | XOR<
-          ChatSessionCreateWithoutCustomerInput,
-          ChatSessionUncheckedCreateWithoutCustomerInput
-        >
-      | ChatSessionCreateWithoutCustomerInput[]
-      | ChatSessionUncheckedCreateWithoutCustomerInput[];
-    connectOrCreate?:
-      | ChatSessionCreateOrConnectWithoutCustomerInput
-      | ChatSessionCreateOrConnectWithoutCustomerInput[];
-    createMany?: ChatSessionCreateManyCustomerInputEnvelope;
-    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-  };
+  export type ChatSessionUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
+    createMany?: ChatSessionCreateManyCustomerInputEnvelope
+    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+  }
 
   export type CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput = {
     create?:
@@ -42528,6 +45239,13 @@ export namespace Prisma {
       connect?: DigiLockerConnectionWhereUniqueInput;
     };
 
+  export type EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+  }
+
   export type ExpenseUncheckedCreateNestedManyWithoutCustomerInput = {
     create?:
       | XOR<
@@ -42575,6 +45293,13 @@ export namespace Prisma {
       | InAppNotificationWhereUniqueInput[];
   };
 
+  export type SOSRequestUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+  }
+
   export type VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput = {
     create?:
       | XOR<
@@ -42590,20 +45315,19 @@ export namespace Prisma {
     connect?: VehicleAccessWhereUniqueInput | VehicleAccessWhereUniqueInput[];
   };
 
-  export type ChatSessionUncheckedCreateNestedManyWithoutCustomerInput = {
-    create?:
-      | XOR<
-          ChatSessionCreateWithoutCustomerInput,
-          ChatSessionUncheckedCreateWithoutCustomerInput
-        >
-      | ChatSessionCreateWithoutCustomerInput[]
-      | ChatSessionUncheckedCreateWithoutCustomerInput[];
-    connectOrCreate?:
-      | ChatSessionCreateOrConnectWithoutCustomerInput
-      | ChatSessionCreateOrConnectWithoutCustomerInput[];
-    createMany?: ChatSessionCreateManyCustomerInputEnvelope;
-    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-  };
+  export type ChatSessionUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
+    upsert?: ChatSessionUpsertWithWhereUniqueWithoutCustomerInput | ChatSessionUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ChatSessionCreateManyCustomerInputEnvelope
+    set?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    disconnect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    delete?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    update?: ChatSessionUpdateWithWhereUniqueWithoutCustomerInput | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ChatSessionUpdateManyWithWhereWithoutCustomerInput | ChatSessionUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
+  }
 
   export type CustomerDeviceUpdateManyWithoutCustomerNestedInput = {
     create?:
@@ -42728,6 +45452,20 @@ export namespace Prisma {
     >;
   };
 
+  export type EmergencyContactUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    upsert?: EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput | EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    set?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    disconnect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    delete?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    update?: EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput | EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: EmergencyContactUpdateManyWithWhereWithoutCustomerInput | EmergencyContactUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+  }
+
   export type ExpenseUpdateManyWithoutCustomerNestedInput = {
     create?:
       | XOR<
@@ -42826,6 +45564,20 @@ export namespace Prisma {
       | InAppNotificationScalarWhereInput[];
   };
 
+  export type SOSRequestUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    upsert?: SOSRequestUpsertWithWhereUniqueWithoutCustomerInput | SOSRequestUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    set?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    disconnect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    delete?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    update?: SOSRequestUpdateWithWhereUniqueWithoutCustomerInput | SOSRequestUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: SOSRequestUpdateManyWithWhereWithoutCustomerInput | SOSRequestUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+  }
+
   export type VehicleAccessUpdateManyWithoutCustomerNestedInput = {
     create?:
       | XOR<
@@ -42858,33 +45610,19 @@ export namespace Prisma {
       | VehicleAccessScalarWhereInput[];
   };
 
-  export type ChatSessionUpdateManyWithoutCustomerNestedInput = {
-    create?:
-      | XOR<
-          ChatSessionCreateWithoutCustomerInput,
-          ChatSessionUncheckedCreateWithoutCustomerInput
-        >
-      | ChatSessionCreateWithoutCustomerInput[]
-      | ChatSessionUncheckedCreateWithoutCustomerInput[];
-    connectOrCreate?:
-      | ChatSessionCreateOrConnectWithoutCustomerInput
-      | ChatSessionCreateOrConnectWithoutCustomerInput[];
-    upsert?:
-      | ChatSessionUpsertWithWhereUniqueWithoutCustomerInput
-      | ChatSessionUpsertWithWhereUniqueWithoutCustomerInput[];
-    createMany?: ChatSessionCreateManyCustomerInputEnvelope;
-    set?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    disconnect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    delete?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    update?:
-      | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput
-      | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput[];
-    updateMany?:
-      | ChatSessionUpdateManyWithWhereWithoutCustomerInput
-      | ChatSessionUpdateManyWithWhereWithoutCustomerInput[];
-    deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[];
-  };
+  export type ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
+    upsert?: ChatSessionUpsertWithWhereUniqueWithoutCustomerInput | ChatSessionUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ChatSessionCreateManyCustomerInputEnvelope
+    set?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    disconnect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    delete?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+    update?: ChatSessionUpdateWithWhereUniqueWithoutCustomerInput | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ChatSessionUpdateManyWithWhereWithoutCustomerInput | ChatSessionUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
+  }
 
   export type CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?:
@@ -43010,6 +45748,20 @@ export namespace Prisma {
       >;
     };
 
+  export type EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput> | EmergencyContactCreateWithoutCustomerInput[] | EmergencyContactUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: EmergencyContactCreateOrConnectWithoutCustomerInput | EmergencyContactCreateOrConnectWithoutCustomerInput[]
+    upsert?: EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput | EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: EmergencyContactCreateManyCustomerInputEnvelope
+    set?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    disconnect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    delete?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    connect?: EmergencyContactWhereUniqueInput | EmergencyContactWhereUniqueInput[]
+    update?: EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput | EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: EmergencyContactUpdateManyWithWhereWithoutCustomerInput | EmergencyContactUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+  }
+
   export type ExpenseUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?:
       | XOR<
@@ -43108,6 +45860,20 @@ export namespace Prisma {
       | InAppNotificationScalarWhereInput[];
   };
 
+  export type SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput> | SOSRequestCreateWithoutCustomerInput[] | SOSRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: SOSRequestCreateOrConnectWithoutCustomerInput | SOSRequestCreateOrConnectWithoutCustomerInput[]
+    upsert?: SOSRequestUpsertWithWhereUniqueWithoutCustomerInput | SOSRequestUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: SOSRequestCreateManyCustomerInputEnvelope
+    set?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    disconnect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    delete?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    connect?: SOSRequestWhereUniqueInput | SOSRequestWhereUniqueInput[]
+    update?: SOSRequestUpdateWithWhereUniqueWithoutCustomerInput | SOSRequestUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: SOSRequestUpdateManyWithWhereWithoutCustomerInput | SOSRequestUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+  }
+
   export type VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?:
       | XOR<
@@ -43138,34 +45904,6 @@ export namespace Prisma {
     deleteMany?:
       | VehicleAccessScalarWhereInput
       | VehicleAccessScalarWhereInput[];
-  };
-
-  export type ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput = {
-    create?:
-      | XOR<
-          ChatSessionCreateWithoutCustomerInput,
-          ChatSessionUncheckedCreateWithoutCustomerInput
-        >
-      | ChatSessionCreateWithoutCustomerInput[]
-      | ChatSessionUncheckedCreateWithoutCustomerInput[];
-    connectOrCreate?:
-      | ChatSessionCreateOrConnectWithoutCustomerInput
-      | ChatSessionCreateOrConnectWithoutCustomerInput[];
-    upsert?:
-      | ChatSessionUpsertWithWhereUniqueWithoutCustomerInput
-      | ChatSessionUpsertWithWhereUniqueWithoutCustomerInput[];
-    createMany?: ChatSessionCreateManyCustomerInputEnvelope;
-    set?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    disconnect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    delete?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[];
-    update?:
-      | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput
-      | ChatSessionUpdateWithWhereUniqueWithoutCustomerInput[];
-    updateMany?:
-      | ChatSessionUpdateManyWithWhereWithoutCustomerInput
-      | ChatSessionUpdateManyWithWhereWithoutCustomerInput[];
-    deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[];
   };
 
   export type CustomerCreateNestedOneWithoutDevicesInput = {
@@ -43343,6 +46081,13 @@ export namespace Prisma {
     connect?: CustomerWhereUniqueInput;
   };
 
+  export type DrivingTripCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<DrivingTripCreateWithoutVehicleInput, DrivingTripUncheckedCreateWithoutVehicleInput> | DrivingTripCreateWithoutVehicleInput[] | DrivingTripUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: DrivingTripCreateOrConnectWithoutVehicleInput | DrivingTripCreateOrConnectWithoutVehicleInput[]
+    createMany?: DrivingTripCreateManyVehicleInputEnvelope
+    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+  }
+
   export type ExpenseCreateNestedManyWithoutVehicleInput = {
     create?:
       | XOR<
@@ -43388,6 +46133,12 @@ export namespace Prisma {
     connect?: ServiceRecordWhereUniqueInput | ServiceRecordWhereUniqueInput[];
   };
 
+  export type TelematicsDeviceCreateNestedOneWithoutVehicleInput = {
+    create?: XOR<TelematicsDeviceCreateWithoutVehicleInput, TelematicsDeviceUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput
+    connect?: TelematicsDeviceWhereUniqueInput
+  }
+
   export type VehicleAccessCreateNestedManyWithoutVehicleInput = {
     create?:
       | XOR<
@@ -43410,30 +46161,6 @@ export namespace Prisma {
     >;
     connectOrCreate?: VehicleHealthScoreCreateOrConnectWithoutVehicleInput;
     connect?: VehicleHealthScoreWhereUniqueInput;
-  };
-
-  export type TelematicsDeviceCreateNestedOneWithoutVehicleInput = {
-    create?: XOR<
-      TelematicsDeviceCreateWithoutVehicleInput,
-      TelematicsDeviceUncheckedCreateWithoutVehicleInput
-    >;
-    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput;
-    connect?: TelematicsDeviceWhereUniqueInput;
-  };
-
-  export type DrivingTripCreateNestedManyWithoutVehicleInput = {
-    create?:
-      | XOR<
-          DrivingTripCreateWithoutVehicleInput,
-          DrivingTripUncheckedCreateWithoutVehicleInput
-        >
-      | DrivingTripCreateWithoutVehicleInput[]
-      | DrivingTripUncheckedCreateWithoutVehicleInput[];
-    connectOrCreate?:
-      | DrivingTripCreateOrConnectWithoutVehicleInput
-      | DrivingTripCreateOrConnectWithoutVehicleInput[];
-    createMany?: DrivingTripCreateManyVehicleInputEnvelope;
-    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
   };
 
   export type ChallanUncheckedCreateNestedManyWithoutVehicleInput = {
@@ -43467,6 +46194,13 @@ export namespace Prisma {
       | CustomerDocumentWhereUniqueInput
       | CustomerDocumentWhereUniqueInput[];
   };
+
+  export type DrivingTripUncheckedCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<DrivingTripCreateWithoutVehicleInput, DrivingTripUncheckedCreateWithoutVehicleInput> | DrivingTripCreateWithoutVehicleInput[] | DrivingTripUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: DrivingTripCreateOrConnectWithoutVehicleInput | DrivingTripCreateOrConnectWithoutVehicleInput[]
+    createMany?: DrivingTripCreateManyVehicleInputEnvelope
+    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+  }
 
   export type ExpenseUncheckedCreateNestedManyWithoutVehicleInput = {
     create?:
@@ -43513,6 +46247,12 @@ export namespace Prisma {
     connect?: ServiceRecordWhereUniqueInput | ServiceRecordWhereUniqueInput[];
   };
 
+  export type TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput = {
+    create?: XOR<TelematicsDeviceCreateWithoutVehicleInput, TelematicsDeviceUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput
+    connect?: TelematicsDeviceWhereUniqueInput
+  }
+
   export type VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput = {
     create?:
       | XOR<
@@ -43535,30 +46275,6 @@ export namespace Prisma {
     >;
     connectOrCreate?: VehicleHealthScoreCreateOrConnectWithoutVehicleInput;
     connect?: VehicleHealthScoreWhereUniqueInput;
-  };
-
-  export type TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput = {
-    create?: XOR<
-      TelematicsDeviceCreateWithoutVehicleInput,
-      TelematicsDeviceUncheckedCreateWithoutVehicleInput
-    >;
-    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput;
-    connect?: TelematicsDeviceWhereUniqueInput;
-  };
-
-  export type DrivingTripUncheckedCreateNestedManyWithoutVehicleInput = {
-    create?:
-      | XOR<
-          DrivingTripCreateWithoutVehicleInput,
-          DrivingTripUncheckedCreateWithoutVehicleInput
-        >
-      | DrivingTripCreateWithoutVehicleInput[]
-      | DrivingTripUncheckedCreateWithoutVehicleInput[];
-    connectOrCreate?:
-      | DrivingTripCreateOrConnectWithoutVehicleInput
-      | DrivingTripCreateOrConnectWithoutVehicleInput[];
-    createMany?: DrivingTripCreateManyVehicleInputEnvelope;
-    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
   };
 
   export type BoolFieldUpdateOperationsInput = {
@@ -43645,6 +46361,20 @@ export namespace Prisma {
       CustomerUncheckedUpdateWithoutVehiclesInput
     >;
   };
+
+  export type DrivingTripUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<DrivingTripCreateWithoutVehicleInput, DrivingTripUncheckedCreateWithoutVehicleInput> | DrivingTripCreateWithoutVehicleInput[] | DrivingTripUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: DrivingTripCreateOrConnectWithoutVehicleInput | DrivingTripCreateOrConnectWithoutVehicleInput[]
+    upsert?: DrivingTripUpsertWithWhereUniqueWithoutVehicleInput | DrivingTripUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: DrivingTripCreateManyVehicleInputEnvelope
+    set?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    disconnect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    delete?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    update?: DrivingTripUpdateWithWhereUniqueWithoutVehicleInput | DrivingTripUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: DrivingTripUpdateManyWithWhereWithoutVehicleInput | DrivingTripUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[]
+  }
 
   export type ExpenseUpdateManyWithoutVehicleNestedInput = {
     create?:
@@ -43734,6 +46464,16 @@ export namespace Prisma {
       | ServiceRecordScalarWhereInput[];
   };
 
+  export type TelematicsDeviceUpdateOneWithoutVehicleNestedInput = {
+    create?: XOR<TelematicsDeviceCreateWithoutVehicleInput, TelematicsDeviceUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput
+    upsert?: TelematicsDeviceUpsertWithoutVehicleInput
+    disconnect?: TelematicsDeviceWhereInput | boolean
+    delete?: TelematicsDeviceWhereInput | boolean
+    connect?: TelematicsDeviceWhereUniqueInput
+    update?: XOR<XOR<TelematicsDeviceUpdateToOneWithWhereWithoutVehicleInput, TelematicsDeviceUpdateWithoutVehicleInput>, TelematicsDeviceUncheckedUpdateWithoutVehicleInput>
+  }
+
   export type VehicleAccessUpdateManyWithoutVehicleNestedInput = {
     create?:
       | XOR<
@@ -43783,53 +46523,6 @@ export namespace Prisma {
       >,
       VehicleHealthScoreUncheckedUpdateWithoutVehicleInput
     >;
-  };
-
-  export type TelematicsDeviceUpdateOneWithoutVehicleNestedInput = {
-    create?: XOR<
-      TelematicsDeviceCreateWithoutVehicleInput,
-      TelematicsDeviceUncheckedCreateWithoutVehicleInput
-    >;
-    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput;
-    upsert?: TelematicsDeviceUpsertWithoutVehicleInput;
-    disconnect?: TelematicsDeviceWhereInput | boolean;
-    delete?: TelematicsDeviceWhereInput | boolean;
-    connect?: TelematicsDeviceWhereUniqueInput;
-    update?: XOR<
-      XOR<
-        TelematicsDeviceUpdateToOneWithWhereWithoutVehicleInput,
-        TelematicsDeviceUpdateWithoutVehicleInput
-      >,
-      TelematicsDeviceUncheckedUpdateWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripUpdateManyWithoutVehicleNestedInput = {
-    create?:
-      | XOR<
-          DrivingTripCreateWithoutVehicleInput,
-          DrivingTripUncheckedCreateWithoutVehicleInput
-        >
-      | DrivingTripCreateWithoutVehicleInput[]
-      | DrivingTripUncheckedCreateWithoutVehicleInput[];
-    connectOrCreate?:
-      | DrivingTripCreateOrConnectWithoutVehicleInput
-      | DrivingTripCreateOrConnectWithoutVehicleInput[];
-    upsert?:
-      | DrivingTripUpsertWithWhereUniqueWithoutVehicleInput
-      | DrivingTripUpsertWithWhereUniqueWithoutVehicleInput[];
-    createMany?: DrivingTripCreateManyVehicleInputEnvelope;
-    set?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    disconnect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    delete?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    update?:
-      | DrivingTripUpdateWithWhereUniqueWithoutVehicleInput
-      | DrivingTripUpdateWithWhereUniqueWithoutVehicleInput[];
-    updateMany?:
-      | DrivingTripUpdateManyWithWhereWithoutVehicleInput
-      | DrivingTripUpdateManyWithWhereWithoutVehicleInput[];
-    deleteMany?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[];
   };
 
   export type ChallanUncheckedUpdateManyWithoutVehicleNestedInput = {
@@ -43895,6 +46588,20 @@ export namespace Prisma {
       | CustomerDocumentScalarWhereInput
       | CustomerDocumentScalarWhereInput[];
   };
+
+  export type DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<DrivingTripCreateWithoutVehicleInput, DrivingTripUncheckedCreateWithoutVehicleInput> | DrivingTripCreateWithoutVehicleInput[] | DrivingTripUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: DrivingTripCreateOrConnectWithoutVehicleInput | DrivingTripCreateOrConnectWithoutVehicleInput[]
+    upsert?: DrivingTripUpsertWithWhereUniqueWithoutVehicleInput | DrivingTripUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: DrivingTripCreateManyVehicleInputEnvelope
+    set?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    disconnect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    delete?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[]
+    update?: DrivingTripUpdateWithWhereUniqueWithoutVehicleInput | DrivingTripUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: DrivingTripUpdateManyWithWhereWithoutVehicleInput | DrivingTripUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[]
+  }
 
   export type ExpenseUncheckedUpdateManyWithoutVehicleNestedInput = {
     create?:
@@ -43984,6 +46691,16 @@ export namespace Prisma {
       | ServiceRecordScalarWhereInput[];
   };
 
+  export type TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput = {
+    create?: XOR<TelematicsDeviceCreateWithoutVehicleInput, TelematicsDeviceUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput
+    upsert?: TelematicsDeviceUpsertWithoutVehicleInput
+    disconnect?: TelematicsDeviceWhereInput | boolean
+    delete?: TelematicsDeviceWhereInput | boolean
+    connect?: TelematicsDeviceWhereUniqueInput
+    update?: XOR<XOR<TelematicsDeviceUpdateToOneWithWhereWithoutVehicleInput, TelematicsDeviceUpdateWithoutVehicleInput>, TelematicsDeviceUncheckedUpdateWithoutVehicleInput>
+  }
+
   export type VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput = {
     create?:
       | XOR<
@@ -44033,53 +46750,6 @@ export namespace Prisma {
       >,
       VehicleHealthScoreUncheckedUpdateWithoutVehicleInput
     >;
-  };
-
-  export type TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput = {
-    create?: XOR<
-      TelematicsDeviceCreateWithoutVehicleInput,
-      TelematicsDeviceUncheckedCreateWithoutVehicleInput
-    >;
-    connectOrCreate?: TelematicsDeviceCreateOrConnectWithoutVehicleInput;
-    upsert?: TelematicsDeviceUpsertWithoutVehicleInput;
-    disconnect?: TelematicsDeviceWhereInput | boolean;
-    delete?: TelematicsDeviceWhereInput | boolean;
-    connect?: TelematicsDeviceWhereUniqueInput;
-    update?: XOR<
-      XOR<
-        TelematicsDeviceUpdateToOneWithWhereWithoutVehicleInput,
-        TelematicsDeviceUpdateWithoutVehicleInput
-      >,
-      TelematicsDeviceUncheckedUpdateWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput = {
-    create?:
-      | XOR<
-          DrivingTripCreateWithoutVehicleInput,
-          DrivingTripUncheckedCreateWithoutVehicleInput
-        >
-      | DrivingTripCreateWithoutVehicleInput[]
-      | DrivingTripUncheckedCreateWithoutVehicleInput[];
-    connectOrCreate?:
-      | DrivingTripCreateOrConnectWithoutVehicleInput
-      | DrivingTripCreateOrConnectWithoutVehicleInput[];
-    upsert?:
-      | DrivingTripUpsertWithWhereUniqueWithoutVehicleInput
-      | DrivingTripUpsertWithWhereUniqueWithoutVehicleInput[];
-    createMany?: DrivingTripCreateManyVehicleInputEnvelope;
-    set?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    disconnect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    delete?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    connect?: DrivingTripWhereUniqueInput | DrivingTripWhereUniqueInput[];
-    update?:
-      | DrivingTripUpdateWithWhereUniqueWithoutVehicleInput
-      | DrivingTripUpdateWithWhereUniqueWithoutVehicleInput[];
-    updateMany?:
-      | DrivingTripUpdateManyWithWhereWithoutVehicleInput
-      | DrivingTripUpdateManyWithWhereWithoutVehicleInput[];
-    deleteMany?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[];
   };
 
   export type CustomerVehicleCreateNestedOneWithoutOdometerLogsInput = {
@@ -44662,15 +47332,6 @@ export namespace Prisma {
       >;
     };
 
-  export type CustomerVehicleCreateNestedOneWithoutDrivingTripsInput = {
-    create?: XOR<
-      CustomerVehicleCreateWithoutDrivingTripsInput,
-      CustomerVehicleUncheckedCreateWithoutDrivingTripsInput
-    >;
-    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutDrivingTripsInput;
-    connect?: CustomerVehicleWhereUniqueInput;
-  };
-
   export type DrivingEventCreateNestedManyWithoutTripInput = {
     create?:
       | XOR<
@@ -44686,6 +47347,12 @@ export namespace Prisma {
     connect?: DrivingEventWhereUniqueInput | DrivingEventWhereUniqueInput[];
   };
 
+  export type CustomerVehicleCreateNestedOneWithoutDrivingTripsInput = {
+    create?: XOR<CustomerVehicleCreateWithoutDrivingTripsInput, CustomerVehicleUncheckedCreateWithoutDrivingTripsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutDrivingTripsInput
+    connect?: CustomerVehicleWhereUniqueInput
+  }
+
   export type DrivingEventUncheckedCreateNestedManyWithoutTripInput = {
     create?:
       | XOR<
@@ -44699,23 +47366,6 @@ export namespace Prisma {
       | DrivingEventCreateOrConnectWithoutTripInput[];
     createMany?: DrivingEventCreateManyTripInputEnvelope;
     connect?: DrivingEventWhereUniqueInput | DrivingEventWhereUniqueInput[];
-  };
-
-  export type CustomerVehicleUpdateOneRequiredWithoutDrivingTripsNestedInput = {
-    create?: XOR<
-      CustomerVehicleCreateWithoutDrivingTripsInput,
-      CustomerVehicleUncheckedCreateWithoutDrivingTripsInput
-    >;
-    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutDrivingTripsInput;
-    upsert?: CustomerVehicleUpsertWithoutDrivingTripsInput;
-    connect?: CustomerVehicleWhereUniqueInput;
-    update?: XOR<
-      XOR<
-        CustomerVehicleUpdateToOneWithWhereWithoutDrivingTripsInput,
-        CustomerVehicleUpdateWithoutDrivingTripsInput
-      >,
-      CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput
-    >;
   };
 
   export type DrivingEventUpdateManyWithoutTripNestedInput = {
@@ -44745,6 +47395,14 @@ export namespace Prisma {
       | DrivingEventUpdateManyWithWhereWithoutTripInput[];
     deleteMany?: DrivingEventScalarWhereInput | DrivingEventScalarWhereInput[];
   };
+
+  export type CustomerVehicleUpdateOneRequiredWithoutDrivingTripsNestedInput = {
+    create?: XOR<CustomerVehicleCreateWithoutDrivingTripsInput, CustomerVehicleUncheckedCreateWithoutDrivingTripsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutDrivingTripsInput
+    upsert?: CustomerVehicleUpsertWithoutDrivingTripsInput
+    connect?: CustomerVehicleWhereUniqueInput
+    update?: XOR<XOR<CustomerVehicleUpdateToOneWithWhereWithoutDrivingTripsInput, CustomerVehicleUpdateWithoutDrivingTripsInput>, CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput>
+  }
 
   export type DrivingEventUncheckedUpdateManyWithoutTripNestedInput = {
     create?:
@@ -44799,6 +47457,42 @@ export namespace Prisma {
       DrivingTripUncheckedUpdateWithoutEventsInput
     >;
   };
+
+  export type CustomerCreateNestedOneWithoutSosRequestsInput = {
+    create?: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutSosRequestsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type EnumSOSStatusFieldUpdateOperationsInput = {
+    set?: $Enums.SOSStatus
+  }
+
+  export type EnumSOSTypeFieldUpdateOperationsInput = {
+    set?: $Enums.SOSType
+  }
+
+  export type CustomerUpdateOneRequiredWithoutSosRequestsNestedInput = {
+    create?: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutSosRequestsInput
+    upsert?: CustomerUpsertWithoutSosRequestsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutSosRequestsInput, CustomerUpdateWithoutSosRequestsInput>, CustomerUncheckedUpdateWithoutSosRequestsInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutEmergencyContactsInput = {
+    create?: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutEmergencyContactsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutEmergencyContactsNestedInput = {
+    create?: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutEmergencyContactsInput
+    upsert?: CustomerUpsertWithoutEmergencyContactsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutEmergencyContactsInput, CustomerUpdateWithoutEmergencyContactsInput>, CustomerUncheckedUpdateWithoutEmergencyContactsInput>
+  }
 
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
@@ -45337,6 +48031,68 @@ export namespace Prisma {
     _max?: NestedFloatNullableFilter<$PrismaModel>;
   };
 
+  export type NestedEnumSOSStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusFilter<$PrismaModel> | $Enums.SOSStatus
+  }
+
+  export type NestedEnumSOSTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeFilter<$PrismaModel> | $Enums.SOSType
+  }
+
+  export type NestedEnumSOSStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSStatus | EnumSOSStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSStatus[] | ListEnumSOSStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSStatusWithAggregatesFilter<$PrismaModel> | $Enums.SOSStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSStatusFilter<$PrismaModel>
+    _max?: NestedEnumSOSStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumSOSTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SOSType | EnumSOSTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SOSType[] | ListEnumSOSTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSOSTypeWithAggregatesFilter<$PrismaModel> | $Enums.SOSType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSOSTypeFilter<$PrismaModel>
+    _max?: NestedEnumSOSTypeFilter<$PrismaModel>
+  }
+
+  export type ChatSessionCreateWithoutCustomerInput = {
+    id?: string
+    title?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: ChatMessageCreateNestedManyWithoutSessionInput
+  }
+
+  export type ChatSessionUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    title?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: ChatMessageUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type ChatSessionCreateOrConnectWithoutCustomerInput = {
+    where: ChatSessionWhereUniqueInput
+    create: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ChatSessionCreateManyCustomerInputEnvelope = {
+    data: ChatSessionCreateManyCustomerInput | ChatSessionCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CustomerDeviceCreateWithoutCustomerInput = {
     id?: string;
     platform: string;
@@ -45432,62 +48188,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateWithoutCustomerInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutCustomerInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutCustomerInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -45539,6 +48295,36 @@ export namespace Prisma {
       DigiLockerConnectionUncheckedCreateWithoutCustomerInput
     >;
   };
+
+  export type EmergencyContactCreateWithoutCustomerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmergencyContactCreateOrConnectWithoutCustomerInput = {
+    where: EmergencyContactWhereUniqueInput
+    create: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type EmergencyContactCreateManyCustomerInputEnvelope = {
+    data: EmergencyContactCreateManyCustomerInput | EmergencyContactCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
 
   export type ExpenseCreateWithoutCustomerInput = {
     id?: string;
@@ -45669,6 +48455,40 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
+  export type SOSRequestCreateWithoutCustomerInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type SOSRequestCreateOrConnectWithoutCustomerInput = {
+    where: SOSRequestWhereUniqueInput
+    create: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type SOSRequestCreateManyCustomerInputEnvelope = {
+    data: SOSRequestCreateManyCustomerInput | SOSRequestCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type VehicleAccessCreateWithoutCustomerInput = {
     id?: string;
     role?: $Enums.AccessRole;
@@ -45700,38 +48520,33 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
-  export type ChatSessionCreateWithoutCustomerInput = {
-    id?: string;
-    title?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    messages?: ChatMessageCreateNestedManyWithoutSessionInput;
-  };
+  export type ChatSessionUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: ChatSessionWhereUniqueInput
+    update: XOR<ChatSessionUpdateWithoutCustomerInput, ChatSessionUncheckedUpdateWithoutCustomerInput>
+    create: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput>
+  }
 
-  export type ChatSessionUncheckedCreateWithoutCustomerInput = {
-    id?: string;
-    title?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    messages?: ChatMessageUncheckedCreateNestedManyWithoutSessionInput;
-  };
+  export type ChatSessionUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: ChatSessionWhereUniqueInput
+    data: XOR<ChatSessionUpdateWithoutCustomerInput, ChatSessionUncheckedUpdateWithoutCustomerInput>
+  }
 
-  export type ChatSessionCreateOrConnectWithoutCustomerInput = {
-    where: ChatSessionWhereUniqueInput;
-    create: XOR<
-      ChatSessionCreateWithoutCustomerInput,
-      ChatSessionUncheckedCreateWithoutCustomerInput
-    >;
-  };
+  export type ChatSessionUpdateManyWithWhereWithoutCustomerInput = {
+    where: ChatSessionScalarWhereInput
+    data: XOR<ChatSessionUpdateManyMutationInput, ChatSessionUncheckedUpdateManyWithoutCustomerInput>
+  }
 
-  export type ChatSessionCreateManyCustomerInputEnvelope = {
-    data:
-      | ChatSessionCreateManyCustomerInput
-      | ChatSessionCreateManyCustomerInput[];
-    skipDuplicates?: boolean;
-  };
+  export type ChatSessionScalarWhereInput = {
+    AND?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
+    OR?: ChatSessionScalarWhereInput[]
+    NOT?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
+    id?: StringFilter<"ChatSession"> | string
+    customerId?: StringFilter<"ChatSession"> | string
+    title?: StringNullableFilter<"ChatSession"> | string | null
+    isActive?: BoolFilter<"ChatSession"> | boolean
+    createdAt?: DateTimeFilter<"ChatSession"> | Date | string
+    updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
+  }
 
   export type CustomerDeviceUpsertWithWhereUniqueWithoutCustomerInput = {
     where: CustomerDeviceWhereUniqueInput;
@@ -45874,32 +48689,28 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleScalarWhereInput = {
-    AND?: CustomerVehicleScalarWhereInput | CustomerVehicleScalarWhereInput[];
-    OR?: CustomerVehicleScalarWhereInput[];
-    NOT?: CustomerVehicleScalarWhereInput | CustomerVehicleScalarWhereInput[];
-    id?: StringFilter<"CustomerVehicle"> | string;
-    customerId?: StringFilter<"CustomerVehicle"> | string;
-    registrationNumber?: StringFilter<"CustomerVehicle"> | string;
-    make?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    model?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    variant?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    year?: IntNullableFilter<"CustomerVehicle"> | number | null;
-    fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null;
-    currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null;
-    registrationDate?:
-      | DateTimeNullableFilter<"CustomerVehicle">
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFilter<"CustomerVehicle"> | boolean;
-    isActive?: BoolFilter<"CustomerVehicle"> | boolean;
-    isPrimary?: BoolFilter<"CustomerVehicle"> | boolean;
-    createdAt?: DateTimeFilter<"CustomerVehicle"> | Date | string;
-    updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string;
-  };
+    AND?: CustomerVehicleScalarWhereInput | CustomerVehicleScalarWhereInput[]
+    OR?: CustomerVehicleScalarWhereInput[]
+    NOT?: CustomerVehicleScalarWhereInput | CustomerVehicleScalarWhereInput[]
+    id?: StringFilter<"CustomerVehicle"> | string
+    customerId?: StringFilter<"CustomerVehicle"> | string
+    registrationNumber?: StringFilter<"CustomerVehicle"> | string
+    make?: StringNullableFilter<"CustomerVehicle"> | string | null
+    model?: StringNullableFilter<"CustomerVehicle"> | string | null
+    variant?: StringNullableFilter<"CustomerVehicle"> | string | null
+    year?: IntNullableFilter<"CustomerVehicle"> | number | null
+    fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null
+    registrationDate?: DateTimeNullableFilter<"CustomerVehicle"> | Date | string | null
+    rcVerified?: BoolFilter<"CustomerVehicle"> | boolean
+    isActive?: BoolFilter<"CustomerVehicle"> | boolean
+    isPrimary?: BoolFilter<"CustomerVehicle"> | boolean
+    createdAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
+    chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+  }
 
   export type DigiLockerConnectionUpsertWithoutCustomerInput = {
     update: XOR<
@@ -45968,6 +48779,36 @@ export namespace Prisma {
     connectedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
+
+  export type EmergencyContactUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: EmergencyContactWhereUniqueInput
+    update: XOR<EmergencyContactUpdateWithoutCustomerInput, EmergencyContactUncheckedUpdateWithoutCustomerInput>
+    create: XOR<EmergencyContactCreateWithoutCustomerInput, EmergencyContactUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type EmergencyContactUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: EmergencyContactWhereUniqueInput
+    data: XOR<EmergencyContactUpdateWithoutCustomerInput, EmergencyContactUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type EmergencyContactUpdateManyWithWhereWithoutCustomerInput = {
+    where: EmergencyContactScalarWhereInput
+    data: XOR<EmergencyContactUpdateManyMutationInput, EmergencyContactUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type EmergencyContactScalarWhereInput = {
+    AND?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+    OR?: EmergencyContactScalarWhereInput[]
+    NOT?: EmergencyContactScalarWhereInput | EmergencyContactScalarWhereInput[]
+    id?: StringFilter<"EmergencyContact"> | string
+    customerId?: StringFilter<"EmergencyContact"> | string
+    name?: StringFilter<"EmergencyContact"> | string
+    phoneNumber?: StringFilter<"EmergencyContact"> | string
+    relation?: StringNullableFilter<"EmergencyContact"> | string | null
+    priority?: IntFilter<"EmergencyContact"> | number
+    createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+    updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
+  }
 
   export type ExpenseUpsertWithWhereUniqueWithoutCustomerInput = {
     where: ExpenseWhereUniqueInput;
@@ -46114,6 +48955,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"InAppNotification"> | Date | string;
   };
 
+  export type SOSRequestUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: SOSRequestWhereUniqueInput
+    update: XOR<SOSRequestUpdateWithoutCustomerInput, SOSRequestUncheckedUpdateWithoutCustomerInput>
+    create: XOR<SOSRequestCreateWithoutCustomerInput, SOSRequestUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type SOSRequestUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: SOSRequestWhereUniqueInput
+    data: XOR<SOSRequestUpdateWithoutCustomerInput, SOSRequestUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type SOSRequestUpdateManyWithWhereWithoutCustomerInput = {
+    where: SOSRequestScalarWhereInput
+    data: XOR<SOSRequestUpdateManyMutationInput, SOSRequestUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type SOSRequestScalarWhereInput = {
+    AND?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+    OR?: SOSRequestScalarWhereInput[]
+    NOT?: SOSRequestScalarWhereInput | SOSRequestScalarWhereInput[]
+    id?: StringFilter<"SOSRequest"> | string
+    customerId?: StringFilter<"SOSRequest"> | string
+    latitude?: FloatFilter<"SOSRequest"> | number
+    longitude?: FloatFilter<"SOSRequest"> | number
+    address?: StringNullableFilter<"SOSRequest"> | string | null
+    status?: EnumSOSStatusFilter<"SOSRequest"> | $Enums.SOSStatus
+    type?: EnumSOSTypeFilter<"SOSRequest"> | $Enums.SOSType
+    metadata?: JsonNullableFilter<"SOSRequest">
+    createdAt?: DateTimeFilter<"SOSRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"SOSRequest"> | Date | string | null
+  }
+
   export type VehicleAccessUpsertWithWhereUniqueWithoutCustomerInput = {
     where: VehicleAccessWhereUniqueInput;
     update: XOR<
@@ -46154,81 +49027,45 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VehicleAccess"> | Date | string;
   };
 
-  export type ChatSessionUpsertWithWhereUniqueWithoutCustomerInput = {
-    where: ChatSessionWhereUniqueInput;
-    update: XOR<
-      ChatSessionUpdateWithoutCustomerInput,
-      ChatSessionUncheckedUpdateWithoutCustomerInput
-    >;
-    create: XOR<
-      ChatSessionCreateWithoutCustomerInput,
-      ChatSessionUncheckedCreateWithoutCustomerInput
-    >;
-  };
-
-  export type ChatSessionUpdateWithWhereUniqueWithoutCustomerInput = {
-    where: ChatSessionWhereUniqueInput;
-    data: XOR<
-      ChatSessionUpdateWithoutCustomerInput,
-      ChatSessionUncheckedUpdateWithoutCustomerInput
-    >;
-  };
-
-  export type ChatSessionUpdateManyWithWhereWithoutCustomerInput = {
-    where: ChatSessionScalarWhereInput;
-    data: XOR<
-      ChatSessionUpdateManyMutationInput,
-      ChatSessionUncheckedUpdateManyWithoutCustomerInput
-    >;
-  };
-
-  export type ChatSessionScalarWhereInput = {
-    AND?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[];
-    OR?: ChatSessionScalarWhereInput[];
-    NOT?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[];
-    id?: StringFilter<"ChatSession"> | string;
-    customerId?: StringFilter<"ChatSession"> | string;
-    title?: StringNullableFilter<"ChatSession"> | string | null;
-    isActive?: BoolFilter<"ChatSession"> | boolean;
-    createdAt?: DateTimeFilter<"ChatSession"> | Date | string;
-    updatedAt?: DateTimeFilter<"ChatSession"> | Date | string;
-  };
-
   export type CustomerCreateWithoutDevicesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutDevicesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutDevicesInput = {
     where: CustomerWhereUniqueInput;
@@ -46259,76 +49096,84 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutDevicesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutDevicesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerCreateWithoutDocumentsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutDocumentsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutDocumentsInput = {
     where: CustomerWhereUniqueInput;
@@ -46339,62 +49184,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateWithoutDocumentsInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutDocumentsInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutDocumentsInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -46425,40 +49270,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutDocumentsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutDocumentsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerVehicleUpsertWithoutDocumentsInput = {
     update: XOR<
@@ -46481,106 +49330,102 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutDocumentsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutDocumentsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerCreateWithoutDigilockerInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutDigilockerInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutDigilockerInput = {
     where: CustomerWhereUniqueInput;
@@ -46611,40 +49456,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutDigilockerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutDigilockerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type ChallanCreateWithoutVehicleInput = {
     id?: string;
@@ -46747,40 +49596,44 @@ export namespace Prisma {
   };
 
   export type CustomerCreateWithoutVehiclesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutVehiclesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutVehiclesInput = {
     where: CustomerWhereUniqueInput;
@@ -46789,6 +49642,52 @@ export namespace Prisma {
       CustomerUncheckedCreateWithoutVehiclesInput
     >;
   };
+
+  export type DrivingTripCreateWithoutVehicleInput = {
+    id?: string
+    tripId: string
+    startTime: Date | string
+    endTime: Date | string
+    distanceKm: number
+    durationMin: number
+    maxSpeed?: number | null
+    avgSpeed?: number | null
+    fuelConsumed?: number | null
+    safetyScore: number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status: string
+    createdAt?: Date | string
+    events?: DrivingEventCreateNestedManyWithoutTripInput
+  }
+
+  export type DrivingTripUncheckedCreateWithoutVehicleInput = {
+    id?: string
+    tripId: string
+    startTime: Date | string
+    endTime: Date | string
+    distanceKm: number
+    durationMin: number
+    maxSpeed?: number | null
+    avgSpeed?: number | null
+    fuelConsumed?: number | null
+    safetyScore: number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status: string
+    createdAt?: Date | string
+    events?: DrivingEventUncheckedCreateNestedManyWithoutTripInput
+  }
+
+  export type DrivingTripCreateOrConnectWithoutVehicleInput = {
+    where: DrivingTripWhereUniqueInput
+    create: XOR<DrivingTripCreateWithoutVehicleInput, DrivingTripUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type DrivingTripCreateManyVehicleInputEnvelope = {
+    data: DrivingTripCreateManyVehicleInput | DrivingTripCreateManyVehicleInput[]
+    skipDuplicates?: boolean
+  }
 
   export type ExpenseCreateWithoutVehicleInput = {
     id?: string;
@@ -46915,6 +49814,33 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
+  export type TelematicsDeviceCreateWithoutVehicleInput = {
+    id?: string
+    instanceId: string
+    deviceToken?: string | null
+    platform?: string | null
+    isActive?: boolean
+    lastSyncAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TelematicsDeviceUncheckedCreateWithoutVehicleInput = {
+    id?: string
+    instanceId: string
+    deviceToken?: string | null
+    platform?: string | null
+    isActive?: boolean
+    lastSyncAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TelematicsDeviceCreateOrConnectWithoutVehicleInput = {
+    where: TelematicsDeviceWhereUniqueInput
+    create: XOR<TelematicsDeviceCreateWithoutVehicleInput, TelematicsDeviceUncheckedCreateWithoutVehicleInput>
+  }
+
   export type VehicleAccessCreateWithoutVehicleInput = {
     id?: string;
     role?: $Enums.AccessRole;
@@ -46978,85 +49904,6 @@ export namespace Prisma {
       VehicleHealthScoreCreateWithoutVehicleInput,
       VehicleHealthScoreUncheckedCreateWithoutVehicleInput
     >;
-  };
-
-  export type TelematicsDeviceCreateWithoutVehicleInput = {
-    id?: string;
-    instanceId: string;
-    deviceToken?: string | null;
-    platform?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
-
-  export type TelematicsDeviceUncheckedCreateWithoutVehicleInput = {
-    id?: string;
-    instanceId: string;
-    deviceToken?: string | null;
-    platform?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
-
-  export type TelematicsDeviceCreateOrConnectWithoutVehicleInput = {
-    where: TelematicsDeviceWhereUniqueInput;
-    create: XOR<
-      TelematicsDeviceCreateWithoutVehicleInput,
-      TelematicsDeviceUncheckedCreateWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripCreateWithoutVehicleInput = {
-    id?: string;
-    tripId: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    distanceKm: number;
-    durationMin: number;
-    maxSpeed?: number | null;
-    avgSpeed?: number | null;
-    fuelConsumed?: number | null;
-    safetyScore: number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status: string;
-    createdAt?: Date | string;
-    events?: DrivingEventCreateNestedManyWithoutTripInput;
-  };
-
-  export type DrivingTripUncheckedCreateWithoutVehicleInput = {
-    id?: string;
-    tripId: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    distanceKm: number;
-    durationMin: number;
-    maxSpeed?: number | null;
-    avgSpeed?: number | null;
-    fuelConsumed?: number | null;
-    safetyScore: number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status: string;
-    createdAt?: Date | string;
-    events?: DrivingEventUncheckedCreateNestedManyWithoutTripInput;
-  };
-
-  export type DrivingTripCreateOrConnectWithoutVehicleInput = {
-    where: DrivingTripWhereUniqueInput;
-    create: XOR<
-      DrivingTripCreateWithoutVehicleInput,
-      DrivingTripUncheckedCreateWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripCreateManyVehicleInputEnvelope = {
-    data:
-      | DrivingTripCreateManyVehicleInput
-      | DrivingTripCreateManyVehicleInput[];
-    skipDuplicates?: boolean;
   };
 
   export type ChallanUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -47154,40 +50001,81 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutVehiclesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutVehiclesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type DrivingTripUpsertWithWhereUniqueWithoutVehicleInput = {
+    where: DrivingTripWhereUniqueInput
+    update: XOR<DrivingTripUpdateWithoutVehicleInput, DrivingTripUncheckedUpdateWithoutVehicleInput>
+    create: XOR<DrivingTripCreateWithoutVehicleInput, DrivingTripUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type DrivingTripUpdateWithWhereUniqueWithoutVehicleInput = {
+    where: DrivingTripWhereUniqueInput
+    data: XOR<DrivingTripUpdateWithoutVehicleInput, DrivingTripUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type DrivingTripUpdateManyWithWhereWithoutVehicleInput = {
+    where: DrivingTripScalarWhereInput
+    data: XOR<DrivingTripUpdateManyMutationInput, DrivingTripUncheckedUpdateManyWithoutVehicleInput>
+  }
+
+  export type DrivingTripScalarWhereInput = {
+    AND?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[]
+    OR?: DrivingTripScalarWhereInput[]
+    NOT?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[]
+    id?: StringFilter<"DrivingTrip"> | string
+    vehicleId?: StringFilter<"DrivingTrip"> | string
+    tripId?: StringFilter<"DrivingTrip"> | string
+    startTime?: DateTimeFilter<"DrivingTrip"> | Date | string
+    endTime?: DateTimeFilter<"DrivingTrip"> | Date | string
+    distanceKm?: FloatFilter<"DrivingTrip"> | number
+    durationMin?: FloatFilter<"DrivingTrip"> | number
+    maxSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    avgSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    fuelConsumed?: FloatNullableFilter<"DrivingTrip"> | number | null
+    safetyScore?: IntFilter<"DrivingTrip"> | number
+    startLocation?: JsonNullableFilter<"DrivingTrip">
+    endLocation?: JsonNullableFilter<"DrivingTrip">
+    status?: StringFilter<"DrivingTrip"> | string
+    createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string
+  }
 
   export type ExpenseUpsertWithWhereUniqueWithoutVehicleInput = {
     where: ExpenseWhereUniqueInput;
@@ -47306,6 +50194,39 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ServiceRecord"> | Date | string;
   };
 
+  export type TelematicsDeviceUpsertWithoutVehicleInput = {
+    update: XOR<TelematicsDeviceUpdateWithoutVehicleInput, TelematicsDeviceUncheckedUpdateWithoutVehicleInput>
+    create: XOR<TelematicsDeviceCreateWithoutVehicleInput, TelematicsDeviceUncheckedCreateWithoutVehicleInput>
+    where?: TelematicsDeviceWhereInput
+  }
+
+  export type TelematicsDeviceUpdateToOneWithWhereWithoutVehicleInput = {
+    where?: TelematicsDeviceWhereInput
+    data: XOR<TelematicsDeviceUpdateWithoutVehicleInput, TelematicsDeviceUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type TelematicsDeviceUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    instanceId?: StringFieldUpdateOperationsInput | string
+    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TelematicsDeviceUncheckedUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    instanceId?: StringFieldUpdateOperationsInput | string
+    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type VehicleAccessUpsertWithWhereUniqueWithoutVehicleInput = {
     where: VehicleAccessWhereUniqueInput;
     update: XOR<
@@ -47388,152 +50309,63 @@ export namespace Prisma {
       | null;
   };
 
-  export type TelematicsDeviceUpsertWithoutVehicleInput = {
-    update: XOR<
-      TelematicsDeviceUpdateWithoutVehicleInput,
-      TelematicsDeviceUncheckedUpdateWithoutVehicleInput
-    >;
-    create: XOR<
-      TelematicsDeviceCreateWithoutVehicleInput,
-      TelematicsDeviceUncheckedCreateWithoutVehicleInput
-    >;
-    where?: TelematicsDeviceWhereInput;
-  };
-
-  export type TelematicsDeviceUpdateToOneWithWhereWithoutVehicleInput = {
-    where?: TelematicsDeviceWhereInput;
-    data: XOR<
-      TelematicsDeviceUpdateWithoutVehicleInput,
-      TelematicsDeviceUncheckedUpdateWithoutVehicleInput
-    >;
-  };
-
-  export type TelematicsDeviceUpdateWithoutVehicleInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    instanceId?: StringFieldUpdateOperationsInput | string;
-    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null;
-    platform?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
-
-  export type TelematicsDeviceUncheckedUpdateWithoutVehicleInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    instanceId?: StringFieldUpdateOperationsInput | string;
-    deviceToken?: NullableStringFieldUpdateOperationsInput | string | null;
-    platform?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
-
-  export type DrivingTripUpsertWithWhereUniqueWithoutVehicleInput = {
-    where: DrivingTripWhereUniqueInput;
-    update: XOR<
-      DrivingTripUpdateWithoutVehicleInput,
-      DrivingTripUncheckedUpdateWithoutVehicleInput
-    >;
-    create: XOR<
-      DrivingTripCreateWithoutVehicleInput,
-      DrivingTripUncheckedCreateWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripUpdateWithWhereUniqueWithoutVehicleInput = {
-    where: DrivingTripWhereUniqueInput;
-    data: XOR<
-      DrivingTripUpdateWithoutVehicleInput,
-      DrivingTripUncheckedUpdateWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripUpdateManyWithWhereWithoutVehicleInput = {
-    where: DrivingTripScalarWhereInput;
-    data: XOR<
-      DrivingTripUpdateManyMutationInput,
-      DrivingTripUncheckedUpdateManyWithoutVehicleInput
-    >;
-  };
-
-  export type DrivingTripScalarWhereInput = {
-    AND?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[];
-    OR?: DrivingTripScalarWhereInput[];
-    NOT?: DrivingTripScalarWhereInput | DrivingTripScalarWhereInput[];
-    id?: StringFilter<"DrivingTrip"> | string;
-    vehicleId?: StringFilter<"DrivingTrip"> | string;
-    tripId?: StringFilter<"DrivingTrip"> | string;
-    startTime?: DateTimeFilter<"DrivingTrip"> | Date | string;
-    endTime?: DateTimeFilter<"DrivingTrip"> | Date | string;
-    distanceKm?: FloatFilter<"DrivingTrip"> | number;
-    durationMin?: FloatFilter<"DrivingTrip"> | number;
-    maxSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-    avgSpeed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-    fuelConsumed?: FloatNullableFilter<"DrivingTrip"> | number | null;
-    safetyScore?: IntFilter<"DrivingTrip"> | number;
-    startLocation?: JsonNullableFilter<"DrivingTrip">;
-    endLocation?: JsonNullableFilter<"DrivingTrip">;
-    status?: StringFilter<"DrivingTrip"> | string;
-    createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string;
-  };
-
   export type CustomerVehicleCreateWithoutOdometerLogsInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutOdometerLogsInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutOdometerLogsInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -47564,128 +50396,120 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutOdometerLogsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutOdometerLogsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleCreateWithoutChallansInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutChallansInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutChallansInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -47716,106 +50540,102 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutChallansInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutChallansInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerCreateWithoutSharedVehiclesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
     where: CustomerWhereUniqueInput;
@@ -47826,62 +50646,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateWithoutAccessListInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutAccessListInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutAccessListInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -47912,40 +50732,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutSharedVehiclesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerVehicleUpsertWithoutAccessListInput = {
     update: XOR<
@@ -47968,128 +50792,120 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutAccessListInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutAccessListInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleCreateWithoutHealthScoreInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutHealthScoreInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutHealthScoreInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -48120,106 +50936,102 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutHealthScoreInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutHealthScoreInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+  }
 
   export type CustomerCreateWithoutNotificationsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutNotificationsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutNotificationsInput = {
     where: CustomerWhereUniqueInput;
@@ -48250,40 +51062,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutNotificationsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutNotificationsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type ChatMessageCreateWithoutSessionInput = {
     id?: string;
@@ -48317,40 +51133,44 @@ export namespace Prisma {
   };
 
   export type CustomerCreateWithoutChatsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutChatsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutChatsInput = {
     where: CustomerWhereUniqueInput;
@@ -48421,40 +51241,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutChatsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutChatsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type ChatSessionCreateWithoutMessagesInput = {
     id?: string;
@@ -48521,40 +51345,44 @@ export namespace Prisma {
   };
 
   export type CustomerCreateWithoutExpensesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutExpensesInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutExpensesInput = {
     where: CustomerWhereUniqueInput;
@@ -48565,62 +51393,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateWithoutExpensesInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutExpensesInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutExpensesInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -48651,40 +51479,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutExpensesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutExpensesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerVehicleUpsertWithoutExpensesInput = {
     update: XOR<
@@ -48707,106 +51539,102 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutExpensesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutExpensesInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerCreateWithoutBudgetsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerUncheckedCreateWithoutBudgetsInput = {
-    id?: string;
-    phoneNumber: string;
-    email?: string | null;
-    fullName?: string | null;
-    profilePic?: string | null;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput;
-    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput;
-    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput;
-    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput;
-    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput;
-    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput;
-  };
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
 
   export type CustomerCreateOrConnectWithoutBudgetsInput = {
     where: CustomerWhereUniqueInput;
@@ -48837,40 +51665,44 @@ export namespace Prisma {
   };
 
   export type CustomerUpdateWithoutBudgetsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
 
   export type CustomerUncheckedUpdateWithoutBudgetsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    phoneNumber?: StringFieldUpdateOperationsInput | string;
-    email?: NullableStringFieldUpdateOperationsInput | string | null;
-    fullName?: NullableStringFieldUpdateOperationsInput | string | null;
-    profilePic?: NullableStringFieldUpdateOperationsInput | string | null;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput;
-    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput;
-    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput;
-    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput;
-    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput;
-    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
 
   export type ServicePartCreateWithoutServiceRecordInput = {
     id?: string;
@@ -48918,62 +51750,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateWithoutServiceRecordsInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutServiceRecordsInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutServiceRecordsInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -49061,70 +51893,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutServiceRecordsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutServiceRecordsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type ServiceRecordCreateWithoutPartsInput = {
     id?: string;
@@ -49223,62 +52047,62 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateWithoutTelematicsDeviceInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleUncheckedCreateWithoutTelematicsDeviceInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput;
-  };
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
   export type CustomerVehicleCreateOrConnectWithoutTelematicsDeviceInput = {
     where: CustomerVehicleWhereUniqueInput;
@@ -49310,136 +52134,62 @@ export namespace Prisma {
     };
 
   export type CustomerVehicleUpdateWithoutTelematicsDeviceInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutTelematicsDeviceInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
-
-  export type CustomerVehicleCreateWithoutDrivingTripsInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput;
-    customer: CustomerCreateNestedOneWithoutVehiclesInput;
-    expenses?: ExpenseCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput;
-  };
-
-  export type CustomerVehicleUncheckedCreateWithoutDrivingTripsInput = {
-    id?: string;
-    customerId: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput;
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput;
-    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput;
-    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput;
-    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput;
-    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput;
-    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput;
-    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput;
-  };
-
-  export type CustomerVehicleCreateOrConnectWithoutDrivingTripsInput = {
-    where: CustomerVehicleWhereUniqueInput;
-    create: XOR<
-      CustomerVehicleCreateWithoutDrivingTripsInput,
-      CustomerVehicleUncheckedCreateWithoutDrivingTripsInput
-    >;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type DrivingEventCreateWithoutTripInput = {
     id?: string;
@@ -49476,91 +52226,68 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
-  export type CustomerVehicleUpsertWithoutDrivingTripsInput = {
-    update: XOR<
-      CustomerVehicleUpdateWithoutDrivingTripsInput,
-      CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput
-    >;
-    create: XOR<
-      CustomerVehicleCreateWithoutDrivingTripsInput,
-      CustomerVehicleUncheckedCreateWithoutDrivingTripsInput
-    >;
-    where?: CustomerVehicleWhereInput;
-  };
+  export type CustomerVehicleCreateWithoutDrivingTripsInput = {
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+  }
 
-  export type CustomerVehicleUpdateToOneWithWhereWithoutDrivingTripsInput = {
-    where?: CustomerVehicleWhereInput;
-    data: XOR<
-      CustomerVehicleUpdateWithoutDrivingTripsInput,
-      CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput
-    >;
-  };
+  export type CustomerVehicleUncheckedCreateWithoutDrivingTripsInput = {
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+  }
 
-  export type CustomerVehicleUpdateWithoutDrivingTripsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-  };
-
-  export type CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    customerId?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-  };
+  export type CustomerVehicleCreateOrConnectWithoutDrivingTripsInput = {
+    where: CustomerVehicleWhereUniqueInput
+    create: XOR<CustomerVehicleCreateWithoutDrivingTripsInput, CustomerVehicleUncheckedCreateWithoutDrivingTripsInput>
+  }
 
   export type DrivingEventUpsertWithWhereUniqueWithoutTripInput = {
     where: DrivingEventWhereUniqueInput;
@@ -49604,6 +52331,75 @@ export namespace Prisma {
     speed?: FloatNullableFilter<"DrivingEvent"> | number | null;
     createdAt?: DateTimeFilter<"DrivingEvent"> | Date | string;
   };
+
+  export type CustomerVehicleUpsertWithoutDrivingTripsInput = {
+    update: XOR<CustomerVehicleUpdateWithoutDrivingTripsInput, CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput>
+    create: XOR<CustomerVehicleCreateWithoutDrivingTripsInput, CustomerVehicleUncheckedCreateWithoutDrivingTripsInput>
+    where?: CustomerVehicleWhereInput
+  }
+
+  export type CustomerVehicleUpdateToOneWithWhereWithoutDrivingTripsInput = {
+    where?: CustomerVehicleWhereInput
+    data: XOR<CustomerVehicleUpdateWithoutDrivingTripsInput, CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput>
+  }
+
+  export type CustomerVehicleUpdateWithoutDrivingTripsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
+
+  export type CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type DrivingTripCreateWithoutEventsInput = {
     id?: string;
@@ -49705,6 +52501,206 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
+  export type CustomerCreateWithoutSosRequestsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutSosRequestsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutSosRequestsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+  }
+
+  export type CustomerUpsertWithoutSosRequestsInput = {
+    update: XOR<CustomerUpdateWithoutSosRequestsInput, CustomerUncheckedUpdateWithoutSosRequestsInput>
+    create: XOR<CustomerCreateWithoutSosRequestsInput, CustomerUncheckedCreateWithoutSosRequestsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutSosRequestsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutSosRequestsInput, CustomerUncheckedUpdateWithoutSosRequestsInput>
+  }
+
+  export type CustomerUpdateWithoutSosRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutSosRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerCreateWithoutEmergencyContactsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutEmergencyContactsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutEmergencyContactsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+  }
+
+  export type CustomerUpsertWithoutEmergencyContactsInput = {
+    update: XOR<CustomerUpdateWithoutEmergencyContactsInput, CustomerUncheckedUpdateWithoutEmergencyContactsInput>
+    create: XOR<CustomerCreateWithoutEmergencyContactsInput, CustomerUncheckedCreateWithoutEmergencyContactsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutEmergencyContactsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutEmergencyContactsInput, CustomerUncheckedUpdateWithoutEmergencyContactsInput>
+  }
+
+  export type CustomerUpdateWithoutEmergencyContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutEmergencyContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type ChatSessionCreateManyCustomerInput = {
+    id?: string
+    title?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type CustomerDeviceCreateManyCustomerInput = {
     id?: string;
     platform: string;
@@ -49738,24 +52734,34 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleCreateManyCustomerInput = {
-    id?: string;
-    registrationNumber: string;
-    make?: string | null;
-    model?: string | null;
-    variant?: string | null;
-    year?: number | null;
-    fuelType?: string | null;
-    vehicleType?: string | null;
-    engineNumber?: string | null;
-    chassisNumber?: string | null;
-    currentOdometer?: number | null;
-    registrationDate?: Date | string | null;
-    rcVerified?: boolean;
-    isActive?: boolean;
-    isPrimary?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    variant?: string | null
+    year?: number | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+  }
+
+  export type EmergencyContactCreateManyCustomerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    relation?: string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
 
   export type ExpenseCreateManyCustomerInput = {
     id?: string;
@@ -49800,6 +52806,18 @@ export namespace Prisma {
     updatedAt?: Date | string;
   };
 
+  export type SOSRequestCreateManyCustomerInput = {
+    id?: string
+    latitude: number
+    longitude: number
+    address?: string | null
+    status?: $Enums.SOSStatus
+    type?: $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
   export type VehicleAccessCreateManyCustomerInput = {
     id?: string;
     vehicleId: string;
@@ -49808,13 +52826,31 @@ export namespace Prisma {
     updatedAt?: Date | string;
   };
 
-  export type ChatSessionCreateManyCustomerInput = {
-    id?: string;
-    title?: string | null;
-    isActive?: boolean;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  };
+  export type ChatSessionUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: ChatMessageUpdateManyWithoutSessionNestedInput
+  }
+
+  export type ChatSessionUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: ChatMessageUncheckedUpdateManyWithoutSessionNestedInput
+  }
+
+  export type ChatSessionUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
 
   export type CustomerDeviceUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string;
@@ -49961,94 +52997,112 @@ export namespace Prisma {
   };
 
   export type CustomerVehicleUpdateWithoutCustomerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateWithoutCustomerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput;
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput;
-    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput;
-    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput;
-    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput;
-    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput;
-    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput;
-    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput;
-    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+  }
 
   export type CustomerVehicleUncheckedUpdateManyWithoutCustomerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    registrationNumber?: StringFieldUpdateOperationsInput | string;
-    make?: NullableStringFieldUpdateOperationsInput | string | null;
-    model?: NullableStringFieldUpdateOperationsInput | string | null;
-    variant?: NullableStringFieldUpdateOperationsInput | string | null;
-    year?: NullableIntFieldUpdateOperationsInput | number | null;
-    fuelType?: NullableStringFieldUpdateOperationsInput | string | null;
-    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null;
-    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null;
-    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null;
-    registrationDate?:
-      | NullableDateTimeFieldUpdateOperationsInput
-      | Date
-      | string
-      | null;
-    rcVerified?: BoolFieldUpdateOperationsInput | boolean;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type EmergencyContactUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmergencyContactUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    relation?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
 
   export type ExpenseUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string;
@@ -50191,6 +53245,42 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
+  export type SOSRequestUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SOSRequestUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSOSStatusFieldUpdateOperationsInput | $Enums.SOSStatus
+    type?: EnumSOSTypeFieldUpdateOperationsInput | $Enums.SOSType
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type VehicleAccessUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string;
     role?: EnumAccessRoleFieldUpdateOperationsInput | $Enums.AccessRole;
@@ -50211,32 +53301,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string;
     vehicleId?: StringFieldUpdateOperationsInput | string;
     role?: EnumAccessRoleFieldUpdateOperationsInput | $Enums.AccessRole;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
-
-  export type ChatSessionUpdateWithoutCustomerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    title?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    messages?: ChatMessageUpdateManyWithoutSessionNestedInput;
-  };
-
-  export type ChatSessionUncheckedUpdateWithoutCustomerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    title?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    messages?: ChatMessageUncheckedUpdateManyWithoutSessionNestedInput;
-  };
-
-  export type ChatSessionUncheckedUpdateManyWithoutCustomerInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    title?: NullableStringFieldUpdateOperationsInput | string | null;
-    isActive?: BoolFieldUpdateOperationsInput | boolean;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
@@ -50276,6 +53340,23 @@ export namespace Prisma {
     createdAt?: Date | string;
     updatedAt?: Date | string;
   };
+
+  export type DrivingTripCreateManyVehicleInput = {
+    id?: string
+    tripId: string
+    startTime: Date | string
+    endTime: Date | string
+    distanceKm: number
+    durationMin: number
+    maxSpeed?: number | null
+    avgSpeed?: number | null
+    fuelConsumed?: number | null
+    safetyScore: number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status: string
+    createdAt?: Date | string
+  }
 
   export type ExpenseCreateManyVehicleInput = {
     id?: string;
@@ -50323,23 +53404,6 @@ export namespace Prisma {
     role?: $Enums.AccessRole;
     createdAt?: Date | string;
     updatedAt?: Date | string;
-  };
-
-  export type DrivingTripCreateManyVehicleInput = {
-    id?: string;
-    tripId: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    distanceKm: number;
-    durationMin: number;
-    maxSpeed?: number | null;
-    avgSpeed?: number | null;
-    fuelConsumed?: number | null;
-    safetyScore: number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status: string;
-    createdAt?: Date | string;
   };
 
   export type ChallanUpdateWithoutVehicleInput = {
@@ -50497,6 +53561,59 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
+
+  export type DrivingTripUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tripId?: StringFieldUpdateOperationsInput | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    distanceKm?: FloatFieldUpdateOperationsInput | number
+    durationMin?: FloatFieldUpdateOperationsInput | number
+    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null
+    safetyScore?: IntFieldUpdateOperationsInput | number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: DrivingEventUpdateManyWithoutTripNestedInput
+  }
+
+  export type DrivingTripUncheckedUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tripId?: StringFieldUpdateOperationsInput | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    distanceKm?: FloatFieldUpdateOperationsInput | number
+    durationMin?: FloatFieldUpdateOperationsInput | number
+    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null
+    safetyScore?: IntFieldUpdateOperationsInput | number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: DrivingEventUncheckedUpdateManyWithoutTripNestedInput
+  }
+
+  export type DrivingTripUncheckedUpdateManyWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tripId?: StringFieldUpdateOperationsInput | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    distanceKm?: FloatFieldUpdateOperationsInput | number
+    durationMin?: FloatFieldUpdateOperationsInput | number
+    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null
+    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null
+    safetyScore?: IntFieldUpdateOperationsInput | number
+    startLocation?: NullableJsonNullValueInput | InputJsonValue
+    endLocation?: NullableJsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
 
   export type ExpenseUpdateWithoutVehicleInput = {
     id?: StringFieldUpdateOperationsInput | string;
@@ -50660,59 +53777,6 @@ export namespace Prisma {
     role?: EnumAccessRoleFieldUpdateOperationsInput | $Enums.AccessRole;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-  };
-
-  export type DrivingTripUpdateWithoutVehicleInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    tripId?: StringFieldUpdateOperationsInput | string;
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    distanceKm?: FloatFieldUpdateOperationsInput | number;
-    durationMin?: FloatFieldUpdateOperationsInput | number;
-    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    safetyScore?: IntFieldUpdateOperationsInput | number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    events?: DrivingEventUpdateManyWithoutTripNestedInput;
-  };
-
-  export type DrivingTripUncheckedUpdateWithoutVehicleInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    tripId?: StringFieldUpdateOperationsInput | string;
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    distanceKm?: FloatFieldUpdateOperationsInput | number;
-    durationMin?: FloatFieldUpdateOperationsInput | number;
-    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    safetyScore?: IntFieldUpdateOperationsInput | number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    events?: DrivingEventUncheckedUpdateManyWithoutTripNestedInput;
-  };
-
-  export type DrivingTripUncheckedUpdateManyWithoutVehicleInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    tripId?: StringFieldUpdateOperationsInput | string;
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string;
-    distanceKm?: FloatFieldUpdateOperationsInput | number;
-    durationMin?: FloatFieldUpdateOperationsInput | number;
-    maxSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    avgSpeed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    fuelConsumed?: NullableFloatFieldUpdateOperationsInput | number | null;
-    safetyScore?: IntFieldUpdateOperationsInput | number;
-    startLocation?: NullableJsonNullValueInput | InputJsonValue;
-    endLocation?: NullableJsonNullValueInput | InputJsonValue;
-    status?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
   export type ChatMessageCreateManySessionInput = {

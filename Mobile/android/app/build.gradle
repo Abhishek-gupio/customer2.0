@@ -2,6 +2,19 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+def hasGoogleServicesConfig =
+    file("google-services.json").exists() ||
+    file("src/debug/google-services.json").exists() ||
+    file("src/release/google-services.json").exists()
+
+if (hasGoogleServicesConfig) {
+    apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
+} else {
+    logger.lifecycle("google-services.json not found; skipping Google Services plugin for local build")
+}
+// Disabled: Google Services plugin requires google-services.json which is not configured
+// apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
+
 // Copy react-native-vector-icons font files into the app so icons display
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
@@ -76,41 +89,51 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    configurations.all {
+        exclude group: 'com.android.support'
+    }
+    ndkVersion = rootProject.ext.ndkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
+    compileSdk = rootProject.ext.compileSdkVersion
 
-    namespace "com.mobile"
+    namespace = "com.mobile"
     defaultConfig {
         applicationId "com.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        externalNativeBuild {
-            cmake {
-                cppFlags "-fexceptions"
-            }
-        }
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            storeFile = file('debug.keystore')
+            storePassword = 'android'
+            keyAlias = 'androiddebugkey'
+            keyPassword = 'android'
         }
     }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packagingOptions {
+        pickFirst 'META-INF/DEPENDENCIES'
+        pickFirst 'META-INF/INDEX.LIST'
+        pickFirst 'META-INF/io.netty.versions.properties'
+    }
+
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
-            minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig = signingConfigs.debug
+            minifyEnabled = enableProguardInReleaseBuilds
+            proguardFiles = [getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"]
         }
     }
 }
@@ -124,4 +147,11 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation project(':react-native-linear-gradient')
+    implementation project(':react-native-voice_voice')
+    implementation project(':react-native-screens')
+    implementation project(':react-native-video')
+    implementation project(':react-native-svg')
 }
+
