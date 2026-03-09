@@ -38,7 +38,7 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl, // Correctly use the parsed ssl value from the database URL instead of overriding it via NODE_ENV
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = (global.prisma ??

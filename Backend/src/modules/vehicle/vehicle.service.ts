@@ -158,10 +158,20 @@ export const vehicleService = {
   async deleteVehicle(customerId: string, vehicleId: string) {
     await this.getVehicle(customerId, vehicleId);
 
-    // Soft delete
-    return dbInstances.customerVehicle.update({
+    // Clear nullable references to prevent foreign key constraint failures
+    await dbInstances.customerDocument.updateMany({
+      where: { vehicleId },
+      data: { vehicleId: null },
+    });
+
+    await dbInstances.expense.updateMany({
+      where: { vehicleId },
+      data: { vehicleId: null },
+    });
+
+    // Hard delete from Prisma database
+    return dbInstances.customerVehicle.delete({
       where: { id: vehicleId },
-      data: { isActive: false },
     });
   },
 

@@ -15,6 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { vehicleService } from '../../services/vehicleService';
 
 export interface Challan {
   id: string;
@@ -47,59 +48,53 @@ const Challans: React.FC<any> = ({ navigation, route }: any) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [challanList, setChallanList] = useState<Challan[]>([
-    {
-      id: '1',
-      type: 'Speed Violation',
-      icon: 'bolt',
-      amount: 2000,
-      status: 'UNPAID',
-      date: '12 Jan 2026',
-      location: 'NH-48, Pune',
-      dueDate: '02 Feb 2026',
-      offeneAmount: 500,
-    },
-    {
-      id: '2',
-      type: 'Signal Jump',
-      icon: 'traffic-light',
-      amount: 2500,
-      status: 'PAID',
-      date: '05 Dec 2025',
-      location: 'Hinjewadi Ph-1, Pune',
-    },
-    {
-      id: '3',
-      type: 'Parking Violation',
-      icon: 'parking',
-      amount: 500,
-      status: 'UNPAID',
-      date: '20 Jan 2026',
-      location: 'FC Road, Pune',
-      dueDate: '10 Feb 2026',
-    },
-  ]);
+  const [challanList, setChallanList] = useState<Challan[]>([]);
+
+  const fetchChallans = useCallback(async () => {
+    if (!vehicleData?.id) return;
+    try {
+      const data = await vehicleService.getChallans(vehicleData.id);
+      // Map backend fields to frontend UI expectations seamlessly
+      const mapped = data.map((c: any) => ({
+        id: c.id,
+        type: c.violationNumber || 'Traffic Violation',
+        icon: 'receipt', // fallback icon
+        amount: c.amount,
+        status: c.status,
+        date: new Date(c.violationDate).toLocaleDateString(),
+        location: c.location || 'Unknown',
+        dueDate: c.dueDate,
+        offeneAmount: c.offeneAmount,
+      }));
+      setChallanList(mapped);
+    } catch (err) {
+      console.error('Fetch challans error:', err);
+    }
+  }, [vehicleData?.id]);
+
+  React.useEffect(() => {
+    fetchChallans();
+  }, [fetchChallans]);
 
   const handleSync = useCallback(async () => {
+    if (!vehicleData?.id) return;
     setIsSyncing(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await vehicleService.syncChallans(vehicleData.id);
       Alert.alert('Success', 'Challans synced successfully!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to sync challans');
+      fetchChallans(); // refresh list
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to sync challans');
     } finally {
       setIsSyncing(false);
     }
-  }, []);
+  }, [vehicleData?.id, fetchChallans]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-    } finally {
-      setRefreshing(false);
-    }
-  }, []);
+    await fetchChallans();
+    setRefreshing(false);
+  }, [fetchChallans]);
 
   const handleMarkAsPaid = (challanId: string) => {
     Alert.alert(
@@ -111,6 +106,7 @@ const Challans: React.FC<any> = ({ navigation, route }: any) => {
           text: 'Confirm',
           onPress: async () => {
             try {
+              await vehicleService.markChallanAsPaid(challanId);
               setChallanList(prev =>
                 prev.map(item =>
                   item.id === challanId
@@ -119,8 +115,8 @@ const Challans: React.FC<any> = ({ navigation, route }: any) => {
                 ),
               );
               Alert.alert('Success', 'Challan marked as paid!');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to update status');
+            } catch (error: any) {
+              Alert.alert('Error', error?.message || 'Failed to update status');
             }
           },
         },
