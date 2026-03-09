@@ -40,10 +40,7 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl,
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = (global.prisma ??
