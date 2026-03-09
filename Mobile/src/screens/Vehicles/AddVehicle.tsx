@@ -20,6 +20,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { vehicleService } from '../../services/vehicleService';
 
 const VEHICLE_TYPES = ['Car', 'Bike', 'SUV', 'Truck', 'Van'];
 
@@ -42,7 +43,6 @@ const BRANDS = [
 ];
 
 const FUEL_TYPES = ['Petrol', 'Diesel', 'Electric', 'CNG', 'Hybrid'];
-const TRANSMISSIONS = ['Manual', 'Automatic', 'AMT', 'CVT'];
 
 interface AddVehicleProps {
   navigation: any;
@@ -57,8 +57,10 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
     year: new Date().getFullYear().toString(),
     type: 'Car',
     fuel: 'Petrol',
-    transmission: 'Manual',
     isPrimary: true,
+    variant: '',
+    registrationDate: '',
+    engineNumber: '',
   });
 
   const [errors, setErrors] = useState<{
@@ -67,6 +69,154 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
     brand?: string;
   }>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const DatePickerModal = ({ visible, onClose, onSelect, currentDate }: any) => {
+    const defaultDate = currentDate ? new Date(currentDate) : new Date();
+    const initDate = isNaN(defaultDate.getTime()) ? new Date() : defaultDate;
+
+    const [viewDate, setViewDate] = useState(initDate);
+    const [mode, setMode] = useState<'date' | 'month' | 'year'>('date');
+
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstDay; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+    const pad = (n: number) => n < 10 ? '0' + n : n;
+
+    const renderContent = () => {
+      if (mode === 'month') {
+        return (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingBottom: hp(2) }}>
+            {monthNames.map((m, i) => (
+              <TouchableOpacity
+                key={i}
+                style={{ width: '30%', height: hp(6), alignItems: 'center', justifyContent: 'center', backgroundColor: month === i ? '#FFBF00' : '#121212', borderRadius: 12, marginBottom: hp(1.5), borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}
+                onPress={() => {
+                  setViewDate(new Date(year, i, 1));
+                  setMode('date');
+                }}
+              >
+                <Text style={{ color: month === i ? '#000' : '#fff', fontWeight: 'bold' }}>{m}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        );
+      }
+
+      if (mode === 'year') {
+        const currentYear = new Date().getFullYear();
+        const startYear = currentYear - 30;
+        const years = Array.from({ length: 32 }, (_, i) => startYear + i).reverse();
+
+        return (
+          <View style={{ height: hp(35) }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: hp(2) }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {years.map((y) => (
+                  <TouchableOpacity
+                    key={y}
+                    style={{ width: '30%', height: hp(6), alignItems: 'center', justifyContent: 'center', backgroundColor: year === y ? '#FFBF00' : '#121212', borderRadius: 12, marginBottom: hp(1.5), borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}
+                    onPress={() => {
+                      setViewDate(new Date(y, month, 1));
+                      setMode('date');
+                    }}
+                  >
+                    <Text style={{ color: year === y ? '#000' : '#fff', fontWeight: 'bold' }}>{y}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        );
+      }
+
+      return (
+        <View style={{ paddingBottom: hp(2) }}>
+          <View style={{ flexDirection: 'row', marginBottom: hp(1) }}>
+            {weekDays.map(wd => <Text key={wd} style={{ color: '#888', width: '14.28%', textAlign: 'center', fontWeight: 'bold' }}>{wd}</Text>)}
+          </View>
+
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            {days.map((d, i) => {
+              const dateStr = d ? `${year}-${pad(month + 1)}-${pad(d)}` : '';
+              const isSelected = currentDate === dateStr;
+              return (
+                <View key={i} style={{ width: '14.28%', height: wp(10), alignItems: 'center', justifyContent: 'center', marginBottom: hp(1) }}>
+                  {d ? (
+                    <TouchableOpacity
+                      style={{ width: wp(9), height: wp(9), borderRadius: wp(4.5), backgroundColor: isSelected ? '#FFBF00' : 'transparent', alignItems: 'center', justifyContent: 'center' }}
+                      onPress={() => {
+                        onSelect(dateStr);
+                        onClose();
+                        setMode('date');
+                      }}
+                    >
+                      <Text style={{ color: isSelected ? '#000' : '#fff', fontWeight: 'bold' }}>{d}</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              )
+            })}
+          </View>
+        </View>
+      );
+    };
+
+    return (
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <Pressable style={styles.modalOverlay} onPress={() => { setMode('date'); onClose(); }}>
+          <Pressable style={[styles.modalContent, { paddingHorizontal: wp(5) }]}>
+            <View style={styles.modalHandle} />
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: hp(2) }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (mode === 'date') setViewDate(new Date(year, month - 1, 1));
+                  else if (mode === 'month') setViewDate(new Date(year - 1, month, 1));
+                }}
+                style={{ padding: 10, opacity: mode === 'year' ? 0 : 1 }}
+                disabled={mode === 'year'}
+              >
+                <FontAwesome5 name="chevron-left" size={wp(4)} color="#fff" />
+              </TouchableOpacity>
+
+              <View style={{ flexDirection: 'row', gap: wp(2) }}>
+                <TouchableOpacity onPress={() => setMode(mode === 'month' ? 'date' : 'month')}>
+                  <Text style={{ color: mode === 'month' ? '#FFBF00' : '#fff', fontSize: wp(4.5), fontWeight: 'bold' }}>{fullMonthNames[month]}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setMode(mode === 'year' ? 'date' : 'year')}>
+                  <Text style={{ color: mode === 'year' ? '#FFBF00' : '#fff', fontSize: wp(4.5), fontWeight: 'bold' }}>{year}</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  if (mode === 'date') setViewDate(new Date(year, month + 1, 1));
+                  else if (mode === 'month') setViewDate(new Date(year + 1, month, 1));
+                }}
+                style={{ padding: 10, opacity: mode === 'year' ? 0 : 1 }}
+                disabled={mode === 'year'}
+              >
+                <FontAwesome5 name="chevron-right" size={wp(4)} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {renderContent()}
+          </Pressable>
+        </Pressable>
+      </Modal>
+    );
+  };
 
   const updateForm = (key: string, value: string | boolean) => {
     setForm((prev: any) => ({ ...prev, [key]: value }));
@@ -92,24 +242,72 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const mapType = (type: string) => {
+    switch (type) {
+      case 'Car': return 'SEDAN';
+      case 'Bike': return 'BIKE';
+      case 'SUV': return 'SUV';
+      case 'Truck': return 'TRUCK';
+      case 'Van': return 'LUV';
+      default: return 'OTHER';
+    }
+  };
+
+  const mapFuel = (fuel: string) => {
+    switch (fuel) {
+      case 'Petrol': return 'PETROL';
+      case 'Diesel': return 'DIESEL';
+      case 'Electric': return 'EV';
+      case 'CNG': return 'CNG';
+      case 'Hybrid': return 'HYBRID';
+      default: return 'OTHER';
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) return;
 
     setIsSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let parsedDate: string | undefined;
+      if (form.registrationDate) {
+        const d = new Date(form.registrationDate);
+        if (!isNaN(d.getTime())) {
+          parsedDate = d.toISOString();
+        }
+      }
+
+      const payload: any = {
+        registrationNumber: form.plate.toUpperCase(),
+        make: form.brand,
+        model: form.model,
+        year: form.year ? parseInt(form.year, 10) : undefined,
+        vehicleType: mapType(form.type),
+        fuelType: mapFuel(form.fuel),
+        variant: form.variant || undefined,
+        registrationDate: parsedDate,
+        engineNumber: form.engineNumber || undefined,
+      };
+
+      const res = await vehicleService.addVehicle(payload);
+
+      if (form.isPrimary) {
+        await vehicleService.setPrimaryVehicle(res.id).catch(console.error);
+      }
 
       const newVehicle = {
-        id: Date.now().toString(),
-        plate: form.plate.toUpperCase(),
-        brand: form.brand,
-        model: form.model,
-        year: form.year || new Date().getFullYear().toString(),
+        id: res.id,
+        plate: res.registrationNumber,
+        brand: res.make || form.brand,
+        model: res.model || form.model,
+        year: res.year?.toString() || form.year,
         type: form.type,
         fuel: form.fuel,
-        transmission: form.transmission,
+        variant: res.variant || form.variant,
+        registrationDate: res.registrationDate || form.registrationDate,
+        engineNumber: res.engineNumber || form.engineNumber,
         isPrimary: form.isPrimary,
-        healthScore: Math.floor(Math.random() * 30) + 70,
+        healthScore: 100,
         addedAt: new Date().toISOString(),
       };
 
@@ -119,8 +317,8 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
           onPress: () => navigation.navigate('VehicleList', { newVehicle }),
         },
       ]);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save vehicle. Please try again.');
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to save vehicle. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -213,14 +411,10 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
           <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -242,11 +436,7 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionLabel}>Vehicle Number</Text>
-              <View style={styles.sectionLine} />
-            </View>
+            <Text style={styles.sectionTitle}>Vehicle Number</Text>
 
             <View style={styles.card}>
               <View style={styles.plateInputContainer}>
@@ -259,9 +449,6 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
                   autoCapitalize="characters"
                   maxLength={15}
                 />
-                <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7}>
-                  <FontAwesome5 name="search" size={wp(4)} color="#FFBF00" />
-                </TouchableOpacity>
               </View>
               {errors.plate && (
                 <Text style={styles.errorText}>{errors.plate}</Text>
@@ -273,39 +460,32 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionLabel}>Vehicle Photo</Text>
-              <View style={styles.sectionLine} />
-            </View>
-
-            <TouchableOpacity style={styles.photoCard} activeOpacity={0.7}>
-              <View style={styles.cameraCircle}>
-                <FontAwesome5 name="camera" size={wp(8)} color="#444" />
-              </View>
-              <Text style={styles.uploadMain}>Add Vehicle Photo</Text>
-              <Text style={styles.uploadSub}>
-                Tap to capture or upload from gallery
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionLabel}>Vehicle Details</Text>
-              <View style={styles.sectionLine} />
-            </View>
+            <Text style={styles.sectionTitle}>Vehicle Details</Text>
 
             <View style={styles.card}>
               <View style={styles.row}>
                 <View style={{ flex: 1, marginRight: wp(1.5) }}>
-                  <DropdownField
-                    label="Vehicle Type"
-                    value={form.type}
-                    options={VEHICLE_TYPES}
-                    onSelect={val => updateForm('type', val)}
-                  />
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Vehicle Type</Text>
+                    <View style={{ flexDirection: 'row', gap: wp(2) }}>
+                      <TouchableOpacity
+                        style={[styles.typeBtnSmall, form.type === 'Car' && styles.typeBtnSmallActive]}
+                        onPress={() => updateForm('type', 'Car')}
+                        activeOpacity={0.7}
+                      >
+                        <FontAwesome5 name="car" size={wp(3.5)} color={form.type === 'Car' ? '#000' : '#888'} />
+                        <Text style={[styles.typeBtnTextSmall, form.type === 'Car' && styles.typeBtnTextSmallActive]}>Car</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.typeBtnSmall, form.type === 'Bike' && styles.typeBtnSmallActive]}
+                        onPress={() => updateForm('type', 'Bike')}
+                        activeOpacity={0.7}
+                      >
+                        <FontAwesome5 name="motorcycle" size={wp(3.5)} color={form.type === 'Bike' ? '#000' : '#888'} />
+                        <Text style={[styles.typeBtnTextSmall, form.type === 'Bike' && styles.typeBtnTextSmallActive]}>Bike</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
                 <View style={{ flex: 1, marginLeft: wp(1.5) }}>
                   <DropdownField
@@ -362,11 +542,7 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionLabel}>Additional Details</Text>
-              <View style={styles.sectionLine} />
-            </View>
+            <Text style={styles.sectionTitle}>Additional Details</Text>
 
             <View style={styles.card}>
               <View style={styles.row}>
@@ -379,12 +555,51 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: wp(1.5) }}>
-                  <DropdownField
-                    label="Transmission"
-                    value={form.transmission}
-                    options={TRANSMISSIONS}
-                    onSelect={val => updateForm('transmission', val)}
-                  />
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Variant (Optional)</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="e.g. VXI"
+                        placeholderTextColor="#3a3a3a"
+                        value={form.variant}
+                        onChangeText={val => updateForm('variant', val)}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              <View style={[styles.row, { marginTop: hp(1.5) }]}>
+                <View style={{ flex: 1, marginRight: wp(1.5) }}>
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Reg. Date (Optional)</Text>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => setShowDatePicker(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.dropdownText, !form.registrationDate && { color: '#3a3a3a' }]}>
+                        {form.registrationDate || 'YYYY-MM-DD'}
+                      </Text>
+                      <FontAwesome5 name="calendar-alt" size={wp(3.5)} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={{ flex: 1, marginLeft: wp(1.5) }}>
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Engine No. (Optional)</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Engine Number"
+                        placeholderTextColor="#3a3a3a"
+                        value={form.engineNumber}
+                        onChangeText={val => updateForm('engineNumber', val)}
+                        autoCapitalize="characters"
+                      />
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
@@ -434,22 +649,25 @@ const AddVehicle: React.FC<AddVehicleProps> = ({ navigation, route }) => {
             </Text>
           </View>
         </ScrollView>
+        <DatePickerModal
+          visible={showDatePicker}
+          onClose={() => setShowDatePicker(false)}
+          onSelect={(date: string) => updateForm('registrationDate', date)}
+          currentDate={form.registrationDate}
+        />
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#000000' },
   keyboardView: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
-    backgroundColor: '#0a0a0a',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   backBtn: {
     width: 44,
@@ -461,43 +679,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  headerCenter: { flex: 1, marginLeft: wp(3) },
+  headerCenter: { flex: 1, marginLeft: wp(2) },
   headerRight: { width: 44 },
-  headerTitle: { color: '#fff', fontSize: wp(5.5), fontWeight: 'bold' },
-  headerSubtitle: { color: '#666', fontSize: wp(3.2), marginTop: 2 },
+  headerTitle: { fontSize: wp(6), fontWeight: '700', color: '#fff' },
+  headerSubtitle: { fontSize: wp(3.5), color: '#888', marginTop: hp(0.2) },
 
   scrollContent: { paddingHorizontal: wp(4), paddingBottom: hp(6) },
   section: { marginTop: hp(3) },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  sectionLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  sectionLabel: {
-    color: '#555',
-    fontSize: wp(2.8),
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: wp(3),
+  sectionTitle: {
+    fontSize: wp(4.8),
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: hp(1.8),
+    marginTop: hp(1),
   },
 
   card: {
     backgroundColor: '#121212',
-    borderRadius: 24,
-    padding: wp(5),
+    borderRadius: wp(4),
+    padding: wp(4),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   plateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
@@ -527,29 +734,6 @@ const styles = StyleSheet.create({
   },
   helperText: { color: '#444', fontSize: wp(2.8), marginTop: hp(1) },
 
-  photoCard: {
-    backgroundColor: '#121212',
-    borderRadius: 24,
-    padding: wp(6),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    borderStyle: 'dashed',
-  },
-  cameraCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#0a0a0a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: hp(1.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  uploadMain: { color: '#fff', fontSize: wp(4), fontWeight: '600' },
-  uploadSub: { color: '#555', fontSize: wp(3), marginTop: hp(0.5) },
-
   row: { flexDirection: 'row', marginHorizontal: -wp(1.5) },
   fieldContainer: { marginBottom: hp(1) },
   fieldLabel: {
@@ -562,7 +746,7 @@ const styles = StyleSheet.create({
     marginLeft: wp(1),
   },
   inputWrapper: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
@@ -575,7 +759,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   dropdown: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
     borderRadius: 14,
     padding: wp(3.5),
     flexDirection: 'row',
@@ -587,15 +771,41 @@ const styles = StyleSheet.create({
   dropdownError: { borderColor: 'rgba(239,68,68,0.3)' },
   dropdownText: { color: '#fff', fontSize: wp(3.8), fontWeight: '500' },
 
+  typeBtnSmall: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    paddingVertical: hp(1.4),
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    gap: wp(1.5),
+  },
+  typeBtnSmallActive: {
+    backgroundColor: '#FFBF00',
+    borderColor: '#FFBF00',
+  },
+  typeBtnTextSmall: {
+    color: '#888',
+    fontSize: wp(3.5),
+    fontWeight: '600',
+  },
+  typeBtnTextSmallActive: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
+
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: hp(3),
     padding: wp(4),
     backgroundColor: '#121212',
-    borderRadius: 18,
+    borderRadius: wp(4),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   checkbox: {
     width: 24,
