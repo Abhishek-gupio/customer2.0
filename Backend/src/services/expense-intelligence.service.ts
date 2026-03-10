@@ -544,6 +544,8 @@ export const expenseIntelligenceService = {
         ? `${new Date(firstLog.date).toLocaleDateString("en-IN")} - ${new Date(lastLog.date).toLocaleDateString("en-IN")}`
         : "All time";
 
+        console.log(costPerKm)
+
     return {
       totalExpenses: Math.round(totalExpenses),
       totalKm,
