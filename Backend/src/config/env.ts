@@ -62,6 +62,8 @@ const envSchema = z.object({
   DAMOOV_WEBHOOK_SECRET: z.string().optional(),
   DAMOOV_INSTANCE_ID: z.string().optional(),
   DAMOOV_INSTANCE_KEY: z.string().optional(),
+  DAMOOV_ADMIN_EMAIL: z.string().optional(),
+  DAMOOV_ADMIN_PASSWORD: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

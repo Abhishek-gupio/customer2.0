@@ -103,6 +103,11 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_LD=lld"
+            }
+        }
     }
     signingConfigs {
         debug {
@@ -112,6 +117,18 @@ android {
             keyPassword = 'android'
         }
     }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packagingOptions {
+        pickFirst 'META-INF/DEPENDENCIES'
+        pickFirst 'META-INF/INDEX.LIST'
+        pickFirst 'META-INF/io.netty.versions.properties'
+    }
+
     buildTypes {
         debug {
             signingConfig = signingConfigs.debug
@@ -141,5 +158,6 @@ dependencies {
     implementation project(':react-native-screens')
     implementation project(':react-native-video')
     implementation project(':react-native-svg')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
 

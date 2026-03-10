@@ -1,0 +1,558 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Configure project :react-native-firebase_analytics
+:react-native-firebase_analytics package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/analytics/package.json
+:react-native-firebase_app package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_analytics:firebase.bom using default value: 34.8.0
+:react-native-firebase_analytics package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/analytics/package.json
+:react-native-firebase_analytics:version set from package.json: 23.8.6 (23,8,6 - 23008006)
+:react-native-firebase_analytics:android.compileSdk using custom value: 36
+:react-native-firebase_analytics:android.targetSdk using custom value: 36
+:react-native-firebase_analytics:android.minSdk using custom value: 24
+:react-native-firebase_analytics:reactNativeAndroidDir /Users/abhishekkumar/Desktop/customer2.0/node_modules/.pnpm/react-native@0.83.1_@babel+core@7.29.0_@react-native-community+cli@20.0.0_typescript@5.9.3__@_zvcjxx4vroxjma72w6hkx7x7va/node_modules/react-native
+
+> Configure project :react-native-firebase_app
+:react-native-firebase_app package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app:firebase.bom using default value: 34.8.0
+:react-native-firebase_app:play.play-services-auth using default value: 21.4.0
+:react-native-firebase_app package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app:version set from package.json: 23.8.6 (23,8,6 - 23008006)
+:react-native-firebase_app:android.compileSdk using custom value: 36
+:react-native-firebase_app:android.targetSdk using custom value: 36
+:react-native-firebase_app:android.minSdk using custom value: 24
+:react-native-firebase_app:reactNativeAndroidDir /Users/abhishekkumar/Desktop/customer2.0/node_modules/.pnpm/react-native@0.83.1_@babel+core@7.29.0_@react-native-community+cli@20.0.0_typescript@5.9.3__@_zvcjxx4vroxjma72w6hkx7x7va/node_modules/react-native
+
+> Configure project :react-native-firebase_perf
+:react-native-firebase_perf package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/perf/package.json
+:react-native-firebase_app package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_perf:firebase.bom using default value: 34.8.0
+:react-native-firebase_perf package.json found at /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/@react-native-firebase/perf/package.json
+:react-native-firebase_perf:version set from package.json: 23.8.6 (23,8,6 - 23008006)
+:react-native-firebase_perf:android.compileSdk using custom value: 36
+:react-native-firebase_perf:android.targetSdk using custom value: 36
+:react-native-firebase_perf:android.minSdk using custom value: 24
+:react-native-firebase_perf:reactNativeAndroidDir /Users/abhishekkumar/Desktop/customer2.0/node_modules/.pnpm/react-native@0.83.1_@babel+core@7.29.0_@react-native-community+cli@20.0.0_typescript@5.9.3__@_zvcjxx4vroxjma72w6hkx7x7va/node_modules/react-native
+
+> Configure project :react-native-reanimated
+Android gradle plugin: 8.12.0
+Gradle: 9.0.0
+
+> Configure project :react-native-video
+Kotlin version is correct: 2.1.20
+AndroidX version is correct: 1.9.3
+useExoplayerIMA: false
+useExoplayerSmoothStreaming: true
+useExoplayerDash: true
+useExoplayerHls: true
+useExoplayerRtsp: false
+buildFromSource: false
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateAutolinkingNewArchitectureFiles UP-TO-DATE
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+> Task :react-native-android-notification-listener:preBuild UP-TO-DATE
+> Task :react-native-device-info:preBuild UP-TO-DATE
+> Task :react-native-documents_picker:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-documents_picker:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-documents_picker:preBuild UP-TO-DATE
+> Task :react-native-fast-image:preBuild UP-TO-DATE
+> Task :react-native-firebase_analytics:preBuild UP-TO-DATE
+> Task :react-native-firebase_app:preBuild UP-TO-DATE
+> Task :react-native-firebase_perf:preBuild UP-TO-DATE
+> Task :react-native-fs:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-image-picker:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-image-picker:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-image-picker:preBuild UP-TO-DATE
+> Task :react-native-linear-gradient:preBuild UP-TO-DATE
+> Task :react-native-mmkv:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-mmkv:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-mmkv:preBuild UP-TO-DATE
+> Task :react-native-onesignal:preBuild UP-TO-DATE
+> Task :react-native-pdf:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-pdf:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-pdf:preBuild UP-TO-DATE
+> Task :react-native-permissions:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-permissions:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-permissions:preBuild UP-TO-DATE
+> Task :react-native-reanimated:assertLatestReactNativeWithNewArchitectureTask SKIPPED
+> Task :react-native-reanimated:assertMinimalReactNativeVersionTask SKIPPED
+> Task :react-native-reanimated:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-reanimated:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-reanimated:prepareReanimatedHeadersForPrefabs UP-TO-DATE
+> Task :react-native-reanimated:prepareWorkletsHeadersForPrefabs UP-TO-DATE
+> Task :react-native-reanimated:preBuild UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-safe-area-context:preBuild UP-TO-DATE
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-screens:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-screens:preBuild UP-TO-DATE
+> Task :react-native-svg:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-svg:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-svg:preBuild UP-TO-DATE
+> Task :react-native-telematics:preBuild UP-TO-DATE
+> Task :react-native-tts:preBuild UP-TO-DATE
+> Task :react-native-vector-icons:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-vector-icons:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-vector-icons:preBuild UP-TO-DATE
+> Task :react-native-video:preBuild UP-TO-DATE
+> Task :react-native-view-shot:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-view-shot:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-view-shot:preBuild UP-TO-DATE
+> Task :react-native-voice_voice:preBuild UP-TO-DATE
+> Task :sentry_react-native:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :sentry_react-native:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :sentry_react-native:preBuild UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-android-notification-listener:preDebugBuild UP-TO-DATE
+> Task :react-native-android-notification-listener:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-device-info:preDebugBuild UP-TO-DATE
+> Task :react-native-device-info:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-documents_picker:preDebugBuild UP-TO-DATE
+> Task :react-native-documents_picker:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-fast-image:preDebugBuild UP-TO-DATE
+> Task :react-native-fast-image:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-firebase_analytics:preDebugBuild UP-TO-DATE
+> Task :react-native-firebase_analytics:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-firebase_app:preDebugBuild UP-TO-DATE
+> Task :react-native-firebase_app:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-firebase_perf:preDebugBuild UP-TO-DATE
+> Task :react-native-firebase_perf:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-fs:preDebugBuild UP-TO-DATE
+> Task :react-native-fs:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-gesture-handler:preDebugBuild UP-TO-DATE
+> Task :react-native-gesture-handler:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-image-picker:preDebugBuild UP-TO-DATE
+> Task :react-native-image-picker:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-linear-gradient:preDebugBuild UP-TO-DATE
+> Task :react-native-linear-gradient:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-mmkv:preDebugBuild UP-TO-DATE
+> Task :react-native-mmkv:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-onesignal:preDebugBuild UP-TO-DATE
+> Task :react-native-onesignal:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-pdf:preDebugBuild UP-TO-DATE
+> Task :react-native-pdf:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-permissions:preDebugBuild UP-TO-DATE
+> Task :react-native-permissions:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-reanimated:preDebugBuild UP-TO-DATE
+> Task :react-native-reanimated:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-safe-area-context:preDebugBuild UP-TO-DATE
+> Task :react-native-safe-area-context:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-screens:preDebugBuild UP-TO-DATE
+> Task :react-native-screens:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-svg:preDebugBuild UP-TO-DATE
+> Task :react-native-svg:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-telematics:preDebugBuild UP-TO-DATE
+> Task :react-native-telematics:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-tts:preDebugBuild UP-TO-DATE
+> Task :react-native-tts:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-vector-icons:preDebugBuild UP-TO-DATE
+> Task :react-native-vector-icons:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-video:preDebugBuild UP-TO-DATE
+> Task :react-native-video:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-view-shot:preDebugBuild UP-TO-DATE
+> Task :react-native-view-shot:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-voice_voice:preDebugBuild UP-TO-DATE
+> Task :react-native-voice_voice:writeDebugAarMetadata UP-TO-DATE
+> Task :sentry_react-native:preDebugBuild UP-TO-DATE
+> Task :sentry_react-native:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:processDebugGoogleServices UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugResValues UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugResources UP-TO-DATE
+> Task :react-native-android-notification-listener:packageDebugResources UP-TO-DATE
+> Task :react-native-device-info:generateDebugResValues UP-TO-DATE
+> Task :react-native-device-info:generateDebugResources UP-TO-DATE
+> Task :react-native-device-info:packageDebugResources UP-TO-DATE
+> Task :react-native-documents_picker:generateDebugResValues UP-TO-DATE
+> Task :react-native-documents_picker:generateDebugResources UP-TO-DATE
+> Task :react-native-documents_picker:packageDebugResources UP-TO-DATE
+> Task :react-native-fast-image:generateDebugResValues UP-TO-DATE
+> Task :react-native-fast-image:generateDebugResources UP-TO-DATE
+> Task :react-native-fast-image:packageDebugResources UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugResValues UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugResources UP-TO-DATE
+> Task :react-native-firebase_analytics:packageDebugResources UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugResValues UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugResources UP-TO-DATE
+> Task :react-native-firebase_app:packageDebugResources UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugResValues UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugResources UP-TO-DATE
+> Task :react-native-firebase_perf:packageDebugResources UP-TO-DATE
+> Task :react-native-fs:generateDebugResValues UP-TO-DATE
+> Task :react-native-fs:generateDebugResources UP-TO-DATE
+> Task :react-native-fs:packageDebugResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateDebugResValues UP-TO-DATE
+> Task :react-native-gesture-handler:generateDebugResources UP-TO-DATE
+> Task :react-native-gesture-handler:packageDebugResources UP-TO-DATE
+> Task :react-native-image-picker:generateDebugResValues UP-TO-DATE
+> Task :react-native-image-picker:generateDebugResources UP-TO-DATE
+> Task :react-native-image-picker:packageDebugResources UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugResValues UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugResources UP-TO-DATE
+> Task :react-native-linear-gradient:packageDebugResources UP-TO-DATE
+> Task :react-native-mmkv:generateDebugResValues UP-TO-DATE
+> Task :react-native-mmkv:generateDebugResources UP-TO-DATE
+> Task :react-native-mmkv:packageDebugResources UP-TO-DATE
+> Task :react-native-onesignal:generateDebugResValues UP-TO-DATE
+> Task :react-native-onesignal:generateDebugResources UP-TO-DATE
+> Task :react-native-onesignal:packageDebugResources UP-TO-DATE
+> Task :react-native-pdf:generateDebugResValues UP-TO-DATE
+> Task :react-native-pdf:generateDebugResources UP-TO-DATE
+> Task :react-native-pdf:packageDebugResources UP-TO-DATE
+> Task :react-native-permissions:generateDebugResValues UP-TO-DATE
+> Task :react-native-permissions:generateDebugResources UP-TO-DATE
+> Task :react-native-permissions:packageDebugResources UP-TO-DATE
+> Task :react-native-reanimated:generateDebugResValues UP-TO-DATE
+> Task :react-native-reanimated:generateDebugResources UP-TO-DATE
+> Task :react-native-reanimated:packageDebugResources UP-TO-DATE
+> Task :react-native-safe-area-context:generateDebugResValues UP-TO-DATE
+> Task :react-native-safe-area-context:generateDebugResources UP-TO-DATE
+> Task :react-native-safe-area-context:packageDebugResources UP-TO-DATE
+> Task :react-native-screens:generateDebugResValues UP-TO-DATE
+> Task :react-native-screens:generateDebugResources UP-TO-DATE
+> Task :react-native-screens:packageDebugResources UP-TO-DATE
+> Task :react-native-svg:generateDebugResValues UP-TO-DATE
+> Task :react-native-svg:generateDebugResources UP-TO-DATE
+> Task :react-native-svg:packageDebugResources UP-TO-DATE
+> Task :react-native-telematics:generateDebugResValues UP-TO-DATE
+> Task :react-native-telematics:generateDebugResources UP-TO-DATE
+> Task :react-native-telematics:packageDebugResources UP-TO-DATE
+> Task :react-native-tts:generateDebugResValues UP-TO-DATE
+> Task :react-native-tts:generateDebugResources UP-TO-DATE
+> Task :react-native-tts:packageDebugResources UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugResValues UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugResources UP-TO-DATE
+> Task :react-native-vector-icons:packageDebugResources UP-TO-DATE
+> Task :react-native-video:generateDebugResValues UP-TO-DATE
+> Task :react-native-video:generateDebugResources UP-TO-DATE
+> Task :react-native-video:packageDebugResources UP-TO-DATE
+> Task :react-native-view-shot:generateDebugResValues UP-TO-DATE
+> Task :react-native-view-shot:generateDebugResources UP-TO-DATE
+> Task :react-native-view-shot:packageDebugResources UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugResValues UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugResources UP-TO-DATE
+> Task :react-native-voice_voice:packageDebugResources UP-TO-DATE
+> Task :sentry_react-native:generateDebugResValues UP-TO-DATE
+> Task :sentry_react-native:generateDebugResources UP-TO-DATE
+> Task :sentry_react-native:packageDebugResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:processDebugManifest UP-TO-DATE
+> Task :react-native-device-info:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-device-info:processDebugManifest UP-TO-DATE
+> Task :react-native-documents_picker:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-documents_picker:processDebugManifest UP-TO-DATE
+> Task :react-native-fast-image:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-fast-image:processDebugManifest UP-TO-DATE
+> Task :react-native-firebase_analytics:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:processDebugManifest UP-TO-DATE
+> Task :react-native-firebase_app:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-firebase_app:processDebugManifest UP-TO-DATE
+> Task :react-native-firebase_perf:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-firebase_perf:processDebugManifest UP-TO-DATE
+> Task :react-native-fs:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-fs:processDebugManifest UP-TO-DATE
+> Task :react-native-gesture-handler:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-gesture-handler:processDebugManifest UP-TO-DATE
+> Task :react-native-image-picker:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-image-picker:processDebugManifest UP-TO-DATE
+> Task :react-native-linear-gradient:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-linear-gradient:processDebugManifest UP-TO-DATE
+> Task :react-native-mmkv:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-mmkv:processDebugManifest UP-TO-DATE
+> Task :react-native-onesignal:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-onesignal:processDebugManifest UP-TO-DATE
+> Task :react-native-pdf:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-pdf:processDebugManifest UP-TO-DATE
+> Task :react-native-permissions:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-permissions:processDebugManifest UP-TO-DATE
+> Task :react-native-reanimated:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-reanimated:processDebugManifest UP-TO-DATE
+> Task :react-native-safe-area-context:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-safe-area-context:processDebugManifest UP-TO-DATE
+> Task :react-native-screens:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-screens:processDebugManifest UP-TO-DATE
+> Task :react-native-svg:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-svg:processDebugManifest UP-TO-DATE
+> Task :react-native-telematics:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-telematics:processDebugManifest UP-TO-DATE
+> Task :react-native-tts:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-tts:processDebugManifest UP-TO-DATE
+> Task :react-native-vector-icons:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-vector-icons:processDebugManifest UP-TO-DATE
+> Task :react-native-video:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-video:processDebugManifest UP-TO-DATE
+> Task :react-native-view-shot:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-view-shot:processDebugManifest UP-TO-DATE
+> Task :react-native-voice_voice:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-voice_voice:processDebugManifest UP-TO-DATE
+> Task :sentry_react-native:extractDeepLinksDebug UP-TO-DATE
+> Task :sentry_react-native:processDebugManifest UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :react-native-android-notification-listener:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-android-notification-listener:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugRFile UP-TO-DATE
+> Task :react-native-device-info:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-device-info:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-device-info:generateDebugRFile UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-documents_picker:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-documents_picker:generateDebugRFile UP-TO-DATE
+> Task :react-native-fast-image:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-fast-image:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-fast-image:generateDebugRFile UP-TO-DATE
+> Task :react-native-firebase_analytics:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-firebase_analytics:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugRFile UP-TO-DATE
+> Task :react-native-firebase_app:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-firebase_app:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugRFile UP-TO-DATE
+> Task :react-native-firebase_perf:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-firebase_perf:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugRFile UP-TO-DATE
+> Task :react-native-fs:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-fs:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-fs:generateDebugRFile UP-TO-DATE
+> Task :react-native-gesture-handler:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-gesture-handler:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateDebugRFile UP-TO-DATE
+> Task :react-native-image-picker:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-image-picker:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-image-picker:generateDebugRFile UP-TO-DATE
+> Task :react-native-linear-gradient:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-linear-gradient:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugRFile UP-TO-DATE
+> Task :react-native-mmkv:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-mmkv:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-mmkv:generateDebugRFile UP-TO-DATE
+> Task :react-native-onesignal:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-onesignal:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-onesignal:generateDebugRFile UP-TO-DATE
+> Task :react-native-pdf:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-pdf:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-pdf:generateDebugRFile UP-TO-DATE
+> Task :react-native-permissions:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-permissions:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-permissions:generateDebugRFile UP-TO-DATE
+> Task :react-native-reanimated:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-reanimated:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-reanimated:generateDebugRFile UP-TO-DATE
+> Task :react-native-safe-area-context:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-safe-area-context:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-safe-area-context:generateDebugRFile UP-TO-DATE
+> Task :react-native-screens:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-screens:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-screens:generateDebugRFile UP-TO-DATE
+> Task :react-native-svg:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-svg:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-svg:generateDebugRFile UP-TO-DATE
+> Task :react-native-telematics:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-telematics:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-telematics:generateDebugRFile UP-TO-DATE
+> Task :react-native-tts:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-tts:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-tts:generateDebugRFile UP-TO-DATE
+> Task :react-native-vector-icons:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-vector-icons:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugRFile UP-TO-DATE
+> Task :react-native-video:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-video:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-video:generateDebugRFile UP-TO-DATE
+> Task :react-native-view-shot:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-view-shot:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-view-shot:generateDebugRFile UP-TO-DATE
+> Task :react-native-voice_voice:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-voice_voice:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugRFile UP-TO-DATE
+> Task :sentry_react-native:compileDebugLibraryResources UP-TO-DATE
+> Task :sentry_react-native:parseDebugLocalResources UP-TO-DATE
+> Task :sentry_react-native:generateDebugRFile UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-android-notification-listener:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-android-notification-listener:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-device-info:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-device-info:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-device-info:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-device-info:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-documents_picker:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-documents_picker:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugKotlin UP-TO-DATE
+> Task :react-native-documents_picker:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-documents_picker:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-fast-image:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-fast-image:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-fast-image:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-fast-image:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-firebase_analytics:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-firebase_app:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-firebase_app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-firebase_app:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-firebase_analytics:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-firebase_perf:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-firebase_perf:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-firebase_perf:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-fs:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-fs:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-fs:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-fs:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-reanimated:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-reanimated:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-reanimated:packageNdkLibs NO-SOURCE
+
+> Task :react-native-reanimated:compileDebugJavaWithJavac FAILED
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:13: error: cannot find symbol
+import com.facebook.react.uimanager.UIManagerModuleListener;
+                                   ^
+  symbol:   class UIManagerModuleListener
+  location: package com.facebook.react.uimanager
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:20: error: cannot find symbol
+    implements LifecycleEventListener, UIManagerModuleListener, UIManagerListener {
+                                       ^
+  symbol: class UIManagerModuleListener
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java:72: error: cannot find symbol
+    Systrace.beginSection(Systrace.TRACE_TAG_REACT_JAVA_BRIDGE, "createUIManagerModule");
+                                  ^
+  symbol:   variable TRACE_TAG_REACT_JAVA_BRIDGE
+  location: class Systrace
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java:80: error: cannot find symbol
+      Systrace.endSection(Systrace.TRACE_TAG_REACT_JAVA_BRIDGE);
+                                  ^
+  symbol:   variable TRACE_TAG_REACT_JAVA_BRIDGE
+  location: class Systrace
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:83: error: cannot find symbol
+      uiManager.addUIManagerListener(this);
+               ^
+  symbol:   method addUIManagerListener(ReanimatedModule)
+  location: variable uiManager of type UIManagerModule
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:107: error: method does not override or implement a method from a supertype
+  @Override
+  ^
+/Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/BorderRadiiDrawableUtils/latest/com/swmansion/reanimated/BorderRadiiDrawableUtils.java:21: error: method resolve in class LengthPercentage cannot be applied to given types;
+    return length.resolve(bounds.width(), bounds.height()).toPixelFromDIP().getHorizontal();
+                 ^
+  required: float
+  found:    int,int
+  reason: actual and formal argument lists differ in length
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+7 errors
+
+[Incubating] Problems report is available at: file:///Users/abhishekkumar/Desktop/customer2.0/Mobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':react-native-reanimated:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/BorderRadiiDrawableUtils/latest/com/swmansion/reanimated/BorderRadiiDrawableUtils.java:21: error: method resolve in class LengthPercentage cannot be applied to given types;
+      return length.resolve(bounds.width(), bounds.height()).toPixelFromDIP().getHorizontal();
+                   ^
+    required: float
+    found:    int,int
+    reason: actual and formal argument lists differ in length
+  Note: Recompile with -Xlint:deprecation for details.
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:13: error: cannot find symbol
+  import com.facebook.react.uimanager.UIManagerModuleListener;
+                                     ^
+    symbol:   class UIManagerModuleListener
+    location: package com.facebook.react.uimanager
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java:72: error: cannot find symbol
+      Systrace.beginSection(Systrace.TRACE_TAG_REACT_JAVA_BRIDGE, "createUIManagerModule");
+                                    ^
+    symbol:   variable TRACE_TAG_REACT_JAVA_BRIDGE
+    location: class Systrace
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java:80: error: cannot find symbol
+        Systrace.endSection(Systrace.TRACE_TAG_REACT_JAVA_BRIDGE);
+                                    ^
+    symbol:   variable TRACE_TAG_REACT_JAVA_BRIDGE
+    location: class Systrace
+  Note: Recompile with -Xlint:unchecked for details.
+  Note: Some input files use or override a deprecated API.
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:107: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:20: error: cannot find symbol
+      implements LifecycleEventListener, UIManagerModuleListener, UIManagerListener {
+                                         ^
+    symbol: class UIManagerModuleListener
+  Note: Some input files use unchecked or unsafe operations.
+  /Users/abhishekkumar/Desktop/customer2.0/Mobile/node_modules/react-native-reanimated/android/src/reactNativeVersionPatch/ReanimatedUIManager/latest/com/swmansion/reanimated/ReanimatedModule.java:83: error: cannot find symbol
+        uiManager.addUIManagerListener(this);
+                 ^
+    symbol:   method addUIManagerListener(ReanimatedModule)
+    location: variable uiManager of type UIManagerModule
+  7 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 3s
+327 actionable tasks: 1 executed, 326 up-to-date

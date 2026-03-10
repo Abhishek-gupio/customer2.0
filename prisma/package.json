@@ -16,6 +16,8 @@
         "prisma:studio": "prisma studio",
         "db:up:local": "bash ../scripts/db-start.sh",
         "db:migrate": "prisma migrate dev",
+        "db:push": "prisma db push",
+        "db:deploy": "prisma migrate deploy",
         "build": "tsc -p tsconfig.json && node -e \"require('fs').cpSync('generated', 'dist/generated', {recursive: true})\"",
         "prepare": "pnpm prisma:generate"
     },

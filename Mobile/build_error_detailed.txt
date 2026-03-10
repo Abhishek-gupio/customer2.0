@@ -1,0 +1,1053 @@
+info Installing the app...
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :react-native-firebase_analytics
+:react-native-firebase_analytics package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/analytics/package.json
+:react-native-firebase_app package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_analytics:firebase.bom using default value: 34.8.0
+:react-native-firebase_analytics package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/analytics/package.json
+:react-native-firebase_analytics:version set from package.json: 23.8.6 (23,8,6 - 23008006)
+:react-native-firebase_analytics:android.compileSdk using custom value: 35
+:react-native-firebase_analytics:android.targetSdk using custom value: 35
+:react-native-firebase_analytics:android.minSdk using custom value: 24
+:react-native-firebase_analytics:reactNativeAndroidDir /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/node_modules/.pnpm/react-native@0.83.1_@babel+core@7.29.0_@react-native-community+cli@20.0.0_typescript@5.9.3__@_zvcjxx4vroxjma72w6hkx7x7va/node_modules/react-native
+
+> Configure project :react-native-firebase_app
+:react-native-firebase_app package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app:firebase.bom using default value: 34.8.0
+:react-native-firebase_app:play.play-services-auth using default value: 21.4.0
+:react-native-firebase_app package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app:version set from package.json: 23.8.6 (23,8,6 - 23008006)
+:react-native-firebase_app:android.compileSdk using custom value: 35
+:react-native-firebase_app:android.targetSdk using custom value: 35
+:react-native-firebase_app:android.minSdk using custom value: 24
+:react-native-firebase_app:reactNativeAndroidDir /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/node_modules/.pnpm/react-native@0.83.1_@babel+core@7.29.0_@react-native-community+cli@20.0.0_typescript@5.9.3__@_zvcjxx4vroxjma72w6hkx7x7va/node_modules/react-native
+
+> Configure project :react-native-firebase_perf
+:react-native-firebase_perf package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/perf/package.json
+:react-native-firebase_app package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_perf:firebase.bom using default value: 34.8.0
+:react-native-firebase_perf package.json found at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-firebase/perf/package.json
+:react-native-firebase_perf:version set from package.json: 23.8.6 (23,8,6 - 23008006)
+:react-native-firebase_perf:android.compileSdk using custom value: 35
+:react-native-firebase_perf:android.targetSdk using custom value: 35
+:react-native-firebase_perf:android.minSdk using custom value: 24
+:react-native-firebase_perf:reactNativeAndroidDir /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/node_modules/.pnpm/react-native@0.83.1_@babel+core@7.29.0_@react-native-community+cli@20.0.0_typescript@5.9.3__@_zvcjxx4vroxjma72w6hkx7x7va/node_modules/react-native
+
+> Configure project :react-native-video
+Kotlin version is correct: 2.1.20
+AndroidX version is correct: 1.9.3
+useExoplayerIMA: false
+useExoplayerSmoothStreaming: true
+useExoplayerDash: true
+useExoplayerHls: true
+useExoplayerRtsp: false
+buildFromSource: false
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateAutolinkingNewArchitectureFiles UP-TO-DATE
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+> Task :react-native-android-notification-listener:preBuild UP-TO-DATE
+> Task :react-native-community_geolocation:preBuild UP-TO-DATE
+> Task :react-native-device-info:preBuild UP-TO-DATE
+> Task :react-native-documents_picker:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-documents_picker:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-documents_picker:preBuild UP-TO-DATE
+> Task :react-native-fast-image:preBuild UP-TO-DATE
+> Task :react-native-firebase_analytics:preBuild UP-TO-DATE
+> Task :react-native-firebase_app:preBuild UP-TO-DATE
+> Task :react-native-firebase_perf:preBuild UP-TO-DATE
+> Task :react-native-fs:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-html-to-pdf:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-html-to-pdf:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-html-to-pdf:preBuild UP-TO-DATE
+> Task :react-native-image-picker:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-image-picker:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-image-picker:preBuild UP-TO-DATE
+> Task :react-native-linear-gradient:preBuild UP-TO-DATE
+> Task :react-native-mmkv:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-mmkv:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-mmkv:preBuild UP-TO-DATE
+> Task :react-native-onesignal:preBuild UP-TO-DATE
+> Task :react-native-pdf:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-pdf:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-pdf:preBuild UP-TO-DATE
+> Task :react-native-permissions:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-permissions:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-permissions:preBuild UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-safe-area-context:preBuild UP-TO-DATE
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-screens:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-screens:preBuild UP-TO-DATE
+> Task :react-native-share:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-share:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-share:preBuild UP-TO-DATE
+> Task :react-native-svg:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-svg:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-svg:preBuild UP-TO-DATE
+> Task :react-native-tts:preBuild UP-TO-DATE
+> Task :react-native-vector-icons:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-vector-icons:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-vector-icons:preBuild UP-TO-DATE
+> Task :react-native-video:preBuild UP-TO-DATE
+> Task :react-native-view-shot:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-view-shot:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-view-shot:preBuild UP-TO-DATE
+> Task :react-native-voice_voice:preBuild UP-TO-DATE
+> Task :sentry_react-native:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :sentry_react-native:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :sentry_react-native:preBuild UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-android-notification-listener:preDebugBuild UP-TO-DATE
+> Task :react-native-android-notification-listener:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-community_geolocation:preDebugBuild UP-TO-DATE
+> Task :react-native-community_geolocation:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-device-info:preDebugBuild UP-TO-DATE
+> Task :react-native-device-info:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-documents_picker:preDebugBuild UP-TO-DATE
+> Task :react-native-documents_picker:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-fast-image:preDebugBuild UP-TO-DATE
+> Task :react-native-fast-image:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-firebase_analytics:preDebugBuild UP-TO-DATE
+> Task :react-native-firebase_analytics:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-firebase_app:preDebugBuild UP-TO-DATE
+> Task :react-native-firebase_app:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-firebase_perf:preDebugBuild UP-TO-DATE
+> Task :react-native-firebase_perf:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-fs:preDebugBuild UP-TO-DATE
+> Task :react-native-fs:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-gesture-handler:preDebugBuild UP-TO-DATE
+> Task :react-native-gesture-handler:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-html-to-pdf:preDebugBuild UP-TO-DATE
+> Task :react-native-html-to-pdf:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-image-picker:preDebugBuild UP-TO-DATE
+> Task :react-native-image-picker:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-linear-gradient:preDebugBuild UP-TO-DATE
+> Task :react-native-linear-gradient:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-mmkv:preDebugBuild UP-TO-DATE
+> Task :react-native-mmkv:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-onesignal:preDebugBuild UP-TO-DATE
+> Task :react-native-onesignal:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-pdf:preDebugBuild UP-TO-DATE
+> Task :react-native-pdf:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-permissions:preDebugBuild UP-TO-DATE
+> Task :react-native-permissions:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-safe-area-context:preDebugBuild UP-TO-DATE
+> Task :react-native-safe-area-context:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-screens:preDebugBuild UP-TO-DATE
+> Task :react-native-screens:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-share:preDebugBuild UP-TO-DATE
+> Task :react-native-share:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-svg:preDebugBuild UP-TO-DATE
+> Task :react-native-svg:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-tts:preDebugBuild UP-TO-DATE
+> Task :react-native-tts:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-vector-icons:preDebugBuild UP-TO-DATE
+> Task :react-native-vector-icons:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-video:preDebugBuild UP-TO-DATE
+> Task :react-native-video:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-view-shot:preDebugBuild UP-TO-DATE
+> Task :react-native-view-shot:writeDebugAarMetadata UP-TO-DATE
+> Task :react-native-voice_voice:preDebugBuild UP-TO-DATE
+> Task :react-native-voice_voice:writeDebugAarMetadata UP-TO-DATE
+> Task :sentry_react-native:preDebugBuild UP-TO-DATE
+> Task :sentry_react-native:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:processDebugGoogleServices UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugResValues UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugResources UP-TO-DATE
+> Task :react-native-android-notification-listener:packageDebugResources UP-TO-DATE
+> Task :react-native-community_geolocation:generateDebugResValues UP-TO-DATE
+> Task :react-native-community_geolocation:generateDebugResources UP-TO-DATE
+> Task :react-native-community_geolocation:packageDebugResources UP-TO-DATE
+> Task :react-native-device-info:generateDebugResValues UP-TO-DATE
+> Task :react-native-device-info:generateDebugResources UP-TO-DATE
+> Task :react-native-device-info:packageDebugResources UP-TO-DATE
+> Task :react-native-documents_picker:generateDebugResValues UP-TO-DATE
+> Task :react-native-documents_picker:generateDebugResources UP-TO-DATE
+> Task :react-native-documents_picker:packageDebugResources UP-TO-DATE
+> Task :react-native-fast-image:generateDebugResValues UP-TO-DATE
+> Task :react-native-fast-image:generateDebugResources UP-TO-DATE
+> Task :react-native-fast-image:packageDebugResources UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugResValues UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugResources UP-TO-DATE
+> Task :react-native-firebase_analytics:packageDebugResources UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugResValues UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugResources UP-TO-DATE
+> Task :react-native-firebase_app:packageDebugResources UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugResValues UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugResources UP-TO-DATE
+> Task :react-native-firebase_perf:packageDebugResources UP-TO-DATE
+> Task :react-native-fs:generateDebugResValues UP-TO-DATE
+> Task :react-native-fs:generateDebugResources UP-TO-DATE
+> Task :react-native-fs:packageDebugResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateDebugResValues UP-TO-DATE
+> Task :react-native-gesture-handler:generateDebugResources UP-TO-DATE
+> Task :react-native-gesture-handler:packageDebugResources UP-TO-DATE
+> Task :react-native-html-to-pdf:generateDebugResValues UP-TO-DATE
+> Task :react-native-html-to-pdf:generateDebugResources UP-TO-DATE
+> Task :react-native-html-to-pdf:packageDebugResources UP-TO-DATE
+> Task :react-native-image-picker:generateDebugResValues UP-TO-DATE
+> Task :react-native-image-picker:generateDebugResources UP-TO-DATE
+> Task :react-native-image-picker:packageDebugResources UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugResValues UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugResources UP-TO-DATE
+> Task :react-native-linear-gradient:packageDebugResources UP-TO-DATE
+> Task :react-native-mmkv:generateDebugResValues UP-TO-DATE
+> Task :react-native-mmkv:generateDebugResources UP-TO-DATE
+> Task :react-native-mmkv:packageDebugResources UP-TO-DATE
+> Task :react-native-onesignal:generateDebugResValues UP-TO-DATE
+> Task :react-native-onesignal:generateDebugResources UP-TO-DATE
+> Task :react-native-onesignal:packageDebugResources UP-TO-DATE
+> Task :react-native-pdf:generateDebugResValues UP-TO-DATE
+> Task :react-native-pdf:generateDebugResources UP-TO-DATE
+> Task :react-native-pdf:packageDebugResources UP-TO-DATE
+> Task :react-native-permissions:generateDebugResValues UP-TO-DATE
+> Task :react-native-permissions:generateDebugResources UP-TO-DATE
+> Task :react-native-permissions:packageDebugResources UP-TO-DATE
+> Task :react-native-safe-area-context:generateDebugResValues UP-TO-DATE
+> Task :react-native-safe-area-context:generateDebugResources UP-TO-DATE
+> Task :react-native-safe-area-context:packageDebugResources UP-TO-DATE
+> Task :react-native-screens:generateDebugResValues UP-TO-DATE
+> Task :react-native-screens:generateDebugResources UP-TO-DATE
+> Task :react-native-screens:packageDebugResources UP-TO-DATE
+> Task :react-native-share:generateDebugResValues UP-TO-DATE
+> Task :react-native-share:generateDebugResources UP-TO-DATE
+> Task :react-native-share:packageDebugResources UP-TO-DATE
+> Task :react-native-svg:generateDebugResValues UP-TO-DATE
+> Task :react-native-svg:generateDebugResources UP-TO-DATE
+> Task :react-native-svg:packageDebugResources UP-TO-DATE
+> Task :react-native-tts:generateDebugResValues UP-TO-DATE
+> Task :react-native-tts:generateDebugResources UP-TO-DATE
+> Task :react-native-tts:packageDebugResources UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugResValues UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugResources UP-TO-DATE
+> Task :react-native-vector-icons:packageDebugResources UP-TO-DATE
+> Task :react-native-video:generateDebugResValues UP-TO-DATE
+> Task :react-native-video:generateDebugResources UP-TO-DATE
+> Task :react-native-video:packageDebugResources UP-TO-DATE
+> Task :react-native-view-shot:generateDebugResValues UP-TO-DATE
+> Task :react-native-view-shot:generateDebugResources UP-TO-DATE
+> Task :react-native-view-shot:packageDebugResources UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugResValues UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugResources UP-TO-DATE
+> Task :react-native-voice_voice:packageDebugResources UP-TO-DATE
+> Task :sentry_react-native:generateDebugResValues UP-TO-DATE
+> Task :sentry_react-native:generateDebugResources UP-TO-DATE
+> Task :sentry_react-native:packageDebugResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:processDebugManifest UP-TO-DATE
+> Task :react-native-community_geolocation:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-community_geolocation:processDebugManifest UP-TO-DATE
+> Task :react-native-device-info:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-device-info:processDebugManifest UP-TO-DATE
+> Task :react-native-documents_picker:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-documents_picker:processDebugManifest UP-TO-DATE
+> Task :react-native-fast-image:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-fast-image:processDebugManifest UP-TO-DATE
+> Task :react-native-firebase_analytics:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:processDebugManifest UP-TO-DATE
+> Task :react-native-firebase_app:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-firebase_app:processDebugManifest UP-TO-DATE
+> Task :react-native-firebase_perf:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-firebase_perf:processDebugManifest UP-TO-DATE
+> Task :react-native-fs:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-fs:processDebugManifest UP-TO-DATE
+> Task :react-native-gesture-handler:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-gesture-handler:processDebugManifest UP-TO-DATE
+> Task :react-native-html-to-pdf:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-html-to-pdf:processDebugManifest UP-TO-DATE
+> Task :react-native-image-picker:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-image-picker:processDebugManifest UP-TO-DATE
+> Task :react-native-linear-gradient:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-linear-gradient:processDebugManifest UP-TO-DATE
+> Task :react-native-mmkv:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-mmkv:processDebugManifest UP-TO-DATE
+> Task :react-native-onesignal:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-onesignal:processDebugManifest UP-TO-DATE
+> Task :react-native-pdf:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-pdf:processDebugManifest UP-TO-DATE
+> Task :react-native-permissions:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-permissions:processDebugManifest UP-TO-DATE
+> Task :react-native-safe-area-context:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-safe-area-context:processDebugManifest UP-TO-DATE
+> Task :react-native-screens:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-screens:processDebugManifest UP-TO-DATE
+> Task :react-native-share:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-share:processDebugManifest UP-TO-DATE
+> Task :react-native-svg:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-svg:processDebugManifest UP-TO-DATE
+> Task :react-native-tts:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-tts:processDebugManifest UP-TO-DATE
+> Task :react-native-vector-icons:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-vector-icons:processDebugManifest UP-TO-DATE
+> Task :react-native-video:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-video:processDebugManifest UP-TO-DATE
+> Task :react-native-view-shot:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-view-shot:processDebugManifest UP-TO-DATE
+> Task :react-native-voice_voice:extractDeepLinksDebug UP-TO-DATE
+> Task :react-native-voice_voice:processDebugManifest UP-TO-DATE
+> Task :sentry_react-native:extractDeepLinksDebug UP-TO-DATE
+> Task :sentry_react-native:processDebugManifest UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :react-native-android-notification-listener:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-android-notification-listener:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugRFile UP-TO-DATE
+> Task :react-native-community_geolocation:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-community_geolocation:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-community_geolocation:generateDebugRFile UP-TO-DATE
+> Task :react-native-device-info:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-device-info:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-device-info:generateDebugRFile UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-documents_picker:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-documents_picker:generateDebugRFile UP-TO-DATE
+> Task :react-native-fast-image:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-fast-image:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-fast-image:generateDebugRFile UP-TO-DATE
+> Task :react-native-firebase_analytics:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-firebase_analytics:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugRFile UP-TO-DATE
+> Task :react-native-firebase_app:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-firebase_app:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugRFile UP-TO-DATE
+> Task :react-native-firebase_perf:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-firebase_perf:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugRFile UP-TO-DATE
+> Task :react-native-fs:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-fs:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-fs:generateDebugRFile UP-TO-DATE
+> Task :react-native-gesture-handler:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-gesture-handler:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateDebugRFile UP-TO-DATE
+> Task :react-native-html-to-pdf:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-html-to-pdf:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-html-to-pdf:generateDebugRFile UP-TO-DATE
+> Task :react-native-image-picker:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-image-picker:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-image-picker:generateDebugRFile UP-TO-DATE
+> Task :react-native-linear-gradient:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-linear-gradient:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugRFile UP-TO-DATE
+> Task :react-native-mmkv:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-mmkv:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-mmkv:generateDebugRFile UP-TO-DATE
+> Task :react-native-onesignal:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-onesignal:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-onesignal:generateDebugRFile UP-TO-DATE
+> Task :react-native-pdf:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-pdf:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-pdf:generateDebugRFile UP-TO-DATE
+> Task :react-native-permissions:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-permissions:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-permissions:generateDebugRFile UP-TO-DATE
+> Task :react-native-safe-area-context:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-safe-area-context:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-safe-area-context:generateDebugRFile UP-TO-DATE
+> Task :react-native-screens:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-screens:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-screens:generateDebugRFile UP-TO-DATE
+> Task :react-native-share:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-share:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-share:generateDebugRFile UP-TO-DATE
+> Task :react-native-svg:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-svg:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-svg:generateDebugRFile UP-TO-DATE
+> Task :react-native-tts:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-tts:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-tts:generateDebugRFile UP-TO-DATE
+> Task :react-native-vector-icons:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-vector-icons:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugRFile UP-TO-DATE
+> Task :react-native-video:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-video:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-video:generateDebugRFile UP-TO-DATE
+> Task :react-native-view-shot:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-view-shot:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-view-shot:generateDebugRFile UP-TO-DATE
+> Task :react-native-voice_voice:compileDebugLibraryResources UP-TO-DATE
+> Task :react-native-voice_voice:parseDebugLocalResources UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugRFile UP-TO-DATE
+> Task :sentry_react-native:compileDebugLibraryResources UP-TO-DATE
+> Task :sentry_react-native:parseDebugLocalResources UP-TO-DATE
+> Task :sentry_react-native:generateDebugRFile UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :react-native-android-notification-listener:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-android-notification-listener:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-android-notification-listener:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-community_geolocation:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-community_geolocation:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-community_geolocation:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-community_geolocation:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-device-info:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-device-info:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-device-info:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-device-info:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-documents_picker:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-documents_picker:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugKotlin UP-TO-DATE
+> Task :react-native-documents_picker:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-documents_picker:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-fast-image:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-fast-image:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-fast-image:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-fast-image:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-firebase_analytics:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-firebase_app:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-firebase_app:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-firebase_app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-firebase_app:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-firebase_analytics:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-firebase_perf:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-firebase_perf:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-firebase_perf:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-firebase_perf:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-fs:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-fs:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-fs:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-fs:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-svg:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-svg:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-svg:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-svg:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-gesture-handler:compileDebugKotlin UP-TO-DATE
+> Task :react-native-gesture-handler:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-gesture-handler:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-gesture-handler:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-html-to-pdf:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-html-to-pdf:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-html-to-pdf:compileDebugKotlin UP-TO-DATE
+> Task :react-native-html-to-pdf:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-html-to-pdf:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-html-to-pdf:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-image-picker:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-image-picker:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-image-picker:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-image-picker:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-linear-gradient:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-linear-gradient:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-linear-gradient:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-linear-gradient:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-mmkv:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-mmkv:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-mmkv:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-mmkv:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-onesignal:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-onesignal:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-onesignal:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-onesignal:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-pdf:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-pdf:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-pdf:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-pdf:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-permissions:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-permissions:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-permissions:compileDebugKotlin UP-TO-DATE
+> Task :react-native-permissions:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-permissions:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-permissions:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-safe-area-context:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-safe-area-context:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-safe-area-context:compileDebugKotlin UP-TO-DATE
+> Task :react-native-safe-area-context:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-safe-area-context:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-safe-area-context:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-screens:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-screens:compileDebugKotlin UP-TO-DATE
+> Task :react-native-screens:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-screens:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-screens:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-share:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-share:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-share:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-share:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-tts:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-tts:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-tts:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-tts:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-vector-icons:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-vector-icons:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-vector-icons:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-vector-icons:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-video:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-video:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-video:compileDebugKotlin UP-TO-DATE
+> Task :react-native-video:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-video:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-video:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-view-shot:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-view-shot:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-view-shot:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-view-shot:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :react-native-voice_voice:generateDebugBuildConfig UP-TO-DATE
+> Task :react-native-voice_voice:javaPreCompileDebug UP-TO-DATE
+> Task :react-native-voice_voice:compileDebugJavaWithJavac UP-TO-DATE
+> Task :react-native-voice_voice:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :sentry_react-native:generateDebugBuildConfig UP-TO-DATE
+> Task :sentry_react-native:javaPreCompileDebug UP-TO-DATE
+> Task :sentry_react-native:compileDebugJavaWithJavac UP-TO-DATE
+> Task :sentry_react-native:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:compileDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:copyReactNativeVectorIconFonts UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :react-native-android-notification-listener:mergeDebugShaders UP-TO-DATE
+> Task :react-native-android-notification-listener:compileDebugShaders NO-SOURCE
+> Task :react-native-android-notification-listener:generateDebugAssets UP-TO-DATE
+> Task :react-native-android-notification-listener:mergeDebugAssets UP-TO-DATE
+> Task :react-native-community_geolocation:mergeDebugShaders UP-TO-DATE
+> Task :react-native-community_geolocation:compileDebugShaders NO-SOURCE
+> Task :react-native-community_geolocation:generateDebugAssets UP-TO-DATE
+> Task :react-native-community_geolocation:mergeDebugAssets UP-TO-DATE
+> Task :react-native-device-info:mergeDebugShaders UP-TO-DATE
+> Task :react-native-device-info:compileDebugShaders NO-SOURCE
+> Task :react-native-device-info:generateDebugAssets UP-TO-DATE
+> Task :react-native-device-info:mergeDebugAssets UP-TO-DATE
+> Task :react-native-documents_picker:mergeDebugShaders UP-TO-DATE
+> Task :react-native-documents_picker:compileDebugShaders NO-SOURCE
+> Task :react-native-documents_picker:generateDebugAssets UP-TO-DATE
+> Task :react-native-documents_picker:mergeDebugAssets UP-TO-DATE
+> Task :react-native-fast-image:mergeDebugShaders UP-TO-DATE
+> Task :react-native-fast-image:compileDebugShaders NO-SOURCE
+> Task :react-native-fast-image:generateDebugAssets UP-TO-DATE
+> Task :react-native-fast-image:mergeDebugAssets UP-TO-DATE
+> Task :react-native-firebase_analytics:mergeDebugShaders UP-TO-DATE
+> Task :react-native-firebase_analytics:compileDebugShaders NO-SOURCE
+> Task :react-native-firebase_analytics:generateDebugAssets UP-TO-DATE
+> Task :react-native-firebase_analytics:mergeDebugAssets UP-TO-DATE
+> Task :react-native-firebase_app:mergeDebugShaders UP-TO-DATE
+> Task :react-native-firebase_app:compileDebugShaders NO-SOURCE
+> Task :react-native-firebase_app:generateDebugAssets UP-TO-DATE
+> Task :react-native-firebase_app:mergeDebugAssets UP-TO-DATE
+> Task :react-native-firebase_perf:mergeDebugShaders UP-TO-DATE
+> Task :react-native-firebase_perf:compileDebugShaders NO-SOURCE
+> Task :react-native-firebase_perf:generateDebugAssets UP-TO-DATE
+> Task :react-native-firebase_perf:mergeDebugAssets UP-TO-DATE
+> Task :react-native-fs:mergeDebugShaders UP-TO-DATE
+> Task :react-native-fs:compileDebugShaders NO-SOURCE
+> Task :react-native-fs:generateDebugAssets UP-TO-DATE
+> Task :react-native-fs:mergeDebugAssets UP-TO-DATE
+> Task :react-native-gesture-handler:mergeDebugShaders UP-TO-DATE
+> Task :react-native-gesture-handler:compileDebugShaders NO-SOURCE
+> Task :react-native-gesture-handler:generateDebugAssets UP-TO-DATE
+> Task :react-native-gesture-handler:mergeDebugAssets UP-TO-DATE
+> Task :react-native-html-to-pdf:mergeDebugShaders UP-TO-DATE
+> Task :react-native-html-to-pdf:compileDebugShaders NO-SOURCE
+> Task :react-native-html-to-pdf:generateDebugAssets UP-TO-DATE
+> Task :react-native-html-to-pdf:mergeDebugAssets UP-TO-DATE
+> Task :react-native-image-picker:mergeDebugShaders UP-TO-DATE
+> Task :react-native-image-picker:compileDebugShaders NO-SOURCE
+> Task :react-native-image-picker:generateDebugAssets UP-TO-DATE
+> Task :react-native-image-picker:mergeDebugAssets UP-TO-DATE
+> Task :react-native-linear-gradient:mergeDebugShaders UP-TO-DATE
+> Task :react-native-linear-gradient:compileDebugShaders NO-SOURCE
+> Task :react-native-linear-gradient:generateDebugAssets UP-TO-DATE
+> Task :react-native-linear-gradient:mergeDebugAssets UP-TO-DATE
+> Task :react-native-mmkv:mergeDebugShaders UP-TO-DATE
+> Task :react-native-mmkv:compileDebugShaders NO-SOURCE
+> Task :react-native-mmkv:generateDebugAssets UP-TO-DATE
+> Task :react-native-mmkv:mergeDebugAssets UP-TO-DATE
+> Task :react-native-onesignal:mergeDebugShaders UP-TO-DATE
+> Task :react-native-onesignal:compileDebugShaders NO-SOURCE
+> Task :react-native-onesignal:generateDebugAssets UP-TO-DATE
+> Task :react-native-onesignal:mergeDebugAssets UP-TO-DATE
+> Task :react-native-pdf:mergeDebugShaders UP-TO-DATE
+> Task :react-native-pdf:compileDebugShaders NO-SOURCE
+> Task :react-native-pdf:generateDebugAssets UP-TO-DATE
+> Task :react-native-pdf:mergeDebugAssets UP-TO-DATE
+> Task :react-native-permissions:mergeDebugShaders UP-TO-DATE
+> Task :react-native-permissions:compileDebugShaders NO-SOURCE
+> Task :react-native-permissions:generateDebugAssets UP-TO-DATE
+> Task :react-native-permissions:mergeDebugAssets UP-TO-DATE
+> Task :react-native-safe-area-context:mergeDebugShaders UP-TO-DATE
+> Task :react-native-safe-area-context:compileDebugShaders NO-SOURCE
+> Task :react-native-safe-area-context:generateDebugAssets UP-TO-DATE
+> Task :react-native-safe-area-context:mergeDebugAssets UP-TO-DATE
+> Task :react-native-screens:mergeDebugShaders UP-TO-DATE
+> Task :react-native-screens:compileDebugShaders NO-SOURCE
+> Task :react-native-screens:generateDebugAssets UP-TO-DATE
+> Task :react-native-screens:mergeDebugAssets UP-TO-DATE
+> Task :react-native-share:mergeDebugShaders UP-TO-DATE
+> Task :react-native-share:compileDebugShaders NO-SOURCE
+> Task :react-native-share:generateDebugAssets UP-TO-DATE
+> Task :react-native-share:mergeDebugAssets UP-TO-DATE
+> Task :react-native-svg:mergeDebugShaders UP-TO-DATE
+> Task :react-native-svg:compileDebugShaders NO-SOURCE
+> Task :react-native-svg:generateDebugAssets UP-TO-DATE
+> Task :react-native-svg:mergeDebugAssets UP-TO-DATE
+> Task :react-native-tts:mergeDebugShaders UP-TO-DATE
+> Task :react-native-tts:compileDebugShaders NO-SOURCE
+> Task :react-native-tts:generateDebugAssets UP-TO-DATE
+> Task :react-native-tts:mergeDebugAssets UP-TO-DATE
+> Task :react-native-vector-icons:mergeDebugShaders UP-TO-DATE
+> Task :react-native-vector-icons:compileDebugShaders NO-SOURCE
+> Task :react-native-vector-icons:generateDebugAssets UP-TO-DATE
+> Task :react-native-vector-icons:mergeDebugAssets UP-TO-DATE
+> Task :react-native-video:mergeDebugShaders UP-TO-DATE
+> Task :react-native-video:compileDebugShaders NO-SOURCE
+> Task :react-native-video:generateDebugAssets UP-TO-DATE
+> Task :react-native-video:mergeDebugAssets UP-TO-DATE
+> Task :react-native-view-shot:mergeDebugShaders UP-TO-DATE
+> Task :react-native-view-shot:compileDebugShaders NO-SOURCE
+> Task :react-native-view-shot:generateDebugAssets UP-TO-DATE
+> Task :react-native-view-shot:mergeDebugAssets UP-TO-DATE
+> Task :react-native-voice_voice:mergeDebugShaders UP-TO-DATE
+> Task :react-native-voice_voice:compileDebugShaders NO-SOURCE
+> Task :react-native-voice_voice:generateDebugAssets UP-TO-DATE
+> Task :react-native-voice_voice:mergeDebugAssets UP-TO-DATE
+> Task :sentry_react-native:mergeDebugShaders UP-TO-DATE
+> Task :sentry_react-native:compileDebugShaders NO-SOURCE
+> Task :sentry_react-native:generateDebugAssets UP-TO-DATE
+> Task :sentry_react-native:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:l8DexDesugarLibDebug UP-TO-DATE
+> Task :react-native-documents_picker:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-gesture-handler:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-html-to-pdf:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-permissions:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-safe-area-context:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-screens:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-video:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-community_geolocation:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-firebase_perf:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-firebase_app:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-voice_voice:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :sentry_react-native:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-device-info:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-fast-image:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-fs:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-image-picker:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-linear-gradient:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-mmkv:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-onesignal:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-pdf:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-share:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-svg:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-tts:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-vector-icons:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :react-native-view-shot:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:dexBuilderDebug UP-TO-DATE
+> Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :react-native-android-notification-listener:processDebugJavaRes NO-SOURCE
+> Task :react-native-community_geolocation:processDebugJavaRes NO-SOURCE
+> Task :react-native-device-info:processDebugJavaRes NO-SOURCE
+> Task :react-native-documents_picker:processDebugJavaRes UP-TO-DATE
+> Task :react-native-fast-image:processDebugJavaRes UP-TO-DATE
+> Task :react-native-firebase_analytics:processDebugJavaRes NO-SOURCE
+> Task :react-native-firebase_app:processDebugJavaRes NO-SOURCE
+> Task :react-native-firebase_perf:processDebugJavaRes NO-SOURCE
+> Task :react-native-fs:processDebugJavaRes NO-SOURCE
+> Task :react-native-gesture-handler:processDebugJavaRes UP-TO-DATE
+> Task :react-native-html-to-pdf:processDebugJavaRes UP-TO-DATE
+> Task :react-native-image-picker:processDebugJavaRes NO-SOURCE
+> Task :react-native-linear-gradient:processDebugJavaRes NO-SOURCE
+> Task :react-native-mmkv:processDebugJavaRes NO-SOURCE
+> Task :react-native-onesignal:processDebugJavaRes NO-SOURCE
+> Task :react-native-pdf:processDebugJavaRes NO-SOURCE
+> Task :react-native-permissions:processDebugJavaRes UP-TO-DATE
+> Task :react-native-safe-area-context:processDebugJavaRes UP-TO-DATE
+> Task :react-native-screens:processDebugJavaRes UP-TO-DATE
+> Task :react-native-share:processDebugJavaRes NO-SOURCE
+> Task :react-native-svg:processDebugJavaRes NO-SOURCE
+> Task :react-native-tts:processDebugJavaRes NO-SOURCE
+> Task :react-native-vector-icons:processDebugJavaRes NO-SOURCE
+> Task :react-native-video:processDebugJavaRes UP-TO-DATE
+> Task :react-native-view-shot:processDebugJavaRes NO-SOURCE
+> Task :react-native-voice_voice:processDebugJavaRes NO-SOURCE
+> Task :sentry_react-native:processDebugJavaRes NO-SOURCE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :react-native-documents_picker:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-gesture-handler:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-html-to-pdf:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-permissions:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-safe-area-context:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-screens:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-video:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-community_geolocation:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-firebase_analytics:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-firebase_perf:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-firebase_app:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-voice_voice:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :sentry_react-native:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-android-notification-listener:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-device-info:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-fast-image:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-fs:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-image-picker:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-linear-gradient:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-mmkv:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-onesignal:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-pdf:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-share:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-svg:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-tts:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-vector-icons:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :react-native-view-shot:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :app:mergeProjectDexDebug UP-TO-DATE
+
+> Task :app:configureCMakeDebug[arm64-v8a] FAILED
+C/C++: CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/generated/autolinking/src/main/jni/Android-autolinking.cmake:9 (add_subdirectory):
+C/C++:   add_subdirectory given source
+C/C++:   "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-community/geolocation/android/build/generated/source/codegen/jni/"
+C/C++:   which is not an existing directory.
+C/C++: Call Stack (most recent call first):
+C/C++:   /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:94 (include)
+C/C++:   CMakeLists.txt:31 (include)
+C/C++: CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:97 (target_link_libraries):
+C/C++:   Cannot specify link libraries for target "react_codegen_RNCGeolocationSpec"
+C/C++:   which is not built by this project.
+C/C++: Call Stack (most recent call first):
+C/C++:   CMakeLists.txt:31 (include)
+
+[Incubating] Problems report is available at: file:///Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+547 actionable tasks: 1 executed, 546 up-to-date
+
+info 💡 Tip: Make sure that you have set up your development environment correctly, by running npx react-native doctor. To read more about doctor command visit: https://github.com/react-native-community/cli/blob/main/packages/cli-doctor/README.md#doctor 
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:configureCMakeDebug[arm64-v8a]'.
+> [CXX1429] error when building with cmake using /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup/CMakeLists.txt: -- The C compiler identification is Clang 18.0.2
+  -- The CXX compiler identification is Clang 18.0.2
+  -- Detecting C compiler ABI info
+  -- Detecting C compiler ABI info - done
+  -- Check for working C compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang - skipped
+  -- Detecting C compile features
+  -- Detecting C compile features - done
+  -- Detecting CXX compiler ABI info
+  -- Detecting CXX compiler ABI info - done
+  -- Check for working CXX compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ - skipped
+  -- Detecting CXX compile features
+  -- Detecting CXX compile features - done
+  -- Configuring incomplete, errors occurred!
+  See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeOutput.log".
+  See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeError.log".
+  
+  C++ build system [configure] failed while executing:
+      /Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+        -H/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup \
+        -DCMAKE_SYSTEM_NAME=Android \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+        -DCMAKE_SYSTEM_VERSION=24 \
+        -DANDROID_PLATFORM=android-24 \
+        -DANDROID_ABI=arm64-v8a \
+        -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \
+        -DANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \
+        -DCMAKE_ANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \
+        -DCMAKE_TOOLCHAIN_FILE=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/build/cmake/android.toolchain.cmake \
+        -DCMAKE_MAKE_PROGRAM=/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+        -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \
+        -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_FIND_ROOT_PATH=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/prefab/arm64-v8a/prefab \
+        -B/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a \
+        -GNinja \
+        -DANDROID_LD=lld \
+        -DPROJECT_BUILD_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build \
+        -DPROJECT_ROOT_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android \
+        -DREACT_ANDROID_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid \
+        -DANDROID_STL=c++_shared \
+        -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON
+    from /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app
+  CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/generated/autolinking/src/main/jni/Android-autolinking.cmake:9 (add_subdirectory):
+    add_subdirectory given source
+    "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-community/geolocation/android/build/generated/source/codegen/jni/"
+    which is not an existing directory.
+  Call Stack (most recent call first):
+    /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:94 (include)
+    CMakeLists.txt:31 (include)
+  
+  
+  CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:97 (target_link_libraries):
+    Cannot specify link libraries for target "react_codegen_RNCGeolocationSpec"
+    which is not built by this project.
+  Call Stack (most recent call first):
+    CMakeLists.txt:31 (include) : com.android.ide.common.process.ProcessException: -- The C compiler identification is Clang 18.0.2
+  -- The CXX compiler identification is Clang 18.0.2
+  -- Detecting C compiler ABI info
+  -- Detecting C compiler ABI info - done
+  -- Check for working C compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang - skipped
+  -- Detecting C compile features
+  -- Detecting C compile features - done
+  -- Detecting CXX compiler ABI info
+  -- Detecting CXX compiler ABI info - done
+  -- Check for working CXX compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ - skipped
+  -- Detecting CXX compile features
+  -- Detecting CXX compile features - done
+  -- Configuring incomplete, errors occurred!
+  See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeOutput.log".
+  See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeError.log".
+  
+  C++ build system [configure] failed while executing:
+      /Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+        -H/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup \
+        -DCMAKE_SYSTEM_NAME=Android \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+        -DCMAKE_SYSTEM_VERSION=24 \
+        -DANDROID_PLATFORM=android-24 \
+        -DANDROID_ABI=arm64-v8a \
+        -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \
+        -DANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \
+        -DCMAKE_ANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \
+        -DCMAKE_TOOLCHAIN_FILE=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/build/cmake/android.toolchain.cmake \
+        -DCMAKE_MAKE_PROGRAM=/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+        -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \
+        -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_FIND_ROOT_PATH=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/prefab/arm64-v8a/prefab \
+        -B/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a \
+        -GNinja \
+        -DANDROID_LD=lld \
+        -DPROJECT_BUILD_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build \
+        -DPROJECT_ROOT_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android \
+        -DREACT_ANDROID_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid \
+        -DANDROID_STL=c++_shared \
+        -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON
+    from /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app
+  CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/generated/autolinking/src/main/jni/Android-autolinking.cmake:9 (add_subdirectory):
+    add_subdirectory given source
+    "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-community/geolocation/android/build/generated/source/codegen/jni/"
+    which is not an existing directory.
+  Call Stack (most recent call first):
+    /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:94 (include)
+    CMakeLists.txt:31 (include)
+  
+  
+  CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:97 (target_link_libraries):
+    Cannot specify link libraries for target "react_codegen_RNCGeolocationSpec"
+    which is not built by this project.
+  Call Stack (most recent call first):
+    CMakeLists.txt:31 (include)
+  	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:288)
+  	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:108)
+  	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:106)
+  	at com.android.build.gradle.internal.cxx.timing.TimingEnvironmentKt.time(TimingEnvironment.kt:32)
+  	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess(ExecuteProcess.kt:106)
+  	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess$default(ExecuteProcess.kt:85)
+  	at com.android.build.gradle.tasks.CmakeQueryMetadataGenerator.executeProcess(CmakeFileApiMetadataGenerator.kt:59)
+  	at com.android.build.gradle.tasks.ExternalNativeJsonGenerator$configureOneAbi$1$1$3.invoke(ExternalNativeJsonGenerator.kt:247)
+  	at com.android.build.gradle.tasks.ExternalNativeJsonGenerator$configureOneAbi$1$1$3.invoke(ExternalNativeJsonGenerator.kt:247)
+  	at com.android.build.gradle.internal.cxx.timing.TimingEnvironmentKt.time(TimingEnvironment.kt:32)
+  	at com.android.build.gradle.tasks.ExternalNativeJsonGenerator.configureOneAbi(ExternalNativeJsonGenerator.kt:247)
+  	at com.android.build.gradle.tasks.ExternalNativeJsonGenerator.configure(ExternalNativeJsonGenerator.kt:113)
+  	at com.android.build.gradle.tasks.ExternalNativeBuildJsonTask.doTaskAction(ExternalNativeBuildJsonTask.kt:89)
+  	at com.android.build.gradle.internal.tasks.UnsafeOutputsTask$taskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:59)
+  	at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51)
+  	at com.android.build.gradle.internal.tasks.UnsafeOutputsTask.taskAction(UnsafeOutputsTask.kt:81)
+  	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+  	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+  	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+  	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+  	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+  	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+  	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+  	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:237)
+  	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:220)
+  	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:203)
+  	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:170)
+  	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+  	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+  	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+  	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+  	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+  	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+  	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+  	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+  	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+  	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+  	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+  	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
+  	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
+  	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+  	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+  	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+  	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+  	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:39)
+  	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:28)
+  	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+  	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+  	at org.gradle.internal.Either$Right.fold(Either.java:176)
+  	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+  	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+  	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+  	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+  	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+  	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+  	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+  	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+  	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+  	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+  	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+  	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+  	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+  	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+  	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+  	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+  	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:64)
+  	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:35)
+  	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:62)
+  	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:40)
+  	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:76)
+  	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:45)
+  	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:136)
+  	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61)
+  	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:38)
+  	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+  	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+  	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+  	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+  	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+  	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+  	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:297)
+  	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+  	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+  	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+  	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+  	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+  	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+  	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+  	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+  	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+  	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+  	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:47)
+  	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:34)
+  	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64)
+  	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+  	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+  	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+  	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+  	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+  	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+  	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+  	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+  	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+  	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+  	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+  	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+  	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+  	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:45)
+  	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:347)
+  	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:334)
+  	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:330)
+  	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+  	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:330)
+  	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:319)
+  	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+  	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+  	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+  	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+  	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+  	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+  	at java.base/java.lang.Thread.run(Thread.java:840)
+  Caused by: com.android.ide.common.process.ProcessException: Error while executing process /Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake with arguments {-H/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=arm64-v8a -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 -DCMAKE_ANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 -DCMAKE_TOOLCHAIN_FILE=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/build/cmake/android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/ninja -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_ROOT_PATH=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/prefab/arm64-v8a/prefab -B/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a -GNinja -DANDROID_LD=lld -DPROJECT_BUILD_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build -DPROJECT_ROOT_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android -DREACT_ANDROID_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid -DANDROID_STL=c++_shared -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON}
+  	at com.android.build.gradle.internal.process.GradleProcessResult.buildProcessException(GradleProcessResult.java:73)
+  	at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:48)
+  	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:277)
+  	... 142 more
+  Caused by: org.gradle.process.ProcessExecutionException: Process 'command '/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake'' finished with non-zero exit value 1
+  	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:443)
+  	at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:46)
+  	... 143 more
+
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 12s
+error Failed to install the app. Command failed with exit code 1: ./gradlew app:installDebug -PreactNativeDevServerPort=8081 FAILURE: Build failed with an exception. * What went wrong:
+Execution failed for task ':app:configureCMakeDebug[arm64-v8a]'.
+> [CXX1429] error when building with cmake using /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup/CMakeLists.txt: -- The C compiler identification is Clang 18.0.2 -- The CXX compiler identification is Clang 18.0.2 -- Detecting C compiler ABI info -- Detecting C compiler ABI info - done -- Check for working C compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang - skipped -- Detecting C compile features -- Detecting C compile features - done -- Detecting CXX compiler ABI info -- Detecting CXX compiler ABI info - done -- Check for working CXX compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ - skipped -- Detecting CXX compile features -- Detecting CXX compile features - done -- Configuring incomplete, errors occurred! See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeOutput.log". See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeError.log". C++ build system [configure] failed while executing: /Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake \ -H/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup \ -DCMAKE_SYSTEM_NAME=Android \ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \ -DCMAKE_SYSTEM_VERSION=24 \ -DANDROID_PLATFORM=android-24 \ -DANDROID_ABI=arm64-v8a \ -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \ -DANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \ -DCMAKE_ANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \ -DCMAKE_TOOLCHAIN_FILE=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/build/cmake/android.toolchain.cmake \ -DCMAKE_MAKE_PROGRAM=/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/ninja \ -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \ -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \ -DCMAKE_BUILD_TYPE=Debug \ -DCMAKE_FIND_ROOT_PATH=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/prefab/arm64-v8a/prefab \ -B/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a \ -GNinja \ -DANDROID_LD=lld \ -DPROJECT_BUILD_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build \ -DPROJECT_ROOT_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android \ -DREACT_ANDROID_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid \ -DANDROID_STL=c++_shared \ -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON from /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/generated/autolinking/src/main/jni/Android-autolinking.cmake:9 (add_subdirectory): add_subdirectory given source "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-community/geolocation/android/build/generated/source/codegen/jni/" which is not an existing directory. Call Stack (most recent call first): /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:94 (include) CMakeLists.txt:31 (include) CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:97 (target_link_libraries): Cannot specify link libraries for target "react_codegen_RNCGeolocationSpec" which is not built by this project. Call Stack (most recent call first): CMakeLists.txt:31 (include) : com.android.ide.common.process.ProcessException: -- The C compiler identification is Clang 18.0.2 -- The CXX compiler identification is Clang 18.0.2 -- Detecting C compiler ABI info -- Detecting C compiler ABI info - done -- Check for working C compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang - skipped -- Detecting C compile features -- Detecting C compile features - done -- Detecting CXX compiler ABI info -- Detecting CXX compiler ABI info - done -- Check for working CXX compiler: /Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ - skipped -- Detecting CXX compile features -- Detecting CXX compile features - done -- Configuring incomplete, errors occurred! See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeOutput.log". See also "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a/CMakeFiles/CMakeError.log". C++ build system [configure] failed while executing: /Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake \ -H/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup \ -DCMAKE_SYSTEM_NAME=Android \ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \ -DCMAKE_SYSTEM_VERSION=24 \ -DANDROID_PLATFORM=android-24 \ -DANDROID_ABI=arm64-v8a \ -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \ -DANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \ -DCMAKE_ANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 \ -DCMAKE_TOOLCHAIN_FILE=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/build/cmake/android.toolchain.cmake \ -DCMAKE_MAKE_PROGRAM=/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/ninja \ -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \ -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a \ -DCMAKE_BUILD_TYPE=Debug \ -DCMAKE_FIND_ROOT_PATH=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/prefab/arm64-v8a/prefab \ -B/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a \ -GNinja \ -DANDROID_LD=lld \ -DPROJECT_BUILD_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build \ -DPROJECT_ROOT_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android \ -DREACT_ANDROID_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid \ -DANDROID_STL=c++_shared \ -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON from /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/generated/autolinking/src/main/jni/Android-autolinking.cmake:9 (add_subdirectory): add_subdirectory given source "/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/@react-native-community/geolocation/android/build/generated/source/codegen/jni/" which is not an existing directory. Call Stack (most recent call first): /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:94 (include) CMakeLists.txt:31 (include) CMake Error at /Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake:97 (target_link_libraries): Cannot specify link libraries for target "react_codegen_RNCGeolocationSpec" which is not built by this project. Call Stack (most recent call first): CMakeLists.txt:31 (include) at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:288) at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:108) at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:106) at com.android.build.gradle.internal.cxx.timing.TimingEnvironmentKt.time(TimingEnvironment.kt:32) at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess(ExecuteProcess.kt:106) at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess$default(ExecuteProcess.kt:85) at com.android.build.gradle.tasks.CmakeQueryMetadataGenerator.executeProcess(CmakeFileApiMetadataGenerator.kt:59) at com.android.build.gradle.tasks.ExternalNativeJsonGenerator$configureOneAbi$1$1$3.invoke(ExternalNativeJsonGenerator.kt:247) at com.android.build.gradle.tasks.ExternalNativeJsonGenerator$configureOneAbi$1$1$3.invoke(ExternalNativeJsonGenerator.kt:247) at com.android.build.gradle.internal.cxx.timing.TimingEnvironmentKt.time(TimingEnvironment.kt:32) at com.android.build.gradle.tasks.ExternalNativeJsonGenerator.configureOneAbi(ExternalNativeJsonGenerator.kt:247) at com.android.build.gradle.tasks.ExternalNativeJsonGenerator.configure(ExternalNativeJsonGenerator.kt:113) at com.android.build.gradle.tasks.ExternalNativeBuildJsonTask.doTaskAction(ExternalNativeBuildJsonTask.kt:89) at com.android.build.gradle.internal.tasks.UnsafeOutputsTask$taskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:59) at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51) at com.android.build.gradle.internal.tasks.UnsafeOutputsTask.taskAction(UnsafeOutputsTask.kt:81) at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) at java.base/java.lang.reflect.Method.invoke(Method.java:569) at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125) at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58) at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51) at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29) at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252) at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29) at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26) at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66) at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59) at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166) at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59) at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47) at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:237) at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:220) at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:203) at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:170) at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105) at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44) at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59) at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56) at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209) at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204) at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66) at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59) at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166) at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59) at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53) at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56) at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44) at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42) at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75) at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55) at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50) at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28) at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68) at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38) at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61) at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26) at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69) at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46) at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:39) at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:28) at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189) at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75) at org.gradle.internal.Either$Right.fold(Either.java:176) at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62) at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73) at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48) at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46) at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35) at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75) at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53) at java.base/java.util.Optional.orElseGet(Optional.java:364) at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53) at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35) at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37) at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27) at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49) at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27) at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71) at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39) at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:64) at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:35) at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:62) at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:40) at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:76) at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:45) at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:136) at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61) at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:38) at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38) at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36) at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23) at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75) at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41) at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35) at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:297) at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31) at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22) at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40) at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23) at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67) at java.base/java.util.Optional.orElseGet(Optional.java:364) at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67) at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39) at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46) at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34) at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:47) at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:34) at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64) at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132) at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121) at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41) at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46) at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51) at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57) at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74) at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36) at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77) at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55) at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52) at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209) at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204) at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66) at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59) at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166) at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59) at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53) at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52) at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:45) at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:347) at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:334) at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:330) at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84) at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:330) at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:319) at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459) at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376) at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64) at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47) at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) at java.base/java.lang.Thread.run(Thread.java:840) Caused by: com.android.ide.common.process.ProcessException: Error while executing process /Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake with arguments {-H/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=arm64-v8a -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 -DCMAKE_ANDROID_NDK=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006 -DCMAKE_TOOLCHAIN_FILE=/Users/eagalazeenath/Library/Android/sdk/ndk/27.1.12297006/build/cmake/android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/ninja -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build/intermediates/cxx/Debug/4l6c5c1q/obj/arm64-v8a -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_ROOT_PATH=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/prefab/arm64-v8a/prefab -B/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/.cxx/Debug/4l6c5c1q/arm64-v8a -GNinja -DANDROID_LD=lld -DPROJECT_BUILD_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android/app/build -DPROJECT_ROOT_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/android -DREACT_ANDROID_DIR=/Users/eagalazeenath/Desktop/customer-2.0/customer2.0/Mobile/node_modules/react-native/ReactAndroid -DANDROID_STL=c++_shared -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON} at com.android.build.gradle.internal.process.GradleProcessResult.buildProcessException(GradleProcessResult.java:73) at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:48) at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:277) ... 142 more Caused by: org.gradle.process.ProcessExecutionException: Process 'command '/Users/eagalazeenath/Library/Android/sdk/cmake/3.22.1/bin/cmake'' finished with non-zero exit value 1 at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:443) at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:46) ... 143 more * Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org. BUILD FAILED in 12s.
+info Run CLI with --verbose flag for more details.
