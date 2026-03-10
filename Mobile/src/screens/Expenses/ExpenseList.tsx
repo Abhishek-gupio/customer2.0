@@ -7,7 +7,7 @@ import {
   RefreshControl,
   Modal,
 } from 'react-native';
-import React from 'react';
+import React, { useState, useEffect }from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import {
@@ -28,7 +28,6 @@ import { colors }from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
 type ProgressRowProps = {
@@ -37,7 +36,6 @@ type ProgressRowProps = {
   percent: number;
   color: string;
 };
-
 
 
 const ProgressRow = ({ label, value, percent, color }: ProgressRowProps) => {
@@ -99,6 +97,7 @@ const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(
 
 const ExpenseFeed = () => {
   const navigation = useNavigation<DocListNavProp>();
+
 
   const serviceTypes = ['All', 'Fuel', 'Service', 'Toll', 'Insurance', 'Parking', 'Other'];
 
@@ -409,7 +408,7 @@ const ExpenseFeed = () => {
             <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
               <Icon name="plus" size={wp(5)} color="#fff" />
             </TouchableOpacity>
-          </View>
+          </View>cld
 
           <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
             <NotificationPermission />
@@ -970,4 +969,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  Dropcontainer:{
+    // backgroundColor:"#999",
+    // color:"#999"
+    padding:wp(3)
+  }
 });

@@ -311,6 +311,9 @@ importers:
       react-native-share:
         specifier: ^12.2.5
         version: 12.2.5
+      react-native-sms-android:
+        specifier: ^0.4.1
+        version: 0.4.1(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))
       react-native-svg:
         specifier: ^15.15.3
         version: 15.15.3(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -6497,6 +6500,11 @@ packages:
   react-native-share@12.2.5:
     resolution: {integrity: sha512-2uwd/PdlUyvpsSBfL7OMiL4sD0Ja51wu5m62JSIXjrtlF+uSTUOGsMrE49ncIRYziqAfYUeI195WwhpvqXB0ww==}
     engines: {node: '>=16'}
+
+  react-native-sms-android@0.4.1:
+    resolution: {integrity: sha512-x1NCOgdBOjUaAai5VNA4k4tzNmDq/v8vlKGmDuBC5IeG3vXe6dNq7DLv+4z5U2SCo0yIJW1wlX0WENgBfD2upA==}
+    peerDependencies:
+      react-native: '>=0.19.0'
 
   react-native-svg@15.15.3:
     resolution: {integrity: sha512-/k4KYwPBLGcx2f5d4FjE+vCScK7QOX14cl2lIASJ28u4slHHtIhL0SZKU7u9qmRBHxTCKPoPBtN6haT1NENJNA==}
@@ -16205,6 +16213,10 @@ snapshots:
       warn-once: 0.1.1
 
   react-native-share@12.2.5: {}
+
+  react-native-sms-android@0.4.1(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0)):
+    dependencies:
+      react-native: 0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0)
 
   react-native-svg@15.15.3(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
     dependencies:
