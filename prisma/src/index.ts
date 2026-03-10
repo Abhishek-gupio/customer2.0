@@ -15,30 +15,43 @@ if (!connectionString || connectionString.trim() === '') {
 }
 
 // Only use SSL when the server expects it (e.g. RDS). Local Postgres does not support SSL.
-let ssl: boolean | { rejectUnauthorized: boolean } = false;
+let ssl: any = false;
 if (connectionString) {
   try {
     const url = new URL(connectionString);
     const sslmode = url.searchParams.get('sslmode');
     const isLocalhost =
       url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-    if (
-      !isLocalhost &&
-      (sslmode === 'require' || sslmode === 'verify-full' || sslmode === 'no-verify')
-    ) {
-      ssl = { rejectUnauthorized: sslmode === 'verify-full' };
+
+    // Force SSL for RDS if not localhost and not explicitly disabled
+    if (!isLocalhost && sslmode !== 'disable') {
+      ssl = {
+        rejectUnauthorized: false, // Standard for RDS/Cloud to avoid certificate chain errors
+      };
+      console.log(`🔒 Database: Enabling SSL for ${url.hostname} (sslmode: ${sslmode ?? 'default'})`);
+
+      // IMPORTANT: Strip sslmode from the URL so the pg library doesn't try to 
+      // apply its own stricter validation rules, which can override our ssl object.
+      url.searchParams.delete('sslmode');
+      connectionString = url.toString();
+    } else {
+      console.log(`🔓 Database: Connecting without SSL to ${url.hostname}`);
     }
-    // Strip sslmode from URL so pg uses our ssl option instead
-    url.searchParams.delete('sslmode');
-    connectionString = url.toString();
+
+    // Log the connection target (masked)
+    console.log(`🔌 Database: Connecting to ${url.hostname}:${url.port || '5432'}/${url.pathname.split('/').pop()}`);
   } catch (e) {
-    // Ignore URL parse errors
+    console.warn('⚠️ Failed to parse DATABASE_URL for SSL configuration');
   }
 }
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl,
+});
+
+pool.on('error', (err) => {
+  console.error('❌ Unexpected error on idle database client', err);
 });
 const adapter = new PrismaPg(pool);
 export const dbInstances = (global.prisma ??
