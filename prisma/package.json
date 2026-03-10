@@ -13,7 +13,7 @@
     "scripts": {
         "prisma:generate": "prisma generate",
         "prisma:migrate:dev": "prisma migrate dev",
-        "prisma:studio": "prisma studio",
+        "prisma:studio": "prisma studio --port 5555",
         "db:up:local": "bash ../scripts/db-start.sh",
         "db:migrate": "prisma migrate dev",
         "build": "tsc -p tsconfig.json && cp -r generated dist/",
