@@ -158,7 +158,7 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
         {view === "trend" && lineData && (
           <LineChart
             data={lineData}
-            width={screenWidth-wp(7)}
+            width={screenWidth - wp(7)}
             height={hp(32)}
             chartConfig={chartConfig}
             bezier
@@ -209,7 +209,7 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
       <View style={styles.exportCaptureContainer}>
         <ViewShot
           ref={lineChartRef}
-          collapsable={false}
+          // collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
           <View style={styles.exportCard}>
@@ -217,7 +217,7 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
             {lineData && (
               <LineChart
                 data={lineData}
-                width={screenWidth - wp(7)}
+                width={screenWidth - wp(5)}
                 height={hp(32)}
                 chartConfig={chartConfig}
                 bezier
@@ -229,7 +229,7 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
 
         <ViewShot
           ref={pieChartRef}
-          collapsable={false}
+          // collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
           <View style={styles.exportCard}>
