@@ -16,6 +16,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { vehicleService, Vehicle as BVehicle } from '../../services/vehicleService';
 
 interface Vehicle {
   id: string;
@@ -31,49 +32,43 @@ interface Vehicle {
 }
 
 const VehicleList = ({ navigation, route }: any) => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([
-    {
-      id: '1',
-      plate: 'DL 01 AB 1234',
-      brand: 'Maruti Suzuki',
-      model: 'Swift',
-      year: '2022',
-      health: '85%',
-      img: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=400',
-    },
-    {
-      id: '2',
-      plate: 'DL 02 XY 5678',
-      brand: 'Hyundai',
-      model: 'Creta',
-      year: '2023',
-      health: '92%',
-      img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=400',
-    },
-  ]);
-
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (route.params?.newVehicle) {
-      const newItem: Vehicle = {
-        ...route.params.newVehicle,
-        id: Date.now().toString(),
-        health: '100%',
-        img: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=400',
-      };
-      setVehicles(prev => [newItem, ...prev]);
-      navigation.setParams({ newVehicle: undefined });
+  const unmapHealth = (score: any) => {
+    if (!score) return '100%';
+    return `${score}%`;
+  };
+
+  const fetchVehicles = async () => {
+    try {
+      const data = await vehicleService.getVehicles();
+      const mapped = data.map((v: BVehicle) => ({
+        id: v.id,
+        plate: v.registrationNumber,
+        brand: v.make || 'Unknown',
+        model: v.model || 'Unknown',
+        year: v.year?.toString() || '----',
+        health: unmapHealth(v.healthScore?.overallScore),
+        img: v.photo || 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=400',
+        type: v.vehicleType || 'Car',
+        fuel: v.fuelType || 'Petrol',
+        isPrimary: v.isPrimary,
+      }));
+      setVehicles(mapped);
+    } catch (err) {
+      console.error('Failed fetching vehicles', err);
     }
-  }, [route.params?.newVehicle, navigation]);
+  };
+
+  useEffect(() => {
+    fetchVehicles();
+  }, [route.params?.newVehicle]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-    } finally {
-      setRefreshing(false);
-    }
+    await fetchVehicles();
+    setRefreshing(false);
   };
 
   const getHealthColor = (health: string) => {
@@ -99,32 +94,39 @@ const VehicleList = ({ navigation, route }: any) => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            setVehicles(prev => prev.filter(v => v.id !== id));
+          onPress: async () => {
+            try {
+              // Add optimistic deletion here so the UI feels immediate
+              setVehicles(prev => prev.filter(v => v.id !== id));
+              await vehicleService.deleteVehicle(id);
+            } catch (err: any) {
+              setRefreshing(true);
+              await fetchVehicles(); // Re-fetch on error to revert state
+              setRefreshing(false);
+              Alert.alert('Error', err?.message || 'Failed to delete vehicle');
+            }
           },
         },
       ],
     );
   };
 
+  // ParseInt will extract numbers from string values reliably "85%" -> 85
+  const validVehicles = vehicles.filter(v => !isNaN(parseInt(v.health, 10)));
   const totalHealth =
-    vehicles.length > 0
+    validVehicles.length > 0
       ? Math.round(
-          vehicles.reduce((sum, v) => sum + parseInt(v.health), 0) /
-            vehicles.length,
-        )
+        validVehicles.reduce((sum, v) => sum + parseInt(v.health, 10), 0) /
+        validVehicles.length,
+      )
       : 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
           <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -171,11 +173,7 @@ const VehicleList = ({ navigation, route }: any) => {
           </View>
         </View>
 
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionLine} />
-          <Text style={styles.sectionLabel}>Your Vehicles</Text>
-          <View style={styles.sectionLine} />
-        </View>
+        <Text style={styles.sectionTitle}>Your Vehicles</Text>
 
         <View style={styles.listContainer}>
           {vehicles.map((item, index) => (
@@ -215,7 +213,7 @@ const VehicleList = ({ navigation, route }: any) => {
               <View style={styles.cardContent}>
                 <View style={styles.plateRow}>
                   <Text style={styles.plateText}>{item.plate}</Text>
-                  {index === 0 && (
+                  {item.isPrimary && (
                     <View style={styles.primaryBadge}>
                       <Text style={styles.primaryText}>Primary</Text>
                     </View>
@@ -227,7 +225,20 @@ const VehicleList = ({ navigation, route }: any) => {
                 <Text style={styles.yearText}>{item.year}</Text>
               </View>
 
-              <FontAwesome5 name="chevron-right" size={wp(4)} color="#333" />
+              <View style={styles.cardActions}>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleDeleteVehicle(item.id, item.plate);
+                  }}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <FontAwesome5 name="trash-alt" size={wp(4)} color="#ef4444" />
+                </TouchableOpacity>
+                <FontAwesome5 name="chevron-right" size={wp(4)} color="#333" />
+              </View>
             </TouchableOpacity>
           ))}
 
@@ -251,7 +262,7 @@ const VehicleList = ({ navigation, route }: any) => {
         <View style={styles.footerInfo}>
           <FontAwesome5 name="info-circle" size={14} color="#555" />
           <Text style={styles.footerText}>
-            Long press on any vehicle to remove it from your list
+            Tap on any vehicle to view its details or manage records
           </Text>
         </View>
       </ScrollView>
@@ -260,15 +271,12 @@ const VehicleList = ({ navigation, route }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#000000' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
-    backgroundColor: '#0a0a0a',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   backBtn: {
     width: 44,
@@ -280,9 +288,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  headerCenter: { flex: 1, marginLeft: wp(3) },
-  headerTitle: { color: '#fff', fontSize: wp(5.5), fontWeight: 'bold' },
-  headerSubtitle: { color: '#666', fontSize: wp(3.2), marginTop: 2 },
+  headerCenter: { flex: 1, marginLeft: wp(2) },
+  headerTitle: { fontSize: wp(6), fontWeight: '700', color: '#fff' },
+  headerSubtitle: { fontSize: wp(3.5), color: '#888', marginTop: hp(0.2) },
   addHeaderBtn: {
     width: 44,
     height: 44,
@@ -299,10 +307,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#121212',
     marginHorizontal: wp(4),
     marginTop: hp(2),
-    borderRadius: 24,
-    padding: wp(5),
+    borderRadius: wp(4),
+    padding: wp(4),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   statsRow: { flexDirection: 'row', alignItems: 'center' },
   statItem: { flex: 1, alignItems: 'center' },
@@ -314,43 +322,31 @@ const styles = StyleSheet.create({
   statValue: { color: '#fff', fontSize: wp(7), fontWeight: 'bold' },
   statLabel: { color: '#666', fontSize: wp(3), marginTop: 4 },
 
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: hp(3),
-    marginBottom: hp(2),
+  sectionTitle: {
+    fontSize: wp(4.8),
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: hp(1.8),
+    marginTop: hp(2),
     marginHorizontal: wp(4),
   },
-  sectionLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  sectionLabel: {
-    color: '#555',
-    fontSize: wp(2.8),
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: wp(3),
-  },
 
-  listContainer: { paddingHorizontal: wp(4), gap: hp(2) },
+  listContainer: { paddingHorizontal: wp(4), gap: hp(1.5) },
   vehicleCard: {
     backgroundColor: '#121212',
-    borderRadius: 20,
+    borderRadius: wp(4),
     padding: wp(4),
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   cardLeft: { position: 'relative' },
   carImg: {
     width: wp(20),
     height: wp(14),
     borderRadius: 14,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121212',
   },
   healthBadge: {
     position: 'absolute',
@@ -383,10 +379,16 @@ const styles = StyleSheet.create({
   primaryText: { color: '#FFBF00', fontSize: wp(2.2), fontWeight: 'bold' },
   modelText: { color: '#777', fontSize: wp(3.2), marginTop: 4 },
   yearText: { color: '#444', fontSize: wp(2.8), marginTop: 2 },
+  cardActions: { flexDirection: 'row', alignItems: 'center', gap: wp(3) },
+  deleteBtn: {
+    padding: wp(1.5),
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+  },
 
   addCard: {
     backgroundColor: '#121212',
-    borderRadius: 20,
+    borderRadius: wp(4),
     padding: wp(4),
     flexDirection: 'row',
     alignItems: 'center',
