@@ -190,6 +190,8 @@ export const expenseAnalysisController = {
       req.customer.id,
     );
     success(res, result);
+    console.log(result);
+    console.log(vehicleId)
   }),
 
   // POST /expenses/anomalies/check — Manual anomaly check (e.g. before adding expense)

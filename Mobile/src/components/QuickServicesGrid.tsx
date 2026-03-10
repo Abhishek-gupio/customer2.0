@@ -50,12 +50,13 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: hp(1.5.5),
+    paddingVertical: hp(1.5),
     paddingHorizontal: wp(4),
     marginBottom: hp(2.5),
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-betweeen',
+    justifyContent: 'space-between',
     alignItems: 'center'
-  });
+  },
+});

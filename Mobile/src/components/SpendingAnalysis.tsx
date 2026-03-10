@@ -11,7 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
 import ViewShot from "react-native-view-shot";
 
 const screenWidth = Dimensions.get("window").width - wp(10);
@@ -19,96 +19,20 @@ const screenWidth = Dimensions.get("window").width - wp(10);
 type ViewMode = "trend" | "breakdown";
 type TimeFrame = "Day" | "Week" | "Month" | "Quarter" | "Year";
 
-/* ---------- Legend Config ---------- */
-const LEGEND_ITEMS = [
-  { label: "Fuel", color: "#3b82f6" },
-  { label: "Maintenance", color: "#f97316" },
-  { label: "Other", color: "#10b981" },
-];
+type AnalyticsTrend = {
+  labels: string[];
+  series: { name: string; color: string; data: number[] }[];
+};
 
-/* ---------- Chart Data ---------- */
-const chartData: Record<TimeFrame, { trend: any; breakdown: any }> = {
-  Day: {
-    trend: {
-      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      datasets: [
-        { data: [500, 700, 600, 800, 750, 900, 650], color: () => "#3b82f6", strokeWidth: 3 },
-        { data: [200, 300, 250, 400, 350, 450, 300], color: () => "#f97316", strokeWidth: 3 },
-        { data: [100, 150, 120, 180, 140, 160, 130], color: () => "#10b981", strokeWidth: 3 },
-      ],
-    },
-    breakdown: [
-      { name: "Fuel", population: 50, color: "#3b82f6", legendFontColor: "transparent", legendFontSize: 0,strokeWidth: wp(1),strokeColor: "#ffffff", },
-      { name: "Maintenance", population: 35, color: "#f97316", legendFontColor: "transparent", legendFontSize: 0,strokeWidth: wp(1),strokeColor: "#ffffff", },
-      { name: "Other", population: 15, color: "#10b981", legendFontColor: "transparent", legendFontSize: 0,strokeWidth: wp(1),strokeColor: "#ffffff", },
-    ],
-  },
+type AnalyticsBreakdown = {
+  name: string;
+  value: number;
+  color: string;
+};
 
-  Week: {
-    trend: {
-      labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-      datasets: [
-        { data: [2000, 2500, 2300, 2600], color: () => "#3b82f6", strokeWidth: 3 },
-        { data: [1200, 1500, 1300, 1400], color: () => "#f97316", strokeWidth: 3 },
-        { data: [400, 500, 450, 480], color: () => "#10b981", strokeWidth: 3 },
-      ],
-    },
-    breakdown: [
-      { name: "Fuel", population: 55, color: "#3b82f6", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Maintenance", population: 30, color: "#f97316", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Other", population: 15, color: "#10b981", legendFontColor: "transparent", legendFontSize: 0 },
-    ],
-  },
-
-  Month: {
-    trend: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [
-        { data: [6500, 7200, 6900, 7600, 8200, 7800, 8600, 7900, 8400, 7600, 8100, 7500], color: () => "#3b82f6", strokeWidth: 3 },
-        { data: [3500, 2800, 4200, 3100, 5400, 3700, 4500, 3900, 4800, 4200, 5200, 4500], color: () => "#f97316", strokeWidth: 3 },
-        { data: [1200, 1500, 1100, 1300, 1800, 1400, 1600, 1200, 1700, 1500, 1600, 1400], color: () => "#10b981", strokeWidth: 3 },
-      ],
-    },
-    breakdown: [
-      { name: "Fuel", population: 52, color: "#3b82f6", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Maintenance", population: 31, color: "#f97316", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Insurance", population: 9, color: "#8b5cf6", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Parking", population: 5, color: "#10b981", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Other", population: 3, color: "#facc15", legendFontColor: "transparent", legendFontSize: 0 },
-    ],
-  },
-
-  Quarter: {
-    trend: {
-      labels: ["Q1", "Q2", "Q3", "Q4"],
-      datasets: [
-        { data: [18000, 21000, 20000, 22000], color: () => "#3b82f6", strokeWidth: 3 },
-        { data: [9000, 10000, 9500, 10500], color: () => "#f97316", strokeWidth: 3 },
-        { data: [4000, 4500, 4200, 4800], color: () => "#10b981", strokeWidth: 3 },
-      ],
-    },
-    breakdown: [
-      { name: "Fuel", population: 50, color: "#3b82f6", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Maintenance", population: 30, color: "#f97316", legendFontColor: "transparent", legendFontSize: 0 },
-      { name: "Other", population: 20, color: "#10b981", legendFontColor: "transparent", legendFontSize: 0 },
-    ],
-  },
-
-  Year: {
-    trend: {
-      labels: ["2019", "2020", "2021", "2022", "2023"],
-      datasets: [
-        { data: [75000, 80000, 78000, 82000, 85000], color: () => "#3b82f6", strokeWidth: 3 },
-        { data: [40000, 42000, 41000, 43000, 45000], color: () => "#f97316", strokeWidth: 3 },
-        { data: [15000, 16000, 15500, 16500, 17000], color: () => "#10b981", strokeWidth: 3 },
-      ],
-    },
-    breakdown: [
-      { name: "Fuel", population: 55, color: "#3b82f6", legendFontColor: "transparent", legendFontSize: 14 },
-      { name: "Maintenance", population: 30, color: "#f97316", legendFontColor: "transparent", legendFontSize: 14 },
-      { name: "Other", population: 15, color: "#10b981", legendFontColor: "transparent", legendFontSize: 14 },
-    ],
-  },
+type AnalyticsPayload = {
+  trend: AnalyticsTrend;
+  breakdown: AnalyticsBreakdown[];
 };
 
 /* ---------- Component ---------- */
@@ -116,11 +40,22 @@ export type SpendingAnalysisHandle = {
   captureCharts: () => Promise<{ lineChartPath: string; pieChartPath: string }>;
 };
 
-const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never>>((_, ref): JSX.Element => {
+type SpendingAnalysisProps = {
+  analytics: AnalyticsPayload | null;
+  loading?: boolean;
+  onTimeFrameChange?: (timeFrame: TimeFrame) => void;
+};
+
+const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProps>(({ analytics, loading, onTimeFrameChange }, ref): JSX.Element => {
   const [view, setView] = useState<ViewMode>("trend");
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("Month");
   const lineChartRef = useRef<ViewShot>(null);
   const pieChartRef = useRef<ViewShot>(null);
+
+  const handleTimeFrameChange = (next: TimeFrame) => {
+    setTimeFrame(next);
+    onTimeFrameChange?.(next);
+  };
 
   useImperativeHandle(ref, () => ({
     captureCharts: async () => {
@@ -135,6 +70,31 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never
     },
   }));
 
+  const lineData = useMemo(() => {
+    if (!analytics) return null;
+    return {
+      labels: analytics.trend.labels,
+      datasets: analytics.trend.series.map((s) => ({
+        data: s.data,
+        color: () => s.color,
+        strokeWidth: 3,
+      })),
+    };
+  }, [analytics]);
+
+  const pieData = useMemo(() => {
+    if (!analytics) return null;
+    return analytics.breakdown.map((b) => ({
+      name: b.name,
+      population: b.value,
+      color: b.color,
+      legendFontColor: "transparent",
+      legendFontSize: 0,
+      strokeWidth: wp(1),
+      strokeColor: "#ffffff",
+    }));
+  }, [analytics]);
+
   return (
     <View style={styles.container}>
       {/* Time Tabs */}
@@ -143,7 +103,7 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never
           <TouchableOpacity
             key={tf}
             style={[styles.timeTabBtn, timeFrame === tf && styles.activeTimeTab]}
-            onPress={() => setTimeFrame(tf)}
+            onPress={() => handleTimeFrameChange(tf)}
           >
             <Text style={[styles.timeTabText, timeFrame === tf && styles.activeTimeTabText]}>{tf}</Text>
           </TouchableOpacity>
@@ -191,10 +151,14 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never
 </View>
         </View>
 
-        {view === "trend" && (
+        {loading && (
+          <Text style={{ color: "#aaa", marginBottom: hp(1) }}>Loading...</Text>
+        )}
+
+        {view === "trend" && lineData && (
           <LineChart
-            data={chartData[timeFrame].trend}
-            width={screenWidth-wp(7)}
+            data={lineData}
+            width={screenWidth - wp(7)}
             height={hp(32)}
             chartConfig={chartConfig}
             bezier
@@ -202,20 +166,20 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never
           />
         )}
 
-        {view === "trend" && (
+        {view === "trend" && analytics && (
           <View style={styles.legendContainer}>
-            {LEGEND_ITEMS.map((item) => (
-              <View key={item.label} style={styles.legendItem}>
+            {analytics.trend.series.map((item) => (
+              <View key={item.name} style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                <Text style={[styles.legendText, { color: item.color }]}>{item.label}</Text>
+                <Text style={[styles.legendText, { color: item.color }]}>{item.name}</Text>
               </View>
             ))}
           </View>
         )}
 
-        {view === "breakdown" && (
+        {view === "breakdown" && pieData && (
         <PieChart
-            data={chartData[timeFrame].breakdown}
+            data={pieData}
             width={screenWidth - wp(10)}
             height={hp(32)}
             chartConfig={chartConfig}
@@ -227,9 +191,9 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never
           />
         )}
 
-        {view === "breakdown" && (
+        {view === "breakdown" && pieData && (
     <View style={styles.legendContainer}>
-      {chartData[timeFrame].breakdown.map((item: any) => (
+      {pieData.map((item: any) => (
         <View key={item.name} style={styles.legendItem}>
           <View
             style={[styles.legendDot, { backgroundColor: item.color }]}
@@ -245,40 +209,44 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, Record<string, never
       <View style={styles.exportCaptureContainer}>
         <ViewShot
           ref={lineChartRef}
-          collapsable={false}
+          // collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
           <View style={styles.exportCard}>
             <Text style={styles.exportTitle}>Spending Trend ({timeFrame})</Text>
-            <LineChart
-              data={chartData[timeFrame].trend}
-              width={screenWidth - wp(7)}
-              height={hp(32)}
-              chartConfig={chartConfig}
-              bezier
-              style={styles.chart}
-            />
+            {lineData && (
+              <LineChart
+                data={lineData}
+                width={screenWidth - wp(5)}
+                height={hp(32)}
+                chartConfig={chartConfig}
+                bezier
+                style={styles.chart}
+              />
+            )}
           </View>
         </ViewShot>
 
         <ViewShot
           ref={pieChartRef}
-          collapsable={false}
+          // collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
           <View style={styles.exportCard}>
             <Text style={styles.exportTitle}>Spending Breakdown ({timeFrame})</Text>
-            <PieChart
-              data={chartData[timeFrame].breakdown}
-              width={screenWidth - wp(10)}
-              height={hp(32)}
-              chartConfig={chartConfig}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft={String(wp(21))}
-              hasLegend={false}
-              absolute={false}
-            />
+            {pieData && (
+              <PieChart
+                data={pieData}
+                width={screenWidth - wp(10)}
+                height={hp(32)}
+                chartConfig={chartConfig}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft={String(wp(21))}
+                hasLegend={false}
+                absolute={false}
+              />
+            )}
           </View>
         </ViewShot>
       </View>
@@ -431,4 +399,3 @@ inactiveText: {
     marginBottom: hp(1),
   },
 });
-

@@ -29,6 +29,9 @@ export type RootStackParamList = {
     userMessage: string;
   };
   DrivingSummary: undefined;
+  SOSButton: undefined;
+  Alerts: undefined;
+  History: undefined;
   // AiBotChat: undefined;
 };
 
