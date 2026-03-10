@@ -61,12 +61,14 @@ const NotificationCard: React.FC<Props> = ({ item, onRemove}) => {
         </View>
       </View>
 
-      <TouchableOpacity onPress={() => onRemove(item.id)}>
-        <Ionicons name="trash-outline" size={20} color="#FF4D4D" />
-      </TouchableOpacity>
-
       {/* Unread Dot */}
       {item.unread && <View style={styles.dot} />}
+
+      <TouchableOpacity onPress={() => onRemove(item.id)}>
+        <Ionicons name="trash-outline" size={20} color="#999" />
+      </TouchableOpacity>
+
+
     </View>
   );
 };

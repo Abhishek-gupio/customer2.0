@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  schemas  = ["public", "customer"]
+  provider   = "postgresql"
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "public")]
+  schemas    = ["customer", "public"]
 }
 
 model User {

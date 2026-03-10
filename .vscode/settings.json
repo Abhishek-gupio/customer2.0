@@ -1,3 +1,36 @@
 {
-    "folder-color.pathColors": []
+    "folder-color.pathColors": [],
+<<<<<<< HEAD
+    "java.configuration.updateBuildConfiguration": "interactive"
+=======
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash",
+            "icon": "terminal-git-bash"
+        },
+        "🔊 FAAAH Shell": {
+            "path": "powershell.exe",
+            "args": [
+                "-NoExit",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "c:\\Users\\SREEDHAR R\\.vscode\\extensions\\salmanfarsi-faaah.faaah-when-your-code-fails-to-run-0.0.2\\media\\faah-prompt.ps1"
+            ]
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "🔊 FAAAH Shell"
+>>>>>>> b663cf932b3daace17f55ac34c9282c4ae031750
 }
