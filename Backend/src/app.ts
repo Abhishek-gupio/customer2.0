@@ -11,15 +11,18 @@ import { setupSwagger } from "./swagger";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(helmet());
 
 const corsOptions: cors.CorsOptions = {
   origin:
     env.CORS_ORIGIN === "*"
-      ? "*"
+      ? true
       : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
   credentials: true,
 };
+
 app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "10mb" }));
@@ -31,10 +34,10 @@ app.use("/uploads", express.static(env.UPLOAD_DIR));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: env.RATE_LIMIT_MAX,
-  standardHeaders: true,
-  legacyHeaders: false,
+  max: env.RATE_LIMIT_MAX || 100,
+  skip: (req) => req.path.startsWith("/api-docs"),
 });
+
 app.use(limiter);
 
 app.use((req: Request, _res: Response, next) => {
