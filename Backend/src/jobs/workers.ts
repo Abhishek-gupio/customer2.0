@@ -11,9 +11,21 @@ import { documentService } from "../modules/document/document.service";
 import { expenseIntelligenceService } from "../services/expense-intelligence.service";
 import { warrantyService } from "../services/warranty.service";
 import { predictionService } from "../services/prediction.service";
+import { telematicsService } from "../services/telematics.service";
 
 const db = dbInstances as any;
 let workersInitialized = false;
+
+// Workers are created lazily inside initWorkers() to avoid connecting to Redis at import time.
+let maintenanceWorker: Worker<JobData> | null = null;
+let notificationWorker: Worker<JobData> | null = null;
+let healthScoreWorker: Worker<JobData> | null = null;
+
+export { maintenanceWorker, notificationWorker, healthScoreWorker };
+
+// ============================================================================
+// JOB HANDLERS (Migrated from Scheduler Service)
+// ============================================================================
 
 // 1. Daily Maintenance (Warranty + Docs)
 async function runDailyMaintenance() {
@@ -102,7 +114,7 @@ export const initWorkers = () => {
   }
   if (workersInitialized) return;
 
-  const maintenanceWorker = new Worker<JobData>(
+  maintenanceWorker = new Worker<JobData>(
     QUEUE_NAMES.MAINTENANCE,
     async (job: Job) => {
       logger.info(
@@ -110,12 +122,14 @@ export const initWorkers = () => {
       );
       if (job.name === "daily-maintenance") {
         await runDailyMaintenance();
+      } else if (job.name === "sync-telematics") {
+        await telematicsService.syncTripsForAllDevices();
       }
     },
-    defaultWorkerOptions,
+    defaultWorkerOptions ?? undefined,
   );
 
-  const notificationWorker = new Worker<JobData>(
+  notificationWorker = new Worker<JobData>(
     QUEUE_NAMES.NOTIFICATIONS,
     async (job: Job) => {
       logger.info(
@@ -125,10 +139,10 @@ export const initWorkers = () => {
         await runWeeklyDigest();
       }
     },
-    defaultWorkerOptions,
+    defaultWorkerOptions ?? undefined,
   );
 
-  const healthScoreWorker = new Worker<JobData>(
+  healthScoreWorker = new Worker<JobData>(
     QUEUE_NAMES.HEALTH_SCORE,
     async (job: Job) => {
       logger.info(
@@ -138,7 +152,7 @@ export const initWorkers = () => {
         await runHealthScoreUpdate();
       }
     },
-    defaultWorkerOptions,
+    defaultWorkerOptions ?? undefined,
   );
 
   maintenanceWorker.on("failed", (job, err) => {

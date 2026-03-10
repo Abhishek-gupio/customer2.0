@@ -37,6 +37,32 @@ export const telematicsApi = {
             deviceToken,
             platform,
         });
+    },
+
+    /**
+     * Get Trip History for a vehicle
+     * @param vehicleId The ID of the vehicle
+     */
+    async getTrips(vehicleId: string): Promise<any> {
+        const response = await axios.get(`${API_URL}/telematics/${vehicleId}/trips`);
         return response.data;
+    },
+
+    /**
+     * Get real-time AI driving coach advice
+     * @param events Array of recent driving events (e.g. from the last few minutes)
+     * @param context Additional context like current speed, weather, etc.
+     */
+    async getAiCoachAdvice(events: any[], context: any): Promise<string> {
+        try {
+            const response = await axios.post(`${API_URL}/ai/coach`, {
+                events,
+                context,
+            });
+            return response.data?.data?.advice || "Keep driving safely.";
+        } catch (error) {
+            console.error("AI Coach API error:", error);
+            return "Drive safely and maintain a steady speed.";
+        }
     }
 };

@@ -32,6 +32,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
 
+    // A2. Telematics Sync (Every 10 minutes)
+    await queues.maintenance.add(
+      "sync-telematics",
+      {},
+      {
+        repeat: { pattern: "*/10 * * * *" },
+        jobId: "sync-telematics-job",
+      },
+    );
+    logger.info("Scheduled: Telematics Sync (*/10 * * * *)");
+
     // B. Weekly Expense Digest (Every Monday at 10:00 AM)
     await queues.notifications.add(
       "weekly-digest",
