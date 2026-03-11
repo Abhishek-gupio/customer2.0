@@ -26,6 +26,8 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
+import { api } from '../../services/api';
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 
@@ -38,21 +40,66 @@ export default function Home() {
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [fuelLoading, setFuelLoading] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicleLoading, setVehicleLoading] = useState(true);
+  const [serviceDueText, setServiceDueText] = useState('Checking...');
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // Fetch fuel prices on component mount
+  // Fetch all home data
   useEffect(() => {
-    fetchFuelPrices();
+    const loadData = async () => {
+      await Promise.all([
+        fetchPrimaryVehicle(),
+        fetchFuelPrices()
+      ]);
+    };
+    loadData();
   }, [selectedState]);
+
+  const fetchPrimaryVehicle = async () => {
+    try {
+      setVehicleLoading(true);
+      const vehicles = await vehicleService.getVehicles();
+      const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
+
+      if (primary) {
+        setVehicle(primary);
+        // Also fetch upcoming service to show in header footer
+        try {
+          const upcoming = await api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
+          const overdue = (upcoming as any).data?.find((p: any) => p.urgency === 'OVERDUE');
+          if (overdue) {
+            setServiceDueText('Overdue!');
+          } else {
+            // Find closest logic... for simplicity using first
+            const first = (upcoming as any).data?.[0];
+            if (first) {
+              const kmLeft = first.lifecycleKm - first.kmSinceReplacement;
+              setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
+            } else {
+              setServiceDueText('Healthy');
+            }
+          }
+        } catch (err) {
+          console.warn('Could not fetch upcoming service for home', err);
+          setServiceDueText('N/A');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching primary vehicle:', error);
+    } finally {
+      setVehicleLoading(false);
+    }
+  };
 
   const fetchFuelPrices = async () => {
     try {
       setFuelLoading(true);
-      const response = await fetch(`http://localhost:9000/api/v1/fuel/state?name=${selectedState}`);
-      const data = await response.json();
-      if (data.success && data.data.petrol) {
-        setFuelPrices(data.data);
+      const res = await api.get<any>(`/v1/fuel/state?name=${selectedState}`);
+      const data = (res as any).data || res;
+      if (data && data.petrol) {
+        setFuelPrices(data);
       } else {
         console.warn('No fuel data available for', selectedState);
       }
@@ -166,17 +213,28 @@ export default function Home() {
           <View style={styles.headerContent}>
             {/* Left Info Column */}
             <View style={styles.headerLeft}>
-              <Text style={styles.headerNumberPlate}>DL 01 AB 1234</Text>
-              <Text style={styles.headerCarModel}>Maruti Suzuki Swift</Text>
+              {vehicleLoading ? (
+                <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
+              ) : vehicle ? (
+                <>
+                  <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
+                  <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
 
-              <View style={styles.healthSection}>
-                <Text style={styles.healthText}>
-                  85% <Text style={styles.healthLabel}>Health</Text>
-                </Text>
-                <View style={styles.healthBarBg}>
-                  <View style={[styles.healthBarFill, { width: '85%' }]} />
-                </View>
-              </View>
+                  <View style={styles.healthSection}>
+                    <Text style={styles.healthText}>
+                      {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
+                    </Text>
+                    <View style={styles.healthBarBg}>
+                      <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <TouchableOpacity onPress={() => navigateToRootScreen('AddVehicle')}>
+                  <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
+                  <Text style={styles.headerCarModel}>Tap to get started</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Right Car Image Column */}
@@ -193,11 +251,11 @@ export default function Home() {
           <View style={styles.headerFooter}>
             <View style={styles.footerItem}>
               <Text style={styles.footerLabel}>Service due in</Text>
-              <Text style={styles.footerValue}>420 km</Text>
+              <Text style={styles.footerValue}>{serviceDueText}</Text>
             </View>
             <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
               <Text style={styles.footerLabel}>FASTag</Text>
-              <Text style={styles.footerValue}>₹ 860</Text>
+              <Text style={styles.footerValue}>₹ ---</Text>
             </View>
           </View>
 

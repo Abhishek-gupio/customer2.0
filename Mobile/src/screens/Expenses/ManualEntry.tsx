@@ -11,12 +11,14 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
-import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
+import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 interface ManualEntryData {
   amount?: string;
@@ -59,6 +61,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [odometer, setOdometer] = useState("");
   const [date, setDate] = useState("");
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
@@ -66,6 +69,8 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [selectedPartType, setSelectedPartType] = useState("ENGINE_OIL");
+  const [showPartPicker, setShowPartPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
@@ -79,6 +84,9 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       if (data.length > 0) {
         const primary = data.find(v => v.isPrimary) || data[0];
         setSelectedVehicleId(primary.id);
+        if (primary.currentOdometer) {
+          setOdometer(String(primary.currentOdometer));
+        }
       }
     } catch (err) {
       console.error("Failed to fetch vehicles:", err);
@@ -108,6 +116,16 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [loading, setLoading] = useState(false);
 
   const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
+  const partTypes = [
+    { label: "Engine Oil", value: "ENGINE_OIL" },
+    { label: "Battery", value: "BATTERY" },
+    { label: "Tyres (Front)", value: "TYRES_FRONT" },
+    { label: "Tyres (Rear)", value: "TYRES_REAR" },
+    { label: "Brake Pads", value: "BRAKE_PADS" },
+    { label: "Air Filter", value: "AIR_FILTER" },
+    { label: "Coolant", value: "COOLANT" },
+    { label: "Other", value: "OTHER_PART" },
+  ];
 
   const isValid = amount.trim().length > 0;
 
@@ -157,7 +175,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         parsedDate = new Date().toISOString();
       }
 
-      const payload = {
+      const payload: any = {
         amount: parseFloat(amount),
         category: category.toUpperCase(), // Backend expects uppercase
         vehicleId: selectedVehicleId,
@@ -166,18 +184,32 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         source: "MANUAL",
         receiptUrl: receiptUrl || undefined,
         mimeType: mimeType || undefined,
+        odometerReading: odometer ? parseFloat(odometer) : undefined,
       };
+
+      if (category.toLowerCase() === 'service') {
+        payload.parts = [{
+          partType: selectedPartType,
+          cost: parseFloat(amount),
+        }];
+        // If it's a service, we often have an odometer reading to update the last replacement
+        // For now using the vehicle's current odo if not provided, though manual entry doesn't have odo field yet.
+      }
 
       await api.post('/v1/expenses', payload);
 
       // Mark expense list for refresh
       setExpenseListNeedsRefresh();
+      if (category.toLowerCase() === 'service') {
+        setWarrantyStatusNeedsRefresh();
+      }
 
       // Reset Form
       setCategory("Fuel");
       setAmount("");
       setDescription("");
       setDate("");
+      setOdometer("");
       setReceiptUrl(null);
       setMimeType(null);
 
@@ -229,12 +261,33 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
 
+              {category.toLowerCase() === 'service' && (
+                <>
+                  <Label text="Part Serviced" />
+                  <TouchableOpacity onPress={() => setShowPartPicker(true)}>
+                    <Input
+                      value={partTypes.find(p => p.value === selectedPartType)?.label || selectedPartType}
+                      icon="chevron-down"
+                      editable={false}
+                    />
+                  </TouchableOpacity>
+                </>
+              )}
+
 
               <Label text="Amount" />
               <Input
                 placeholder="₹ 0"
                 value={amount}
                 onChangeText={setAmount}
+                keyboardType="numeric"
+              />
+
+              <Label text="Odometer Reading (km)" />
+              <Input
+                placeholder="Enter current km"
+                value={odometer}
+                onChangeText={setOdometer}
                 keyboardType="numeric"
               />
 
@@ -316,6 +369,30 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 <Text style={styles.categoryText}>{item}</Text>
               </TouchableOpacity>
             ))}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={showPartPicker} animationType="fade">
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setShowPartPicker(false)}
+        >
+          <Pressable style={styles.categoryPanel} onPress={() => { }}>
+            <ScrollView style={{ maxHeight: hp(50) }}>
+              {partTypes.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={styles.categoryItem}
+                  onPress={() => {
+                    setSelectedPartType(item.value);
+                    setShowPartPicker(false);
+                  }}
+                >
+                  <Text style={styles.categoryText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </Pressable>
         </Pressable>
       </Modal>
