@@ -29,7 +29,7 @@ import {
 
 import Voice from "@react-native-voice/voice";
 import DeviceInfo from "react-native-device-info";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "../../lib/react-navigation-native";
 import { api } from "../../services/api";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
@@ -262,7 +262,7 @@ export default function AddExpenseScreen() {
       }
     }
     try {
-      const response = await launchCamera({
+      const response = await (launchCamera as any)({
         mediaType: "photo",
         quality: 0.5,
         maxWidth: 1024,
@@ -293,7 +293,7 @@ export default function AddExpenseScreen() {
       }
     }
     try {
-      const response = await launchImageLibrary({
+      const response = await (launchImageLibrary as any)({
         mediaType: "photo",
         quality: 0.5,
         maxWidth: 1024,
