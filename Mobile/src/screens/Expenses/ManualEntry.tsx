@@ -117,14 +117,22 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
   const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
   const partTypes = [
-    { label: "Engine Oil", value: "ENGINE_OIL" },
     { label: "Battery", value: "BATTERY" },
+    { label: "Engine Oil", value: "ENGINE_OIL" },
+    { label: "Oil Filter", value: "OIL_FILTER" },
+    { label: "Air Filter", value: "AIR_FILTER" },
+    { label: "Brake Pads", value: "BRAKE_PADS" },
+    { label: "Brake Discs", value: "BRAKE_DISCS" },
+    { label: "Tyres (All)", value: "TYRES" },
     { label: "Tyres (Front)", value: "TYRES_FRONT" },
     { label: "Tyres (Rear)", value: "TYRES_REAR" },
-    { label: "Brake Pads", value: "BRAKE_PADS" },
-    { label: "Air Filter", value: "AIR_FILTER" },
+    { label: "Clutch Plate", value: "CLUTCH_PLATE" },
+    { label: "Spark Plugs", value: "SPARK_PLUGS" },
     { label: "Coolant", value: "COOLANT" },
-    { label: "Other", value: "OTHER_PART" },
+    { label: "AC Filter", value: "AC_FILTER" },
+    { label: "Wiper Blades", value: "WIPER_BLADES" },
+    { label: "Headlight Bulb", value: "HEADLIGHT_BULB" },
+    { label: "Other Part", value: "OTHER_PART" },
   ];
 
   const isValid = amount.trim().length > 0;
@@ -187,20 +195,20 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         odometerReading: odometer ? parseFloat(odometer) : undefined,
       };
 
-      if (category.toLowerCase() === 'service') {
+      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      if (isPartCategory) {
         payload.parts = [{
           partType: selectedPartType,
           cost: parseFloat(amount),
         }];
-        // If it's a service, we often have an odometer reading to update the last replacement
-        // For now using the vehicle's current odo if not provided, though manual entry doesn't have odo field yet.
       }
 
       await api.post('/v1/expenses', payload);
 
       // Mark expense list for refresh
       setExpenseListNeedsRefresh();
-      if (category.toLowerCase() === 'service') {
+      const needsWarrantyRefresh = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      if (needsWarrantyRefresh) {
         setWarrantyStatusNeedsRefresh();
       }
 
@@ -261,7 +269,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
 
-              {category.toLowerCase() === 'service' && (
+              {(category.toLowerCase() === 'service' || category.toLowerCase() === 'other') && (
                 <>
                   <Label text="Part Serviced" />
                   <TouchableOpacity onPress={() => setShowPartPicker(true)}>
@@ -386,6 +394,9 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                   style={styles.categoryItem}
                   onPress={() => {
                     setSelectedPartType(item.value);
+                    if (category !== 'Service' && category !== 'Other') {
+                      setCategory('Service');
+                    }
                     setShowPartPicker(false);
                   }}
                 >

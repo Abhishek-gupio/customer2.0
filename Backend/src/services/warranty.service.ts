@@ -24,6 +24,7 @@ const PART_LIFECYCLE_FALLBACK: Record<
   BRAKE_PADS: { months: 24, km: 30000, defaultWarrantyMonths: 6 },
   BRAKE_DISCS: { months: 36, km: 60000, defaultWarrantyMonths: 12 },
   BATTERY: { months: 36, km: 80000, defaultWarrantyMonths: 24 },
+  TYRES: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
   TYRES_FRONT: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
   TYRES_REAR: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
   CLUTCH_PLATE: { months: 48, km: 60000, defaultWarrantyMonths: 6 },
@@ -321,7 +322,13 @@ export const warrantyService = {
       },
       include: {
         serviceRecord: {
-          select: { odometerAtService: true, serviceDate: true },
+          select: {
+            odometerAtService: true,
+            serviceDate: true,
+            garageName: true,
+            serviceType: true,
+            notes: true
+          },
         },
       },
       orderBy: { lastReplacedAt: "desc" },
@@ -339,6 +346,7 @@ export const warrantyService = {
     const trackedPartTypes = [
       "ENGINE_OIL",
       "BATTERY",
+      "TYRES",
       "TYRES_FRONT",
       "TYRES_REAR",
       "BRAKE_PADS",
@@ -383,13 +391,18 @@ export const warrantyService = {
 
         due.push({
           partType: part.partType || partType,
+          partName: part.partName,
           brand: part.brand,
           lastReplacedAt: replacedAt,
           lastReplacedOdo: odoAtService,
           kmSinceReplacement,
           lifecycleKm: lifecycle.km,
+          lifecycleMonths: lifecycle.months,
           recommendedReplacementDate: timeDue,
           urgency,
+          garageName: part.serviceRecord?.garageName,
+          serviceType: part.serviceRecord?.serviceType,
+          warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
           message:
             urgency === "OVERDUE"
               ? `⚠️ ${partType} is ${Math.abs(daysOverdue)} days overdue for replacement!`
@@ -399,13 +412,18 @@ export const warrantyService = {
         // Active/Good status
         due.push({
           partType: part.partType || partType,
+          partName: part.partName,
           brand: part.brand,
           lastReplacedAt: replacedAt,
           lastReplacedOdo: odoAtService,
           kmSinceReplacement,
           lifecycleKm: lifecycle.km,
+          lifecycleMonths: lifecycle.months,
           recommendedReplacementDate: timeDue,
           urgency: "ACTIVE",
+          garageName: part.serviceRecord?.garageName,
+          serviceType: part.serviceRecord?.serviceType,
+          warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
           message: `✅ ${partType} is in good condition.`,
         });
       }

@@ -69,7 +69,6 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    console.error(`API Error [${res.status}] ${url}:`, JSON.stringify(data));
     const err = data as any;
     const message =
       err?.error?.message ??
@@ -101,7 +100,6 @@ async function upload<T>(
   }
 
   if (!res.ok) {
-    console.error(`API Error [${res.status}] ${url}:`, JSON.stringify(data));
     const err = data as { message?: string; error?: { message?: string } };
     const message = err?.error?.message ?? err?.message ?? res.statusText ?? 'Upload failed';
     const errObj = new Error(`${res.status}: ${message}`) as Error & { data?: unknown };

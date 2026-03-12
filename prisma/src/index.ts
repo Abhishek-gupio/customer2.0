@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 
 declare global {
   var prisma: PrismaClient | undefined;
+  var pool: Pool | undefined;
 }
 
 let connectionString = process.env.DATABASE_URL ?? '';
@@ -45,18 +46,47 @@ if (connectionString) {
   }
 }
 
-const pool = new Pool({
-  connectionString,
-  ssl,
-});
+const getPrisma = (): PrismaClient => {
+  if (global.prisma) {
+    return global.prisma as PrismaClient;
+  }
 
-pool.on('error', (err) => {
-  console.error('❌ Unexpected error on idle database client', err);
-});
-const adapter = new PrismaPg(pool);
-export const dbInstances = (global.prisma ??
-  new PrismaClient({ adapter })) as PrismaClient;
+  const pool = new Pool({
+    connectionString,
+    ssl,
+    max: 1, // Minimize to 1 for small RDS instances + concurrent Prisma Studio
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 15000, // Be more patient with RDS
+  });
 
-if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
+  pool.on('error', (err) => {
+    console.error('❌ Unexpected error on idle database client', err);
+  });
+
+  const adapter = new PrismaPg(pool);
+  const client = new PrismaClient({
+    adapter,
+    log: ['error', 'warn']
+  });
+
+  if (process.env.NODE_ENV !== 'production') {
+    global.prisma = client;
+    global.pool = pool;
+  }
+
+  return client;
+};
+
+export const dbInstances = getPrisma();
+
+export const disconnect = async () => {
+  console.log('🔌 Database: Closing connections...');
+  if (global.prisma) {
+    await (global.prisma as PrismaClient).$disconnect();
+  }
+  if (global.pool) {
+    await (global.pool as Pool).end();
+  }
+};
 
 export * from '../generated/client';

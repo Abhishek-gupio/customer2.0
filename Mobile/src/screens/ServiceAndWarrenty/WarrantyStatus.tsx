@@ -32,6 +32,15 @@ interface PartData {
   icon: string;
   urgency: 'OVERDUE' | 'DUE_BY_KM' | 'DUE_SOON' | 'ACTIVE';
   predictedDate?: string;
+  garageName?: string;
+  serviceType?: string;
+  warrantyMonths?: number;
+  lastReplacedOdo?: number;
+  kmSinceReplacement?: number;
+  lifecycleKm?: number;
+  lifecycleMonths?: number;
+  lastReplacedAt?: string;
+  currentOdo?: number;
 }
 
 export const WarrantyStatus = () => {
@@ -98,6 +107,15 @@ export const WarrantyStatus = () => {
           icon: getPartIcon(item.partType),
           urgency: item.urgency,
           predictedDate: item.predictedReplacementDate ? new Date(item.predictedReplacementDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : undefined,
+          garageName: item.garageName,
+          serviceType: item.serviceType,
+          warrantyMonths: item.warrantyMonths,
+          lastReplacedOdo: item.lastReplacedOdo,
+          kmSinceReplacement: item.kmSinceReplacement,
+          lifecycleKm: item.lifecycleKm,
+          lifecycleMonths: item.lifecycleMonths,
+          lastReplacedAt: item.lastReplacedAt,
+          currentOdo: primary.currentOdometer,
         };
       }) : [];
 

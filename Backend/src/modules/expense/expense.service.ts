@@ -119,33 +119,42 @@ export const expenseService = {
       .ingestExpense(expense.id)
       .catch((err) => logger.error({ err }, "Expense ingestion failed"));
 
-    // Warranty Integration: If it's a SERVICE and has parts, create a ServiceRecord
-    if (
-      expense.category === "SERVICE" &&
-      targetVehicleId &&
-      input.parts &&
-      input.parts.length > 0
-    ) {
-      try {
-        // Fallback: if no odometer provided in input, use current vehicle odo
-        const finalOdo = input.odometerReading ??
-          (await dbInstances.customerVehicle.findUnique({
-            where: { id: targetVehicleId },
-            select: { currentOdometer: true }
-          }))?.currentOdometer;
+    // Warranty Integration: If it's a SERVICE/OTHER and has parts (or we can detect them), create a ServiceRecord
+    const isPartRelatored = expense.category === "SERVICE" || expense.category === "OTHER";
 
-        await warrantyService.createServiceRecord({
-          vehicleId: targetVehicleId,
-          expenseId: expense.id,
-          serviceType: "REGULAR_SERVICE",
-          garageName: expense.merchantName || undefined,
-          serviceDate: expense.date.toISOString(),
-          odometerAtService: (finalOdo !== null && finalOdo !== undefined) ? Number(finalOdo) : undefined,
-          notes: expense.notes || undefined,
-          parts: input.parts as any,
-        });
-      } catch (err) {
-        logger.error({ err, expenseId: expense.id }, "Failed to create service record for manual expense");
+    if (isPartRelatored && targetVehicleId) {
+      if (input.parts && input.parts.length > 0) {
+        try {
+          // Fallback: if no odometer provided in input, use current vehicle odo
+          const finalOdo = input.odometerReading ??
+            (await dbInstances.customerVehicle.findUnique({
+              where: { id: targetVehicleId },
+              select: { currentOdometer: true }
+            }))?.currentOdometer;
+
+          await warrantyService.createServiceRecord({
+            vehicleId: targetVehicleId,
+            expenseId: expense.id,
+            serviceType: "REGULAR_SERVICE",
+            garageName: expense.merchantName || undefined,
+            serviceDate: expense.date.toISOString(),
+            odometerAtService: (finalOdo !== null && finalOdo !== undefined) ? Number(finalOdo) : undefined,
+            notes: expense.notes || undefined,
+            parts: input.parts as any,
+          });
+        } catch (err) {
+          logger.error({ err, expenseId: expense.id }, "Failed to create service record for manual expense");
+        }
+      } else if (expense.notes && expense.notes.length > 3) {
+        // AI detection from notes if no parts provided but category is relevant
+        this.autoCreateServiceRecord(
+          expense.id,
+          targetVehicleId,
+          expense.notes,
+          expense.amount,
+          expense.merchantName,
+          customerId
+        ).catch(err => logger.error({ err }, "Background part detection failed"));
       }
     }
 

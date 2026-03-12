@@ -16,6 +16,20 @@ void schedulerService
 const httpServer = createServer(app);
 initSocket(httpServer);
 
+import { disconnect } from "@repo/db-customer";
+
+const handleShutdown = async (signal: string) => {
+  logger.info(`Received ${signal}. Shutting down gracefully...`);
+  await disconnect();
+  httpServer.close(() => {
+    logger.info("HTTP server closed.");
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", () => handleShutdown("SIGINT"));
+process.on("SIGTERM", () => handleShutdown("SIGTERM"));
+
 httpServer.listen(env.PORT, () => {
   logger.info(
     { port: env.PORT, env: env.NODE_ENV },

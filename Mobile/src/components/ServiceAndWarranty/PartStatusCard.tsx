@@ -1,10 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface PartStatusCardProps {
     title: string;
@@ -15,6 +19,15 @@ interface PartStatusCardProps {
     icon: string;
     urgency?: 'OVERDUE' | 'DUE_BY_KM' | 'DUE_SOON' | 'ACTIVE';
     predictedDate?: string;
+    garageName?: string;
+    serviceType?: string;
+    warrantyMonths?: number;
+    lastReplacedOdo?: number;
+    kmSinceReplacement?: number;
+    lifecycleKm?: number;
+    lifecycleMonths?: number;
+    lastReplacedAt?: string;
+    currentOdo?: number;
 }
 
 export const PartStatusCard = ({
@@ -26,12 +39,29 @@ export const PartStatusCard = ({
     icon,
     urgency,
     predictedDate,
+    garageName,
+    serviceType,
+    warrantyMonths,
+    lastReplacedOdo,
+    kmSinceReplacement,
+    lifecycleKm,
+    lifecycleMonths,
+    lastReplacedAt,
+    currentOdo,
 }: PartStatusCardProps) => {
+    const [expanded, setExpanded] = useState(false);
     const isCritical = urgency === 'OVERDUE';
     const displayPercentage = Math.max(0, Math.min(100, percentage));
 
+    const toggleExpand = () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpanded(!expanded);
+    };
+
+    const kmRemaining = lifecycleKm && kmSinceReplacement !== undefined ? Math.max(0, lifecycleKm - kmSinceReplacement) : null;
+
     return (
-        <View style={styles.card}>
+        <TouchableOpacity activeOpacity={0.9} onPress={toggleExpand} style={styles.card}>
             <View style={styles.topRow}>
                 <View style={styles.leftInfo}>
                     <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
@@ -39,7 +69,7 @@ export const PartStatusCard = ({
                     </View>
                     <View style={styles.titleContainer}>
                         <Text style={styles.title}>{title}</Text>
-                        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                        <Text style={styles.subtitle}>{subtitle || statusText}</Text>
                     </View>
                 </View>
 
@@ -63,21 +93,81 @@ export const PartStatusCard = ({
             </View>
 
             <View style={styles.bottomRow}>
-                {predictedDate ? (
+                {kmRemaining !== null ? (
                     <Text style={styles.predictionText}>
-                        Estimated replacement: <Text style={{ color: '#fff', fontWeight: '600' }}>{predictedDate}</Text>
+                        You can travel <Text style={{ color: '#fff', fontWeight: '800' }}>{kmRemaining} km</Text> more
+                    </Text>
+                ) : predictedDate ? (
+                    <Text style={styles.predictionText}>
+                        Estimated: <Text style={{ color: '#fff', fontWeight: '600' }}>{predictedDate}</Text>
                     </Text>
                 ) : (
-                    <Text style={styles.predictionText}>Current status: {statusText}</Text>
+                    <Text style={styles.predictionText}>Status: {statusText}</Text>
                 )}
                 {isCritical && (
                     <View style={styles.criticalNotice}>
                         <Icon name="alert-circle" size={wp(3.5)} color="#EF4444" />
-                        <Text style={styles.criticalText}>Replace Now</Text>
+                        <Text style={styles.criticalText}>REPLACE</Text>
                     </View>
                 )}
+                <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
             </View>
-        </View>
+
+            {expanded && (
+                <View style={styles.detailsContainer}>
+                    <View style={styles.divider} />
+
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Last Service Odo</Text>
+                            <Text style={styles.detailValue}>{lastReplacedOdo || 0} km</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Current Odo</Text>
+                            <Text style={styles.detailValue}>{currentOdo || 0} km</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Last Service Date</Text>
+                            <Text style={styles.detailValue}>{lastReplacedAt ? new Date(lastReplacedAt).toLocaleDateString('en-IN') : 'N/A'}</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Warranty</Text>
+                            <Text style={styles.detailValue}>{warrantyMonths || 0} Months</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Garage</Text>
+                            <Text style={styles.detailValue}>{garageName || 'Owner DIY'}</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Type</Text>
+                            <Text style={styles.detailValue}>{serviceType ? serviceType.replace(/_/g, ' ') : 'General'}</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Interval</Text>
+                            <Text style={styles.detailValue}>{lifecycleKm || 0} km / {lifecycleMonths || 0} mo</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                            {/* Empty for balance */}
+                        </View>
+                    </View>
+
+                    {isCritical && (
+                        <TouchableOpacity style={styles.bookButton}>
+                            <Text style={styles.bookButtonText}>Book Service Now</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+        </TouchableOpacity>
     );
 };
 
@@ -175,6 +265,45 @@ const styles = StyleSheet.create({
     criticalText: {
         color: '#EF4444',
         fontSize: wp(2.8),
+        fontWeight: '700',
+    },
+    detailsContainer: {
+        marginTop: hp(2),
+        paddingTop: hp(1),
+    },
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        marginBottom: hp(2),
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: hp(1.5),
+    },
+    detailItem: {
+        flex: 1,
+    },
+    detailLabel: {
+        color: '#666',
+        fontSize: wp(3),
+        marginBottom: 2,
+    },
+    detailValue: {
+        color: '#fff',
+        fontSize: wp(3.5),
+        fontWeight: '600',
+    },
+    bookButton: {
+        backgroundColor: '#FFBF00',
+        paddingVertical: hp(1.2),
+        borderRadius: wp(2),
+        alignItems: 'center',
+        marginTop: hp(1),
+    },
+    bookButtonText: {
+        color: '#000',
+        fontSize: wp(3.5),
         fontWeight: '700',
     },
 });
