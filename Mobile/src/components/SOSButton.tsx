@@ -1,7 +1,5 @@
-import { StyleSheet, Text, View,Image, Pressable,TouchableOpacity,Alert,ScrollView,
-    Linking
-} from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../theme/colors'
 import { fontWeights as FW } from '../theme/Fontsize'
@@ -10,38 +8,355 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useNavigation } from '../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../navigation/types';
-// import {  } from 'react-native-gesture-handler'
-const sendAutoSMS = async () => {
-  const number = '9739224982';
-  const message = encodeURIComponent('SOS! I need help. Please reach me immediately.');
-  await Linking.openURL(`sms:${number}?body=${message}`);
-};
+import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../services/sosService';
+
+let Geolocation: any = null;
+try {
+  const geoModule = require('@react-native-community/geolocation') as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 
 
 
 const SOSButton = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lon: number } | null>(null);
+    const [sendingSOS, setSendingSOS] = useState(false);
+    const [nearbyHelp, setNearbyHelp] = useState<NearbyHelpItem[]>([]);
+    const [loadingHelp, setLoadingHelp] = useState(false);
+    const [locationError, setLocationError] = useState<string | null>(null);
+    const [contacts, setContacts] = useState<EmergencyContact[]>([]);
+    const [contactsLoading, setContactsLoading] = useState(false);
+    const [addingContact, setAddingContact] = useState(false);
+    const [newContactName, setNewContactName] = useState('');
+    const [newContactPhone, setNewContactPhone] = useState('');
+    const [newContactRelation, setNewContactRelation] = useState('');
+    const [locationStatus, setLocationStatus] = useState<'idle' | 'requesting' | 'denied' | 'error' | 'fixed'>('idle');
+    const [lastGeoError, setLastGeoError] = useState<{ code?: number; message?: string } | null>(null);
+    const [permissionStatus, setPermissionStatus] = useState<'unknown' | 'granted' | 'denied'>('unknown');
+    const [locatingSince, setLocatingSince] = useState<number | null>(null);
 
-    const handleSOS = () => {
-        Alert.alert("Emergency triggered")
-        sendAutoSMS().catch((error) => {
-          console.log('Failed to open SMS app:', error);
+    const requestLocationPermission = useCallback(async () => {
+      if (Platform.OS === 'ios') {
+        try {
+          setLocationStatus('requesting');
+          if (Geolocation?.requestAuthorization) {
+            const status = await Geolocation.requestAuthorization('whenInUse');
+            const ok = status === 'granted' || status === 'authorized' || status === 'authorizedWhenInUse';
+            setLocationStatus(ok ? 'idle' : 'denied');
+            setPermissionStatus(ok ? 'granted' : 'denied');
+            return ok;
+          }
+          setLocationStatus('idle');
+          setPermissionStatus('granted');
+          return true;
+        } catch (error) {
+          console.log('iOS location permission error:', error);
+          setLocationStatus('error');
+          setPermissionStatus('denied');
+          return false;
+        }
+      }
+
+      try {
+        setLocationStatus('requesting');
+        const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+        const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+        const fineHas = await PermissionsAndroid.check(fine);
+        const coarseHas = await PermissionsAndroid.check(coarse);
+        if (fineHas || coarseHas) {
+          setLocationStatus('idle');
+          setPermissionStatus('granted');
+          return true;
+        }
+        const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+        const fineGranted = results[fine] === PermissionsAndroid.RESULTS.GRANTED;
+        const coarseGranted = results[coarse] === PermissionsAndroid.RESULTS.GRANTED;
+        const granted = fineGranted || coarseGranted;
+        setLocationStatus(granted ? 'idle' : 'denied');
+        setPermissionStatus(granted ? 'granted' : 'denied');
+        return granted;
+      } catch (error) {
+        console.log('Android location permission error:', error);
+        setLocationStatus('error');
+        setPermissionStatus('denied');
+        return false;
+      }
+    }, []);
+
+    const getPositionOnce = useCallback(
+      (options: any) =>
+        new Promise<{ lat: number; lon: number } | null>((resolve) => {
+          Geolocation.getCurrentPosition(
+            (position: any) => {
+              const coords = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+              };
+              setLastGeoError(null);
+              resolve(coords);
+            },
+            (error: any) => {
+              console.log('Geolocation error:', error);
+              setLastGeoError({ code: error?.code, message: error?.message });
+              resolve(null);
+            },
+            options,
+          );
+        }),
+      [],
+    );
+
+    const fetchLocation = useCallback(async () => {
+      if (!Geolocation) {
+        setLocationError('Geolocation is not available in this build.');
+        setLocationStatus('error');
+        return null;
+      }
+      const permitted = await requestLocationPermission();
+      if (!permitted) {
+        setLocationError('Location permission denied.');
+        return null;
+      }
+      setLocationError(null);
+      setLastGeoError(null);
+      setLocationStatus('requesting');
+      setLocatingSince(Date.now());
+      // Try high accuracy first, then fallback to low accuracy
+      const first = await getPositionOnce({
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+        forceRequestLocation: true,
+      });
+      if (first) {
+        setCurrentLocation(first);
+        setLocationStatus('fixed');
+        return first;
+      }
+
+      const second = await getPositionOnce({
+        enableHighAccuracy: false,
+        timeout: 15000,
+        maximumAge: 0,
+        forceRequestLocation: true,
+      });
+      if (second) {
+        setCurrentLocation(second);
+        setLocationStatus('fixed');
+        return second;
+      }
+
+      setLocationError('Unable to get a GPS fix. Try again outdoors.');
+      setLocationStatus('requesting');
+      return null;
+    }, [requestLocationPermission]);
+
+    useEffect(() => {
+      // Kick off permission request on mount so status is known
+      requestLocationPermission()
+        .then((ok) => {
+          if (ok) fetchLocation();
+        })
+        .catch(() => {});
+    }, [requestLocationPermission]);
+
+    useEffect(() => {
+      let watchId: number | null = null;
+      let retryTimer: ReturnType<typeof setInterval> | null = null;
+
+      const startWatch = async () => {
+        if (!Geolocation) {
+          setLocationError('Geolocation is not available in this build.');
+          setLocationStatus('error');
+          setPermissionStatus('denied');
+          return;
+        }
+        const permitted = await requestLocationPermission();
+        if (!permitted) return;
+        setLocationStatus('requesting');
+        setLocatingSince(Date.now());
+        watchId = Geolocation.watchPosition(
+          (position: any) => {
+            const coords = {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+            };
+            setLocationError(null);
+            setLocationStatus('fixed');
+            setCurrentLocation(coords);
+          },
+          (error: any) => {
+            console.log('Geolocation watch error:', error);
+            if (error?.code === 3) {
+              setLocationStatus('requesting');
+            } else {
+              setLocationError('Unable to access location. Please enable GPS.');
+              setLocationStatus('error');
+            }
+          },
+          { enableHighAccuracy: true, distanceFilter: 10, interval: 10000, fastestInterval: 5000, forceRequestLocation: true },
+        );
+
+        // If watch doesn't yield, retry getCurrentPosition periodically
+        retryTimer = setInterval(() => {
+          if (!currentLocation) fetchLocation();
+        }, 15000);
+      };
+
+      startWatch();
+      return () => {
+        if (Geolocation && watchId !== null) {
+          Geolocation.clearWatch(watchId);
+        }
+        if (retryTimer) clearInterval(retryTimer);
+      };
+    }, [requestLocationPermission, fetchLocation, currentLocation]);
+
+    const loadNearbyHelp = useCallback(async (lat: number, lon: number, type: SOSType) => {
+      setLoadingHelp(true);
+      try {
+        const results = await sosService.getNearbyHelp(lat, lon, type);
+        setNearbyHelp(results.slice(0, 5));
+      } catch (error: any) {
+        console.log('Nearby help error:', error?.message || error);
+        setNearbyHelp([]);
+      } finally {
+        setLoadingHelp(false);
+      }
+    }, []);
+
+    useEffect(() => {
+      fetchLocation().then((coords) => {
+        if (coords) {
+          loadNearbyHelp(coords.lat, coords.lon, 'MEDICAL');
+        }
+      });
+    }, [fetchLocation, loadNearbyHelp]);
+
+    const gpsOff = locationStatus === 'denied' && !currentLocation;
+    const locationLabel = currentLocation
+      ? `${currentLocation.lat.toFixed(3)}, ${currentLocation.lon.toFixed(3)}`
+      : locationStatus === 'requesting'
+        ? 'Requesting...'
+        : 'Locating...';
+
+    const showRetryHint =
+      !currentLocation &&
+      (locationStatus === 'idle' || locationStatus === 'requesting') &&
+      locatingSince != null &&
+      Date.now() - locatingSince > 15000;
+
+    const loadContacts = useCallback(async () => {
+      setContactsLoading(true);
+      try {
+        const list = await sosService.getContacts();
+        setContacts(list);
+      } catch (error: any) {
+        console.log('Contacts fetch error:', error?.message || error);
+      } finally {
+        setContactsLoading(false);
+      }
+    }, []);
+
+    useEffect(() => {
+      loadContacts();
+    }, [loadContacts]);
+
+    const handleAddContact = useCallback(async () => {
+      if (addingContact) return;
+      if (!newContactName.trim() || !newContactPhone.trim()) {
+        Alert.alert('Missing details', 'Name and phone number are required.');
+        return;
+      }
+      setAddingContact(true);
+      try {
+        await sosService.addContact({
+          name: newContactName.trim(),
+          phoneNumber: newContactPhone.trim(),
+          relation: newContactRelation.trim() || undefined,
         });
-    };
+        setNewContactName('');
+        setNewContactPhone('');
+        setNewContactRelation('');
+        await loadContacts();
+        Alert.alert('Contact added', 'Emergency contact saved.');
+      } catch (error: any) {
+        Alert.alert('Add failed', error?.message || 'Unable to add contact.');
+      } finally {
+        setAddingContact(false);
+      }
+    }, [addingContact, newContactName, newContactPhone, newContactRelation, loadContacts]);
+
+    const handleDeleteContact = useCallback(async (id: string) => {
+      try {
+        await sosService.deleteContact(id);
+        setContacts((prev) => prev.filter((c) => c.id !== id));
+      } catch (error: any) {
+        Alert.alert('Delete failed', error?.message || 'Unable to delete contact.');
+      }
+    }, []);
+
+    const ensureLocation = useCallback(async () => {
+      if (currentLocation) return currentLocation;
+      return fetchLocation();
+    }, [currentLocation, fetchLocation]);
+
+    const handleSOS = useCallback(async () => {
+        if (sendingSOS) return;
+        setSendingSOS(true);
+        try {
+          const coords = await ensureLocation();
+          if (!coords) {
+            Alert.alert('Location required', 'Enable GPS to trigger SOS.');
+            return;
+          }
+          await sosService.createSOS({
+            latitude: coords.lat,
+            longitude: coords.lon,
+            type: 'OTHER',
+            metadata: {
+              source: 'MOBILE_SOS_SCREEN',
+              triggeredAt: new Date().toISOString(),
+            },
+          });
+          Alert.alert('Emergency triggered', 'Your SOS has been sent to the backend.');
+        } catch (error: any) {
+          Alert.alert('SOS failed', error?.message || 'Unable to trigger SOS. Please try again.');
+        } finally {
+          setSendingSOS(false);
+        }
+    }, [ensureLocation, sendingSOS]);
     
     const makeCall = (number: string) => {
-    Linking.openURL(`tel:${number}`);
+      Linking.openURL(`tel:${number}`);
     };
+
+    const openMap = (lat: number, lon: number, label?: string) => {
+      const query = encodeURIComponent(label || 'Help');
+      const url = Platform.select({
+        ios: `maps://?q=${query}&ll=${lat},${lon}`,
+        android: `geo:${lat},${lon}?q=${lat},${lon}(${query})`,
+      });
+      if (url) Linking.openURL(url);
+    };
+
+    const openAppSettings = useCallback(() => {
+      Linking.openSettings();
+    }, []);
 
 
     type ActionButtonProps = {
       icon: string;
       label: string;
       color: string;
+      onPress?: () => void;
     };
 
-    const ActionButton = ({ icon, label, color }: ActionButtonProps) => (
-  <TouchableOpacity style={styles.action}>
+    const ActionButton = ({ icon, label, color, onPress }: ActionButtonProps) => (
+  <TouchableOpacity style={styles.action} onPress={onPress}>
     <View style={[styles.circle, { backgroundColor: color }]}>
       <Ionicons name={icon} size={28} color="#111" />
     </View>
@@ -51,100 +366,227 @@ const SOSButton = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' , gap:wp(2)}}>
-            <Image
-                source={{uri:"https://m.media-amazon.com/images/I/41EjjV414pL.jpg"}}
-                style={{ width: 40, height: 40 , borderRadius:50 }}
-            />
-            <View>
-                <Text style={styles.title}>Hello, Shree!</Text>
-                <Text style={styles.subTitle}>Your safety is our priority.</Text>
-            </View>
-        </View> 
-
-        <Pressable onPress={()=>navigation.navigate("Alerts")}>
-            <Ionicons name="notifications-outline" size={24} color="#fff" /> 
+        <View style={styles.profileRow}>
+          <Image
+            source={{ uri: "https://m.media-amazon.com/images/I/41EjjV414pL.jpg" }}
+            style={styles.avatar}
+          />
+          <View>
+            <Text style={styles.title}>Hello, Shree!</Text>
+            <Text style={styles.subTitle}>Stay protected wherever you are</Text>
+          </View>
+        </View>
+        <Pressable onPress={() => navigation.navigate("Alerts")} style={styles.iconButton}>
+          <Ionicons name="notifications-outline" size={20} color="#111" />
         </Pressable>
-        </View>
-        <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.actions}>
-            <Text style={styles.ActionsTitle}>Quick Actions</Text>
-
-            <View style={styles.row}>
-                <ActionButton
-                icon="location-outline"
-                label={"Share\nLocation"}
-                color="#22c55e"
-                />
-
-                <ActionButton
-                icon="people-outline"
-                label={"Alert\nFamily"}
-                color="#f97316"
-                />
-
-                <ActionButton
-                icon="call-outline"
-                label={"Call\nPolice"}
-                color="#3b82f6"
-                />
-            </View>
-        </View>
-    <View style={styles.SoScontainer}>
-    <TouchableOpacity
-        style={styles.sosButton}
-        onLongPress={handleSOS}
-        delayLongPress={1500}
-      >
-        <Ionicons name="alert-circle-outline" size={40} color="#000" />
-        <Text style={styles.sosText}>SOS</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.hint}>
-        Hint: Long press to send an emergency alert!
-      </Text>
-
-      <View style={styles.statusCard}>
-        <Text style={styles.statusText}>Safety Status:</Text>
-        <Text style={styles.active}>Active *</Text>
       </View>
-    </View>
-<View style={styles.safeZoneContainer}>
-  <Text style={styles.safeZoneTitle}>Nearby Safe Zones</Text>
 
-  <TouchableOpacity
-    style={styles.safeZoneItem}
-    onPress={() => makeCall("100")}
-  >
-    <Ionicons name="shield-checkmark-outline" size={24} color="#3b82f6" />
-    <Text style={styles.safeZoneText}>Police Station</Text>
-  </TouchableOpacity>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.heroCard}>
+          <View style={styles.heroTop}>
+            <View style={[styles.heroBadge, gpsOff && styles.heroBadgeWarning]}>
+              <Ionicons name="shield-checkmark-outline" size={14} color="#111" />
+              <Text style={styles.heroBadgeText}>
+                {gpsOff ? 'GPS Off' : 'Protected'}
+              </Text>
+            </View>
+            <Pressable style={styles.heroChip} onPress={fetchLocation}>
+              <Ionicons name="location-outline" size={14} color="#111" />
+              <Text style={styles.heroChipText}>
+                {showRetryHint ? 'Tap to retry' : locationLabel}
+              </Text>
+            </Pressable>
+          </View>
 
-  <TouchableOpacity
-    style={styles.safeZoneItem}
-    onPress={() => makeCall("102")}
-  >
-    <Ionicons name="medkit-outline" size={24} color="#ef4444" />
-    <Text style={styles.safeZoneText}>Hospital / Ambulance</Text>
-  </TouchableOpacity>
+          <View style={styles.sosRing}>
+            <View style={styles.sosOuter}>
+              <TouchableOpacity
+                style={styles.sosButton}
+                onLongPress={handleSOS}
+                delayLongPress={1500}
+              >
+                <Ionicons name="alert" size={36} color="#fff" />
+                <Text style={styles.sosText}>SOS</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-  <TouchableOpacity
-    style={styles.safeZoneItem}
-    onPress={() => makeCall("101")}
-  >
-    <Ionicons name="flame-outline" size={24} color="#f97316" />
-    <Text style={styles.safeZoneText}>Fire Station</Text>
-  </TouchableOpacity>
+          <Text style={styles.hint}>
+            {sendingSOS ? 'Sending SOS...' : 'Long press for 1.5s to trigger'}
+          </Text>
+          {(gpsOff || showRetryHint) && (
+            <TouchableOpacity style={styles.settingsButton} onPress={openAppSettings}>
+              <Ionicons name="settings-outline" size={16} color="#111" />
+              <Text style={styles.settingsButtonText}>Open Settings</Text>
+            </TouchableOpacity>
+          )}
+          {lastGeoError?.message && (
+            <Text style={styles.debugText}>
+              GPS: {lastGeoError.code ?? '-'} • {lastGeoError.message}
+            </Text>
+          )}
+          <Text style={styles.debugText}>
+            Permission: {permissionStatus} • Status: {locationStatus}
+          </Text>
+        </View>
 
-  <TouchableOpacity
-    style={styles.safeZoneItem}
-    onPress={() => makeCall("112")}
-  >
-    <Ionicons name="call-outline" size={24} color="#22c55e" />
-    <Text style={styles.safeZoneText}>National Emergency</Text>
-  </TouchableOpacity>
-</View>
-    </ScrollView>
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionMeta}>Fast access</Text>
+          </View>
+          <View style={styles.row}>
+            <ActionButton
+              icon="location-outline"
+              label={"Share\nLocation"}
+              color="#22c55e"
+              onPress={async () => {
+                const coords = await ensureLocation();
+                if (!coords) {
+                  Alert.alert('Location unavailable', 'Unable to access GPS.');
+                  return;
+                }
+                Alert.alert(
+                  'Location Ready',
+                  `Lat ${coords.lat.toFixed(4)}, Lon ${coords.lon.toFixed(4)}`,
+                );
+              }}
+            />
+
+            <ActionButton
+              icon="people-outline"
+              label={"Alert\nFamily"}
+              color="#f97316"
+              onPress={handleSOS}
+            />
+
+            <ActionButton
+              icon="call-outline"
+              label={"Call\nPolice"}
+              color="#3b82f6"
+              onPress={() => makeCall("100")}
+            />
+          </View>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {loadingHelp ? 'Searching Nearby Help...' : (nearbyHelp.length ? 'Nearby Help' : 'Nearby Safe Zones')}
+            </Text>
+            <Text style={styles.sectionMeta}>5 km radius</Text>
+          </View>
+
+          {nearbyHelp.length ? (
+            nearbyHelp.map((item, index) => {
+              const lat = item.location?.lat;
+              const lon = item.location?.lng;
+              return (
+                <TouchableOpacity
+                  key={`${item.placeId || item.name || 'help'}-${index}`}
+                  style={styles.safeZoneItem}
+                  onPress={() => (lat && lon ? openMap(lat, lon, item.name) : undefined)}
+                >
+                  <Ionicons name="navigate-outline" size={22} color="#22c55e" />
+                  <View style={styles.safeZoneTextWrap}>
+                    <Text style={styles.safeZoneText}>{item.name || 'Nearby Help'}</Text>
+                    {!!item.address && <Text style={styles.safeZoneSubText}>{item.address}</Text>}
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            <>
+              <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("100")}>
+                <Ionicons name="shield-checkmark-outline" size={22} color="#3b82f6" />
+                <Text style={styles.safeZoneText}>Police Station</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("102")}>
+                <Ionicons name="medkit-outline" size={22} color="#ef4444" />
+                <Text style={styles.safeZoneText}>Hospital / Ambulance</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("101")}>
+                <Ionicons name="flame-outline" size={22} color="#f97316" />
+                <Text style={styles.safeZoneText}>Fire Station</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("112")}>
+                <Ionicons name="call-outline" size={22} color="#22c55e" />
+                <Text style={styles.safeZoneText}>National Emergency</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+            <Text style={styles.sectionMeta}>Trusted people</Text>
+          </View>
+
+          <View style={styles.inputRow}>
+            <TextInput
+              placeholder="Name"
+              placeholderTextColor="#7c7c7c"
+              style={styles.input}
+              value={newContactName}
+              onChangeText={setNewContactName}
+            />
+            <TextInput
+              placeholder="Phone"
+              placeholderTextColor="#7c7c7c"
+              style={styles.input}
+              keyboardType="phone-pad"
+              value={newContactPhone}
+              onChangeText={setNewContactPhone}
+            />
+          </View>
+          <View style={styles.inputRow}>
+            <TextInput
+              placeholder="Relation (optional)"
+              placeholderTextColor="#7c7c7c"
+              style={styles.input}
+              value={newContactRelation}
+              onChangeText={setNewContactRelation}
+            />
+            <TouchableOpacity
+              style={[styles.addButton, addingContact && styles.addButtonDisabled]}
+              onPress={handleAddContact}
+              disabled={addingContact}
+            >
+              <Text style={styles.addButtonText}>{addingContact ? 'Adding...' : 'Add'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {contactsLoading ? (
+            <Text style={styles.mutedText}>Loading contacts...</Text>
+          ) : contacts.length ? (
+            contacts.map((contact) => (
+              <View key={contact.id} style={styles.contactItem}>
+                <View style={styles.contactAvatar}>
+                  <Text style={styles.contactAvatarText}>
+                    {contact.name?.trim()?.slice(0, 2)?.toUpperCase() || 'EC'}
+                  </Text>
+                </View>
+                <View style={styles.contactInfo}>
+                  <Text style={styles.contactName}>{contact.name}</Text>
+                  <Text style={styles.contactMeta}>
+                    {contact.phoneNumber}
+                    {contact.relation ? ` • ${contact.relation}` : ''}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => handleDeleteContact(contact.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.mutedText}>No contacts added yet.</Text>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -152,138 +594,308 @@ const SOSButton = () => {
 export default SOSButton
 
 const styles = StyleSheet.create({
-    container:{
-        backgroundColor:colors.Background,
-        flex:1,
+    container: {
+      backgroundColor: "#f6f7fb",
+      flex: 1,
     },
-    header:{
-        flexDirection:"row",
-        justifyContent:"space-between",
-        alignItems:"center",
-        paddingHorizontal:wp(4.5),
-        paddingVertical:hp(2),
+    scrollContent: {
+      paddingBottom: hp(4),
     },
-    title:{
-        color:colors.Primary,
-        fontWeight:FW.header,
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: wp(5),
+      paddingVertical: hp(2),
     },
-    subTitle:{
-        color:colors.Secondary,
-        fontSize:wp(3),
+    profileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: wp(3),
     },
-    actions:{
-        backgroundColor:colors.Dark,
-        paddingHorizontal:wp(5),
-        paddingVertical:hp(2),
-        marginHorizontal:wp(5),
-        borderRadius:wp(5),
-        marginVertical:hp(2.5),
+    avatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 2,
+      borderColor: "#fff",
+    },
+    title: {
+      color: "#111",
+      fontWeight: FW.header,
+      fontSize: wp(4.8),
+    },
+    subTitle: {
+      color: "#6b7280",
+      fontSize: wp(3.2),
+      marginTop: hp(0.2),
+    },
+    iconButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "#fff",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1.5,
+      borderColor: "#e5e7eb",
+    },
+    heroCard: {
+      backgroundColor: "#ffffff",
+      marginHorizontal: wp(5),
+      borderRadius: wp(6),
+      padding: wp(5),
+      borderWidth: 1.5,
+      borderColor: "#eef0f4",
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowRadius: 18,
+      elevation: 6,
+    },
+    heroTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: hp(2),
+    },
+    heroBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: wp(1.5),
+      backgroundColor: "#d1fae5",
+      paddingHorizontal: wp(3.2),
+      paddingVertical: hp(0.5),
+      borderRadius: wp(5),
+    },
+    heroBadgeWarning: {
+      backgroundColor: "#fee2e2",
+    },
+    heroBadgeText: {
+      color: "#111",
+      fontWeight: "700",
+      fontSize: wp(3.2),
+    },
+    heroChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: wp(1.5),
+      backgroundColor: "#f3f4f6",
+      paddingHorizontal: wp(3),
+      paddingVertical: hp(0.5),
+      borderRadius: wp(5),
+    },
+    heroChipText: {
+      color: "#111",
+      fontWeight: "600",
+      fontSize: wp(3),
+    },
+    sosRing: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: hp(1.5),
+    },
+    sosOuter: {
+      width: 190,
+      height: 190,
+      borderRadius: 95,
+      backgroundColor: "#fff5f5",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: "#ffe4e6",
+    },
+    sosButton: {
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "#ef4444",
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#ef4444",
+      shadowOpacity: 0.35,
+      shadowRadius: 18,
+      elevation: 10,
+    },
+    sosText: {
+      fontSize: 30,
+      fontWeight: "800",
+      color: "#fff",
+      letterSpacing: 1,
+      marginTop: 2,
+    },
+    hint: {
+      marginTop: hp(1.5),
+      color: "#6b7280",
+      textAlign: "center",
+      fontSize: wp(3.2),
+    },
+    settingsButton: {
+      marginTop: hp(1.2),
+      alignSelf: "center",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: wp(2),
+      backgroundColor: "#fef3c7",
+      borderWidth: 1.5,
+      borderColor: "#fde68a",
+      paddingHorizontal: wp(3.5),
+      paddingVertical: hp(0.8),
+      borderRadius: wp(5),
+    },
+    settingsButtonText: {
+      color: "#111",
+      fontWeight: "700",
+      fontSize: wp(3.2),
+    },
+    debugText: {
+      marginTop: hp(0.6),
+      color: "#6b7280",
+      textAlign: "center",
+      fontSize: wp(2.8),
+    },
+    sectionCard: {
+      backgroundColor: "#ffffff",
+      marginHorizontal: wp(5),
+      marginTop: hp(2),
+      padding: wp(5),
+      borderRadius: wp(6),
+      borderWidth: 1.5,
+      borderColor: "#eef0f4",
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: hp(2),
+    },
+    sectionTitle: {
+      fontSize: wp(4.6),
+      color: "#111",
+      fontWeight: "700",
+    },
+    sectionMeta: {
+      color: "#6b7280",
+      fontSize: wp(3.1),
     },
     row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  action: {
-    alignItems: "center",
-    width: 90,
-  },
-  circle: {
-    width: 65,
-    height: 65,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    action: {
+      alignItems: "center",
+      width: 92,
+      backgroundColor: "#f9fafb",
+      paddingVertical: hp(1.2),
+      borderRadius: wp(4),
+      borderWidth: 1.5,
+      borderColor: "#eef0f4",
+    },
+    circle: {
+      width: 58,
+      height: 58,
+      borderRadius: 30,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 6,
+    },
     label: {
-    color: "#ccc",
-    textAlign: "center",
-    fontSize: 13,
-  },
-  ActionsTitle:{
-    fontSize:wp(5),
-    fontWeight:FW.header,
-    color:colors.Primary,
-    marginBottom:hp(2),
-  },
-    sosButton: {
-    width: 180,
-    height: 180,
-    borderRadius: 100,
-    backgroundColor: "#ff3b30",
-    justifyContent: "center",
-    alignItems: "center",
-
-    shadowColor: "#ff3b30",
-    shadowOpacity: 0.9,
-    shadowRadius: 30,
-    elevation: 20,
-  },
-
-  sosText: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: "#000",
-    marginTop: 5,
-  },
-
-  hint: {
-    marginTop: 20,
-    color: "#aaa",
-  },
-
-  statusCard: {
-    marginTop: 40,
-    backgroundColor: colors.Dark,
-    padding: wp(4.5),
-    width: "90%",
-    borderRadius: wp(5),
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  statusText: {
-    color: "#ccc",
-  },
-
-  active: {
-    color: "#22c55e",
-    fontWeight: "600",
-  },
-  SoScontainer:{
-    justifyContent:"center",
-    alignItems:"center",
-  },
-  safeZoneContainer: {
-  backgroundColor: colors.Dark,
-  marginHorizontal: wp(5),
-  marginTop: hp(2),
-  padding: wp(5),
-  borderRadius: wp(5),
-},
-
-safeZoneTitle: {
-  fontSize: wp(5),
-  color: colors.Primary,
-  fontWeight: FW.header,
-  marginBottom: hp(2),
-},
-
-safeZoneItem: {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: wp(3),
-  paddingVertical: hp(1.5),
-  borderWidth:wp(0.1),
-  borderColor:colors.Border,
-  borderRadius: wp(5),
-  marginBottom: hp(1),
-  paddingHorizontal: wp(4),
-},
-
-safeZoneText: {
-  color: "#ccc",
-  fontSize: wp(3.8),
-},
+      color: "#111",
+      textAlign: "center",
+      fontSize: wp(3.1),
+    },
+    safeZoneItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: wp(3),
+      paddingVertical: hp(1.2),
+      borderWidth: 1.5,
+      borderColor: "#eef0f4",
+      borderRadius: wp(4),
+      marginBottom: hp(1),
+      paddingHorizontal: wp(4),
+      backgroundColor: "#f9fafb",
+    },
+    safeZoneText: {
+      color: "#111",
+      fontSize: wp(3.7),
+    },
+    safeZoneSubText: {
+      color: "#6b7280",
+      fontSize: wp(3.1),
+      marginTop: hp(0.2),
+    },
+    safeZoneTextWrap: {
+      flex: 1,
+    },
+    inputRow: {
+      flexDirection: "row",
+      gap: wp(2),
+      marginBottom: hp(1.5),
+    },
+    input: {
+      flex: 1,
+      backgroundColor: "#f9fafb",
+      color: "#111",
+      borderWidth: 1.5,
+      borderColor: "#eef0f4",
+      borderRadius: wp(3.5),
+      paddingHorizontal: wp(3),
+      paddingVertical: hp(1.2),
+      fontSize: wp(3.4),
+    },
+    addButton: {
+      backgroundColor: "#22c55e",
+      paddingHorizontal: wp(4),
+      justifyContent: "center",
+      borderRadius: wp(3.5),
+    },
+    addButtonDisabled: {
+      opacity: 0.6,
+    },
+    addButtonText: {
+      color: "#0b0b0f",
+      fontWeight: "700",
+    },
+    contactItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: hp(1),
+      borderBottomWidth: 1.5,
+      borderBottomColor: "#eef0f4",
+    },
+    contactAvatar: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: "#e5e7eb",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: wp(3),
+    },
+    contactAvatarText: {
+      color: "#111",
+      fontWeight: "700",
+      fontSize: wp(3.4),
+    },
+    contactInfo: {
+      flex: 1,
+      marginRight: wp(2),
+    },
+    contactName: {
+      color: "#111",
+      fontSize: wp(3.9),
+      fontWeight: "600",
+    },
+    contactMeta: {
+      color: "#6b7280",
+      marginTop: hp(0.2),
+      fontSize: wp(3.1),
+    },
+    mutedText: {
+      color: "#6b7280",
+      fontSize: wp(3.2),
+      marginTop: hp(0.5),
+    },
 })
 

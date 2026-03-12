@@ -523,6 +523,7 @@ export const expenseIntelligenceService = {
       where: { vehicleId, customerId },
       _sum: { amount: true },
     });
+    console.log(vehicleId, customerId, categoryGroup)
 
     const totalExpenses = categoryGroup.reduce(
       (sum: number, g: any) => sum + (g._sum.amount || 0),
@@ -543,8 +544,6 @@ export const expenseIntelligenceService = {
       firstLog && lastLog
         ? `${new Date(firstLog.date).toLocaleDateString("en-IN")} - ${new Date(lastLog.date).toLocaleDateString("en-IN")}`
         : "All time";
-
-        console.log(costPerKm)
 
     return {
       totalExpenses: Math.round(totalExpenses),

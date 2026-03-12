@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -19,12 +19,11 @@ import { useNavigation } from "@react-navigation/native";
 import { Alert } from "react-native";
 import SpendingAnalysis, { type SpendingAnalysisHandle } from "../../components/SpendingAnalysis";
 import CostPerKmCard from "../../components/CostPerKm";
-import TopSpendingCard from "../../components/TopSpending";
+import TopSpendingCard, { type TopSpendingItem } from "../../components/TopSpending";
 import Iconi from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from "../../theme/colors";
 import { fontSizes } from "../../theme/Fontsize";
 import RNFS from "react-native-fs";
-import { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import { vehicleService } from "../../services/vehicleService";
 
@@ -46,6 +45,14 @@ type AnalyticsResponse = {
   insights?: string[];
   trend: AnalyticsTrend;
   breakdown: AnalyticsBreakdown[];
+};
+
+type CostPerKmSummary = {
+  totalExpenses: number;
+  totalKm: number;
+  costPerKm: number;
+  categoryBreakdownPerKm: { category: string; costPerKm: number }[];
+  period: string;
 };
 
 type TimeFrame = "Day" | "Week" | "Month" | "Quarter" | "Year";
@@ -227,16 +234,109 @@ const buildBreakdown = (expenses: any[]) => {
     .sort((a, b) => b.value - a.value);
 };
 
+const sumTotals = (totals: Record<string, number>) =>
+  Object.values(totals).reduce((sum, value) => sum + value, 0);
+
+const buildCategoryTotals = (expenses: any[], start: Date, end: Date) => {
+  const totals: Record<string, number> = {};
+  expenses.forEach((e) => {
+    const d = toDate(e.date);
+    if (!d || d < start || d > end) return;
+    const category = String(e.category || "OTHER").toUpperCase();
+    totals[category] = (totals[category] || 0) + toNumber(e.amount);
+  });
+  return totals;
+};
+
+const getPreviousTimeFrameRange = (timeFrame: TimeFrame, start: Date) => {
+  switch (timeFrame) {
+    case "Day": {
+      const prevStart = startOfDay(
+        new Date(start.getFullYear(), start.getMonth(), start.getDate() - 1)
+      );
+      return { start: prevStart, end: endOfDay(prevStart) };
+    }
+    case "Week": {
+      const prevStart = startOfDay(
+        new Date(start.getFullYear(), start.getMonth(), start.getDate() - 7)
+      );
+      const prevEnd = endOfDay(
+        new Date(start.getFullYear(), start.getMonth(), start.getDate() - 1)
+      );
+      return { start: prevStart, end: prevEnd };
+    }
+    case "Quarter": {
+      const prevStart = new Date(start.getFullYear(), start.getMonth() - 3, 1);
+      const prevEnd = endOfDay(new Date(start.getFullYear(), start.getMonth(), 0));
+      return { start: prevStart, end: prevEnd };
+    }
+    case "Year": {
+      const prevStart = new Date(start.getFullYear() - 1, 0, 1);
+      const prevEnd = endOfDay(new Date(start.getFullYear() - 1, 11, 31));
+      return { start: prevStart, end: prevEnd };
+    }
+    case "Month":
+    default: {
+      const prevStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
+      const prevEnd = endOfDay(new Date(start.getFullYear(), start.getMonth(), 0));
+      return { start: prevStart, end: prevEnd };
+    }
+  }
+};
+
+const buildTopSpending = (expenses: any[], timeFrame: TimeFrame): TopSpendingItem[] => {
+  const { start, end } = getTimeFrameRange(timeFrame);
+  const { start: prevStart, end: prevEnd } = getPreviousTimeFrameRange(timeFrame, start);
+  const currentTotals = buildCategoryTotals(expenses, start, end);
+  const previousTotals = buildCategoryTotals(expenses, prevStart, prevEnd);
+  const overall = sumTotals(currentTotals);
+
+  if (overall <= 0) return [];
+
+  return Object.entries(currentTotals)
+    .map(([category, amount]) => {
+      const prevAmount = previousTotals[category] || 0;
+      let trendType: TopSpendingItem["trendType"] = "none";
+      let trendLabel = "0%";
+
+      if (prevAmount <= 0 && amount > 0) {
+        trendType = "up";
+        trendLabel = "New";
+      } else if (prevAmount > 0) {
+        const change = ((amount - prevAmount) / prevAmount) * 100;
+        if (Math.abs(change) >= 0.5) {
+          trendType = change > 0 ? "up" : "down";
+          trendLabel = `${Math.round(Math.abs(change))}%`;
+        }
+      }
+
+      return {
+        category,
+        amount,
+        percentage: Math.round((amount / overall) * 100),
+        trendLabel,
+        trendType,
+      };
+    })
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+};
+
 export default function ExpenseAnalytics() {
   const navigation = useNavigation();
   const spendingAnalysisRef = useRef<SpendingAnalysisHandle>(null);
   const baseExpensesRef = useRef<any[]>([]);
   const insightsRef = useRef<string[]>([]);
   const costPerKmRef = useRef<number>(0);
+  const isRefreshingRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
+  const vehicleIdRef = useRef<string | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>("Month");
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+  const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [costPerKmSummary, setCostPerKmSummary] = useState<CostPerKmSummary | null>(null);
 
   const computeAnalyticsForTimeFrame = (timeFrame: TimeFrame, expenses: any[]) => {
     const { start, end } = getTimeFrameRange(timeFrame);
@@ -261,16 +361,21 @@ export default function ExpenseAnalytics() {
   };
 
   const refreshAnalytics = async () => {
-    if (loadingAnalytics) return;
+    if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
+      return;
+    }
+    isRefreshingRef.current = true;
     setLoadingAnalytics(true);
     setAnalyticsError(null);
     try {
       const now = new Date();
       const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
       const end = endOfDay(now);
+      const vehicleQuery = vehicleIdRef.current ? `&vehicleId=${vehicleIdRef.current}` : "";
       const expensesRes = await getWithRetry(() =>
         api.get<any>(
-          `/v1/expenses?startDate=${start.toISOString()}&endDate=${end.toISOString()}`
+          `/v1/expenses?startDate=${start.toISOString()}&endDate=${end.toISOString()}${vehicleQuery}`
         )
       );
 
@@ -302,18 +407,22 @@ export default function ExpenseAnalytics() {
       const primaryVehicle = Array.isArray(vehicleList)
         ? vehicleList.find((v) => v?.isPrimary) || vehicleList[0]
         : null;
-      if (primaryVehicle?.id) {
+      const costVehicleId = vehicleIdRef.current ?? primaryVehicle?.id ?? null;
+      if (costVehicleId) {
         try {
           const costRes = await api.get<any>(
-            `/v1/expenses/vehicles/${primaryVehicle.id}/cost-per-km`
+            `/v1/expenses/vehicles/${costVehicleId}/cost-per-km`
           );
           const costPayload = (costRes as any)?.data ?? costRes;
           costPerKmRef.current = toNumber(costPayload?.costPerKm);
+          setCostPerKmSummary(costPayload ?? null);
         } catch {
           costPerKmRef.current = 0;
+          setCostPerKmSummary(null);
         }
       } else {
         costPerKmRef.current = 0;
+        setCostPerKmSummary(null);
       }
 
       setAnalytics(
@@ -324,6 +433,11 @@ export default function ExpenseAnalytics() {
       setAnalyticsError("Unable to load analytics right now. Please try again.");
     } finally {
       setLoadingAnalytics(false);
+      isRefreshingRef.current = false;
+      if (pendingRefreshRef.current) {
+        pendingRefreshRef.current = false;
+        refreshAnalytics();
+      }
     }
   };
 
@@ -336,10 +450,51 @@ export default function ExpenseAnalytics() {
 
   const normalizePath = (path: string) => path.replace("file://", "");
   const reportInsights = analytics?.insights ?? [];
+  const topSpending = useMemo(
+    () => buildTopSpending(baseExpensesRef.current, selectedTimeFrame),
+    [selectedTimeFrame, analytics]
+  );
+
+  const costPerKmTrend = useMemo(() => {
+    const labels = analytics?.trend?.labels ?? [];
+    const series = analytics?.trend?.series?.[0]?.data ?? [];
+    if (!labels.length || !series.length) return { labels: [], data: [] as number[] };
+    const totalKm = toNumber(costPerKmSummary?.totalKm);
+    const kmPerBucket = totalKm > 0 ? totalKm / labels.length : 0;
+    const data = series.map((value) =>
+      kmPerBucket > 0 ? toNumber(value) / kmPerBucket : 0
+    );
+    return { labels, data };
+  }, [analytics, costPerKmSummary?.totalKm]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await vehicleService.getVehicles();
+        const list = Array.isArray(res)
+          ? res
+          : Array.isArray((res as any)?.data)
+            ? (res as any).data
+            : [];
+        const primary = list.find((v: any) => v?.isPrimary) || list[0];
+        if (mounted) setVehicleId(primary?.id ?? null);
+      } catch {
+        if (mounted) setVehicleId(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    vehicleIdRef.current = vehicleId;
+  }, [vehicleId]);
 
   useEffect(() => {
     refreshAnalytics();
-  }, []);
+  }, [vehicleId]);
 
   const buildAnalyticsReport = () =>
     [
@@ -512,8 +667,19 @@ export default function ExpenseAnalytics() {
         loading={loadingAnalytics}
         onTimeFrameChange={handleTimeFrameChange}
       />
-      <CostPerKmCard/>
-      <TopSpendingCard/>
+      <CostPerKmCard
+        labels={costPerKmTrend.labels}
+        monthlyData={costPerKmTrend.data}
+        avgCost={costPerKmSummary?.costPerKm}
+        totalDistance={costPerKmSummary?.totalKm}
+        avgMonthly={
+          costPerKmTrend.labels.length
+            ? toNumber(costPerKmSummary?.totalKm) / costPerKmTrend.labels.length
+            : undefined
+        }
+        period={costPerKmSummary?.period}
+      />
+      <TopSpendingCard items={topSpending} loading={loadingAnalytics} />
     </SafeAreaView>
 
     <View style={styles.keyInsights}>
@@ -726,5 +892,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
-

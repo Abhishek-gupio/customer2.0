@@ -1,71 +1,94 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
+} from "react-native-responsive-screen";
+import Icon from "react-native-vector-icons/FontAwesome5";
+import { getExpenseColor, getExpenseIcon } from "../screens/Expenses/expenseUtils";
 
-interface CategoryProps {
-  label: string;
-  amount: string;
+export type TopSpendingItem = {
+  category: string;
+  amount: number;
   percentage: number;
-  trend: string;
-  trendType: 'up' | 'down' | 'none';
-  icon: string; // Placeholder for icon name or emoji
-}
+  trendLabel: string;
+  trendType: "up" | "down" | "none";
+};
 
-const CategoryItem: React.FC<CategoryProps> = ({ label, amount, percentage, trend, trendType, icon }) => {
-  const isUp = trendType === 'up';
-  const isDown = trendType === 'down';
+type CategoryProps = TopSpendingItem;
+
+type TopSpendingCardProps = {
+  items: TopSpendingItem[];
+  loading?: boolean;
+};
+
+const formatCategoryLabel = (category: string) =>
+  category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+
+const CategoryItem: React.FC<CategoryProps> = ({
+  category,
+  amount,
+  percentage,
+  trendLabel,
+  trendType,
+}) => {
+  const isUp = trendType === "up";
+  const isDown = trendType === "down";
+  const iconName = getExpenseIcon(category);
+  const color = getExpenseColor(category);
+  const upLabel = trendLabel === "New" ? "New" : `+${trendLabel}`;
 
   return (
     <View style={styles.itemContainer}>
       <View style={styles.row}>
-        {/* Icon Circle */}
         <View style={styles.iconCircle}>
-          <Text style={{ fontSize: 20 }}>{icon}</Text>
+          <Icon name={iconName} size={wp(4.8)} color={color} solid />
         </View>
 
-        {/* Label and Subtext */}
         <View style={styles.labelContainer}>
-          <Text style={styles.labelText}>{label}</Text>
+          <Text style={styles.labelText}>{formatCategoryLabel(category)}</Text>
           <Text style={styles.subText}>{percentage}% of total</Text>
         </View>
 
-        {/* Amount and Trend */}
         <View style={styles.rightContainer}>
-          <Text style={styles.amountText}>₹{amount}</Text>
+          <Text style={styles.amountText}>
+            INR {Math.round(amount).toLocaleString("en-IN")}
+          </Text>
           <View style={styles.trendRow}>
-            {isUp && <Text style={styles.trendUp}>↗ +{trend}</Text>}
-            {isDown && <Text style={styles.trendDown}>↘ -{trend}</Text>}
-            {trendType === 'none' && <Text style={styles.trendNone}>No change</Text>}
+            {isUp && <Text style={styles.trendUp}>{upLabel}</Text>}
+            {isDown && <Text style={styles.trendDown}>-{trendLabel}</Text>}
+            {trendType === "none" && (
+              <Text style={styles.trendNone}>{trendLabel || "No change"}</Text>
+            )}
           </View>
         </View>
       </View>
 
-      {/* Progress Bar */}
       <View style={styles.progressBarBackground}>
-        <View style={[styles.progressBarFill, { width: `${percentage}%` }]} />
+        <View
+          style={[
+            styles.progressBarFill,
+            { width: `${percentage}%`, backgroundColor: color },
+          ]}
+        />
       </View>
     </View>
   );
 };
 
-const TopSpendingCard = () => {
-  const categories: CategoryProps[] = [
-    { label: 'Fuel', amount: '89K', percentage: 52, trend: '5%', trendType: 'up', icon: '⛽' },
-    { label: 'Maintenance', amount: '53K', percentage: 31, trend: '2%', trendType: 'down', icon: '🔧' },
-    { label: 'Insurance', amount: '15K', percentage: 9, trend: '', trendType: 'none', icon: '🛡️' },
-    { label: 'Parking', amount: '8K', percentage: 5, trend: '3%', trendType: 'up', icon: '🅿️' },
-    { label: 'Other', amount: '7K', percentage: 4, trend: '1%', trendType: 'down', icon: '📝' },
-  ];
-
+const TopSpendingCard = ({ items, loading }: TopSpendingCardProps) => {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Top Spending Categories</Text>
-      {categories.map((item, index) => (
-        <CategoryItem key={index} {...item} />
-      ))}
+      {loading ? (
+        <Text style={styles.emptyText}>Loading...</Text>
+      ) : items.length === 0 ? (
+        <Text style={styles.emptyText}>No spending data for this period.</Text>
+      ) : (
+        items.map((item, index) => (
+          <CategoryItem key={`${item.category}-${index}`} {...item} />
+        ))
+      )}
     </View>
   );
 };
@@ -77,83 +100,86 @@ const styles = StyleSheet.create({
     padding: wp(5),
     margin: wp(4),
     borderWidth: wp(0.1),
-    borderColor: '#999',
+    borderColor: "#999",
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: hp(2.4),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: hp(2.5),
   },
   itemContainer: {
     marginBottom: hp(3),
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: hp(1.5),
   },
   iconCircle: {
     width: wp(11),
     height: wp(11),
     borderRadius: wp(5.5),
-    backgroundColor: '#1e1e1e',
+    backgroundColor: "#1e1e1e",
     borderWidth: wp(0.3),
-    borderColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: wp(3),
   },
   labelContainer: {
     flex: 1,
   },
   labelText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: hp(2.1),
-    fontWeight: '600',
+    fontWeight: "600",
   },
   subText: {
-    color: '#888',
+    color: "#888",
     fontSize: hp(1.6),
     marginTop: hp(0.4),
   },
   rightContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   amountText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: hp(2.1),
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   trendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: hp(0.5),
   },
   trendUp: {
-    color: '#ff4d4d',
+    color: "#ff4d4d",
     fontSize: hp(1.5),
-    fontWeight: '600',
+    fontWeight: "600",
   },
   trendDown: {
-    color: '#00e676',
+    color: "#00e676",
     fontSize: hp(1.5),
-    fontWeight: '600',
+    fontWeight: "600",
   },
   trendNone: {
-    color: '#666',
+    color: "#666",
     fontSize: hp(1.5),
   },
   progressBarBackground: {
     height: hp(0.8),
-    backgroundColor: '#2a2a2a',
+    backgroundColor: "#2a2a2a",
     borderRadius: hp(0.4),
-    width: '100%',
+    width: "100%",
   },
   progressBarFill: {
-    height: '100%',
-    backgroundColor: '#999',
+    height: "100%",
     borderRadius: hp(0.4),
+  },
+  emptyText: {
+    color: "#aaa",
+    fontSize: hp(1.7),
   },
 });
 

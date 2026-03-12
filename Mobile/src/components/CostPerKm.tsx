@@ -13,16 +13,18 @@ interface Props {
   totalDistance?: number;
   avgMonthly?: number;
   avgCost?: number;
+  period?: string;
 }
 
 const screenWidth = Dimensions.get('window').width - 40;
 
 const CostPerKmCard: React.FC<Props> = ({
-  monthlyData = [6.5, 6, 6.8, 7, 7.2, 7, 7.5, 7.2, 7.3, 6.8, 7, 6.5],
-  labels = ['Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
-  totalDistance = 22850,
-  avgMonthly = 1904,
-  avgCost = 7.51,
+  monthlyData,
+  labels,
+  totalDistance,
+  avgMonthly,
+  avgCost,
+  period,
 }) => {
   // State to track the selected point for the tooltip
   const [tooltip, setTooltip] = useState({
@@ -40,10 +42,24 @@ const CostPerKmCard: React.FC<Props> = ({
       x: data.x,
       y: data.y,
       value: data.value,
-      label: labels[data.index],
+      label: (labels && labels[data.index]) || "",
       visible: !isSamePoint || !tooltip.visible,
     });
   };
+
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const fallbackLabels = Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
+  const fallbackData = new Array(daysInMonth).fill(0);
+
+  const hasInput =
+    Array.isArray(monthlyData) &&
+    monthlyData.length > 0 &&
+    Array.isArray(labels) &&
+    labels.length > 0;
+  const chartLabels = hasInput ? (labels as string[]) : fallbackLabels;
+  const chartData = hasInput ? (monthlyData as number[]) : fallbackData;
+  const safeAvgCost = Number.isFinite(avgCost ?? NaN) ? (avgCost as number) : 0;
 
   return (
     <View style={styles.card}>
@@ -51,83 +67,92 @@ const CostPerKmCard: React.FC<Props> = ({
       <View style={styles.header}>
         <Text style={styles.title}>Cost per Kilometer</Text>
         <View style={styles.avgContainer}>
-          <Text style={styles.avgText}>Avg: ₹{avgCost.toFixed(2)}/km</Text>
+          <Text style={styles.avgText}>Avg: ₹{safeAvgCost.toFixed(2)}/km</Text>
         </View>
       </View>
 
 
       <View style={styles.chartWrapper}>
-        <LineChart
-          data={{
-            labels: labels,
-            datasets: [
-              {
-                data: monthlyData,
-                color: () => '#4e73df',
-                strokeWidth: 3,
+        {chartLabels.length ? (
+          <LineChart
+            data={{
+              labels: chartLabels,
+              datasets: [
+                {
+                  data: chartData,
+                  color: () => '#4e73df',
+                  strokeWidth: 3,
+                },
+              ],
+            }}
+            width={screenWidth - 4}
+            height={220}
+            chartConfig={{
+              backgroundGradientFrom: '#121212',
+              backgroundGradientTo: '#121212',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(78, 115, 223, ${opacity})`,
+              labelColor: () => '#ffffff',
+              propsForDots: {
+                r: '5',
+                strokeWidth: '2',
+                stroke: '#4e73df',
               },
-            ],
-          }}
-          width={screenWidth-4}
-          height={220}
-          chartConfig={{
-            backgroundGradientFrom: '#121212',
-            backgroundGradientTo: '#121212',
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(78, 115, 223, ${opacity})`,
-            labelColor: () => '#ffffff',
-            propsForDots: {
-              r: '5', 
-              strokeWidth: '2',
-              stroke: '#4e73df',
-            },
-            propsForBackgroundLines: {
-              stroke: '#333',
-            },
-          }}
-          style={styles.chartStyle}
-          bezier
-          fromZero
-          onDataPointClick={handlePointClick}
-          decorator={() => {
-            return tooltip.visible ? (
-              <View
-                style={[
-                  styles.tooltip,
-                  {
-                    top: tooltip.y + hp(5), 
-                    left: tooltip.x - 30, 
-                  },
-                ]}
-              >
-                <Text style={styles.tooltipValue}>₹{tooltip.value}</Text>
-                <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
-              </View>
-            ) : null;
-          }}
-
-        />
+              propsForBackgroundLines: {
+                stroke: '#333',
+              },
+            }}
+            style={styles.chartStyle}
+            bezier
+            fromZero
+            onDataPointClick={handlePointClick}
+            decorator={() => {
+              return tooltip.visible ? (
+                <View
+                  style={[
+                    styles.tooltip,
+                    {
+                      top: tooltip.y + hp(5),
+                      left: tooltip.x - 30,
+                    },
+                  ]}
+                >
+                  <Text style={styles.tooltipValue}>₹{tooltip.value}</Text>
+                  <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
+                </View>
+              ) : null;
+            }}
+          />
+        ) : (
+          <View style={styles.noTrend}>
+            <Text style={styles.noTrendText}>No trend data available</Text>
+          </View>
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <MaterialCommunityIcons
-                name="tune-variant"
-                size={18}
-                color="#9ca3af"
-                style={{ marginRight: 6 }}
-            />
-            <Text style={{ color: '#9ca3af', fontSize: 14 }}>
-                Cost per KM
-            </Text>
+          <MaterialCommunityIcons
+            name="tune-variant"
+            size={18}
+            color="#9ca3af"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={{ color: '#9ca3af', fontSize: 14 }}>
+            Cost per KM{period ? ` • ${period}` : ''}
+          </Text>
         </View>      
-            </View>
+      </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.stat}>
           <Text style={styles.statLabel}>Total Distance (Year)</Text>
-          <Text style={styles.statValue}>{totalDistance.toLocaleString()} km</Text>
+          <Text style={styles.statValue}>
+            {Number.isFinite(totalDistance ?? NaN) ? `${(totalDistance as number).toLocaleString()} km` : '—'}
+          </Text>
         </View>
         <View style={styles.stat}>
           <Text style={styles.statLabel}>Avg Monthly</Text>
-          <Text style={styles.statValue}>{avgMonthly.toLocaleString()} km</Text>
+          <Text style={styles.statValue}>
+            {Number.isFinite(avgMonthly ?? NaN) ? `${(avgMonthly as number).toLocaleString()} km` : '—'}
+          </Text>
         </View>
       </View>
     </View>
@@ -180,6 +205,19 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: wp(2),
     // marginLeft: -wp(5),
+  },
+  noTrend: {
+    height: 220,
+    width: screenWidth - 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#121212',
+    borderRadius: wp(3),
+    marginVertical: hp(1.2),
+  },
+  noTrendText: {
+    color: '#777',
+    fontSize: hp(1.6),
   },
   statsContainer: {
     flexDirection: 'row',
