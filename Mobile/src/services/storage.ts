@@ -23,10 +23,11 @@ try {
   };
 }
 
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtbHQ1emxuODAwMDBqMnV0am1haHhqMzQiLCJwaG9uZU51bWJlciI6Ijk5OTk5OTk5OTkiLCJpYXQiOjE3NzE0ODc3NDksImV4cCI6MTc3NDA3OTc0OX0.BwokEb4KaF-rmX2Vpz8zXaJ2WV197pJTKW6Ijj1sv0A';
+
 // DEV ONLY: Seed a valid JWT only if storage is empty (don't overwrite real login)
 if (__DEV__ && !storage!.getString(ACCESS_TOKEN_KEY)) {
   // Token signed with default dev secret; expires in 30 days. Login via OTP to get real tokens + refresh.
-  const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtbHQ1emxuODAwMDBqMnV0am1haHhqMzQiLCJwaG9uZU51bWJlciI6Ijk5OTk5OTk5OTkiLCJpYXQiOjE3NzE0ODc3NDksImV4cCI6MTc3NDA3OTc0OX0.BwokEb4KaF-rmX2Vpz8zXaJ2WV197pJTKW6Ijj1sv0A';
   storage!.set(ACCESS_TOKEN_KEY, DEV_TOKEN);
   storage!.set(USER_ID_KEY, 'cmlt5zln80000j2utjmahxj34');
   console.log('[DEV] Seeded dummy auth token (login via OTP for refresh token)');
@@ -37,7 +38,12 @@ export function setAccessToken(token: string) {
 }
 
 export function getAccessToken(): string | undefined {
-  return storage!.getString(ACCESS_TOKEN_KEY);
+  const token = storage!.getString(ACCESS_TOKEN_KEY);
+  if (__DEV__ && !token) {
+    console.log('[DEV] No token in storage, falling back to dummy dev token');
+    return DEV_TOKEN;
+  }
+  return token;
 }
 
 export function setRefreshToken(token: string) {

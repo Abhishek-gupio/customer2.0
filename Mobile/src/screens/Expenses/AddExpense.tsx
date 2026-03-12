@@ -265,8 +265,6 @@ export default function AddExpenseScreen() {
       const response = await launchCamera({
         mediaType: "photo",
         quality: 0.5,
-        maxWidth: 1024,
-        maxHeight: 1024,
       });
       if (response.errorCode) {
         Alert.alert("Camera Error", response.errorMessage || "Could not capture image.");
@@ -296,8 +294,6 @@ export default function AddExpenseScreen() {
       const response = await launchImageLibrary({
         mediaType: "photo",
         quality: 0.5,
-        maxWidth: 1024,
-        maxHeight: 1024,
       });
       if (response.errorCode) {
         Alert.alert("Error", response.errorMessage || "Could not pick image.");

@@ -15,9 +15,11 @@ app.use(helmet());
 
 const corsOptions: cors.CorsOptions = {
   origin:
-    env.CORS_ORIGIN === "*"
+    env.NODE_ENV === "development"
       ? "*"
-      : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
+      : env.CORS_ORIGIN === "*"
+        ? "*"
+        : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -53,16 +55,40 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 app.get("/health/detailed", async (_req: Request, res: Response) => {
-  const db = env.DATABASE_URL ? "ok" : "not_configured";
-  const redis = (await import("./config/redis").then((m) => m.getRedis()))
-    ? "ok"
-    : "not_configured";
-  res.json({
-    ok: true,
-    timestamp: new Date().toISOString(),
-    env: env.NODE_ENV,
-    services: { database: db, redis },
-  });
+  try {
+    const db = env.DATABASE_URL ? "ok" : "not_configured";
+    const redisModule = await import("./config/redis");
+    const redis = (await redisModule.getRedis()) ? "ok" : "not_configured";
+    
+    // Test actual DB query
+    const { dbInstances } = await import("@repo/db-customer");
+    const customerCount = await dbInstances.customer.count();
+    const vehicleCount = await dbInstances.customerVehicle.count();
+
+    res.json({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      env: env.NODE_ENV,
+      services: { 
+        database: db, 
+        redis,
+        metrics: {
+          customers: customerCount,
+          vehicles: vehicleCount
+        }
+      },
+      connection: {
+        host: _req.get('host'),
+        remoteAddress: _req.socket.remoteAddress
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+      stack: env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  }
 });
 
 // Swagger setup
