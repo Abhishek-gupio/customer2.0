@@ -142,6 +142,11 @@ export const expenseService = {
             notes: expense.notes || undefined,
             parts: input.parts as any,
           });
+
+          // Recalculate health score to reflect new part health on home screen
+          void vehicleService.calculateHealthScore(targetVehicleId).catch(e =>
+            logger.error({ e, vehicleId: targetVehicleId }, "Targeted health recalculation failed")
+          );
         } catch (err) {
           logger.error({ err, expenseId: expense.id }, "Failed to create service record for manual expense");
         }
@@ -631,6 +636,11 @@ export const expenseService = {
           warrantyMonths: p.warrantyMonths,
         })),
       });
+
+      // Recalculate health score for AI detection
+      void vehicleService.calculateHealthScore(vehicleId!).catch(e =>
+        logger.error({ e, vehicleId }, "Background health recalculation failed")
+      );
 
       // Notify user about auto-created service record
       await db.inAppNotification.create({
