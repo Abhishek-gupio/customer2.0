@@ -43,6 +43,9 @@ export default function Home() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [vehicleLoading, setVehicleLoading] = useState(true);
   const [serviceDueText, setServiceDueText] = useState('Checking...');
+  const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
+  const [trendingNews, setTrendingNews] = useState<any[]>([]);
+  const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -51,7 +54,8 @@ export default function Home() {
     const loadData = async () => {
       await Promise.all([
         fetchPrimaryVehicle(),
-        fetchFuelPrices()
+        fetchFuelPrices(),
+        fetchDiscoveryContent()
       ]);
     };
     loadData();
@@ -145,46 +149,25 @@ export default function Home() {
     }
   };
 
-  const trendingVideos = [
-    {
-      id: '3',
-      title: 'Future of car technology that may hit our shores',
-      views: '285K',
-      url: 'https://www.youtube.com/watch?v=zSiV8rLna_s',
-      thumbnail: 'https://img.youtube.com/vi/zSiV8rLna_s/hqdefault.jpg'
-    },
-    {
-      id: '4',
-      title: 'Electric Vehicles Revolution 2026',
-      views: '156K',
-      url: 'https://www.youtube.com/watch?v=piMHbmX7vBM',
-      thumbnail: 'https://img.youtube.com/vi/piMHbmX7vBM/hqdefault.jpg'
-    },
-    {
-      id: '1',
-      title: 'What could the future of cars look like?',
-      views: '450K',
-      tag: 'Popular',
-      url: 'https://www.youtube.com/watch?v=Lz5moT15ZgI',
-      thumbnail: 'https://img.youtube.com/vi/Lz5moT15ZgI/hqdefault.jpg'
-    },
-    {
-      id: '2',
-      title: 'Tesla overtaken by Chinese carmaker BYD as world\'s biggest seller',
-      views: '320K',
-      url: 'https://www.youtube.com/watch?v=d2ezNAf9vjw',
-      thumbnail: 'https://img.youtube.com/vi/d2ezNAf9vjw/hqdefault.jpg'
-    },
-  ];
-
-  const trendingNews = [
-    { id: '1', title: 'India-made suzuki evitara launch prices', snippet: 'RS 48 lakh', time: '2 hours ago', url: 'https://www.rushlane.com/india-made-suzuki-evitara-brazil-launch-price-r-269990-rs-48-lakh-12541176.html' },
-    { id: '2', title: 'Maruti e Vitara vs Tata Curvv EV compared: Which should you buy?', snippet: 'Electric SUV comparison guide', time: '5 hours ago', url: 'https://www.autocarindia.com/auto-features/maruti-e-vitara-vs-tata-curvv-ev-compared-which-should-you-buy-440302' },
-  ];
+  const fetchDiscoveryContent = async () => {
+    try {
+      setDiscoveryLoading(true);
+      const res = await api.get<any>('/v1/discovery/trending');
+      const data = (res as any).data || res;
+      if (data) {
+        if (data.news) setTrendingNews(data.news);
+        if (data.videos) setTrendingVideos(data.videos);
+      }
+    } catch (error) {
+      console.error('Error fetching discovery content:', error);
+    } finally {
+      setDiscoveryLoading(false);
+    }
+  };
 
   const handleVideoPress = async (url: string) => {
     try {
-      await Linking.openURL(url);
+      if (url) await Linking.openURL(url);
     } catch (error) {
       console.error('Error opening URL:', error);
     }
@@ -192,11 +175,11 @@ export default function Home() {
 
   const handleNewsPress = async (url: string) => {
     try {
-      await Linking.openURL(url);
+      if (url) await Linking.openURL(url);
     } catch (error) {
       console.error('Error opening URL:', error);
     }
-  };;
+  };
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar

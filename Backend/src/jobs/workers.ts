@@ -123,6 +123,9 @@ export const initWorkers = () => {
         await runDailyMaintenance();
       } else if (job.name === "sync-telematics") {
         await telematicsService.syncTripsForAllDevices();
+      } else if (job.name === "daily-scraping") {
+        const { contentScraperService } = await import("../services/content-scraper.service");
+        await contentScraperService.scrapeFuelPrices();
       }
     },
     defaultWorkerOptions ?? undefined,

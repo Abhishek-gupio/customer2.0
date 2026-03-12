@@ -318,6 +318,18 @@ model FuelPriceCache {
   @@schema("customer")
 }
 
+model DiscoveryContent {
+  id        String   @id @default(cuid())
+  type      String // 'NEWS' or 'VIDEO'
+  content   Json // Stored list of news/videos
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type, date])
+  @@schema("customer")
+}
+
 model ServiceRecord {
   id                String          @id @default(cuid())
   vehicleId         String

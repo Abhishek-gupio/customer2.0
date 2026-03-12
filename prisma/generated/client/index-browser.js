@@ -339,6 +339,15 @@ exports.Prisma.FuelPriceCacheScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DiscoveryContentScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  content: 'content',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ServiceRecordScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -443,6 +452,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -565,6 +578,7 @@ exports.Prisma.ModelName = {
   Expense: 'Expense',
   ExpenseBudget: 'ExpenseBudget',
   FuelPriceCache: 'FuelPriceCache',
+  DiscoveryContent: 'DiscoveryContent',
   ServiceRecord: 'ServiceRecord',
   ServicePart: 'ServicePart',
   TelematicsDevice: 'TelematicsDevice',
