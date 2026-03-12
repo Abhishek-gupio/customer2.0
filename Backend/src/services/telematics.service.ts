@@ -257,22 +257,28 @@ export const telematicsService = {
           : new Date(Date.now() - 24 * 60 * 60 * 1000);
         const endDate = new Date();
 
-        const response = await axios.post(
-          `https://api.telematicssdk.com/trips/get/admin/v1`,
-          {
-            Identifiers: { UserId: device.instanceId },
+        // API expects body under "request" and Identifiers.UserId as nullable GUID (not our CUID instanceId).
+        // We only have instanceId; pass null for UserId and rely on date range. If API requires UserId, add damoovUserId to schema later.
+        const requestBody = {
+          request: {
+            Identifiers: { UserId: null as string | null },
             IncludeDetails: true,
             IncludeStatistics: true,
             IncludeScores: true,
-            IncludeEvents: true, // We want harsh braking events
+            IncludeEvents: true,
             StartDateTimestampSec: Math.floor(startDate.getTime() / 1000),
-            EndDateTimestampSec: Math.floor(endDate.getTime() / 1000)
+            EndDateTimestampSec: Math.floor(endDate.getTime() / 1000),
           },
+        };
+
+        const response = await axios.post(
+          `https://api.telematicssdk.com/trips/get/admin/v1`,
+          requestBody,
           {
             headers: {
               "Accept": "application/json",
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${accessToken}`
+              "Authorization": `Bearer ${accessToken}`,
             },
           }
         );

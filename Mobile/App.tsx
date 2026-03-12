@@ -9,6 +9,7 @@ import { setUser } from './src/store/slices/authSlice';
 import { getStoredAccessToken } from './src/services/authService';
 import { getUserId } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 
 function AuthRestore() {
   useEffect(() => {
@@ -31,7 +32,9 @@ function App() {
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <NavigationContainer>
-              <AuthRestore />
+              <VoiceOwnerProvider>
+                <AuthRestore />
+              </VoiceOwnerProvider>
             </NavigationContainer>
           </SafeAreaProvider>
         </View>

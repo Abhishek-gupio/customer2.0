@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useContext } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,20 @@ import {
   Platform,
   PermissionsAndroid,
   Alert,
+  AppState,
+  AppStateStatus,
+  TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { chatService } from '../services/chatService';
+import { VoiceOwnerContext } from '../context/VoiceOwnerContext';
 
 const VOICE_LOCALE = Platform.OS === 'ios' ? 'en-US' : 'en-IN';
+/** Stop listening after this many ms if no speech result (so we don't listen forever). */
+const LISTEN_TIMEOUT_MS = 12000;
+/** Delay before restarting mic after agent speaks (let TTS release audio; then we reset Voice). */
+const RESTART_DELAY_MS = Platform.OS === 'android' ? 1200 : 600;
 
 /** Normalize for matching: lowercase, collapse spaces */
 function normalize(s: string): string {
@@ -41,15 +48,20 @@ function extractCommand(transcript: string): string {
 }
 
 export default function HeyGupioOverlay() {
-  const navigation = useNavigation();
-  const navigationRef = useRef(navigation);
-  navigationRef.current = navigation;
+  const { heyGupioCanListen } = useContext(VoiceOwnerContext);
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
   const modeRef = useRef<'wake' | 'command'>('wake');
   const sessionIdRef = useRef<string | undefined>(undefined);
   const isMountedRef = useRef(true);
   const ttsFinishRef = useRef<(() => void) | null>(null);
+  const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restartDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const continuousModeRef = useRef(false);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const startListeningRef = useRef<() => void>(() => {});
+  const canListenRef = useRef(heyGupioCanListen);
+  canListenRef.current = heyGupioCanListen;
 
   const requestMicPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS !== 'android') return true;
@@ -68,119 +80,134 @@ export default function HeyGupioOverlay() {
     }
   }, []);
 
+  const ttsFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speakWithTts = useCallback((text: string, onDone?: () => void) => {
+    if (ttsFallbackRef.current) {
+      clearTimeout(ttsFallbackRef.current);
+      ttsFallbackRef.current = null;
+    }
+    ttsFinishRef.current = onDone ?? null;
+    Tts.getInitStatus()
+      .then(() => {
+        Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
+        Tts.setDefaultRate(0.48);
+        Tts.setDefaultPitch(1.0);
+        Tts.speak(text);
+        // Fallback: if tts-finish never fires, still run onDone after ~length-based delay
+        const delay = Math.min(Math.max(text.length * 90, 3000), 25000);
+        ttsFallbackRef.current = setTimeout(() => {
+          ttsFallbackRef.current = null;
+          if (ttsFinishRef.current) {
+            ttsFinishRef.current();
+            ttsFinishRef.current = null;
+          }
+        }, delay);
+      })
+      .catch((err: any) => {
+        if (err?.code === 'no_engine') Tts.requestInstallEngine();
+        if (onDone) onDone();
+      });
+  }, []);
+
+  /** After agent speaks: wait a bit, release TTS, reset recognizer, then start listening again. */
+  const scheduleRestartListening = useCallback(() => {
+    if (restartDelayRef.current) {
+      clearTimeout(restartDelayRef.current);
+      restartDelayRef.current = null;
+    }
+    restartDelayRef.current = setTimeout(() => {
+      restartDelayRef.current = null;
+      if (!isMountedRef.current || !continuousModeRef.current || !canListenRef.current) return;
+      setStatus('listening');
+      // Release TTS so it doesn't hold audio; reset Voice so next start() actually listens
+      Tts.stop();
+      const doStart = () => {
+        if (!isMountedRef.current || !continuousModeRef.current) return;
+        startListeningRef.current();
+      };
+      if (typeof (Voice as any).destroy === 'function') {
+        (Voice as any).destroy().catch(() => {}).then(doStart);
+      } else {
+        doStart();
+      }
+    }, RESTART_DELAY_MS);
+  }, []);
+
   const startListening = useCallback(() => {
     if (!isMountedRef.current) return;
     setStatus('listening');
+    modeRef.current = 'command'; // Tap-to-talk: first phrase is the command, no "Hey Gupio" needed
+    const clearListenTimeout = () => {
+      if (listenTimeoutRef.current) {
+        clearTimeout(listenTimeoutRef.current);
+        listenTimeoutRef.current = null;
+      }
+    };
+
     const onResult = async (e: any) => {
       if (!isMountedRef.current) return;
-      // Support both { value: string[] } and { results: string[][] } or similar
+      clearListenTimeout();
       const raw = e?.value ?? e?.results?.[0] ?? e?.result ?? [];
       const first = Array.isArray(raw) ? raw[0] : raw;
       const transcript = (typeof first === 'string' ? first : first?.transcript ?? '').trim();
       if (__DEV__ && transcript) console.log('[HeyGupio] Heard:', transcript);
       if (!transcript) {
-        Voice.start(VOICE_LOCALE).catch(() => {});
+        if (continuousModeRef.current) scheduleRestartListening();
+        else setStatus('idle');
         return;
       }
       try {
         await Voice.stop();
       } catch (_) {}
 
-      const isWake = isWakeWord(transcript);
-      const command = extractCommand(transcript);
-
-      if (modeRef.current === 'wake') {
-        if (!isWake) {
-          Voice.start(VOICE_LOCALE).catch(() => {});
-          return;
-        }
-        if (command) {
-          modeRef.current = 'wake';
-          setStatus('processing');
-          try {
-            const data = await chatService.sendMessage(command, sessionIdRef.current);
-            sessionIdRef.current = data.sessionId;
-            const reply = data.message || 'Done.';
-            setStatus('speaking');
-            Tts.speak(reply);
-            ttsFinishRef.current = () => {
-              setStatus('listening');
-              modeRef.current = 'wake';
-              const nav = navigationRef.current as any;
-              const root = nav?.getParent?.() ?? nav;
-              root?.navigate?.('Chat', { userMessage: '', sessionId: data.sessionId });
-              ttsFinishRef.current = null;
-              Voice.start(VOICE_LOCALE).catch(() => {});
-            };
-          } catch (err: any) {
-            setStatus('speaking');
-            const msg = err?.message || 'Something went wrong. Please try again.';
-            Tts.speak(msg);
-            ttsFinishRef.current = () => {
-              setStatus('listening');
-              ttsFinishRef.current = null;
-              Voice.start(VOICE_LOCALE).catch(() => {});
-            };
-          }
-          return;
-        }
+      modeRef.current = 'wake';
+      setStatus('processing');
+      try {
+        const data = await chatService.sendMessage(transcript, sessionIdRef.current);
+        sessionIdRef.current = data.sessionId;
+        const reply = data.message || 'Done.';
         setStatus('speaking');
-        Tts.speak('How can I help?');
-        modeRef.current = 'command';
-        ttsFinishRef.current = () => {
-          setStatus('listening');
+        speakWithTts(reply, () => {
           ttsFinishRef.current = null;
-          Voice.start(VOICE_LOCALE).catch(() => {});
-        };
-        return;
-      }
-
-      if (modeRef.current === 'command') {
-        modeRef.current = 'wake';
-        setStatus('processing');
-        try {
-          const data = await chatService.sendMessage(transcript, sessionIdRef.current);
-          sessionIdRef.current = data.sessionId;
-          const reply = data.message || 'Done.';
-          setStatus('speaking');
-          Tts.speak(reply);
-          ttsFinishRef.current = () => {
+          if (continuousModeRef.current) {
+            setStatus('listening'); // Show listening immediately after agent speaks
+            scheduleRestartListening();
+          } else {
+            setStatus('idle');
+          }
+        });
+      } catch (err: any) {
+        setStatus('speaking');
+        const msg = err?.message || 'Something went wrong. Please try again.';
+        speakWithTts(msg, () => {
+          ttsFinishRef.current = null;
+          if (continuousModeRef.current) {
             setStatus('listening');
-            ttsFinishRef.current = null;
-            const nav = navigationRef.current as any;
-            const root = nav?.getParent?.() ?? nav;
-            root?.navigate?.('Chat', { userMessage: '', sessionId: data.sessionId });
-            Voice.start(VOICE_LOCALE).catch(() => {});
-          };
-        } catch (err: any) {
-          setStatus('speaking');
-          const msg = err?.message || 'Something went wrong. Please try again.';
-          Tts.speak(msg);
-          ttsFinishRef.current = () => {
-            setStatus('listening');
-            ttsFinishRef.current = null;
-            Voice.start(VOICE_LOCALE).catch(() => {});
-          };
-        }
+            scheduleRestartListening();
+          } else {
+            setStatus('idle');
+          }
+        });
       }
     };
 
     const onError = async (err: any) => {
+      clearListenTimeout();
       try {
         await Voice.stop();
       } catch (_) {}
       const msg = String(err?.error?.message ?? err?.message ?? err).toLowerCase();
       if (msg.includes('cancel') || msg.includes('no match') || msg.includes('no speech')) {
         if (isMountedRef.current) {
-          setStatus('listening');
-          Voice.start(VOICE_LOCALE).catch(() => {});
+          if (continuousModeRef.current) scheduleRestartListening();
+          else setStatus('idle');
         }
         return;
       }
-      if (isMountedRef.current) setStatus('listening');
-      setTimeout(() => {
-        if (isMountedRef.current) Voice.start(VOICE_LOCALE).catch(() => {});
-      }, 1000);
+      if (isMountedRef.current) {
+        if (continuousModeRef.current) scheduleRestartListening();
+        else setStatus('idle');
+      }
     };
 
     (Voice as any).onSpeechResults = onResult;
@@ -189,21 +216,41 @@ export default function HeyGupioOverlay() {
       if (isMountedRef.current) setStatus('listening');
     };
     const tryStart = (attempt = 0) => {
-      Voice.start(VOICE_LOCALE).catch((err) => {
-        if (__DEV__) console.log('[HeyGupio] Voice.start failed:', err);
-        setStatus('idle');
-        if (isMountedRef.current && attempt < 3) {
-          setTimeout(() => tryStart(attempt + 1), 2000);
-        }
-      });
+      if (!isMountedRef.current || !canListenRef.current || appStateRef.current !== 'active') return;
+      Voice.start(VOICE_LOCALE)
+        .then(() => {
+          clearListenTimeout();
+          listenTimeoutRef.current = setTimeout(() => {
+            listenTimeoutRef.current = null;
+            if (!isMountedRef.current) return;
+            Voice.stop().catch(() => {});
+            if (continuousModeRef.current) scheduleRestartListening();
+            else setStatus('idle');
+          }, LISTEN_TIMEOUT_MS);
+        })
+        .catch((err) => {
+          if (__DEV__) console.log('[HeyGupio] Voice.start failed:', err);
+          setStatus('idle');
+          if (isMountedRef.current && attempt < 2) {
+            setTimeout(() => tryStart(attempt + 1), 1500);
+          } else if (isMountedRef.current) {
+            Alert.alert('Microphone', 'Could not start listening. Check mic permission and try again.');
+          }
+        });
     };
     tryStart();
-  }, []);
+  }, [speakWithTts, scheduleRestartListening]);
+
+  startListeningRef.current = startListening;
 
   useEffect(() => {
     isMountedRef.current = true;
 
     const onTtsFinish = () => {
+      if (ttsFallbackRef.current) {
+        clearTimeout(ttsFallbackRef.current);
+        ttsFallbackRef.current = null;
+      }
       if (ttsFinishRef.current) ttsFinishRef.current();
     };
     Tts.addEventListener('tts-finish', onTtsFinish);
@@ -219,7 +266,8 @@ export default function HeyGupioOverlay() {
       }
       Tts.getInitStatus()
         .then(() => {
-          Tts.setDefaultRate(0.5);
+          Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
+          Tts.setDefaultRate(0.48);
           Tts.setDefaultPitch(1.0);
         })
         .catch((err: any) => {
@@ -227,12 +275,32 @@ export default function HeyGupioOverlay() {
         });
       setReady(true);
       modeRef.current = 'wake';
-      setStatus('listening');
-      startListening();
+      setStatus('idle');
     })();
+
+    const appSub = AppState.addEventListener('change', (next) => {
+      appStateRef.current = next;
+      if (next !== 'active') {
+        Voice.stop().catch(() => {});
+        if (isMountedRef.current) setStatus('idle');
+      }
+    });
 
     return () => {
       isMountedRef.current = false;
+      if (ttsFallbackRef.current) {
+        clearTimeout(ttsFallbackRef.current);
+        ttsFallbackRef.current = null;
+      }
+      if (restartDelayRef.current) {
+        clearTimeout(restartDelayRef.current);
+        restartDelayRef.current = null;
+      }
+      if (listenTimeoutRef.current) {
+        clearTimeout(listenTimeoutRef.current);
+        listenTimeoutRef.current = null;
+      }
+      appSub.remove();
       Tts.removeAllListeners('tts-finish');
       Tts.stop();
       try {
@@ -241,42 +309,90 @@ export default function HeyGupioOverlay() {
     };
   }, [requestMicPermission]);
 
+  useEffect(() => {
+    if (!heyGupioCanListen) {
+      Voice.stop().catch(() => {});
+      setStatus('idle');
+    }
+  }, [heyGupioCanListen]);
+
+  const stopContinuous = useCallback(() => {
+    continuousModeRef.current = false;
+    if (restartDelayRef.current) {
+      clearTimeout(restartDelayRef.current);
+      restartDelayRef.current = null;
+    }
+    if (listenTimeoutRef.current) {
+      clearTimeout(listenTimeoutRef.current);
+      listenTimeoutRef.current = null;
+    }
+    Voice.stop().catch(() => {});
+    Tts.stop();
+    setStatus('idle');
+  }, []);
+
+  const onFloatingTap = useCallback(() => {
+    if (!heyGupioCanListen) return;
+    if (status === 'idle') {
+      continuousModeRef.current = true;
+      startListening();
+    } else {
+      stopContinuous();
+    }
+  }, [heyGupioCanListen, status, startListening, stopContinuous]);
+
   if (!ready) return null;
 
   return (
-    <View style={styles.indicator} pointerEvents="none">
-      <View style={[styles.dot, status === 'listening' && styles.dotListening]} />
-      <Text style={styles.label}>
-        {status === 'listening' && 'Listening for "Hey Gupio"'}
-        {status === 'speaking' && 'Gupio speaking…'}
-        {status === 'processing' && 'Thinking…'}
-      </Text>
-    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onFloatingTap}
+      style={[styles.fab, !heyGupioCanListen && styles.fabDisabled]}
+      disabled={!heyGupioCanListen}
+      accessibilityLabel={status === 'idle' ? 'Tap to start talking to Gupio' : 'Tap to stop'}
+      accessibilityRole="button"
+    >
+      <Text style={styles.fabIcon}>{status === 'listening' ? '🎤' : status === 'processing' ? '…' : status === 'speaking' ? '🔊' : '🎙'}</Text>
+      {status !== 'idle' && (
+        <Text style={styles.fabLabel} numberOfLines={1}>
+          {status === 'listening' && 'Listening… Tap to stop'}
+          {status === 'processing' && 'Thinking…'}
+          {status === 'speaking' && 'Speaking… Tap to stop'}
+        </Text>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  indicator: {
+  fab: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 52 : 42,
-    left: 12,
-    right: 12,
-    flexDirection: 'row',
+    bottom: 88,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1a1a2e',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
     zIndex: 999,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#333',
+  fabDisabled: {
+    opacity: 0.7,
   },
-  dotListening: {
-    backgroundColor: '#00ff9c',
+  fabIcon: {
+    fontSize: 26,
   },
-  label: {
+  fabLabel: {
+    position: 'absolute',
+    right: 60,
     fontSize: 11,
     color: '#7a8599',
+    maxWidth: 80,
   },
 });

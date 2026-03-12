@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -33,6 +33,7 @@ import { useNavigation } from "../../lib/react-navigation-native";
 import { api } from "../../services/api";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
+import { VoiceOwnerContext } from "../../context/VoiceOwnerContext";
 
 // Option A: device STT → send text only (fast, no upload). User picks default language.
 const VOICE_LANGUAGES: { label: string; locale: string }[] = [
@@ -50,6 +51,7 @@ const VOICE_LANGUAGES: { label: string; locale: string }[] = [
 
 export default function AddExpenseScreen() {
   const navigation = useNavigation();
+  const { setVoiceOwner } = useContext(VoiceOwnerContext);
   const [showManual, setShowManual] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -61,62 +63,18 @@ export default function AddExpenseScreen() {
   const [voiceLanguageIndex, setVoiceLanguageIndexState] = useState(() => getVoiceLanguageIndex());
   const [showVoiceLangPicker, setShowVoiceLangPicker] = useState(false);
 
-  // Voice setup – only set listeners; avoid calling destroy/isAvailable if native module is null
-  React.useEffect(() => {
-    const initVoice = async () => {
-      try {
-        // Only treat as unavailable if the module is missing; we assign handlers below
-        if (!Voice) {
-          setVoiceAvailable(false);
-          return;
-        }
-
-        Voice.onSpeechStart = () => {
-          setIsRecording(true);
-        };
-        Voice.onSpeechEnd = () => {
-          setIsRecording(false);
-        };
-        Voice.onSpeechResults = (results: { value?: string[] }) => {
-          if (results?.value?.length) {
-            const speechText = results.value[0];
-            setVoiceText(speechText);
-            processVoiceCommand(speechText);
-          }
-        };
-        (Voice as any).onSpeechError = (error: any) => {
-          setIsRecording(false);
-          const msgStr = typeof error?.error?.message === "string" ? error.error.message : String(error?.error || "");
-          console.log("Speech Error:", msgStr);
-          if (msgStr.toLowerCase().includes('permission') || msgStr.includes('9/')) {
-            Alert.alert('Voice Recognition Error', 'Microphone permission denied. Please enable it in settings.');
-          }
-        };
-
-        // Avoid calling isAvailable() – it can touch native code that may be null.
-        // We'll discover availability when user taps "Add by Voice" (start() will throw if unavailable).
-        setVoiceAvailable(true);
-      } catch (err) {
-        console.error('Voice init error:', err);
-        setVoiceAvailable(false);
-      }
-    };
-
-    initVoice();
-
+  // Voice: only check availability on mount. Handlers are set when user taps "Add by Voice" so Hey Gupio can keep the mic until then.
+  useEffect(() => {
+    if (!Voice) setVoiceAvailable(false);
+    else setVoiceAvailable(true);
     return () => {
-      if (!Voice) return;
+      // Release mic when leaving screen so Hey Gupio can listen again (do not destroy – shared with Hey Gupio)
       try {
-        if (typeof Voice.destroy === 'function') {
-          Voice.destroy().then(() => {
-            if (typeof Voice.removeAllListeners === 'function') Voice.removeAllListeners();
-          }).catch(() => { });
-        } else if (typeof Voice.removeAllListeners === 'function') {
-          Voice.removeAllListeners();
-        }
-      } catch (_) { }
+        if (typeof Voice?.stop === "function") Voice.stop();
+      } catch (_) {}
+      setVoiceOwner(null);
     };
-  }, []);
+  }, [setVoiceOwner]);
 
   const processVoiceCommand = async (speechText: string) => {
     setLoading(true);
@@ -361,10 +319,31 @@ export default function AddExpenseScreen() {
         Alert.alert("Voice Not Available", "Use manual entry or scan bills.");
         return;
       }
+      // Claim mic so Hey Gupio stops listening, then stop any current session
+      setVoiceOwner("addExpense");
       try {
         if (typeof Voice.stop === "function") await Voice.stop();
-      } catch (_) { }
+      } catch (_) {}
       setVoiceText("");
+
+      // Set our handlers only while we own the mic (Hey Gupio will re-register when we release)
+      Voice.onSpeechStart = () => setIsRecording(true);
+      Voice.onSpeechEnd = () => setIsRecording(false);
+      Voice.onSpeechResults = (results: { value?: string[] }) => {
+        if (results?.value?.length) {
+          const speechText = results.value[0];
+          setVoiceText(speechText);
+          processVoiceCommand(speechText);
+        }
+      };
+      (Voice as any).onSpeechError = (error: any) => {
+        setIsRecording(false);
+        const msgStr = typeof error?.error?.message === "string" ? error.error.message : String(error?.error || "");
+        console.log("Speech Error:", msgStr);
+        if (msgStr.toLowerCase().includes("permission") || msgStr.includes("9/")) {
+          Alert.alert("Voice Recognition Error", "Microphone permission denied. Please enable it in settings.");
+        }
+      };
 
       // Use saved default language (or Auto = device locale)
       let locale = "en-US";
@@ -406,8 +385,9 @@ export default function AddExpenseScreen() {
     if (Voice && typeof Voice.stop === "function") {
       try {
         await Voice.stop();
-      } catch (_) { }
+      } catch (_) {}
     }
+    setVoiceOwner(null);
   };
 
   return (
