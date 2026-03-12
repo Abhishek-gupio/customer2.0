@@ -159,7 +159,7 @@ export const aiService = {
     if (!genAI) return;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const result = await model.generateContent(
         `Summarize this conversation concisely, keeping key facts, user preferences, and decisions. 
 Previous summary: ${session?.summary || "None"}
@@ -788,7 +788,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
   async generateDrivingCoachAdvice(events: any[], context: any) {
     if (!genAI) throw new Error("AI not configured");
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `
             You are a friendly, calm driving instructor.

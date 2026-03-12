@@ -7,7 +7,9 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "demo:damoov": "node scripts/demo-damoov-100km.js",
+    "test:telematics-full-flow": "ts-node scripts/test-telematics-full-flow.ts"
   },
   "keywords": [],
   "author": "",

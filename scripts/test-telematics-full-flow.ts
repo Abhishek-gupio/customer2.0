@@ -1,8 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+import path from 'path';
 import axios from 'axios';
+// Load Backend .env for DATABASE_URL and DAMOOV_WEBHOOK_SECRET
+require('dotenv').config({ path: path.join(__dirname, '..', 'Backend', '.env') });
 
-const prisma = new PrismaClient();
-const API_URL = 'http://localhost:9000/api/v1';
+import { dbInstances as prisma } from '@repo/db-customer';
+
+const API_URL = process.env.API_URL || 'http://localhost:9000/api/v1';
 
 async function testFullFlow() {
   try {
@@ -44,24 +47,19 @@ async function testFullFlow() {
 
     console.log(`Device linked. Instance ID: ${instanceId}`);
 
-    console.log('\n3. Simulating Damoov Webhook receiving a trip...');
+    console.log('\n3. Simulating Damoov Webhook receiving a 100km trip...');
+    const nowSec = Math.floor(Date.now() / 1000);
     const webhookPayload = {
       "InstanceID": instanceId,
-      "TripID": "TEST_TRIP_" + Date.now(),
-      "StartDate": Math.floor(Date.now() / 1000) - 1800,
-      "EndDate": Math.floor(Date.now() / 1000),
-      "Distance": 15.2,
-      "Duration": 1800,
-      "Score_Overall": 92,
+      "TripID": "TEST_TRIP_100KM_" + Date.now(),
+      "StartDate": nowSec - 3600,
+      "EndDate": nowSec,
+      "Distance": 100,
+      "Duration": 3600,
+      "Score_Overall": 87,
       "Events": [
-        {
-          "Type": "HARSH_BRAKING",
-          "Date": Math.floor(Date.now() / 1000) - 900,
-          "Latitude": 28.7041,
-          "Longitude": 77.1025,
-          "Value": 0.8,
-          "Speed": 45
-        }
+        { "Type": "HARSH_BRAKING", "Date": nowSec - 1800, "Latitude": 28.7041, "Longitude": 77.1025, "Value": 0.6, "Speed": 52 },
+        { "Type": "HARSH_ACCELERATION", "Date": nowSec - 900, "Latitude": 28.7120, "Longitude": 77.1080, "Value": 0.5, "Speed": 30 }
       ]
     };
 
@@ -84,7 +82,7 @@ async function testFullFlow() {
 
     console.log(`Found ${trips.length} trips in DB.`);
     if (trips.length > 0) {
-      console.log(`Trip details: Distance ${trips[0].distanceKm}km, Score ${trips[0].safetyScore}`);
+      console.log(`Trip details: Distance ${trips[0].distanceKm} km, Score ${trips[0].safetyScore}`);
       console.log(`Found ${trips[0].events.length} events (e.g. ${trips[0].events[0]?.eventType})`);
     }
 
