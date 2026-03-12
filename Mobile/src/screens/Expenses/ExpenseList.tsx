@@ -27,6 +27,7 @@ import Bills from './Bills';
 import { colors }from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { vehicleService } from '../../services/vehicleService';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -108,6 +109,10 @@ const ExpenseFeed = () => {
   const [loading, setLoading] = React.useState(false);
   const [bills, setBills] = React.useState<Bill[]>([]);
   const [showAllExpenses, setShowAllExpenses] = React.useState(false);
+  const [vehicleId, setVehicleId] = React.useState<string | null>(null);
+  const isRefreshingRef = React.useRef(false);
+  const pendingRefreshRef = React.useRef(false);
+  const vehicleIdRef = React.useRef<string | null>(null);
   const [isCalendarVisible, setIsCalendarVisible] = React.useState(false);
   const [calendarMonth, setCalendarMonth] = React.useState(() => {
     const now = new Date();
@@ -138,9 +143,22 @@ const ExpenseFeed = () => {
   };
 
   const fetchExpenses = React.useCallback(async () => {
+    if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
+      return;
+    }
+    if (!vehicleIdRef.current) {
+      setRawExpenses([]);
+      setExpensesList([]);
+      setBills([]);
+      return;
+    }
+    isRefreshingRef.current = true;
     setLoading(true);
     try {
-      const response = await api.get<any>('/v1/expenses');
+      const response = await api.get<any>(
+        vehicleIdRef.current ? `/v1/expenses?vehicleId=${vehicleIdRef.current}` : '/v1/expenses'
+      );
       console.log("response", response);
       const items =
         response?.data?.expenses ??
@@ -192,8 +210,43 @@ const ExpenseFeed = () => {
       console.error("Fetch Expenses Error:", error);
     } finally {
       setLoading(false);
+      isRefreshingRef.current = false;
+      if (pendingRefreshRef.current) {
+        pendingRefreshRef.current = false;
+        fetchExpenses();
+      }
     }
   }, []);
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await vehicleService.getVehicles();
+        const list = Array.isArray(res)
+          ? res
+          : Array.isArray((res as any)?.data)
+            ? (res as any).data
+            : [];
+        const primary = list.find((v: any) => v?.isPrimary) || list[0];
+        if (mounted) setVehicleId(primary?.id ?? null);
+      } catch {
+        if (mounted) setVehicleId(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    vehicleIdRef.current = vehicleId;
+  }, [vehicleId]);
+
+  React.useEffect(() => {
+    if (vehicleId === null) return;
+    fetchExpenses();
+  }, [vehicleId, fetchExpenses]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -408,7 +461,7 @@ const ExpenseFeed = () => {
             <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
               <Icon name="plus" size={wp(5)} color="#fff" />
             </TouchableOpacity>
-          </View>cld
+          </View>
 
           <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
             <NotificationPermission />

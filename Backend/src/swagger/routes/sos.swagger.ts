@@ -65,7 +65,7 @@
 
 /**
  * @swagger
- * /v1/sos:
+ * /api/v1/sos:
  *   post:
  *     summary: Trigger an SOS alert
  *     tags: [SOS]
@@ -109,7 +109,7 @@
 
 /**
  * @swagger
- * /v1/sos/{id}/resolve:
+ * /api/v1/sos/{id}/resolve:
  *   post:
  *     summary: Resolve an active SOS request
  *     tags: [SOS]
@@ -135,7 +135,7 @@
 
 /**
  * @swagger
- * /v1/sos/nearby-help:
+ * /api/v1/sos/nearby-help:
  *   get:
  *     summary: Find nearby emergency services
  *     tags: [SOS]
@@ -193,7 +193,7 @@
 
 /**
  * @swagger
- * /v1/sos/contacts:
+ * /api/v1/sos/contacts:
  *   get:
  *     summary: List emergency contacts
  *     tags: [SOS]
@@ -248,7 +248,7 @@
 
 /**
  * @swagger
- * /v1/sos/contacts/{id}:
+ * /api/v1/sos/contacts/{id}:
  *   delete:
  *     summary: Delete an emergency contact
  *     tags: [SOS]

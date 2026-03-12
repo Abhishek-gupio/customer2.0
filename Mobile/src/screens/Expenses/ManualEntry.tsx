@@ -16,7 +16,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
-import { vehicleService, Vehicle } from "../../services/vehicleService";
+import { vehicleService, type Vehicle } from "../../services/vehicleService";
 
 interface ManualEntryData {
   amount?: string;
@@ -65,6 +65,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
+  const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -105,6 +106,24 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       if (initialData.mimeType) setMimeType(initialData.mimeType);
     }
   }, [visible, initialData]);
+
+  React.useEffect(() => {
+    if (!visible) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await vehicleService.getVehicles();
+        const list = Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : [];
+        const primary = list.find((v: any) => v?.isPrimary) || list[0];
+        if (mounted) setVehicleId(primary?.id ?? null);
+      } catch {
+        if (mounted) setVehicleId(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [visible]);
   const [loading, setLoading] = useState(false);
 
   const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
@@ -160,12 +179,12 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       const payload = {
         amount: parseFloat(amount),
         category: category.toUpperCase(), // Backend expects uppercase
-        vehicleId: selectedVehicleId,
+        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
         notes: description,
         date: parsedDate,
         source: "MANUAL",
-        receiptUrl: receiptUrl || undefined,
-        mimeType: mimeType || undefined,
+        receiptUrl: receiptUrl ?? undefined,
+        mimeType: mimeType ?? undefined,
       };
 
       await api.post('/v1/expenses', payload);

@@ -16,7 +16,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse } from "date-fns";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
-import { vehicleService, Vehicle } from "../../services/vehicleService";
+import { vehicleService, type Vehicle } from "../../services/vehicleService";
 
 export interface ReceiptReviewerData {
   amount?: string;
@@ -52,6 +52,7 @@ export default function ReceiptReviewer({
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
+  const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -90,6 +91,24 @@ export default function ReceiptReviewer({
     }
   }, [visible, initialData]);
 
+  React.useEffect(() => {
+    if (!visible) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await vehicleService.getVehicles();
+        const list = Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : [];
+        const primary = list.find((v: any) => v?.isPrimary) || list[0];
+        if (mounted) setVehicleId(primary?.id ?? null);
+      } catch {
+        if (mounted) setVehicleId(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [visible]);
+
   const categories = [
     "Fuel",
     "Toll",
@@ -118,12 +137,12 @@ export default function ReceiptReviewer({
       const payload = {
         amount: parseFloat(amount),
         category: category.toUpperCase(),
-        vehicleId: selectedVehicleId,
+        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
         notes: description,
         date: parsedDate,
         source,
-        receiptUrl: receiptUrl || undefined,
-        mimeType: mimeType || undefined,
+        receiptUrl: receiptUrl ?? undefined,
+        mimeType: mimeType ?? undefined,
       };
 
       await api.post("/v1/expenses", payload);

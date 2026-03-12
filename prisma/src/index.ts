@@ -42,6 +42,10 @@ if (connectionString) {
 const pool = new Pool({
   connectionString,
   ssl,
+  // Limit connections to avoid exhausting DB slots under load
+  max: Number(process.env.DATABASE_POOL_MAX ?? 5),
+  idleTimeoutMillis: Number(process.env.DATABASE_POOL_IDLE_MS ?? 10000),
+  connectionTimeoutMillis: Number(process.env.DATABASE_POOL_CONN_TIMEOUT_MS ?? 10000),
 });
 
 pool.on('error', (err) => {
