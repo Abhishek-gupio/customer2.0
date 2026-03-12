@@ -26,6 +26,8 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
+import { api } from '../../services/api';
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 
@@ -38,21 +40,70 @@ export default function Home() {
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [fuelLoading, setFuelLoading] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicleLoading, setVehicleLoading] = useState(true);
+  const [serviceDueText, setServiceDueText] = useState('Checking...');
+  const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
+  const [trendingNews, setTrendingNews] = useState<any[]>([]);
+  const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // Fetch fuel prices on component mount
+  // Fetch all home data
   useEffect(() => {
-    fetchFuelPrices();
+    const loadData = async () => {
+      await Promise.all([
+        fetchPrimaryVehicle(),
+        fetchFuelPrices(),
+        fetchDiscoveryContent()
+      ]);
+    };
+    loadData();
   }, [selectedState]);
+
+  const fetchPrimaryVehicle = async () => {
+    try {
+      setVehicleLoading(true);
+      const vehicles = await vehicleService.getVehicles();
+      const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
+
+      if (primary) {
+        setVehicle(primary);
+        // Also fetch upcoming service to show in header footer
+        try {
+          const upcoming = await api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
+          const overdue = (upcoming as any).data?.find((p: any) => p.urgency === 'OVERDUE');
+          if (overdue) {
+            setServiceDueText('Overdue!');
+          } else {
+            // Find closest logic... for simplicity using first
+            const first = (upcoming as any).data?.[0];
+            if (first) {
+              const kmLeft = first.lifecycleKm - first.kmSinceReplacement;
+              setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
+            } else {
+              setServiceDueText('Healthy');
+            }
+          }
+        } catch (err) {
+          console.warn('Could not fetch upcoming service for home', err);
+          setServiceDueText('N/A');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching primary vehicle:', error);
+    } finally {
+      setVehicleLoading(false);
+    }
+  };
 
   const fetchFuelPrices = async () => {
     try {
       setFuelLoading(true);
-      const response = await fetch(`http://localhost:9000/api/v1/fuel/state?name=${selectedState}`);
-      const data = await response.json();
-      if (data.success && data.data.petrol) {
-        setFuelPrices(data.data);
+      const res = await api.get<any>(`/v1/fuel/state?name=${selectedState}`);
+      const data = (res as any).data || res;
+      if (data && data.petrol) {
+        setFuelPrices(data);
       } else {
         console.warn('No fuel data available for', selectedState);
       }
@@ -98,46 +149,25 @@ export default function Home() {
     }
   };
 
-  const trendingVideos = [
-    {
-      id: '3',
-      title: 'Future of car technology that may hit our shores',
-      views: '285K',
-      url: 'https://www.youtube.com/watch?v=zSiV8rLna_s',
-      thumbnail: 'https://img.youtube.com/vi/zSiV8rLna_s/hqdefault.jpg'
-    },
-    {
-      id: '4',
-      title: 'Electric Vehicles Revolution 2026',
-      views: '156K',
-      url: 'https://www.youtube.com/watch?v=piMHbmX7vBM',
-      thumbnail: 'https://img.youtube.com/vi/piMHbmX7vBM/hqdefault.jpg'
-    },
-    {
-      id: '1',
-      title: 'What could the future of cars look like?',
-      views: '450K',
-      tag: 'Popular',
-      url: 'https://www.youtube.com/watch?v=Lz5moT15ZgI',
-      thumbnail: 'https://img.youtube.com/vi/Lz5moT15ZgI/hqdefault.jpg'
-    },
-    {
-      id: '2',
-      title: 'Tesla overtaken by Chinese carmaker BYD as world\'s biggest seller',
-      views: '320K',
-      url: 'https://www.youtube.com/watch?v=d2ezNAf9vjw',
-      thumbnail: 'https://img.youtube.com/vi/d2ezNAf9vjw/hqdefault.jpg'
-    },
-  ];
-
-  const trendingNews = [
-    { id: '1', title: 'India-made suzuki evitara launch prices', snippet: 'RS 48 lakh', time: '2 hours ago', url: 'https://www.rushlane.com/india-made-suzuki-evitara-brazil-launch-price-r-269990-rs-48-lakh-12541176.html' },
-    { id: '2', title: 'Maruti e Vitara vs Tata Curvv EV compared: Which should you buy?', snippet: 'Electric SUV comparison guide', time: '5 hours ago', url: 'https://www.autocarindia.com/auto-features/maruti-e-vitara-vs-tata-curvv-ev-compared-which-should-you-buy-440302' },
-  ];
+  const fetchDiscoveryContent = async () => {
+    try {
+      setDiscoveryLoading(true);
+      const res = await api.get<any>('/v1/discovery/trending');
+      const data = (res as any).data || res;
+      if (data) {
+        if (data.news) setTrendingNews(data.news);
+        if (data.videos) setTrendingVideos(data.videos);
+      }
+    } catch (error) {
+      console.error('Error fetching discovery content:', error);
+    } finally {
+      setDiscoveryLoading(false);
+    }
+  };
 
   const handleVideoPress = async (url: string) => {
     try {
-      await Linking.openURL(url);
+      if (url) await Linking.openURL(url);
     } catch (error) {
       console.error('Error opening URL:', error);
     }
@@ -145,11 +175,11 @@ export default function Home() {
 
   const handleNewsPress = async (url: string) => {
     try {
-      await Linking.openURL(url);
+      if (url) await Linking.openURL(url);
     } catch (error) {
       console.error('Error opening URL:', error);
     }
-  };;
+  };
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -166,17 +196,28 @@ export default function Home() {
           <View style={styles.headerContent}>
             {/* Left Info Column */}
             <View style={styles.headerLeft}>
-              <Text style={styles.headerNumberPlate}>DL 01 AB 1234</Text>
-              <Text style={styles.headerCarModel}>Maruti Suzuki Swift</Text>
+              {vehicleLoading ? (
+                <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
+              ) : vehicle ? (
+                <>
+                  <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
+                  <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
 
-              <View style={styles.healthSection}>
-                <Text style={styles.healthText}>
-                  85% <Text style={styles.healthLabel}>Health</Text>
-                </Text>
-                <View style={styles.healthBarBg}>
-                  <View style={[styles.healthBarFill, { width: '85%' }]} />
-                </View>
-              </View>
+                  <View style={styles.healthSection}>
+                    <Text style={styles.healthText}>
+                      {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
+                    </Text>
+                    <View style={styles.healthBarBg}>
+                      <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <TouchableOpacity onPress={() => navigateToRootScreen('AddVehicle')}>
+                  <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
+                  <Text style={styles.headerCarModel}>Tap to get started</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Right Car Image Column */}
@@ -193,11 +234,11 @@ export default function Home() {
           <View style={styles.headerFooter}>
             <View style={styles.footerItem}>
               <Text style={styles.footerLabel}>Service due in</Text>
-              <Text style={styles.footerValue}>420 km</Text>
+              <Text style={styles.footerValue}>{serviceDueText}</Text>
             </View>
             <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
               <Text style={styles.footerLabel}>FASTag</Text>
-              <Text style={styles.footerValue}>₹ 860</Text>
+              <Text style={styles.footerValue}>₹ ---</Text>
             </View>
           </View>
 

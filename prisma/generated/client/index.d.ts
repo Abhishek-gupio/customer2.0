@@ -104,6 +104,11 @@ export type ExpenseBudget = $Result.DefaultSelection<Prisma.$ExpenseBudgetPayloa
  */
 export type FuelPriceCache = $Result.DefaultSelection<Prisma.$FuelPriceCachePayload>
 /**
+ * Model DiscoveryContent
+ * 
+ */
+export type DiscoveryContent = $Result.DefaultSelection<Prisma.$DiscoveryContentPayload>
+/**
  * Model ServiceRecord
  * 
  */
@@ -596,6 +601,16 @@ export class PrismaClient<
     * ```
     */
   get fuelPriceCache(): Prisma.FuelPriceCacheDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.discoveryContent`: Exposes CRUD operations for the **DiscoveryContent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DiscoveryContents
+    * const discoveryContents = await prisma.discoveryContent.findMany()
+    * ```
+    */
+  get discoveryContent(): Prisma.DiscoveryContentDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.serviceRecord`: Exposes CRUD operations for the **ServiceRecord** model.
@@ -1118,6 +1133,7 @@ export namespace Prisma {
     Expense: 'Expense',
     ExpenseBudget: 'ExpenseBudget',
     FuelPriceCache: 'FuelPriceCache',
+    DiscoveryContent: 'DiscoveryContent',
     ServiceRecord: 'ServiceRecord',
     ServicePart: 'ServicePart',
     TelematicsDevice: 'TelematicsDevice',
@@ -1140,7 +1156,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
+      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2476,6 +2492,80 @@ export namespace Prisma {
           }
         }
       }
+      DiscoveryContent: {
+        payload: Prisma.$DiscoveryContentPayload<ExtArgs>
+        fields: Prisma.DiscoveryContentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DiscoveryContentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DiscoveryContentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          findFirst: {
+            args: Prisma.DiscoveryContentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DiscoveryContentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          findMany: {
+            args: Prisma.DiscoveryContentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>[]
+          }
+          create: {
+            args: Prisma.DiscoveryContentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          createMany: {
+            args: Prisma.DiscoveryContentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DiscoveryContentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>[]
+          }
+          delete: {
+            args: Prisma.DiscoveryContentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          update: {
+            args: Prisma.DiscoveryContentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          deleteMany: {
+            args: Prisma.DiscoveryContentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DiscoveryContentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DiscoveryContentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>[]
+          }
+          upsert: {
+            args: Prisma.DiscoveryContentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          aggregate: {
+            args: Prisma.DiscoveryContentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDiscoveryContent>
+          }
+          groupBy: {
+            args: Prisma.DiscoveryContentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DiscoveryContentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DiscoveryContentCountArgs<ExtArgs>
+            result: $Utils.Optional<DiscoveryContentCountAggregateOutputType> | number
+          }
+        }
+      }
       ServiceRecord: {
         payload: Prisma.$ServiceRecordPayload<ExtArgs>
         fields: Prisma.ServiceRecordFieldRefs
@@ -3120,6 +3210,7 @@ export namespace Prisma {
     expense?: ExpenseOmit
     expenseBudget?: ExpenseBudgetOmit
     fuelPriceCache?: FuelPriceCacheOmit
+    discoveryContent?: DiscoveryContentOmit
     serviceRecord?: ServiceRecordOmit
     servicePart?: ServicePartOmit
     telematicsDevice?: TelematicsDeviceOmit
@@ -24422,6 +24513,1010 @@ export namespace Prisma {
 
 
   /**
+   * Model DiscoveryContent
+   */
+
+  export type AggregateDiscoveryContent = {
+    _count: DiscoveryContentCountAggregateOutputType | null
+    _min: DiscoveryContentMinAggregateOutputType | null
+    _max: DiscoveryContentMaxAggregateOutputType | null
+  }
+
+  export type DiscoveryContentMinAggregateOutputType = {
+    id: string | null
+    type: string | null
+    date: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DiscoveryContentMaxAggregateOutputType = {
+    id: string | null
+    type: string | null
+    date: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DiscoveryContentCountAggregateOutputType = {
+    id: number
+    type: number
+    content: number
+    date: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DiscoveryContentMinAggregateInputType = {
+    id?: true
+    type?: true
+    date?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DiscoveryContentMaxAggregateInputType = {
+    id?: true
+    type?: true
+    date?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DiscoveryContentCountAggregateInputType = {
+    id?: true
+    type?: true
+    content?: true
+    date?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DiscoveryContentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DiscoveryContent to aggregate.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DiscoveryContents
+    **/
+    _count?: true | DiscoveryContentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DiscoveryContentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DiscoveryContentMaxAggregateInputType
+  }
+
+  export type GetDiscoveryContentAggregateType<T extends DiscoveryContentAggregateArgs> = {
+        [P in keyof T & keyof AggregateDiscoveryContent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDiscoveryContent[P]>
+      : GetScalarType<T[P], AggregateDiscoveryContent[P]>
+  }
+
+
+
+
+  export type DiscoveryContentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DiscoveryContentWhereInput
+    orderBy?: DiscoveryContentOrderByWithAggregationInput | DiscoveryContentOrderByWithAggregationInput[]
+    by: DiscoveryContentScalarFieldEnum[] | DiscoveryContentScalarFieldEnum
+    having?: DiscoveryContentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DiscoveryContentCountAggregateInputType | true
+    _min?: DiscoveryContentMinAggregateInputType
+    _max?: DiscoveryContentMaxAggregateInputType
+  }
+
+  export type DiscoveryContentGroupByOutputType = {
+    id: string
+    type: string
+    content: JsonValue
+    date: Date
+    createdAt: Date
+    updatedAt: Date
+    _count: DiscoveryContentCountAggregateOutputType | null
+    _min: DiscoveryContentMinAggregateOutputType | null
+    _max: DiscoveryContentMaxAggregateOutputType | null
+  }
+
+  type GetDiscoveryContentGroupByPayload<T extends DiscoveryContentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DiscoveryContentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DiscoveryContentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DiscoveryContentGroupByOutputType[P]>
+            : GetScalarType<T[P], DiscoveryContentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DiscoveryContentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["discoveryContent"]>
+
+  export type DiscoveryContentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["discoveryContent"]>
+
+  export type DiscoveryContentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["discoveryContent"]>
+
+  export type DiscoveryContentSelectScalar = {
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DiscoveryContentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "type" | "content" | "date" | "createdAt" | "updatedAt", ExtArgs["result"]["discoveryContent"]>
+
+  export type $DiscoveryContentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DiscoveryContent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      type: string
+      content: Prisma.JsonValue
+      date: Date
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["discoveryContent"]>
+    composites: {}
+  }
+
+  type DiscoveryContentGetPayload<S extends boolean | null | undefined | DiscoveryContentDefaultArgs> = $Result.GetResult<Prisma.$DiscoveryContentPayload, S>
+
+  type DiscoveryContentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DiscoveryContentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DiscoveryContentCountAggregateInputType | true
+    }
+
+  export interface DiscoveryContentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DiscoveryContent'], meta: { name: 'DiscoveryContent' } }
+    /**
+     * Find zero or one DiscoveryContent that matches the filter.
+     * @param {DiscoveryContentFindUniqueArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DiscoveryContentFindUniqueArgs>(args: SelectSubset<T, DiscoveryContentFindUniqueArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DiscoveryContent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DiscoveryContentFindUniqueOrThrowArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DiscoveryContentFindUniqueOrThrowArgs>(args: SelectSubset<T, DiscoveryContentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DiscoveryContent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentFindFirstArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DiscoveryContentFindFirstArgs>(args?: SelectSubset<T, DiscoveryContentFindFirstArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DiscoveryContent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentFindFirstOrThrowArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DiscoveryContentFindFirstOrThrowArgs>(args?: SelectSubset<T, DiscoveryContentFindFirstOrThrowArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DiscoveryContents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DiscoveryContents
+     * const discoveryContents = await prisma.discoveryContent.findMany()
+     * 
+     * // Get first 10 DiscoveryContents
+     * const discoveryContents = await prisma.discoveryContent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const discoveryContentWithIdOnly = await prisma.discoveryContent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DiscoveryContentFindManyArgs>(args?: SelectSubset<T, DiscoveryContentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DiscoveryContent.
+     * @param {DiscoveryContentCreateArgs} args - Arguments to create a DiscoveryContent.
+     * @example
+     * // Create one DiscoveryContent
+     * const DiscoveryContent = await prisma.discoveryContent.create({
+     *   data: {
+     *     // ... data to create a DiscoveryContent
+     *   }
+     * })
+     * 
+     */
+    create<T extends DiscoveryContentCreateArgs>(args: SelectSubset<T, DiscoveryContentCreateArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DiscoveryContents.
+     * @param {DiscoveryContentCreateManyArgs} args - Arguments to create many DiscoveryContents.
+     * @example
+     * // Create many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DiscoveryContentCreateManyArgs>(args?: SelectSubset<T, DiscoveryContentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DiscoveryContents and returns the data saved in the database.
+     * @param {DiscoveryContentCreateManyAndReturnArgs} args - Arguments to create many DiscoveryContents.
+     * @example
+     * // Create many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DiscoveryContents and only return the `id`
+     * const discoveryContentWithIdOnly = await prisma.discoveryContent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DiscoveryContentCreateManyAndReturnArgs>(args?: SelectSubset<T, DiscoveryContentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DiscoveryContent.
+     * @param {DiscoveryContentDeleteArgs} args - Arguments to delete one DiscoveryContent.
+     * @example
+     * // Delete one DiscoveryContent
+     * const DiscoveryContent = await prisma.discoveryContent.delete({
+     *   where: {
+     *     // ... filter to delete one DiscoveryContent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DiscoveryContentDeleteArgs>(args: SelectSubset<T, DiscoveryContentDeleteArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DiscoveryContent.
+     * @param {DiscoveryContentUpdateArgs} args - Arguments to update one DiscoveryContent.
+     * @example
+     * // Update one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DiscoveryContentUpdateArgs>(args: SelectSubset<T, DiscoveryContentUpdateArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DiscoveryContents.
+     * @param {DiscoveryContentDeleteManyArgs} args - Arguments to filter DiscoveryContents to delete.
+     * @example
+     * // Delete a few DiscoveryContents
+     * const { count } = await prisma.discoveryContent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DiscoveryContentDeleteManyArgs>(args?: SelectSubset<T, DiscoveryContentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DiscoveryContents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DiscoveryContentUpdateManyArgs>(args: SelectSubset<T, DiscoveryContentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DiscoveryContents and returns the data updated in the database.
+     * @param {DiscoveryContentUpdateManyAndReturnArgs} args - Arguments to update many DiscoveryContents.
+     * @example
+     * // Update many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DiscoveryContents and only return the `id`
+     * const discoveryContentWithIdOnly = await prisma.discoveryContent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DiscoveryContentUpdateManyAndReturnArgs>(args: SelectSubset<T, DiscoveryContentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DiscoveryContent.
+     * @param {DiscoveryContentUpsertArgs} args - Arguments to update or create a DiscoveryContent.
+     * @example
+     * // Update or create a DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.upsert({
+     *   create: {
+     *     // ... data to create a DiscoveryContent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DiscoveryContent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DiscoveryContentUpsertArgs>(args: SelectSubset<T, DiscoveryContentUpsertArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DiscoveryContents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentCountArgs} args - Arguments to filter DiscoveryContents to count.
+     * @example
+     * // Count the number of DiscoveryContents
+     * const count = await prisma.discoveryContent.count({
+     *   where: {
+     *     // ... the filter for the DiscoveryContents we want to count
+     *   }
+     * })
+    **/
+    count<T extends DiscoveryContentCountArgs>(
+      args?: Subset<T, DiscoveryContentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DiscoveryContentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DiscoveryContent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DiscoveryContentAggregateArgs>(args: Subset<T, DiscoveryContentAggregateArgs>): Prisma.PrismaPromise<GetDiscoveryContentAggregateType<T>>
+
+    /**
+     * Group by DiscoveryContent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DiscoveryContentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DiscoveryContentGroupByArgs['orderBy'] }
+        : { orderBy?: DiscoveryContentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DiscoveryContentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDiscoveryContentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DiscoveryContent model
+   */
+  readonly fields: DiscoveryContentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DiscoveryContent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DiscoveryContentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DiscoveryContent model
+   */
+  interface DiscoveryContentFieldRefs {
+    readonly id: FieldRef<"DiscoveryContent", 'String'>
+    readonly type: FieldRef<"DiscoveryContent", 'String'>
+    readonly content: FieldRef<"DiscoveryContent", 'Json'>
+    readonly date: FieldRef<"DiscoveryContent", 'DateTime'>
+    readonly createdAt: FieldRef<"DiscoveryContent", 'DateTime'>
+    readonly updatedAt: FieldRef<"DiscoveryContent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DiscoveryContent findUnique
+   */
+  export type DiscoveryContentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent findUniqueOrThrow
+   */
+  export type DiscoveryContentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent findFirst
+   */
+  export type DiscoveryContentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DiscoveryContents.
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DiscoveryContents.
+     */
+    distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
+  }
+
+  /**
+   * DiscoveryContent findFirstOrThrow
+   */
+  export type DiscoveryContentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DiscoveryContents.
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DiscoveryContents.
+     */
+    distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
+  }
+
+  /**
+   * DiscoveryContent findMany
+   */
+  export type DiscoveryContentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContents to fetch.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DiscoveryContents.
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
+  }
+
+  /**
+   * DiscoveryContent create
+   */
+  export type DiscoveryContentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data needed to create a DiscoveryContent.
+     */
+    data: XOR<DiscoveryContentCreateInput, DiscoveryContentUncheckedCreateInput>
+  }
+
+  /**
+   * DiscoveryContent createMany
+   */
+  export type DiscoveryContentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DiscoveryContents.
+     */
+    data: DiscoveryContentCreateManyInput | DiscoveryContentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DiscoveryContent createManyAndReturn
+   */
+  export type DiscoveryContentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data used to create many DiscoveryContents.
+     */
+    data: DiscoveryContentCreateManyInput | DiscoveryContentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DiscoveryContent update
+   */
+  export type DiscoveryContentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data needed to update a DiscoveryContent.
+     */
+    data: XOR<DiscoveryContentUpdateInput, DiscoveryContentUncheckedUpdateInput>
+    /**
+     * Choose, which DiscoveryContent to update.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent updateMany
+   */
+  export type DiscoveryContentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DiscoveryContents.
+     */
+    data: XOR<DiscoveryContentUpdateManyMutationInput, DiscoveryContentUncheckedUpdateManyInput>
+    /**
+     * Filter which DiscoveryContents to update
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * Limit how many DiscoveryContents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DiscoveryContent updateManyAndReturn
+   */
+  export type DiscoveryContentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data used to update DiscoveryContents.
+     */
+    data: XOR<DiscoveryContentUpdateManyMutationInput, DiscoveryContentUncheckedUpdateManyInput>
+    /**
+     * Filter which DiscoveryContents to update
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * Limit how many DiscoveryContents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DiscoveryContent upsert
+   */
+  export type DiscoveryContentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The filter to search for the DiscoveryContent to update in case it exists.
+     */
+    where: DiscoveryContentWhereUniqueInput
+    /**
+     * In case the DiscoveryContent found by the `where` argument doesn't exist, create a new DiscoveryContent with this data.
+     */
+    create: XOR<DiscoveryContentCreateInput, DiscoveryContentUncheckedCreateInput>
+    /**
+     * In case the DiscoveryContent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DiscoveryContentUpdateInput, DiscoveryContentUncheckedUpdateInput>
+  }
+
+  /**
+   * DiscoveryContent delete
+   */
+  export type DiscoveryContentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter which DiscoveryContent to delete.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent deleteMany
+   */
+  export type DiscoveryContentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DiscoveryContents to delete
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * Limit how many DiscoveryContents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DiscoveryContent without action
+   */
+  export type DiscoveryContentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model ServiceRecord
    */
 
@@ -32964,6 +34059,18 @@ export namespace Prisma {
   export type FuelPriceCacheScalarFieldEnum = (typeof FuelPriceCacheScalarFieldEnum)[keyof typeof FuelPriceCacheScalarFieldEnum]
 
 
+  export const DiscoveryContentScalarFieldEnum: {
+    id: 'id',
+    type: 'type',
+    content: 'content',
+    date: 'date',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DiscoveryContentScalarFieldEnum = (typeof DiscoveryContentScalarFieldEnum)[keyof typeof DiscoveryContentScalarFieldEnum]
+
+
   export const ServiceRecordScalarFieldEnum: {
     id: 'id',
     vehicleId: 'vehicleId',
@@ -33096,6 +34203,13 @@ export namespace Prisma {
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -34874,6 +35988,63 @@ export namespace Prisma {
     source?: StringWithAggregatesFilter<"FuelPriceCache"> | string
     createdAt?: DateTimeWithAggregatesFilter<"FuelPriceCache"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"FuelPriceCache"> | Date | string
+  }
+
+  export type DiscoveryContentWhereInput = {
+    AND?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    OR?: DiscoveryContentWhereInput[]
+    NOT?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    id?: StringFilter<"DiscoveryContent"> | string
+    type?: StringFilter<"DiscoveryContent"> | string
+    content?: JsonFilter<"DiscoveryContent">
+    date?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    createdAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    updatedAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+  }
+
+  export type DiscoveryContentOrderByWithRelationInput = {
+    id?: SortOrder
+    type?: SortOrder
+    content?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DiscoveryContentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    OR?: DiscoveryContentWhereInput[]
+    NOT?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    type?: StringFilter<"DiscoveryContent"> | string
+    content?: JsonFilter<"DiscoveryContent">
+    date?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    createdAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    updatedAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+  }, "id">
+
+  export type DiscoveryContentOrderByWithAggregationInput = {
+    id?: SortOrder
+    type?: SortOrder
+    content?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DiscoveryContentCountOrderByAggregateInput
+    _max?: DiscoveryContentMaxOrderByAggregateInput
+    _min?: DiscoveryContentMinOrderByAggregateInput
+  }
+
+  export type DiscoveryContentScalarWhereWithAggregatesInput = {
+    AND?: DiscoveryContentScalarWhereWithAggregatesInput | DiscoveryContentScalarWhereWithAggregatesInput[]
+    OR?: DiscoveryContentScalarWhereWithAggregatesInput[]
+    NOT?: DiscoveryContentScalarWhereWithAggregatesInput | DiscoveryContentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DiscoveryContent"> | string
+    type?: StringWithAggregatesFilter<"DiscoveryContent"> | string
+    content?: JsonWithAggregatesFilter<"DiscoveryContent">
+    date?: DateTimeWithAggregatesFilter<"DiscoveryContent"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"DiscoveryContent"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DiscoveryContent"> | Date | string
   }
 
   export type ServiceRecordWhereInput = {
@@ -37204,6 +38375,69 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DiscoveryContentCreateInput = {
+    id?: string
+    type: string
+    content: JsonNullValueInput | InputJsonValue
+    date?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DiscoveryContentUncheckedCreateInput = {
+    id?: string
+    type: string
+    content: JsonNullValueInput | InputJsonValue
+    date?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DiscoveryContentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DiscoveryContentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DiscoveryContentCreateManyInput = {
+    id?: string
+    type: string
+    content: JsonNullValueInput | InputJsonValue
+    date?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DiscoveryContentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DiscoveryContentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ServiceRecordCreateInput = {
     id?: string
     expenseId?: string | null
@@ -39250,6 +40484,80 @@ export namespace Prisma {
 
   export type FuelPriceCacheSumOrderByAggregateInput = {
     price?: SortOrder
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type DiscoveryContentCountOrderByAggregateInput = {
+    id?: SortOrder
+    type?: SortOrder
+    content?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DiscoveryContentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    type?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DiscoveryContentMinOrderByAggregateInput = {
+    id?: SortOrder
+    type?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type ServicePartListRelationFilter = {
@@ -41428,6 +42736,29 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumExpenseSourceFilter<$PrismaModel>
     _max?: NestedEnumExpenseSourceFilter<$PrismaModel>
+  }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedEnumServicePartTypeFilter<$PrismaModel = never> = {

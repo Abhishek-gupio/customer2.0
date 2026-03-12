@@ -43,6 +43,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Telematics Sync (*/10 * * * *)");
 
+    // A3. Daily Scraper (Fuel, News, Content at 6:30 AM)
+    await queues.maintenance.add(
+      "daily-scraping",
+      {},
+      {
+        repeat: { pattern: "30 6 * * *" },
+        jobId: "daily-scraping-job",
+      },
+    );
+    logger.info("Scheduled: Daily Scraping (30 6 * * *)");
+
     // B. Weekly Expense Digest (Every Monday at 10:00 AM)
     await queues.notifications.add(
       "weekly-digest",

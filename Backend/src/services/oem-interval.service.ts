@@ -104,6 +104,10 @@ export async function saveSuggestedIntervals(
   const errors: string[] = [];
   let saved = 0;
 
+  if (!db.partReplacementInterval) {
+    return { saved: 0, errors: ["PartReplacementInterval model not in schema"] };
+  }
+
   for (const p of intervals) {
     try {
       await db.partReplacementInterval.upsert({

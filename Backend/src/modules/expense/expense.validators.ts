@@ -49,6 +49,18 @@ export const createExpenseSchema = z.object({
   odometerReading: z.number().optional(),
   receiptUrl: z.string().optional(),
   mimeType: z.string().optional(),
+  parts: z
+    .array(
+      z.object({
+        partType: z.string().min(1),
+        partName: z.string().optional(),
+        brand: z.string().optional(),
+        cost: z.number().optional(),
+        warrantyMonths: z.number().optional(),
+        warrantyKm: z.number().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const updateExpenseSchema = z.object({

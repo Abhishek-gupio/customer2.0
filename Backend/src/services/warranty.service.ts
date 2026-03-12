@@ -24,6 +24,7 @@ const PART_LIFECYCLE_FALLBACK: Record<
   BRAKE_PADS: { months: 24, km: 30000, defaultWarrantyMonths: 6 },
   BRAKE_DISCS: { months: 36, km: 60000, defaultWarrantyMonths: 12 },
   BATTERY: { months: 36, km: 80000, defaultWarrantyMonths: 24 },
+  TYRES: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
   TYRES_FRONT: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
   TYRES_REAR: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
   CLUTCH_PLATE: { months: 48, km: 60000, defaultWarrantyMonths: 6 },
@@ -83,6 +84,12 @@ async function getLifecycleForVehiclePart(
   const year = vehicle?.year ?? null;
 
   try {
+    if (!db.partReplacementInterval) {
+      const fallback =
+        PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
+      return { ...fallback, source: "FALLBACK" };
+    }
+
     const rows = await db.partReplacementInterval.findMany({
       where: { partType: partType as any },
     });
@@ -303,7 +310,7 @@ export const warrantyService = {
     // Get current odometer
     const vehicle = await dbInstances.customerVehicle.findUnique({
       where: { id: vehicleId },
-      select: { currentOdometer: true, make: true, model: true },
+      select: { currentOdometer: true, make: true, model: true, registrationDate: true },
     });
 
     const currentOdo = vehicle?.currentOdometer || 0;
@@ -315,7 +322,13 @@ export const warrantyService = {
       },
       include: {
         serviceRecord: {
-          select: { odometerAtService: true, serviceDate: true },
+          select: {
+            odometerAtService: true,
+            serviceDate: true,
+            garageName: true,
+            serviceType: true,
+            notes: true
+          },
         },
       },
       orderBy: { lastReplacedAt: "desc" },
@@ -330,11 +343,34 @@ export const warrantyService = {
     }
 
     const due: any[] = [];
+    const trackedPartTypes = [
+      "ENGINE_OIL",
+      "BATTERY",
+      "TYRES",
+      "TYRES_FRONT",
+      "TYRES_REAR",
+      "BRAKE_PADS",
+      "AIR_FILTER",
+      "COOLANT",
+    ];
 
-    for (const part of latestParts.values()) {
-      const lifecycle = await getLifecycleForVehiclePart(vehicleId, part.partType);
-      const replacedAt = new Date(part.lastReplacedAt);
-      const odoAtService = part.serviceRecord?.odometerAtService || 0;
+    for (const partType of trackedPartTypes) {
+      let part = latestParts.get(partType);
+      const lifecycle = await getLifecycleForVehiclePart(vehicleId, partType);
+
+      let replacedAt: Date;
+      let odoAtService: number;
+
+      if (part) {
+        replacedAt = new Date(part.lastReplacedAt);
+        odoAtService = part.serviceRecord?.odometerAtService || 0;
+      } else {
+        // No service record found, assume original part from registration date
+        replacedAt = vehicle?.registrationDate ? new Date(vehicle.registrationDate) : new Date();
+        odoAtService = 0;
+        // Mock a part object for the loop
+        part = { partType, brand: "Original", lastReplacedAt: replacedAt };
+      }
 
       // Check time-based due
       const timeDue = new Date(replacedAt);
@@ -345,6 +381,7 @@ export const warrantyService = {
       const kmSinceReplacement = currentOdo - odoAtService;
       const isKmDue = kmSinceReplacement >= lifecycle.km * 0.8; // 80% of lifecycle
 
+      // If it's not due, we still push it but with 'ACTIVE' status for the UI to show data
       if (isTimeDue || isKmDue) {
         const daysOverdue = Math.ceil(
           (now.getTime() - timeDue.getTime()) / (1000 * 60 * 60 * 24),
@@ -353,18 +390,41 @@ export const warrantyService = {
           daysOverdue > 0 ? "OVERDUE" : isKmDue ? "DUE_BY_KM" : "DUE_SOON";
 
         due.push({
-          partType: part.partType,
+          partType: part.partType || partType,
+          partName: part.partName,
           brand: part.brand,
-          lastReplacedAt: part.lastReplacedAt,
+          lastReplacedAt: replacedAt,
           lastReplacedOdo: odoAtService,
           kmSinceReplacement,
           lifecycleKm: lifecycle.km,
+          lifecycleMonths: lifecycle.months,
           recommendedReplacementDate: timeDue,
           urgency,
+          garageName: part.serviceRecord?.garageName,
+          serviceType: part.serviceRecord?.serviceType,
+          warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
           message:
             urgency === "OVERDUE"
-              ? `⚠️ ${part.partType} is ${Math.abs(daysOverdue)} days overdue for replacement! (Last changed: ${replacedAt.toLocaleDateString("en-IN")})`
-              : `🔔 ${part.partType} replacement recommended soon. ${kmSinceReplacement} km since last change (lifecycle: ${lifecycle.km} km).`,
+              ? `⚠️ ${partType} is ${Math.abs(daysOverdue)} days overdue for replacement!`
+              : `🔔 ${partType} replacement recommended soon. ${kmSinceReplacement} km since last change.`,
+        });
+      } else {
+        // Active/Good status
+        due.push({
+          partType: part.partType || partType,
+          partName: part.partName,
+          brand: part.brand,
+          lastReplacedAt: replacedAt,
+          lastReplacedOdo: odoAtService,
+          kmSinceReplacement,
+          lifecycleKm: lifecycle.km,
+          lifecycleMonths: lifecycle.months,
+          recommendedReplacementDate: timeDue,
+          urgency: "ACTIVE",
+          garageName: part.serviceRecord?.garageName,
+          serviceType: part.serviceRecord?.serviceType,
+          warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
+          message: `✅ ${partType} is in good condition.`,
         });
       }
     }

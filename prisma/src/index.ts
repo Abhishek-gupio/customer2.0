@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 
 declare global {
   var prisma: PrismaClient | undefined;
+  var pool: Pool | undefined;
 }
 
 let connectionString = process.env.DATABASE_URL ?? '';
@@ -42,7 +43,6 @@ if (connectionString) {
 const pool = new Pool({
   connectionString,
   ssl,
-  // Limit connections to avoid exhausting DB slots under load
   max: Number(process.env.DATABASE_POOL_MAX ?? 5),
   idleTimeoutMillis: Number(process.env.DATABASE_POOL_IDLE_MS ?? 10000),
   connectionTimeoutMillis: Number(process.env.DATABASE_POOL_CONN_TIMEOUT_MS ?? 10000),
@@ -51,10 +51,28 @@ const pool = new Pool({
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle database client', err);
 });
-const adapter = new PrismaPg(pool);
-export const dbInstances = (global.prisma ??
-  new PrismaClient({ adapter })) as PrismaClient;
 
-if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
+const adapter = new PrismaPg(pool);
+const dbInstances = new PrismaClient({
+  adapter,
+  log: ['error', 'warn'],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = dbInstances;
+  global.pool = pool;
+}
+
+export { dbInstances };
+
+export const disconnect = async () => {
+  console.log('🔌 Database: Closing connections...');
+  if (global.prisma) {
+    await (global.prisma as PrismaClient).$disconnect();
+  }
+  if (global.pool) {
+    await (global.pool as Pool).end();
+  }
+};
 
 export * from '../generated/client';

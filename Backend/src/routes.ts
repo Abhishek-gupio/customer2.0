@@ -13,6 +13,7 @@ import { aiRoutes } from "./modules/ai/ai.routes";
 
 import { sosRoutes } from "./modules/sos/sos.routes";
 import { fuelRoutes } from "./modules/fuel/fuel.routes";
+import { discoveryRoutes } from "./modules/discovery/discovery.routes";
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use("/v1/telematics", telematicsRoutes);
 router.use("/v1/ai", aiRoutes);
 router.use("/v1/sos", sosRoutes);
 router.use("/v1/fuel", fuelRoutes);
+router.use("/v1/discovery", discoveryRoutes);
 
 export const apiRoutes = router;

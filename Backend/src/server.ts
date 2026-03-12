@@ -1,4 +1,6 @@
+// Triggering restart to pick up prisma changes
 import "dotenv/config";
+
 import { createServer } from "http"; // Server entry point reload
 import { app } from "./app";
 import { env } from "./config/env";

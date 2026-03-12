@@ -36,7 +36,7 @@ const VehicleList = ({ navigation, route }: any) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const unmapHealth = (score: any) => {
-    if (!score) return '100%';
+    if (score === null || score === undefined) return '100%';
     return `${score}%`;
   };
 
@@ -57,13 +57,13 @@ const VehicleList = ({ navigation, route }: any) => {
       }));
       setVehicles(mapped);
     } catch (err) {
-      console.error('Failed fetching vehicles', err);
+      // Error is handled silently to avoid cluttering console
     }
   };
 
   useEffect(() => {
     fetchVehicles();
-  }, [route.params?.newVehicle]);
+  }, [route?.params?.newVehicle]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

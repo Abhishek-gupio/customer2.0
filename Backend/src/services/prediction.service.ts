@@ -126,70 +126,79 @@ export const predictionService = {
       recommendations.push("Get a pollution check done.");
     }
 
-    // 2. Maintenance Audit (20% Weight) - Age, Mileage, Service
+    // 2. Maintenance Audit - Age, Mileage, Service + Individual Parts (Heavily Weighted)
     const predictedKM =
       (await this.predictCurrentOdometer(vehicleId)) ||
       vehicle.currentOdometer ||
       0;
 
-    // Mileage Impact
-    if (predictedKM > 100000) maintenanceScore -= 20;
-    else if (predictedKM > 50000) maintenanceScore -= 10;
+    let partHealthSum = 0;
+    let partsWithData = 0;
+    const partExplanations: string[] = [];
 
-    // Age Impact
-    if (vehicle.registrationDate) {
-      const ageYears =
-        (now.getTime() - vehicle.registrationDate.getTime()) /
-        (1000 * 60 * 60 * 24 * 365);
-      if (ageYears > 15) maintenanceScore -= 30;
-      else if (ageYears > 10) maintenanceScore -= 15;
+    // Part Health Integration (The "Real" health tracker)
+    try {
+      const { warrantyService } = await import("./warranty.service");
+      const partStatus = await warrantyService.getUpcomingReplacements(vehicleId);
 
-      explanations.push(`Vehicle is ${ageYears.toFixed(1)} years old.`);
-    }
+      if (partStatus.length > 0) {
+        for (const p of partStatus) {
+          const lifecycleKm = p.lifecycleKm || 10000;
+          const kmSince = p.kmSinceReplacement || 0;
+          const health = Math.max(0, Math.min(100, Math.round((1 - (kmSince / lifecycleKm)) * 100)));
 
-    // Service Impact
-    const lastService = vehicle.serviceRecords[0];
-    if (lastService) {
-      const monthsSinceService =
-        (now.getTime() - lastService.serviceDate.getTime()) /
-        (1000 * 60 * 60 * 24 * 30);
-      if (monthsSinceService > 12) {
-        maintenanceScore -= 20;
-        explanations.push(
-          "Service overdue: Last service was more than a year ago.",
-        );
-        recommendations.push("Schedule a general service.");
+          partHealthSum += health;
+          partsWithData++;
+
+          // Only add to explanations if it's not perfect or for top few
+          if (health < 100) {
+            partExplanations.push(`${p.partType.replace(/_/g, ' ')}: ${health}%`);
+          }
+          if (health < 40) {
+            recommendations.push(`Critical: ${p.partType.replace(/_/g, ' ')} needs urgent attention.`);
+          }
+        }
+
+        const avgPartHealth = partHealthSum / partsWithData;
+        // maintenanceScore is now primarily the average of your actual parts
+        maintenanceScore = Math.round(avgPartHealth);
+
+        explanations.push(`Maintenance: Average part health is ${maintenanceScore}%.`);
+        if (partExplanations.length > 0) {
+          explanations.push(...partExplanations.slice(0, 3));
+        }
       }
+    } catch (err) {
+      logger.error({ err }, "Failed to integrate detailed part health");
+      maintenanceScore = 100;
     }
 
-    // 3. Driving Score (60% Weight) - From Telematics
+    // Secondary Penalties (Mileage/Age)
+    if (predictedKM > 100000) maintenanceScore -= 10;
+    if (vehicle.registrationDate) {
+      const ageYears = (now.getTime() - vehicle.registrationDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+      if (ageYears > 15) maintenanceScore -= 15;
+    }
+
+    // 3. Driving Score (Telematics)
     const drivingScore = vehicle.healthScore?.drivingScore || null;
 
     let overallScore = 0;
 
     if (drivingScore !== null) {
-      // Weighted Average: 60% Driving, 20% Compliance, 20% Maintenance
+      // 50% Parts/Maintenance, 30% Driving, 20% Compliance
       overallScore =
-        drivingScore * 0.6 + complianceScore * 0.2 + maintenanceScore * 0.2;
-      explanations.push(
-        `Driving Score impact: ${drivingScore}/100 based on recent trips.`,
-      );
+        drivingScore * 0.3 + complianceScore * 0.2 + maintenanceScore * 0.5;
     } else {
-      // Fallback Weights: 50% Compliance, 50% Maintenance
-      overallScore = complianceScore * 0.5 + maintenanceScore * 0.5;
-      explanations.push(
-        "Driving Score pending: Connect App to track trips for better accuracy.",
-      );
-      recommendations.push(
-        "Link the Gupio App to start tracking your driving score.",
-      );
+      // 80% Maintenance (Parts), 20% Compliance
+      overallScore = maintenanceScore * 0.8 + complianceScore * 0.2;
     }
 
     // Predict next service to add as recommendation
     const nextServiceDate = await this.predictNextServiceDate(vehicleId);
     if (nextServiceDate) {
       recommendations.push(
-        `Next service predicted around: ${nextServiceDate.toLocaleDateString()}`,
+        `Next service predicted: ${nextServiceDate.toLocaleDateString()}`,
       );
     }
 
