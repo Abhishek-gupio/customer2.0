@@ -84,6 +84,11 @@ export type ChatMessage = $Result.DefaultSelection<Prisma.$ChatMessagePayload>
  */
 export type DocumentEmbedding = $Result.DefaultSelection<Prisma.$DocumentEmbeddingPayload>
 /**
+ * Model ChatAnalytics
+ * 
+ */
+export type ChatAnalytics = $Result.DefaultSelection<Prisma.$ChatAnalyticsPayload>
+/**
  * Model Expense
  * 
  */
@@ -551,6 +556,16 @@ export class PrismaClient<
     * ```
     */
   get documentEmbedding(): Prisma.DocumentEmbeddingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.chatAnalytics`: Exposes CRUD operations for the **ChatAnalytics** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChatAnalytics
+    * const chatAnalytics = await prisma.chatAnalytics.findMany()
+    * ```
+    */
+  get chatAnalytics(): Prisma.ChatAnalyticsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.expense`: Exposes CRUD operations for the **Expense** model.
@@ -1099,6 +1114,7 @@ export namespace Prisma {
     ChatSession: 'ChatSession',
     ChatMessage: 'ChatMessage',
     DocumentEmbedding: 'DocumentEmbedding',
+    ChatAnalytics: 'ChatAnalytics',
     Expense: 'Expense',
     ExpenseBudget: 'ExpenseBudget',
     FuelPriceCache: 'FuelPriceCache',
@@ -1124,7 +1140,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
+      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2164,6 +2180,80 @@ export namespace Prisma {
           }
         }
       }
+      ChatAnalytics: {
+        payload: Prisma.$ChatAnalyticsPayload<ExtArgs>
+        fields: Prisma.ChatAnalyticsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChatAnalyticsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChatAnalyticsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          findFirst: {
+            args: Prisma.ChatAnalyticsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChatAnalyticsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          findMany: {
+            args: Prisma.ChatAnalyticsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>[]
+          }
+          create: {
+            args: Prisma.ChatAnalyticsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          createMany: {
+            args: Prisma.ChatAnalyticsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChatAnalyticsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>[]
+          }
+          delete: {
+            args: Prisma.ChatAnalyticsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          update: {
+            args: Prisma.ChatAnalyticsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          deleteMany: {
+            args: Prisma.ChatAnalyticsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChatAnalyticsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ChatAnalyticsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>[]
+          }
+          upsert: {
+            args: Prisma.ChatAnalyticsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          aggregate: {
+            args: Prisma.ChatAnalyticsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChatAnalytics>
+          }
+          groupBy: {
+            args: Prisma.ChatAnalyticsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChatAnalyticsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChatAnalyticsCountArgs<ExtArgs>
+            result: $Utils.Optional<ChatAnalyticsCountAggregateOutputType> | number
+          }
+        }
+      }
       Expense: {
         payload: Prisma.$ExpensePayload<ExtArgs>
         fields: Prisma.ExpenseFieldRefs
@@ -3026,6 +3116,7 @@ export namespace Prisma {
     chatSession?: ChatSessionOmit
     chatMessage?: ChatMessageOmit
     documentEmbedding?: DocumentEmbeddingOmit
+    chatAnalytics?: ChatAnalyticsOmit
     expense?: ExpenseOmit
     expenseBudget?: ExpenseBudgetOmit
     fuelPriceCache?: FuelPriceCacheOmit
@@ -16510,6 +16601,7 @@ export namespace Prisma {
     id: string | null
     customerId: string | null
     title: string | null
+    summary: string | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -16519,6 +16611,7 @@ export namespace Prisma {
     id: string | null
     customerId: string | null
     title: string | null
+    summary: string | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -16528,6 +16621,7 @@ export namespace Prisma {
     id: number
     customerId: number
     title: number
+    summary: number
     isActive: number
     createdAt: number
     updatedAt: number
@@ -16539,6 +16633,7 @@ export namespace Prisma {
     id?: true
     customerId?: true
     title?: true
+    summary?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16548,6 +16643,7 @@ export namespace Prisma {
     id?: true
     customerId?: true
     title?: true
+    summary?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16557,6 +16653,7 @@ export namespace Prisma {
     id?: true
     customerId?: true
     title?: true
+    summary?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16639,6 +16736,7 @@ export namespace Prisma {
     id: string
     customerId: string
     title: string | null
+    summary: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -16665,6 +16763,7 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16677,6 +16776,7 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16687,6 +16787,7 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16697,12 +16798,13 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ChatSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "title" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["chatSession"]>
+  export type ChatSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "title" | "summary" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["chatSession"]>
   export type ChatSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     messages?: boolean | ChatSession$messagesArgs<ExtArgs>
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -16725,6 +16827,7 @@ export namespace Prisma {
       id: string
       customerId: string
       title: string | null
+      summary: string | null
       isActive: boolean
       createdAt: Date
       updatedAt: Date
@@ -17156,6 +17259,7 @@ export namespace Prisma {
     readonly id: FieldRef<"ChatSession", 'String'>
     readonly customerId: FieldRef<"ChatSession", 'String'>
     readonly title: FieldRef<"ChatSession", 'String'>
+    readonly summary: FieldRef<"ChatSession", 'String'>
     readonly isActive: FieldRef<"ChatSession", 'Boolean'>
     readonly createdAt: FieldRef<"ChatSession", 'DateTime'>
     readonly updatedAt: FieldRef<"ChatSession", 'DateTime'>
@@ -19669,6 +19773,1134 @@ export namespace Prisma {
      * Omit specific fields from the DocumentEmbedding
      */
     omit?: DocumentEmbeddingOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChatAnalytics
+   */
+
+  export type AggregateChatAnalytics = {
+    _count: ChatAnalyticsCountAggregateOutputType | null
+    _avg: ChatAnalyticsAvgAggregateOutputType | null
+    _sum: ChatAnalyticsSumAggregateOutputType | null
+    _min: ChatAnalyticsMinAggregateOutputType | null
+    _max: ChatAnalyticsMaxAggregateOutputType | null
+  }
+
+  export type ChatAnalyticsAvgAggregateOutputType = {
+    responseTimeMs: number | null
+    messageCount: number | null
+    feedback: number | null
+  }
+
+  export type ChatAnalyticsSumAggregateOutputType = {
+    responseTimeMs: number | null
+    messageCount: number | null
+    feedback: number | null
+  }
+
+  export type ChatAnalyticsMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    sessionId: string | null
+    toolName: string | null
+    intent: string | null
+    responseTimeMs: number | null
+    messageCount: number | null
+    hadToolCall: boolean | null
+    hadImage: boolean | null
+    wasStreaming: boolean | null
+    feedback: number | null
+    createdAt: Date | null
+  }
+
+  export type ChatAnalyticsMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    sessionId: string | null
+    toolName: string | null
+    intent: string | null
+    responseTimeMs: number | null
+    messageCount: number | null
+    hadToolCall: boolean | null
+    hadImage: boolean | null
+    wasStreaming: boolean | null
+    feedback: number | null
+    createdAt: Date | null
+  }
+
+  export type ChatAnalyticsCountAggregateOutputType = {
+    id: number
+    customerId: number
+    sessionId: number
+    toolName: number
+    intent: number
+    responseTimeMs: number
+    messageCount: number
+    hadToolCall: number
+    hadImage: number
+    wasStreaming: number
+    feedback: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ChatAnalyticsAvgAggregateInputType = {
+    responseTimeMs?: true
+    messageCount?: true
+    feedback?: true
+  }
+
+  export type ChatAnalyticsSumAggregateInputType = {
+    responseTimeMs?: true
+    messageCount?: true
+    feedback?: true
+  }
+
+  export type ChatAnalyticsMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    sessionId?: true
+    toolName?: true
+    intent?: true
+    responseTimeMs?: true
+    messageCount?: true
+    hadToolCall?: true
+    hadImage?: true
+    wasStreaming?: true
+    feedback?: true
+    createdAt?: true
+  }
+
+  export type ChatAnalyticsMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    sessionId?: true
+    toolName?: true
+    intent?: true
+    responseTimeMs?: true
+    messageCount?: true
+    hadToolCall?: true
+    hadImage?: true
+    wasStreaming?: true
+    feedback?: true
+    createdAt?: true
+  }
+
+  export type ChatAnalyticsCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    sessionId?: true
+    toolName?: true
+    intent?: true
+    responseTimeMs?: true
+    messageCount?: true
+    hadToolCall?: true
+    hadImage?: true
+    wasStreaming?: true
+    feedback?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ChatAnalyticsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatAnalytics to aggregate.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChatAnalytics
+    **/
+    _count?: true | ChatAnalyticsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ChatAnalyticsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ChatAnalyticsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChatAnalyticsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChatAnalyticsMaxAggregateInputType
+  }
+
+  export type GetChatAnalyticsAggregateType<T extends ChatAnalyticsAggregateArgs> = {
+        [P in keyof T & keyof AggregateChatAnalytics]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChatAnalytics[P]>
+      : GetScalarType<T[P], AggregateChatAnalytics[P]>
+  }
+
+
+
+
+  export type ChatAnalyticsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChatAnalyticsWhereInput
+    orderBy?: ChatAnalyticsOrderByWithAggregationInput | ChatAnalyticsOrderByWithAggregationInput[]
+    by: ChatAnalyticsScalarFieldEnum[] | ChatAnalyticsScalarFieldEnum
+    having?: ChatAnalyticsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChatAnalyticsCountAggregateInputType | true
+    _avg?: ChatAnalyticsAvgAggregateInputType
+    _sum?: ChatAnalyticsSumAggregateInputType
+    _min?: ChatAnalyticsMinAggregateInputType
+    _max?: ChatAnalyticsMaxAggregateInputType
+  }
+
+  export type ChatAnalyticsGroupByOutputType = {
+    id: string
+    customerId: string
+    sessionId: string
+    toolName: string | null
+    intent: string | null
+    responseTimeMs: number | null
+    messageCount: number
+    hadToolCall: boolean
+    hadImage: boolean
+    wasStreaming: boolean
+    feedback: number | null
+    createdAt: Date
+    _count: ChatAnalyticsCountAggregateOutputType | null
+    _avg: ChatAnalyticsAvgAggregateOutputType | null
+    _sum: ChatAnalyticsSumAggregateOutputType | null
+    _min: ChatAnalyticsMinAggregateOutputType | null
+    _max: ChatAnalyticsMaxAggregateOutputType | null
+  }
+
+  type GetChatAnalyticsGroupByPayload<T extends ChatAnalyticsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChatAnalyticsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChatAnalyticsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChatAnalyticsGroupByOutputType[P]>
+            : GetScalarType<T[P], ChatAnalyticsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChatAnalyticsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chatAnalytics"]>
+
+  export type ChatAnalyticsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chatAnalytics"]>
+
+  export type ChatAnalyticsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chatAnalytics"]>
+
+  export type ChatAnalyticsSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }
+
+  export type ChatAnalyticsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "sessionId" | "toolName" | "intent" | "responseTimeMs" | "messageCount" | "hadToolCall" | "hadImage" | "wasStreaming" | "feedback" | "createdAt", ExtArgs["result"]["chatAnalytics"]>
+
+  export type $ChatAnalyticsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChatAnalytics"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      sessionId: string
+      toolName: string | null
+      intent: string | null
+      responseTimeMs: number | null
+      messageCount: number
+      hadToolCall: boolean
+      hadImage: boolean
+      wasStreaming: boolean
+      feedback: number | null
+      createdAt: Date
+    }, ExtArgs["result"]["chatAnalytics"]>
+    composites: {}
+  }
+
+  type ChatAnalyticsGetPayload<S extends boolean | null | undefined | ChatAnalyticsDefaultArgs> = $Result.GetResult<Prisma.$ChatAnalyticsPayload, S>
+
+  type ChatAnalyticsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ChatAnalyticsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ChatAnalyticsCountAggregateInputType | true
+    }
+
+  export interface ChatAnalyticsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChatAnalytics'], meta: { name: 'ChatAnalytics' } }
+    /**
+     * Find zero or one ChatAnalytics that matches the filter.
+     * @param {ChatAnalyticsFindUniqueArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChatAnalyticsFindUniqueArgs>(args: SelectSubset<T, ChatAnalyticsFindUniqueArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ChatAnalytics that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ChatAnalyticsFindUniqueOrThrowArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChatAnalyticsFindUniqueOrThrowArgs>(args: SelectSubset<T, ChatAnalyticsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChatAnalytics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsFindFirstArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChatAnalyticsFindFirstArgs>(args?: SelectSubset<T, ChatAnalyticsFindFirstArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChatAnalytics that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsFindFirstOrThrowArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChatAnalyticsFindFirstOrThrowArgs>(args?: SelectSubset<T, ChatAnalyticsFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ChatAnalytics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findMany()
+     * 
+     * // Get first 10 ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const chatAnalyticsWithIdOnly = await prisma.chatAnalytics.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChatAnalyticsFindManyArgs>(args?: SelectSubset<T, ChatAnalyticsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ChatAnalytics.
+     * @param {ChatAnalyticsCreateArgs} args - Arguments to create a ChatAnalytics.
+     * @example
+     * // Create one ChatAnalytics
+     * const ChatAnalytics = await prisma.chatAnalytics.create({
+     *   data: {
+     *     // ... data to create a ChatAnalytics
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChatAnalyticsCreateArgs>(args: SelectSubset<T, ChatAnalyticsCreateArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ChatAnalytics.
+     * @param {ChatAnalyticsCreateManyArgs} args - Arguments to create many ChatAnalytics.
+     * @example
+     * // Create many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChatAnalyticsCreateManyArgs>(args?: SelectSubset<T, ChatAnalyticsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChatAnalytics and returns the data saved in the database.
+     * @param {ChatAnalyticsCreateManyAndReturnArgs} args - Arguments to create many ChatAnalytics.
+     * @example
+     * // Create many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChatAnalytics and only return the `id`
+     * const chatAnalyticsWithIdOnly = await prisma.chatAnalytics.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChatAnalyticsCreateManyAndReturnArgs>(args?: SelectSubset<T, ChatAnalyticsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ChatAnalytics.
+     * @param {ChatAnalyticsDeleteArgs} args - Arguments to delete one ChatAnalytics.
+     * @example
+     * // Delete one ChatAnalytics
+     * const ChatAnalytics = await prisma.chatAnalytics.delete({
+     *   where: {
+     *     // ... filter to delete one ChatAnalytics
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChatAnalyticsDeleteArgs>(args: SelectSubset<T, ChatAnalyticsDeleteArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ChatAnalytics.
+     * @param {ChatAnalyticsUpdateArgs} args - Arguments to update one ChatAnalytics.
+     * @example
+     * // Update one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChatAnalyticsUpdateArgs>(args: SelectSubset<T, ChatAnalyticsUpdateArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ChatAnalytics.
+     * @param {ChatAnalyticsDeleteManyArgs} args - Arguments to filter ChatAnalytics to delete.
+     * @example
+     * // Delete a few ChatAnalytics
+     * const { count } = await prisma.chatAnalytics.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChatAnalyticsDeleteManyArgs>(args?: SelectSubset<T, ChatAnalyticsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChatAnalyticsUpdateManyArgs>(args: SelectSubset<T, ChatAnalyticsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatAnalytics and returns the data updated in the database.
+     * @param {ChatAnalyticsUpdateManyAndReturnArgs} args - Arguments to update many ChatAnalytics.
+     * @example
+     * // Update many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ChatAnalytics and only return the `id`
+     * const chatAnalyticsWithIdOnly = await prisma.chatAnalytics.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ChatAnalyticsUpdateManyAndReturnArgs>(args: SelectSubset<T, ChatAnalyticsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ChatAnalytics.
+     * @param {ChatAnalyticsUpsertArgs} args - Arguments to update or create a ChatAnalytics.
+     * @example
+     * // Update or create a ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.upsert({
+     *   create: {
+     *     // ... data to create a ChatAnalytics
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChatAnalytics we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChatAnalyticsUpsertArgs>(args: SelectSubset<T, ChatAnalyticsUpsertArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsCountArgs} args - Arguments to filter ChatAnalytics to count.
+     * @example
+     * // Count the number of ChatAnalytics
+     * const count = await prisma.chatAnalytics.count({
+     *   where: {
+     *     // ... the filter for the ChatAnalytics we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChatAnalyticsCountArgs>(
+      args?: Subset<T, ChatAnalyticsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChatAnalyticsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChatAnalyticsAggregateArgs>(args: Subset<T, ChatAnalyticsAggregateArgs>): Prisma.PrismaPromise<GetChatAnalyticsAggregateType<T>>
+
+    /**
+     * Group by ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChatAnalyticsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChatAnalyticsGroupByArgs['orderBy'] }
+        : { orderBy?: ChatAnalyticsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChatAnalyticsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChatAnalyticsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChatAnalytics model
+   */
+  readonly fields: ChatAnalyticsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChatAnalytics.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChatAnalyticsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChatAnalytics model
+   */
+  interface ChatAnalyticsFieldRefs {
+    readonly id: FieldRef<"ChatAnalytics", 'String'>
+    readonly customerId: FieldRef<"ChatAnalytics", 'String'>
+    readonly sessionId: FieldRef<"ChatAnalytics", 'String'>
+    readonly toolName: FieldRef<"ChatAnalytics", 'String'>
+    readonly intent: FieldRef<"ChatAnalytics", 'String'>
+    readonly responseTimeMs: FieldRef<"ChatAnalytics", 'Int'>
+    readonly messageCount: FieldRef<"ChatAnalytics", 'Int'>
+    readonly hadToolCall: FieldRef<"ChatAnalytics", 'Boolean'>
+    readonly hadImage: FieldRef<"ChatAnalytics", 'Boolean'>
+    readonly wasStreaming: FieldRef<"ChatAnalytics", 'Boolean'>
+    readonly feedback: FieldRef<"ChatAnalytics", 'Int'>
+    readonly createdAt: FieldRef<"ChatAnalytics", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChatAnalytics findUnique
+   */
+  export type ChatAnalyticsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics findUniqueOrThrow
+   */
+  export type ChatAnalyticsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics findFirst
+   */
+  export type ChatAnalyticsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatAnalytics.
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatAnalytics.
+     */
+    distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * ChatAnalytics findFirstOrThrow
+   */
+  export type ChatAnalyticsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatAnalytics.
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatAnalytics.
+     */
+    distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * ChatAnalytics findMany
+   */
+  export type ChatAnalyticsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChatAnalytics.
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * ChatAnalytics create
+   */
+  export type ChatAnalyticsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsCreateInput, ChatAnalyticsUncheckedCreateInput>
+  }
+
+  /**
+   * ChatAnalytics createMany
+   */
+  export type ChatAnalyticsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChatAnalytics.
+     */
+    data: ChatAnalyticsCreateManyInput | ChatAnalyticsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatAnalytics createManyAndReturn
+   */
+  export type ChatAnalyticsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data used to create many ChatAnalytics.
+     */
+    data: ChatAnalyticsCreateManyInput | ChatAnalyticsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatAnalytics update
+   */
+  export type ChatAnalyticsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsUpdateInput, ChatAnalyticsUncheckedUpdateInput>
+    /**
+     * Choose, which ChatAnalytics to update.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics updateMany
+   */
+  export type ChatAnalyticsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsUpdateManyMutationInput, ChatAnalyticsUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatAnalytics to update
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * Limit how many ChatAnalytics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatAnalytics updateManyAndReturn
+   */
+  export type ChatAnalyticsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data used to update ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsUpdateManyMutationInput, ChatAnalyticsUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatAnalytics to update
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * Limit how many ChatAnalytics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatAnalytics upsert
+   */
+  export type ChatAnalyticsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the ChatAnalytics to update in case it exists.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+    /**
+     * In case the ChatAnalytics found by the `where` argument doesn't exist, create a new ChatAnalytics with this data.
+     */
+    create: XOR<ChatAnalyticsCreateInput, ChatAnalyticsUncheckedCreateInput>
+    /**
+     * In case the ChatAnalytics was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChatAnalyticsUpdateInput, ChatAnalyticsUncheckedUpdateInput>
+  }
+
+  /**
+   * ChatAnalytics delete
+   */
+  export type ChatAnalyticsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter which ChatAnalytics to delete.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics deleteMany
+   */
+  export type ChatAnalyticsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatAnalytics to delete
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * Limit how many ChatAnalytics to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatAnalytics without action
+   */
+  export type ChatAnalyticsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
   }
 
 
@@ -31614,6 +32846,7 @@ export namespace Prisma {
     id: 'id',
     customerId: 'customerId',
     title: 'title',
+    summary: 'summary',
     isActive: 'isActive',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -31644,6 +32877,24 @@ export namespace Prisma {
   };
 
   export type DocumentEmbeddingScalarFieldEnum = (typeof DocumentEmbeddingScalarFieldEnum)[keyof typeof DocumentEmbeddingScalarFieldEnum]
+
+
+  export const ChatAnalyticsScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    sessionId: 'sessionId',
+    toolName: 'toolName',
+    intent: 'intent',
+    responseTimeMs: 'responseTimeMs',
+    messageCount: 'messageCount',
+    hadToolCall: 'hadToolCall',
+    hadImage: 'hadImage',
+    wasStreaming: 'wasStreaming',
+    feedback: 'feedback',
+    createdAt: 'createdAt'
+  };
+
+  export type ChatAnalyticsScalarFieldEnum = (typeof ChatAnalyticsScalarFieldEnum)[keyof typeof ChatAnalyticsScalarFieldEnum]
 
 
   export const ExpenseScalarFieldEnum: {
@@ -33066,6 +34317,7 @@ export namespace Prisma {
     id?: StringFilter<"ChatSession"> | string
     customerId?: StringFilter<"ChatSession"> | string
     title?: StringNullableFilter<"ChatSession"> | string | null
+    summary?: StringNullableFilter<"ChatSession"> | string | null
     isActive?: BoolFilter<"ChatSession"> | boolean
     createdAt?: DateTimeFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
@@ -33077,6 +34329,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrderInput | SortOrder
+    summary?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33091,6 +34344,7 @@ export namespace Prisma {
     NOT?: ChatSessionWhereInput | ChatSessionWhereInput[]
     customerId?: StringFilter<"ChatSession"> | string
     title?: StringNullableFilter<"ChatSession"> | string | null
+    summary?: StringNullableFilter<"ChatSession"> | string | null
     isActive?: BoolFilter<"ChatSession"> | boolean
     createdAt?: DateTimeFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
@@ -33102,6 +34356,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrderInput | SortOrder
+    summary?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33117,6 +34372,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"ChatSession"> | string
     customerId?: StringWithAggregatesFilter<"ChatSession"> | string
     title?: StringNullableWithAggregatesFilter<"ChatSession"> | string | null
+    summary?: StringNullableWithAggregatesFilter<"ChatSession"> | string | null
     isActive?: BoolWithAggregatesFilter<"ChatSession"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ChatSession"> | Date | string
@@ -33237,6 +34493,95 @@ export namespace Prisma {
     entityType?: StringWithAggregatesFilter<"DocumentEmbedding"> | string
     content?: StringWithAggregatesFilter<"DocumentEmbedding"> | string
     createdAt?: DateTimeWithAggregatesFilter<"DocumentEmbedding"> | Date | string
+  }
+
+  export type ChatAnalyticsWhereInput = {
+    AND?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    OR?: ChatAnalyticsWhereInput[]
+    NOT?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    id?: StringFilter<"ChatAnalytics"> | string
+    customerId?: StringFilter<"ChatAnalytics"> | string
+    sessionId?: StringFilter<"ChatAnalytics"> | string
+    toolName?: StringNullableFilter<"ChatAnalytics"> | string | null
+    intent?: StringNullableFilter<"ChatAnalytics"> | string | null
+    responseTimeMs?: IntNullableFilter<"ChatAnalytics"> | number | null
+    messageCount?: IntFilter<"ChatAnalytics"> | number
+    hadToolCall?: BoolFilter<"ChatAnalytics"> | boolean
+    hadImage?: BoolFilter<"ChatAnalytics"> | boolean
+    wasStreaming?: BoolFilter<"ChatAnalytics"> | boolean
+    feedback?: IntNullableFilter<"ChatAnalytics"> | number | null
+    createdAt?: DateTimeFilter<"ChatAnalytics"> | Date | string
+  }
+
+  export type ChatAnalyticsOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrderInput | SortOrder
+    intent?: SortOrderInput | SortOrder
+    responseTimeMs?: SortOrderInput | SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    OR?: ChatAnalyticsWhereInput[]
+    NOT?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    customerId?: StringFilter<"ChatAnalytics"> | string
+    sessionId?: StringFilter<"ChatAnalytics"> | string
+    toolName?: StringNullableFilter<"ChatAnalytics"> | string | null
+    intent?: StringNullableFilter<"ChatAnalytics"> | string | null
+    responseTimeMs?: IntNullableFilter<"ChatAnalytics"> | number | null
+    messageCount?: IntFilter<"ChatAnalytics"> | number
+    hadToolCall?: BoolFilter<"ChatAnalytics"> | boolean
+    hadImage?: BoolFilter<"ChatAnalytics"> | boolean
+    wasStreaming?: BoolFilter<"ChatAnalytics"> | boolean
+    feedback?: IntNullableFilter<"ChatAnalytics"> | number | null
+    createdAt?: DateTimeFilter<"ChatAnalytics"> | Date | string
+  }, "id">
+
+  export type ChatAnalyticsOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrderInput | SortOrder
+    intent?: SortOrderInput | SortOrder
+    responseTimeMs?: SortOrderInput | SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ChatAnalyticsCountOrderByAggregateInput
+    _avg?: ChatAnalyticsAvgOrderByAggregateInput
+    _max?: ChatAnalyticsMaxOrderByAggregateInput
+    _min?: ChatAnalyticsMinOrderByAggregateInput
+    _sum?: ChatAnalyticsSumOrderByAggregateInput
+  }
+
+  export type ChatAnalyticsScalarWhereWithAggregatesInput = {
+    AND?: ChatAnalyticsScalarWhereWithAggregatesInput | ChatAnalyticsScalarWhereWithAggregatesInput[]
+    OR?: ChatAnalyticsScalarWhereWithAggregatesInput[]
+    NOT?: ChatAnalyticsScalarWhereWithAggregatesInput | ChatAnalyticsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChatAnalytics"> | string
+    customerId?: StringWithAggregatesFilter<"ChatAnalytics"> | string
+    sessionId?: StringWithAggregatesFilter<"ChatAnalytics"> | string
+    toolName?: StringNullableWithAggregatesFilter<"ChatAnalytics"> | string | null
+    intent?: StringNullableWithAggregatesFilter<"ChatAnalytics"> | string | null
+    responseTimeMs?: IntNullableWithAggregatesFilter<"ChatAnalytics"> | number | null
+    messageCount?: IntWithAggregatesFilter<"ChatAnalytics"> | number
+    hadToolCall?: BoolWithAggregatesFilter<"ChatAnalytics"> | boolean
+    hadImage?: BoolWithAggregatesFilter<"ChatAnalytics"> | boolean
+    wasStreaming?: BoolWithAggregatesFilter<"ChatAnalytics"> | boolean
+    feedback?: IntNullableWithAggregatesFilter<"ChatAnalytics"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"ChatAnalytics"> | Date | string
   }
 
   export type ExpenseWhereInput = {
@@ -35228,6 +36573,7 @@ export namespace Prisma {
   export type ChatSessionCreateInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35239,6 +36585,7 @@ export namespace Prisma {
     id?: string
     customerId: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35248,6 +36595,7 @@ export namespace Prisma {
   export type ChatSessionUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35259,6 +36607,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35269,6 +36618,7 @@ export namespace Prisma {
     id?: string
     customerId: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35277,6 +36627,7 @@ export namespace Prisma {
   export type ChatSessionUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35286,6 +36637,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35413,6 +36765,111 @@ export namespace Prisma {
     entityId?: StringFieldUpdateOperationsInput | string
     entityType?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsCreateInput = {
+    id?: string
+    customerId: string
+    sessionId: string
+    toolName?: string | null
+    intent?: string | null
+    responseTimeMs?: number | null
+    messageCount?: number
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ChatAnalyticsUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    sessionId: string
+    toolName?: string | null
+    intent?: string | null
+    responseTimeMs?: number | null
+    messageCount?: number
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ChatAnalyticsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsCreateManyInput = {
+    id?: string
+    customerId: string
+    sessionId: string
+    toolName?: string | null
+    intent?: string | null
+    responseTimeMs?: number | null
+    messageCount?: number
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ChatAnalyticsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -37396,6 +38853,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrder
+    summary?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -37405,6 +38863,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrder
+    summary?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -37414,6 +38873,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrder
+    summary?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -37474,6 +38934,63 @@ export namespace Prisma {
     entityType?: SortOrder
     content?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrder
+    intent?: SortOrder
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsAvgOrderByAggregateInput = {
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    feedback?: SortOrder
+  }
+
+  export type ChatAnalyticsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrder
+    intent?: SortOrder
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrder
+    intent?: SortOrder
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsSumOrderByAggregateInput = {
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    feedback?: SortOrder
   }
 
   export type FloatFilter<$PrismaModel = never> = {
@@ -39954,6 +41471,7 @@ export namespace Prisma {
   export type ChatSessionCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -39963,6 +41481,7 @@ export namespace Prisma {
   export type ChatSessionUncheckedCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -40393,6 +41912,7 @@ export namespace Prisma {
     id?: StringFilter<"ChatSession"> | string
     customerId?: StringFilter<"ChatSession"> | string
     title?: StringNullableFilter<"ChatSession"> | string | null
+    summary?: StringNullableFilter<"ChatSession"> | string | null
     isActive?: BoolFilter<"ChatSession"> | boolean
     createdAt?: DateTimeFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
@@ -42715,6 +44235,7 @@ export namespace Prisma {
   export type ChatSessionCreateWithoutMessagesInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -42725,6 +44246,7 @@ export namespace Prisma {
     id?: string
     customerId: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -42749,6 +44271,7 @@ export namespace Prisma {
   export type ChatSessionUpdateWithoutMessagesInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42759,6 +44282,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -43981,6 +45505,7 @@ export namespace Prisma {
   export type ChatSessionCreateManyCustomerInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -44114,6 +45639,7 @@ export namespace Prisma {
   export type ChatSessionUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44123,6 +45649,7 @@ export namespace Prisma {
   export type ChatSessionUncheckedUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44132,6 +45659,7 @@ export namespace Prisma {
   export type ChatSessionUncheckedUpdateManyWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

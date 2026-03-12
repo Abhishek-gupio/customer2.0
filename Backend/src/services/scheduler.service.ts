@@ -65,6 +65,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Weekly Health Score Update (0 2 * * 1)");
 
+    // D. Proactive AI Chat Check (Every day at 8:00 AM)
+    await queues.maintenance.add(
+      "proactive-ai-check",
+      {},
+      {
+        repeat: { pattern: "0 8 * * *" },
+        jobId: "proactive-ai-check-job",
+      },
+    );
+    logger.info("Scheduled: Proactive AI Check (0 8 * * *)");
+
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },
 

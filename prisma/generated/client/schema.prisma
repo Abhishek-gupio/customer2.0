@@ -222,6 +222,7 @@ model ChatSession {
   id         String        @id @default(cuid())
   customerId String
   title      String?
+  summary    String? // AI-generated summary of older messages
   isActive   Boolean       @default(true)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
@@ -255,6 +256,26 @@ model DocumentEmbedding {
 
   @@index([customerId])
   @@index([entityId])
+  @@schema("customer")
+}
+
+model ChatAnalytics {
+  id             String   @id @default(cuid())
+  customerId     String
+  sessionId      String
+  toolName       String?
+  intent         String?
+  responseTimeMs Int?
+  messageCount   Int      @default(1)
+  hadToolCall    Boolean  @default(false)
+  hadImage       Boolean  @default(false)
+  wasStreaming   Boolean  @default(false)
+  feedback       Int? // -1 = thumbs down, 1 = thumbs up
+  createdAt      DateTime @default(now())
+
+  @@index([customerId])
+  @@index([sessionId])
+  @@index([createdAt])
   @@schema("customer")
 }
 

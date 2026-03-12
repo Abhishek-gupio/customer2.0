@@ -64,6 +64,9 @@ const envSchema = z.object({
   DAMOOV_INSTANCE_KEY: z.string().optional(),
   DAMOOV_ADMIN_EMAIL: z.string().optional(),
   DAMOOV_ADMIN_PASSWORD: z.string().optional(),
+
+  // Voice (Enhanced TTS)
+  GOOGLE_CLOUD_TTS_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -12,6 +12,7 @@ import { expenseIntelligenceService } from "../services/expense-intelligence.ser
 import { warrantyService } from "../services/warranty.service";
 import { predictionService } from "../services/prediction.service";
 import { telematicsService } from "../services/telematics.service";
+import { proactiveChatService } from "../services/proactive-chat.service";
 
 const db = dbInstances as any;
 let workersInitialized = false;
@@ -124,6 +125,8 @@ export const initWorkers = () => {
         await runDailyMaintenance();
       } else if (job.name === "sync-telematics") {
         await telematicsService.syncTripsForAllDevices();
+      } else if (job.name === "proactive-ai-check") {
+        await proactiveChatService.checkAndNotify();
       }
     },
     defaultWorkerOptions ?? undefined,

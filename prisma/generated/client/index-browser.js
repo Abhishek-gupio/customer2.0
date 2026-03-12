@@ -272,6 +272,7 @@ exports.Prisma.ChatSessionScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   title: 'title',
+  summary: 'summary',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -292,6 +293,21 @@ exports.Prisma.DocumentEmbeddingScalarFieldEnum = {
   entityId: 'entityId',
   entityType: 'entityType',
   content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ChatAnalyticsScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  sessionId: 'sessionId',
+  toolName: 'toolName',
+  intent: 'intent',
+  responseTimeMs: 'responseTimeMs',
+  messageCount: 'messageCount',
+  hadToolCall: 'hadToolCall',
+  hadImage: 'hadImage',
+  wasStreaming: 'wasStreaming',
+  feedback: 'feedback',
   createdAt: 'createdAt'
 };
 
@@ -562,6 +578,7 @@ exports.Prisma.ModelName = {
   ChatSession: 'ChatSession',
   ChatMessage: 'ChatMessage',
   DocumentEmbedding: 'DocumentEmbedding',
+  ChatAnalytics: 'ChatAnalytics',
   Expense: 'Expense',
   ExpenseBudget: 'ExpenseBudget',
   FuelPriceCache: 'FuelPriceCache',
