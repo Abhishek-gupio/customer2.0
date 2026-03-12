@@ -31,6 +31,8 @@ import AiBotHome from '../screens/AiBot/HomeScreen';
 import ChatScreen from '../screens/AiBot/ChatScreen';
 import ChatSessionsScreen from '../screens/AiBot/ChatSessionsScreen';
 import DrivingSummary from '../screens/Telematics/DrivingSummary';
+import SOSButton from '../components/SOSButton';
+import Alerts from '../screens/Main/Alerts';
 // import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -87,6 +89,8 @@ export function RootNavigator() {
       <Stack.Screen name="ChatSessions" component={ChatSessionsScreen} />
 
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
+      <Stack.Screen name="SOSButton" component={SOSButton} />
+      <Stack.Screen name="Alerts" component={Alerts} />
 
     </Stack.Navigator>
   );

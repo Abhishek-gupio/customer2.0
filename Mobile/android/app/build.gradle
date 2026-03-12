@@ -139,6 +139,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
@@ -148,10 +149,5 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation project(':react-native-linear-gradient')
-    implementation project(':react-native-voice_voice')
-    implementation project(':react-native-screens')
-    implementation project(':react-native-video')
-    implementation project(':react-native-svg')
 }
 

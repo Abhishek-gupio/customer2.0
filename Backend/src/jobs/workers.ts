@@ -46,7 +46,6 @@ async function runDailyMaintenance() {
   }
 
   const customers = await db.customer.findMany({
-    where: { isActive: true },
     select: { id: true },
   });
 

@@ -6,14 +6,14 @@ import {
 } from 'react-native-responsive-screen';
 import QuickServiceButton from './QuickServiceButton';
 
-const SERVICES: { icon: string; label: string }[] = [
+const SERVICES = [
   { icon: 'wrench', label: 'Service' },
   { icon: 'calendar-check', label: 'Booking' },
   { icon: 'tachometer-alt', label: 'Driving' },
   { icon: 'comments', label: 'Support' },
-  { icon: 'car', label: 'Vehicles' },
-  { icon: 'file-alt', label: 'Documents' },
-  { icon: 'wallet', label: 'Expenses' },
+  { icon: 'car', label: 'My Vehicle' },
+  { icon: 'file-alt', label: 'Document' },
+  { icon: 'wallet', label: 'Expense' },
   { icon: 'parking', label: 'Valet' },
 ];
 
@@ -25,7 +25,7 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        {SERVICES.map((item) => (
+        {SERVICES.slice(0, 4).map((item) => (
           <QuickServiceButton
             key={item.label}
             icon={item.icon}
@@ -34,7 +34,7 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
           />
         ))}
       </View>
-      <View style={styles.row}>
+      <View style={[styles.row, { marginTop: hp(1.5) }]}>
         {SERVICES.slice(4, 8).map((item) => (
           <QuickServiceButton
             key={item.label}
@@ -42,7 +42,6 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
             label={item.label}
             onPress={() => onServicePress?.(item.label)}
           />
-
         ))}
       </View>
     </View>
@@ -51,14 +50,13 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(4),
     marginBottom: hp(2.5),
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    gap: wp(2),
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
 });

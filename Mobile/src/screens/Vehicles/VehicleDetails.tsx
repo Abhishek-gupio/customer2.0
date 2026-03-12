@@ -11,6 +11,9 @@ import {
   StatusBar,
   Platform,
   Alert,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -21,11 +24,61 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { launchCamera } from 'react-native-image-picker';
 import Share, { VehicleUser } from './Share';
+import { vehicleService } from '../../services/vehicleService';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
+const ActionBox = ({
+  icon,
+  label,
+  onPress,
+  color = '#FFBF00',
+}: {
+  icon: string;
+  label: string;
+  onPress?: () => void;
+  color?: string;
+}) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.92,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <TouchableOpacity
+        style={styles.actionCard}
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <View
+          style={[styles.actionIconBg, { backgroundColor: `${color}15` }]}
+        >
+          <FontAwesome5 name={icon} size={wp(5)} color={color} />
+        </View>
+        <Text style={styles.actionLabel}>{label}</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
 const VehicleDetails = ({ navigation, route }: any) => {
-  const vehicle = route.params?.vehicle || {
+  const initialVehicle = route.params?.vehicle || {
     plate: 'DL 01 AB 1234',
     brand: 'Maruti Suzuki',
     model: 'Swift',
@@ -34,6 +87,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
     photo:
       'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=400',
   };
+
+  const [vehicle, setVehicle] = useState(initialVehicle);
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [isSharingLoading, setIsSharingLoading] = useState(false);
@@ -49,12 +104,44 @@ const VehicleDetails = ({ navigation, route }: any) => {
   ]);
 
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [isOdoModalVisible, setIsOdoModalVisible] = useState(false);
+  const [odoInput, setOdoInput] = useState('');
   const animatedValue = useRef(new Animated.Value(0)).current;
   const spinValue = useRef(new Animated.Value(0)).current;
 
-  const healthScore = vehicle.healthScore || 85;
+  const parseHealth = (val: any) => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') return parseInt(val.replace('%', ''), 10) || 85;
+    return 85;
+  };
+
+  const healthScore = vehicle.healthScore ? parseHealth(vehicle.healthScore) : parseHealth(vehicle.health);
   const radius = 68;
   const circumference = 2 * Math.PI * radius;
+
+  const fetchVehicleDetails = useCallback(async () => {
+    if (!vehicle.id) return;
+    try {
+      const data = await vehicleService.getVehicleById(vehicle.id);
+      setVehicle((prev: any) => ({
+        ...prev,
+        healthScore: data.healthScore?.overallScore || 0,
+        odometer: data.currentOdometer ? `${data.currentOdometer.toLocaleString()} km` : prev.odometer,
+        photo: data.photo || prev.photo || prev.img,
+        chassisNumber: data.chassisNumber,
+        engineNumber: data.engineNumber,
+        rcVerified: data.rcVerified,
+        registrationDate: data.registrationDate,
+        variant: data.variant,
+      }));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [vehicle.id]);
+
+  useEffect(() => {
+    fetchVehicleDetails();
+  }, [fetchVehicleDetails]);
 
   const getHealthStatus = (score: number) => {
     if (score >= 80) return { label: 'Excellent', color: '#22c55e' };
@@ -77,7 +164,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
     startHealthAnimation();
   }, [startHealthAnimation]);
 
-  const handleRecalculate = () => {
+  const handleRecalculate = async () => {
+    if (!vehicle.id) return;
     setIsRecalculating(true);
     spinValue.setValue(0);
     animatedValue.setValue(0);
@@ -89,10 +177,15 @@ const VehicleDetails = ({ navigation, route }: any) => {
       useNativeDriver: true,
     }).start();
 
-    setTimeout(() => {
+    try {
+      await vehicleService.recalculateHealth(vehicle.id);
+      await fetchVehicleDetails();
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to recalculate view mapping');
+    } finally {
       setIsRecalculating(false);
       startHealthAnimation();
-    }, 1500);
+    }
   };
 
   const spinRotation = spinValue.interpolate({
@@ -100,28 +193,52 @@ const VehicleDetails = ({ navigation, route }: any) => {
     outputRange: ['0deg', '360deg'],
   });
 
-  const handleUpdateOdometer = async () => {
-    Alert.alert(
-      'Update Odometer',
-      'This feature requires camera permission to capture odometer reading.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Open Camera',
-          onPress: async () => {
-            try {
-              const result: any = await launchCamera({
-                mediaType: 'photo',
-                quality: 0.8,
-              });
-              console.log('Camera result:', result);
-            } catch (error) {
-              console.log('Camera error:', error);
-            }
-          },
-        },
-      ],
-    );
+  const handleManualOdometerSubmit = async () => {
+    if (!vehicle.id || !odoInput) return;
+    setIsOdoModalVisible(false);
+    setIsRecalculating(true);
+    try {
+      await vehicleService.addOdometer(vehicle.id, { reading: parseInt(odoInput, 10) });
+      await fetchVehicleDetails();
+      Alert.alert('Success', 'Odometer updated successfully!');
+      setOdoInput('');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to update odometer manually');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  const handleCameraOdometer = async () => {
+    setIsOdoModalVisible(false);
+    try {
+      const result: any = await launchCamera({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const fd = new FormData();
+        fd.append('photo', {
+          uri: Platform.OS === 'android' ? asset.uri : asset.uri?.replace('file://', ''),
+          type: asset.type || 'image/jpeg',
+          name: asset.fileName || `odometer-${Date.now()}.jpg`,
+        } as any);
+
+        setIsRecalculating(true);
+        try {
+          await vehicleService.addOdometerViaAI(vehicle.id, fd);
+          await fetchVehicleDetails();
+          Alert.alert('Success', 'Odometer updated successfully via AI!');
+        } catch (err: any) {
+          Alert.alert('Error', err?.message || 'Failed OCR check. Please try manual entry.');
+        } finally {
+          setIsRecalculating(false);
+        }
+      }
+    } catch (error) {
+      console.log('Camera error:', error);
+    }
   };
 
   const handleInvite = async (phone: string, role: 'Editor' | 'Viewer') => {
@@ -159,65 +276,15 @@ const VehicleDetails = ({ navigation, route }: any) => {
     outputRange: [circumference, 0],
   });
 
-  const ActionBox = ({
-    icon,
-    label,
-    onPress,
-    color = '#FFBF00',
-  }: {
-    icon: string;
-    label: string;
-    onPress?: () => void;
-    color?: string;
-  }) => {
-    const scaleValue = useRef(new Animated.Value(1)).current;
 
-    const handlePressIn = () => {
-      Animated.spring(scaleValue, {
-        toValue: 0.92,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      Animated.spring(scaleValue, {
-        toValue: 1,
-        friction: 3,
-        tension: 40,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    return (
-      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-        <TouchableOpacity
-          style={styles.actionCard}
-          activeOpacity={1}
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <View
-            style={[styles.actionIconBg, { backgroundColor: `${color}15` }]}
-          >
-            <FontAwesome5 name={icon} size={wp(5)} color={color} />
-          </View>
-          <Text style={styles.actionLabel}>{label}</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      {/* Trigger hot reload */}
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
           <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -257,11 +324,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionLine} />
-            <Text style={styles.sectionLabel}>Health Score</Text>
-            <View style={styles.sectionLine} />
-          </View>
+          <Text style={styles.sectionTitle}>Health Score</Text>
 
           <View style={styles.healthCard}>
             <View style={styles.gaugeContainer}>
@@ -367,18 +430,19 @@ const VehicleDetails = ({ navigation, route }: any) => {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionLine} />
-            <Text style={styles.sectionLabel}>Vehicle Info</Text>
-            <View style={styles.sectionLine} />
-          </View>
+          <Text style={styles.sectionTitle}>Vehicle Info</Text>
 
           <View style={styles.infoCard}>
             {[
               { icon: 'car', l: 'Make', v: vehicle.brand || vehicle.make },
               { icon: 'model', l: 'Model', v: vehicle.model },
+              { icon: 'tags', l: 'Variant', v: vehicle.variant || 'N/A' },
               { icon: 'calendar', l: 'Year', v: vehicle.year },
               { icon: 'gas-pump', l: 'Fuel', v: vehicle.fuel || 'Petrol' },
+              { icon: 'calendar-check', l: 'Reg. Date', v: vehicle.registrationDate ? new Date(vehicle.registrationDate).toLocaleDateString() : 'N/A' },
+              { icon: 'barcode', l: 'Chassis No.', v: vehicle.chassisNumber || 'N/A' },
+              { icon: 'cogs', l: 'Engine No.', v: vehicle.engineNumber || 'N/A' },
+              { icon: 'check-circle', l: 'RC Verified', v: vehicle.rcVerified ? 'Yes' : 'No' },
               {
                 icon: 'tachometer-alt',
                 l: 'Odometer',
@@ -400,7 +464,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
             <TouchableOpacity
               style={styles.updateBtn}
-              onPress={handleUpdateOdometer}
+              onPress={() => setIsOdoModalVisible(true)}
               activeOpacity={0.7}
             >
               <FontAwesome5 name="camera" size={wp(4)} color="#FFBF00" />
@@ -410,11 +474,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionLine} />
-            <Text style={styles.sectionLabel}>Quick Actions</Text>
-            <View style={styles.sectionLine} />
-          </View>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
 
           <View style={styles.actionsCard}>
             <View style={styles.actionsGrid}>
@@ -450,20 +510,78 @@ const VehicleDetails = ({ navigation, route }: any) => {
         onRevoke={handleRevoke}
         isLoading={isSharingLoading}
       />
+
+      {/* Odometer Modal */}
+      <Modal
+        visible={isOdoModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsOdoModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsOdoModalVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalKeyboardView}
+          >
+            <TouchableOpacity activeOpacity={1} style={styles.modalContent}>
+              <View style={styles.modalHandle} />
+              <Text style={styles.modalTitle}>Update Odometer</Text>
+
+              <View style={styles.modalBody}>
+                <Text style={styles.modalLabel}>Enter Current Reading (km)</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g. 45000"
+                  placeholderTextColor="#555"
+                  keyboardType="numeric"
+                  value={odoInput}
+                  onChangeText={setOdoInput}
+                />
+
+                <TouchableOpacity
+                  style={[styles.modalSubmitBtn, !odoInput && styles.modalSubmitBtnDisabled]}
+                  onPress={handleManualOdometerSubmit}
+                  disabled={!odoInput}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.modalSubmitText}>Save Reading</Text>
+                </TouchableOpacity>
+
+                <View style={styles.dividerRow}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>OR</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.modalAiBtn}
+                  onPress={handleCameraOdometer}
+                  activeOpacity={0.8}
+                >
+                  <FontAwesome5 name="camera" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.modalAiText}>Scan via Camera (AI)</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+      </Modal>
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#000000' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
-    backgroundColor: '#0a0a0a',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   backBtn: {
     width: 44,
@@ -477,38 +595,27 @@ const styles = StyleSheet.create({
   },
   headerCenter: { flex: 1, marginLeft: wp(3) },
   headerRight: { width: 44 },
-  headerTitle: { color: '#fff', fontSize: wp(5.5), fontWeight: 'bold' },
+  headerTitle: { fontSize: wp(6), fontWeight: '700', color: '#fff' },
   headerSubtitle: { color: '#666', fontSize: wp(3.2), marginTop: 2 },
 
   scrollContent: { paddingHorizontal: wp(4), paddingBottom: hp(5) },
   section: { marginTop: hp(3) },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  sectionLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  sectionLabel: {
-    color: '#555',
-    fontSize: wp(2.8),
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: wp(3),
+  sectionTitle: {
+    fontSize: wp(4.8),
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: hp(1.8),
+    marginTop: hp(1),
   },
 
   heroCard: {
     backgroundColor: '#121212',
-    borderRadius: 24,
+    borderRadius: wp(4),
     padding: wp(4),
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   carImgContainer: {
     width: wp(24),
@@ -530,10 +637,10 @@ const styles = StyleSheet.create({
 
   healthCard: {
     backgroundColor: '#121212',
-    borderRadius: 24,
+    borderRadius: wp(4),
     padding: wp(5),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   gaugeContainer: {
     alignItems: 'center',
@@ -561,7 +668,7 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   statBox: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
     width: wp(26),
     paddingVertical: hp(2),
     borderRadius: 16,
@@ -599,10 +706,10 @@ const styles = StyleSheet.create({
 
   infoCard: {
     backgroundColor: '#121212',
-    borderRadius: 24,
+    borderRadius: wp(4),
     padding: wp(4),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   infoRow: {
     flexDirection: 'row',
@@ -632,17 +739,17 @@ const styles = StyleSheet.create({
 
   actionsCard: {
     backgroundColor: '#121212',
-    borderRadius: 24,
+    borderRadius: wp(4),
     padding: wp(4),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   actionsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   actionCard: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
     width: wp(20),
     paddingVertical: hp(2),
     borderRadius: 16,
@@ -664,6 +771,107 @@ const styles = StyleSheet.create({
     fontSize: wp(2.8),
     fontWeight: 'bold',
     textTransform: 'uppercase',
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'flex-end',
+  },
+  modalKeyboardView: {
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#121212',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingBottom: hp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: hp(1.5),
+    marginBottom: hp(1),
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: wp(5),
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: wp(4),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  modalBody: {
+    padding: wp(5),
+  },
+  modalLabel: {
+    color: '#888',
+    fontSize: wp(3.5),
+    marginBottom: hp(1),
+    fontWeight: '500',
+  },
+  modalInput: {
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    padding: wp(4),
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontWeight: '600',
+  },
+  modalSubmitBtn: {
+    backgroundColor: '#FFBF00',
+    borderRadius: 14,
+    paddingVertical: hp(2),
+    alignItems: 'center',
+    marginTop: hp(2.5),
+  },
+  modalSubmitBtnDisabled: {
+    backgroundColor: '#333',
+  },
+  modalSubmitText: {
+    color: '#000',
+    fontSize: wp(4),
+    fontWeight: 'bold',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(3),
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  dividerText: {
+    color: '#666',
+    marginHorizontal: wp(4),
+    fontSize: wp(3),
+    fontWeight: '600',
+  },
+  modalAiBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+    backgroundColor: 'rgba(255,191,0,0.1)',
+    borderRadius: 14,
+    paddingVertical: hp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.2)',
+  },
+  modalAiText: {
+    color: '#FFBF00',
+    fontSize: wp(4),
+    fontWeight: '600',
   },
 });
 

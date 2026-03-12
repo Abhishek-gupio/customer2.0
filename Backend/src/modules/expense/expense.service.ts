@@ -54,9 +54,21 @@ export const expenseService = {
       mimeType = file.mimetype;
     }
 
+    // Logic: If vehicleId is not provided, try to find the primary vehicle for this customer
+    let targetVehicleId = input.vehicleId || null;
+    if (!targetVehicleId) {
+      const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
+        where: { customerId, isPrimary: true, isActive: true },
+        select: { id: true },
+      });
+      if (primaryVehicle) {
+        targetVehicleId = primaryVehicle.id;
+      }
+    }
+
     // Logic: If user provided 'odometerReading' and 'vehicleId', update vehicle log
-    if (input.vehicleId && input.odometerReading) {
-      await vehicleService.addOdometerLog(customerId, input.vehicleId, {
+    if (targetVehicleId && input.odometerReading) {
+      await vehicleService.addOdometerLog(customerId, targetVehicleId, {
         reading: input.odometerReading,
         date: new Date(),
       });
@@ -66,7 +78,7 @@ export const expenseService = {
     const expense = await db.expense.create({
       data: {
         customerId,
-        vehicleId: input.vehicleId || null,
+        vehicleId: targetVehicleId,
         amount: input.amount,
         category: input.category, // e.g. FUEL
         date: input.date ? new Date(input.date) : new Date(),
@@ -206,7 +218,7 @@ export const expenseService = {
               ? new Date(aiResult.date)
               : input.timestamp
                 ? new Date(input.timestamp)
-              : new Date(),
+                : new Date(),
             source: input.source as ExpenseSource,
             rawText: text,
             isAutomated: true,
@@ -1305,9 +1317,16 @@ export const expenseService = {
       expenseDate = parsed;
     }
 
+    // Logic: Try to find the primary vehicle for this customer
+    const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
+      where: { customerId, isPrimary: true, isActive: true },
+      select: { id: true },
+    });
+
     const expense = await db.expense.create({
       data: {
         customerId,
+        vehicleId: primaryVehicle?.id || null,
         amount,
         category,
         merchantName: aiResult.merchantName || null,

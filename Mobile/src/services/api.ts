@@ -120,6 +120,8 @@ export const api = {
     request<T>(path, { method: 'PATCH', body }),
   put: <T>(path: string, body?: object) =>
     request<T>(path, { method: 'PUT', body }),
+  delete: <T>(path: string) =>
+    request<T>(path, { method: 'DELETE' }),
   upload: <T>(path: string, formData: FormData) =>
     upload<T>(path, formData),
 };

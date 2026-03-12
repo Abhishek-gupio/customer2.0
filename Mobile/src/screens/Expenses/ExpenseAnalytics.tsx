@@ -7,6 +7,7 @@ import {
   StatusBar,
   ScrollView,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -23,30 +24,337 @@ import Iconi from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from "../../theme/colors";
 import { fontSizes } from "../../theme/Fontsize";
 import RNFS from "react-native-fs";
+import { useEffect, useState } from "react";
+import { api } from "../../services/api";
+import { vehicleService } from "../../services/vehicleService";
+
+type AnalyticsTrend = {
+  labels: string[];
+  series: { name: string; color: string; data: number[] }[];
+};
+
+type AnalyticsBreakdown = {
+  name: string;
+  value: number;
+  color: string;
+};
+
+type AnalyticsResponse = {
+  totalSpent: number;
+  avgMonthly: number;
+  costPerKm: number;
+  insights?: string[];
+  trend: AnalyticsTrend;
+  breakdown: AnalyticsBreakdown[];
+};
+
+type TimeFrame = "Day" | "Week" | "Month" | "Quarter" | "Year";
+
+const CATEGORY_COLORS: Record<string, string> = {
+  FUEL: "#2196f3",
+  SERVICE: "#ff6d00",
+  TOLL: "#9c27b0",
+  TOLLS: "#9c27b0",
+  INSURANCE: "#00bcd4",
+  PARKING: "#ffeb3b",
+  CHALLAN: "#f44336",
+  EMI: "#4caf50",
+  OTHER: "#00c853",
+};
+
+const toNumber = (value: unknown) => {
+  const parsed = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const toDate = (value: unknown) => {
+  if (!value) return null;
+  const d = new Date(value as any);
+  if (!Number.isNaN(d.getTime())) return d;
+
+  if (typeof value === "string") {
+    const parts = value.split("-");
+    if (parts.length === 3 && parts[0].length === 2) {
+      const day = Number(parts[0]);
+      const month = Number(parts[1]);
+      const year = Number(parts[2]);
+      const parsed = new Date(year, month - 1, day);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+  }
+  return null;
+};
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+const getTimeFrameRange = (timeFrame: TimeFrame) => {
+  const now = new Date();
+  let start: Date;
+
+  switch (timeFrame) {
+    case "Day":
+      start = startOfDay(now);
+      break;
+    case "Week":
+      start = startOfDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6));
+      break;
+    case "Quarter":
+      start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      break;
+    case "Year":
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    case "Month":
+    default:
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+  }
+
+  return { start, end: endOfDay(now) };
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getWithRetry = async <T,>(fn: () => Promise<T>, retries = 2) => {
+  let attempt = 0;
+  // Simple backoff to reduce 429s from the backend
+  while (attempt <= retries) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await wait(400 * (attempt + 1));
+      attempt += 1;
+    }
+  }
+  throw new Error("Request failed");
+};
+
+const buildTrendSeries = (expenses: any[], timeFrame: TimeFrame) => {
+  const now = new Date();
+  const totals: number[] = [];
+  let labels: string[] = [];
+
+  if (timeFrame === "Day") {
+    labels = ["12a", "3a", "6a", "9a", "12p", "3p", "6p", "9p"];
+    totals.push(...new Array(labels.length).fill(0));
+    expenses.forEach((e) => {
+      const d = toDate(e.date);
+      if (!d) return;
+      const bucket = Math.min(Math.floor(d.getHours() / 3), labels.length - 1);
+      totals[bucket] += toNumber(e.amount);
+    });
+  } else if (timeFrame === "Week") {
+    labels = [];
+    totals.push(...new Array(7).fill(0));
+    const start = startOfDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6));
+    for (let i = 0; i < 7; i += 1) {
+      const day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      labels.push(day.toLocaleDateString("en-IN", { weekday: "short" }));
+    }
+    expenses.forEach((e) => {
+      const d = toDate(e.date);
+      if (!d) return;
+      const idx = Math.floor((startOfDay(d).getTime() - start.getTime()) / (24 * 3600 * 1000));
+      if (idx >= 0 && idx < totals.length) totals[idx] += toNumber(e.amount);
+    });
+  } else if (timeFrame === "Month") {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    labels = Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
+    totals.push(...new Array(daysInMonth).fill(0));
+    expenses.forEach((e) => {
+      const d = toDate(e.date);
+      if (!d) return;
+      const idx = d.getDate() - 1;
+      if (idx >= 0 && idx < totals.length) totals[idx] += toNumber(e.amount);
+    });
+  } else if (timeFrame === "Quarter") {
+    labels = [];
+    totals.push(...new Array(3).fill(0));
+    const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    for (let i = 0; i < 3; i += 1) {
+      const labelDate = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      labels.push(labelDate.toLocaleDateString("en-IN", { month: "short" }));
+    }
+    expenses.forEach((e) => {
+      const d = toDate(e.date);
+      if (!d) return;
+      const idx =
+        (d.getFullYear() - start.getFullYear()) * 12 +
+        (d.getMonth() - start.getMonth());
+      if (idx >= 0 && idx < totals.length) totals[idx] += toNumber(e.amount);
+    });
+  } else {
+    labels = Array.from({ length: 12 }, (_, i) =>
+      new Date(now.getFullYear(), i, 1).toLocaleDateString("en-IN", { month: "short" })
+    );
+    totals.push(...new Array(12).fill(0));
+    expenses.forEach((e) => {
+      const d = toDate(e.date);
+      if (!d) return;
+      const idx = d.getMonth();
+      totals[idx] += toNumber(e.amount);
+    });
+  }
+
+  return {
+    labels,
+    series: [
+      {
+        name: "Total",
+        color: "#ffbf00",
+        data: totals,
+      },
+    ],
+  };
+};
+
+const buildBreakdown = (expenses: any[]) => {
+  const totals: Record<string, number> = {};
+  expenses.forEach((e) => {
+    const category = String(e.category || "OTHER").toUpperCase();
+    totals[category] = (totals[category] || 0) + toNumber(e.amount);
+  });
+  const overall = Object.values(totals).reduce((sum, v) => sum + v, 0);
+  return Object.entries(totals)
+    .map(([category, total]) => ({
+      name: category.charAt(0) + category.slice(1).toLowerCase(),
+      value: overall > 0 ? Math.round((total / overall) * 100) : 0,
+      color: CATEGORY_COLORS[category] || "#00c853",
+    }))
+    .sort((a, b) => b.value - a.value);
+};
 
 export default function ExpenseAnalytics() {
   const navigation = useNavigation();
   const spendingAnalysisRef = useRef<SpendingAnalysisHandle>(null);
+  const baseExpensesRef = useRef<any[]>([]);
+  const insightsRef = useRef<string[]>([]);
+  const costPerKmRef = useRef<number>(0);
+  const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>("Month");
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+
+  const computeAnalyticsForTimeFrame = (timeFrame: TimeFrame, expenses: any[]) => {
+    const { start, end } = getTimeFrameRange(timeFrame);
+    const filtered = expenses.filter((e: any) => {
+      const d = toDate(e.date);
+      return d ? d >= start && d <= end : false;
+    });
+
+    const totalSpent = filtered.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
+    const monthsInRange =
+      timeFrame === "Quarter" ? 3 : timeFrame === "Year" ? 12 : 1;
+    const avgMonthly = monthsInRange > 0 ? totalSpent / monthsInRange : 0;
+
+    return {
+      totalSpent,
+      avgMonthly,
+      costPerKm: costPerKmRef.current,
+      insights: insightsRef.current,
+      trend: buildTrendSeries(filtered, timeFrame),
+      breakdown: buildBreakdown(filtered),
+    };
+  };
+
+  const refreshAnalytics = async () => {
+    if (loadingAnalytics) return;
+    setLoadingAnalytics(true);
+    setAnalyticsError(null);
+    try {
+      const now = new Date();
+      const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      const end = endOfDay(now);
+      const expensesRes = await getWithRetry(() =>
+        api.get<any>(
+          `/v1/expenses?startDate=${start.toISOString()}&endDate=${end.toISOString()}`
+        )
+      );
+
+      const items =
+        expensesRes?.data?.expenses ??
+        expensesRes?.data?.data?.expenses ??
+        expensesRes?.data?.data ??
+        expensesRes?.expenses ??
+        expensesRes?.data ??
+        [];
+      baseExpensesRef.current = Array.isArray(items) ? items : [];
+
+      const [insightsResult, vehiclesResult] = await Promise.allSettled([
+        api.get<any>("/v1/expenses/insights"),
+        vehicleService.getVehicles(),
+      ]);
+
+      const insightsPayload =
+        insightsResult.status === "fulfilled"
+          ? (insightsResult.value as any)?.data ?? insightsResult.value
+          : null;
+      insightsRef.current =
+        insightsPayload?.smartTips ??
+        insightsPayload?.weeklyDigest?.tips ??
+        [];
+
+      const vehicleList =
+        vehiclesResult.status === "fulfilled" ? vehiclesResult.value : [];
+      const primaryVehicle = Array.isArray(vehicleList)
+        ? vehicleList.find((v) => v?.isPrimary) || vehicleList[0]
+        : null;
+      if (primaryVehicle?.id) {
+        try {
+          const costRes = await api.get<any>(
+            `/v1/expenses/vehicles/${primaryVehicle.id}/cost-per-km`
+          );
+          const costPayload = (costRes as any)?.data ?? costRes;
+          costPerKmRef.current = toNumber(costPayload?.costPerKm);
+        } catch {
+          costPerKmRef.current = 0;
+        }
+      } else {
+        costPerKmRef.current = 0;
+      }
+
+      setAnalytics(
+        computeAnalyticsForTimeFrame(selectedTimeFrame, baseExpensesRef.current)
+      );
+    } catch (error) {
+      console.log("Analytics fetch error:", error);
+      setAnalyticsError("Unable to load analytics right now. Please try again.");
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  const handleTimeFrameChange = (timeFrame: TimeFrame) => {
+    setSelectedTimeFrame(timeFrame);
+    if (baseExpensesRef.current.length > 0) {
+      setAnalytics(computeAnalyticsForTimeFrame(timeFrame, baseExpensesRef.current));
+    }
+  };
 
   const normalizePath = (path: string) => path.replace("file://", "");
-  const reportInsights = [
-    "Your fuel expenses are 5% higher than average this month.",
-    "Maintenance costs decreased by 15% compared to last quarter.",
-    "You can save INR 2,450/month by optimizing fuel purchases.",
-  ];
+  const reportInsights = analytics?.insights ?? [];
+
+  useEffect(() => {
+    refreshAnalytics();
+  }, []);
 
   const buildAnalyticsReport = () =>
     [
       "Expense Analytics Report",
       `Generated: ${new Date().toLocaleString("en-IN")}`,
       "",
-      "Summary",
-      "Total Spent: INR 172K",
-      "Avg Monthly: INR 14.3K",
-      "Cost/Km: INR 7.51",
+      `Summary (${selectedTimeFrame})`,
+      `Total Spent: INR ${Math.round(analytics?.totalSpent ?? 0).toLocaleString("en-IN")}`,
+      `Avg Monthly: INR ${Math.round(analytics?.avgMonthly ?? 0).toLocaleString("en-IN")}`,
+      `Cost/Km: INR ${Number(analytics?.costPerKm ?? 0).toFixed(2)}`,
       "",
       "Key Insights",
-      ...reportInsights.map((item) => `- ${item}`),
+      ...(reportInsights.length
+        ? reportInsights.map((item) => `- ${item}`)
+        : ["- No insights available"]),
     ];
 
   const buildAnalyticsPdf = () => {
@@ -133,6 +441,13 @@ export default function ExpenseAnalytics() {
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={loadingAnalytics}
+          onRefresh={refreshAnalytics}
+          tintColor="#fff"
+        />
+      }
       >
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -154,12 +469,49 @@ export default function ExpenseAnalytics() {
       </View>
 
       <View style={styles.cardRow}>
-        <StatCard title="Total Spent" value="₹172K" change="+12%" positive />
-        <StatCard title="Avg Monthly" value="₹14.3K" change="-3%" />
-        <StatCard title="Cost/Km" value="₹7.51" change="-5%" positive />
+        <StatCard
+          title="Total Spent"
+          value={
+            loadingAnalytics
+              ? "Loading..."
+              : analytics
+              ? `INR ${Math.round(analytics.totalSpent).toLocaleString("en-IN")}`
+              : "No data"
+          }
+          change="+12%"
+          positive
+        />
+        <StatCard
+          title="Avg Monthly"
+          value={
+            loadingAnalytics
+              ? "Loading..."
+              : analytics
+              ? `INR ${Math.round(analytics.avgMonthly).toLocaleString("en-IN")}`
+              : "No data"
+          }
+          change="-3%"
+        />
+        <StatCard
+          title="Cost/Km"
+          value={
+            loadingAnalytics
+              ? "Loading..."
+              : analytics
+              ? `INR ${Number(analytics.costPerKm).toFixed(2)}`
+              : "No data"
+          }
+          change="-5%"
+          positive
+        />
       </View>
 
-      <SpendingAnalysis ref={spendingAnalysisRef} />
+      <SpendingAnalysis
+        ref={spendingAnalysisRef}
+        analytics={analytics}
+        loading={loadingAnalytics}
+        onTimeFrameChange={handleTimeFrameChange}
+      />
       <CostPerKmCard/>
       <TopSpendingCard/>
     </SafeAreaView>
@@ -169,9 +521,15 @@ export default function ExpenseAnalytics() {
         <Iconi name="lightbulb-on" size={25} color="#FFD700" style={{ marginRight: 8 }} />
         <Text style={styles.title}>Key Insights</Text>
       </View>
-      <Text style={styles.insightText}>• Your fuel expenses are 5% higher than average this month.</Text>
-      <Text style={styles.insightText}>• Maintenance costs decreased by 15% compared to last quarter.</Text>
-      <Text style={styles.insightText}>• You can save ₹2,450/month by optimizing fuel purchases.</Text>
+      {analyticsError ? (
+        <Text style={styles.insightText}>{analyticsError}</Text>
+      ) : reportInsights.length === 0 ? (
+        <Text style={styles.insightText}>- No insights available</Text>
+      ) : (
+        reportInsights.map((item, idx) => (
+          <Text key={`${item}-${idx}`} style={styles.insightText}>- {item}</Text>
+        ))
+      )}
     </View>
 
     </ScrollView>
