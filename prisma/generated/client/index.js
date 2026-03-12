@@ -178,7 +178,8 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   chassisNumber: 'chassisNumber',
-  engineNumber: 'engineNumber'
+  engineNumber: 'engineNumber',
+  imageUrl: 'imageUrl'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {

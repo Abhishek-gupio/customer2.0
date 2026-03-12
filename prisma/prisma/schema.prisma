@@ -124,6 +124,7 @@ model CustomerVehicle {
   updatedAt          DateTime            @updatedAt
   chassisNumber      String?
   engineNumber       String?
+  imageUrl           String?     // AI-generated Unsplash URL, saved at vehicle creation
   challans           Challan[]
   documents          CustomerDocument[]
   customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)

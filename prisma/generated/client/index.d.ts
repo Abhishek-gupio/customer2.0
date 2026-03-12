@@ -9455,6 +9455,7 @@ export namespace Prisma {
     updatedAt: Date | null
     chassisNumber: string | null
     engineNumber: string | null
+    imageUrl: string | null
   }
 
   export type CustomerVehicleMaxAggregateOutputType = {
@@ -9476,6 +9477,7 @@ export namespace Prisma {
     updatedAt: Date | null
     chassisNumber: string | null
     engineNumber: string | null
+    imageUrl: string | null
   }
 
   export type CustomerVehicleCountAggregateOutputType = {
@@ -9497,6 +9499,7 @@ export namespace Prisma {
     updatedAt: number
     chassisNumber: number
     engineNumber: number
+    imageUrl: number
     _all: number
   }
 
@@ -9530,6 +9533,7 @@ export namespace Prisma {
     updatedAt?: true
     chassisNumber?: true
     engineNumber?: true
+    imageUrl?: true
   }
 
   export type CustomerVehicleMaxAggregateInputType = {
@@ -9551,6 +9555,7 @@ export namespace Prisma {
     updatedAt?: true
     chassisNumber?: true
     engineNumber?: true
+    imageUrl?: true
   }
 
   export type CustomerVehicleCountAggregateInputType = {
@@ -9572,6 +9577,7 @@ export namespace Prisma {
     updatedAt?: true
     chassisNumber?: true
     engineNumber?: true
+    imageUrl?: true
     _all?: true
   }
 
@@ -9680,6 +9686,7 @@ export namespace Prisma {
     updatedAt: Date
     chassisNumber: string | null
     engineNumber: string | null
+    imageUrl: string | null
     _count: CustomerVehicleCountAggregateOutputType | null
     _avg: CustomerVehicleAvgAggregateOutputType | null
     _sum: CustomerVehicleSumAggregateOutputType | null
@@ -9720,6 +9727,7 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -9752,6 +9760,7 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -9774,6 +9783,7 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -9796,9 +9806,10 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
   }
 
-  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber", ExtArgs["result"]["customerVehicle"]>
+  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber" | "imageUrl", ExtArgs["result"]["customerVehicle"]>
   export type CustomerVehicleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
@@ -9852,6 +9863,7 @@ export namespace Prisma {
       updatedAt: Date
       chassisNumber: string | null
       engineNumber: string | null
+      imageUrl: string | null
     }, ExtArgs["result"]["customerVehicle"]>
     composites: {}
   }
@@ -10303,6 +10315,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<"CustomerVehicle", 'DateTime'>
     readonly chassisNumber: FieldRef<"CustomerVehicle", 'String'>
     readonly engineNumber: FieldRef<"CustomerVehicle", 'String'>
+    readonly imageUrl: FieldRef<"CustomerVehicle", 'String'>
   }
     
 
@@ -32761,7 +32774,8 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     chassisNumber: 'chassisNumber',
-    engineNumber: 'engineNumber'
+    engineNumber: 'engineNumber',
+    imageUrl: 'imageUrl'
   };
 
   export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
@@ -33798,6 +33812,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
     documents?: CustomerDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -33829,6 +33844,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrderInput | SortOrder
     engineNumber?: SortOrderInput | SortOrder
+    imageUrl?: SortOrderInput | SortOrder
     challans?: ChallanOrderByRelationAggregateInput
     documents?: CustomerDocumentOrderByRelationAggregateInput
     customer?: CustomerOrderByWithRelationInput
@@ -33863,6 +33879,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
     documents?: CustomerDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -33894,6 +33911,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrderInput | SortOrder
     engineNumber?: SortOrderInput | SortOrder
+    imageUrl?: SortOrderInput | SortOrder
     _count?: CustomerVehicleCountOrderByAggregateInput
     _avg?: CustomerVehicleAvgOrderByAggregateInput
     _max?: CustomerVehicleMaxOrderByAggregateInput
@@ -33923,6 +33941,7 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
   }
 
   export type OdometerLogWhereInput = {
@@ -35992,6 +36011,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -36023,6 +36043,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -36052,6 +36073,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -36083,6 +36105,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -36113,6 +36136,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
   }
 
   export type CustomerVehicleUpdateManyMutationInput = {
@@ -36133,6 +36157,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CustomerVehicleUncheckedUpdateManyInput = {
@@ -36154,6 +36179,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type OdometerLogCreateInput = {
@@ -38517,6 +38543,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrder
     engineNumber?: SortOrder
+    imageUrl?: SortOrder
   }
 
   export type CustomerVehicleAvgOrderByAggregateInput = {
@@ -38543,6 +38570,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrder
     engineNumber?: SortOrder
+    imageUrl?: SortOrder
   }
 
   export type CustomerVehicleMinOrderByAggregateInput = {
@@ -38564,6 +38592,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrder
     engineNumber?: SortOrder
+    imageUrl?: SortOrder
   }
 
   export type CustomerVehicleSumOrderByAggregateInput = {
@@ -41600,6 +41629,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -41629,6 +41659,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -42028,6 +42059,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableFilter<"CustomerVehicle"> | string | null
   }
 
   export type DigiLockerConnectionUpsertWithoutCustomerInput = {
@@ -42421,6 +42453,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -42451,6 +42484,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -42546,6 +42580,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -42576,6 +42611,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43380,6 +43416,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -43410,6 +43447,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -43454,6 +43492,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -43484,6 +43523,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43512,6 +43552,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -43542,6 +43583,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -43586,6 +43628,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -43616,6 +43659,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43689,6 +43733,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -43719,6 +43764,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -43814,6 +43860,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -43844,6 +43891,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43872,6 +43920,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -43902,6 +43951,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -43946,6 +43996,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -43976,6 +44027,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -44351,6 +44403,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -44381,6 +44434,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -44476,6 +44530,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -44506,6 +44561,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -44670,6 +44726,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -44700,6 +44757,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -44779,6 +44837,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -44809,6 +44868,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -44913,6 +44973,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -44943,6 +45004,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -44987,6 +45049,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -45017,6 +45080,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -45077,6 +45141,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -45107,6 +45172,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -45182,6 +45248,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -45212,6 +45279,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -45561,6 +45629,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
   }
 
   export type EmergencyContactCreateManyCustomerInput = {
@@ -45779,6 +45848,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -45808,6 +45878,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -45837,6 +45908,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUpdateWithoutCustomerInput = {

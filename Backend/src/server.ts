@@ -16,9 +16,9 @@ void schedulerService
 const httpServer = createServer(app);
 initSocket(httpServer);
 
-httpServer.listen(env.PORT, () => {
+httpServer.listen(env.PORT, "0.0.0.0", () => {
   logger.info(
-    { port: env.PORT, env: env.NODE_ENV },
+    { port: env.PORT, env: env.NODE_ENV, host: "0.0.0.0" },
     "Backend server listening with WebSockets",
   );
 });
