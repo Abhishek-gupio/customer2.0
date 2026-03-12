@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RouteProp, useNavigation } from '@react-navigation/native';
@@ -45,6 +45,7 @@ export default function ChatScreen({ route }: Props) {
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [playingVoiceUrl, setPlayingVoiceUrl] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const canSend = useMemo(() => message.trim().length > 0 && !isLoading && !isStreaming, [message, isLoading, isStreaming]);
@@ -236,8 +237,7 @@ export default function ChatScreen({ route }: Props) {
   };
 
   const handleVoicePlay = (voiceUrl: string) => {
-    // Open the voice URL — the OS will handle playback
-    Linking.openURL(voiceUrl).catch(() => { });
+    setPlayingVoiceUrl(voiceUrl);
   };
 
   const handleFeedback = async (msgId: string, score: 1 | -1) => {
@@ -425,6 +425,19 @@ export default function ChatScreen({ route }: Props) {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* In-place voice playback (no redirect) */}
+      {playingVoiceUrl ? (
+        <Video
+          source={{ uri: playingVoiceUrl }}
+          style={styles.hiddenVideo}
+          paused={false}
+          muted={false}
+          repeat={false}
+          onEnd={() => setPlayingVoiceUrl(null)}
+          onError={() => setPlayingVoiceUrl(null)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -438,6 +451,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#050b17',
   },
   flex: { flex: 1 },
+  hiddenVideo: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    opacity: 0,
+  },
 
   // Header
   header: {

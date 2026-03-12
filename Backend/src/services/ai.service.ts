@@ -83,7 +83,7 @@ export const aiService = {
       const declarations = this.getFunctionDeclarations();
 
       const cache = await cacheManager.create({
-        model: "models/gemini-2.0-flash",
+        model: "gemini-2.0-flash",
         displayName: "gupio-base-logic",
         systemInstruction: SYSTEM_PROMPT,
         contents: [],
@@ -100,7 +100,7 @@ export const aiService = {
     } catch (error) {
       // Graceful fallback: if cache fails (e.g., content too small < 4096 tokens),
       // continue without caching — the model will use system instructions inline.
-      logger.warn({ error }, "Context cache creation failed, using inline mode");
+      logger.debug({ error }, "Context cache creation failed, using inline mode");
       return null;
     }
   },
@@ -322,7 +322,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
             },
             include: { messages: true },
           }),
-        vectorService.hybridSearch(customerId, message, 5),
+        vectorService.hybridSearch(customerId, message, 5).catch(() => []),
         contextService.buildUserContext(customerId),
       ]);
 
@@ -495,7 +495,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
             },
             include: { messages: true },
           }),
-        vectorService.hybridSearch(customerId, message, 5),
+        vectorService.hybridSearch(customerId, message, 5).catch(() => []),
         contextService.buildUserContext(customerId),
       ]);
 

@@ -43,6 +43,9 @@ async function doRefresh(): Promise<boolean> {
   return refreshPromise;
 }
 
+/** Call from code that uses raw fetch (e.g. SSE) to refresh token on 401. */
+export { doRefresh };
+
 async function request<T>(
   path: string,
   options: RequestOptions = {},

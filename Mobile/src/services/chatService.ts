@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api, doRefresh } from './api';
 import { API_BASE_URL } from '../config';
 import { getAccessToken } from './storage';
 
@@ -125,7 +125,6 @@ export const chatService = {
         options?: { image?: { uri: string; type: string; name: string } },
     ): Promise<void> {
         const url = `${API_BASE_URL}/api/v1/chat/stream`;
-        const token = getAccessToken();
 
         let body: any;
         let headers: Record<string, string> = {};
@@ -149,46 +148,68 @@ export const chatService = {
             };
         }
 
-        if (token) headers.Authorization = `Bearer ${token}`;
+        const setAuthHeader = () => {
+            const t = getAccessToken();
+            if (t) headers.Authorization = `Bearer ${t}`;
+        };
 
-        const response = await fetch(url, {
+        setAuthHeader();
+        if (!headers.Authorization) await doRefresh();
+        setAuthHeader();
+
+        let response = await fetch(url, {
             method: 'POST',
             headers,
             body,
         });
 
+        if (response.status === 401) {
+            const refreshed = await doRefresh();
+            if (refreshed) {
+                setAuthHeader();
+                response = await fetch(url, { method: 'POST', headers, body });
+            }
+        }
+
         if (!response.ok) {
             throw new Error(`Stream failed: ${response.status}`);
         }
 
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error('No reader available');
-
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        try {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const chunk = JSON.parse(line.slice(6)) as SSEChunk;
-                            onChunk(chunk);
-                        } catch {
-                            // Skip malformed chunks
-                        }
+        const parseSSELines = (text: string) => {
+            const lines = text.split(/\r?\n/);
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const chunk = JSON.parse(line.slice(6)) as SSEChunk;
+                        onChunk(chunk);
+                    } catch {
+                        // Skip malformed chunks
                     }
                 }
             }
-        } finally {
-            reader.releaseLock();
+        };
+
+        const reader = response.body?.getReader();
+        if (reader) {
+            const decoder = new TextDecoder();
+            let buffer = '';
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split(/\r?\n/);
+                    buffer = lines.pop() || '';
+                    parseSSELines(lines.join('\n'));
+                }
+                if (buffer) parseSSELines(buffer);
+            } finally {
+                reader.releaseLock();
+            }
+        } else {
+            // React Native or other envs may not support response.body.getReader()
+            const text = await response.text();
+            parseSSELines(text);
         }
     },
 

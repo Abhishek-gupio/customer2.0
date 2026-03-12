@@ -8,6 +8,67 @@ const genAI = env.GEMINI_API_KEY
   : null;
 const db = dbInstances as any;
 
+const EMBED_MODEL = "gemini-embedding-001";
+
+/** PostgreSQL error code for undefined_column */
+const PG_UNDEFINED_COLUMN = "42703";
+
+function isVectorColumnMissing(error: unknown): boolean {
+  const err = error as { meta?: { driverAdapterError?: { cause?: { originalCode?: string; originalMessage?: string } } }; message?: string };
+  const code = err?.meta?.driverAdapterError?.cause?.originalCode;
+  const msg = err?.meta?.driverAdapterError?.cause?.originalMessage ?? err?.message ?? "";
+  return code === PG_UNDEFINED_COLUMN || /column\s+["']?vector["']?\s+does not exist/i.test(String(msg));
+}
+
+let vectorColumnEnsured = false;
+
+/** Create pgvector extension and add vector column if missing. Safe to call multiple times. */
+async function ensureVectorColumn(): Promise<void> {
+  if (vectorColumnEnsured) return;
+  try {
+    await db.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public`);
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "customer"."DocumentEmbedding" ADD COLUMN IF NOT EXISTS "vector" vector(3072)`,
+    );
+    vectorColumnEnsured = true;
+    logger.info("DocumentEmbedding.vector column ensured (pgvector)");
+  } catch (e) {
+    logger.warn({ error: e }, "Could not add vector column (pgvector may be unavailable)");
+  }
+}
+const EMBED_API = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent`;
+
+/**
+ * Generate embedding via Gemini REST API (embed endpoint).
+ * SDK getGenerativeModel().embedContent() often 404s for embedding models; REST is reliable.
+ */
+async function embedViaRest(text: string): Promise<number[] | null> {
+  const key = env.GEMINI_API_KEY;
+  if (!key || !text) return null;
+  try {
+    const res = await fetch(
+      `${EMBED_API}?key=${encodeURIComponent(key)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: { parts: [{ text }] },
+        }),
+      },
+    );
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`${res.status} ${res.statusText}: ${errText.slice(0, 200)}`);
+    }
+    const data = (await res.json()) as { embedding?: { values?: number[] } };
+    const values = data.embedding?.values;
+    return values?.length ? values : null;
+  } catch (err) {
+    logger.error({ error: err }, "Failed to generate embedding (REST)");
+    return null;
+  }
+}
+
 /**
  * VECTOR SERVICE — Enhanced with Hybrid Search + AI Reranking
  * ============================================================
@@ -17,18 +78,19 @@ const db = dbInstances as any;
  */
 export const vectorService = {
   /**
-   * Generate embedding vector for a given text
-   * Uses Gemini embedding-001 (768 dimensions)
+   * Generate embedding vector for a given text.
+   * Uses Gemini REST embedContent (gemini-embedding-001, 3072 dims).
    */
   async generateEmbedding(text: string): Promise<number[] | null> {
-    if (!genAI || !text) return null;
-
+    const fromRest = await embedViaRest(text);
+    if (fromRest) return fromRest;
+    if (!genAI) return null;
     try {
-      const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+      const model = genAI.getGenerativeModel({ model: EMBED_MODEL });
       const result = await model.embedContent(text);
-      return result.embedding.values;
-    } catch (error) {
-      logger.error({ error }, "Failed to generate embedding");
+      return result.embedding?.values ?? null;
+    } catch (err) {
+      logger.error({ error: err }, "Failed to generate embedding");
       return null;
     }
   },
@@ -45,13 +107,11 @@ export const vectorService = {
     const vector = await this.generateEmbedding(input.content);
     if (!vector) return;
 
-    try {
+    const doInsert = async () => {
       await db.documentEmbedding.deleteMany({
         where: { entityId: input.entityId },
       });
-
       const vectorString = `[${vector.join(",")}]`;
-
       await db.$executeRawUnsafe(
         `INSERT INTO "customer"."DocumentEmbedding" ("id", "customerId", "entityId", "entityType", "content", "vector", "createdAt") 
                  VALUES (gen_random_uuid(), $1, $2, $3, $4, $5::vector, NOW())`,
@@ -61,16 +121,35 @@ export const vectorService = {
         input.content,
         vectorString,
       );
+    };
 
+    try {
+      await doInsert();
       logger.info(
         { entityId: input.entityId, type: input.entityType },
         "Embedding stored successfully",
       );
     } catch (error) {
-      logger.error(
-        { error, entityId: input.entityId },
-        "Failed to store embedding",
-      );
+      if (isVectorColumnMissing(error)) {
+        await ensureVectorColumn();
+        try {
+          await doInsert();
+          logger.info(
+            { entityId: input.entityId, type: input.entityType },
+            "Embedding stored successfully (after adding vector column)",
+          );
+        } catch (retryErr) {
+          logger.error(
+            { error: retryErr, entityId: input.entityId },
+            "Failed to store embedding",
+          );
+        }
+      } else {
+        logger.error(
+          { error, entityId: input.entityId },
+          "Failed to store embedding",
+        );
+      }
     }
   },
 
@@ -85,10 +164,9 @@ export const vectorService = {
     const queryVector = await this.generateEmbedding(queryText);
     if (!queryVector) return [];
 
-    try {
+    const doSearch = async () => {
       const vectorString = `[${queryVector.join(",")}]`;
-
-      const results = await db.$queryRawUnsafe(
+      return db.$queryRawUnsafe(
         `SELECT id, "entityId", "entityType", content, 1 - (vector <=> $1::vector) as similarity
                  FROM "customer"."DocumentEmbedding"
                  WHERE "customerId" = $2
@@ -97,10 +175,21 @@ export const vectorService = {
         vectorString,
         customerId,
         limit,
-      );
+      ) as Promise<any[]>;
+    };
 
-      return results as any[];
+    try {
+      return await doSearch();
     } catch (error) {
+      if (isVectorColumnMissing(error)) {
+        await ensureVectorColumn();
+        try {
+          return await doSearch();
+        } catch {
+          logger.error({ error }, "Vector search failed");
+          return [];
+        }
+      }
       logger.error({ error }, "Vector search failed");
       return [];
     }

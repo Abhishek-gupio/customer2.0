@@ -301,8 +301,20 @@ export const toolRegistry = {
         return acc;
       }, {});
 
+      const categoryLabel = args.category
+        ? ` on ${args.category.toLowerCase()}`
+        : "";
+      const message =
+        `In the last ${days} days you spent ₹${total.toLocaleString("en-IN")}${categoryLabel}.` +
+        (Object.keys(breakdown).length > 1
+          ? ` Breakdown: ${Object.entries(breakdown)
+              .map(([cat, amt]) => `${cat} ₹${Number(amt).toLocaleString("en-IN")}`)
+              .join(", ")}`
+          : "");
+
       return {
         success: true,
+        message,
         total: `₹${total}`,
         period: `Last ${days} days`,
         breakdown,
