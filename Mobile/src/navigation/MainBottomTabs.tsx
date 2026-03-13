@@ -81,6 +81,11 @@ export function MainBottomTabs() {
               <Icon name={TAB_ICONS.Services} size={18} color={color} />
             ),
           }}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              navigation.navigate('Services', { screen: 'ServicesHome' });
+            },
+          })}
         />
         <Tab.Screen
           name="AIAssistant"

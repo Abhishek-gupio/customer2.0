@@ -286,7 +286,7 @@ export default function Home() {
             } else if (label === 'Valet') {
               navigateToRootScreen('VehicleList');
             } else if (label === 'Service') {
-              setServiceModalVisible(true);
+              navigation.navigate('Services' as any, { screen: 'ServicesHome' });
             } else if (label === 'Driving') {
               navigateToRootScreen('DrivingSummary');
             }
