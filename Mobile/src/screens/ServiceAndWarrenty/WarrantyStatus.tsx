@@ -73,6 +73,16 @@ export const WarrantyStatus = () => {
     }
   };
 
+  const getUrgencyLabel = (urgency: string) => {
+    switch (urgency) {
+      case 'OVERDUE': return 'Overdue';
+      case 'DUE_BY_KM': return 'Due by km';
+      case 'DUE_SOON': return 'Due soon';
+      case 'ACTIVE': return 'Active';
+      default: return (urgency || '').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }
+  };
+
   const fetchData = async () => {
     try {
       const vehicles = await vehicleService.getVehicles();
@@ -82,6 +92,9 @@ export const WarrantyStatus = () => {
         return;
       }
       setVehicle(primary);
+
+      // Refresh OEM manual intervals for primary vehicle (fire-and-forget) so part intervals match OEM e.g. 60k km for tyres
+      api.post('/v1/expenses/warranty/primary/refresh-oem').catch(() => {});
 
       const [warrantyRes, upcomingRes] = await Promise.all([
         api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/status`),
@@ -102,7 +115,7 @@ export const WarrantyStatus = () => {
           title: item.partType.replace(/_/g, ' '),
           subtitle: item.message,
           percentage: Math.max(0, Math.min(100, percentage)),
-          statusText: item.urgency.replace(/_/g, ' '),
+          statusText: getUrgencyLabel(item.urgency),
           color: getUrgencyColor(item.urgency),
           icon: getPartIcon(item.partType),
           urgency: item.urgency,

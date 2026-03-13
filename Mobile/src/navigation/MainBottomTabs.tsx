@@ -11,7 +11,7 @@ import Home from '../screens/Main/Home';
 import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
 import Alerts from '../screens/Main/Alerts';
-import History from '../screens/Main/History';
+import Odometer from '../screens/Main/Odometer';
 import HeyGupioOverlay from '../components/HeyGupioOverlay';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -21,7 +21,7 @@ const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   Services: 'th-large',
   AIAssistant: 'robot',
   Alerts: 'bell',
-  History: 'clock',
+  Odometer: 'tachometer-alt',
 };
 
 function CenterTabButton({
@@ -109,12 +109,12 @@ export function MainBottomTabs() {
           }}
         />
         <Tab.Screen
-          name="History"
-          component={History}
+          name="Odometer"
+          component={Odometer}
           options={{
-            tabBarLabel: 'History',
+            tabBarLabel: 'Odometer',
             tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.History} size={18} color={color} />
+              <Icon name={TAB_ICONS.Odometer} size={18} color={color} />
             ),
           }}
         />

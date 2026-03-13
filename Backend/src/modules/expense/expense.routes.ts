@@ -58,6 +58,7 @@ router.post(
 // ============================================================
 // 5. WARRANTY & PARTS TRACKER
 // ============================================================
+router.post("/warranty/primary/refresh-oem", warrantyController.refreshOemForPrimary); // Refresh OEM intervals for primary vehicle
 router.get("/warranty/providers", warrantyController.getServiceProviders); // Provider Database (Garages)
 router.post(
   "/warranty/service-records",

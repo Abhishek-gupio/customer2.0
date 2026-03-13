@@ -1,54 +1,109 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     FlatList,
     TouchableOpacity,
+    ActivityIndicator,
 } from 'react-native';
-
+import { useFocusEffect } from '../../lib/react-navigation-native';
 import ServiceCard from '../../components/ServiceCard';
-import { serviceHistory } from '../ServiceAndWarrenty/data';
-import { COLORS } from './data';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
+import { api } from '../../services/api';
 
+function mapRecordToCard(record: any): any {
+    const date = record.serviceDate
+        ? new Date(record.serviceDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '';
+    const parts = record.parts?.length
+        ? record.parts.map((p: any) => p.partType?.replace(/_/g, ' ') || p.partType).join(', ')
+        : '';
+    const nextService = record.nextServiceKm
+        ? `Next at ${record.nextServiceKm.toLocaleString()} km`
+        : record.nextServiceDate
+            ? new Date(record.nextServiceDate).toLocaleDateString('en-IN')
+            : '';
+    return {
+        id: record.id,
+        title: record.serviceType?.replace(/_/g, ' ') || 'Service',
+        garage: record.garageName || '—',
+        date,
+        odometer: record.odometerAtService ? `${record.odometerAtService.toLocaleString()} km` : undefined,
+        parts: parts || undefined,
+        nextService: nextService || undefined,
+    };
+}
 
 export default function ServiceHistoryScreen({ navigation }: any) {
+    const [loading, setLoading] = useState(true);
+    const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+    const [records, setRecords] = useState<any[]>([]);
+
+    const fetchData = useCallback(async () => {
+        try {
+            const vehicles = await vehicleService.getVehicles();
+            const primary = vehicles.find((v: Vehicle) => v.isPrimary) || vehicles[0];
+            if (!primary) {
+                setVehicle(null);
+                setRecords([]);
+                return;
+            }
+            setVehicle(primary);
+            const res = await api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/history`);
+            const data = (res as any).data ?? res;
+            setRecords(Array.isArray(data) ? data.map(mapRecordToCard) : []);
+        } catch (err) {
+            console.error('Service history fetch failed:', err);
+            setRecords([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData])
+    );
+
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.shader}>
-                {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation?.goBack()}>
                         <Text style={styles.back}>←</Text>
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Service History</Text>
                 </View>
-
-                {/* Vehicle Number */}
-                <Text style={styles.vehicle}>MH12AB1234</Text>
+                <Text style={styles.vehicle}>
+                    {vehicle?.registrationNumber ?? '—'}
+                </Text>
             </View>
             <View style={styles.container}>
-
-                {/* Service List */}
-                <FlatList
-                    // ListHeaderComponent={}
-                    data={serviceHistory}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <ServiceCard item={item} />}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                />
-
-                {/* Add Service */}
-                {/* <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addText}>+ Log Service</Text>
-        </TouchableOpacity> */}
+                {loading ? (
+                    <View style={styles.loading}>
+                        <ActivityIndicator size="large" color="#FFBF00" />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={records}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => <ServiceCard item={item} />}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        ListEmptyComponent={
+                            <Text style={styles.emptyText}>
+                                No service records yet. Add a Service expense with a part to log replacements.
+                            </Text>
+                        }
+                    />
+                )}
             </View>
         </SafeAreaView>
     );
@@ -92,23 +147,18 @@ const styles = StyleSheet.create({
         marginBottom: hp('2%'),
         color: '#fff',
     },
-
-    addButton: {
-        borderWidth: 1,
-        borderStyle: 'dashed',
-        borderColor: COLORS.border,
-        borderRadius: wp('3%'),
-        paddingVertical: hp('1.8%'),
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'transparent',
-        marginTop: hp('1%'),
-        marginBottom: hp('2%'),
+        paddingVertical: hp(4),
     },
-
-    addText: {
-        fontSize: wp('4%'),
-        fontWeight: '600',
-        color: '#fff',
+    emptyText: {
+        color: '#888',
+        fontSize: wp(4),
+        textAlign: 'center',
+        paddingVertical: hp(4),
+        paddingHorizontal: wp(6),
     },
 
     shader: {

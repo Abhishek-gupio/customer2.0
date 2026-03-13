@@ -33,7 +33,7 @@ export type RootStackParamList = {
   DrivingSummary: undefined;
   SOSButton: undefined;
   Alerts: undefined;
-  History: undefined;
+  Odometer: undefined;
   // AiBotChat: undefined;
 };
 
@@ -42,7 +42,7 @@ export type MainTabParamList = {
   Services: undefined;
   AIAssistant: undefined;
   Alerts: undefined;
-  History: undefined;
+  Odometer: undefined;
 };
 
 declare global {
