@@ -34,18 +34,21 @@ const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhatt
 export default function Home() {
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
-  const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number } | null>(null);
+  const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
   const [selectedState, setSelectedState] = useState('Kerala');
   const [showStateModal, setShowStateModal] = useState(false);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [fuelLoading, setFuelLoading] = useState(false);
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [vehicleLoading, setVehicleLoading] = useState(true);
   const [serviceDueText, setServiceDueText] = useState('Checking...');
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [trendingNews, setTrendingNews] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const carouselRef = useRef<FlatList>(null);
+  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -60,6 +63,57 @@ export default function Home() {
     };
     loadData();
   }, [selectedState]);
+
+  // Auto-scroll carousel every 5 seconds (3 minutes is too long for a UI carousel)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      let nextIndex = (carouselIndex + 1) % 4; // 4 items
+      setCarouselIndex(nextIndex);
+      carouselRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [carouselIndex]);
+
+  // Typewriter animation for rotating number plate placeholders
+  useEffect(() => {
+    let currentIdx = 0;
+    let placeholderIdx = 0;
+    let isDeleting = false;
+    let timeout: any;
+
+    const animatePlaceholder = () => {
+      const fullText = placeholders[placeholderIdx];
+
+      if (!isDeleting) {
+        setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
+        currentIdx++;
+        if (currentIdx === fullText.length) {
+          isDeleting = true;
+          timeout = setTimeout(animatePlaceholder, 2000); // Wait before deleting
+        } else {
+          timeout = setTimeout(animatePlaceholder, 150);
+        }
+      } else {
+        setAnimatedPlaceholder(fullText.substring(0, currentIdx - 1));
+        currentIdx--;
+        if (currentIdx === 0) {
+          isDeleting = false;
+          // Move to next placeholder in the list
+          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+          timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
+        } else {
+          timeout = setTimeout(animatePlaceholder, 100);
+        }
+      }
+    };
+
+    animatePlaceholder();
+    return () => clearTimeout(timeout);
+  }, []);
 
   const fetchPrimaryVehicle = async () => {
     try {
@@ -102,8 +156,12 @@ export default function Home() {
       setFuelLoading(true);
       const res = await api.get<any>(`/v1/fuel/state?name=${selectedState}`);
       const data = (res as any).data || res;
-      if (data && data.petrol) {
-        setFuelPrices(data);
+      if (data && (data.PETROL || data.petrol)) {
+        setFuelPrices({
+          petrol: data.PETROL || data.petrol,
+          diesel: data.DIESEL || data.diesel,
+          cng: data.CNG || data.cng
+        });
       } else {
         console.warn('No fuel data available for', selectedState);
       }
@@ -191,58 +249,162 @@ export default function Home() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* PREMIUM VEHICLE HEADER */}
+        {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>
-          <View style={styles.headerContent}>
-            {/* Left Info Column */}
-            <View style={styles.headerLeft}>
-              {vehicleLoading ? (
-                <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
-              ) : vehicle ? (
-                <>
-                  <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
-                  <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
-
-                  <View style={styles.healthSection}>
-                    <Text style={styles.healthText}>
-                      {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
-                    </Text>
-                    <View style={styles.healthBarBg}>
-                      <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
+          <FlatList
+            ref={carouselRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
+              setCarouselIndex(index);
+            }}
+            data={[0, 1, 2, 3]} // 4 slides
+            keyExtractor={(item) => item.toString()}
+            renderItem={({ item }) => {
+              if (item === 0) {
+                return (
+                  <View style={styles.slideFull}>
+                    <View style={styles.headerContent}>
+                      <View style={styles.headerLeft}>
+                        {vehicleLoading ? (
+                          <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
+                        ) : vehicle ? (
+                          <>
+                            <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
+                            <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
+                            <View style={styles.healthSection}>
+                              <Text style={styles.healthText}>
+                                {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
+                              </Text>
+                              <View style={styles.healthBarBg}>
+                                <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
+                              </View>
+                            </View>
+                          </>
+                        ) : (
+                          <TouchableOpacity onPress={() => navigateToRootScreen('AddVehicle')}>
+                            <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
+                            <Text style={styles.headerCarModel}>Tap to get started</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      <View style={styles.headerRight}>
+                        <Image
+                          source={require('../../assets/images/car_vehicle_demo.png') as any}
+                          style={styles.headerCarImage}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    </View>
+                    <View style={styles.headerFooter}>
+                      <View style={styles.footerItem}>
+                        <Text style={styles.footerLabel}>Service due in</Text>
+                        <Text style={styles.footerValue}>{serviceDueText}</Text>
+                      </View>
+                      <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
+                        <Text style={styles.footerLabel}>FASTag</Text>
+                        <Text style={styles.footerValue}>₹ ---</Text>
+                      </View>
                     </View>
                   </View>
-                </>
-              ) : (
-                <TouchableOpacity onPress={() => navigateToRootScreen('AddVehicle')}>
-                  <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
-                  <Text style={styles.headerCarModel}>Tap to get started</Text>
+                );
+              }
+              if (item === 1) {
+                return (
+                  <View style={styles.slideFull}>
+                    <View style={styles.promoSlide}>
+                      <View style={styles.promoLeft}>
+                        <Text style={styles.promoSubtitle}>Stay Connected</Text>
+                        <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
+                        <View style={styles.promoButtons}>
+                          <TouchableOpacity
+                            style={styles.promoBtn}
+                            onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
+                          >
+                            <Icon name="instagram" size={14} color="#000" />
+                            <Text style={styles.promoBtnText}>Instagram</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.promoBtn, { backgroundColor: '#333' }]}
+                            onPress={() => Linking.openURL('https://gupio.in/')}
+                          >
+                            <MaterialIcon name="earth" size={14} color="#fff" />
+                            <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      <View style={styles.promoRight}>
+                        <MaterialIcon name="account-group" size={wp(25)} color="rgba(255,255,255,0.1)" />
+                      </View>
+                    </View>
+                  </View>
+                );
+              }
+              if (item === 2) {
+                return (
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => navigateToRootScreen('Expenses')}
+                  >
+                    <View style={styles.promoSlide}>
+                      <View style={styles.promoLeft}>
+                        <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
+                        <Text style={styles.promoTitle}>Expense Tracker</Text>
+                        <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
+                        <View style={styles.promoAction}>
+                          <Text style={styles.promoActionText}>Try Now</Text>
+                          <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
+                        </View>
+                      </View>
+                      <View style={styles.promoRight}>
+                        <MaterialIcon name="wallet" size={wp(25)} color="rgba(255,191,0,0.15)" />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }
+              return (
+                <TouchableOpacity
+                  style={styles.slideFull}
+                  activeOpacity={0.9}
+                  onPress={() => setServiceModalVisible(true)}
+                >
+                  <View style={styles.promoSlide}>
+                    <View style={styles.promoLeft}>
+                      <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
+                      <Text style={styles.promoTitle}>Featured Services</Text>
+                      <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
+                      <View style={styles.promoAction}>
+                        <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
+                        <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                      </View>
+                    </View>
+                    <View style={styles.promoRight}>
+                      <MaterialIcon name="car-cog" size={wp(25)} color="rgba(74,222,128,0.15)" />
+                    </View>
+                  </View>
                 </TouchableOpacity>
-              )}
-            </View>
+              );
+            }}
+          />
 
-            {/* Right Car Image Column */}
-            <View style={styles.headerRight}>
-              <Image
-                source={require('../../assets/images/car_vehicle_demo.png') as any}
-                style={styles.headerCarImage}
-                resizeMode="contain"
+          {/* Carousel Indicators */}
+          <View style={styles.indicatorContainer}>
+            {[0, 1, 2, 3].map((i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  carouselIndex === i ? styles.dotActive : styles.dotInactive
+                ]}
               />
-            </View>
+            ))}
           </View>
 
-          {/* Bottom Footer Section - Now Full Width */}
-          <View style={styles.headerFooter}>
-            <View style={styles.footerItem}>
-              <Text style={styles.footerLabel}>Service due in</Text>
-              <Text style={styles.footerValue}>{serviceDueText}</Text>
-            </View>
-            <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
-              <Text style={styles.footerLabel}>FASTag</Text>
-              <Text style={styles.footerValue}>₹ ---</Text>
-            </View>
-          </View>
-
-          {/* Top Overlays */}
+          {/* Top Overlays - Fixed on top of carousel */}
           <View style={styles.headerOverlay}>
             <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
               <Icon name="user-circle" size={wp(6.5)} color="#fff" />
@@ -261,7 +423,7 @@ export default function Home() {
             </View>
             <TextInput
               style={styles.numberPlateInput}
-              placeholder="MH01CH4322"
+              placeholder={animatedPlaceholder}
               placeholderTextColor="#666"
               value={numberPlate}
               onChangeText={setNumberPlate}
@@ -305,7 +467,7 @@ export default function Home() {
               <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
               <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
               <TouchableOpacity style={styles.payNowButton}>
-                <Text style={styles.payNowText}>Pay Now</Text>
+                <Text style={styles.payNowText}>Check Now</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -315,9 +477,6 @@ export default function Home() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Trending Videos</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAllText}>View all</Text>
-            </TouchableOpacity>
           </View>
           <FlatList
             horizontal
@@ -377,10 +536,16 @@ export default function Home() {
                   <Text style={styles.fuelInlineLabel}>Diesel:</Text>
                   <Text style={styles.fuelInlineValue}>₹ {fuelPrices.diesel}</Text>
                 </View>
+                {fuelPrices.cng && (
+                  <>
+                    <View style={styles.fuelInlineSpacer} />
+                    <View style={styles.fuelInlineItem}>
+                      <Text style={styles.fuelInlineLabel}>CNG:</Text>
+                      <Text style={styles.fuelInlineValue}>₹ {fuelPrices.cng}</Text>
+                    </View>
+                  </>
+                )}
               </View>
-              <TouchableOpacity style={styles.viewTrendsButton}>
-                <Text style={styles.viewTrendsText}>View Trends</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.fuelContentCard}>
@@ -393,9 +558,6 @@ export default function Home() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Car News</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAllText}>View Trends</Text>
-            </TouchableOpacity>
           </View>
           {trendingNews.map((news) => (
             <TouchableOpacity
@@ -555,15 +717,15 @@ const styles = StyleSheet.create({
   /* PREMIUM VEHICLE HEADER */
   headerWrapper: {
     width: '100%',
-    height: hp(32),
+    height: hp(32), // Increased from hp(28) to give more breathing room
     backgroundColor: '#1a1c2e',
-    paddingTop: Platform.OS === 'ios' ? hp(0) : hp(1),
+    paddingTop: 0,
   },
   headerContent: {
     flex: 1,
     flexDirection: 'row',
     paddingHorizontal: wp(6),
-    paddingTop: hp(6), // Offset for top icons
+    paddingTop: hp(6), // Increased from hp(5) to fix icon/text crowding
   },
   headerLeft: {
     flex: 1.3,
@@ -604,7 +766,7 @@ const styles = StyleSheet.create({
     height: hp(0.8),
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 4,
-    marginTop: hp(1),
+    marginTop: hp(1.5), // Increased slightly for clarity
     overflow: 'hidden',
   },
   healthBarFill: {
@@ -616,9 +778,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: hp(1),
+    marginTop: hp(2.5), // Added margin to fix overlap with health bar
     paddingHorizontal: wp(6),
-    paddingBottom: hp(2.5),
+    paddingBottom: hp(6),
   },
   footerItem: {
     justifyContent: 'center',
@@ -655,12 +817,104 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
+  /* CAROUSEL SLIDE STYLES */
+  slideFull: {
+    width: wp(100),
+    height: '100%',
+  },
+  promoSlide: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingHorizontal: wp(6),
+    paddingTop: hp(8), // More space for top overlay
+  },
+  promoLeft: {
+    flex: 2,
+    justifyContent: 'flex-start',
+  },
+  promoRight: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  promoSubtitle: {
+    color: '#aaa',
+    fontSize: wp(3.5),
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: hp(0.5),
+  },
+  promoTitle: {
+    color: '#fff',
+    fontSize: wp(5.5),
+    fontWeight: '800',
+    marginBottom: hp(1.5),
+  },
+  promoDesc: {
+    color: '#ccc',
+    fontSize: wp(3.2),
+    lineHeight: hp(2),
+    marginBottom: hp(2),
+  },
+  promoButtons: {
+    flexDirection: 'row',
+    gap: wp(3),
+    marginTop: hp(1),
+  },
+  promoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: 6,
+    gap: wp(1.5),
+  },
+  promoBtnText: {
+    color: '#000',
+    fontSize: wp(3),
+    fontWeight: '700',
+  },
+  promoAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  promoActionText: {
+    color: '#FFBF00',
+    fontSize: wp(4),
+    fontWeight: '700',
+  },
+  indicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: hp(5), // Positioned above the overlapping vehicle input
+    left: 0,
+    right: 0,
+    gap: wp(1.5),
+  },
+  dot: {
+    width: wp(1.5),
+    height: wp(1.5),
+    borderRadius: wp(0.75),
+  },
+  dotActive: {
+    backgroundColor: '#fff',
+    width: wp(4),
+  },
+  dotInactive: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+
   /* NUMBER PLATE SECTION */
   numberPlateSection: {
     paddingHorizontal: wp(12),
-    marginTop: hp(2),
-    marginBottom: hp(2.5),
+    marginTop: -hp(2.80), // 50% of the 5.5hp height to overlap header
+    marginBottom: hp(2.0),
     justifyContent: 'center',
+    zIndex: 10, // Ensure it's above the header
   },
   numberPlateContainer: {
     flexDirection: 'row',

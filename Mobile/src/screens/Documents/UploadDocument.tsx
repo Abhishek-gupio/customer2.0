@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import {
   InteractionManager,
   Image,
   ActivityIndicator,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { pick as pickDocument, types as docTypes } from '@react-native-documents/picker';
@@ -49,6 +51,26 @@ export default function UploadDocument() {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showSourceModal, setShowSourceModal] = useState(false);
+  const [primaryVehicle, setPrimaryVehicle] = useState<any>(null);
+
+  useEffect(() => {
+    fetchPrimaryVehicle();
+  }, []);
+
+  const fetchPrimaryVehicle = async () => {
+    try {
+      const { vehicleService } = require('../../services/vehicleService') as { vehicleService: any };
+      const vehicles = await vehicleService.getVehicles();
+      const primary = vehicles.find((v: any) => v.isPrimary) || vehicles[0];
+      if (primary) {
+        setPrimaryVehicle(primary);
+        setVehicle(primary.registrationNumber);
+      }
+    } catch (err) {
+      console.error('Failed to fetch primary vehicle:', err);
+    }
+  };
 
   const requestAndroidPermissions = async (): Promise<boolean> => {
     if (Platform.OS !== 'android') return true;
@@ -95,34 +117,7 @@ export default function UploadDocument() {
   };
 
   const handleTapToUpload = () => {
-    const options = ['Camera', 'Gallery', 'Choose File', 'Cancel'];
-    const cancelIndex = 3;
-
-    const runPicker = (fn: () => void) => {
-      if (typeof requestIdleCallback === 'function') {
-        requestIdleCallback(fn);
-      } else {
-        setTimeout(fn, 100);
-      }
-    };
-
-    if (Platform.OS === 'ios' && ActionSheetIOS) {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, cancelButtonIndex: cancelIndex },
-        (buttonIndex) => {
-          if (buttonIndex === 0) runPicker(handleTakePhoto);
-          else if (buttonIndex === 1) runPicker(handlePickImage);
-          else if (buttonIndex === 2) runPicker(handlePickDocument);
-        },
-      );
-    } else {
-      Alert.alert('Upload Document', 'Select source', [
-        { text: 'Camera', onPress: () => runPicker(handleTakePhoto) },
-        { text: 'Gallery', onPress: () => runPicker(handlePickImage) },
-        { text: 'Choose File', onPress: () => runPicker(handlePickDocument) },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
-    }
+    setShowSourceModal(true);
   };
 
   const handlePickDocument = async () => {
@@ -299,16 +294,24 @@ export default function UploadDocument() {
           </View>
         )}
 
-        {/* Link to Vehicle */}
-        <Text style={styles.label}>Link to Vehicle</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Enter vehicle number (e.g. MH12AB1234)"
-          placeholderTextColor="#666"
-          value={vehicle}
-          onChangeText={setVehicle}
-          autoCapitalize="characters"
-        />
+        {/* Linked Vehicle (Automatic) */}
+        {primaryVehicle && (
+          <View style={styles.autoLinkBox}>
+            <View style={styles.autoLinkHeader}>
+              <Icon name="link" size={wp(3.5)} color="#FFBF00" />
+              <Text style={styles.autoLinkLabel}>Automatically Linked to</Text>
+            </View>
+            <View style={styles.autoLinkContent}>
+              <View style={styles.vehicleIcon}>
+                <Icon name="car" size={wp(4)} color="#fff" />
+              </View>
+              <View>
+                <Text style={styles.vehicleNumber}>{primaryVehicle.registrationNumber}</Text>
+                <Text style={styles.vehicleModel}>{primaryVehicle.make} {primaryVehicle.model}</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Tap to Upload / Preview */}
         <TouchableOpacity
@@ -385,6 +388,68 @@ export default function UploadDocument() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Source Selection Modal */}
+      <Modal
+        visible={showSourceModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSourceModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowSourceModal(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Choose Source</Text>
+                  <TouchableOpacity onPress={() => setShowSourceModal(false)}>
+                    <Icon name="times" size={wp(5)} color="#888" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.modalOptions}>
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => { setShowSourceModal(false); handleTakePhoto(); }}
+                  >
+                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
+                      <Icon name="camera" size={wp(5)} color="#4CAF50" />
+                    </View>
+                    <Text style={styles.modalOptionText}>Take Photo</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => { setShowSourceModal(false); handlePickImage(); }}
+                  >
+                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
+                      <Icon name="images" size={wp(5)} color="#2196F3" />
+                    </View>
+                    <Text style={styles.modalOptionText}>From Gallery</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => { setShowSourceModal(false); handlePickDocument(); }}
+                  >
+                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
+                      <Icon name="file-pdf" size={wp(5)} color="#FF9800" />
+                    </View>
+                    <Text style={styles.modalOptionText}>Choose File (PDF)</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  onPress={() => setShowSourceModal(false)}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -567,4 +632,109 @@ const styles = StyleSheet.create({
   },
   submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { fontSize: wp(4.5), fontWeight: '700', color: '#000' },
+
+  autoLinkBox: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: wp(3),
+    padding: wp(4),
+    marginBottom: hp(2.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.15)',
+  },
+  autoLinkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1.2),
+    gap: wp(2),
+  },
+  autoLinkLabel: {
+    fontSize: wp(3.2),
+    color: '#aaa',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  autoLinkContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+  },
+  vehicleIcon: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    backgroundColor: '#333',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vehicleNumber: {
+    fontSize: wp(4.2),
+    fontWeight: '700',
+    color: '#fff',
+  },
+  vehicleModel: {
+    fontSize: wp(3.3),
+    color: '#888',
+    marginTop: hp(0.2),
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: wp(6),
+    borderTopRightRadius: wp(6),
+    padding: wp(5),
+    paddingBottom: Platform.OS === 'ios' ? hp(4) : hp(2),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(2.5),
+    paddingHorizontal: wp(1),
+  },
+  modalTitle: {
+    fontSize: wp(4.8),
+    fontWeight: '700',
+    color: '#fff',
+  },
+  modalOptions: {
+    gap: hp(1.5),
+    marginBottom: hp(3),
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#222',
+    padding: wp(4),
+    borderRadius: wp(4),
+    gap: wp(4),
+  },
+  modalOptionIcon: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalOptionText: {
+    fontSize: wp(4),
+    fontWeight: '600',
+    color: '#fff',
+  },
+  modalCancelBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(2),
+    backgroundColor: '#2a2a2a',
+    borderRadius: wp(4),
+  },
+  modalCancelText: {
+    fontSize: wp(4.2),
+    fontWeight: '600',
+    color: '#888',
+  },
 });
