@@ -136,6 +136,10 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
   const handleSave = async () => {
     if (!isValid) return;
+    if (!vehicleId) {
+      Alert.alert("Vehicle required", "Please set a primary vehicle before adding expenses.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -160,7 +164,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         notes: description,
         date: parsedDate,
         source: "MANUAL",
-        vehicleId: vehicleId || undefined,
+        vehicleId,
         receiptUrl: receiptUrl || undefined,
         mimeType: mimeType || undefined,
       };

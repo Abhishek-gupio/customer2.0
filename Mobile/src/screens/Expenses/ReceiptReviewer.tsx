@@ -101,6 +101,10 @@ export default function ReceiptReviewer({
 
   const handleSave = async () => {
     if (!isValid) return;
+    if (!vehicleId) {
+      Alert.alert("Vehicle required", "Please set a primary vehicle before adding expenses.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -118,7 +122,7 @@ export default function ReceiptReviewer({
         notes: description,
         date: parsedDate,
         source,
-        vehicleId: vehicleId || undefined,
+        vehicleId,
         receiptUrl: receiptUrl || undefined,
         mimeType: mimeType || undefined,
       };

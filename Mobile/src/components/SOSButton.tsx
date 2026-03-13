@@ -377,7 +377,7 @@ const SOSButton = () => {
           </View>
         </View>
         <Pressable onPress={() => navigation.navigate("Alerts")} style={styles.iconButton}>
-          <Ionicons name="notifications-outline" size={20} color="#111" />
+          <Ionicons name="notifications-outline" size={20} color="#e5e7eb" />
         </Pressable>
       </View>
 
@@ -391,7 +391,7 @@ const SOSButton = () => {
               </Text>
             </View>
             <Pressable style={styles.heroChip} onPress={fetchLocation}>
-              <Ionicons name="location-outline" size={14} color="#111" />
+              <Ionicons name="location-outline" size={14} color="#e5e7eb" />
               <Text style={styles.heroChipText}>
                 {showRetryHint ? 'Tap to retry' : locationLabel}
               </Text>
@@ -416,7 +416,7 @@ const SOSButton = () => {
           </Text>
           {(gpsOff || showRetryHint) && (
             <TouchableOpacity style={styles.settingsButton} onPress={openAppSettings}>
-              <Ionicons name="settings-outline" size={16} color="#111" />
+              <Ionicons name="settings-outline" size={16} color="#e5e7eb" />
               <Text style={styles.settingsButtonText}>Open Settings</Text>
             </TouchableOpacity>
           )}
@@ -595,7 +595,7 @@ export default SOSButton
 
 const styles = StyleSheet.create({
     container: {
-      backgroundColor: "#f6f7fb",
+      backgroundColor: "#0b0b0f",
       flex: 1,
     },
     scrollContent: {
@@ -617,16 +617,16 @@ const styles = StyleSheet.create({
       width: 44,
       height: 44,
       borderRadius: 22,
-      borderWidth: 2,
-      borderColor: "#fff",
+      borderWidth: 1,
+      borderColor: "#2a2a2f",
     },
     title: {
-      color: "#111",
+      color: "#f3f4f6",
       fontWeight: FW.header,
       fontSize: wp(4.8),
     },
     subTitle: {
-      color: "#6b7280",
+      color: "#9ca3af",
       fontSize: wp(3.2),
       marginTop: hp(0.2),
     },
@@ -634,23 +634,23 @@ const styles = StyleSheet.create({
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: "#fff",
+      backgroundColor: "#15161c",
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1.5,
-      borderColor: "#e5e7eb",
+      borderWidth: 1,
+      borderColor: "#24252b",
     },
     heroCard: {
-      backgroundColor: "#ffffff",
+      backgroundColor: "#111217",
       marginHorizontal: wp(5),
       borderRadius: wp(6),
       padding: wp(5),
-      borderWidth: 1.5,
-      borderColor: "#eef0f4",
+      borderWidth: 1,
+      borderColor: "#1f2026",
       shadowColor: "#000",
-      shadowOpacity: 0.1,
+      shadowOpacity: 0.35,
       shadowRadius: 18,
-      elevation: 6,
+      elevation: 12,
     },
     heroTop: {
       flexDirection: "row",
@@ -662,13 +662,13 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       alignItems: "center",
       gap: wp(1.5),
-      backgroundColor: "#d1fae5",
+      backgroundColor: "#fcd34d",
       paddingHorizontal: wp(3.2),
       paddingVertical: hp(0.5),
       borderRadius: wp(5),
     },
     heroBadgeWarning: {
-      backgroundColor: "#fee2e2",
+      backgroundColor: "#fecaca",
     },
     heroBadgeText: {
       color: "#111",
@@ -679,13 +679,13 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       alignItems: "center",
       gap: wp(1.5),
-      backgroundColor: "#f3f4f6",
+      backgroundColor: "#1b1c22",
       paddingHorizontal: wp(3),
       paddingVertical: hp(0.5),
       borderRadius: wp(5),
     },
     heroChipText: {
-      color: "#111",
+      color: "#e5e7eb",
       fontWeight: "600",
       fontSize: wp(3),
     },
@@ -698,11 +698,11 @@ const styles = StyleSheet.create({
       width: 190,
       height: 190,
       borderRadius: 95,
-      backgroundColor: "#fff5f5",
+      backgroundColor: "#1a0f0f",
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 2,
-      borderColor: "#ffe4e6",
+      borderColor: "#3b1111",
     },
     sosButton: {
       width: 150,
@@ -725,7 +725,7 @@ const styles = StyleSheet.create({
     },
     hint: {
       marginTop: hp(1.5),
-      color: "#6b7280",
+      color: "#9ca3af",
       textAlign: "center",
       fontSize: wp(3.2),
     },
@@ -735,32 +735,32 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       alignItems: "center",
       gap: wp(2),
-      backgroundColor: "#fef3c7",
-      borderWidth: 1.5,
-      borderColor: "#fde68a",
+      backgroundColor: "#2a2a2f",
+      borderWidth: 1,
+      borderColor: "#3a3a42",
       paddingHorizontal: wp(3.5),
       paddingVertical: hp(0.8),
       borderRadius: wp(5),
     },
     settingsButtonText: {
-      color: "#111",
+      color: "#e5e7eb",
       fontWeight: "700",
       fontSize: wp(3.2),
     },
     debugText: {
       marginTop: hp(0.6),
-      color: "#6b7280",
+      color: "#9ca3af",
       textAlign: "center",
       fontSize: wp(2.8),
     },
     sectionCard: {
-      backgroundColor: "#ffffff",
+      backgroundColor: "#111217",
       marginHorizontal: wp(5),
       marginTop: hp(2),
       padding: wp(5),
       borderRadius: wp(6),
-      borderWidth: 1.5,
-      borderColor: "#eef0f4",
+      borderWidth: 1,
+      borderColor: "#1f2026",
     },
     sectionHeader: {
       flexDirection: "row",
@@ -770,11 +770,11 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
       fontSize: wp(4.6),
-      color: "#111",
+      color: "#f3f4f6",
       fontWeight: "700",
     },
     sectionMeta: {
-      color: "#6b7280",
+      color: "#9ca3af",
       fontSize: wp(3.1),
     },
     row: {
@@ -784,11 +784,11 @@ const styles = StyleSheet.create({
     action: {
       alignItems: "center",
       width: 92,
-      backgroundColor: "#f9fafb",
+      backgroundColor: "#15161c",
       paddingVertical: hp(1.2),
       borderRadius: wp(4),
-      borderWidth: 1.5,
-      borderColor: "#eef0f4",
+      borderWidth: 1,
+      borderColor: "#23242a",
     },
     circle: {
       width: 58,
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
       marginBottom: 6,
     },
     label: {
-      color: "#111",
+      color: "#e5e7eb",
       textAlign: "center",
       fontSize: wp(3.1),
     },
@@ -808,19 +808,19 @@ const styles = StyleSheet.create({
       alignItems: "center",
       gap: wp(3),
       paddingVertical: hp(1.2),
-      borderWidth: 1.5,
-      borderColor: "#eef0f4",
+      borderWidth: 1,
+      borderColor: "#23242a",
       borderRadius: wp(4),
       marginBottom: hp(1),
       paddingHorizontal: wp(4),
-      backgroundColor: "#f9fafb",
+      backgroundColor: "#15161c",
     },
     safeZoneText: {
-      color: "#111",
+      color: "#e5e7eb",
       fontSize: wp(3.7),
     },
     safeZoneSubText: {
-      color: "#6b7280",
+      color: "#9ca3af",
       fontSize: wp(3.1),
       marginTop: hp(0.2),
     },
@@ -834,10 +834,10 @@ const styles = StyleSheet.create({
     },
     input: {
       flex: 1,
-      backgroundColor: "#f9fafb",
-      color: "#111",
-      borderWidth: 1.5,
-      borderColor: "#eef0f4",
+      backgroundColor: "#15161c",
+      color: "#fff",
+      borderWidth: 1,
+      borderColor: "#23242a",
       borderRadius: wp(3.5),
       paddingHorizontal: wp(3),
       paddingVertical: hp(1.2),
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
       opacity: 0.6,
     },
     addButtonText: {
-      color: "#0b0b0f",
+      color: "#111",
       fontWeight: "700",
     },
     contactItem: {
@@ -861,20 +861,20 @@ const styles = StyleSheet.create({
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: hp(1),
-      borderBottomWidth: 1.5,
-      borderBottomColor: "#eef0f4",
+      borderBottomWidth: 1,
+      borderBottomColor: "#1f2026",
     },
     contactAvatar: {
       width: 38,
       height: 38,
       borderRadius: 19,
-      backgroundColor: "#e5e7eb",
+      backgroundColor: "#1f2937",
       alignItems: "center",
       justifyContent: "center",
       marginRight: wp(3),
     },
     contactAvatarText: {
-      color: "#111",
+      color: "#e5e7eb",
       fontWeight: "700",
       fontSize: wp(3.4),
     },
@@ -883,17 +883,17 @@ const styles = StyleSheet.create({
       marginRight: wp(2),
     },
     contactName: {
-      color: "#111",
+      color: "#f3f4f6",
       fontSize: wp(3.9),
       fontWeight: "600",
     },
     contactMeta: {
-      color: "#6b7280",
+      color: "#9ca3af",
       marginTop: hp(0.2),
       fontSize: wp(3.1),
     },
     mutedText: {
-      color: "#6b7280",
+      color: "#9ca3af",
       fontSize: wp(3.2),
       marginTop: hp(0.5),
     },

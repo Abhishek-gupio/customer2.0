@@ -40,7 +40,7 @@ function MainScreen() {
   return <MainBottomTabs />;
 }
 
-export function RootNavigator() {
+export default function RootNavigator() {
   return (
     <Stack.Navigator
       initialRouteName="Splash"

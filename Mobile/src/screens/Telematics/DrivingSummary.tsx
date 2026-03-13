@@ -3,10 +3,20 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Act
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Tts from 'react-native-tts';
-import Geolocation from '@react-native-community/geolocation';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService } from '../../services/vehicleService';
 import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
+
+const Geolocation: any = (() => {
+    try {
+        const geoModule = require('@react-native-community/geolocation') as any;
+        return geoModule?.default ?? geoModule;
+    } catch {
+        // Fallback for builds that expose the legacy navigator.geolocation API
+        const nav = (globalThis as any)?.navigator;
+        return nav?.geolocation ?? null;
+    }
+})();
 
 export default function DrivingSummary({ navigation }: any) {
     const [score, setScore] = useState(84); // Default placeholder
@@ -16,6 +26,7 @@ export default function DrivingSummary({ navigation }: any) {
     const [currentSpeed, setCurrentSpeed] = useState<number>(0);
     const [currentLocation, setCurrentLocation] = useState<{ lat: number, lon: number } | null>(null);
     const [isAssistanceDrawerOpen, setIsAssistanceDrawerOpen] = useState(false);
+    const [geoUnavailable, setGeoUnavailable] = useState(!Geolocation);
 
     const coachIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const locationWatchId = useRef<number | null>(null);
@@ -116,6 +127,14 @@ export default function DrivingSummary({ navigation }: any) {
     // Manage Geolocation when Coach is active
     useEffect(() => {
         if (isCoachActive) {
+            if (!Geolocation) {
+                setGeoUnavailable(true);
+                setIsCoachActive(false);
+                setCurrentSpeed(0);
+                setCurrentLocation(null);
+                return;
+            }
+            setGeoUnavailable(false);
             locationWatchId.current = Geolocation.watchPosition(
                 (position) => {
                     const speedInMps = position.coords.speed || 0;
@@ -128,7 +147,7 @@ export default function DrivingSummary({ navigation }: any) {
             );
         } else {
             if (locationWatchId.current !== null) {
-                Geolocation.clearWatch(locationWatchId.current);
+                Geolocation?.clearWatch(locationWatchId.current);
                 locationWatchId.current = null;
             }
             setCurrentSpeed(0);
@@ -136,7 +155,7 @@ export default function DrivingSummary({ navigation }: any) {
         }
         return () => {
             if (locationWatchId.current !== null) {
-                Geolocation.clearWatch(locationWatchId.current);
+                Geolocation?.clearWatch(locationWatchId.current);
             }
         };
     }, [isCoachActive]);
@@ -238,6 +257,11 @@ export default function DrivingSummary({ navigation }: any) {
                         <View>
                             <Text style={{ color: '#fff', fontSize: wp(4.5), fontWeight: '600' }}>Live AI Coach</Text>
                             <Text style={{ color: '#aaa', fontSize: wp(3.5), marginTop: 2 }}>Real-time voice safety tips</Text>
+                            {geoUnavailable && (
+                                <Text style={{ color: '#f87171', fontSize: wp(3.2), marginTop: 4 }}>
+                                    Location module not available in this build.
+                                </Text>
+                            )}
                         </View>
                     </View>
                     <Switch

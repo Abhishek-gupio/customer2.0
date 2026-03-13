@@ -8,7 +8,7 @@ import { store } from './src/store';
 import { setUser } from './src/store/slices/authSlice';
 import { getStoredAccessToken } from './src/services/authService';
 import { getUserId } from './src/services/storage';
-import { RootNavigator } from './src/navigation/RootNavigator';
+import  RootNavigator  from './src/navigation/RootNavigator';
 
 function AuthRestore() {
   useEffect(() => {
