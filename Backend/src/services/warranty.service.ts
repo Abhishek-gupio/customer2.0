@@ -385,12 +385,33 @@ export const warrantyService = {
       const isKmDue = kmSinceReplacement >= lifecycle.km * 0.8; // 80% of lifecycle
 
       // If it's not due, we still push it but with 'ACTIVE' status for the UI to show data
+      const overdueByKm = kmSinceReplacement >= lifecycle.km ? kmSinceReplacement - lifecycle.km : 0;
+      const isOverdueByKm = overdueByKm > 0;
+
       if (isTimeDue || isKmDue) {
         const daysOverdue = Math.ceil(
           (now.getTime() - timeDue.getTime()) / (1000 * 60 * 60 * 24),
         );
+        // Prefer OVERDUE for time; else if overdue by km use OVERDUE; else DUE_BY_KM / DUE_SOON
         const urgency =
-          daysOverdue > 0 ? "OVERDUE" : isKmDue ? "DUE_BY_KM" : "DUE_SOON";
+          daysOverdue > 0
+            ? "OVERDUE"
+            : isOverdueByKm
+              ? "OVERDUE"
+              : isKmDue
+                ? "DUE_BY_KM"
+                : "DUE_SOON";
+
+        let message: string;
+        if (urgency === "OVERDUE") {
+          if (daysOverdue > 0) {
+            message = `⚠️ ${partType} is ${Math.abs(daysOverdue)} days overdue for replacement!`;
+          } else {
+            message = `⚠️ ${partType} interval is ${lifecycle.km.toLocaleString()} km. ${kmSinceReplacement.toLocaleString()} km since last change (${overdueByKm.toLocaleString()} km overdue).`;
+          }
+        } else {
+          message = `🔔 Due at ${lifecycle.km.toLocaleString()} km. ${kmSinceReplacement.toLocaleString()} km since last change.`;
+        }
 
         due.push({
           partType: part.partType || partType,
@@ -406,10 +427,8 @@ export const warrantyService = {
           garageName: part.serviceRecord?.garageName,
           serviceType: part.serviceRecord?.serviceType,
           warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
-          message:
-            urgency === "OVERDUE"
-              ? `⚠️ ${partType} is ${Math.abs(daysOverdue)} days overdue for replacement!`
-              : `🔔 ${partType} replacement recommended soon. ${kmSinceReplacement} km since last change.`,
+          message,
+          overdueByKm: isOverdueByKm ? overdueByKm : undefined,
         });
       } else {
         // Active/Good status

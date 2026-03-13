@@ -41,6 +41,7 @@ interface PartData {
   lifecycleMonths?: number;
   lastReplacedAt?: string;
   currentOdo?: number;
+  overdueByKm?: number;
 }
 
 export const WarrantyStatus = () => {
@@ -129,6 +130,7 @@ export const WarrantyStatus = () => {
           lifecycleMonths: item.lifecycleMonths,
           lastReplacedAt: item.lastReplacedAt,
           currentOdo: primary.currentOdometer,
+          overdueByKm: item.overdueByKm,
         };
       }) : [];
 

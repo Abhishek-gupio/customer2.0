@@ -28,6 +28,7 @@ interface PartStatusCardProps {
     lifecycleMonths?: number;
     lastReplacedAt?: string;
     currentOdo?: number;
+    overdueByKm?: number;
 }
 
 export const PartStatusCard = ({
@@ -48,6 +49,7 @@ export const PartStatusCard = ({
     lifecycleMonths,
     lastReplacedAt,
     currentOdo,
+    overdueByKm,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
     const isCritical = urgency === 'OVERDUE';
@@ -93,9 +95,13 @@ export const PartStatusCard = ({
             </View>
 
             <View style={styles.bottomRow}>
-                {kmRemaining !== null ? (
+                {overdueByKm != null && overdueByKm > 0 ? (
                     <Text style={styles.predictionText}>
-                        You can travel <Text style={{ color: '#fff', fontWeight: '800' }}>{kmRemaining} km</Text> more
+                        Interval <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. Overdue by <Text style={{ color: '#EF4444', fontWeight: '800' }}>{overdueByKm.toLocaleString()} km</Text>
+                    </Text>
+                ) : kmRemaining !== null ? (
+                    <Text style={styles.predictionText}>
+                        Due at <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. <Text style={{ color: '#fff', fontWeight: '800' }}>{kmRemaining} km</Text> more
                     </Text>
                 ) : predictedDate ? (
                     <Text style={styles.predictionText}>
