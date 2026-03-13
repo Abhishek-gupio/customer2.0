@@ -42,7 +42,10 @@ export const telematicsService = {
     }
   },
   /**
-   * Link a mobile SDK instance to a vehicle
+   * Link a mobile SDK instance to a vehicle.
+   * Schema: one row per vehicleId (unique), one row per instanceId (unique).
+   * So we update the existing row for this vehicle with new instanceId, or move the row
+   * that has this instanceId to this vehicle, or create if neither exists.
    */
   async registerDevice(
     vehicleId: string,
@@ -52,22 +55,29 @@ export const telematicsService = {
   ) {
     logger.info({ vehicleId, instanceId }, "Linking Telematics Device");
 
-    // De-activate old devices for this vehicle
-    await db.telematicsDevice.updateMany({
-      where: { vehicleId },
-      data: { isActive: false },
-    });
+    const payload = { deviceToken, platform, isActive: true };
 
-    // Create or update the new device
-    return db.telematicsDevice.upsert({
-      where: { instanceId },
-      update: {
-        vehicleId,
-        deviceToken,
-        platform,
-        isActive: true,
-      },
-      create: {
+    // 1) If this instanceId is already linked (possibly to another vehicle), move it to this vehicle
+    const byInstance = await db.telematicsDevice.findUnique({ where: { instanceId } });
+    if (byInstance) {
+      return db.telematicsDevice.update({
+        where: { instanceId },
+        data: { vehicleId, ...payload },
+      });
+    }
+
+    // 2) If this vehicle already has a device, update it to this instanceId/token
+    const byVehicle = await db.telematicsDevice.findUnique({ where: { vehicleId } });
+    if (byVehicle) {
+      return db.telematicsDevice.update({
+        where: { vehicleId },
+        data: { instanceId, ...payload },
+      });
+    }
+
+    // 3) No row for this vehicle or this instanceId → create
+    return db.telematicsDevice.create({
+      data: {
         vehicleId,
         instanceId,
         deviceToken,
@@ -247,22 +257,28 @@ export const telematicsService = {
           : new Date(Date.now() - 24 * 60 * 60 * 1000);
         const endDate = new Date();
 
-        const response = await axios.post(
-          `https://api.telematicssdk.com/trips/get/admin/v1`,
-          {
-            Identifiers: { UserId: device.instanceId },
+        // API expects body under "request" and Identifiers.UserId as nullable GUID (not our CUID instanceId).
+        // We only have instanceId; pass null for UserId and rely on date range. If API requires UserId, add damoovUserId to schema later.
+        const requestBody = {
+          request: {
+            Identifiers: { UserId: null as string | null },
             IncludeDetails: true,
             IncludeStatistics: true,
             IncludeScores: true,
-            IncludeEvents: true, // We want harsh braking events
+            IncludeEvents: true,
             StartDateTimestampSec: Math.floor(startDate.getTime() / 1000),
-            EndDateTimestampSec: Math.floor(endDate.getTime() / 1000)
+            EndDateTimestampSec: Math.floor(endDate.getTime() / 1000),
           },
+        };
+
+        const response = await axios.post(
+          `https://api.telematicssdk.com/trips/get/admin/v1`,
+          requestBody,
           {
             headers: {
               "Accept": "application/json",
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${accessToken}`
+              "Authorization": `Bearer ${accessToken}`,
             },
           }
         );

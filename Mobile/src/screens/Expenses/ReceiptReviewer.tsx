@@ -16,7 +16,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse } from "date-fns";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
-import { vehicleService } from "../../services/vehicleService";
+import { vehicleService, type Vehicle } from "../../services/vehicleService";
 
 export interface ReceiptReviewerData {
   amount?: string;
@@ -47,11 +47,33 @@ export default function ReceiptReviewer({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [showVehiclePicker, setShowVehiclePicker] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const fetchVehicles = async () => {
+    try {
+      const data = await vehicleService.getVehicles();
+      setVehicles(data);
+      if (data.length > 0) {
+        const primary = data.find(v => v.isPrimary) || data[0];
+        setSelectedVehicleId(primary.id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch vehicles:", err);
+    }
+  };
+
+  React.useEffect(() => {
+    if (visible) {
+      fetchVehicles();
+    }
+  }, [visible]);
 
   React.useEffect(() => {
     if (visible && initialData) {
@@ -119,12 +141,18 @@ export default function ReceiptReviewer({
       const payload = {
         amount: parseFloat(amount),
         category: category.toUpperCase(),
+        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
         notes: description,
         date: parsedDate,
         source,
+<<<<<<< HEAD
         vehicleId,
         receiptUrl: receiptUrl || undefined,
         mimeType: mimeType || undefined,
+=======
+        receiptUrl: receiptUrl ?? undefined,
+        mimeType: mimeType ?? undefined,
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
       };
 
       await api.post("/v1/expenses", payload);
@@ -171,6 +199,15 @@ export default function ReceiptReviewer({
                   <Ionicons name="close" size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
+
+              <Label text="Vehicle" />
+              <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+                <Input
+                  value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
+                  icon="chevron-down"
+                  editable={false}
+                />
+              </TouchableOpacity>
 
               <Label text="Category" />
               <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
@@ -220,6 +257,28 @@ export default function ReceiptReviewer({
               </TouchableOpacity>
             </Pressable>
           </KeyboardAvoidingView>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={showVehiclePicker} animationType="fade">
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setShowVehiclePicker(false)}
+        >
+          <Pressable style={styles.categoryPanel} onPress={() => { }}>
+            {vehicles.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.categoryItem}
+                onPress={() => {
+                  setSelectedVehicleId(item.id);
+                  setShowVehiclePicker(false);
+                }}
+              >
+                <Text style={styles.categoryText}>{item.registrationNumber} {item.isPrimary ? "(Primary)" : ""}</Text>
+              </TouchableOpacity>
+            ))}
+          </Pressable>
         </Pressable>
       </Modal>
 

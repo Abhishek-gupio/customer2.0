@@ -11,12 +11,14 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
-import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
-import { vehicleService } from "../../services/vehicleService";
+import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
+import { vehicleService, Vehicle } from "../../services/vehicleService";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 interface ManualEntryData {
   amount?: string;
@@ -59,16 +61,44 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [odometer, setOdometer] = useState("");
   const [date, setDate] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [showVehiclePicker, setShowVehiclePicker] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [selectedPartType, setSelectedPartType] = useState("ENGINE_OIL");
+  const [showPartPicker, setShowPartPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
+  const fetchVehicles = async () => {
+    try {
+      const data = await vehicleService.getVehicles();
+      setVehicles(data);
+      if (data.length > 0) {
+        const primary = data.find(v => v.isPrimary) || data[0];
+        setSelectedVehicleId(primary.id);
+        if (primary.currentOdometer) {
+          setOdometer(String(primary.currentOdometer));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch vehicles:", err);
+    }
+  };
+
+  React.useEffect(() => {
+    if (visible) {
+      fetchVehicles();
+    }
+  }, [visible]);
 
   React.useEffect(() => {
     if (visible && initialData) {
@@ -105,6 +135,24 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [loading, setLoading] = useState(false);
 
   const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
+  const partTypes = [
+    { label: "Battery", value: "BATTERY" },
+    { label: "Engine Oil", value: "ENGINE_OIL" },
+    { label: "Oil Filter", value: "OIL_FILTER" },
+    { label: "Air Filter", value: "AIR_FILTER" },
+    { label: "Brake Pads", value: "BRAKE_PADS" },
+    { label: "Brake Discs", value: "BRAKE_DISCS" },
+    { label: "Tyres (All)", value: "TYRES" },
+    { label: "Tyres (Front)", value: "TYRES_FRONT" },
+    { label: "Tyres (Rear)", value: "TYRES_REAR" },
+    { label: "Clutch Plate", value: "CLUTCH_PLATE" },
+    { label: "Spark Plugs", value: "SPARK_PLUGS" },
+    { label: "Coolant", value: "COOLANT" },
+    { label: "AC Filter", value: "AC_FILTER" },
+    { label: "Wiper Blades", value: "WIPER_BLADES" },
+    { label: "Headlight Bulb", value: "HEADLIGHT_BULB" },
+    { label: "Other Part", value: "OTHER_PART" },
+  ];
 
   const isValid = amount.trim().length > 0;
 
@@ -158,33 +206,51 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         parsedDate = new Date().toISOString();
       }
 
-      const payload = {
+      const payload: any = {
         amount: parseFloat(amount),
         category: category.toUpperCase(), // Backend expects uppercase
+        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
         notes: description,
         date: parsedDate,
         source: "MANUAL",
+<<<<<<< HEAD
         vehicleId,
+=======
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
         receiptUrl: receiptUrl || undefined,
         mimeType: mimeType || undefined,
+        odometerReading: odometer ? parseFloat(odometer) : undefined,
       };
+
+      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      if (isPartCategory) {
+        payload.parts = [{
+          partType: selectedPartType,
+          cost: parseFloat(amount),
+        }];
+      }
 
       await api.post('/v1/expenses', payload);
 
       // Mark expense list for refresh
       setExpenseListNeedsRefresh();
+      const needsWarrantyRefresh = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      if (needsWarrantyRefresh) {
+        setWarrantyStatusNeedsRefresh();
+      }
 
       // Reset Form
       setCategory("Fuel");
       setAmount("");
       setDescription("");
       setDate("");
+      setOdometer("");
       setReceiptUrl(null);
       setMimeType(null);
 
       // Close modal first
       onClose();
-      
+
       // Show success and trigger callback after modal closes
       setTimeout(() => {
         Alert.alert("Success", "Expense added successfully");
@@ -216,10 +282,32 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 </TouchableOpacity>
               </View>
 
+              <Label text="Vehicle" />
+              <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+                <Input
+                  value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
+                  icon="chevron-down"
+                  editable={false}
+                />
+              </TouchableOpacity>
+
               <Label text="Category" />
               <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
+
+              {(category.toLowerCase() === 'service' || category.toLowerCase() === 'other') && (
+                <>
+                  <Label text="Part Serviced" />
+                  <TouchableOpacity onPress={() => setShowPartPicker(true)}>
+                    <Input
+                      value={partTypes.find(p => p.value === selectedPartType)?.label || selectedPartType}
+                      icon="chevron-down"
+                      editable={false}
+                    />
+                  </TouchableOpacity>
+                </>
+              )}
 
 
               <Label text="Amount" />
@@ -227,6 +315,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 placeholder="₹ 0"
                 value={amount}
                 onChangeText={setAmount}
+                keyboardType="numeric"
+              />
+
+              <Label text="Odometer Reading (km)" />
+              <Input
+                placeholder="Enter current km"
+                value={odometer}
+                onChangeText={setOdometer}
                 keyboardType="numeric"
               />
 
@@ -268,6 +364,28 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       </Modal>
 
 
+      <Modal transparent visible={showVehiclePicker} animationType="fade">
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setShowVehiclePicker(false)}
+        >
+          <Pressable style={styles.categoryPanel} onPress={() => { }}>
+            {vehicles.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.categoryItem}
+                onPress={() => {
+                  setSelectedVehicleId(item.id);
+                  setShowVehiclePicker(false);
+                }}
+              >
+                <Text style={styles.categoryText}>{item.registrationNumber} {item.isPrimary ? "(Primary)" : ""}</Text>
+              </TouchableOpacity>
+            ))}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <Modal transparent visible={showCategoryPicker} animationType="fade">
         <Pressable
           style={styles.backdrop}
@@ -290,9 +408,36 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         </Pressable>
       </Modal>
 
+      <Modal transparent visible={showPartPicker} animationType="fade">
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setShowPartPicker(false)}
+        >
+          <Pressable style={styles.categoryPanel} onPress={() => { }}>
+            <ScrollView style={{ maxHeight: hp(50) }}>
+              {partTypes.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={styles.categoryItem}
+                  onPress={() => {
+                    setSelectedPartType(item.value);
+                    if (category !== 'Service' && category !== 'Other') {
+                      setCategory('Service');
+                    }
+                    setShowPartPicker(false);
+                  }}
+                >
+                  <Text style={styles.categoryText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <Modal transparent visible={showDatePicker} animationType="fade">
         <Pressable style={styles.backdrop} onPress={() => setShowDatePicker(false)}>
-          <Pressable style={styles.calendarPanel} onPress={() => {}}>
+          <Pressable style={styles.calendarPanel} onPress={() => { }}>
             <View style={styles.calendarHeader}>
               <TouchableOpacity
                 onPress={() =>

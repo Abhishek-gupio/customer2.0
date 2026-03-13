@@ -25,7 +25,7 @@ export function getRedis(): Redis | null {
         return Math.min(times * 200, 2000);
       },
       enableReadyCheck: false,
-      enableOfflineQueue: false,
+      enableOfflineQueue: true, // queue commands when disconnected so refresh/auth don't throw
     });
 
     redis.on("error", (err) => {

@@ -205,7 +205,8 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   chassisNumber: 'chassisNumber',
-  engineNumber: 'engineNumber'
+  engineNumber: 'engineNumber',
+  imageUrl: 'imageUrl'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {
@@ -272,6 +273,7 @@ exports.Prisma.ChatSessionScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   title: 'title',
+  summary: 'summary',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -292,6 +294,21 @@ exports.Prisma.DocumentEmbeddingScalarFieldEnum = {
   entityId: 'entityId',
   entityType: 'entityType',
   content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ChatAnalyticsScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  sessionId: 'sessionId',
+  toolName: 'toolName',
+  intent: 'intent',
+  responseTimeMs: 'responseTimeMs',
+  messageCount: 'messageCount',
+  hadToolCall: 'hadToolCall',
+  hadImage: 'hadImage',
+  wasStreaming: 'wasStreaming',
+  feedback: 'feedback',
   createdAt: 'createdAt'
 };
 
@@ -339,6 +356,15 @@ exports.Prisma.FuelPriceCacheScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DiscoveryContentScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  content: 'content',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ServiceRecordScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -366,6 +392,21 @@ exports.Prisma.ServicePartScalarFieldEnum = {
   warrantyExpiresAt: 'warrantyExpiresAt',
   lastReplacedAt: 'lastReplacedAt',
   nextReplacementDue: 'nextReplacementDue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
+  id: 'id',
+  make: 'make',
+  model: 'model',
+  yearMin: 'yearMin',
+  yearMax: 'yearMax',
+  partType: 'partType',
+  intervalMonths: 'intervalMonths',
+  intervalKm: 'intervalKm',
+  defaultWarrantyMonths: 'defaultWarrantyMonths',
+  source: 'source',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -443,6 +484,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -562,11 +607,14 @@ exports.Prisma.ModelName = {
   ChatSession: 'ChatSession',
   ChatMessage: 'ChatMessage',
   DocumentEmbedding: 'DocumentEmbedding',
+  ChatAnalytics: 'ChatAnalytics',
   Expense: 'Expense',
   ExpenseBudget: 'ExpenseBudget',
   FuelPriceCache: 'FuelPriceCache',
+  DiscoveryContent: 'DiscoveryContent',
   ServiceRecord: 'ServiceRecord',
   ServicePart: 'ServicePart',
+  PartReplacementInterval: 'PartReplacementInterval',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
   DrivingEvent: 'DrivingEvent',

@@ -111,4 +111,16 @@ export const vehicleController = {
     );
     success(res, log, 201);
   }),
+
+  lookupPlate: asyncHandler(async (req: Request, res: Response) => {
+    // Auth required so strangers can't rack up your Gemini quota
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const { plate } = req.params as { plate: string };
+    const { model } = req.query as { model?: string };
+
+    if (!plate) throw AppError.badRequest("plate is required");
+
+    const data = await vehicleService.lookupRTO(plate.toUpperCase(), model);
+    success(res, data);
+  }),
 };

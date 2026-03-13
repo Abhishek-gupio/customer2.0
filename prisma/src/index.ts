@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 
 declare global {
   var prisma: PrismaClient | undefined;
+  var pool: Pool | undefined;
 }
 
 let connectionString = process.env.DATABASE_URL ?? '';
@@ -14,8 +15,8 @@ if (!connectionString || connectionString.trim() === '') {
   );
 }
 
-// Only use SSL when the server expects it (e.g. RDS). Local Postgres does not support SSL.
-let ssl: any = false;
+// Use SSL for any remote host (e.g. RDS). Required by RDS pg_hba.conf ("no encryption" rejected).
+let ssl: boolean | { rejectUnauthorized: boolean } = false;
 if (connectionString) {
   try {
     const url = new URL(connectionString);
@@ -23,32 +24,25 @@ if (connectionString) {
     const isLocalhost =
       url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
-    // Force SSL for RDS if not localhost and not explicitly disabled
+    // Force SSL for non-localhost so RDS accepts the connection (no "no encryption" rejection)
     if (!isLocalhost && sslmode !== 'disable') {
-      ssl = {
-        rejectUnauthorized: false, // Standard for RDS/Cloud to avoid certificate chain errors
-      };
-      console.log(`🔒 Database: Enabling SSL for ${url.hostname} (sslmode: ${sslmode ?? 'default'})`);
-
-      // IMPORTANT: Strip sslmode from the URL so the pg library doesn't try to 
-      // apply its own stricter validation rules, which can override our ssl object.
+      ssl = { rejectUnauthorized: false };
+      console.log(`🔒 Database: SSL enabled for ${url.hostname}`);
       url.searchParams.delete('sslmode');
       connectionString = url.toString();
-    } else {
-      console.log(`🔓 Database: Connecting without SSL to ${url.hostname}`);
+    } else if (isLocalhost) {
+      console.log(`🔓 Database: No SSL to ${url.hostname}`);
     }
 
-    // Log the connection target (masked)
-    console.log(`🔌 Database: Connecting to ${url.hostname}:${url.port || '5432'}/${url.pathname.split('/').pop()}`);
+    console.log(`🔌 Database: ${url.hostname}:${url.port || '5432'}/${url.pathname.split('/').pop()}`);
   } catch (e) {
-    console.warn('⚠️ Failed to parse DATABASE_URL for SSL configuration');
+    console.warn('⚠️ Failed to parse DATABASE_URL for SSL');
   }
 }
 
 const pool = new Pool({
   connectionString,
   ssl,
-  // Limit connections to avoid exhausting DB slots under load
   max: Number(process.env.DATABASE_POOL_MAX ?? 5),
   idleTimeoutMillis: Number(process.env.DATABASE_POOL_IDLE_MS ?? 10000),
   connectionTimeoutMillis: Number(process.env.DATABASE_POOL_CONN_TIMEOUT_MS ?? 10000),
@@ -57,10 +51,28 @@ const pool = new Pool({
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle database client', err);
 });
-const adapter = new PrismaPg(pool);
-export const dbInstances = (global.prisma ??
-  new PrismaClient({ adapter })) as PrismaClient;
 
-if (process.env.NODE_ENV !== 'production') global.prisma = dbInstances;
+const adapter = new PrismaPg(pool);
+const dbInstances = new PrismaClient({
+  adapter,
+  log: ['error', 'warn'],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = dbInstances;
+  global.pool = pool;
+}
+
+export { dbInstances };
+
+export const disconnect = async () => {
+  console.log('🔌 Database: Closing connections...');
+  if (global.prisma) {
+    await (global.prisma as PrismaClient).$disconnect();
+  }
+  if (global.pool) {
+    await (global.pool as Pool).end();
+  }
+};
 
 export * from '../generated/client';

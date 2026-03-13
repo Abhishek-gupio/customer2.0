@@ -1,7 +1,7 @@
 {
     "folder-color.pathColors": [],
-<<<<<<< HEAD
     "java.configuration.updateBuildConfiguration": "interactive"
+<<<<<<< HEAD
 =======
     "terminal.integrated.profiles.windows": {
         "PowerShell": {
@@ -33,4 +33,6 @@
     },
     // "terminal.integrated.defaultProfile.windows": "🔊 FAAAH Shell"
 >>>>>>> b663cf932b3daace17f55ac34c9282c4ae031750
+=======
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
 }

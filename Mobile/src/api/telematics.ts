@@ -1,4 +1,17 @@
+<<<<<<< HEAD
 import { api } from '../services/api';
+=======
+import axios from 'axios';
+import { getAccessToken } from '../services/storage';
+
+// Replace with your actual backend URL in production
+const API_URL = 'http://localhost:9000/api/v1';
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
+
+function authHeaders(): Record<string, string> {
+    const token = getAccessToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export const telematicsApi = {
     /**
@@ -7,9 +20,17 @@ export const telematicsApi = {
      * @returns DeviceToken from Damoov
      */
     async registerUser(clientCustomId: string): Promise<string> {
+<<<<<<< HEAD
         const response = await api.post<any>('/v1/telematics/register', {
             clientCustomId,
         });
+=======
+        const response = await axios.post(
+            `${API_URL}/telematics/register`,
+            { clientCustomId },
+            { headers: authHeaders() },
+        );
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
 
         // The backend returns { success: true, data: { Result: { DeviceToken: "..." } } }
         return response?.data?.Result?.DeviceToken;
@@ -28,12 +49,20 @@ export const telematicsApi = {
         deviceToken: string,
         platform: string
     ): Promise<any> {
+<<<<<<< HEAD
         const response = await api.post<any>(`/v1/telematics/link/${vehicleId}`, {
             instanceId,
             deviceToken,
             platform,
         });
         return response;
+=======
+        const response = await axios.post(
+            `${API_URL}/telematics/link/${vehicleId}`,
+            { instanceId, deviceToken, platform },
+            { headers: authHeaders() },
+        );
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
     },
 
     /**
@@ -41,8 +70,15 @@ export const telematicsApi = {
      * @param vehicleId The ID of the vehicle
      */
     async getTrips(vehicleId: string): Promise<any> {
+<<<<<<< HEAD
         const response = await api.get<any>(`/v1/telematics/${vehicleId}/trips`);
         return response;
+=======
+        const response = await axios.get(`${API_URL}/telematics/${vehicleId}/trips`, {
+            headers: authHeaders(),
+        });
+        return response.data;
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
     },
 
     /**
@@ -52,11 +88,20 @@ export const telematicsApi = {
      */
     async getAiCoachAdvice(events: any[], context: any): Promise<string> {
         try {
+<<<<<<< HEAD
             const response = await api.post<any>('/v1/ai/coach', {
                 events,
                 context,
             });
             return response?.data?.advice || "Keep driving safely.";
+=======
+            const response = await axios.post(
+                `${API_URL}/ai/coach`,
+                { events, context },
+                { headers: authHeaders() },
+            );
+            return response.data?.data?.advice || "Keep driving safely.";
+>>>>>>> 08ff8da446e1209de276321083be5ab5b30962e9
         } catch (error) {
             console.error("AI Coach API error:", error);
             return "Drive safely and maintain a steady speed.";

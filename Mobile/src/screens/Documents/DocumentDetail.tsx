@@ -20,7 +20,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
-import RNShare from 'react-native-share';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -36,6 +35,27 @@ import { removeDocumentAsync, fetchDocumentById } from '../../store/slices/docum
 import { API_BASE_URL } from '../../config';
 import { jsPDF } from 'jspdf';
 import RNFS from 'react-native-fs';
+
+/** Open share sheet. Uses react-native-share if the native module is linked, otherwise falls back to RN Share. */
+async function openShare(options: { fileUrl: string; fileName?: string; type?: string }): Promise<void> {
+  const { fileUrl, fileName = 'Document', type = 'application/pdf' } = options;
+  try {
+    const RNShare = require('react-native-share').default;
+    await RNShare.open({
+      urls: [fileUrl],
+      type,
+      title: fileName,
+      subject: fileName,
+      failOnCancel: false,
+    });
+  } catch {
+    await Share.share({
+      url: fileUrl,
+      message: fileName,
+      title: fileName,
+    });
+  }
+}
 
 type DetailNavProp = NativeStackNavigationProp<RootStackParamList, 'DocumentDetail'>;
 
@@ -190,7 +210,7 @@ export default function DocumentDetail({ route }: Props) {
           Alert.alert('Download Complete', 'Document saved to your Downloads folder.', [
             {
               text: 'Open/Share',
-              onPress: () => RNShare.open({ urls: [`file://${publicPath}`], type: 'application/pdf' }).catch(() => null)
+              onPress: () => openShare({ fileUrl: `file://${publicPath}`, fileName }).catch(() => null)
             },
             { text: 'OK' }
           ]);
@@ -200,7 +220,7 @@ export default function DocumentDetail({ route }: Props) {
         }
       }
 
-      RNShare.open({ urls: [`file://${path}`], type: 'application/pdf' }).catch(() => null);
+      openShare({ fileUrl: `file://${path}`, fileName }).catch(() => null);
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Processing failed');
     }
@@ -213,27 +233,10 @@ export default function DocumentDetail({ route }: Props) {
 
       const fileUrl = `file://${path}`;
 
-      // Plural "urls" is more compatible with recent versions of react-native-share
-      await RNShare.open({
-        urls: [fileUrl],
-        type: 'application/pdf',
-        title: fileName,
-        subject: fileName,
-        failOnCancel: false,
-      });
+      await openShare({ fileUrl, fileName, type: 'application/pdf' });
     } catch (err: any) {
       console.error('Share Error Detail:', err);
-      // Fallback: simpler call if the above fails
-      try {
-        const { path } = await getReadyDocumentPath();
-        await RNShare.open({
-          url: `file://${path}`,
-          type: 'application/pdf',
-          failOnCancel: false,
-        });
-      } catch (fallbackErr) {
-        Alert.alert('Error', err.message || 'Share failed');
-      }
+      Alert.alert('Error', err.message || 'Share failed');
     }
   };
 

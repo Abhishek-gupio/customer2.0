@@ -24,6 +24,9 @@ router.post(
   vehicleController.addOdometerViaAI,
 );
 
+// ── AI Lookup Route (Gemini proxied server-side — API key is NEVER sent to client) ──
+router.get("/lookup/:plate", vehicleController.lookupPlate);
+
 // Challan Routes
 router.get("/:vehicleId/challans", challanController.listByVehicle);
 router.post("/:vehicleId/challans/sync", challanController.sync);

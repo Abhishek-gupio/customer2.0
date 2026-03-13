@@ -11,6 +11,8 @@ import {
   suggestIntervalsFromAI,
   saveSuggestedIntervals,
 } from "./oem-interval.service";
+import { customerService } from "../modules/customer/customer.service";
+import { notificationService } from "./notification.service";
 
 const db = dbInstances as any;
 
@@ -301,8 +303,20 @@ export const toolRegistry = {
         return acc;
       }, {});
 
+      const categoryLabel = args.category
+        ? ` on ${args.category.toLowerCase()}`
+        : "";
+      const message =
+        `In the last ${days} days you spent ₹${total.toLocaleString("en-IN")}${categoryLabel}.` +
+        (Object.keys(breakdown).length > 1
+          ? ` Breakdown: ${Object.entries(breakdown)
+              .map(([cat, amt]) => `${cat} ₹${Number(amt).toLocaleString("en-IN")}`)
+              .join(", ")}`
+          : "");
+
       return {
         success: true,
+        message,
         total: `₹${total}`,
         period: `Last ${days} days`,
         breakdown,
@@ -548,6 +562,204 @@ export const toolRegistry = {
         success: true,
         recommendations: recs,
       };
+    },
+  },
+
+  /**
+   * Tool: get_profile
+   * Use when user asks about their profile, name, email, or account details.
+   */
+  get_profile: {
+    name: "get_profile",
+    description:
+      "Get the logged-in user's profile (name, email, phone, profile picture). Use for questions like 'what is my name', 'show my profile', 'my email'.",
+    parameters: {},
+    execute: async (customerId: string) => {
+      try {
+        const profile = await customerService.getProfile(customerId);
+        return {
+          success: true,
+          profile: {
+            fullName: profile.fullName ?? "Not set",
+            email: profile.email ?? "Not set",
+            phoneNumber: profile.phoneNumber ?? "Not set",
+            profilePic: profile.profilePic ? "Set" : "Not set",
+            memberSince: new Date(profile.createdAt).toLocaleDateString("en-IN"),
+          },
+        };
+      } catch (e) {
+        return { success: false, error: "Could not fetch profile." };
+      }
+    },
+  },
+
+  /**
+   * Tool: update_profile
+   * Use when user wants to change name, email, or profile picture.
+   */
+  update_profile: {
+    name: "update_profile",
+    description:
+      "Update the user's profile. Use when they say 'change my name to X', 'update my email', 'set my name'.",
+    parameters: {
+      fullName: "string (optional)",
+      email: "string (optional, valid email)",
+      profilePic: "string (optional, URL of profile picture)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const data: any = {};
+      if (args.fullName !== undefined) data.fullName = args.fullName;
+      if (args.email !== undefined) data.email = args.email;
+      if (args.profilePic !== undefined) data.profilePic = args.profilePic;
+      if (Object.keys(data).length === 0) {
+        return { success: false, error: "Provide at least one field to update (fullName, email, or profilePic)." };
+      }
+      try {
+        const updated = await customerService.updateProfile(customerId, data);
+        return {
+          success: true,
+          message: "Profile updated successfully.",
+          profile: {
+            fullName: updated.fullName ?? "Not set",
+            email: updated.email ?? "Not set",
+          },
+        };
+      } catch (e) {
+        return { success: false, error: "Could not update profile. Check that email is valid if provided." };
+      }
+    },
+  },
+
+  /**
+   * Tool: get_notifications
+   * Use when user asks about alerts, notifications, or what they missed.
+   */
+  get_notifications: {
+    name: "get_notifications",
+    description:
+      "Get the user's in-app notifications (alerts, reminders, budget warnings). Use when they ask 'any notifications', 'what are my alerts', 'did I miss anything'.",
+    parameters: {
+      unreadOnly: "string (optional; 'true' to return only unread notifications)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const list = await notificationService.getNotifications(customerId);
+      const unreadOnly = args.unreadOnly === "true" || args.unreadOnly === true;
+      const notifications = unreadOnly
+        ? list.filter((n: any) => !n.isRead)
+        : list;
+      const limited = notifications.slice(0, 20);
+      return {
+        success: true,
+        count: limited.length,
+        notifications: limited.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          body: n.body,
+          type: n.type,
+          isRead: n.isRead,
+          createdAt: new Date(n.createdAt).toLocaleString("en-IN"),
+        })),
+      };
+    },
+  },
+
+  /**
+   * Tool: mark_notification_read
+   * Use when user says "mark that as read", "dismiss notification", or "clear that alert".
+   */
+  mark_notification_read: {
+    name: "mark_notification_read",
+    description:
+      "Mark a notification as read. Use when user says 'mark as read', 'dismiss', 'clear that notification'. Requires the notification id (from get_notifications).",
+    parameters: {
+      notificationId: "string (required; the id of the notification to mark as read)",
+    },
+    execute: async (customerId: string, args: any) => {
+      if (!args.notificationId) {
+        return { success: false, error: "notificationId is required." };
+      }
+      try {
+        await notificationService.markAsRead(customerId, args.notificationId);
+        return { success: true, message: "Notification marked as read." };
+      } catch (e) {
+        return { success: false, error: "Could not mark notification as read." };
+      }
+    },
+  },
+
+  /**
+   * Tool: list_my_vehicles
+   * Use when user asks "what cars do I have", "list my vehicles", "which vehicles are added".
+   */
+  list_my_vehicles: {
+    name: "list_my_vehicles",
+    description:
+      "List all vehicles linked to the user's account (make, model, registration). Use when they ask 'what vehicles do I have', 'list my cars', 'which vehicles'.",
+    parameters: {},
+    execute: async (customerId: string) => {
+      const vehicles = await db.customerVehicle.findMany({
+        where: { customerId, isActive: true },
+        select: {
+          id: true,
+          make: true,
+          model: true,
+          year: true,
+          registrationNumber: true,
+          isPrimary: true,
+        },
+      });
+      if (vehicles.length === 0) {
+        return { success: true, message: "No vehicles added yet.", vehicles: [] };
+      }
+      return {
+        success: true,
+        vehicles: vehicles.map((v: any) => ({
+          id: v.id,
+          name: `${v.make || ""} ${v.model || ""}${v.year ? ` (${v.year})` : ""}`.trim(),
+          registrationNumber: v.registrationNumber,
+          isPrimary: v.isPrimary ?? false,
+        })),
+      };
+    },
+  },
+
+  /**
+   * Tool: list_documents
+   * Use when user asks "what documents do I have", "list my papers", "show my RC and insurance".
+   */
+  list_documents: {
+    name: "list_documents",
+    description:
+      "List the user's uploaded documents (RC, Insurance, PUC, etc.) with type and expiry. Use when they ask 'what documents do I have', 'list my papers', 'show my documents'.",
+    parameters: {
+      vehicleId: "string (optional; filter by vehicle)",
+    },
+    execute: async (customerId: string, args: any) => {
+      try {
+        const docs = await documentService.listDocuments(customerId);
+        let list = docs as any[];
+        if (args.vehicleId) {
+          list = list.filter((d) => d.vehicleId === args.vehicleId);
+        }
+        const limited = list.slice(0, 30);
+        return {
+          success: true,
+          count: limited.length,
+          documents: limited.map((d: any) => ({
+            id: d.id,
+            type: d.type,
+            verificationStatus: d.verificationStatus,
+            expiryDate: d.expiryDate
+              ? new Date(d.expiryDate).toLocaleDateString("en-IN")
+              : null,
+            vehicle: d.vehicle
+              ? `${d.vehicle.make || ""} ${d.vehicle.model || ""}`.trim()
+              : "General",
+          })),
+        };
+      } catch (e) {
+        return { success: false, error: "Could not list documents." };
+      }
     },
   },
 };

@@ -6,5 +6,13 @@ module.exports = {
         ios: null,
       },
     },
+    'react-native-share': {
+      platforms: {
+        android: {
+          packageInstance: 'new RNSharePackage()',
+          packageImportPath: 'import cl.json.RNSharePackage;',
+        },
+      },
+    },
   },
 };

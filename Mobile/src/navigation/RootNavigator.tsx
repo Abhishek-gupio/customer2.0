@@ -16,9 +16,10 @@ import DocumentDetail from '../screens/Documents/DocumentDetail';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
 import Settings from '../screens/Profile/Settings';
-import VehicleList from '../screens/Vehicles/VehicleList';
-import VehicleDetails from '../screens/Vehicles/VehicleDetails';
-import AddVehicle from '../screens/Vehicles/AddVehicle';
+import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
+// NOTE: VehicleDetails and AddVehicle are self-contained inside GupioGarageApp.
+// Do not register them as separate stack screens — all vehicle navigation is
+// handled internally by GupioGarageApp's own screen state machine.
 import Challans from '../screens/Vehicles/Challans';
 import { MainBottomTabs } from './MainBottomTabs';
 import ExpensesList from '../screens/Expenses/ExpenseList';
@@ -29,10 +30,10 @@ import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
 import { WarrantyStatus } from '../screens/ServiceAndWarrenty/WarrantyStatus';
 import AiBotHome from '../screens/AiBot/HomeScreen';
 import ChatScreen from '../screens/AiBot/ChatScreen';
+import ChatSessionsScreen from '../screens/AiBot/ChatSessionsScreen';
 import DrivingSummary from '../screens/Telematics/DrivingSummary';
 import SOSButton from '../components/SOSButton';
 import Alerts from '../screens/Main/Alerts';
-// import { ProtectedRoute } from './ProtectedRoute';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -49,47 +50,43 @@ export default function RootNavigator() {
       <Stack.Screen name="Splash">
         {({ navigation }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
           <SplashScreen
-            onComplete={() => {
-              navigation.replace('SigninFirst');
-            }}
+            onComplete={() => navigation.replace('SigninFirst')}
           />
         )}
       </Stack.Screen>
+
       <Stack.Screen name="SigninFirst" component={SigninFirst} />
       <Stack.Screen name="Signin" component={Signin} />
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
       <Stack.Screen name="DocumentList" component={DocumentList} />
-      <Stack.Screen name="VehicleList" component={VehicleList} />
-      <Stack.Screen name="VehicleDetails" component={VehicleDetails} />
-      <Stack.Screen name="AddVehicle" component={AddVehicle} />
+
+      {/* All vehicle screens are handled internally by GupioGarageApp */}
+      <Stack.Screen name="VehicleList" component={GupioGarageApp} />
+      <Stack.Screen name="VehicleDetails" component={GupioGarageApp} />
+      <Stack.Screen name="AddVehicle" component={GupioGarageApp} />
       <Stack.Screen name="Challans" component={Challans} />
+
       <Stack.Screen name="UploadDocument" component={UploadDocument} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />
       <Stack.Screen name="Expenses" component={ExpensesList} />
-      <Stack.Screen name="addExpense" component={addExpense} options={{
-        presentation: 'transparentModal',
-      }} />
-
+      <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
       <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen name="BudgetSettings" component={BudgetSettings} options={{
-        presentation: 'transparentModal',
-      }} />
+      <Stack.Screen name="BudgetSettings" component={BudgetSettings} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
       <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
       <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
-
       <Stack.Screen name="AiBotHome" component={AiBotHome} />
       <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="ChatSessions" component={ChatSessionsScreen} />
 
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
       <Stack.Screen name="SOSButton" component={SOSButton} />
       <Stack.Screen name="Alerts" component={Alerts} />
-
     </Stack.Navigator>
   );
 }

@@ -84,6 +84,11 @@ export type ChatMessage = $Result.DefaultSelection<Prisma.$ChatMessagePayload>
  */
 export type DocumentEmbedding = $Result.DefaultSelection<Prisma.$DocumentEmbeddingPayload>
 /**
+ * Model ChatAnalytics
+ * 
+ */
+export type ChatAnalytics = $Result.DefaultSelection<Prisma.$ChatAnalyticsPayload>
+/**
  * Model Expense
  * 
  */
@@ -99,6 +104,11 @@ export type ExpenseBudget = $Result.DefaultSelection<Prisma.$ExpenseBudgetPayloa
  */
 export type FuelPriceCache = $Result.DefaultSelection<Prisma.$FuelPriceCachePayload>
 /**
+ * Model DiscoveryContent
+ * 
+ */
+export type DiscoveryContent = $Result.DefaultSelection<Prisma.$DiscoveryContentPayload>
+/**
  * Model ServiceRecord
  * 
  */
@@ -108,6 +118,11 @@ export type ServiceRecord = $Result.DefaultSelection<Prisma.$ServiceRecordPayloa
  * 
  */
 export type ServicePart = $Result.DefaultSelection<Prisma.$ServicePartPayload>
+/**
+ * Model PartReplacementInterval
+ * 
+ */
+export type PartReplacementInterval = $Result.DefaultSelection<Prisma.$PartReplacementIntervalPayload>
 /**
  * Model TelematicsDevice
  * 
@@ -553,6 +568,16 @@ export class PrismaClient<
   get documentEmbedding(): Prisma.DocumentEmbeddingDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.chatAnalytics`: Exposes CRUD operations for the **ChatAnalytics** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChatAnalytics
+    * const chatAnalytics = await prisma.chatAnalytics.findMany()
+    * ```
+    */
+  get chatAnalytics(): Prisma.ChatAnalyticsDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.expense`: Exposes CRUD operations for the **Expense** model.
     * Example usage:
     * ```ts
@@ -583,6 +608,16 @@ export class PrismaClient<
   get fuelPriceCache(): Prisma.FuelPriceCacheDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.discoveryContent`: Exposes CRUD operations for the **DiscoveryContent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DiscoveryContents
+    * const discoveryContents = await prisma.discoveryContent.findMany()
+    * ```
+    */
+  get discoveryContent(): Prisma.DiscoveryContentDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.serviceRecord`: Exposes CRUD operations for the **ServiceRecord** model.
     * Example usage:
     * ```ts
@@ -601,6 +636,16 @@ export class PrismaClient<
     * ```
     */
   get servicePart(): Prisma.ServicePartDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.partReplacementInterval`: Exposes CRUD operations for the **PartReplacementInterval** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PartReplacementIntervals
+    * const partReplacementIntervals = await prisma.partReplacementInterval.findMany()
+    * ```
+    */
+  get partReplacementInterval(): Prisma.PartReplacementIntervalDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.telematicsDevice`: Exposes CRUD operations for the **TelematicsDevice** model.
@@ -1099,11 +1144,14 @@ export namespace Prisma {
     ChatSession: 'ChatSession',
     ChatMessage: 'ChatMessage',
     DocumentEmbedding: 'DocumentEmbedding',
+    ChatAnalytics: 'ChatAnalytics',
     Expense: 'Expense',
     ExpenseBudget: 'ExpenseBudget',
     FuelPriceCache: 'FuelPriceCache',
+    DiscoveryContent: 'DiscoveryContent',
     ServiceRecord: 'ServiceRecord',
     ServicePart: 'ServicePart',
+    PartReplacementInterval: 'PartReplacementInterval',
     TelematicsDevice: 'TelematicsDevice',
     DrivingTrip: 'DrivingTrip',
     DrivingEvent: 'DrivingEvent',
@@ -1124,7 +1172,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
+      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2164,6 +2212,80 @@ export namespace Prisma {
           }
         }
       }
+      ChatAnalytics: {
+        payload: Prisma.$ChatAnalyticsPayload<ExtArgs>
+        fields: Prisma.ChatAnalyticsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChatAnalyticsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChatAnalyticsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          findFirst: {
+            args: Prisma.ChatAnalyticsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChatAnalyticsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          findMany: {
+            args: Prisma.ChatAnalyticsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>[]
+          }
+          create: {
+            args: Prisma.ChatAnalyticsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          createMany: {
+            args: Prisma.ChatAnalyticsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChatAnalyticsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>[]
+          }
+          delete: {
+            args: Prisma.ChatAnalyticsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          update: {
+            args: Prisma.ChatAnalyticsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          deleteMany: {
+            args: Prisma.ChatAnalyticsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChatAnalyticsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ChatAnalyticsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>[]
+          }
+          upsert: {
+            args: Prisma.ChatAnalyticsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatAnalyticsPayload>
+          }
+          aggregate: {
+            args: Prisma.ChatAnalyticsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChatAnalytics>
+          }
+          groupBy: {
+            args: Prisma.ChatAnalyticsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChatAnalyticsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChatAnalyticsCountArgs<ExtArgs>
+            result: $Utils.Optional<ChatAnalyticsCountAggregateOutputType> | number
+          }
+        }
+      }
       Expense: {
         payload: Prisma.$ExpensePayload<ExtArgs>
         fields: Prisma.ExpenseFieldRefs
@@ -2386,6 +2508,80 @@ export namespace Prisma {
           }
         }
       }
+      DiscoveryContent: {
+        payload: Prisma.$DiscoveryContentPayload<ExtArgs>
+        fields: Prisma.DiscoveryContentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DiscoveryContentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DiscoveryContentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          findFirst: {
+            args: Prisma.DiscoveryContentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DiscoveryContentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          findMany: {
+            args: Prisma.DiscoveryContentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>[]
+          }
+          create: {
+            args: Prisma.DiscoveryContentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          createMany: {
+            args: Prisma.DiscoveryContentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DiscoveryContentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>[]
+          }
+          delete: {
+            args: Prisma.DiscoveryContentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          update: {
+            args: Prisma.DiscoveryContentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          deleteMany: {
+            args: Prisma.DiscoveryContentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DiscoveryContentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DiscoveryContentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>[]
+          }
+          upsert: {
+            args: Prisma.DiscoveryContentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DiscoveryContentPayload>
+          }
+          aggregate: {
+            args: Prisma.DiscoveryContentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDiscoveryContent>
+          }
+          groupBy: {
+            args: Prisma.DiscoveryContentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DiscoveryContentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DiscoveryContentCountArgs<ExtArgs>
+            result: $Utils.Optional<DiscoveryContentCountAggregateOutputType> | number
+          }
+        }
+      }
       ServiceRecord: {
         payload: Prisma.$ServiceRecordPayload<ExtArgs>
         fields: Prisma.ServiceRecordFieldRefs
@@ -2531,6 +2727,80 @@ export namespace Prisma {
           count: {
             args: Prisma.ServicePartCountArgs<ExtArgs>
             result: $Utils.Optional<ServicePartCountAggregateOutputType> | number
+          }
+        }
+      }
+      PartReplacementInterval: {
+        payload: Prisma.$PartReplacementIntervalPayload<ExtArgs>
+        fields: Prisma.PartReplacementIntervalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PartReplacementIntervalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          findFirst: {
+            args: Prisma.PartReplacementIntervalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          findMany: {
+            args: Prisma.PartReplacementIntervalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          create: {
+            args: Prisma.PartReplacementIntervalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          createMany: {
+            args: Prisma.PartReplacementIntervalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          delete: {
+            args: Prisma.PartReplacementIntervalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          update: {
+            args: Prisma.PartReplacementIntervalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          deleteMany: {
+            args: Prisma.PartReplacementIntervalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PartReplacementIntervalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          upsert: {
+            args: Prisma.PartReplacementIntervalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          aggregate: {
+            args: Prisma.PartReplacementIntervalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePartReplacementInterval>
+          }
+          groupBy: {
+            args: Prisma.PartReplacementIntervalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PartReplacementIntervalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PartReplacementIntervalCountArgs<ExtArgs>
+            result: $Utils.Optional<PartReplacementIntervalCountAggregateOutputType> | number
           }
         }
       }
@@ -3026,11 +3296,14 @@ export namespace Prisma {
     chatSession?: ChatSessionOmit
     chatMessage?: ChatMessageOmit
     documentEmbedding?: DocumentEmbeddingOmit
+    chatAnalytics?: ChatAnalyticsOmit
     expense?: ExpenseOmit
     expenseBudget?: ExpenseBudgetOmit
     fuelPriceCache?: FuelPriceCacheOmit
+    discoveryContent?: DiscoveryContentOmit
     serviceRecord?: ServiceRecordOmit
     servicePart?: ServicePartOmit
+    partReplacementInterval?: PartReplacementIntervalOmit
     telematicsDevice?: TelematicsDeviceOmit
     drivingTrip?: DrivingTripOmit
     drivingEvent?: DrivingEventOmit
@@ -9364,6 +9637,7 @@ export namespace Prisma {
     updatedAt: Date | null
     chassisNumber: string | null
     engineNumber: string | null
+    imageUrl: string | null
   }
 
   export type CustomerVehicleMaxAggregateOutputType = {
@@ -9385,6 +9659,7 @@ export namespace Prisma {
     updatedAt: Date | null
     chassisNumber: string | null
     engineNumber: string | null
+    imageUrl: string | null
   }
 
   export type CustomerVehicleCountAggregateOutputType = {
@@ -9406,6 +9681,7 @@ export namespace Prisma {
     updatedAt: number
     chassisNumber: number
     engineNumber: number
+    imageUrl: number
     _all: number
   }
 
@@ -9439,6 +9715,7 @@ export namespace Prisma {
     updatedAt?: true
     chassisNumber?: true
     engineNumber?: true
+    imageUrl?: true
   }
 
   export type CustomerVehicleMaxAggregateInputType = {
@@ -9460,6 +9737,7 @@ export namespace Prisma {
     updatedAt?: true
     chassisNumber?: true
     engineNumber?: true
+    imageUrl?: true
   }
 
   export type CustomerVehicleCountAggregateInputType = {
@@ -9481,6 +9759,7 @@ export namespace Prisma {
     updatedAt?: true
     chassisNumber?: true
     engineNumber?: true
+    imageUrl?: true
     _all?: true
   }
 
@@ -9589,6 +9868,7 @@ export namespace Prisma {
     updatedAt: Date
     chassisNumber: string | null
     engineNumber: string | null
+    imageUrl: string | null
     _count: CustomerVehicleCountAggregateOutputType | null
     _avg: CustomerVehicleAvgAggregateOutputType | null
     _sum: CustomerVehicleSumAggregateOutputType | null
@@ -9629,6 +9909,7 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -9661,6 +9942,7 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -9683,6 +9965,7 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -9705,9 +9988,10 @@ export namespace Prisma {
     updatedAt?: boolean
     chassisNumber?: boolean
     engineNumber?: boolean
+    imageUrl?: boolean
   }
 
-  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber", ExtArgs["result"]["customerVehicle"]>
+  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber" | "imageUrl", ExtArgs["result"]["customerVehicle"]>
   export type CustomerVehicleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
@@ -9761,6 +10045,7 @@ export namespace Prisma {
       updatedAt: Date
       chassisNumber: string | null
       engineNumber: string | null
+      imageUrl: string | null
     }, ExtArgs["result"]["customerVehicle"]>
     composites: {}
   }
@@ -10212,6 +10497,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<"CustomerVehicle", 'DateTime'>
     readonly chassisNumber: FieldRef<"CustomerVehicle", 'String'>
     readonly engineNumber: FieldRef<"CustomerVehicle", 'String'>
+    readonly imageUrl: FieldRef<"CustomerVehicle", 'String'>
   }
     
 
@@ -16510,6 +16796,7 @@ export namespace Prisma {
     id: string | null
     customerId: string | null
     title: string | null
+    summary: string | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -16519,6 +16806,7 @@ export namespace Prisma {
     id: string | null
     customerId: string | null
     title: string | null
+    summary: string | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -16528,6 +16816,7 @@ export namespace Prisma {
     id: number
     customerId: number
     title: number
+    summary: number
     isActive: number
     createdAt: number
     updatedAt: number
@@ -16539,6 +16828,7 @@ export namespace Prisma {
     id?: true
     customerId?: true
     title?: true
+    summary?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16548,6 +16838,7 @@ export namespace Prisma {
     id?: true
     customerId?: true
     title?: true
+    summary?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16557,6 +16848,7 @@ export namespace Prisma {
     id?: true
     customerId?: true
     title?: true
+    summary?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16639,6 +16931,7 @@ export namespace Prisma {
     id: string
     customerId: string
     title: string | null
+    summary: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -16665,6 +16958,7 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16677,6 +16971,7 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16687,6 +16982,7 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16697,12 +16993,13 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     title?: boolean
+    summary?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ChatSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "title" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["chatSession"]>
+  export type ChatSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "title" | "summary" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["chatSession"]>
   export type ChatSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     messages?: boolean | ChatSession$messagesArgs<ExtArgs>
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -16725,6 +17022,7 @@ export namespace Prisma {
       id: string
       customerId: string
       title: string | null
+      summary: string | null
       isActive: boolean
       createdAt: Date
       updatedAt: Date
@@ -17156,6 +17454,7 @@ export namespace Prisma {
     readonly id: FieldRef<"ChatSession", 'String'>
     readonly customerId: FieldRef<"ChatSession", 'String'>
     readonly title: FieldRef<"ChatSession", 'String'>
+    readonly summary: FieldRef<"ChatSession", 'String'>
     readonly isActive: FieldRef<"ChatSession", 'Boolean'>
     readonly createdAt: FieldRef<"ChatSession", 'DateTime'>
     readonly updatedAt: FieldRef<"ChatSession", 'DateTime'>
@@ -19669,6 +19968,1134 @@ export namespace Prisma {
      * Omit specific fields from the DocumentEmbedding
      */
     omit?: DocumentEmbeddingOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChatAnalytics
+   */
+
+  export type AggregateChatAnalytics = {
+    _count: ChatAnalyticsCountAggregateOutputType | null
+    _avg: ChatAnalyticsAvgAggregateOutputType | null
+    _sum: ChatAnalyticsSumAggregateOutputType | null
+    _min: ChatAnalyticsMinAggregateOutputType | null
+    _max: ChatAnalyticsMaxAggregateOutputType | null
+  }
+
+  export type ChatAnalyticsAvgAggregateOutputType = {
+    responseTimeMs: number | null
+    messageCount: number | null
+    feedback: number | null
+  }
+
+  export type ChatAnalyticsSumAggregateOutputType = {
+    responseTimeMs: number | null
+    messageCount: number | null
+    feedback: number | null
+  }
+
+  export type ChatAnalyticsMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    sessionId: string | null
+    toolName: string | null
+    intent: string | null
+    responseTimeMs: number | null
+    messageCount: number | null
+    hadToolCall: boolean | null
+    hadImage: boolean | null
+    wasStreaming: boolean | null
+    feedback: number | null
+    createdAt: Date | null
+  }
+
+  export type ChatAnalyticsMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    sessionId: string | null
+    toolName: string | null
+    intent: string | null
+    responseTimeMs: number | null
+    messageCount: number | null
+    hadToolCall: boolean | null
+    hadImage: boolean | null
+    wasStreaming: boolean | null
+    feedback: number | null
+    createdAt: Date | null
+  }
+
+  export type ChatAnalyticsCountAggregateOutputType = {
+    id: number
+    customerId: number
+    sessionId: number
+    toolName: number
+    intent: number
+    responseTimeMs: number
+    messageCount: number
+    hadToolCall: number
+    hadImage: number
+    wasStreaming: number
+    feedback: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ChatAnalyticsAvgAggregateInputType = {
+    responseTimeMs?: true
+    messageCount?: true
+    feedback?: true
+  }
+
+  export type ChatAnalyticsSumAggregateInputType = {
+    responseTimeMs?: true
+    messageCount?: true
+    feedback?: true
+  }
+
+  export type ChatAnalyticsMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    sessionId?: true
+    toolName?: true
+    intent?: true
+    responseTimeMs?: true
+    messageCount?: true
+    hadToolCall?: true
+    hadImage?: true
+    wasStreaming?: true
+    feedback?: true
+    createdAt?: true
+  }
+
+  export type ChatAnalyticsMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    sessionId?: true
+    toolName?: true
+    intent?: true
+    responseTimeMs?: true
+    messageCount?: true
+    hadToolCall?: true
+    hadImage?: true
+    wasStreaming?: true
+    feedback?: true
+    createdAt?: true
+  }
+
+  export type ChatAnalyticsCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    sessionId?: true
+    toolName?: true
+    intent?: true
+    responseTimeMs?: true
+    messageCount?: true
+    hadToolCall?: true
+    hadImage?: true
+    wasStreaming?: true
+    feedback?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ChatAnalyticsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatAnalytics to aggregate.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChatAnalytics
+    **/
+    _count?: true | ChatAnalyticsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ChatAnalyticsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ChatAnalyticsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChatAnalyticsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChatAnalyticsMaxAggregateInputType
+  }
+
+  export type GetChatAnalyticsAggregateType<T extends ChatAnalyticsAggregateArgs> = {
+        [P in keyof T & keyof AggregateChatAnalytics]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChatAnalytics[P]>
+      : GetScalarType<T[P], AggregateChatAnalytics[P]>
+  }
+
+
+
+
+  export type ChatAnalyticsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChatAnalyticsWhereInput
+    orderBy?: ChatAnalyticsOrderByWithAggregationInput | ChatAnalyticsOrderByWithAggregationInput[]
+    by: ChatAnalyticsScalarFieldEnum[] | ChatAnalyticsScalarFieldEnum
+    having?: ChatAnalyticsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChatAnalyticsCountAggregateInputType | true
+    _avg?: ChatAnalyticsAvgAggregateInputType
+    _sum?: ChatAnalyticsSumAggregateInputType
+    _min?: ChatAnalyticsMinAggregateInputType
+    _max?: ChatAnalyticsMaxAggregateInputType
+  }
+
+  export type ChatAnalyticsGroupByOutputType = {
+    id: string
+    customerId: string
+    sessionId: string
+    toolName: string | null
+    intent: string | null
+    responseTimeMs: number | null
+    messageCount: number
+    hadToolCall: boolean
+    hadImage: boolean
+    wasStreaming: boolean
+    feedback: number | null
+    createdAt: Date
+    _count: ChatAnalyticsCountAggregateOutputType | null
+    _avg: ChatAnalyticsAvgAggregateOutputType | null
+    _sum: ChatAnalyticsSumAggregateOutputType | null
+    _min: ChatAnalyticsMinAggregateOutputType | null
+    _max: ChatAnalyticsMaxAggregateOutputType | null
+  }
+
+  type GetChatAnalyticsGroupByPayload<T extends ChatAnalyticsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChatAnalyticsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChatAnalyticsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChatAnalyticsGroupByOutputType[P]>
+            : GetScalarType<T[P], ChatAnalyticsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChatAnalyticsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chatAnalytics"]>
+
+  export type ChatAnalyticsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chatAnalytics"]>
+
+  export type ChatAnalyticsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chatAnalytics"]>
+
+  export type ChatAnalyticsSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    sessionId?: boolean
+    toolName?: boolean
+    intent?: boolean
+    responseTimeMs?: boolean
+    messageCount?: boolean
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }
+
+  export type ChatAnalyticsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "sessionId" | "toolName" | "intent" | "responseTimeMs" | "messageCount" | "hadToolCall" | "hadImage" | "wasStreaming" | "feedback" | "createdAt", ExtArgs["result"]["chatAnalytics"]>
+
+  export type $ChatAnalyticsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChatAnalytics"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      sessionId: string
+      toolName: string | null
+      intent: string | null
+      responseTimeMs: number | null
+      messageCount: number
+      hadToolCall: boolean
+      hadImage: boolean
+      wasStreaming: boolean
+      feedback: number | null
+      createdAt: Date
+    }, ExtArgs["result"]["chatAnalytics"]>
+    composites: {}
+  }
+
+  type ChatAnalyticsGetPayload<S extends boolean | null | undefined | ChatAnalyticsDefaultArgs> = $Result.GetResult<Prisma.$ChatAnalyticsPayload, S>
+
+  type ChatAnalyticsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ChatAnalyticsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ChatAnalyticsCountAggregateInputType | true
+    }
+
+  export interface ChatAnalyticsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChatAnalytics'], meta: { name: 'ChatAnalytics' } }
+    /**
+     * Find zero or one ChatAnalytics that matches the filter.
+     * @param {ChatAnalyticsFindUniqueArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChatAnalyticsFindUniqueArgs>(args: SelectSubset<T, ChatAnalyticsFindUniqueArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ChatAnalytics that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ChatAnalyticsFindUniqueOrThrowArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChatAnalyticsFindUniqueOrThrowArgs>(args: SelectSubset<T, ChatAnalyticsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChatAnalytics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsFindFirstArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChatAnalyticsFindFirstArgs>(args?: SelectSubset<T, ChatAnalyticsFindFirstArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChatAnalytics that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsFindFirstOrThrowArgs} args - Arguments to find a ChatAnalytics
+     * @example
+     * // Get one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChatAnalyticsFindFirstOrThrowArgs>(args?: SelectSubset<T, ChatAnalyticsFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ChatAnalytics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findMany()
+     * 
+     * // Get first 10 ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const chatAnalyticsWithIdOnly = await prisma.chatAnalytics.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChatAnalyticsFindManyArgs>(args?: SelectSubset<T, ChatAnalyticsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ChatAnalytics.
+     * @param {ChatAnalyticsCreateArgs} args - Arguments to create a ChatAnalytics.
+     * @example
+     * // Create one ChatAnalytics
+     * const ChatAnalytics = await prisma.chatAnalytics.create({
+     *   data: {
+     *     // ... data to create a ChatAnalytics
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChatAnalyticsCreateArgs>(args: SelectSubset<T, ChatAnalyticsCreateArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ChatAnalytics.
+     * @param {ChatAnalyticsCreateManyArgs} args - Arguments to create many ChatAnalytics.
+     * @example
+     * // Create many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChatAnalyticsCreateManyArgs>(args?: SelectSubset<T, ChatAnalyticsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChatAnalytics and returns the data saved in the database.
+     * @param {ChatAnalyticsCreateManyAndReturnArgs} args - Arguments to create many ChatAnalytics.
+     * @example
+     * // Create many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChatAnalytics and only return the `id`
+     * const chatAnalyticsWithIdOnly = await prisma.chatAnalytics.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChatAnalyticsCreateManyAndReturnArgs>(args?: SelectSubset<T, ChatAnalyticsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ChatAnalytics.
+     * @param {ChatAnalyticsDeleteArgs} args - Arguments to delete one ChatAnalytics.
+     * @example
+     * // Delete one ChatAnalytics
+     * const ChatAnalytics = await prisma.chatAnalytics.delete({
+     *   where: {
+     *     // ... filter to delete one ChatAnalytics
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChatAnalyticsDeleteArgs>(args: SelectSubset<T, ChatAnalyticsDeleteArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ChatAnalytics.
+     * @param {ChatAnalyticsUpdateArgs} args - Arguments to update one ChatAnalytics.
+     * @example
+     * // Update one ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChatAnalyticsUpdateArgs>(args: SelectSubset<T, ChatAnalyticsUpdateArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ChatAnalytics.
+     * @param {ChatAnalyticsDeleteManyArgs} args - Arguments to filter ChatAnalytics to delete.
+     * @example
+     * // Delete a few ChatAnalytics
+     * const { count } = await prisma.chatAnalytics.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChatAnalyticsDeleteManyArgs>(args?: SelectSubset<T, ChatAnalyticsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChatAnalyticsUpdateManyArgs>(args: SelectSubset<T, ChatAnalyticsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatAnalytics and returns the data updated in the database.
+     * @param {ChatAnalyticsUpdateManyAndReturnArgs} args - Arguments to update many ChatAnalytics.
+     * @example
+     * // Update many ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ChatAnalytics and only return the `id`
+     * const chatAnalyticsWithIdOnly = await prisma.chatAnalytics.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ChatAnalyticsUpdateManyAndReturnArgs>(args: SelectSubset<T, ChatAnalyticsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ChatAnalytics.
+     * @param {ChatAnalyticsUpsertArgs} args - Arguments to update or create a ChatAnalytics.
+     * @example
+     * // Update or create a ChatAnalytics
+     * const chatAnalytics = await prisma.chatAnalytics.upsert({
+     *   create: {
+     *     // ... data to create a ChatAnalytics
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChatAnalytics we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChatAnalyticsUpsertArgs>(args: SelectSubset<T, ChatAnalyticsUpsertArgs<ExtArgs>>): Prisma__ChatAnalyticsClient<$Result.GetResult<Prisma.$ChatAnalyticsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsCountArgs} args - Arguments to filter ChatAnalytics to count.
+     * @example
+     * // Count the number of ChatAnalytics
+     * const count = await prisma.chatAnalytics.count({
+     *   where: {
+     *     // ... the filter for the ChatAnalytics we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChatAnalyticsCountArgs>(
+      args?: Subset<T, ChatAnalyticsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChatAnalyticsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChatAnalyticsAggregateArgs>(args: Subset<T, ChatAnalyticsAggregateArgs>): Prisma.PrismaPromise<GetChatAnalyticsAggregateType<T>>
+
+    /**
+     * Group by ChatAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatAnalyticsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChatAnalyticsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChatAnalyticsGroupByArgs['orderBy'] }
+        : { orderBy?: ChatAnalyticsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChatAnalyticsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChatAnalyticsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChatAnalytics model
+   */
+  readonly fields: ChatAnalyticsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChatAnalytics.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChatAnalyticsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChatAnalytics model
+   */
+  interface ChatAnalyticsFieldRefs {
+    readonly id: FieldRef<"ChatAnalytics", 'String'>
+    readonly customerId: FieldRef<"ChatAnalytics", 'String'>
+    readonly sessionId: FieldRef<"ChatAnalytics", 'String'>
+    readonly toolName: FieldRef<"ChatAnalytics", 'String'>
+    readonly intent: FieldRef<"ChatAnalytics", 'String'>
+    readonly responseTimeMs: FieldRef<"ChatAnalytics", 'Int'>
+    readonly messageCount: FieldRef<"ChatAnalytics", 'Int'>
+    readonly hadToolCall: FieldRef<"ChatAnalytics", 'Boolean'>
+    readonly hadImage: FieldRef<"ChatAnalytics", 'Boolean'>
+    readonly wasStreaming: FieldRef<"ChatAnalytics", 'Boolean'>
+    readonly feedback: FieldRef<"ChatAnalytics", 'Int'>
+    readonly createdAt: FieldRef<"ChatAnalytics", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChatAnalytics findUnique
+   */
+  export type ChatAnalyticsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics findUniqueOrThrow
+   */
+  export type ChatAnalyticsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics findFirst
+   */
+  export type ChatAnalyticsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatAnalytics.
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatAnalytics.
+     */
+    distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * ChatAnalytics findFirstOrThrow
+   */
+  export type ChatAnalyticsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatAnalytics.
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatAnalytics.
+     */
+    distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * ChatAnalytics findMany
+   */
+  export type ChatAnalyticsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatAnalytics to fetch.
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatAnalytics to fetch.
+     */
+    orderBy?: ChatAnalyticsOrderByWithRelationInput | ChatAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChatAnalytics.
+     */
+    cursor?: ChatAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatAnalytics.
+     */
+    skip?: number
+    distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * ChatAnalytics create
+   */
+  export type ChatAnalyticsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsCreateInput, ChatAnalyticsUncheckedCreateInput>
+  }
+
+  /**
+   * ChatAnalytics createMany
+   */
+  export type ChatAnalyticsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChatAnalytics.
+     */
+    data: ChatAnalyticsCreateManyInput | ChatAnalyticsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatAnalytics createManyAndReturn
+   */
+  export type ChatAnalyticsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data used to create many ChatAnalytics.
+     */
+    data: ChatAnalyticsCreateManyInput | ChatAnalyticsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatAnalytics update
+   */
+  export type ChatAnalyticsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsUpdateInput, ChatAnalyticsUncheckedUpdateInput>
+    /**
+     * Choose, which ChatAnalytics to update.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics updateMany
+   */
+  export type ChatAnalyticsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsUpdateManyMutationInput, ChatAnalyticsUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatAnalytics to update
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * Limit how many ChatAnalytics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatAnalytics updateManyAndReturn
+   */
+  export type ChatAnalyticsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data used to update ChatAnalytics.
+     */
+    data: XOR<ChatAnalyticsUpdateManyMutationInput, ChatAnalyticsUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatAnalytics to update
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * Limit how many ChatAnalytics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatAnalytics upsert
+   */
+  export type ChatAnalyticsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the ChatAnalytics to update in case it exists.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+    /**
+     * In case the ChatAnalytics found by the `where` argument doesn't exist, create a new ChatAnalytics with this data.
+     */
+    create: XOR<ChatAnalyticsCreateInput, ChatAnalyticsUncheckedCreateInput>
+    /**
+     * In case the ChatAnalytics was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChatAnalyticsUpdateInput, ChatAnalyticsUncheckedUpdateInput>
+  }
+
+  /**
+   * ChatAnalytics delete
+   */
+  export type ChatAnalyticsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter which ChatAnalytics to delete.
+     */
+    where: ChatAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * ChatAnalytics deleteMany
+   */
+  export type ChatAnalyticsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatAnalytics to delete
+     */
+    where?: ChatAnalyticsWhereInput
+    /**
+     * Limit how many ChatAnalytics to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatAnalytics without action
+   */
+  export type ChatAnalyticsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatAnalytics
+     */
+    select?: ChatAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatAnalytics
+     */
+    omit?: ChatAnalyticsOmit<ExtArgs> | null
   }
 
 
@@ -23177,6 +24604,1010 @@ export namespace Prisma {
 
 
   /**
+   * Model DiscoveryContent
+   */
+
+  export type AggregateDiscoveryContent = {
+    _count: DiscoveryContentCountAggregateOutputType | null
+    _min: DiscoveryContentMinAggregateOutputType | null
+    _max: DiscoveryContentMaxAggregateOutputType | null
+  }
+
+  export type DiscoveryContentMinAggregateOutputType = {
+    id: string | null
+    type: string | null
+    date: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DiscoveryContentMaxAggregateOutputType = {
+    id: string | null
+    type: string | null
+    date: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DiscoveryContentCountAggregateOutputType = {
+    id: number
+    type: number
+    content: number
+    date: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DiscoveryContentMinAggregateInputType = {
+    id?: true
+    type?: true
+    date?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DiscoveryContentMaxAggregateInputType = {
+    id?: true
+    type?: true
+    date?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DiscoveryContentCountAggregateInputType = {
+    id?: true
+    type?: true
+    content?: true
+    date?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DiscoveryContentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DiscoveryContent to aggregate.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DiscoveryContents
+    **/
+    _count?: true | DiscoveryContentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DiscoveryContentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DiscoveryContentMaxAggregateInputType
+  }
+
+  export type GetDiscoveryContentAggregateType<T extends DiscoveryContentAggregateArgs> = {
+        [P in keyof T & keyof AggregateDiscoveryContent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDiscoveryContent[P]>
+      : GetScalarType<T[P], AggregateDiscoveryContent[P]>
+  }
+
+
+
+
+  export type DiscoveryContentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DiscoveryContentWhereInput
+    orderBy?: DiscoveryContentOrderByWithAggregationInput | DiscoveryContentOrderByWithAggregationInput[]
+    by: DiscoveryContentScalarFieldEnum[] | DiscoveryContentScalarFieldEnum
+    having?: DiscoveryContentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DiscoveryContentCountAggregateInputType | true
+    _min?: DiscoveryContentMinAggregateInputType
+    _max?: DiscoveryContentMaxAggregateInputType
+  }
+
+  export type DiscoveryContentGroupByOutputType = {
+    id: string
+    type: string
+    content: JsonValue
+    date: Date
+    createdAt: Date
+    updatedAt: Date
+    _count: DiscoveryContentCountAggregateOutputType | null
+    _min: DiscoveryContentMinAggregateOutputType | null
+    _max: DiscoveryContentMaxAggregateOutputType | null
+  }
+
+  type GetDiscoveryContentGroupByPayload<T extends DiscoveryContentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DiscoveryContentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DiscoveryContentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DiscoveryContentGroupByOutputType[P]>
+            : GetScalarType<T[P], DiscoveryContentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DiscoveryContentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["discoveryContent"]>
+
+  export type DiscoveryContentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["discoveryContent"]>
+
+  export type DiscoveryContentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["discoveryContent"]>
+
+  export type DiscoveryContentSelectScalar = {
+    id?: boolean
+    type?: boolean
+    content?: boolean
+    date?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DiscoveryContentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "type" | "content" | "date" | "createdAt" | "updatedAt", ExtArgs["result"]["discoveryContent"]>
+
+  export type $DiscoveryContentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DiscoveryContent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      type: string
+      content: Prisma.JsonValue
+      date: Date
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["discoveryContent"]>
+    composites: {}
+  }
+
+  type DiscoveryContentGetPayload<S extends boolean | null | undefined | DiscoveryContentDefaultArgs> = $Result.GetResult<Prisma.$DiscoveryContentPayload, S>
+
+  type DiscoveryContentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DiscoveryContentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DiscoveryContentCountAggregateInputType | true
+    }
+
+  export interface DiscoveryContentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DiscoveryContent'], meta: { name: 'DiscoveryContent' } }
+    /**
+     * Find zero or one DiscoveryContent that matches the filter.
+     * @param {DiscoveryContentFindUniqueArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DiscoveryContentFindUniqueArgs>(args: SelectSubset<T, DiscoveryContentFindUniqueArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DiscoveryContent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DiscoveryContentFindUniqueOrThrowArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DiscoveryContentFindUniqueOrThrowArgs>(args: SelectSubset<T, DiscoveryContentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DiscoveryContent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentFindFirstArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DiscoveryContentFindFirstArgs>(args?: SelectSubset<T, DiscoveryContentFindFirstArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DiscoveryContent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentFindFirstOrThrowArgs} args - Arguments to find a DiscoveryContent
+     * @example
+     * // Get one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DiscoveryContentFindFirstOrThrowArgs>(args?: SelectSubset<T, DiscoveryContentFindFirstOrThrowArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DiscoveryContents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DiscoveryContents
+     * const discoveryContents = await prisma.discoveryContent.findMany()
+     * 
+     * // Get first 10 DiscoveryContents
+     * const discoveryContents = await prisma.discoveryContent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const discoveryContentWithIdOnly = await prisma.discoveryContent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DiscoveryContentFindManyArgs>(args?: SelectSubset<T, DiscoveryContentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DiscoveryContent.
+     * @param {DiscoveryContentCreateArgs} args - Arguments to create a DiscoveryContent.
+     * @example
+     * // Create one DiscoveryContent
+     * const DiscoveryContent = await prisma.discoveryContent.create({
+     *   data: {
+     *     // ... data to create a DiscoveryContent
+     *   }
+     * })
+     * 
+     */
+    create<T extends DiscoveryContentCreateArgs>(args: SelectSubset<T, DiscoveryContentCreateArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DiscoveryContents.
+     * @param {DiscoveryContentCreateManyArgs} args - Arguments to create many DiscoveryContents.
+     * @example
+     * // Create many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DiscoveryContentCreateManyArgs>(args?: SelectSubset<T, DiscoveryContentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DiscoveryContents and returns the data saved in the database.
+     * @param {DiscoveryContentCreateManyAndReturnArgs} args - Arguments to create many DiscoveryContents.
+     * @example
+     * // Create many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DiscoveryContents and only return the `id`
+     * const discoveryContentWithIdOnly = await prisma.discoveryContent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DiscoveryContentCreateManyAndReturnArgs>(args?: SelectSubset<T, DiscoveryContentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DiscoveryContent.
+     * @param {DiscoveryContentDeleteArgs} args - Arguments to delete one DiscoveryContent.
+     * @example
+     * // Delete one DiscoveryContent
+     * const DiscoveryContent = await prisma.discoveryContent.delete({
+     *   where: {
+     *     // ... filter to delete one DiscoveryContent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DiscoveryContentDeleteArgs>(args: SelectSubset<T, DiscoveryContentDeleteArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DiscoveryContent.
+     * @param {DiscoveryContentUpdateArgs} args - Arguments to update one DiscoveryContent.
+     * @example
+     * // Update one DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DiscoveryContentUpdateArgs>(args: SelectSubset<T, DiscoveryContentUpdateArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DiscoveryContents.
+     * @param {DiscoveryContentDeleteManyArgs} args - Arguments to filter DiscoveryContents to delete.
+     * @example
+     * // Delete a few DiscoveryContents
+     * const { count } = await prisma.discoveryContent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DiscoveryContentDeleteManyArgs>(args?: SelectSubset<T, DiscoveryContentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DiscoveryContents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DiscoveryContentUpdateManyArgs>(args: SelectSubset<T, DiscoveryContentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DiscoveryContents and returns the data updated in the database.
+     * @param {DiscoveryContentUpdateManyAndReturnArgs} args - Arguments to update many DiscoveryContents.
+     * @example
+     * // Update many DiscoveryContents
+     * const discoveryContent = await prisma.discoveryContent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DiscoveryContents and only return the `id`
+     * const discoveryContentWithIdOnly = await prisma.discoveryContent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DiscoveryContentUpdateManyAndReturnArgs>(args: SelectSubset<T, DiscoveryContentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DiscoveryContent.
+     * @param {DiscoveryContentUpsertArgs} args - Arguments to update or create a DiscoveryContent.
+     * @example
+     * // Update or create a DiscoveryContent
+     * const discoveryContent = await prisma.discoveryContent.upsert({
+     *   create: {
+     *     // ... data to create a DiscoveryContent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DiscoveryContent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DiscoveryContentUpsertArgs>(args: SelectSubset<T, DiscoveryContentUpsertArgs<ExtArgs>>): Prisma__DiscoveryContentClient<$Result.GetResult<Prisma.$DiscoveryContentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DiscoveryContents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentCountArgs} args - Arguments to filter DiscoveryContents to count.
+     * @example
+     * // Count the number of DiscoveryContents
+     * const count = await prisma.discoveryContent.count({
+     *   where: {
+     *     // ... the filter for the DiscoveryContents we want to count
+     *   }
+     * })
+    **/
+    count<T extends DiscoveryContentCountArgs>(
+      args?: Subset<T, DiscoveryContentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DiscoveryContentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DiscoveryContent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DiscoveryContentAggregateArgs>(args: Subset<T, DiscoveryContentAggregateArgs>): Prisma.PrismaPromise<GetDiscoveryContentAggregateType<T>>
+
+    /**
+     * Group by DiscoveryContent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DiscoveryContentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DiscoveryContentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DiscoveryContentGroupByArgs['orderBy'] }
+        : { orderBy?: DiscoveryContentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DiscoveryContentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDiscoveryContentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DiscoveryContent model
+   */
+  readonly fields: DiscoveryContentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DiscoveryContent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DiscoveryContentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DiscoveryContent model
+   */
+  interface DiscoveryContentFieldRefs {
+    readonly id: FieldRef<"DiscoveryContent", 'String'>
+    readonly type: FieldRef<"DiscoveryContent", 'String'>
+    readonly content: FieldRef<"DiscoveryContent", 'Json'>
+    readonly date: FieldRef<"DiscoveryContent", 'DateTime'>
+    readonly createdAt: FieldRef<"DiscoveryContent", 'DateTime'>
+    readonly updatedAt: FieldRef<"DiscoveryContent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DiscoveryContent findUnique
+   */
+  export type DiscoveryContentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent findUniqueOrThrow
+   */
+  export type DiscoveryContentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent findFirst
+   */
+  export type DiscoveryContentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DiscoveryContents.
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DiscoveryContents.
+     */
+    distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
+  }
+
+  /**
+   * DiscoveryContent findFirstOrThrow
+   */
+  export type DiscoveryContentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContent to fetch.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DiscoveryContents.
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DiscoveryContents.
+     */
+    distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
+  }
+
+  /**
+   * DiscoveryContent findMany
+   */
+  export type DiscoveryContentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter, which DiscoveryContents to fetch.
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DiscoveryContents to fetch.
+     */
+    orderBy?: DiscoveryContentOrderByWithRelationInput | DiscoveryContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DiscoveryContents.
+     */
+    cursor?: DiscoveryContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DiscoveryContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DiscoveryContents.
+     */
+    skip?: number
+    distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
+  }
+
+  /**
+   * DiscoveryContent create
+   */
+  export type DiscoveryContentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data needed to create a DiscoveryContent.
+     */
+    data: XOR<DiscoveryContentCreateInput, DiscoveryContentUncheckedCreateInput>
+  }
+
+  /**
+   * DiscoveryContent createMany
+   */
+  export type DiscoveryContentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DiscoveryContents.
+     */
+    data: DiscoveryContentCreateManyInput | DiscoveryContentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DiscoveryContent createManyAndReturn
+   */
+  export type DiscoveryContentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data used to create many DiscoveryContents.
+     */
+    data: DiscoveryContentCreateManyInput | DiscoveryContentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DiscoveryContent update
+   */
+  export type DiscoveryContentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data needed to update a DiscoveryContent.
+     */
+    data: XOR<DiscoveryContentUpdateInput, DiscoveryContentUncheckedUpdateInput>
+    /**
+     * Choose, which DiscoveryContent to update.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent updateMany
+   */
+  export type DiscoveryContentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DiscoveryContents.
+     */
+    data: XOR<DiscoveryContentUpdateManyMutationInput, DiscoveryContentUncheckedUpdateManyInput>
+    /**
+     * Filter which DiscoveryContents to update
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * Limit how many DiscoveryContents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DiscoveryContent updateManyAndReturn
+   */
+  export type DiscoveryContentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The data used to update DiscoveryContents.
+     */
+    data: XOR<DiscoveryContentUpdateManyMutationInput, DiscoveryContentUncheckedUpdateManyInput>
+    /**
+     * Filter which DiscoveryContents to update
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * Limit how many DiscoveryContents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DiscoveryContent upsert
+   */
+  export type DiscoveryContentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * The filter to search for the DiscoveryContent to update in case it exists.
+     */
+    where: DiscoveryContentWhereUniqueInput
+    /**
+     * In case the DiscoveryContent found by the `where` argument doesn't exist, create a new DiscoveryContent with this data.
+     */
+    create: XOR<DiscoveryContentCreateInput, DiscoveryContentUncheckedCreateInput>
+    /**
+     * In case the DiscoveryContent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DiscoveryContentUpdateInput, DiscoveryContentUncheckedUpdateInput>
+  }
+
+  /**
+   * DiscoveryContent delete
+   */
+  export type DiscoveryContentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+    /**
+     * Filter which DiscoveryContent to delete.
+     */
+    where: DiscoveryContentWhereUniqueInput
+  }
+
+  /**
+   * DiscoveryContent deleteMany
+   */
+  export type DiscoveryContentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DiscoveryContents to delete
+     */
+    where?: DiscoveryContentWhereInput
+    /**
+     * Limit how many DiscoveryContents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DiscoveryContent without action
+   */
+  export type DiscoveryContentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DiscoveryContent
+     */
+    select?: DiscoveryContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DiscoveryContent
+     */
+    omit?: DiscoveryContentOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model ServiceRecord
    */
 
@@ -25594,6 +28025,1142 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ServicePartInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PartReplacementInterval
+   */
+
+  export type AggregatePartReplacementInterval = {
+    _count: PartReplacementIntervalCountAggregateOutputType | null
+    _avg: PartReplacementIntervalAvgAggregateOutputType | null
+    _sum: PartReplacementIntervalSumAggregateOutputType | null
+    _min: PartReplacementIntervalMinAggregateOutputType | null
+    _max: PartReplacementIntervalMaxAggregateOutputType | null
+  }
+
+  export type PartReplacementIntervalAvgAggregateOutputType = {
+    yearMin: number | null
+    yearMax: number | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+  }
+
+  export type PartReplacementIntervalSumAggregateOutputType = {
+    yearMin: number | null
+    yearMax: number | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+  }
+
+  export type PartReplacementIntervalMinAggregateOutputType = {
+    id: string | null
+    make: string | null
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PartReplacementIntervalMaxAggregateOutputType = {
+    id: string | null
+    make: string | null
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PartReplacementIntervalCountAggregateOutputType = {
+    id: number
+    make: number
+    model: number
+    yearMin: number
+    yearMax: number
+    partType: number
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths: number
+    source: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PartReplacementIntervalAvgAggregateInputType = {
+    yearMin?: true
+    yearMax?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+  }
+
+  export type PartReplacementIntervalSumAggregateInputType = {
+    yearMin?: true
+    yearMax?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+  }
+
+  export type PartReplacementIntervalMinAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PartReplacementIntervalMaxAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PartReplacementIntervalCountAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PartReplacementIntervalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PartReplacementInterval to aggregate.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PartReplacementIntervals
+    **/
+    _count?: true | PartReplacementIntervalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PartReplacementIntervalAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PartReplacementIntervalSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PartReplacementIntervalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PartReplacementIntervalMaxAggregateInputType
+  }
+
+  export type GetPartReplacementIntervalAggregateType<T extends PartReplacementIntervalAggregateArgs> = {
+        [P in keyof T & keyof AggregatePartReplacementInterval]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePartReplacementInterval[P]>
+      : GetScalarType<T[P], AggregatePartReplacementInterval[P]>
+  }
+
+
+
+
+  export type PartReplacementIntervalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PartReplacementIntervalWhereInput
+    orderBy?: PartReplacementIntervalOrderByWithAggregationInput | PartReplacementIntervalOrderByWithAggregationInput[]
+    by: PartReplacementIntervalScalarFieldEnum[] | PartReplacementIntervalScalarFieldEnum
+    having?: PartReplacementIntervalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PartReplacementIntervalCountAggregateInputType | true
+    _avg?: PartReplacementIntervalAvgAggregateInputType
+    _sum?: PartReplacementIntervalSumAggregateInputType
+    _min?: PartReplacementIntervalMinAggregateInputType
+    _max?: PartReplacementIntervalMaxAggregateInputType
+  }
+
+  export type PartReplacementIntervalGroupByOutputType = {
+    id: string
+    make: string
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths: number
+    source: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PartReplacementIntervalCountAggregateOutputType | null
+    _avg: PartReplacementIntervalAvgAggregateOutputType | null
+    _sum: PartReplacementIntervalSumAggregateOutputType | null
+    _min: PartReplacementIntervalMinAggregateOutputType | null
+    _max: PartReplacementIntervalMaxAggregateOutputType | null
+  }
+
+  type GetPartReplacementIntervalGroupByPayload<T extends PartReplacementIntervalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PartReplacementIntervalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PartReplacementIntervalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PartReplacementIntervalGroupByOutputType[P]>
+            : GetScalarType<T[P], PartReplacementIntervalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PartReplacementIntervalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectScalar = {
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PartReplacementIntervalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "make" | "model" | "yearMin" | "yearMax" | "partType" | "intervalMonths" | "intervalKm" | "defaultWarrantyMonths" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["partReplacementInterval"]>
+
+  export type $PartReplacementIntervalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PartReplacementInterval"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      make: string
+      model: string | null
+      yearMin: number | null
+      yearMax: number | null
+      partType: $Enums.ServicePartType
+      intervalMonths: number
+      intervalKm: number
+      defaultWarrantyMonths: number
+      source: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["partReplacementInterval"]>
+    composites: {}
+  }
+
+  type PartReplacementIntervalGetPayload<S extends boolean | null | undefined | PartReplacementIntervalDefaultArgs> = $Result.GetResult<Prisma.$PartReplacementIntervalPayload, S>
+
+  type PartReplacementIntervalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PartReplacementIntervalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PartReplacementIntervalCountAggregateInputType | true
+    }
+
+  export interface PartReplacementIntervalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PartReplacementInterval'], meta: { name: 'PartReplacementInterval' } }
+    /**
+     * Find zero or one PartReplacementInterval that matches the filter.
+     * @param {PartReplacementIntervalFindUniqueArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PartReplacementIntervalFindUniqueArgs>(args: SelectSubset<T, PartReplacementIntervalFindUniqueArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PartReplacementInterval that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PartReplacementIntervalFindUniqueOrThrowArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PartReplacementIntervalFindUniqueOrThrowArgs>(args: SelectSubset<T, PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PartReplacementInterval that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindFirstArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PartReplacementIntervalFindFirstArgs>(args?: SelectSubset<T, PartReplacementIntervalFindFirstArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PartReplacementInterval that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindFirstOrThrowArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PartReplacementIntervalFindFirstOrThrowArgs>(args?: SelectSubset<T, PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PartReplacementIntervals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PartReplacementIntervals
+     * const partReplacementIntervals = await prisma.partReplacementInterval.findMany()
+     * 
+     * // Get first 10 PartReplacementIntervals
+     * const partReplacementIntervals = await prisma.partReplacementInterval.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PartReplacementIntervalFindManyArgs>(args?: SelectSubset<T, PartReplacementIntervalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PartReplacementInterval.
+     * @param {PartReplacementIntervalCreateArgs} args - Arguments to create a PartReplacementInterval.
+     * @example
+     * // Create one PartReplacementInterval
+     * const PartReplacementInterval = await prisma.partReplacementInterval.create({
+     *   data: {
+     *     // ... data to create a PartReplacementInterval
+     *   }
+     * })
+     * 
+     */
+    create<T extends PartReplacementIntervalCreateArgs>(args: SelectSubset<T, PartReplacementIntervalCreateArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PartReplacementIntervals.
+     * @param {PartReplacementIntervalCreateManyArgs} args - Arguments to create many PartReplacementIntervals.
+     * @example
+     * // Create many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PartReplacementIntervalCreateManyArgs>(args?: SelectSubset<T, PartReplacementIntervalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PartReplacementIntervals and returns the data saved in the database.
+     * @param {PartReplacementIntervalCreateManyAndReturnArgs} args - Arguments to create many PartReplacementIntervals.
+     * @example
+     * // Create many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PartReplacementIntervals and only return the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PartReplacementIntervalCreateManyAndReturnArgs>(args?: SelectSubset<T, PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PartReplacementInterval.
+     * @param {PartReplacementIntervalDeleteArgs} args - Arguments to delete one PartReplacementInterval.
+     * @example
+     * // Delete one PartReplacementInterval
+     * const PartReplacementInterval = await prisma.partReplacementInterval.delete({
+     *   where: {
+     *     // ... filter to delete one PartReplacementInterval
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PartReplacementIntervalDeleteArgs>(args: SelectSubset<T, PartReplacementIntervalDeleteArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PartReplacementInterval.
+     * @param {PartReplacementIntervalUpdateArgs} args - Arguments to update one PartReplacementInterval.
+     * @example
+     * // Update one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PartReplacementIntervalUpdateArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PartReplacementIntervals.
+     * @param {PartReplacementIntervalDeleteManyArgs} args - Arguments to filter PartReplacementIntervals to delete.
+     * @example
+     * // Delete a few PartReplacementIntervals
+     * const { count } = await prisma.partReplacementInterval.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PartReplacementIntervalDeleteManyArgs>(args?: SelectSubset<T, PartReplacementIntervalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PartReplacementIntervals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PartReplacementIntervalUpdateManyArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PartReplacementIntervals and returns the data updated in the database.
+     * @param {PartReplacementIntervalUpdateManyAndReturnArgs} args - Arguments to update many PartReplacementIntervals.
+     * @example
+     * // Update many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PartReplacementIntervals and only return the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PartReplacementIntervalUpdateManyAndReturnArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PartReplacementInterval.
+     * @param {PartReplacementIntervalUpsertArgs} args - Arguments to update or create a PartReplacementInterval.
+     * @example
+     * // Update or create a PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.upsert({
+     *   create: {
+     *     // ... data to create a PartReplacementInterval
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PartReplacementInterval we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PartReplacementIntervalUpsertArgs>(args: SelectSubset<T, PartReplacementIntervalUpsertArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PartReplacementIntervals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalCountArgs} args - Arguments to filter PartReplacementIntervals to count.
+     * @example
+     * // Count the number of PartReplacementIntervals
+     * const count = await prisma.partReplacementInterval.count({
+     *   where: {
+     *     // ... the filter for the PartReplacementIntervals we want to count
+     *   }
+     * })
+    **/
+    count<T extends PartReplacementIntervalCountArgs>(
+      args?: Subset<T, PartReplacementIntervalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PartReplacementIntervalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PartReplacementInterval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PartReplacementIntervalAggregateArgs>(args: Subset<T, PartReplacementIntervalAggregateArgs>): Prisma.PrismaPromise<GetPartReplacementIntervalAggregateType<T>>
+
+    /**
+     * Group by PartReplacementInterval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PartReplacementIntervalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PartReplacementIntervalGroupByArgs['orderBy'] }
+        : { orderBy?: PartReplacementIntervalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PartReplacementIntervalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPartReplacementIntervalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PartReplacementInterval model
+   */
+  readonly fields: PartReplacementIntervalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PartReplacementInterval.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PartReplacementIntervalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PartReplacementInterval model
+   */
+  interface PartReplacementIntervalFieldRefs {
+    readonly id: FieldRef<"PartReplacementInterval", 'String'>
+    readonly make: FieldRef<"PartReplacementInterval", 'String'>
+    readonly model: FieldRef<"PartReplacementInterval", 'String'>
+    readonly yearMin: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly yearMax: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly partType: FieldRef<"PartReplacementInterval", 'ServicePartType'>
+    readonly intervalMonths: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly intervalKm: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly defaultWarrantyMonths: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly source: FieldRef<"PartReplacementInterval", 'String'>
+    readonly createdAt: FieldRef<"PartReplacementInterval", 'DateTime'>
+    readonly updatedAt: FieldRef<"PartReplacementInterval", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PartReplacementInterval findUnique
+   */
+  export type PartReplacementIntervalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval findUniqueOrThrow
+   */
+  export type PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval findFirst
+   */
+  export type PartReplacementIntervalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval findFirstOrThrow
+   */
+  export type PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval findMany
+   */
+  export type PartReplacementIntervalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementIntervals to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval create
+   */
+  export type PartReplacementIntervalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data needed to create a PartReplacementInterval.
+     */
+    data: XOR<PartReplacementIntervalCreateInput, PartReplacementIntervalUncheckedCreateInput>
+  }
+
+  /**
+   * PartReplacementInterval createMany
+   */
+  export type PartReplacementIntervalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PartReplacementIntervals.
+     */
+    data: PartReplacementIntervalCreateManyInput | PartReplacementIntervalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PartReplacementInterval createManyAndReturn
+   */
+  export type PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data used to create many PartReplacementIntervals.
+     */
+    data: PartReplacementIntervalCreateManyInput | PartReplacementIntervalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PartReplacementInterval update
+   */
+  export type PartReplacementIntervalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data needed to update a PartReplacementInterval.
+     */
+    data: XOR<PartReplacementIntervalUpdateInput, PartReplacementIntervalUncheckedUpdateInput>
+    /**
+     * Choose, which PartReplacementInterval to update.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval updateMany
+   */
+  export type PartReplacementIntervalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PartReplacementIntervals.
+     */
+    data: XOR<PartReplacementIntervalUpdateManyMutationInput, PartReplacementIntervalUncheckedUpdateManyInput>
+    /**
+     * Filter which PartReplacementIntervals to update
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval updateManyAndReturn
+   */
+  export type PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data used to update PartReplacementIntervals.
+     */
+    data: XOR<PartReplacementIntervalUpdateManyMutationInput, PartReplacementIntervalUncheckedUpdateManyInput>
+    /**
+     * Filter which PartReplacementIntervals to update
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval upsert
+   */
+  export type PartReplacementIntervalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The filter to search for the PartReplacementInterval to update in case it exists.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+    /**
+     * In case the PartReplacementInterval found by the `where` argument doesn't exist, create a new PartReplacementInterval with this data.
+     */
+    create: XOR<PartReplacementIntervalCreateInput, PartReplacementIntervalUncheckedCreateInput>
+    /**
+     * In case the PartReplacementInterval was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PartReplacementIntervalUpdateInput, PartReplacementIntervalUncheckedUpdateInput>
+  }
+
+  /**
+   * PartReplacementInterval delete
+   */
+  export type PartReplacementIntervalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter which PartReplacementInterval to delete.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval deleteMany
+   */
+  export type PartReplacementIntervalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PartReplacementIntervals to delete
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval without action
+   */
+  export type PartReplacementIntervalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
   }
 
 
@@ -31529,7 +35096,8 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     chassisNumber: 'chassisNumber',
-    engineNumber: 'engineNumber'
+    engineNumber: 'engineNumber',
+    imageUrl: 'imageUrl'
   };
 
   export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
@@ -31614,6 +35182,7 @@ export namespace Prisma {
     id: 'id',
     customerId: 'customerId',
     title: 'title',
+    summary: 'summary',
     isActive: 'isActive',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -31644,6 +35213,24 @@ export namespace Prisma {
   };
 
   export type DocumentEmbeddingScalarFieldEnum = (typeof DocumentEmbeddingScalarFieldEnum)[keyof typeof DocumentEmbeddingScalarFieldEnum]
+
+
+  export const ChatAnalyticsScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    sessionId: 'sessionId',
+    toolName: 'toolName',
+    intent: 'intent',
+    responseTimeMs: 'responseTimeMs',
+    messageCount: 'messageCount',
+    hadToolCall: 'hadToolCall',
+    hadImage: 'hadImage',
+    wasStreaming: 'wasStreaming',
+    feedback: 'feedback',
+    createdAt: 'createdAt'
+  };
+
+  export type ChatAnalyticsScalarFieldEnum = (typeof ChatAnalyticsScalarFieldEnum)[keyof typeof ChatAnalyticsScalarFieldEnum]
 
 
   export const ExpenseScalarFieldEnum: {
@@ -31699,6 +35286,18 @@ export namespace Prisma {
   export type FuelPriceCacheScalarFieldEnum = (typeof FuelPriceCacheScalarFieldEnum)[keyof typeof FuelPriceCacheScalarFieldEnum]
 
 
+  export const DiscoveryContentScalarFieldEnum: {
+    id: 'id',
+    type: 'type',
+    content: 'content',
+    date: 'date',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DiscoveryContentScalarFieldEnum = (typeof DiscoveryContentScalarFieldEnum)[keyof typeof DiscoveryContentScalarFieldEnum]
+
+
   export const ServiceRecordScalarFieldEnum: {
     id: 'id',
     vehicleId: 'vehicleId',
@@ -31734,6 +35333,24 @@ export namespace Prisma {
   };
 
   export type ServicePartScalarFieldEnum = (typeof ServicePartScalarFieldEnum)[keyof typeof ServicePartScalarFieldEnum]
+
+
+  export const PartReplacementIntervalScalarFieldEnum: {
+    id: 'id',
+    make: 'make',
+    model: 'model',
+    yearMin: 'yearMin',
+    yearMax: 'yearMax',
+    partType: 'partType',
+    intervalMonths: 'intervalMonths',
+    intervalKm: 'intervalKm',
+    defaultWarrantyMonths: 'defaultWarrantyMonths',
+    source: 'source',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PartReplacementIntervalScalarFieldEnum = (typeof PartReplacementIntervalScalarFieldEnum)[keyof typeof PartReplacementIntervalScalarFieldEnum]
 
 
   export const TelematicsDeviceScalarFieldEnum: {
@@ -31831,6 +35448,13 @@ export namespace Prisma {
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -32547,6 +36171,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
     documents?: CustomerDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -32578,6 +36203,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrderInput | SortOrder
     engineNumber?: SortOrderInput | SortOrder
+    imageUrl?: SortOrderInput | SortOrder
     challans?: ChallanOrderByRelationAggregateInput
     documents?: CustomerDocumentOrderByRelationAggregateInput
     customer?: CustomerOrderByWithRelationInput
@@ -32612,6 +36238,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
     documents?: CustomerDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -32643,6 +36270,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrderInput | SortOrder
     engineNumber?: SortOrderInput | SortOrder
+    imageUrl?: SortOrderInput | SortOrder
     _count?: CustomerVehicleCountOrderByAggregateInput
     _avg?: CustomerVehicleAvgOrderByAggregateInput
     _max?: CustomerVehicleMaxOrderByAggregateInput
@@ -32672,6 +36300,7 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
   }
 
   export type OdometerLogWhereInput = {
@@ -33066,6 +36695,7 @@ export namespace Prisma {
     id?: StringFilter<"ChatSession"> | string
     customerId?: StringFilter<"ChatSession"> | string
     title?: StringNullableFilter<"ChatSession"> | string | null
+    summary?: StringNullableFilter<"ChatSession"> | string | null
     isActive?: BoolFilter<"ChatSession"> | boolean
     createdAt?: DateTimeFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
@@ -33077,6 +36707,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrderInput | SortOrder
+    summary?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33091,6 +36722,7 @@ export namespace Prisma {
     NOT?: ChatSessionWhereInput | ChatSessionWhereInput[]
     customerId?: StringFilter<"ChatSession"> | string
     title?: StringNullableFilter<"ChatSession"> | string | null
+    summary?: StringNullableFilter<"ChatSession"> | string | null
     isActive?: BoolFilter<"ChatSession"> | boolean
     createdAt?: DateTimeFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
@@ -33102,6 +36734,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrderInput | SortOrder
+    summary?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33117,6 +36750,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"ChatSession"> | string
     customerId?: StringWithAggregatesFilter<"ChatSession"> | string
     title?: StringNullableWithAggregatesFilter<"ChatSession"> | string | null
+    summary?: StringNullableWithAggregatesFilter<"ChatSession"> | string | null
     isActive?: BoolWithAggregatesFilter<"ChatSession"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ChatSession"> | Date | string
@@ -33237,6 +36871,95 @@ export namespace Prisma {
     entityType?: StringWithAggregatesFilter<"DocumentEmbedding"> | string
     content?: StringWithAggregatesFilter<"DocumentEmbedding"> | string
     createdAt?: DateTimeWithAggregatesFilter<"DocumentEmbedding"> | Date | string
+  }
+
+  export type ChatAnalyticsWhereInput = {
+    AND?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    OR?: ChatAnalyticsWhereInput[]
+    NOT?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    id?: StringFilter<"ChatAnalytics"> | string
+    customerId?: StringFilter<"ChatAnalytics"> | string
+    sessionId?: StringFilter<"ChatAnalytics"> | string
+    toolName?: StringNullableFilter<"ChatAnalytics"> | string | null
+    intent?: StringNullableFilter<"ChatAnalytics"> | string | null
+    responseTimeMs?: IntNullableFilter<"ChatAnalytics"> | number | null
+    messageCount?: IntFilter<"ChatAnalytics"> | number
+    hadToolCall?: BoolFilter<"ChatAnalytics"> | boolean
+    hadImage?: BoolFilter<"ChatAnalytics"> | boolean
+    wasStreaming?: BoolFilter<"ChatAnalytics"> | boolean
+    feedback?: IntNullableFilter<"ChatAnalytics"> | number | null
+    createdAt?: DateTimeFilter<"ChatAnalytics"> | Date | string
+  }
+
+  export type ChatAnalyticsOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrderInput | SortOrder
+    intent?: SortOrderInput | SortOrder
+    responseTimeMs?: SortOrderInput | SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    OR?: ChatAnalyticsWhereInput[]
+    NOT?: ChatAnalyticsWhereInput | ChatAnalyticsWhereInput[]
+    customerId?: StringFilter<"ChatAnalytics"> | string
+    sessionId?: StringFilter<"ChatAnalytics"> | string
+    toolName?: StringNullableFilter<"ChatAnalytics"> | string | null
+    intent?: StringNullableFilter<"ChatAnalytics"> | string | null
+    responseTimeMs?: IntNullableFilter<"ChatAnalytics"> | number | null
+    messageCount?: IntFilter<"ChatAnalytics"> | number
+    hadToolCall?: BoolFilter<"ChatAnalytics"> | boolean
+    hadImage?: BoolFilter<"ChatAnalytics"> | boolean
+    wasStreaming?: BoolFilter<"ChatAnalytics"> | boolean
+    feedback?: IntNullableFilter<"ChatAnalytics"> | number | null
+    createdAt?: DateTimeFilter<"ChatAnalytics"> | Date | string
+  }, "id">
+
+  export type ChatAnalyticsOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrderInput | SortOrder
+    intent?: SortOrderInput | SortOrder
+    responseTimeMs?: SortOrderInput | SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ChatAnalyticsCountOrderByAggregateInput
+    _avg?: ChatAnalyticsAvgOrderByAggregateInput
+    _max?: ChatAnalyticsMaxOrderByAggregateInput
+    _min?: ChatAnalyticsMinOrderByAggregateInput
+    _sum?: ChatAnalyticsSumOrderByAggregateInput
+  }
+
+  export type ChatAnalyticsScalarWhereWithAggregatesInput = {
+    AND?: ChatAnalyticsScalarWhereWithAggregatesInput | ChatAnalyticsScalarWhereWithAggregatesInput[]
+    OR?: ChatAnalyticsScalarWhereWithAggregatesInput[]
+    NOT?: ChatAnalyticsScalarWhereWithAggregatesInput | ChatAnalyticsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChatAnalytics"> | string
+    customerId?: StringWithAggregatesFilter<"ChatAnalytics"> | string
+    sessionId?: StringWithAggregatesFilter<"ChatAnalytics"> | string
+    toolName?: StringNullableWithAggregatesFilter<"ChatAnalytics"> | string | null
+    intent?: StringNullableWithAggregatesFilter<"ChatAnalytics"> | string | null
+    responseTimeMs?: IntNullableWithAggregatesFilter<"ChatAnalytics"> | number | null
+    messageCount?: IntWithAggregatesFilter<"ChatAnalytics"> | number
+    hadToolCall?: BoolWithAggregatesFilter<"ChatAnalytics"> | boolean
+    hadImage?: BoolWithAggregatesFilter<"ChatAnalytics"> | boolean
+    wasStreaming?: BoolWithAggregatesFilter<"ChatAnalytics"> | boolean
+    feedback?: IntNullableWithAggregatesFilter<"ChatAnalytics"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"ChatAnalytics"> | Date | string
   }
 
   export type ExpenseWhereInput = {
@@ -33512,6 +37235,63 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"FuelPriceCache"> | Date | string
   }
 
+  export type DiscoveryContentWhereInput = {
+    AND?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    OR?: DiscoveryContentWhereInput[]
+    NOT?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    id?: StringFilter<"DiscoveryContent"> | string
+    type?: StringFilter<"DiscoveryContent"> | string
+    content?: JsonFilter<"DiscoveryContent">
+    date?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    createdAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    updatedAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+  }
+
+  export type DiscoveryContentOrderByWithRelationInput = {
+    id?: SortOrder
+    type?: SortOrder
+    content?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DiscoveryContentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    OR?: DiscoveryContentWhereInput[]
+    NOT?: DiscoveryContentWhereInput | DiscoveryContentWhereInput[]
+    type?: StringFilter<"DiscoveryContent"> | string
+    content?: JsonFilter<"DiscoveryContent">
+    date?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    createdAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+    updatedAt?: DateTimeFilter<"DiscoveryContent"> | Date | string
+  }, "id">
+
+  export type DiscoveryContentOrderByWithAggregationInput = {
+    id?: SortOrder
+    type?: SortOrder
+    content?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DiscoveryContentCountOrderByAggregateInput
+    _max?: DiscoveryContentMaxOrderByAggregateInput
+    _min?: DiscoveryContentMinOrderByAggregateInput
+  }
+
+  export type DiscoveryContentScalarWhereWithAggregatesInput = {
+    AND?: DiscoveryContentScalarWhereWithAggregatesInput | DiscoveryContentScalarWhereWithAggregatesInput[]
+    OR?: DiscoveryContentScalarWhereWithAggregatesInput[]
+    NOT?: DiscoveryContentScalarWhereWithAggregatesInput | DiscoveryContentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DiscoveryContent"> | string
+    type?: StringWithAggregatesFilter<"DiscoveryContent"> | string
+    content?: JsonWithAggregatesFilter<"DiscoveryContent">
+    date?: DateTimeWithAggregatesFilter<"DiscoveryContent"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"DiscoveryContent"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DiscoveryContent"> | Date | string
+  }
+
   export type ServiceRecordWhereInput = {
     AND?: ServiceRecordWhereInput | ServiceRecordWhereInput[]
     OR?: ServiceRecordWhereInput[]
@@ -33702,6 +37482,96 @@ export namespace Prisma {
     nextReplacementDue?: DateTimeNullableWithAggregatesFilter<"ServicePart"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ServicePart"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ServicePart"> | Date | string
+  }
+
+  export type PartReplacementIntervalWhereInput = {
+    AND?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    OR?: PartReplacementIntervalWhereInput[]
+    NOT?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    id?: StringFilter<"PartReplacementInterval"> | string
+    make?: StringFilter<"PartReplacementInterval"> | string
+    model?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
+    source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+  }
+
+  export type PartReplacementIntervalOrderByWithRelationInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrderInput | SortOrder
+    yearMin?: SortOrderInput | SortOrder
+    yearMax?: SortOrderInput | SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    make_model_yearMin_yearMax_partType?: PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput
+    AND?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    OR?: PartReplacementIntervalWhereInput[]
+    NOT?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    make?: StringFilter<"PartReplacementInterval"> | string
+    model?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
+    source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+  }, "id" | "make_model_yearMin_yearMax_partType">
+
+  export type PartReplacementIntervalOrderByWithAggregationInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrderInput | SortOrder
+    yearMin?: SortOrderInput | SortOrder
+    yearMax?: SortOrderInput | SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PartReplacementIntervalCountOrderByAggregateInput
+    _avg?: PartReplacementIntervalAvgOrderByAggregateInput
+    _max?: PartReplacementIntervalMaxOrderByAggregateInput
+    _min?: PartReplacementIntervalMinOrderByAggregateInput
+    _sum?: PartReplacementIntervalSumOrderByAggregateInput
+  }
+
+  export type PartReplacementIntervalScalarWhereWithAggregatesInput = {
+    AND?: PartReplacementIntervalScalarWhereWithAggregatesInput | PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    OR?: PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    NOT?: PartReplacementIntervalScalarWhereWithAggregatesInput | PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PartReplacementInterval"> | string
+    make?: StringWithAggregatesFilter<"PartReplacementInterval"> | string
+    model?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableWithAggregatesFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableWithAggregatesFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeWithAggregatesFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    source?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
   }
 
   export type TelematicsDeviceWhereInput = {
@@ -34647,6 +38517,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -34678,6 +38549,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -34707,6 +38579,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -34738,6 +38611,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -34768,6 +38642,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
   }
 
   export type CustomerVehicleUpdateManyMutationInput = {
@@ -34788,6 +38663,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CustomerVehicleUncheckedUpdateManyInput = {
@@ -34809,6 +38685,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type OdometerLogCreateInput = {
@@ -35228,6 +39105,7 @@ export namespace Prisma {
   export type ChatSessionCreateInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35239,6 +39117,7 @@ export namespace Prisma {
     id?: string
     customerId: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35248,6 +39127,7 @@ export namespace Prisma {
   export type ChatSessionUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35259,6 +39139,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35269,6 +39150,7 @@ export namespace Prisma {
     id?: string
     customerId: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35277,6 +39159,7 @@ export namespace Prisma {
   export type ChatSessionUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35286,6 +39169,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35413,6 +39297,111 @@ export namespace Prisma {
     entityId?: StringFieldUpdateOperationsInput | string
     entityType?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsCreateInput = {
+    id?: string
+    customerId: string
+    sessionId: string
+    toolName?: string | null
+    intent?: string | null
+    responseTimeMs?: number | null
+    messageCount?: number
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ChatAnalyticsUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    sessionId: string
+    toolName?: string | null
+    intent?: string | null
+    responseTimeMs?: number | null
+    messageCount?: number
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ChatAnalyticsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsCreateManyInput = {
+    id?: string
+    customerId: string
+    sessionId: string
+    toolName?: string | null
+    intent?: string | null
+    responseTimeMs?: number | null
+    messageCount?: number
+    hadToolCall?: boolean
+    hadImage?: boolean
+    wasStreaming?: boolean
+    feedback?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ChatAnalyticsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatAnalyticsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    toolName?: NullableStringFieldUpdateOperationsInput | string | null
+    intent?: NullableStringFieldUpdateOperationsInput | string | null
+    responseTimeMs?: NullableIntFieldUpdateOperationsInput | number | null
+    messageCount?: IntFieldUpdateOperationsInput | number
+    hadToolCall?: BoolFieldUpdateOperationsInput | boolean
+    hadImage?: BoolFieldUpdateOperationsInput | boolean
+    wasStreaming?: BoolFieldUpdateOperationsInput | boolean
+    feedback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -35721,6 +39710,69 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DiscoveryContentCreateInput = {
+    id?: string
+    type: string
+    content: JsonNullValueInput | InputJsonValue
+    date?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DiscoveryContentUncheckedCreateInput = {
+    id?: string
+    type: string
+    content: JsonNullValueInput | InputJsonValue
+    date?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DiscoveryContentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DiscoveryContentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DiscoveryContentCreateManyInput = {
+    id?: string
+    type: string
+    content: JsonNullValueInput | InputJsonValue
+    date?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DiscoveryContentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DiscoveryContentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    content?: JsonNullValueInput | InputJsonValue
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ServiceRecordCreateInput = {
     id?: string
     expenseId?: string | null
@@ -35936,6 +39988,111 @@ export namespace Prisma {
     warrantyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastReplacedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     nextReplacementDue?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalCreateInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedCreateInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalCreateManyInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -37060,6 +41217,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrder
     engineNumber?: SortOrder
+    imageUrl?: SortOrder
   }
 
   export type CustomerVehicleAvgOrderByAggregateInput = {
@@ -37086,6 +41244,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrder
     engineNumber?: SortOrder
+    imageUrl?: SortOrder
   }
 
   export type CustomerVehicleMinOrderByAggregateInput = {
@@ -37107,6 +41266,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     chassisNumber?: SortOrder
     engineNumber?: SortOrder
+    imageUrl?: SortOrder
   }
 
   export type CustomerVehicleSumOrderByAggregateInput = {
@@ -37396,6 +41556,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrder
+    summary?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -37405,6 +41566,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrder
+    summary?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -37414,6 +41576,7 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     title?: SortOrder
+    summary?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -37474,6 +41637,63 @@ export namespace Prisma {
     entityType?: SortOrder
     content?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrder
+    intent?: SortOrder
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsAvgOrderByAggregateInput = {
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    feedback?: SortOrder
+  }
+
+  export type ChatAnalyticsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrder
+    intent?: SortOrder
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    sessionId?: SortOrder
+    toolName?: SortOrder
+    intent?: SortOrder
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    hadToolCall?: SortOrder
+    hadImage?: SortOrder
+    wasStreaming?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChatAnalyticsSumOrderByAggregateInput = {
+    responseTimeMs?: SortOrder
+    messageCount?: SortOrder
+    feedback?: SortOrder
   }
 
   export type FloatFilter<$PrismaModel = never> = {
@@ -37705,6 +41925,80 @@ export namespace Prisma {
   export type FuelPriceCacheSumOrderByAggregateInput = {
     price?: SortOrder
   }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type DiscoveryContentCountOrderByAggregateInput = {
+    id?: SortOrder
+    type?: SortOrder
+    content?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DiscoveryContentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    type?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DiscoveryContentMinOrderByAggregateInput = {
+    id?: SortOrder
+    type?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
+  }
 
   export type ServicePartListRelationFilter = {
     every?: ServicePartWhereInput
@@ -37878,6 +42172,75 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput = {
+    make: string
+    model: string
+    yearMin: number
+    yearMax: number
+    partType: $Enums.ServicePartType
+  }
+
+  export type PartReplacementIntervalCountOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalAvgOrderByAggregateInput = {
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+  }
+
+  export type PartReplacementIntervalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalMinOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalSumOrderByAggregateInput = {
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
   }
 
   export type TelematicsDeviceCountOrderByAggregateInput = {
@@ -39883,6 +44246,29 @@ export namespace Prisma {
     _min?: NestedEnumExpenseSourceFilter<$PrismaModel>
     _max?: NestedEnumExpenseSourceFilter<$PrismaModel>
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumServicePartTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.ServicePartType | EnumServicePartTypeFieldRefInput<$PrismaModel>
@@ -39954,6 +44340,7 @@ export namespace Prisma {
   export type ChatSessionCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -39963,6 +44350,7 @@ export namespace Prisma {
   export type ChatSessionUncheckedCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -40081,6 +44469,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -40110,6 +44499,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -40393,6 +44783,7 @@ export namespace Prisma {
     id?: StringFilter<"ChatSession"> | string
     customerId?: StringFilter<"ChatSession"> | string
     title?: StringNullableFilter<"ChatSession"> | string | null
+    summary?: StringNullableFilter<"ChatSession"> | string | null
     isActive?: BoolFilter<"ChatSession"> | boolean
     createdAt?: DateTimeFilter<"ChatSession"> | Date | string
     updatedAt?: DateTimeFilter<"ChatSession"> | Date | string
@@ -40508,6 +44899,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerVehicle"> | Date | string
     chassisNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
     engineNumber?: StringNullableFilter<"CustomerVehicle"> | string | null
+    imageUrl?: StringNullableFilter<"CustomerVehicle"> | string | null
   }
 
   export type DigiLockerConnectionUpsertWithoutCustomerInput = {
@@ -40901,6 +45293,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -40931,6 +45324,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -41026,6 +45420,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -41056,6 +45451,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -41860,6 +46256,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -41890,6 +46287,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -41934,6 +46332,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -41964,6 +46363,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -41992,6 +46392,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -42022,6 +46423,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -42066,6 +46468,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -42096,6 +46499,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -42169,6 +46573,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -42199,6 +46604,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -42294,6 +46700,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -42324,6 +46731,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -42352,6 +46760,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -42382,6 +46791,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -42426,6 +46836,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -42456,6 +46867,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -42715,6 +47127,7 @@ export namespace Prisma {
   export type ChatSessionCreateWithoutMessagesInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -42725,6 +47138,7 @@ export namespace Prisma {
     id?: string
     customerId: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -42749,6 +47163,7 @@ export namespace Prisma {
   export type ChatSessionUpdateWithoutMessagesInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42759,6 +47174,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42827,6 +47243,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -42857,6 +47274,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -42952,6 +47370,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -42982,6 +47401,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43146,6 +47566,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -43176,6 +47597,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -43255,6 +47677,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -43285,6 +47708,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43389,6 +47813,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -43419,6 +47844,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -43463,6 +47889,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -43493,6 +47920,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43553,6 +47981,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -43583,6 +48012,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -43658,6 +48088,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -43688,6 +48119,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -43981,6 +48413,7 @@ export namespace Prisma {
   export type ChatSessionCreateManyCustomerInput = {
     id?: string
     title?: string | null
+    summary?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -44036,6 +48469,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     chassisNumber?: string | null
     engineNumber?: string | null
+    imageUrl?: string | null
   }
 
   export type EmergencyContactCreateManyCustomerInput = {
@@ -44114,6 +48548,7 @@ export namespace Prisma {
   export type ChatSessionUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44123,6 +48558,7 @@ export namespace Prisma {
   export type ChatSessionUncheckedUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44132,6 +48568,7 @@ export namespace Prisma {
   export type ChatSessionUncheckedUpdateManyWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44251,6 +48688,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -44280,6 +48718,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -44309,6 +48748,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUpdateWithoutCustomerInput = {

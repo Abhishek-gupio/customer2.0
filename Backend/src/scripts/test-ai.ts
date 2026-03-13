@@ -34,8 +34,8 @@ async function testAI() {
     console.log("User: I just spent 500 rupees on fuel at Shell.");
     console.log("AI:", response2.message);
 
-    if (response2.toolResult) {
-      console.log("✅ Tool Executed:", response2.toolResult);
+    if (response2.toolResults) {
+      console.log("✅ Tool Executed:", response2.toolResults);
     } else {
       console.log("⚠️ No tool execution detected.");
     }

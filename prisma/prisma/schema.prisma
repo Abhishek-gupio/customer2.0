@@ -124,6 +124,7 @@ model CustomerVehicle {
   updatedAt          DateTime            @updatedAt
   chassisNumber      String?
   engineNumber       String?
+  imageUrl           String?     // AI-generated Unsplash URL, saved at vehicle creation
   challans           Challan[]
   documents          CustomerDocument[]
   customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -223,6 +224,7 @@ model ChatSession {
   id         String        @id @default(cuid())
   customerId String
   title      String?
+  summary    String?       // AI-generated summary of older messages
   isActive   Boolean       @default(true)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
@@ -256,6 +258,26 @@ model DocumentEmbedding {
 
   @@index([customerId])
   @@index([entityId])
+  @@schema("customer")
+}
+
+model ChatAnalytics {
+  id             String   @id @default(cuid())
+  customerId     String
+  sessionId      String
+  toolName       String?
+  intent         String?
+  responseTimeMs Int?
+  messageCount   Int      @default(1)
+  hadToolCall    Boolean  @default(false)
+  hadImage       Boolean  @default(false)
+  wasStreaming    Boolean  @default(false)
+  feedback       Int?     // -1 = thumbs down, 1 = thumbs up
+  createdAt      DateTime @default(now())
+
+  @@index([customerId])
+  @@index([sessionId])
+  @@index([createdAt])
   @@schema("customer")
 }
 
@@ -318,6 +340,19 @@ model FuelPriceCache {
   @@schema("customer")
 }
 
+model DiscoveryContent {
+  id        String   @id @default(cuid())
+  type      String   // 'NEWS' or 'VIDEO'
+  content   Json     // Stored list of news/videos
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type, date])
+  @@schema("customer")
+}
+
+
 model ServiceRecord {
   id                String          @id @default(cuid())
   vehicleId         String
@@ -356,6 +391,26 @@ model ServicePart {
 
   @@index([serviceRecordId])
   @@index([partType])
+  @@schema("customer")
+}
+
+model PartReplacementInterval {
+  id                    String          @id @default(cuid())
+  make                  String
+  model                 String?
+  yearMin               Int?
+  yearMax               Int?
+  partType              ServicePartType
+  intervalMonths        Int
+  intervalKm            Int
+  defaultWarrantyMonths Int             @default(0)
+  source                String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@unique([make, model, yearMin, yearMax, partType])
+  @@index([partType])
+  @@index([make, model])
   @@schema("customer")
 }
 

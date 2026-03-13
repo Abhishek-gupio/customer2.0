@@ -54,9 +54,21 @@ export const expenseService = {
       mimeType = file.mimetype;
     }
 
+    // Logic: If vehicleId is not provided, try to find the primary vehicle for this customer
+    let targetVehicleId = input.vehicleId || null;
+    if (!targetVehicleId) {
+      const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
+        where: { customerId, isPrimary: true, isActive: true },
+        select: { id: true },
+      });
+      if (primaryVehicle) {
+        targetVehicleId = primaryVehicle.id;
+      }
+    }
+
     // Logic: If user provided 'odometerReading' and 'vehicleId', update vehicle log
-    if (input.vehicleId && input.odometerReading) {
-      await vehicleService.addOdometerLog(customerId, input.vehicleId, {
+    if (targetVehicleId && input.odometerReading) {
+      await vehicleService.addOdometerLog(customerId, targetVehicleId, {
         reading: input.odometerReading,
         date: new Date(),
       });
@@ -66,7 +78,7 @@ export const expenseService = {
     const expense = await db.expense.create({
       data: {
         customerId,
-        vehicleId: input.vehicleId || null,
+        vehicleId: targetVehicleId,
         amount: input.amount,
         category: input.category, // e.g. FUEL
         date: input.date ? new Date(input.date) : new Date(),
@@ -106,6 +118,50 @@ export const expenseService = {
     ingestionService
       .ingestExpense(expense.id)
       .catch((err) => logger.error({ err }, "Expense ingestion failed"));
+
+    // Warranty Integration: If it's a SERVICE/OTHER and has parts (or we can detect them), create a ServiceRecord
+    const isPartRelatored = expense.category === "SERVICE" || expense.category === "OTHER";
+
+    if (isPartRelatored && targetVehicleId) {
+      if (input.parts && input.parts.length > 0) {
+        try {
+          // Fallback: if no odometer provided in input, use current vehicle odo
+          const finalOdo = input.odometerReading ??
+            (await dbInstances.customerVehicle.findUnique({
+              where: { id: targetVehicleId },
+              select: { currentOdometer: true }
+            }))?.currentOdometer;
+
+          await warrantyService.createServiceRecord({
+            vehicleId: targetVehicleId,
+            expenseId: expense.id,
+            serviceType: "REGULAR_SERVICE",
+            garageName: expense.merchantName || undefined,
+            serviceDate: expense.date.toISOString(),
+            odometerAtService: (finalOdo !== null && finalOdo !== undefined) ? Number(finalOdo) : undefined,
+            notes: expense.notes || undefined,
+            parts: input.parts as any,
+          });
+
+          // Recalculate health score to reflect new part health on home screen
+          void vehicleService.calculateHealthScore(targetVehicleId).catch(e =>
+            logger.error({ e, vehicleId: targetVehicleId }, "Targeted health recalculation failed")
+          );
+        } catch (err) {
+          logger.error({ err, expenseId: expense.id }, "Failed to create service record for manual expense");
+        }
+      } else if (expense.notes && expense.notes.length > 3) {
+        // AI detection from notes if no parts provided but category is relevant
+        this.autoCreateServiceRecord(
+          expense.id,
+          targetVehicleId,
+          expense.notes,
+          expense.amount,
+          expense.merchantName,
+          customerId
+        ).catch(err => logger.error({ err }, "Background part detection failed"));
+      }
+    }
 
     if (expense.receiptUrl) {
       this.pruneOldReceiptImages(customerId).catch((err) =>
@@ -206,7 +262,7 @@ export const expenseService = {
               ? new Date(aiResult.date)
               : input.timestamp
                 ? new Date(input.timestamp)
-              : new Date(),
+                : new Date(),
             source: input.source as ExpenseSource,
             rawText: text,
             isAutomated: true,
@@ -558,12 +614,19 @@ export const expenseService = {
         merchantName,
       );
 
+      // Fetch current odometer for fallback
+      const vehicle = await dbInstances.customerVehicle.findUnique({
+        where: { id: vehicleId! },
+        select: { currentOdometer: true },
+      });
+
       // Auto-create the service record
       await warrantyService.createServiceRecord({
         vehicleId: vehicleId!,
         expenseId,
         serviceType: serviceDetails.serviceType as any,
         garageName: merchantName || undefined,
+        odometerAtService: vehicle?.currentOdometer || undefined,
         nextServiceKm: serviceDetails.nextServiceKm,
         notes: `🤖 Auto-created from expense. AI Confidence: ${serviceDetails.confidence}. ${serviceDetails.notes || ""}`,
         parts: serviceDetails.predictedParts.map((p) => ({
@@ -573,6 +636,11 @@ export const expenseService = {
           warrantyMonths: p.warrantyMonths,
         })),
       });
+
+      // Recalculate health score for AI detection
+      void vehicleService.calculateHealthScore(vehicleId!).catch(e =>
+        logger.error({ e, vehicleId }, "Background health recalculation failed")
+      );
 
       // Notify user about auto-created service record
       await db.inAppNotification.create({
@@ -760,12 +828,22 @@ export const expenseService = {
       });
     }
 
+    // Fallback odometer from vehicle if bill parsing missed it
+    let odometerAtService = billData.odometerReading;
+    if (odometerAtService === null || odometerAtService === undefined) {
+      const vehicle = await dbInstances.customerVehicle.findUnique({
+        where: { id: vehicleId },
+        select: { currentOdometer: true },
+      });
+      odometerAtService = vehicle?.currentOdometer || undefined;
+    }
+
     const serviceRecord = await warrantyService.createServiceRecord({
       vehicleId,
       expenseId,
       serviceType: "REGULAR_SERVICE",
       garageName: billData.garageName || undefined,
-      odometerAtService: billData.odometerReading || undefined,
+      odometerAtService: (odometerAtService !== null && odometerAtService !== undefined) ? Number(odometerAtService) : undefined,
       serviceDate: billData.serviceDate || undefined,
       nextServiceKm: billData.nextServiceKm || undefined,
       notes: `📸 Extracted from uploaded bill. ${billData.notes || ""}`,
@@ -1094,11 +1172,18 @@ export const expenseService = {
             };
           });
 
+          // Fetch current odometer for fallback
+          const vehicle = await dbInstances.customerVehicle.findUnique({
+            where: { id: vehicleId! },
+            select: { currentOdometer: true },
+          });
+
           serviceRecord = await warrantyService.createServiceRecord({
             vehicleId: vehicleId!,
             expenseId: expense.id,
             serviceType: "REGULAR_SERVICE",
             garageName: aiResult.merchantName || undefined,
+            odometerAtService: vehicle?.currentOdometer || undefined,
             serviceDate: aiResult.date
               ? new Date(aiResult.date).toISOString()
               : new Date().toISOString(),
@@ -1305,9 +1390,16 @@ export const expenseService = {
       expenseDate = parsed;
     }
 
+    // Logic: Try to find the primary vehicle for this customer
+    const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
+      where: { customerId, isPrimary: true, isActive: true },
+      select: { id: true },
+    });
+
     const expense = await db.expense.create({
       data: {
         customerId,
+        vehicleId: primaryVehicle?.id || null,
         amount,
         category,
         merchantName: aiResult.merchantName || null,
@@ -1354,11 +1446,18 @@ export const expenseService = {
               warrantyMonths: this.getDefaultWarranty(type),
             };
           });
+          // Fetch current odometer for fallback
+          const vehicle = await dbInstances.customerVehicle.findUnique({
+            where: { id: vehicleId! },
+            select: { currentOdometer: true },
+          });
+
           serviceRecord = await warrantyService.createServiceRecord({
             vehicleId: vehicleId!,
             expenseId: expense.id,
             serviceType: "REGULAR_SERVICE",
             garageName: aiResult.merchantName || undefined,
+            odometerAtService: vehicle?.currentOdometer || undefined,
             serviceDate: aiResult.date ? new Date(aiResult.date).toISOString() : new Date().toISOString(),
             notes: `🎤 Created from voice: "${aiResult.transcription || text}"`,
             parts: partsToCreate,

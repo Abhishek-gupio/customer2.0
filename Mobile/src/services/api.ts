@@ -43,6 +43,9 @@ async function doRefresh(): Promise<boolean> {
   return refreshPromise;
 }
 
+/** Call from code that uses raw fetch (e.g. SSE) to refresh token on 401. */
+export { doRefresh };
+
 async function request<T>(
   path: string,
   options: RequestOptions = {},
@@ -55,7 +58,11 @@ async function request<T>(
     ...((rest.headers as Record<string, string>) ?? {}),
   };
   const token = getAccessToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  } else if (__DEV__) {
+    console.warn(`[api] No token found for request to ${url}`);
+  }
 
   const fetchBody: RequestInit['body'] =
     body != null ? JSON.stringify(body) : undefined;
@@ -69,7 +76,6 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    console.error(`API Error [${res.status}] ${url}:`, JSON.stringify(data));
     const err = data as any;
     const message =
       err?.error?.message ??
@@ -90,7 +96,11 @@ async function upload<T>(
   const url = path.startsWith('http') ? path : `${base}${path}`;
   const token = getAccessToken();
   const headers: Record<string, string> = { Accept: 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  } else if (__DEV__) {
+    console.warn(`[api] No token found for upload to ${url}`);
+  }
 
   const res = await fetch(url, { method: 'POST', headers, body: formData });
   const data = await res.json().catch(() => ({}));
@@ -101,7 +111,6 @@ async function upload<T>(
   }
 
   if (!res.ok) {
-    console.error(`API Error [${res.status}] ${url}:`, JSON.stringify(data));
     const err = data as { message?: string; error?: { message?: string } };
     const message = err?.error?.message ?? err?.message ?? res.statusText ?? 'Upload failed';
     const errObj = new Error(`${res.status}: ${message}`) as Error & { data?: unknown };

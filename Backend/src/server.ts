@@ -1,4 +1,6 @@
+// Triggering restart to pick up prisma changes
 import "dotenv/config";
+
 import { createServer } from "http"; // Server entry point reload
 import { app } from "./app";
 import { env } from "./config/env";
@@ -16,9 +18,9 @@ void schedulerService
 const httpServer = createServer(app);
 initSocket(httpServer);
 
-httpServer.listen(env.PORT, () => {
+httpServer.listen(env.PORT, "0.0.0.0", () => {
   logger.info(
-    { port: env.PORT, env: env.NODE_ENV },
+    { port: env.PORT, env: env.NODE_ENV, host: "0.0.0.0" },
     "Backend server listening with WebSockets",
   );
 });

@@ -12,6 +12,7 @@ import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
 import Alerts from '../screens/Main/Alerts';
 import History from '../screens/Main/History';
+import HeyGupioOverlay from '../components/HeyGupioOverlay';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -118,6 +119,7 @@ export function MainBottomTabs() {
           }}
         />
       </Tab.Navigator>
+      <HeyGupioOverlay />
     </View>
   );
 }

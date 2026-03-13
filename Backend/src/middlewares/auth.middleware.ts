@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { verifyAccess } from "../modules/auth/jwt";
 import { AppError } from "../utils/AppError";
+import { logger } from "../config/logger";
 
 /**
  * Verifies JWT Bearer token and attaches customer payload to req.customer.
@@ -13,6 +14,7 @@ export function authMiddleware(
 ): void {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
+    logger.warn({ path: req.path, hasAuth: !!authHeader }, "Unauthenticated request blocked");
     next(AppError.unauthorized("Missing or invalid Authorization header"));
     return;
   }
