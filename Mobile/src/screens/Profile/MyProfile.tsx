@@ -34,7 +34,17 @@ import type { RootStackParamList } from '../../navigation/types';
 import { useDispatch } from 'react-redux';
 import { logoutStorage } from '../../services/authService';
 import { logout } from '../../store/slices/authSlice';
-import { getProfile, updateProfile, type ProfileResponse } from '../../services/profileService';
+import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
+import { API_BASE_URL, GEO } from '../../config';
+
+// GPS-based location (same pattern as SOSButton)
+let Geolocation: any = null;
+try {
+  const geoModule = require('@react-native-community/geolocation') as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'MyProfile'>;
 
@@ -82,6 +92,7 @@ export default function MyProfile() {
   const [errors, setErrors] = useState<{ fullName?: string; email?: string; phone?: string; }>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [stats, setStats] = useState<ProfileStatsResponse>({ vehicles: 0, expenses: 0, documents: 0 });
   const [photoPreview, setPhotoPreview] = useState(false);
   const [profilePicModal, setProfilePicModal] = useState(false);
   const [avatarModal, setAvatarModal] = useState(false);
@@ -158,69 +169,138 @@ export default function MyProfile() {
     fetchProfile();
   }, []);
 
-  // Auto-detect user location based on IP address
-  const fetchUserLocation = async () => {
-    try {
-      let geo: any = null;
-
-      // Provider 1: ipapi (Good mobile IP resolution)
+  // Request location permission (Android + iOS)
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
       try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        if (data?.city && data?.region) {
-          geo = data;
+        const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+        const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+        const fineHas = await PermissionsAndroid.check(fine);
+        const coarseHas = await PermissionsAndroid.check(coarse);
+        if (fineHas || coarseHas) return true;
+        const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+        return results[fine] === PermissionsAndroid.RESULTS.GRANTED || results[coarse] === PermissionsAndroid.RESULTS.GRANTED;
+      } catch {
+        return false;
+      }
+    }
+    if (Platform.OS === 'ios' && Geolocation?.requestAuthorization) {
+      try {
+        const status = await Geolocation.requestAuthorization('whenInUse');
+        return status === 'granted' || status === 'authorized' || status === 'authorizedWhenInUse';
+      } catch {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Reverse-geocode lat/long to locality/city. Prefer exact area (e.g. Srirampura, Mysore); avoid generic state-capital (e.g. Bengaluru, Karnataka) when display_name is more specific.
+  const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
+    try {
+      const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
+      const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': GEO.userAgent },
+      });
+      const text = await res.text();
+      const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
+      const addr = data?.address;
+      if (!addr) return null;
+      // Prefer most specific place first: suburb/locality then town, not just city (often state capital)
+      const primary =
+        addr.suburb ||
+        addr.neighbourhood ||
+        addr.locality ||
+        addr.village ||
+        addr.county ||
+        addr.town ||
+        addr.city ||
+        addr.state_district;
+      const townOrCity = addr.town || addr.city;
+      const stateOrCountry = addr.state || addr.region || addr.country;
+      const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
+      let result = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || null;
+
+      // When result is generic (only city + state, e.g. Bengaluru, Karnataka) but display_name has more specific start (e.g. Srirampura, Mysore), use that so location is consistent with exact area
+      const displayName = data?.display_name;
+      if (displayName && typeof displayName === 'string') {
+        const parts = displayName.split(',').map((p: string) => p.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          const fromDisplay = `${parts[0]}, ${parts[1]}`;
+          const isGenericCityState = result && (primary === addr.city || primary === addr.state) && addr.city && addr.state;
+          if (isGenericCityState && fromDisplay !== result) result = fromDisplay;
+          else if (!result) result = fromDisplay;
         }
-      } catch (err) {
-        console.log('ipapi error:', err);
+      }
+      return result || null;
+    } catch {
+      return null;
+    }
+  };
+
+  // 1) Try GPS (lat/long) + reverse geocode. 2) Fallback to IP-based. Client-only, not stored on server.
+  const fetchUserLocation = async () => {
+    const applyLocation = (locationStr: string) => {
+      setProfile((prev) => (prev ? { ...prev, location: locationStr } : prev));
+      setEditData((prev) => (prev ? { ...prev, location: locationStr } : prev));
+    };
+
+    try {
+      // 1. GPS path (accurate, like big companies)
+      if (Geolocation) {
+        const permitted = await requestLocationPermission();
+        if (permitted) {
+          const coords = await new Promise<{ lat: number; lon: number } | null>((resolve) => {
+            Geolocation.getCurrentPosition(
+              (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+              () => resolve(null),
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+            );
+          });
+          if (coords) {
+            const locationStr = await reverseGeocode(coords.lat, coords.lon);
+            if (locationStr) {
+              applyLocation(locationStr);
+              return;
+            }
+          }
+        }
       }
 
-      // Provider 2: ipinfo (Very reliable fallback)
-      if (!geo) {
+      // 2. Fallback: IP-based geo (URLs from config)
+      let geo: any = null;
+      const headers = { 'User-Agent': GEO.userAgent };
+      for (const ipUrl of GEO.ipProviders) {
+        if (geo) break;
         try {
-          const res = await fetch('https://ipinfo.io/json');
-          const data = await res.json();
-          if (data?.city && data?.region) {
-            geo = data;
-          }
-        } catch (err) {
-          console.log('ipinfo error:', err);
-        }
-      }
-
-      // Provider 3: geojs (Original fallback)
-      if (!geo) {
-        try {
-          const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
-          const data = await res.json();
-          if (data?.city && data?.region) {
-            geo = data;
-          }
-        } catch (err) {
-          console.log('geojs error:', err);
-        }
+          const res = await fetch(ipUrl, { headers });
+          const text = await res.text();
+          const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
+          if (data?.city && data?.region) geo = data;
+        } catch { /* ignore */ }
       }
 
       if (geo?.city && geo?.region) {
-        const locationStr = `${geo.city}, ${geo.region}`;
-        setProfile((prev) => (prev ? { ...prev, location: locationStr } : prev));
-        setEditData((prev) => (prev ? { ...prev, location: locationStr } : prev));
+        applyLocation(`${geo.city}, ${geo.region}`);
         return;
       }
-      throw new Error('Incomplete location data from IP services');
+      applyLocation('Location not available');
     } catch (error) {
       console.log('Location detection failed:', error);
-      const fallback = 'Location not available';
-      setProfile((prev) => (prev ? { ...prev, location: fallback } : prev));
-      setEditData((prev) => (prev ? { ...prev, location: fallback } : prev));
+      applyLocation('Location not available');
     }
   };
 
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const data = await getProfile();
+      const [data, statsData] = await Promise.all([
+        getProfile(),
+        getProfileStats().catch(() => ({ vehicles: 0, expenses: 0, documents: 0 })),
+      ]);
       mapProfileData(data);
-      // Wait for profile data mapping to finish, then fetch location
+      setStats(statsData);
       fetchUserLocation();
     } catch (error: any) {
       showPopup('Error', error.message || 'Failed to fetch profile', 'error');
@@ -373,14 +453,21 @@ export default function MyProfile() {
 
   const processImageResult = async (result: any) => {
     if (result.assets && result.assets.length > 0) {
-      const selectedImage = result.assets[0].uri;
+      const asset = result.assets[0];
+      const selectedImage = asset.uri;
       if (selectedImage) {
         if (isEditing && editData) {
           setEditData({ ...editData, profilePic: selectedImage });
         } else {
           try {
             setSaving(true);
-            const updated = await updateProfile({ profilePic: selectedImage });
+            const formData = new FormData();
+            formData.append('file', {
+              uri: selectedImage,
+              name: asset.fileName || 'profile.jpg',
+              type: asset.type || 'image/jpeg',
+            } as any);
+            const updated = await uploadProfilePicture(formData);
             mapProfileData(updated);
             showPopup('Success', 'Profile picture updated!', 'success');
           } catch (err: any) {
@@ -404,6 +491,7 @@ export default function MyProfile() {
   if (!profile || !editData) return null;
 
   const currentPic = isEditing ? editData?.profilePic : profile.profilePic;
+  const profilePicUri = currentPic && (currentPic.startsWith('http') ? currentPic : `${API_BASE_URL}${currentPic}`);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -463,7 +551,7 @@ export default function MyProfile() {
                     onHandlerStateChange={onPinchStateChange}
                   >
                     <Animated.Image
-                      source={{ uri: currentPic }}
+                      source={{ uri: profilePicUri }}
                       style={[
                         styles.previewImage,
                         { transform: [{ scale: zoomScale }] }
@@ -662,7 +750,7 @@ export default function MyProfile() {
               <View style={styles.avatar}>
                 {currentPic ? (
                   <Image
-                    source={{ uri: currentPic }}
+                    source={{ uri: profilePicUri }}
                     style={styles.avatarImage}
                   />
                 ) : (
@@ -769,20 +857,20 @@ export default function MyProfile() {
           />
         </View>
 
-        {/* Quick Stats Grid */}
+        {/* Quick Stats Grid – real counts from API */}
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>Quick Stats</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>2</Text>
+              <Text style={styles.statValue}>{String(stats.vehicles)}</Text>
               <Text style={styles.statLabel}>Vehicles</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>47</Text>
+              <Text style={styles.statValue}>{String(stats.expenses)}</Text>
               <Text style={styles.statLabel}>Expenses</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>12</Text>
+              <Text style={styles.statValue}>{String(stats.documents)}</Text>
               <Text style={styles.statLabel}>Documents</Text>
             </View>
           </View>

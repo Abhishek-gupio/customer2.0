@@ -47,9 +47,11 @@ const envSchema = z.object({
   DIGILOCKER_CLIENT_SECRET: z.string().optional(),
   DIGILOCKER_REDIRECT_URI: z.string().optional(),
 
-  // Storage
+  // Storage (STORAGE_DRIVER: "local" | "s3" – switch anytime via env; fallback is local)
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
   UPLOAD_DIR: z.string().default("uploads"),
+  /** When using local storage, base URL for returned file URLs (e.g. https://api.example.com). If unset, relative /uploads/... is returned. */
+  PUBLIC_BASE_URL: z.string().optional().transform((v) => (v === "" ? undefined : v)),
   // AI Features
   GEMINI_API_KEY: z.string().optional(),
   /** Model for voice expense parsing; use gemini-1.5-pro for best accuracy. */

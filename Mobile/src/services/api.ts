@@ -102,8 +102,28 @@ async function upload<T>(
     console.warn(`[api] No token found for upload to ${url}`);
   }
 
-  const res = await fetch(url, { method: 'POST', headers, body: formData });
-  const data = await res.json().catch(() => ({}));
+  let res: Response;
+  try {
+    res = await fetch(url, { method: 'POST', headers, body: formData });
+  } catch (e: any) {
+    const msg = e?.message || '';
+    const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
+    throw new Error(
+      isNetworkErr
+        ? 'Network error. Check that the app can reach the server (e.g. use your computer\'s IP instead of localhost).'
+        : msg || 'Upload failed',
+    );
+  }
+
+  const text = await res.text();
+  let data: any = {};
+  try {
+    data = text && text.trim().startsWith('{') ? JSON.parse(text) : {};
+  } catch {
+    if (!res.ok) {
+      throw new Error(res.status === 404 ? 'Upload endpoint not found. Is the backend running?' : `Upload failed (${res.status})`);
+    }
+  }
 
   if (res.status === 401 && !isRetry) {
     const refreshed = await doRefresh();
@@ -113,9 +133,7 @@ async function upload<T>(
   if (!res.ok) {
     const err = data as { message?: string; error?: { message?: string } };
     const message = err?.error?.message ?? err?.message ?? res.statusText ?? 'Upload failed';
-    const errObj = new Error(`${res.status}: ${message}`) as Error & { data?: unknown };
-    errObj.data = data;
-    throw errObj;
+    throw new Error(message);
   }
   return data as T;
 }

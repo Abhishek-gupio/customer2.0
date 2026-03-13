@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { getAccessToken } from '../services/storage';
 
-// Replace with your actual backend URL in production
-const API_URL = 'http://localhost:9000/api/v1';
+const API_URL = `${API_BASE_URL}/api/v1`;
 
 function authHeaders(): Record<string, string> {
     const token = getAccessToken();

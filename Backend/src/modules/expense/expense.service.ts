@@ -54,15 +54,28 @@ export const expenseService = {
       mimeType = file.mimetype;
     }
 
-    // Logic: If vehicleId is not provided, try to find the primary vehicle for this customer
-    let targetVehicleId = input.vehicleId || null;
+    // Always resolve to a vehicle owned by this customer: prefer primary, never leave unlinked when customer has vehicles
+    let targetVehicleId = (input.vehicleId && String(input.vehicleId).trim()) || null;
+    if (targetVehicleId) {
+      const owned = await dbInstances.customerVehicle.findFirst({
+        where: { id: targetVehicleId, customerId, isActive: true },
+        select: { id: true },
+      });
+      if (!owned) targetVehicleId = null; // invalid or wrong customer – resolve to primary below
+    }
     if (!targetVehicleId) {
-      const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
+      const primaryVehicle = await dbInstances.customerVehicle.findFirst({
         where: { customerId, isPrimary: true, isActive: true },
         select: { id: true },
       });
       if (primaryVehicle) {
         targetVehicleId = primaryVehicle.id;
+      } else {
+        const firstVehicle = await dbInstances.customerVehicle.findFirst({
+          where: { customerId, isActive: true },
+          select: { id: true },
+        });
+        if (firstVehicle) targetVehicleId = firstVehicle.id;
       }
     }
 

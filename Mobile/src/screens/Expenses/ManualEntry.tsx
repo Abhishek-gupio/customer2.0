@@ -123,9 +123,16 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         const res = await vehicleService.getVehicles();
         const list = Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : [];
         const primary = list.find((v: any) => v?.isPrimary) || list[0];
-        if (mounted) setVehicleId(primary?.id ?? null);
+        const primaryId = primary?.id ?? null;
+        if (mounted) {
+          setVehicleId(primaryId);
+          setSelectedVehicleId(primaryId);
+        }
       } catch {
-        if (mounted) setVehicleId(null);
+        if (mounted) {
+          setVehicleId(null);
+          setSelectedVehicleId(null);
+        }
       }
     })();
     return () => {

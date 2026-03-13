@@ -14,8 +14,9 @@ interface AppNotification {
     createdAt: string;
 }
 
-// In production, map this to ENV URL
-const SOCKET_URL = 'http://localhost:3000';
+import { SOCKET_BASE_URL } from '../../config';
+
+const SOCKET_URL = SOCKET_BASE_URL;
 
 export const NotificationsScreen = () => {
     const { user } = useSelector((state: RootState) => state.auth);
