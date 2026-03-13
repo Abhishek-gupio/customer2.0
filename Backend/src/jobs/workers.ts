@@ -120,13 +120,29 @@ export const initWorkers = () => {
       logger.info(
         `[MaintenanceWorker] Processing job ${job.name} (ID: ${job.id})`,
       );
-      if (job.name === "daily-maintenance") {
-        await runDailyMaintenance();
-      } else if (job.name === "sync-telematics") {
-        await telematicsService.syncTripsForAllDevices();
-      } else if (job.name === "daily-scraping") {
-        const { contentScraperService } = await import("../services/content-scraper.service");
-        await contentScraperService.scrapeFuelPrices();
+      try {
+        if (job.name === "daily-maintenance") {
+          await runDailyMaintenance();
+        } else if (job.name === "sync-telematics") {
+          await telematicsService.syncTripsForAllDevices();
+        } else if (job.name === "daily-scraping") {
+          const { contentScraperService } = await import("../services/content-scraper.service");
+          await contentScraperService.scrapeFuelPrices();
+        }
+      } catch (err: any) {
+        const code = err?.code ?? err?.meta?.code;
+        const msg = err?.message ?? "";
+        const isDbUnreachable =
+          code === "P1001" ||
+          /can't reach database|database server|DatabaseNotReachable/i.test(msg);
+        if (isDbUnreachable) {
+          logger.warn(
+            { jobId: job.id, jobName: job.name, host: err?.meta?.driverAdapterError?.cause?.host },
+            "Database unreachable; skipping maintenance job. Check network and RDS.",
+          );
+          return;
+        }
+        throw err;
       }
     },
     defaultWorkerOptions ?? undefined,
