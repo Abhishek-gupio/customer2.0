@@ -29,6 +29,8 @@ interface PartStatusCardProps {
     lastReplacedAt?: string;
     currentOdo?: number;
     overdueByKm?: number;
+    /** OEM_WEBSITE = from OEM manual; else not from OEM, may be incorrect */
+    intervalSource?: string;
 }
 
 export const PartStatusCard = ({
@@ -50,6 +52,7 @@ export const PartStatusCard = ({
     lastReplacedAt,
     currentOdo,
     overdueByKm,
+    intervalSource,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
     const isCritical = urgency === 'OVERDUE';
@@ -162,7 +165,10 @@ export const PartStatusCard = ({
                             <Text style={styles.detailValue}>{lifecycleKm || 0} km / {lifecycleMonths || 0} mo</Text>
                         </View>
                         <View style={styles.detailItem}>
-                            {/* Empty for balance */}
+                            <Text style={styles.detailLabel}>Source</Text>
+                            <Text style={[styles.detailValue, (intervalSource || '').toUpperCase() !== 'OEM_WEBSITE' && styles.detailValueWarning]}>
+                                {(intervalSource || '').toUpperCase() === 'OEM_WEBSITE' ? 'From OEM manual' : 'Not from OEM — may be incorrect'}
+                            </Text>
                         </View>
                     </View>
 
@@ -299,6 +305,9 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: wp(3.5),
         fontWeight: '600',
+    },
+    detailValueWarning: {
+        color: '#F59E0B',
     },
     bookButton: {
         backgroundColor: '#FFBF00',

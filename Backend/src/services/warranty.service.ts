@@ -120,13 +120,14 @@ async function getLifecycleForVehiclePart(
       return { ...fallback, source: "FALLBACK" };
     }
 
-    // Sort by specificity: model+year > model > make > DEFAULT
+    // Prefer OEM_WEBSITE (scraped from original OEM) over DEFAULT or other sources; then by specificity
     const score = (r: any) => {
-      if (r.make === "DEFAULT") return 0;
+      const fromOem = (r.source || "").toUpperCase() === "OEM_WEBSITE" ? 100 : 0;
+      if (r.make === "DEFAULT") return fromOem;
       let s = 1;
       if (r.model) s += 2;
       if (r.yearMin != null || r.yearMax != null) s += 4;
-      return s;
+      return fromOem + s;
     };
     matches.sort((a: any, b: any) => score(b) - score(a));
 
@@ -429,6 +430,7 @@ export const warrantyService = {
           warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
           message,
           overdueByKm: isOverdueByKm ? overdueByKm : undefined,
+          intervalSource: lifecycle.source || "FALLBACK",
         });
       } else {
         // Active/Good status
@@ -447,6 +449,7 @@ export const warrantyService = {
           serviceType: part.serviceRecord?.serviceType,
           warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
           message: `✅ ${partType} is in good condition.`,
+          intervalSource: lifecycle.source || "FALLBACK",
         });
       }
     }

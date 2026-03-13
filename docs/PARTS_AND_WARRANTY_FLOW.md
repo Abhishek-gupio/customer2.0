@@ -26,7 +26,7 @@ Set the correct car as primary in the Vehicles section so Parts & Warranty and O
 - This is triggered:
   - When a vehicle is **created** or **updated** (make/model/year).
   - When the user opens **Parts & Warranty**: the app calls **POST /v1/expenses/warranty/primary/refresh-oem** (fire-and-forget) so the primary vehicle’s intervals are refreshed from the OEM.
-- `warranty.service.ts` uses **getLifecycleForVehiclePart(vehicleId, partType)** which prefers **PartReplacementInterval** (OEM or DEFAULT) over in-memory fallbacks. So if the OEM manual says “60k km for tyre”, that value is used for predictions.
+- `warranty.service.ts` uses **getLifecycleForVehiclePart(vehicleId, partType)** which **prefers OEM_WEBSITE** (scraped from the original OEM) over DEFAULT or in-memory fallbacks. When OEM fetch fails or is not configured, data may be incorrect; the app shows a warning and each part card shows whether the source is "From OEM manual" or "Not from OEM". So if the OEM manual says “60k km for tyre”, that value is used for predictions.
 
 ---
 

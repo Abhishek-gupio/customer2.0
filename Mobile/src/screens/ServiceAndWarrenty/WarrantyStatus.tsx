@@ -42,6 +42,8 @@ interface PartData {
   lastReplacedAt?: string;
   currentOdo?: number;
   overdueByKm?: number;
+  /** OEM_WEBSITE = scraped from OEM; DEFAULT/FALLBACK = not from OEM, may be incorrect */
+  intervalSource?: string;
 }
 
 export const WarrantyStatus = () => {
@@ -131,6 +133,7 @@ export const WarrantyStatus = () => {
           lastReplacedAt: item.lastReplacedAt,
           currentOdo: primary.currentOdometer,
           overdueByKm: item.overdueByKm,
+          intervalSource: item.intervalSource,
         };
       }) : [];
 
@@ -222,6 +225,15 @@ export const WarrantyStatus = () => {
         />
       </View>
 
+      {parts.some(p => (p.intervalSource || '').toUpperCase() !== 'OEM_WEBSITE') && (
+        <View style={styles.oemWarningBanner}>
+          <Icon name="exclamation-triangle" size={wp(4)} color="#F59E0B" style={styles.oemWarningIcon} />
+          <Text style={styles.oemWarningText}>
+            Intervals not from OEM manual — data may be incorrect. Set vehicle make/model and pull to refresh to fetch from manufacturer.
+          </Text>
+        </View>
+      )}
+
       <FlatList
         data={parts}
         keyExtractor={item => item.id}
@@ -282,5 +294,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingBottom: hp(5),
     paddingTop: hp(1),
+  },
+  oemWarningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(245, 158, 11, 0.4)',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+  },
+  oemWarningIcon: {
+    marginRight: wp(2),
+  },
+  oemWarningText: {
+    flex: 1,
+    fontSize: wp(3.2),
+    color: '#F59E0B',
+    lineHeight: 18,
   },
 });
