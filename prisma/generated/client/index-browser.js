@@ -396,6 +396,21 @@ exports.Prisma.ServicePartScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
+  id: 'id',
+  make: 'make',
+  model: 'model',
+  yearMin: 'yearMin',
+  yearMax: 'yearMax',
+  partType: 'partType',
+  intervalMonths: 'intervalMonths',
+  intervalKm: 'intervalKm',
+  defaultWarrantyMonths: 'defaultWarrantyMonths',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.TelematicsDeviceScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -599,6 +614,7 @@ exports.Prisma.ModelName = {
   DiscoveryContent: 'DiscoveryContent',
   ServiceRecord: 'ServiceRecord',
   ServicePart: 'ServicePart',
+  PartReplacementInterval: 'PartReplacementInterval',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
   DrivingEvent: 'DrivingEvent',

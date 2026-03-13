@@ -119,6 +119,11 @@ export type ServiceRecord = $Result.DefaultSelection<Prisma.$ServiceRecordPayloa
  */
 export type ServicePart = $Result.DefaultSelection<Prisma.$ServicePartPayload>
 /**
+ * Model PartReplacementInterval
+ * 
+ */
+export type PartReplacementInterval = $Result.DefaultSelection<Prisma.$PartReplacementIntervalPayload>
+/**
  * Model TelematicsDevice
  * 
  */
@@ -633,6 +638,16 @@ export class PrismaClient<
   get servicePart(): Prisma.ServicePartDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.partReplacementInterval`: Exposes CRUD operations for the **PartReplacementInterval** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PartReplacementIntervals
+    * const partReplacementIntervals = await prisma.partReplacementInterval.findMany()
+    * ```
+    */
+  get partReplacementInterval(): Prisma.PartReplacementIntervalDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.telematicsDevice`: Exposes CRUD operations for the **TelematicsDevice** model.
     * Example usage:
     * ```ts
@@ -1136,6 +1151,7 @@ export namespace Prisma {
     DiscoveryContent: 'DiscoveryContent',
     ServiceRecord: 'ServiceRecord',
     ServicePart: 'ServicePart',
+    PartReplacementInterval: 'PartReplacementInterval',
     TelematicsDevice: 'TelematicsDevice',
     DrivingTrip: 'DrivingTrip',
     DrivingEvent: 'DrivingEvent',
@@ -1156,7 +1172,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
+      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2714,6 +2730,80 @@ export namespace Prisma {
           }
         }
       }
+      PartReplacementInterval: {
+        payload: Prisma.$PartReplacementIntervalPayload<ExtArgs>
+        fields: Prisma.PartReplacementIntervalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PartReplacementIntervalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          findFirst: {
+            args: Prisma.PartReplacementIntervalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          findMany: {
+            args: Prisma.PartReplacementIntervalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          create: {
+            args: Prisma.PartReplacementIntervalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          createMany: {
+            args: Prisma.PartReplacementIntervalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          delete: {
+            args: Prisma.PartReplacementIntervalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          update: {
+            args: Prisma.PartReplacementIntervalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          deleteMany: {
+            args: Prisma.PartReplacementIntervalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PartReplacementIntervalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>[]
+          }
+          upsert: {
+            args: Prisma.PartReplacementIntervalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PartReplacementIntervalPayload>
+          }
+          aggregate: {
+            args: Prisma.PartReplacementIntervalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePartReplacementInterval>
+          }
+          groupBy: {
+            args: Prisma.PartReplacementIntervalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PartReplacementIntervalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PartReplacementIntervalCountArgs<ExtArgs>
+            result: $Utils.Optional<PartReplacementIntervalCountAggregateOutputType> | number
+          }
+        }
+      }
       TelematicsDevice: {
         payload: Prisma.$TelematicsDevicePayload<ExtArgs>
         fields: Prisma.TelematicsDeviceFieldRefs
@@ -3213,6 +3303,7 @@ export namespace Prisma {
     discoveryContent?: DiscoveryContentOmit
     serviceRecord?: ServiceRecordOmit
     servicePart?: ServicePartOmit
+    partReplacementInterval?: PartReplacementIntervalOmit
     telematicsDevice?: TelematicsDeviceOmit
     drivingTrip?: DrivingTripOmit
     drivingEvent?: DrivingEventOmit
@@ -27938,6 +28029,1142 @@ export namespace Prisma {
 
 
   /**
+   * Model PartReplacementInterval
+   */
+
+  export type AggregatePartReplacementInterval = {
+    _count: PartReplacementIntervalCountAggregateOutputType | null
+    _avg: PartReplacementIntervalAvgAggregateOutputType | null
+    _sum: PartReplacementIntervalSumAggregateOutputType | null
+    _min: PartReplacementIntervalMinAggregateOutputType | null
+    _max: PartReplacementIntervalMaxAggregateOutputType | null
+  }
+
+  export type PartReplacementIntervalAvgAggregateOutputType = {
+    yearMin: number | null
+    yearMax: number | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+  }
+
+  export type PartReplacementIntervalSumAggregateOutputType = {
+    yearMin: number | null
+    yearMax: number | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+  }
+
+  export type PartReplacementIntervalMinAggregateOutputType = {
+    id: string | null
+    make: string | null
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PartReplacementIntervalMaxAggregateOutputType = {
+    id: string | null
+    make: string | null
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType | null
+    intervalMonths: number | null
+    intervalKm: number | null
+    defaultWarrantyMonths: number | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PartReplacementIntervalCountAggregateOutputType = {
+    id: number
+    make: number
+    model: number
+    yearMin: number
+    yearMax: number
+    partType: number
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths: number
+    source: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PartReplacementIntervalAvgAggregateInputType = {
+    yearMin?: true
+    yearMax?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+  }
+
+  export type PartReplacementIntervalSumAggregateInputType = {
+    yearMin?: true
+    yearMax?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+  }
+
+  export type PartReplacementIntervalMinAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PartReplacementIntervalMaxAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PartReplacementIntervalCountAggregateInputType = {
+    id?: true
+    make?: true
+    model?: true
+    yearMin?: true
+    yearMax?: true
+    partType?: true
+    intervalMonths?: true
+    intervalKm?: true
+    defaultWarrantyMonths?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PartReplacementIntervalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PartReplacementInterval to aggregate.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PartReplacementIntervals
+    **/
+    _count?: true | PartReplacementIntervalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PartReplacementIntervalAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PartReplacementIntervalSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PartReplacementIntervalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PartReplacementIntervalMaxAggregateInputType
+  }
+
+  export type GetPartReplacementIntervalAggregateType<T extends PartReplacementIntervalAggregateArgs> = {
+        [P in keyof T & keyof AggregatePartReplacementInterval]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePartReplacementInterval[P]>
+      : GetScalarType<T[P], AggregatePartReplacementInterval[P]>
+  }
+
+
+
+
+  export type PartReplacementIntervalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PartReplacementIntervalWhereInput
+    orderBy?: PartReplacementIntervalOrderByWithAggregationInput | PartReplacementIntervalOrderByWithAggregationInput[]
+    by: PartReplacementIntervalScalarFieldEnum[] | PartReplacementIntervalScalarFieldEnum
+    having?: PartReplacementIntervalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PartReplacementIntervalCountAggregateInputType | true
+    _avg?: PartReplacementIntervalAvgAggregateInputType
+    _sum?: PartReplacementIntervalSumAggregateInputType
+    _min?: PartReplacementIntervalMinAggregateInputType
+    _max?: PartReplacementIntervalMaxAggregateInputType
+  }
+
+  export type PartReplacementIntervalGroupByOutputType = {
+    id: string
+    make: string
+    model: string | null
+    yearMin: number | null
+    yearMax: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths: number
+    source: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PartReplacementIntervalCountAggregateOutputType | null
+    _avg: PartReplacementIntervalAvgAggregateOutputType | null
+    _sum: PartReplacementIntervalSumAggregateOutputType | null
+    _min: PartReplacementIntervalMinAggregateOutputType | null
+    _max: PartReplacementIntervalMaxAggregateOutputType | null
+  }
+
+  type GetPartReplacementIntervalGroupByPayload<T extends PartReplacementIntervalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PartReplacementIntervalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PartReplacementIntervalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PartReplacementIntervalGroupByOutputType[P]>
+            : GetScalarType<T[P], PartReplacementIntervalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PartReplacementIntervalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["partReplacementInterval"]>
+
+  export type PartReplacementIntervalSelectScalar = {
+    id?: boolean
+    make?: boolean
+    model?: boolean
+    yearMin?: boolean
+    yearMax?: boolean
+    partType?: boolean
+    intervalMonths?: boolean
+    intervalKm?: boolean
+    defaultWarrantyMonths?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PartReplacementIntervalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "make" | "model" | "yearMin" | "yearMax" | "partType" | "intervalMonths" | "intervalKm" | "defaultWarrantyMonths" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["partReplacementInterval"]>
+
+  export type $PartReplacementIntervalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PartReplacementInterval"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      make: string
+      model: string | null
+      yearMin: number | null
+      yearMax: number | null
+      partType: $Enums.ServicePartType
+      intervalMonths: number
+      intervalKm: number
+      defaultWarrantyMonths: number
+      source: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["partReplacementInterval"]>
+    composites: {}
+  }
+
+  type PartReplacementIntervalGetPayload<S extends boolean | null | undefined | PartReplacementIntervalDefaultArgs> = $Result.GetResult<Prisma.$PartReplacementIntervalPayload, S>
+
+  type PartReplacementIntervalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PartReplacementIntervalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PartReplacementIntervalCountAggregateInputType | true
+    }
+
+  export interface PartReplacementIntervalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PartReplacementInterval'], meta: { name: 'PartReplacementInterval' } }
+    /**
+     * Find zero or one PartReplacementInterval that matches the filter.
+     * @param {PartReplacementIntervalFindUniqueArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PartReplacementIntervalFindUniqueArgs>(args: SelectSubset<T, PartReplacementIntervalFindUniqueArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PartReplacementInterval that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PartReplacementIntervalFindUniqueOrThrowArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PartReplacementIntervalFindUniqueOrThrowArgs>(args: SelectSubset<T, PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PartReplacementInterval that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindFirstArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PartReplacementIntervalFindFirstArgs>(args?: SelectSubset<T, PartReplacementIntervalFindFirstArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PartReplacementInterval that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindFirstOrThrowArgs} args - Arguments to find a PartReplacementInterval
+     * @example
+     * // Get one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PartReplacementIntervalFindFirstOrThrowArgs>(args?: SelectSubset<T, PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PartReplacementIntervals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PartReplacementIntervals
+     * const partReplacementIntervals = await prisma.partReplacementInterval.findMany()
+     * 
+     * // Get first 10 PartReplacementIntervals
+     * const partReplacementIntervals = await prisma.partReplacementInterval.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PartReplacementIntervalFindManyArgs>(args?: SelectSubset<T, PartReplacementIntervalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PartReplacementInterval.
+     * @param {PartReplacementIntervalCreateArgs} args - Arguments to create a PartReplacementInterval.
+     * @example
+     * // Create one PartReplacementInterval
+     * const PartReplacementInterval = await prisma.partReplacementInterval.create({
+     *   data: {
+     *     // ... data to create a PartReplacementInterval
+     *   }
+     * })
+     * 
+     */
+    create<T extends PartReplacementIntervalCreateArgs>(args: SelectSubset<T, PartReplacementIntervalCreateArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PartReplacementIntervals.
+     * @param {PartReplacementIntervalCreateManyArgs} args - Arguments to create many PartReplacementIntervals.
+     * @example
+     * // Create many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PartReplacementIntervalCreateManyArgs>(args?: SelectSubset<T, PartReplacementIntervalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PartReplacementIntervals and returns the data saved in the database.
+     * @param {PartReplacementIntervalCreateManyAndReturnArgs} args - Arguments to create many PartReplacementIntervals.
+     * @example
+     * // Create many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PartReplacementIntervals and only return the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PartReplacementIntervalCreateManyAndReturnArgs>(args?: SelectSubset<T, PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PartReplacementInterval.
+     * @param {PartReplacementIntervalDeleteArgs} args - Arguments to delete one PartReplacementInterval.
+     * @example
+     * // Delete one PartReplacementInterval
+     * const PartReplacementInterval = await prisma.partReplacementInterval.delete({
+     *   where: {
+     *     // ... filter to delete one PartReplacementInterval
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PartReplacementIntervalDeleteArgs>(args: SelectSubset<T, PartReplacementIntervalDeleteArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PartReplacementInterval.
+     * @param {PartReplacementIntervalUpdateArgs} args - Arguments to update one PartReplacementInterval.
+     * @example
+     * // Update one PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PartReplacementIntervalUpdateArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PartReplacementIntervals.
+     * @param {PartReplacementIntervalDeleteManyArgs} args - Arguments to filter PartReplacementIntervals to delete.
+     * @example
+     * // Delete a few PartReplacementIntervals
+     * const { count } = await prisma.partReplacementInterval.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PartReplacementIntervalDeleteManyArgs>(args?: SelectSubset<T, PartReplacementIntervalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PartReplacementIntervals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PartReplacementIntervalUpdateManyArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PartReplacementIntervals and returns the data updated in the database.
+     * @param {PartReplacementIntervalUpdateManyAndReturnArgs} args - Arguments to update many PartReplacementIntervals.
+     * @example
+     * // Update many PartReplacementIntervals
+     * const partReplacementInterval = await prisma.partReplacementInterval.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PartReplacementIntervals and only return the `id`
+     * const partReplacementIntervalWithIdOnly = await prisma.partReplacementInterval.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PartReplacementIntervalUpdateManyAndReturnArgs>(args: SelectSubset<T, PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PartReplacementInterval.
+     * @param {PartReplacementIntervalUpsertArgs} args - Arguments to update or create a PartReplacementInterval.
+     * @example
+     * // Update or create a PartReplacementInterval
+     * const partReplacementInterval = await prisma.partReplacementInterval.upsert({
+     *   create: {
+     *     // ... data to create a PartReplacementInterval
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PartReplacementInterval we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PartReplacementIntervalUpsertArgs>(args: SelectSubset<T, PartReplacementIntervalUpsertArgs<ExtArgs>>): Prisma__PartReplacementIntervalClient<$Result.GetResult<Prisma.$PartReplacementIntervalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PartReplacementIntervals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalCountArgs} args - Arguments to filter PartReplacementIntervals to count.
+     * @example
+     * // Count the number of PartReplacementIntervals
+     * const count = await prisma.partReplacementInterval.count({
+     *   where: {
+     *     // ... the filter for the PartReplacementIntervals we want to count
+     *   }
+     * })
+    **/
+    count<T extends PartReplacementIntervalCountArgs>(
+      args?: Subset<T, PartReplacementIntervalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PartReplacementIntervalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PartReplacementInterval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PartReplacementIntervalAggregateArgs>(args: Subset<T, PartReplacementIntervalAggregateArgs>): Prisma.PrismaPromise<GetPartReplacementIntervalAggregateType<T>>
+
+    /**
+     * Group by PartReplacementInterval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PartReplacementIntervalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PartReplacementIntervalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PartReplacementIntervalGroupByArgs['orderBy'] }
+        : { orderBy?: PartReplacementIntervalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PartReplacementIntervalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPartReplacementIntervalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PartReplacementInterval model
+   */
+  readonly fields: PartReplacementIntervalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PartReplacementInterval.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PartReplacementIntervalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PartReplacementInterval model
+   */
+  interface PartReplacementIntervalFieldRefs {
+    readonly id: FieldRef<"PartReplacementInterval", 'String'>
+    readonly make: FieldRef<"PartReplacementInterval", 'String'>
+    readonly model: FieldRef<"PartReplacementInterval", 'String'>
+    readonly yearMin: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly yearMax: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly partType: FieldRef<"PartReplacementInterval", 'ServicePartType'>
+    readonly intervalMonths: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly intervalKm: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly defaultWarrantyMonths: FieldRef<"PartReplacementInterval", 'Int'>
+    readonly source: FieldRef<"PartReplacementInterval", 'String'>
+    readonly createdAt: FieldRef<"PartReplacementInterval", 'DateTime'>
+    readonly updatedAt: FieldRef<"PartReplacementInterval", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PartReplacementInterval findUnique
+   */
+  export type PartReplacementIntervalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval findUniqueOrThrow
+   */
+  export type PartReplacementIntervalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval findFirst
+   */
+  export type PartReplacementIntervalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval findFirstOrThrow
+   */
+  export type PartReplacementIntervalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementInterval to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval findMany
+   */
+  export type PartReplacementIntervalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter, which PartReplacementIntervals to fetch.
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PartReplacementIntervals to fetch.
+     */
+    orderBy?: PartReplacementIntervalOrderByWithRelationInput | PartReplacementIntervalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PartReplacementIntervals.
+     */
+    cursor?: PartReplacementIntervalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PartReplacementIntervals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PartReplacementIntervals.
+     */
+    skip?: number
+    distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
+  }
+
+  /**
+   * PartReplacementInterval create
+   */
+  export type PartReplacementIntervalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data needed to create a PartReplacementInterval.
+     */
+    data: XOR<PartReplacementIntervalCreateInput, PartReplacementIntervalUncheckedCreateInput>
+  }
+
+  /**
+   * PartReplacementInterval createMany
+   */
+  export type PartReplacementIntervalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PartReplacementIntervals.
+     */
+    data: PartReplacementIntervalCreateManyInput | PartReplacementIntervalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PartReplacementInterval createManyAndReturn
+   */
+  export type PartReplacementIntervalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data used to create many PartReplacementIntervals.
+     */
+    data: PartReplacementIntervalCreateManyInput | PartReplacementIntervalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PartReplacementInterval update
+   */
+  export type PartReplacementIntervalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data needed to update a PartReplacementInterval.
+     */
+    data: XOR<PartReplacementIntervalUpdateInput, PartReplacementIntervalUncheckedUpdateInput>
+    /**
+     * Choose, which PartReplacementInterval to update.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval updateMany
+   */
+  export type PartReplacementIntervalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PartReplacementIntervals.
+     */
+    data: XOR<PartReplacementIntervalUpdateManyMutationInput, PartReplacementIntervalUncheckedUpdateManyInput>
+    /**
+     * Filter which PartReplacementIntervals to update
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval updateManyAndReturn
+   */
+  export type PartReplacementIntervalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The data used to update PartReplacementIntervals.
+     */
+    data: XOR<PartReplacementIntervalUpdateManyMutationInput, PartReplacementIntervalUncheckedUpdateManyInput>
+    /**
+     * Filter which PartReplacementIntervals to update
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval upsert
+   */
+  export type PartReplacementIntervalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * The filter to search for the PartReplacementInterval to update in case it exists.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+    /**
+     * In case the PartReplacementInterval found by the `where` argument doesn't exist, create a new PartReplacementInterval with this data.
+     */
+    create: XOR<PartReplacementIntervalCreateInput, PartReplacementIntervalUncheckedCreateInput>
+    /**
+     * In case the PartReplacementInterval was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PartReplacementIntervalUpdateInput, PartReplacementIntervalUncheckedUpdateInput>
+  }
+
+  /**
+   * PartReplacementInterval delete
+   */
+  export type PartReplacementIntervalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+    /**
+     * Filter which PartReplacementInterval to delete.
+     */
+    where: PartReplacementIntervalWhereUniqueInput
+  }
+
+  /**
+   * PartReplacementInterval deleteMany
+   */
+  export type PartReplacementIntervalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PartReplacementIntervals to delete
+     */
+    where?: PartReplacementIntervalWhereInput
+    /**
+     * Limit how many PartReplacementIntervals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PartReplacementInterval without action
+   */
+  export type PartReplacementIntervalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PartReplacementInterval
+     */
+    select?: PartReplacementIntervalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PartReplacementInterval
+     */
+    omit?: PartReplacementIntervalOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model TelematicsDevice
    */
 
@@ -34108,6 +35335,24 @@ export namespace Prisma {
   export type ServicePartScalarFieldEnum = (typeof ServicePartScalarFieldEnum)[keyof typeof ServicePartScalarFieldEnum]
 
 
+  export const PartReplacementIntervalScalarFieldEnum: {
+    id: 'id',
+    make: 'make',
+    model: 'model',
+    yearMin: 'yearMin',
+    yearMax: 'yearMax',
+    partType: 'partType',
+    intervalMonths: 'intervalMonths',
+    intervalKm: 'intervalKm',
+    defaultWarrantyMonths: 'defaultWarrantyMonths',
+    source: 'source',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PartReplacementIntervalScalarFieldEnum = (typeof PartReplacementIntervalScalarFieldEnum)[keyof typeof PartReplacementIntervalScalarFieldEnum]
+
+
   export const TelematicsDeviceScalarFieldEnum: {
     id: 'id',
     vehicleId: 'vehicleId',
@@ -36237,6 +37482,96 @@ export namespace Prisma {
     nextReplacementDue?: DateTimeNullableWithAggregatesFilter<"ServicePart"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ServicePart"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ServicePart"> | Date | string
+  }
+
+  export type PartReplacementIntervalWhereInput = {
+    AND?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    OR?: PartReplacementIntervalWhereInput[]
+    NOT?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    id?: StringFilter<"PartReplacementInterval"> | string
+    make?: StringFilter<"PartReplacementInterval"> | string
+    model?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
+    source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+  }
+
+  export type PartReplacementIntervalOrderByWithRelationInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrderInput | SortOrder
+    yearMin?: SortOrderInput | SortOrder
+    yearMax?: SortOrderInput | SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    make_model_yearMin_yearMax_partType?: PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput
+    AND?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    OR?: PartReplacementIntervalWhereInput[]
+    NOT?: PartReplacementIntervalWhereInput | PartReplacementIntervalWhereInput[]
+    make?: StringFilter<"PartReplacementInterval"> | string
+    model?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
+    source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
+  }, "id" | "make_model_yearMin_yearMax_partType">
+
+  export type PartReplacementIntervalOrderByWithAggregationInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrderInput | SortOrder
+    yearMin?: SortOrderInput | SortOrder
+    yearMax?: SortOrderInput | SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PartReplacementIntervalCountOrderByAggregateInput
+    _avg?: PartReplacementIntervalAvgOrderByAggregateInput
+    _max?: PartReplacementIntervalMaxOrderByAggregateInput
+    _min?: PartReplacementIntervalMinOrderByAggregateInput
+    _sum?: PartReplacementIntervalSumOrderByAggregateInput
+  }
+
+  export type PartReplacementIntervalScalarWhereWithAggregatesInput = {
+    AND?: PartReplacementIntervalScalarWhereWithAggregatesInput | PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    OR?: PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    NOT?: PartReplacementIntervalScalarWhereWithAggregatesInput | PartReplacementIntervalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PartReplacementInterval"> | string
+    make?: StringWithAggregatesFilter<"PartReplacementInterval"> | string
+    model?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    yearMin?: IntNullableWithAggregatesFilter<"PartReplacementInterval"> | number | null
+    yearMax?: IntNullableWithAggregatesFilter<"PartReplacementInterval"> | number | null
+    partType?: EnumServicePartTypeWithAggregatesFilter<"PartReplacementInterval"> | $Enums.ServicePartType
+    intervalMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    intervalKm?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    defaultWarrantyMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
+    source?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
   }
 
   export type TelematicsDeviceWhereInput = {
@@ -38657,6 +39992,111 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PartReplacementIntervalCreateInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedCreateInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalCreateManyInput = {
+    id?: string
+    make: string
+    model?: string | null
+    yearMin?: number | null
+    yearMax?: number | null
+    partType: $Enums.ServicePartType
+    intervalMonths: number
+    intervalKm: number
+    defaultWarrantyMonths?: number
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PartReplacementIntervalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PartReplacementIntervalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    yearMin?: NullableIntFieldUpdateOperationsInput | number | null
+    yearMax?: NullableIntFieldUpdateOperationsInput | number | null
+    partType?: EnumServicePartTypeFieldUpdateOperationsInput | $Enums.ServicePartType
+    intervalMonths?: IntFieldUpdateOperationsInput | number
+    intervalKm?: IntFieldUpdateOperationsInput | number
+    defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type TelematicsDeviceCreateInput = {
     id?: string
     instanceId: string
@@ -40732,6 +42172,75 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput = {
+    make: string
+    model: string
+    yearMin: number
+    yearMax: number
+    partType: $Enums.ServicePartType
+  }
+
+  export type PartReplacementIntervalCountOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalAvgOrderByAggregateInput = {
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+  }
+
+  export type PartReplacementIntervalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalMinOrderByAggregateInput = {
+    id?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    partType?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PartReplacementIntervalSumOrderByAggregateInput = {
+    yearMin?: SortOrder
+    yearMax?: SortOrder
+    intervalMonths?: SortOrder
+    intervalKm?: SortOrder
+    defaultWarrantyMonths?: SortOrder
   }
 
   export type TelematicsDeviceCountOrderByAggregateInput = {

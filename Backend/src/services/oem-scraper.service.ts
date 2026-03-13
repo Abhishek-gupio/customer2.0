@@ -27,7 +27,11 @@ const OEM_URL_CONFIG: { makeKey: string; url: string; type: "html" | "pdf" }[] =
     url: "https://marutistoragenew.blob.core.windows.net/msilintiwebpdf/Alto_OM_Website.pdf",
     type: "pdf",
   },
-  // Tata/Mahindra: model-specific manuals at tmlcars.tatamotors.com, mahindra.com – add URLs when needed
+  {
+    makeKey: "tata",
+    url: "https://tmlcars.tatamotors.com/images/service/owners/owners-manual/pdf/nexon/Nexon_EV.pdf",
+    type: "pdf",
+  },
 ];
 
 function normalizeMake(make: string): string {
@@ -220,14 +224,19 @@ export async function fetchAndSaveIntervalsForVehicle(
     }
 
     if (config.type === "pdf") {
+      const urlObj = new URL(config.url);
+      const origin = `${urlObj.protocol}//${urlObj.host}`;
       const res = await fetchWithRetries(
         () =>
           axios.get(config.url, {
             responseType: "arraybuffer",
-            timeout: 20000,
+            timeout: 25000,
+            maxRedirects: 5,
             headers: {
               "User-Agent":
-                "Mozilla/5.0 (compatible; GupioApp/1.0; +https://gupio.com)",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              Accept: "application/pdf,*/*",
+              Referer: origin + "/",
             },
           }),
         "PDF",

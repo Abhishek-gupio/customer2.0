@@ -393,6 +393,26 @@ model ServicePart {
   @@schema("customer")
 }
 
+model PartReplacementInterval {
+  id                    String          @id @default(cuid())
+  make                  String
+  model                 String?
+  yearMin               Int?
+  yearMax               Int?
+  partType              ServicePartType
+  intervalMonths        Int
+  intervalKm            Int
+  defaultWarrantyMonths Int             @default(0)
+  source                String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@unique([make, model, yearMin, yearMax, partType])
+  @@index([partType])
+  @@index([make, model])
+  @@schema("customer")
+}
+
 model TelematicsDevice {
   id          String          @id @default(cuid())
   vehicleId   String          @unique

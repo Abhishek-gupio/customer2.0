@@ -21,9 +21,9 @@ import { fetchAndSaveIntervalsForVehicle } from "../services/oem-scraper.service
 
 const db = dbInstances as any;
 
-const DEMO_REG = "DEMO-HY-CRETA-01";
-const DEMO_MAKE = "Hyundai";
-const DEMO_MODEL = "Creta";
+const DEMO_REG = "DEMO-TATA-NEXON-01";
+const DEMO_MAKE = "Tata";
+const DEMO_MODEL = "Nexon";
 const DEMO_YEAR = 2023;
 
 async function run(cleanup: boolean) {
@@ -57,7 +57,7 @@ async function run(cleanup: boolean) {
     console.log("Using existing demo vehicle:", vehicle.id, DEMO_MAKE, DEMO_MODEL);
   }
 
-  console.log("\nFetching OEM intervals from Hyundai website...");
+  console.log("\nFetching OEM intervals from OEM website...");
   const result = await fetchAndSaveIntervalsForVehicle(vehicle.id);
   console.log("Result:", result);
 
