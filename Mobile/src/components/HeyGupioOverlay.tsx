@@ -15,7 +15,7 @@ import Tts from 'react-native-tts';
 import { chatService } from '../services/chatService';
 import { VoiceOwnerContext } from '../context/VoiceOwnerContext';
 
-const VOICE_LOCALE = Platform.OS === 'ios' ? 'en-US' : 'en-IN';
+const VOICE_LOCALE = 'en-IN';
 /** Stop listening after this many ms if no speech result (so we don't listen forever). */
 const LISTEN_TIMEOUT_MS = 12000;
 /** Delay before restarting mic after agent speaks (let TTS release audio; then we reset Voice). */
@@ -135,7 +135,6 @@ export default function HeyGupioOverlay() {
 
   const startListening = useCallback(() => {
     if (!isMountedRef.current) return;
-    setStatus('listening');
     modeRef.current = 'command'; // Tap-to-talk: first phrase is the command, no "Hey Gupio" needed
     const clearListenTimeout = () => {
       if (listenTimeoutRef.current) {
@@ -144,12 +143,19 @@ export default function HeyGupioOverlay() {
       }
     };
 
+    const lastPartialRef = { current: '' };
+    const parseTranscript = (e: any): string => {
+      const raw = e?.value ?? e?.results?.[0] ?? e?.result ?? [];
+      const first = Array.isArray(raw) ? raw[0] : raw;
+      return (typeof first === 'string' ? first : first?.transcript ?? '').trim();
+    };
+
     const onResult = async (e: any) => {
       if (!isMountedRef.current) return;
       clearListenTimeout();
-      const raw = e?.value ?? e?.results?.[0] ?? e?.result ?? [];
-      const first = Array.isArray(raw) ? raw[0] : raw;
-      const transcript = (typeof first === 'string' ? first : first?.transcript ?? '').trim();
+      let transcript = parseTranscript(e);
+      if (!transcript && lastPartialRef.current) transcript = lastPartialRef.current;
+      lastPartialRef.current = '';
       if (__DEV__ && transcript) console.log('[HeyGupio] Heard:', transcript);
       if (!transcript) {
         if (continuousModeRef.current) scheduleRestartListening();
@@ -170,7 +176,7 @@ export default function HeyGupioOverlay() {
         speakWithTts(reply, () => {
           ttsFinishRef.current = null;
           if (continuousModeRef.current) {
-            setStatus('listening'); // Show listening immediately after agent speaks
+            setStatus('listening');
             scheduleRestartListening();
           } else {
             setStatus('idle');
@@ -210,15 +216,35 @@ export default function HeyGupioOverlay() {
       }
     };
 
-    (Voice as any).onSpeechResults = onResult;
-    (Voice as any).onSpeechError = onError;
-    (Voice as any).onSpeechStart = () => {
-      if (isMountedRef.current) setStatus('listening');
+    const attachHandlers = () => {
+      try {
+        Voice.removeAllListeners?.();
+      } catch (_) {}
+      (Voice as any).onSpeechResults = onResult;
+      (Voice as any).onSpeechError = onError;
+      (Voice as any).onSpeechStart = () => {
+        if (isMountedRef.current) setStatus('listening');
+      };
+      (Voice as any).onSpeechPartialResults = (e: any) => {
+        const t = parseTranscript(e);
+        if (t) lastPartialRef.current = t;
+      };
     };
+
     const tryStart = (attempt = 0) => {
       if (!isMountedRef.current || !canListenRef.current || appStateRef.current !== 'active') return;
-      Voice.start(VOICE_LOCALE)
+      // Fresh recognizer: destroy then re-attach handlers and start (fixes "listening" but no results)
+      Promise.resolve()
+        .then(() => (typeof (Voice as any).destroy === 'function' ? (Voice as any).destroy() : Promise.resolve()))
+        .catch(() => {})
         .then(() => {
+          if (!isMountedRef.current || !canListenRef.current) return;
+          attachHandlers();
+          setStatus('listening');
+          return Voice.start(VOICE_LOCALE);
+        })
+        .then(() => {
+          if (!isMountedRef.current) return;
           clearListenTimeout();
           listenTimeoutRef.current = setTimeout(() => {
             listenTimeoutRef.current = null;
@@ -228,7 +254,7 @@ export default function HeyGupioOverlay() {
             else setStatus('idle');
           }, LISTEN_TIMEOUT_MS);
         })
-        .catch((err) => {
+        .catch((err: any) => {
           if (__DEV__) console.log('[HeyGupio] Voice.start failed:', err);
           setStatus('idle');
           if (isMountedRef.current && attempt < 2) {
