@@ -90,8 +90,11 @@ async function getLifecycleForVehiclePart(
       return { ...fallback, source: "FALLBACK" };
     }
 
+    // Prisma ServicePartType has TYRES_FRONT/TYRES_REAR but not TYRES; use TYRES_FRONT for DB lookup
+    const partTypeForDb =
+      partType === "TYRES" ? "TYRES_FRONT" : (partType as any);
     const rows = await db.partReplacementInterval.findMany({
-      where: { partType: partType as any },
+      where: { partType: partTypeForDb },
     });
 
     const matches = rows.filter((r: any) => {
