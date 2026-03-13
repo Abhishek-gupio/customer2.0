@@ -31,6 +31,8 @@ export type RootStackParamList = {
   };
   ChatSessions: undefined;
   DrivingSummary: undefined;
+  DrivingTimeline: undefined;
+  TripDetail: { tripId: string };
   SOSButton: undefined;
   Alerts: undefined;
   Odometer: undefined;

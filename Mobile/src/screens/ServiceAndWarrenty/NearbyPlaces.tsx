@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  Linking,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,6 +19,15 @@ import {
 } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
+import { placesService, type NearbyPlace } from '../../services/placesService';
+
+let Geolocation: any = null;
+try {
+  const geo = require('@react-native-community/geolocation') as any;
+  Geolocation = geo?.default ?? geo;
+} catch {
+  Geolocation = null;
+}
 
 type PlaceType =
   | 'FuelStations'
@@ -83,6 +97,265 @@ const NEARBY_CATEGORIES: { title: string; itemIds: PlaceType[] }[] = [
   { title: 'RTO & documents', itemIds: ['RTO', 'DocumentServices', 'Insurance'] },
 ];
 
+function openMapsNavigation(lat: number, lng: number, label?: string) {
+  const dest = `${lat},${lng}`;
+  const encodedName = label ? encodeURIComponent(label) : '';
+  if (Platform.OS === 'ios') {
+    const url = encodedName
+      ? `https://maps.apple.com/?daddr=${dest}&q=${encodedName}`
+      : `https://maps.apple.com/?daddr=${dest}`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${dest}`).catch(() => {});
+    });
+  } else {
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${dest}`).catch(() => {});
+  }
+}
+
+type NearbyApiType = 'gas_station' | 'electric_charging_station' | 'hospital' | 'police' | 'car_repair' | 'parking' | 'lodging';
+
+const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyApiType>> = {
+  FuelStations: 'gas_station',
+  ChargingStation: 'electric_charging_station',
+  Mechanics: 'car_repair',
+  Hospital: 'hospital',
+  PoliceStation: 'police',
+  Parking: 'parking',
+  Hotel: 'lodging',
+};
+
+function NearbyPlacesListScreen({
+  onBack,
+  title,
+  placeType,
+  apiType,
+}: {
+  onBack: () => void;
+  title: string;
+  placeType: PlaceType;
+  apiType: NearbyApiType;
+}) {
+  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [places, setPlaces] = useState<NearbyPlace[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
+    if (Platform.OS === 'ios') {
+      try {
+        if (Geolocation?.requestAuthorization) {
+          const status = await Geolocation.requestAuthorization('whenInUse');
+          const ok = status === 'granted' || status === 'authorized' || status === 'authorizedWhenInUse';
+          if (!ok) setPermissionDenied(true);
+          return ok;
+        }
+        return true;
+      } catch {
+        setPermissionDenied(true);
+        return false;
+      }
+    }
+    if (Platform.OS === 'android') {
+      const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+      const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      const has = await PermissionsAndroid.check(fine).catch(() => false);
+      if (has) return true;
+      const result = await PermissionsAndroid.requestMultiple([fine, coarse]);
+      const ok = result[fine] === PermissionsAndroid.RESULTS.GRANTED || result[coarse] === PermissionsAndroid.RESULTS.GRANTED;
+      if (!ok) setPermissionDenied(true);
+      return ok;
+    }
+    return true;
+  }, []);
+
+  const fetchLocation = useCallback((): Promise<{ lat: number; lon: number } | null> => {
+    return new Promise((resolve) => {
+      if (!Geolocation) {
+        setLocationError('Location is not available.');
+        resolve(null);
+        return;
+      }
+      Geolocation.getCurrentPosition(
+        (pos: any) => {
+          const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          setLocation(coords);
+          setLocationError(null);
+          resolve(coords);
+        },
+        (err: any) => {
+          const msg = err?.message || 'Could not get location.';
+          setLocationError(msg);
+          setLocation(null);
+          if (err?.code === 1) setPermissionDenied(true);
+          resolve(null);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+      );
+    });
+  }, []);
+
+  const loadStations = useCallback(async (coords: { lat: number; lon: number } | null, isRefresh = false) => {
+    if (!coords) {
+      setLoading(false);
+      setPlaces([]);
+      return;
+    }
+    if (!isRefresh) setLoading(true);
+    try {
+      const list = await placesService.getNearby(coords.lat, coords.lon, apiType, 10000);
+      setPlaces(list);
+    } catch (e: any) {
+      setPlaces([]);
+      setLocationError(e?.message || `Failed to load nearby ${title.toLowerCase()}.`);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const permitted = await requestLocationPermission();
+    if (!permitted) {
+      setRefreshing(false);
+      return;
+    }
+    const coords = await fetchLocation();
+    setLocation(coords || null);
+    await loadStations(coords, true);
+  }, [requestLocationPermission, fetchLocation, loadStations]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const permitted = await requestLocationPermission();
+      if (!permitted || cancelled) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+      const coords = await fetchLocation();
+      if (cancelled) return;
+      await loadStations(coords);
+    })();
+    return () => { cancelled = true; };
+  }, [requestLocationPermission, fetchLocation, loadStations]);
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
+          <Icon name="arrow-left" size={wp(5)} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{title}</Text>
+      </View>
+
+      {location && (
+        <View style={styles.locationPill}>
+          <Icon name="map-marker-alt" size={wp(3.5)} color="#FFC107" />
+          <Text style={styles.locationPillText}>
+            Near {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
+          </Text>
+        </View>
+      )}
+
+      {locationError && !location && (
+        <View style={styles.errorBanner}>
+          <Icon name="exclamation-circle" size={wp(4)} color="#f59e0b" />
+          <Text style={styles.errorBannerText}>{locationError}</Text>
+          <TouchableOpacity onPress={onRefresh} style={styles.errorRetryBtn}>
+            <Text style={styles.errorRetryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {loading && !refreshing ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color="#FFC107" />
+          <Text style={styles.loadingText}>Finding nearby {title.toLowerCase()}…</Text>
+        </View>
+      ) : permissionDenied ? (
+        <View style={styles.emptyWrap}>
+          <IconMC name="map-marker-off" size={wp(18)} color="#444" />
+          <Text style={styles.emptyTitle}>Location access needed</Text>
+          <Text style={styles.emptyText}>
+            Enable location in Settings to see {title.toLowerCase()} near you.
+          </Text>
+          <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : places.length === 0 && !loading ? (
+        <View style={styles.emptyWrap}>
+          <IconMC name="map-search" size={wp(18)} color="#444" />
+          <Text style={styles.emptyTitle}>No places found</Text>
+          <Text style={styles.emptyText}>
+            We couldn't find {title.toLowerCase()} in your area. Try again or move to a different location.
+          </Text>
+          <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Refresh</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.fuelListContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#FFC107"
+            />
+          }
+        >
+          {places.map((place) => (
+            <View key={place.placeId || place.name} style={styles.fuelCard}>
+              <View style={styles.fuelCardLeft}>
+                <View style={styles.fuelCardIconWrap}>
+                  {(() => {
+                    const config = getPlaceById(placeType);
+                    if (config.iconSet === 'mc') {
+                      return <IconMC name={config.icon as any} size={wp(6)} color="#FFC107" />;
+                    }
+                    return <Icon name={config.icon as any} size={wp(6)} color="#FFC107" />;
+                  })()}
+                </View>
+                <View style={styles.fuelCardBody}>
+                  <Text style={styles.fuelCardName} numberOfLines={1}>{place.name}</Text>
+                  {place.address ? (
+                    <Text style={styles.fuelCardAddress} numberOfLines={2}>{place.address}</Text>
+                  ) : null}
+                  <View style={styles.fuelCardMeta}>
+                    <View style={styles.distanceBadge}>
+                      <Icon name="route" size={wp(3)} color="#888" />
+                      <Text style={styles.distanceText}>{place.distanceText}</Text>
+                    </View>
+                    {place.rating != null && (
+                      <View style={styles.ratingBadge}>
+                        <Icon name="star" size={wp(3)} color="#FFC107" solid />
+                        <Text style={styles.ratingText}>{place.rating.toFixed(1)}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.navigateBtn}
+                onPress={() => openMapsNavigation(place.latitude, place.longitude, place.name)}
+                activeOpacity={0.8}
+              >
+                <Icon name="directions" size={wp(4)} color="#0a0a0a" />
+                <Text style={styles.navigateBtnText}>Navigate</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
 export default function NearbyPlaces() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -95,6 +368,18 @@ export default function NearbyPlaces() {
   };
 
   if (!isBrowse) {
+    const apiType = placeType ? PLACE_API_TYPE[placeType] : undefined;
+    if (placeType && apiType) {
+      return (
+        <NearbyPlacesListScreen
+          onBack={() => navigation.goBack()}
+          title={title}
+          placeType={placeType}
+          apiType={apiType}
+        />
+      );
+    }
+
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
@@ -265,5 +550,170 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     marginTop: hp(1),
+  },
+  locationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: 20,
+    marginTop: hp(1),
+    gap: wp(1.5),
+  },
+  locationPillText: {
+    fontSize: wp(3.2),
+    color: '#aaa',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: wp(5),
+    marginTop: hp(2),
+    padding: wp(4),
+    backgroundColor: 'rgba(245,158,11,0.15)',
+    borderRadius: 12,
+    gap: wp(2),
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: wp(3.8),
+    color: '#f59e0b',
+  },
+  errorRetryBtn: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.6),
+  },
+  errorRetryText: {
+    fontSize: wp(3.8),
+    fontWeight: '600',
+    color: '#FFC107',
+  },
+  loadingWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: hp(4),
+  },
+  loadingText: {
+    marginTop: hp(2),
+    fontSize: wp(4),
+    color: '#888',
+  },
+  emptyWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(8),
+  },
+  emptyTitle: {
+    fontSize: wp(5),
+    fontWeight: '700',
+    color: '#fff',
+    marginTop: hp(2),
+  },
+  emptyText: {
+    fontSize: wp(4),
+    color: '#888',
+    textAlign: 'center',
+    marginTop: hp(1),
+  },
+  retryButton: {
+    marginTop: hp(3),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(1.2),
+    borderRadius: 10,
+  },
+  retryButtonText: {
+    fontSize: wp(4),
+    fontWeight: '600',
+    color: '#FFC107',
+  },
+  fuelListContent: {
+    paddingHorizontal: wp(4),
+    paddingTop: hp(1.5),
+    paddingBottom: hp(4),
+  },
+  fuelCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 14,
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  fuelCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: wp(3),
+  },
+  fuelCardIconWrap: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    backgroundColor: 'rgba(255,193,7,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(3),
+  },
+  fuelCardBody: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fuelCardName: {
+    fontSize: wp(4.2),
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: hp(0.3),
+  },
+  fuelCardAddress: {
+    fontSize: wp(3.2),
+    color: '#999',
+    marginBottom: hp(0.8),
+  },
+  fuelCardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+  },
+  distanceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  distanceText: {
+    fontSize: wp(3.2),
+    color: '#888',
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(0.8),
+  },
+  ratingText: {
+    fontSize: wp(3.2),
+    color: '#FFC107',
+    fontWeight: '600',
+  },
+  navigateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFC107',
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(1.2),
+    borderRadius: 10,
+    gap: wp(1.5),
+  },
+  navigateBtnText: {
+    fontSize: wp(3.5),
+    fontWeight: '700',
+    color: '#0a0a0a',
   },
 });

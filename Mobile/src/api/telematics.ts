@@ -58,6 +58,17 @@ export const telematicsApi = {
     },
 
     /**
+     * Get GPS path for a specific trip
+     */
+    async getTripPath(tripId: string): Promise<{ lat: number; lon: number; timestamp?: string }[]> {
+        const response = await axios.get(
+            `${API_URL}/telematics/trips/${tripId}/path`,
+            { headers: authHeaders() },
+        );
+        return response.data?.data || response.data || [];
+    },
+
+    /**
      * Get real-time AI driving coach advice
      * @param events Array of recent driving events (e.g. from the last few minutes)
      * @param context Additional context like current speed, weather, etc.

@@ -216,6 +216,35 @@ export const telematicsService = {
   },
 
   /**
+   * Get ordered GPS path points for a specific trip
+   */
+  async getTripPathById(tripId: string) {
+    const trip = await db.drivingTrip.findUnique({
+      where: { id: tripId },
+      include: {
+        events: {
+          orderBy: { timestamp: "asc" },
+        },
+      },
+    });
+
+    if (!trip) {
+      throw new Error("Trip not found");
+    }
+
+    return trip.events
+      .filter((e: any) => e.latitude != null && e.longitude != null)
+      .map((e: any) => ({
+        lat: e.latitude,
+        lon: e.longitude,
+        timestamp: e.timestamp,
+        speed: e.speed,
+        severity: e.severity,
+        eventType: e.eventType,
+      }));
+  },
+
+  /**
    * Pull trips for all active devices from Damoov API (Cron job Alternative)
    */
   async syncTripsForAllDevices() {

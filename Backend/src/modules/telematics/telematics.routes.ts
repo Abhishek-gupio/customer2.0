@@ -15,4 +15,7 @@ router.post("/link/:vehicleId", telematicsController.linkDevice);
 // Get Trip History
 router.get("/:vehicleId/trips", telematicsController.getTrips);
 
+// Get GPS path for a specific trip
+router.get("/trips/:tripId/path", telematicsController.getTripPath);
+
 export { router as telematicsRoutes };

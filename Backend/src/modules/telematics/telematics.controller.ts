@@ -75,4 +75,18 @@ export const telematicsController = {
     );
     success(res, result);
   }),
+
+  /**
+   * Get GPS path for a single trip
+   */
+  getTripPath: asyncHandler(async (req: Request, res: Response) => {
+    const { tripId } = req.params;
+
+    if (!tripId) {
+      throw AppError.badRequest("tripId is required");
+    }
+
+    const data = await telematicsService.getTripPathById(tripId as string);
+    success(res, data);
+  }),
 };

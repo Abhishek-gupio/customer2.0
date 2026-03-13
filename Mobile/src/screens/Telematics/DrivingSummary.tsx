@@ -245,7 +245,12 @@ export default function DrivingSummary({ navigation }: any) {
                     <Icon name="arrow-left" size={wp(5)} color="#fff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Driving Behavior</Text>
-                <View style={{ width: wp(10) }} />
+                <TouchableOpacity
+                    style={styles.timelineButton}
+                    onPress={() => navigation.navigate('DrivingTimeline')}
+                >
+                    <Text style={styles.timelineButtonText}>Timeline</Text>
+                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -423,6 +428,19 @@ const styles = StyleSheet.create({
         fontSize: wp(5),
         fontWeight: '700',
         color: '#fff',
+    },
+    timelineButton: {
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.6),
+        borderRadius: 999,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    timelineButtonText: {
+        color: '#fff',
+        fontSize: wp(3),
+        fontWeight: '600',
     },
     scrollContent: {
         paddingHorizontal: wp(5),
