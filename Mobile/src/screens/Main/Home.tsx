@@ -184,7 +184,7 @@ export default function Home() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
+        backgroundColor={Platform.OS === 'android' ? '#000000' : undefined}
       />
       <ScrollView
         style={styles.scroll}
@@ -516,7 +516,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
   },
   scroll: {
     flex: 1,
@@ -535,21 +535,21 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   sectionTitle: {
-    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
     fontSize: wp(5),
-    fontWeight: '700',
   },
   sectionTitleCenter: {
+    fontFamily: 'Outfit-Bold',
     fontSize: wp(5),
-    fontWeight: '700',
-    color: '#fff',
+    color: '#FFFFFF',
     marginBottom: hp(2),
     textAlign: 'center',
   },
   viewAllText: {
+    fontFamily: 'Outfit-Medium',
     color: '#ccc',
     fontSize: wp(3.5),
-    fontWeight: '500',
   },
 
   /* PREMIUM VEHICLE HEADER */
@@ -575,29 +575,29 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   headerNumberPlate: {
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     fontSize: wp(7),
-    fontWeight: '800',
     letterSpacing: 1,
   },
   headerCarModel: {
+    fontFamily: 'Outfit-Medium',
     color: '#aaa',
     fontSize: wp(4),
-    fontWeight: '500',
     marginTop: hp(0.2),
   },
   healthSection: {
     marginTop: hp(2.5),
   },
   healthText: {
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     fontSize: wp(5.5),
-    fontWeight: '700',
   },
   healthLabel: {
+    fontFamily: 'Outfit-SemiBold',
     color: '#4ade80', // Greenish
     fontSize: wp(4.5),
-    fontWeight: '600',
   },
   healthBarBg: {
     width: wp(45),
@@ -624,14 +624,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footerLabel: {
+    fontFamily: 'Outfit-Medium',
     color: '#999',
     fontSize: wp(3),
-    fontWeight: '500',
   },
   footerValue: {
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     fontSize: wp(3.8),
-    fontWeight: '700',
     marginTop: hp(0.2),
   },
   headerCarImage: {
@@ -680,15 +680,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   indText: {
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     fontSize: wp(2.6),
-    fontWeight: '800',
   },
   numberPlateInput: {
+    fontFamily: 'Outfit-SemiBold',
     flex: 1,
     color: '#fff',
     fontSize: wp(3.8),
-    fontWeight: '600',
     paddingHorizontal: wp(2),
   },
   searchButton: {
@@ -776,12 +776,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bannerTitle: {
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     fontSize: wp(4),
-    fontWeight: '700',
     marginBottom: hp(0.5),
   },
   bannerDesc: {
+    fontFamily: 'Outfit-Regular',
     color: '#999',
     fontSize: wp(3.2),
     lineHeight: hp(2.2),
@@ -799,7 +800,7 @@ const styles = StyleSheet.create({
   payNowText: {
     color: '#0a0a0a',
     fontSize: wp(3.2),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
 
   /* TRENDING VIDEOS */
@@ -827,7 +828,7 @@ const styles = StyleSheet.create({
   tagText: {
     color: '#0a0a0a',
     fontSize: wp(2.8),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   videoThumbnail: {
     width: '100%',
@@ -859,13 +860,13 @@ const styles = StyleSheet.create({
     paddingVertical: hp(0.3),
     borderRadius: 4,
     fontSize: wp(3),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
     zIndex: 11,
   },
   videoTitle: {
     color: '#fff',
     fontSize: wp(3.5),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
     padding: wp(3),
     lineHeight: hp(2.2),
   },
@@ -884,7 +885,7 @@ const styles = StyleSheet.create({
   newsTitle: {
     color: '#fff',
     fontSize: wp(4),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
     marginBottom: hp(0.5),
   },
   newsSnippet: {
@@ -916,7 +917,7 @@ const styles = StyleSheet.create({
   fuelHeaderTitle: {
     color: '#333',
     fontSize: wp(3.8),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
   },
   stateButton: {
     backgroundColor: '#fff',
@@ -930,7 +931,7 @@ const styles = StyleSheet.create({
   stateButtonText: {
     color: '#0a0a0a',
     fontSize: wp(3.2),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   fuelContentCard: {
     backgroundColor: '#1a1a1a',
@@ -951,12 +952,12 @@ const styles = StyleSheet.create({
   fuelInlineLabel: {
     color: '#999',
     fontSize: wp(3.5),
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
   },
   fuelInlineValue: {
     color: '#FFC107',
     fontSize: wp(4.2),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   fuelInlineSpacer: {
     width: 1,
@@ -974,7 +975,7 @@ const styles = StyleSheet.create({
   viewTrendsText: {
     color: '#fff',
     fontSize: wp(3.2),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
   },
   fuelLoader: {
     marginVertical: hp(2),
@@ -1012,7 +1013,7 @@ const styles = StyleSheet.create({
   featureTitle: {
     color: '#fff',
     fontSize: wp(3.2),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
     marginTop: hp(1),
     textAlign: 'center',
   },
@@ -1042,7 +1043,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     color: '#fff',
     fontSize: wp(5),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   stateOption: {
     flexDirection: 'row',
@@ -1059,7 +1060,7 @@ const styles = StyleSheet.create({
   stateOptionText: {
     color: '#fff',
     fontSize: wp(4),
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
   },
 
   /* STATE SEARCH */
@@ -1082,7 +1083,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: wp(3.8),
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
     paddingVertical: hp(1),
   },
 });

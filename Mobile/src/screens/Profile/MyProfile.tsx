@@ -407,7 +407,7 @@ export default function MyProfile() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#111" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
 
       {/* ── Custom Minimal Alert Popup Modal ── */}
       <Modal
@@ -506,7 +506,7 @@ export default function MyProfile() {
                   >
                     <MaterialIcon name="close" size={24} color="#fff" />
                   </TouchableOpacity>
-                  <Text style={styles.bottomSheetTitle}>Profile picture</Text>
+                  <Text style={[styles.bottomSheetTitle, { fontFamily: 'Outfit-Bold' }]}>Profile picture</Text>
                   <TouchableOpacity
                     onPress={handleDeleteProfilePic}
                     activeOpacity={0.7}
@@ -524,7 +524,7 @@ export default function MyProfile() {
                     onPress={handleCameraOption}
                   >
                     <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-camera" size={22} color="#aaa" />
+                      <MaterialIcon name="photo-camera" size={22} color="#FFFFFF" />
                     </View>
                     <Text style={styles.bottomSheetOptionText}>Camera</Text>
                   </TouchableOpacity>
@@ -535,7 +535,7 @@ export default function MyProfile() {
                     onPress={handleGalleryOption}
                   >
                     <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-library" size={22} color="#aaa" />
+                      <MaterialIcon name="photo-library" size={22} color="#FFFFFF" />
                     </View>
                     <Text style={styles.bottomSheetOptionText}>Gallery</Text>
                   </TouchableOpacity>
@@ -546,7 +546,7 @@ export default function MyProfile() {
                     onPress={handleAvatarOption}
                   >
                     <View style={styles.bottomSheetIconWrap}>
-                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#aaa" />
+                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#FFFFFF" />
                     </View>
                     <Text style={styles.bottomSheetOptionText}>Avatar</Text>
                   </TouchableOpacity>
@@ -574,7 +574,7 @@ export default function MyProfile() {
             >
               <Icon name="arrow-left" size={20} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.avatarModalTitle}>Choose Avatar</Text>
+            <Text style={[styles.avatarModalTitle, { fontFamily: 'Outfit-Bold' }]}>Choose Avatar</Text>
             <View style={{ width: 40 }} />
           </View>
 
@@ -643,9 +643,12 @@ export default function MyProfile() {
       >
         {/* ── Top Header Bar: back arrow + settings gear ── */}
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
-            <Icon name="arrow-left" size={wp(5)} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
+              <Icon name="arrow-left" size={wp(5)} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
+          </View>
           <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Settings' as any)}>
             <Icon name="cog" size={wp(5)} color="#888" />
           </TouchableOpacity>
@@ -667,7 +670,7 @@ export default function MyProfile() {
                   />
                 ) : (
                   <View style={styles.avatarPlaceholder}>
-                    <Icon name="user" size={wp(8)} color="#e5e5e5" />
+                    <Icon name="user" size={wp(8)} color="#FFFFFF" />
                   </View>
                 )}
               </View>
@@ -680,13 +683,13 @@ export default function MyProfile() {
               {saving ? (
                 <ActivityIndicator size="small" color="#000" />
               ) : (
-                <Icon name="camera" size={wp(3)} color="#000" />
+                <Icon name="camera" size={wp(3.2)} color="#000" />
               )}
             </TouchableOpacity>
           </View>
 
           <View style={styles.identityTextInfo}>
-            <Text style={styles.profileName}>{profile.fullName || 'New User'}</Text>
+            <Text style={styles.profileName}>{profile.fullName || 'User'}</Text>
           </View>
         </View>
 
@@ -698,7 +701,7 @@ export default function MyProfile() {
             <View style={styles.headerActions}>
               {!isEditing ? (
                 <TouchableOpacity style={styles.editPill} onPress={handleEdit}>
-                  <Icon name="pen" size={10} color="#FFC107" />
+                  <Icon name="pen" size={10} color="#FFBF00" />
                   <Text style={styles.editPillText}>Edit</Text>
                 </TouchableOpacity>
               ) : (
@@ -745,7 +748,7 @@ export default function MyProfile() {
           />
 
           <VerticalInfoRow
-            icon="phone"
+            icon="phone-alt"
             label="Phone Number"
             value={isEditing ? editData.phone : profile.phone}
             isEditing={isEditing}
@@ -806,7 +809,7 @@ function VerticalInfoRow({
   return (
     <View style={styles.verticalRow}>
       <View style={styles.vIconWrap}>
-        <Icon name={icon} size={wp(3.5)} color="#aaa" />
+        <Icon name={icon} size={wp(3.8)} color="#aaa" />
       </View>
       <View style={styles.vContentWrap}>
         <Text style={styles.vLabel}>{label}</Text>
@@ -838,10 +841,10 @@ function VerticalInfoRow({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0b0e' },
+  container: { flex: 1, backgroundColor: '#000000' },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0a0b0e',
+    backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -865,6 +868,16 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3.5),
+  },
+  headerTitle: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(6),
+    color: '#FFFFFF',
   },
 
   /* ── Identity Row ── */
@@ -900,34 +913,38 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: '100%',
     height: '100%',
+    borderColor: '#FFBF00',
+    borderWidth: 2,
+    borderRadius: wp(10),
   },
   cameraBtn: {
     position: 'absolute',
     bottom: 0,
-    right: -5,
-    backgroundColor: '#e5e5e5',
-    width: wp(7),
-    height: wp(7),
-    borderRadius: wp(3.5),
+    right: -2,
+    backgroundColor: '#FFFFFF',
+    width: wp(7.5),
+    height: wp(7.5),
+    borderRadius: wp(3.75),
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#0a0b0e',
+    borderWidth: 1,
+    borderColor: '#000',
+    elevation: 4,
   },
   identityTextInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(6),
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   profileMeta: {
+    fontFamily: 'Outfit-Regular',
     fontSize: 12,
     color: '#888',
     marginTop: 2,
-    fontWeight: '400',
   },
   settingsBtn: {
     padding: 10,
@@ -938,15 +955,15 @@ const styles = StyleSheet.create({
   },
 
   infoCard: {
-    backgroundColor: '#151518',
+    backgroundColor: '#121212',
     marginHorizontal: wp(4),
     marginTop: hp(1),
     paddingTop: wp(6),
     paddingHorizontal: wp(5),
     paddingBottom: wp(2),
-    borderRadius: 24,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#222222',
   },
   cardHeaderLarge: {
     flexDirection: 'row',
@@ -955,10 +972,10 @@ const styles = StyleSheet.create({
     marginBottom: hp(3),
   },
   cardInfoTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    lineHeight: 24,
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
+    fontSize: wp(4.8),
+    letterSpacing: -0.2,
   },
   headerActions: {
     flexDirection: 'row',
@@ -968,18 +985,18 @@ const styles = StyleSheet.create({
   editPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+    backgroundColor: 'rgba(255, 191, 0, 0.1)',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FFC107',
+    borderColor: '#FFBF00',
     gap: 6,
   },
   editPillText: {
-    color: '#FFC107',
+    fontFamily: 'Outfit-SemiBold',
+    color: '#FFBF00',
     fontSize: 12,
-    fontWeight: '600',
   },
   cancelBtn: {
     width: 32,
@@ -994,16 +1011,16 @@ const styles = StyleSheet.create({
   savePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e5e5e5',
+    backgroundColor: '#FFBF00',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   savePillText: {
+    fontFamily: 'Outfit-Bold',
     color: '#000',
     fontSize: 12,
-    fontWeight: '700',
   },
 
   verticalRow: {
@@ -1015,33 +1032,33 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: 20,
-    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(3),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#222222',
+    backgroundColor: '#0A0A0A',
   },
   vContentWrap: {
     flex: 1,
   },
   vLabel: {
+    fontFamily: 'Outfit-Medium',
     color: '#888',
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: wp(3.2),
     marginBottom: 4,
   },
   inputContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 15,
+    backgroundColor: '#0A0A0A',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#222222',
   },
   inputContainerActive: {
-    borderColor: '#e5e5e5',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   inputContainerError: {
     borderColor: '#ff4444',
@@ -1054,33 +1071,36 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   vValue: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
+    fontSize: wp(4),
+    letterSpacing: -0.1,
   },
   vInput: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
+    fontSize: wp(4),
     padding: 0,
+    letterSpacing: -0.1,
   },
 
   statsCard: {
-    backgroundColor: '#111216',
+    backgroundColor: '#121212',
     marginHorizontal: wp(4),
     marginTop: hp(2),
-    paddingTop: wp(5),
+    paddingTop: wp(6),
     paddingHorizontal: wp(5),
     paddingBottom: wp(6),
-    borderRadius: 24,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#222222',
   },
   statsTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
+    fontSize: wp(4.8),
     marginBottom: hp(2.5),
+    letterSpacing: -0.2,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1091,15 +1111,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '800',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
+    fontSize: wp(6.5),
     marginBottom: 4,
+    letterSpacing: -0.3,
   },
   statLabel: {
+    fontFamily: 'Outfit-Medium',
     color: '#888',
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: wp(3.2),
   },
 
   /* ── Photo Preview Modal ── */
@@ -1238,8 +1259,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1b1f',
   },
   avatarGridItemSelected: {
-    borderColor: '#25D366',
-    backgroundColor: 'rgba(37,211,102,0.08)',
+    borderColor: '#FFBF00',
+    backgroundColor: 'rgba(255,191,0,0.08)',
   },
   avatarGridImage: {
     width: AVATAR_ITEM_SIZE - 24,
@@ -1254,7 +1275,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#25D366',
+    backgroundColor: '#FFBF00',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1265,7 +1286,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   avatarGridLabelSelected: {
-    color: '#25D366',
+    color: '#FFBF00',
   },
   avatarConfirmWrap: {
     position: 'absolute',
@@ -1280,7 +1301,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.08)',
   },
   avatarConfirmBtn: {
-    backgroundColor: '#25D366',
+    backgroundColor: '#FFBF00',
     borderRadius: 14,
     paddingVertical: hp(1.8),
     alignItems: 'center',
@@ -1336,9 +1357,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   popupBtnTextMinimal: {
-    color: '#FFC107',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
     fontSize: 15,
-    fontWeight: '700',
     letterSpacing: 0.5,
   },
 });

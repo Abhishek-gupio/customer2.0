@@ -12,6 +12,7 @@ import com.wenkesj.voice.VoicePackage
 import com.swmansion.rnscreens.RNScreensPackage
 import com.brentvatne.react.ReactVideoPackage
 import com.horcrux.svg.SvgPackage
+import cl.json.RNSharePackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -26,6 +27,7 @@ class MainApplication : Application(), ReactApplication {
             add(RNScreensPackage())
             add(ReactVideoPackage())
             add(SvgPackage())
+            add(RNSharePackage())
         },
     )
   }

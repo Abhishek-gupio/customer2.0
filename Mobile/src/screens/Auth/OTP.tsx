@@ -124,14 +124,14 @@ export default function OTP() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-          <Image
-            source={require('../../assets/images/logo.png') as ImageSourcePropType}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-      
+        <Image
+          source={require('../../assets/images/logo.png') as ImageSourcePropType}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-        <Text style={styles.title}>ENTER OTP</Text>
+
+        <Text style={styles.title}>Enter OTP</Text>
         <Text style={styles.subtitle}>OTP sent on Your registered Phone number</Text>
 
         {!keyboardVisible && (
@@ -187,15 +187,14 @@ export default function OTP() {
 const styles = StyleSheet.create({
   keyboard: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: wp(8),
-    paddingTop: hp(12),
-    paddingBottom: hp(5),
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(4),
   },
   backButton: {
     position: 'absolute',
@@ -210,76 +209,83 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   logo: {
-    width: wp(40),
+    width: wp(48),
     height: hp(6),
-    marginBottom: hp(2),
+    marginBottom: hp(4),
   },
   title: {
-    fontSize: wp(6.5),
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: hp(1),
-    letterSpacing: 1,
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(8),
+    color: '#FFFFFF',
+    marginBottom: hp(1.5),
+    letterSpacing: -0.5,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: wp(3.8),
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: hp(2.5),
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(4.2),
+    color: 'rgba(255,255,255,0.4)',
+    marginBottom: hp(5),
     textAlign: 'center',
+    lineHeight: wp(6),
   },
   illustration: {
-    width: wp(75),
-    height: hp(20),
-    marginBottom: hp(2.5),
+    width: wp(65),
+    height: hp(18),
+    marginBottom: hp(4),
   },
   inputCodeLabel: {
-    fontSize: wp(4),
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: hp(1.5),
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.8),
+    color: '#888',
+    marginBottom: hp(2),
     textAlign: 'center',
   },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: wp(2.5),
-    marginBottom: hp(2),
+    marginBottom: hp(4),
   },
   otpBox: {
     width: wp(12),
     height: hp(6.5),
-    backgroundColor: '#fff',
-    borderRadius: wp(2),
+    backgroundColor: '#000000',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.12)',
+    borderColor: '#333',
     fontSize: wp(5.5),
-    fontWeight: '600',
-    color: '#111',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFFFFF',
     textAlign: 'center',
     padding: 0,
   },
   devOtpText: {
+    fontFamily: 'Outfit-Bold',
     fontSize: wp(4),
-    color: '#FFBF00',
+    color: '#FFFFFF',
     marginBottom: hp(2),
-    fontWeight: '600',
     textAlign: 'center',
   },
   confirmButton: {
     width: '100%',
-    maxWidth: 320,
     backgroundColor: '#FFBF00',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 18,
+    height: 62,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
   confirmText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-    letterSpacing: 1,
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(4.5),
+    color: '#000000',
+    letterSpacing: 0,
+    fontWeight: '900',
   },
   confirmButtonDisabled: {
     opacity: 0.7,

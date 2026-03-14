@@ -40,7 +40,7 @@ import RNFS from 'react-native-fs';
 async function openShare(options: { fileUrl: string; fileName?: string; type?: string }): Promise<void> {
   const { fileUrl, fileName = 'Document', type = 'application/pdf' } = options;
   try {
-    const RNShare = require('react-native-share').default;
+    const RNShare = (require('react-native-share') as any).default;
     await RNShare.open({
       urls: [fileUrl],
       type,

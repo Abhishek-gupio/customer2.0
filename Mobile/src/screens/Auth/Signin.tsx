@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   type ImageSourcePropType,
+  Animated as RNAnimated,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -30,6 +31,21 @@ export default function Signin() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [buttonScale] = useState(() => new RNAnimated.Value(1));
+
+  const handlePressIn = () => {
+    RNAnimated.spring(buttonScale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    RNAnimated.spring(buttonScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handleSubmit = async () => {
     const digits = phone.replace(/\D/g, '');
@@ -97,7 +113,7 @@ export default function Signin() {
         <Text style={styles.subtitle}>Sign in to continue</Text>
 
         <View style={styles.inputWrap}>
-          <Icon name="phone" size={wp(5)} color="#AAAAAA" style={styles.inputIcon} />
+          <Icon name="phone-alt" size={wp(5)} color="#AAAAAA" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter phone number"
@@ -111,21 +127,26 @@ export default function Signin() {
         </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#000" />
-          ) : (
-            <>
-              <Text style={styles.submitText}>Submit</Text>
-              <Icon name="arrow-right" size={wp(5)} color="#000" />
-            </>
-          )}
-        </TouchableOpacity>
+
+        <RNAnimated.View style={{ width: '100%', transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <>
+                <Text style={styles.submitText}>Submit</Text>
+                <Icon name="arrow-right" size={wp(5)} color="#000" />
+              </>
+            )}
+          </TouchableOpacity>
+        </RNAnimated.View>
 
         <View style={styles.orRow}>
           <View style={styles.orLine} />
@@ -136,20 +157,26 @@ export default function Signin() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.socialButton}
-          onPress={() => {}}
+          onPress={() => { }}
         >
-          <Icon name="google" size={wp(5)} color="#fff" style={styles.socialIcon} />
+          <Image
+            source={require('../../assets/images/google_g.png') as ImageSourcePropType}
+            style={styles.googleIcon}
+            resizeMode="contain"
+          />
           <Text style={styles.socialText}>Sign in with Google</Text>
         </TouchableOpacity>
 
+        {/* 
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.socialButton}
-          onPress={() => {}}
+          onPress={() => { }}
         >
           <Icon name="apple" size={wp(5.5)} color="#fff" style={styles.socialIcon} />
           <Text style={styles.socialText}>Sign in with Apple</Text>
         </TouchableOpacity>
+        */}
 
         <Text style={styles.footerText}>Don't have an account?</Text>
         <TouchableOpacity
@@ -177,43 +204,48 @@ const styles = StyleSheet.create({
     paddingVertical: hp(4),
   },
   logoWrap: {
-    marginBottom: hp(3),
+    marginBottom: hp(4),
     alignItems: 'center',
   },
   logo: {
-    width: wp(45),
+    width: wp(48),
     height: hp(7),
   },
   welcomeBack: {
-    fontSize: wp(7),
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: hp(0.8),
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(8),
+    color: '#FFFFFF',
+    marginBottom: hp(1.5),
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: wp(4),
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: hp(4),
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(4.2),
+    color: 'rgba(255,255,255,0.4)',
+    marginBottom: hp(5),
     textAlign: 'center',
+    lineHeight: wp(6),
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: '#282828',
-    borderRadius: wp(3.5),
+    backgroundColor: '#000000',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: wp(4),
-    height: hp(6.5),
-    marginBottom: hp(1.8),
+    borderColor: '#333',
+    paddingHorizontal: wp(5),
+    height: 62,
+    marginBottom: hp(2),
   },
   inputIcon: {
     marginRight: wp(3),
+    width: wp(5.5),
+    textAlign: 'center',
   },
   input: {
+    fontFamily: 'Outfit-Regular',
     flex: 1,
     fontSize: wp(4),
     color: '#fff',
@@ -225,15 +257,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     backgroundColor: '#FFBF00',
-    borderRadius: wp(3.5),
-    height: hp(6.5),
-    marginBottom: hp(3.5),
-    gap: wp(2),
+    borderRadius: 18,
+    height: 62,
+    marginBottom: hp(4),
+    gap: wp(3),
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
   submitText: {
-    fontSize: wp(4),
-    fontWeight: '700',
-    color: '#000',
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(4.5),
+    color: '#000000',
+    letterSpacing: 0,
+    fontWeight: '900',
   },
   submitButtonDisabled: {
     opacity: 0.7,
@@ -257,6 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   orText: {
+    fontFamily: 'Outfit-Regular',
     fontSize: wp(3.5),
     color: '#888',
     marginHorizontal: wp(3.5),
@@ -266,39 +306,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    backgroundColor: '#202020',
-    borderRadius: wp(3.5),
-    height: hp(6.5),
+    backgroundColor: '#0A0A0A',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 18,
+    height: 62,
     marginBottom: hp(1.5),
+  },
+  googleIcon: {
+    width: 15,
+    height: 15,
+    marginRight: wp(3),
   },
   socialIcon: {
     marginRight: wp(3),
   },
   socialText: {
-    fontSize: wp(4),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(4.5),
     color: '#fff',
+    letterSpacing: 0.5,
   },
   footerText: {
+    fontFamily: 'Outfit-Regular',
     fontSize: wp(3.8),
     color: '#888',
-    marginTop: hp(3),
+    marginTop: hp(3.5),
     marginBottom: hp(1.2),
     textAlign: 'center',
   },
   signUpButton: {
     width: '100%',
-    backgroundColor: '#111',
-    borderRadius: wp(3.5),
+    backgroundColor: '#0A0A0A',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    height: hp(6.5),
+    borderColor: '#333',
+    height: 62,
     alignItems: 'center',
     justifyContent: 'center',
   },
   signUpText: {
-    fontSize: wp(4),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(4.5),
     color: '#fff',
+    letterSpacing: 0.5,
   },
 });
