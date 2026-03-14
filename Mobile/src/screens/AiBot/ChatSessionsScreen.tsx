@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { chatService, type ChatSession } from '../../services/chatService';
+import BackButton from '../../components/BackButton';
 
 export default function ChatSessionsScreen() {
     const navigation = useNavigation();
@@ -86,9 +87,7 @@ export default function ChatSessionsScreen() {
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
             {/* Header */}
             <View style={styles.header}>
-                <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                </Pressable>
+                <BackButton onPress={() => navigation.goBack()} />
                 <Text style={styles.headerTitle}>Chat History</Text>
                 <Pressable onPress={startNewChat} hitSlop={12}>
                     <Ionicons name="create-outline" size={22} color="#9fb3ff" />

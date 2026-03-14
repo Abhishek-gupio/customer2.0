@@ -21,6 +21,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { useRoute, useNavigation, type RouteProp } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -173,13 +174,7 @@ export default function OTP() {
       style={styles.keyboard}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <TouchableOpacity
-        activeOpacity={0.85}
-        style={styles.backButton}
-        onPress={() => navigation.navigate('Signin')}
-      >
-        <Icon name="arrow-left" size={wp(5.5)} color="#fff" />
-      </TouchableOpacity>
+      <BackButton onPress={() => navigation.navigate('Signin')} isAbsolute={true} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -374,7 +369,7 @@ const styles = StyleSheet.create({
   },
   resendButtonText: {
     fontSize: wp(3.8),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#000',
   },
   confirmButton: {
@@ -395,7 +390,6 @@ const styles = StyleSheet.create({
     fontSize: wp(4.5),
     color: '#000000',
     letterSpacing: 0,
-    fontWeight: '900',
   },
   confirmButtonDisabled: {
     opacity: 0.7,

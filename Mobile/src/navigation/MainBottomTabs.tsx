@@ -164,7 +164,7 @@ export function MainBottomTabs() {
           }}
           listeners={({ navigation }) => ({
             tabPress: () => {
-              navigation.navigate('Services', { screen: 'ServicesHome' });
+              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
             },
           })}
         />

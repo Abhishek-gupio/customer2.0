@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FS.header,
-    fontWeight: FW.header,
+    fontFamily: 'Outfit-Bold',
     color: colors.Primary,
   },
   subtitle: {
     fontSize: FS.subHeader,
-    fontWeight: FW.subHeader,
+    fontFamily: 'Outfit-Medium',
     color: colors.Secondary,
   },
   searchBar: {
@@ -261,6 +261,6 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: colors.Background,
     fontSize: FS.subHeader,
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
   },
 });

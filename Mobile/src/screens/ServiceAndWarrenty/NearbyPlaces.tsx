@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import { placesService, type NearbyPlace } from '../../services/placesService';
+import BackButton from '../../components/BackButton';
 
 let Geolocation: any = null;
 try {
@@ -245,9 +246,7 @@ function NearbyPlacesListScreen({
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={onBack} />
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
 
@@ -383,9 +382,7 @@ export default function NearbyPlaces() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={wp(5)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
         <View style={styles.placeholder}>
@@ -402,9 +399,7 @@ export default function NearbyPlaces() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
       <ScrollView
@@ -464,7 +459,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
     borderBottomColor: '#1a1a1a',
@@ -477,9 +472,10 @@ const styles = StyleSheet.create({
     marginRight: wp(3),
   },
   headerTitle: {
-    fontSize: wp(5),
+    fontSize: wp(5.5),
     fontWeight: '700',
     color: '#fff',
+    marginLeft: wp(3),
   },
   scrollContent: {
     paddingTop: hp(2),

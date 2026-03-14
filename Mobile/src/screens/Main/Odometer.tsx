@@ -236,13 +236,13 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: wp(6),
-    fontWeight: '800',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
   },
   vehicleSub: {
     fontSize: wp(4),
     color: '#FFBF00',
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
     marginTop: 4,
   },
   vehicleMeta: {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   currentValue: {
     fontSize: wp(8),
-    fontWeight: '800',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
     marginTop: 4,
   },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: wp(4),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     marginBottom: 8,
   },
@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   btn: {
-    borderRadius: 12,
-    paddingVertical: hp(2),
+    borderRadius: 18,
+    height: 62,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   btnPrimaryText: {
     fontSize: wp(4.2),
-    fontWeight: '800',
+    fontFamily: 'Outfit-Black',
     color: '#000',
   },
   btnDisabled: {
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   btnSecondaryText: {
     fontSize: wp(4),
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
   },
   emptyText: {

@@ -64,19 +64,26 @@ export default function Home() {
     loadData();
   }, [selectedState]);
 
-  // Auto-scroll carousel every 5 seconds (3 minutes is too long for a UI carousel)
+  // Auto-scroll carousel every 5 seconds
+  // Use a ref to avoid stale closure & re-creating the interval on every slide,
+  // which caused IllegalStateException from conflicting Animated frame timestamps.
+  const carouselIndexRef = useRef(0);
   useEffect(() => {
     const timer = setInterval(() => {
-      let nextIndex = (carouselIndex + 1) % 4; // 4 items
+      const nextIndex = (carouselIndexRef.current + 1) % 4;
+      carouselIndexRef.current = nextIndex;
       setCarouselIndex(nextIndex);
-      carouselRef.current?.scrollToIndex({
-        index: nextIndex,
-        animated: true,
-      });
+      try {
+        carouselRef.current?.scrollToIndex({
+          index: nextIndex,
+          animated: true,
+        });
+      } catch (_) {
+        // guard against layout-not-ready race
+      }
     }, 5000);
-
     return () => clearInterval(timer);
-  }, [carouselIndex]);
+  }, []); // ← empty deps: interval is created once, uses ref internally
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
@@ -717,8 +724,8 @@ const styles = StyleSheet.create({
   /* PREMIUM VEHICLE HEADER */
   headerWrapper: {
     width: '100%',
-    height: hp(32), // Increased from hp(28) to give more breathing room
-    backgroundColor: '#1a1c2e',
+    height: hp(32),
+    backgroundColor: '#0d0f14',
     paddingTop: 0,
   },
   headerContent: {
@@ -758,7 +765,7 @@ const styles = StyleSheet.create({
   },
   healthLabel: {
     fontFamily: 'Outfit-SemiBold',
-    color: '#4ade80', // Greenish
+    color: '#32D74B', // Premium Emerald Green
     fontSize: wp(4.5),
   },
   healthBarBg: {
@@ -771,7 +778,7 @@ const styles = StyleSheet.create({
   },
   healthBarFill: {
     height: '100%',
-    backgroundColor: '#4ade80',
+    backgroundColor: '#32D74B',
     borderRadius: 4,
   },
   headerFooter: {
@@ -813,8 +820,10 @@ const styles = StyleSheet.create({
   },
   overlayIconButton: {
     padding: wp(2.5),
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
 
   /* CAROUSEL SLIDE STYLES */
@@ -840,7 +849,7 @@ const styles = StyleSheet.create({
   promoSubtitle: {
     color: '#aaa',
     fontSize: wp(3.5),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: hp(0.5),
@@ -848,12 +857,13 @@ const styles = StyleSheet.create({
   promoTitle: {
     color: '#fff',
     fontSize: wp(5.5),
-    fontWeight: '800',
+    fontFamily: 'Outfit-Black',
     marginBottom: hp(1.5),
   },
   promoDesc: {
     color: '#ccc',
     fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
     lineHeight: hp(2),
     marginBottom: hp(2),
   },
@@ -866,15 +876,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.8),
-    borderRadius: 6,
+    paddingHorizontal: wp(4),
+    height: 48,
+    borderRadius: 12,
     gap: wp(1.5),
   },
   promoBtnText: {
     color: '#000',
-    fontSize: wp(3),
-    fontWeight: '700',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
   },
   promoAction: {
     flexDirection: 'row',
@@ -919,10 +929,10 @@ const styles = StyleSheet.create({
   numberPlateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 8,
+    backgroundColor: '#111111',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: 'rgba(255,255,255,0.08)',
     height: hp(5.5),
     overflow: 'hidden',
   },
@@ -994,12 +1004,12 @@ const styles = StyleSheet.create({
   detailLabel: {
     color: '#999',
     fontSize: wp(3),
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
   },
   detailValue: {
     color: '#fff',
     fontSize: wp(3.2),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
   },
   chevronIcon: {
     alignSelf: 'center',
@@ -1011,14 +1021,15 @@ const styles = StyleSheet.create({
     marginBottom: hp(2.5),
   },
   insuranceBanner: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    paddingHorizontal: wp(3),
-    paddingVertical: wp(3),
+    backgroundColor: '#111111',
+    borderRadius: 16,
+    paddingHorizontal: wp(4),
+    paddingVertical: wp(4),
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 0,
-    gap: wp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    gap: wp(3),
   },
   bannerImage: {
     width: wp(20),
@@ -1042,7 +1053,7 @@ const styles = StyleSheet.create({
     lineHeight: hp(2.2),
   },
   payNowButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#FFBF00',
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.6),
     borderRadius: 6,
@@ -1064,10 +1075,11 @@ const styles = StyleSheet.create({
   videoCard: {
     width: wp(60),
     marginRight: wp(4),
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
+    backgroundColor: '#111111',
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   videoTag: {
     position: 'absolute',
@@ -1127,11 +1139,12 @@ const styles = StyleSheet.create({
 
   /* NEWS CARDS */
   newsCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 10,
-    padding: wp(4),
+    backgroundColor: '#111111',
+    borderRadius: 16,
+    padding: wp(4.5),
     marginBottom: hp(1.5),
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   newsContent: {
     flex: 1,
@@ -1156,12 +1169,14 @@ const styles = StyleSheet.create({
   fuelSection: {
     marginHorizontal: wp(5),
     marginBottom: hp(2.5),
-    borderRadius: 14,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#111111',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   fuelHeaderBanner: {
-    backgroundColor: '#bbec50ff', // Sky Blue background
+    backgroundColor: '#FFBF00',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
     flexDirection: 'row',
@@ -1188,9 +1203,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
   },
   fuelContentCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#111111',
     paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
+    paddingVertical: hp(2.5),
     gap: hp(1.5),
   },
   fuelInlineContainer: {
@@ -1209,7 +1224,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   fuelInlineValue: {
-    color: '#FFC107',
+    color: '#FFBF00',
     fontSize: wp(4.2),
     fontFamily: 'Outfit-Bold',
   },
@@ -1249,13 +1264,13 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 14,
-    paddingVertical: hp(2),
+    backgroundColor: '#111111',
+    borderRadius: 16,
+    paddingVertical: hp(2.5),
     paddingHorizontal: wp(2),
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   comingSoonBadge: {
     width: wp(90),

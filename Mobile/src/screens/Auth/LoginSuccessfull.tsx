@@ -53,13 +53,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: wp(6),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     marginBottom: hp(1),
     textAlign: 'center',
   },
   subtitle: {
     fontSize: wp(4),
+    fontFamily: 'Outfit-Regular',
     color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
   },

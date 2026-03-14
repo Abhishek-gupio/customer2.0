@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, StatusBar, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Polyline } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { telematicsApi } from '../../api/telematics';
+import BackButton from '../../components/BackButton';
 
 type Props = {
   navigation: any;
@@ -48,13 +50,11 @@ export default function TripDetail({ navigation, route }: Props) {
       };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined} />
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Trip details</Text>
-        <View style={{ width: wp(10) }} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -92,12 +92,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
   },
   backButton: { width: wp(10), height: wp(10), justifyContent: 'center' },
-  headerTitle: { fontSize: wp(5), fontWeight: '700', color: '#fff' },
+  headerTitle: { flex: 1, fontSize: wp(5.5), fontWeight: '700', color: '#fff', marginLeft: wp(3) },
   mapContainer: {
     flex: 1,
     marginHorizontal: wp(4),

@@ -35,6 +35,7 @@ import { removeDocumentAsync, fetchDocumentById } from '../../store/slices/docum
 import { API_BASE_URL } from '../../config';
 import { jsPDF } from 'jspdf';
 import RNFS from 'react-native-fs';
+import BackButton from '../../components/BackButton';
 
 /** Open share sheet. Uses react-native-share if the native module is linked, otherwise falls back to RN Share. */
 async function openShare(options: { fileUrl: string; fileName?: string; type?: string }): Promise<void> {
@@ -278,11 +279,8 @@ export default function DocumentDetail({ route }: Props) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={wp(5)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <Text style={styles.headerTitle}>Document</Text>
-          <View style={{ width: wp(10) }} />
         </View>
         <View style={styles.emptyState}>
           <ActivityIndicator size="large" color="#FFBF00" />
@@ -329,13 +327,7 @@ export default function DocumentDetail({ route }: Props) {
       />
 
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.85}
-        >
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle} numberOfLines={1}>
           {doc.type} {doc.vehicle ? `– ${doc.vehicle}` : ''}
         </Text>
@@ -499,9 +491,7 @@ export default function DocumentDetail({ route }: Props) {
         >
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowPdf(false)} style={styles.modalCloseBtn}>
-                <Icon name="arrow-left" size={wp(5)} color="#fff" />
-              </TouchableOpacity>
+              <BackButton onPress={() => setShowPdf(false)} />
               <Text style={styles.modalTitle}>PDF Viewer</Text>
               <TouchableOpacity onPress={handleDownload} style={styles.modalDownloadIcon}>
                 <Icon name="download" size={wp(5)} color="#fff" />
@@ -543,18 +533,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   backBtn: { padding: wp(2) },
   headerTitle: {
     flex: 1,
-    fontSize: wp(4.5),
+    fontSize: wp(5.5),
     fontWeight: '700',
     color: '#fff',
-    marginLeft: wp(2),
+    marginLeft: wp(3),
   },
   deleteBtn: { padding: wp(2) },
 

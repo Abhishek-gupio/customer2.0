@@ -17,6 +17,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 // @ts-ignore pnpm symlink resolution
 import { CommonActions } from '@react-navigation/native';
@@ -99,13 +100,7 @@ export default function Settings() {
       >
         {/* ─── Header ─── */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.85}
-          >
-            <Icon name="arrow-left" size={wp(4)} color="#FFBF00" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <Text style={styles.title}>More</Text>
         </View>
 

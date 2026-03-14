@@ -27,8 +27,8 @@ export const INDPlate = ({ number }: { number: string }) => (
     </View>
 );
 
-export const InfoCard = ({ icon: Icon, label, value }: { icon: any, label: string, value: string | number }) => (
-    <View style={styles.card}>
+export const InfoCard = ({ icon: Icon, label, value, style }: { icon: any, label: string, value: string | number, style?: any }) => (
+    <View style={[styles.card, style]}>
         <View style={styles.iconBox}>
             {Icon && <Icon size={20} color={COLORS.primary} />}
         </View>

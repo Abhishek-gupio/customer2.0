@@ -15,6 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 
 export interface VehicleUser {
   id: number;
@@ -138,15 +139,9 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
+          <BackButton onPress={onClose} />
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.backBtn}
-              activeOpacity={0.7}
-            >
-              <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
-            </TouchableOpacity>
-            <View style={styles.headerCenter}>
+            <View style={[styles.headerCenter, { marginLeft: 0 }]}>
               <Text style={styles.headerTitle}>Share Vehicle</Text>
               <Text style={styles.headerSubtitle}>
                 {vehicle.vehicleNumber} - {vehicle.model}

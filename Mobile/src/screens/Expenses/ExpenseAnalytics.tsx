@@ -27,8 +27,8 @@ import { fontSizes } from "../../theme/Fontsize";
 import RNFS from "react-native-fs";
 let RNHTMLtoPDF: any = null;
 try {
-  // Some builds expose it via require default export
   const mod = require("react-native-html-to-pdf");
+  // @ts-ignore
   RNHTMLtoPDF = mod?.default ?? mod;
 } catch {
   RNHTMLtoPDF = null;
@@ -39,6 +39,7 @@ if (!RNHTMLtoPDF?.convert) {
 }
 import { api } from "../../services/api";
 import { vehicleService } from "../../services/vehicleService";
+import BackButton from '../../components/BackButton';
 
 type AnalyticsTrend = {
   labels: string[];
@@ -644,18 +645,16 @@ export default function ExpenseAnalytics() {
       <StatusBar barStyle="light-content" />
      <View style={styles.shader}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={wp(8)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
+
+          <View style={{ flex: 1, marginLeft: wp(3) }}>
+            <Text style={styles.title}>Detailed Analytics</Text>
+            <Text style={styles.subtitle}>Comprehensive expense insights</Text>
+          </View>
 
           <TouchableOpacity style={styles.downloadBtn} onPress={onDownloadAnalytics}>
             <Icon name="download" size={wp(8)} color="#fff" />
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.subHeder}>
-          <Text style={styles.title}>Detailed Analytics</Text>
-          <Text style={styles.subtitle}>Comprehensive expense insights</Text>
         </View>
       </View>
 
@@ -756,9 +755,8 @@ const styles = StyleSheet.create({
     header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
   },
   shader:{
     borderBottomLeftRadius: wp(12),
@@ -767,14 +765,14 @@ const styles = StyleSheet.create({
 
   title: {
     color: colors.Primary,
-    fontSize: fontSizes.header,
+    fontSize: wp(5.5),
     fontWeight: "700",
   },
 
   subtitle: {
     color: colors.Secondary,
-    fontSize: fontSizes.subHeader,
-    marginBottom: hp(2),
+    fontSize: wp(3),
+    marginBottom: 0,
   },
 
   cardRow: {

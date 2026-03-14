@@ -8,16 +8,17 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import React, { useState, useEffect }from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, Bill } from '../../navigation/types';
+import BackButton from '../../components/BackButton';
 import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
 import { API_BASE_URL } from '../../config';
@@ -453,12 +454,8 @@ const ExpenseFeed = () => {
       >
         <View style={styles.shader}>
           <View style={styles.header}>
-            <View style={styles.subHeder}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Icon name="arrow-left" size={wp(5)} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Expenses</Text>
-            </View>
+            <BackButton onPress={() => navigation.goBack()} />
+            <Text style={styles.headerTitle}>Expenses</Text>
             <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
               <Icon name="plus" size={wp(5)} color="#fff" />
             </TouchableOpacity>
@@ -764,13 +761,12 @@ export default ExpenseFeed;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
   header: {
-    paddingHorizontal: wp(6),
-    paddingVertical: hp(1),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  headerTitle: { color: colors.Primary, fontSize: FS.header, fontWeight: FW.header },
+  headerTitle: { flex: 1, color: colors.Primary, fontSize: wp(5.5), fontWeight: "700", marginLeft: wp(3) },
   subHeder: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, ScrollView,
     StyleSheet, Dimensions, ActivityIndicator, Alert,
-    KeyboardAvoidingView, Platform, Switch
+    KeyboardAvoidingView, Platform
 } from 'react-native';
 import { 
-    ArrowLeft, Car, Bike, Check, Calendar, Hash, Type, 
-    ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
+    ArrowLeft, Car, Bike, Calendar, Hash, Type, 
+    ClipboardCheck, Info, Gauge, Bookmark
 } from 'lucide-react-native';
 import { COLORS } from '../../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../../services/vehicleService';
+import BackButton from '../../../components/BackButton';
 
 const { width } = Dimensions.get('window');
 
@@ -89,14 +90,11 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
             {/* Header */}
             <View style={styles.header}>
                 {(!isFirst || step === 'CONFIRM') && (
-                    <TouchableOpacity onPress={handleBackStep} style={styles.backBtn}>
-                        <ArrowLeft size={24} color="#FFF" />
-                    </TouchableOpacity>
+                    <BackButton onPress={handleBackStep} />
                 )}
                 <Text style={styles.headerTitle}>
                     {step === 'INPUT' ? 'Add Vehicle' : 'Confirm Details'}
                 </Text>
-                <View style={{ width: 44 }} />
             </View>
 
             <KeyboardAvoidingView
@@ -386,7 +384,6 @@ const styles = StyleSheet.create({
     header: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        justifyContent: 'space-between', 
         paddingHorizontal: 20, 
         paddingTop: 50, 
         paddingBottom: 20 
@@ -396,7 +393,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: COLORS.border
     },
-    headerTitle: { fontSize: 20, fontWeight: '900', color: '#FFF', fontStyle: 'italic' },
+    headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', color: '#FFF', fontStyle: 'italic', marginLeft: 12 },
     content: { paddingHorizontal: 24 },
     sectionTitle: { 
         fontSize: 12, fontWeight: '900', color: COLORS.primary, 

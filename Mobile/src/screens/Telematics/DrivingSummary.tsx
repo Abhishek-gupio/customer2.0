@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Platform, Alert, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Tts from 'react-native-tts';
@@ -7,6 +8,7 @@ import { telematicsApi } from '../../api/telematics';
 import { vehicleService } from '../../services/vehicleService';
 import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
 import { getUserId } from '../../services/storage';
+import BackButton from '../../components/BackButton';
 
 const Geolocation: any = (() => {
     try {
@@ -257,12 +259,11 @@ export default function DrivingSummary({ navigation }: any) {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined} />
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-left" size={wp(5)} color="#fff" />
-                </TouchableOpacity>
+                <BackButton onPress={() => navigation.goBack()} />
                 <Text style={styles.headerTitle}>Driving Behavior</Text>
                 <TouchableOpacity
                     style={styles.timelineButton}
@@ -434,7 +435,6 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         paddingHorizontal: wp(5),
         paddingVertical: hp(2),
     },
@@ -444,9 +444,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     headerTitle: {
-        fontSize: wp(5),
+        flex: 1,
+        fontSize: wp(5.5),
         fontWeight: '700',
         color: '#fff',
+        marginLeft: wp(3),
     },
     timelineButton: {
         paddingHorizontal: wp(3),
