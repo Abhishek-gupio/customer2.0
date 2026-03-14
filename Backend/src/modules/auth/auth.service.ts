@@ -12,6 +12,7 @@ import {
 import { otpStore } from "./otpStore";
 import { getSMSService } from "../../services/sms.service";
 import type { SignupInput, VerifyOtpInput } from "./auth.validators";
+import { env } from "../../config/env";
 
 function generateOtp(): string {
   return randomInt(100_000, 999_999).toString();
@@ -61,6 +62,7 @@ export const authService = {
     return {
       message: "OTP sent to your phone",
       requiresOtpVerification: true,
+      otpExpiresIn: env.OTP_EXPIRY_SEC,
       ...(process.env.NODE_ENV === "development" && { otp }),
     };
   },
@@ -86,6 +88,7 @@ export const authService = {
     
     return {
       message: "OTP sent to your phone",
+      otpExpiresIn: env.OTP_EXPIRY_SEC,
       ...(process.env.NODE_ENV === "development" && { otp }),
     };
   },
@@ -148,6 +151,7 @@ export const authService = {
     return {
       message: "OTP sent to your phone",
       requiresOtpVerification: true,
+      otpExpiresIn: env.OTP_EXPIRY_SEC,
       ...(process.env.NODE_ENV === "development" && { otp }),
     };
   },

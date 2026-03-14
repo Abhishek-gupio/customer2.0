@@ -54,7 +54,7 @@ export default function SigninFirst({ navigation }: Props) {
         <View style={styles.carSection}>
           <Animated.Image
             source={
-              require('../../assets/images/signin_car.png') as ImageSourcePropType
+              require('../../assets/images/car_hummar.png') as ImageSourcePropType
             }
             style={[
               styles.carImage,
@@ -116,8 +116,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   carImage: {
-    width: width * 1.14,
-    maxWidth: 760,
+    width: width * 1,
+    // maxWidth: 700,
     height: width * 0.8,
   },
   buttonSection: {

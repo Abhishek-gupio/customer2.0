@@ -29,7 +29,6 @@ import BudgetSettings from '../screens/Expenses/BudgetSettings';
 import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
 import { WarrantyStatus } from '../screens/ServiceAndWarrenty/WarrantyStatus';
 import AiBotHome from '../screens/AiBot/HomeScreen';
-import ChatScreen from '../screens/AiBot/ChatScreen';
 import ChatSessionsScreen from '../screens/AiBot/ChatSessionsScreen';
 import DrivingSummary from '../screens/Telematics/DrivingSummary';
 import DrivingTimeline from '../screens/Telematics/DrivingTimeline';
@@ -83,7 +82,6 @@ export function RootNavigator() {
       <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
       <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
       <Stack.Screen name="AiBotHome" component={AiBotHome} />
-      <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="ChatSessions" component={ChatSessionsScreen} />
 
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />

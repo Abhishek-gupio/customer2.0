@@ -3,11 +3,20 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Act
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Tts from 'react-native-tts';
-import Geolocation from '@react-native-community/geolocation';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService } from '../../services/vehicleService';
 import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
 import { getUserId } from '../../services/storage';
+
+const Geolocation: any = (() => {
+    try {
+        const geoModule = require('@react-native-community/geolocation') as any;
+        return geoModule?.default ?? geoModule;
+    } catch {
+        const nav = (globalThis as any)?.navigator;
+        return nav?.geolocation ?? null;
+    }
+})();
 
 export default function DrivingSummary({ navigation }: any) {
     const [score, setScore] = useState<number | null>(null);
@@ -121,6 +130,16 @@ export default function DrivingSummary({ navigation }: any) {
     // Manage Geolocation when Coach is active
     useEffect(() => {
         if (isCoachActive) {
+            if (!Geolocation) {
+                Alert.alert(
+                    'Location unavailable',
+                    'Location module is not available in this build. Rebuild the app with geolocation linked or use a dev client.',
+                );
+                setIsCoachActive(false);
+                setCurrentSpeed(0);
+                setCurrentLocation(null);
+                return;
+            }
             locationWatchId.current = Geolocation.watchPosition(
                 (position) => {
                     const speedInMps = position.coords.speed || 0;
@@ -133,7 +152,7 @@ export default function DrivingSummary({ navigation }: any) {
             );
         } else {
             if (locationWatchId.current !== null) {
-                Geolocation.clearWatch(locationWatchId.current);
+                Geolocation?.clearWatch(locationWatchId.current);
                 locationWatchId.current = null;
             }
             setCurrentSpeed(0);
@@ -141,7 +160,7 @@ export default function DrivingSummary({ navigation }: any) {
         }
         return () => {
             if (locationWatchId.current !== null) {
-                Geolocation.clearWatch(locationWatchId.current);
+                Geolocation?.clearWatch(locationWatchId.current);
             }
         };
     }, [isCoachActive]);

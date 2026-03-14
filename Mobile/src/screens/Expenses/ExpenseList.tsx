@@ -6,6 +6,7 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
+  Pressable,
 } from 'react-native';
 import React, { useState, useEffect }from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -498,8 +499,9 @@ const ExpenseFeed = () => {
                 style={styles.calendarButton}
               >
                 <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
+                <Text style={styles.selectedDateText}>{selectedDateLabel}</Text>
               </TouchableOpacity>
-              <Text style={styles.selectedDateText}>{selectedDateLabel}</Text>
+              
             </View>
           </View>
           <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
@@ -513,7 +515,14 @@ const ExpenseFeed = () => {
                     styles.timelineItem,
                     timelineFilter === item && styles.activeTimelineItem,
                   ]}
-                  onPress={() => setTimelineFilter(item)}
+                  onPress={() => {
+                  setTimelineFilter(item);
+                  setSelectedFromDate(null);
+                  setSelectedToDate(null);
+                  setCalendarSelectionTarget('from');
+                  setIsCalendarVisible(false)
+                  }
+                  }
                 >
                   <Text
                     style={[
@@ -642,7 +651,7 @@ const ExpenseFeed = () => {
         animationType="fade"
         onRequestClose={() => setIsCalendarVisible(false)}
       >
-        <View style={styles.calendarModalBackdrop}>
+        <Pressable style={styles.calendarModalBackdrop} onPress={() => setIsCalendarVisible(false)}>
           <View style={styles.calendarModalCard}>
             <View style={styles.calendarHeader}>
               <TouchableOpacity
@@ -743,7 +752,7 @@ const ExpenseFeed = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </Pressable>
       </Modal>
 
     </SafeAreaView>
@@ -796,11 +805,15 @@ const styles = StyleSheet.create({
   calendarButton: {
     paddingHorizontal: wp(2),
     paddingVertical: hp(0.5),
+    flexDirection:"row",
+    alignItems: 'center',
+    gap:wp(1.5)
+    // justifyContent: 'center',
   },
   selectedDateText: {
     color: '#aaa',
     fontSize: wp(3.2),
-    marginTop: hp(1),
+    // marginTop: hp(1),
   },
   growthText: { color: '#00c853', fontSize: wp(3.5) },
   percentBadge: {
