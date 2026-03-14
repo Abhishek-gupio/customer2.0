@@ -56,6 +56,7 @@ export type SignupResponse = {
   requiresOtpVerification?: boolean;
   /** Present in development so you can see OTP without SMS */
   otp?: string;
+  otpExpiresIn?: number;
 };
 
 export type VerifyOtpPayload = {
@@ -74,6 +75,7 @@ export type LoginResponse = {
   message: string;
   requiresOtpVerification?: boolean;
   otp?: string;
+  otpExpiresIn?: number;
 };
 
 export async function login(phoneNumber: string): Promise<LoginResponse> {
@@ -82,6 +84,14 @@ export async function login(phoneNumber: string): Promise<LoginResponse> {
     phoneNumber: phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${phone}`,
   };
   return api.post<LoginResponse>('/v1/auth/login', body);
+}
+
+export async function sendOtp(phoneNumber: string): Promise<LoginResponse> {
+  const phone = normalizePhone(phoneNumber);
+  const body = {
+    phoneNumber: phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${phone}`,
+  };
+  return api.post<LoginResponse>('/v1/auth/send-otp', body);
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {

@@ -5,7 +5,7 @@ export type RootStackParamList = {
   SigninFirst: undefined;
   Signin: undefined;
   Signup: undefined;
-  OTP: { phone?: string; otp?: string };
+  OTP: { phone?: string; otp?: string; otpExpiresIn?: number };
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   DocumentList: undefined;
@@ -25,10 +25,6 @@ export type RootStackParamList = {
   ServiceHistory: undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;
-  Chat: {
-    userMessage: string;
-    sessionId?: string;
-  };
   ChatSessions: undefined;
   DrivingSummary: undefined;
   SOSButton: undefined;
@@ -40,7 +36,10 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Services: undefined;
-  AIAssistant: undefined;
+  AIAssistant: {
+    userMessage?: string;
+    sessionId?: string;
+  } | undefined;
   Alerts: undefined;
   History: undefined;
 };

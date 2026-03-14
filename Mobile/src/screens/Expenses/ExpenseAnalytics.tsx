@@ -8,6 +8,7 @@ import {
   ScrollView,
   Platform,
   RefreshControl,
+  NativeModules,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -24,6 +25,18 @@ import Iconi from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from "../../theme/colors";
 import { fontSizes } from "../../theme/Fontsize";
 import RNFS from "react-native-fs";
+let RNHTMLtoPDF: any = null;
+try {
+  // Some builds expose it via require default export
+  const mod = require("react-native-html-to-pdf");
+  RNHTMLtoPDF = mod?.default ?? mod;
+} catch {
+  RNHTMLtoPDF = null;
+}
+// Fallback to NativeModules if default export isn't wired
+if (!RNHTMLtoPDF?.convert) {
+  RNHTMLtoPDF = NativeModules.RNHTMLtoPDF ?? RNHTMLtoPDF;
+}
 import { api } from "../../services/api";
 import { vehicleService } from "../../services/vehicleService";
 
@@ -496,100 +509,123 @@ export default function ExpenseAnalytics() {
     refreshAnalytics();
   }, [vehicleId]);
 
-  const buildAnalyticsReport = () =>
-    [
-      "Expense Analytics Report",
-      `Generated: ${new Date().toLocaleString("en-IN")}`,
-      "",
-      `Summary (${selectedTimeFrame})`,
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const buildAnalyticsHtml = (lineDataUri: string, pieDataUri: string) => {
+    const summary = [
       `Total Spent: INR ${Math.round(analytics?.totalSpent ?? 0).toLocaleString("en-IN")}`,
       `Avg Monthly: INR ${Math.round(analytics?.avgMonthly ?? 0).toLocaleString("en-IN")}`,
       `Cost/Km: INR ${Number(analytics?.costPerKm ?? 0).toFixed(2)}`,
-      "",
-      "Key Insights",
-      ...(reportInsights.length
-        ? reportInsights.map((item) => `- ${item}`)
-        : ["- No insights available"]),
     ];
+    const insights =
+      reportInsights.length > 0
+        ? reportInsights.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+        : "<li>No insights available</li>";
 
-  const buildAnalyticsPdf = () => {
-    const lines = buildAnalyticsReport();
-    const esc = (value: string) =>
-      value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+    return `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <style>
+            body { font-family: Arial, sans-serif; color: #111; padding: 24px; }
+            h1 { font-size: 22px; margin-bottom: 4px; }
+            h2 { font-size: 16px; margin-top: 18px; }
+            p, li { font-size: 12px; line-height: 1.4; }
+            .muted { color: #666; font-size: 11px; }
+            .chart { width: 100%; margin-top: 12px; }
+            .section { margin-top: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>Expense Analytics Report</h1>
+          <p class="muted">Generated: ${escapeHtml(new Date().toLocaleString("en-IN"))}</p>
 
-    let y = 800;
-    let stream = "BT\n/F1 12 Tf\n";
-    lines.forEach((line) => {
-      stream += `1 0 0 1 50 ${y} Tm\n(${esc(line)}) Tj\n`;
-      y -= 18;
-    });
-    stream += "ET\n";
+          <div class="section">
+            <h2>Summary (${escapeHtml(selectedTimeFrame)})</h2>
+            <ul>
+              ${summary.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
+          </div>
 
-    const objects = [
-      "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
-      "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
-      "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n",
-      `4 0 obj\n<< /Length ${stream.length} >>\nstream\n${stream}endstream\nendobj\n`,
-      "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n",
-    ];
+          <div class="section">
+            <h2>Key Insights</h2>
+            <ul>${insights}</ul>
+          </div>
 
-    let pdf = "%PDF-1.4\n";
-    const offsets: number[] = [0];
-    objects.forEach((obj) => {
-      offsets.push(pdf.length);
-      pdf += obj;
-    });
-    const xrefOffset = pdf.length;
-
-    pdf += `xref\n0 ${objects.length + 1}\n`;
-    pdf += "0000000000 65535 f \n";
-    for (let i = 1; i < offsets.length; i += 1) {
-      pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
-    }
-    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n`;
-    pdf += `startxref\n${xrefOffset}\n%%EOF`;
-    return pdf;
+          <div class="section">
+            <h2>Charts</h2>
+            <img class="chart" src="${lineDataUri}" />
+            <img class="chart" src="${pieDataUri}" />
+          </div>
+        </body>
+      </html>
+    `;
   };
 
   const onDownloadAnalytics = async () => {
     try {
+      if (!analytics) {
+        throw new Error("Analytics are not ready yet");
+      }
       if (!spendingAnalysisRef.current) {
         throw new Error("Charts are not ready yet");
       }
+      if (!RNHTMLtoPDF?.convert) {
+        throw new Error(
+          "PDF module not available. Rebuild the app with react-native-html-to-pdf linked (not supported in Expo Go)."
+        );
+      }
+
+      // Allow charts to render before capture
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
       const { lineChartPath, pieChartPath } = await spendingAnalysisRef.current.captureCharts();
       const linePath = normalizePath(lineChartPath);
       const piePath = normalizePath(pieChartPath);
-      const reportPdf = buildAnalyticsPdf();
+      const lineBase64 = await RNFS.readFile(linePath, "base64");
+      const pieBase64 = await RNFS.readFile(piePath, "base64");
+      const lineMime = linePath.toLowerCase().endsWith(".jpg") || linePath.toLowerCase().endsWith(".jpeg")
+        ? "image/jpeg"
+        : "image/png";
+      const pieMime = piePath.toLowerCase().endsWith(".jpg") || piePath.toLowerCase().endsWith(".jpeg")
+        ? "image/jpeg"
+        : "image/png";
+      const html = buildAnalyticsHtml(
+        `data:${lineMime};base64,${lineBase64}`,
+        `data:${pieMime};base64,${pieBase64}`
+      );
 
       const baseDir =
-        Platform.OS === "android" && RNFS.DownloadDirectoryPath
-          ? RNFS.DownloadDirectoryPath
+        Platform.OS === "android"
+          ? RNFS.ExternalDirectoryPath || RNFS.DocumentDirectoryPath
           : RNFS.DocumentDirectoryPath;
       const stamp = Date.now();
-      const lineImageName = `expense-linegraph-${stamp}.jpg`;
-      const pieImageName = `expense-piechart-${stamp}.jpg`;
-      const fileName = `expense-analytics-report-${stamp}.pdf`;
-      const lineImageDest = `${baseDir}/${lineImageName}`;
-      const pieImageDest = `${baseDir}/${pieImageName}`;
-      const reportDest = `${baseDir}/${fileName}`;
+      const fileBase = `expense-analytics-report-${stamp}`;
+      const reportDest = `${baseDir}/${fileBase}.pdf`;
 
-      try {
-        await RNFS.copyFile(linePath, lineImageDest);
-        await RNFS.copyFile(piePath, pieImageDest);
-        await RNFS.writeFile(reportDest, reportPdf, "utf8");
-      } catch {
-        const fallbackLineDest = `${RNFS.DocumentDirectoryPath}/${lineImageName}`;
-        const fallbackPieDest = `${RNFS.DocumentDirectoryPath}/${pieImageName}`;
-        const fallbackReportDest = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-        await RNFS.copyFile(linePath, fallbackLineDest);
-        await RNFS.copyFile(piePath, fallbackPieDest);
-        await RNFS.writeFile(fallbackReportDest, reportPdf, "utf8");
+      const pdf = await RNHTMLtoPDF.convert({
+        html,
+        fileName: fileBase,
+        base64: true,
+        directory: "Documents",
+      });
+      if (pdf.base64) {
+        await RNFS.writeFile(reportDest, pdf.base64, "base64");
+      } else if (pdf.filePath) {
+        await RNFS.copyFile(pdf.filePath, reportDest);
+      } else {
+        throw new Error("PDF generation returned no data");
       }
 
-      Alert.alert("Downloaded", "Analytics PDF report and graph images saved to your device.");
+      Alert.alert("Downloaded", `Analytics PDF report saved to:\n${reportDest}`);
     } catch (error) {
-      Alert.alert("Download Failed", "Unable to generate analytics PDF right now.");
+      const message = error instanceof Error ? error.message : "Unable to generate analytics PDF right now.";
+      Alert.alert("Download Failed", message);
     }
   };
 

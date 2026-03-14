@@ -34,14 +34,22 @@ export default function ChatSessionsScreen() {
     }, [loadSessions]);
 
     const openSession = (session: ChatSession) => {
-        (navigation as any).navigate('Chat', {
-            userMessage: '',
-            sessionId: session.id,
+        (navigation as any).navigate('Main', {
+            screen: 'AIAssistant',
+            params: {
+                userMessage: '',
+                sessionId: session.id,
+            },
         });
     };
 
     const startNewChat = () => {
-        (navigation as any).navigate('Chat', { userMessage: '' });
+        (navigation as any).navigate('Main', {
+            screen: 'AIAssistant',
+            params: {
+                userMessage: '',
+            },
+        });
     };
 
     const formatDate = (dateStr: string) => {

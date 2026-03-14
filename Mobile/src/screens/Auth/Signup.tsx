@@ -49,6 +49,7 @@ export default function Signup() {
       navigation.navigate('OTP', {
         phone: phoneNumber,
         ...(data.otp && { otp: data.otp }),
+        ...(typeof data.otpExpiresIn === 'number' && { otpExpiresIn: data.otpExpiresIn }),
       });
       if (data.otp) {
         Alert.alert('Dev OTP', `Use this OTP: ${data.otp}`, [{ text: 'OK' }]);

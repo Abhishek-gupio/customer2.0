@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useState } from 'react';
 
 /** Who is using the device microphone. Only one owner at a time. */
-export type VoiceOwner = 'heyGupio' | 'addExpense' | null;
+export type VoiceOwner = 'heyGupio' | 'addExpense' | 'chat' | null;
 
 type VoiceOwnerContextValue = {
   voiceOwner: VoiceOwner;
