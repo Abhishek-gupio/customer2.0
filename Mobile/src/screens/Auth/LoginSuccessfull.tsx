@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(8),
   },
   successImage: {
-    width: wp(35),
-    height: wp(35),
+    width: wp(40),
+    height: wp(40),
     marginBottom: hp(3),
   },
   title: {

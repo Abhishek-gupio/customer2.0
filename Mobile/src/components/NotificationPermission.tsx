@@ -31,10 +31,11 @@ type PermissionStatus = 'authorized' | 'denied' | 'unknown';
 
 export default function NotificationPermission() {
     const [status, setStatus] = useState<PermissionStatus>('unknown');
-    const [enabled, setEnabled] = useState(getAutoExpenseEnabled);
+    const [enabled, setEnabled] = useState(true);
     const pendingEnableRef = useRef(false);
 
     useEffect(() => {
+        setEnabled(getAutoExpenseEnabled());
         checkStatus();
 
         const subscription = AppState.addEventListener('change', nextAppState => {
