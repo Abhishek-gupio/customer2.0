@@ -320,6 +320,7 @@ export default function MyProfile() {
         ? new Date(data.createdAt).toLocaleDateString('default', {
           year: 'numeric',
           month: 'long',
+          day: 'numeric',
         })
         : 'January 2024',
     };
