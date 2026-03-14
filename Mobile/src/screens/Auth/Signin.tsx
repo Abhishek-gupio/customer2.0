@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,19 +19,34 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { login as loginApi } from '../../services/authService';
+import { GOOGLE_WEB_CLIENT_ID } from '../../config';
+import { login as loginApi, loginWithGoogle } from '../../services/authService';
+import { useAppDispatch } from '../../store/hooks';
+import { setUser } from '../../store/slices/authSlice';
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signin'>;
 
 export default function Signin() {
   const navigation = useNavigation<SigninScreenNavigationProp>();
+  const dispatch = useAppDispatch();
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [buttonScale] = useState(() => new RNAnimated.Value(1));
+
+  useEffect(() => {
+    if (GOOGLE_WEB_CLIENT_ID) {
+      GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        offlineAccess: true,
+      });
+    }
+  }, []);
 
   const handlePressIn = () => {
     RNAnimated.spring(buttonScale, {
@@ -90,6 +105,39 @@ export default function Signin() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!GOOGLE_WEB_CLIENT_ID) {
+      Alert.alert(
+        'Not configured',
+        'Google Sign-In is not configured. Add GOOGLE_WEB_CLIENT_ID in app config.',
+      );
+      return;
+    }
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const signInResult = await GoogleSignin.signIn();
+      const idToken =
+        signInResult.data?.idToken ??
+        (await GoogleSignin.getTokens().catch(() => ({}))).idToken;
+      if (!idToken) {
+        if (signInResult.data?.user === null) return; // user cancelled
+        throw new Error('No ID token from Google');
+      }
+      const result = await loginWithGoogle(idToken);
+      dispatch(setUser({ id: result.userId ?? '' }));
+      navigation.replace('LoginSuccessfull');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Google sign-in failed';
+      if (message.includes('SIGN_IN_CANCELLED') || message.includes('cancel')) return;
+      setError(message);
+      Alert.alert('Google Sign-In failed', message);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -157,15 +205,22 @@ export default function Signin() {
 
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.socialButton}
-          onPress={() => { }}
+          style={[styles.socialButton, googleLoading && styles.submitButtonDisabled]}
+          onPress={handleGoogleSignIn}
+          disabled={googleLoading}
         >
-          <Image
-            source={require('../../assets/images/google_g.png') as ImageSourcePropType}
-            style={styles.googleIcon}
-            resizeMode="contain"
-          />
-          <Text style={styles.socialText}>Sign in with Google</Text>
+          {googleLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Image
+                source={require('../../assets/images/google_g.png') as ImageSourcePropType}
+                style={styles.googleIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.socialText}>Sign in with Google</Text>
+            </>
+          )}
         </TouchableOpacity>
 
         {/* 

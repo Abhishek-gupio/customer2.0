@@ -174,6 +174,7 @@ export function MainBottomTabs() {
           options={{
             tabBarLabel: () => null,
             tabBarIcon: () => null,
+            tabBarStyle: { display: 'none' },
             tabBarButton: (props) => (
               <CenterTabButton
                 onPress={props.onPress as (e: unknown) => void}

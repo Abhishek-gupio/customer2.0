@@ -9,6 +9,7 @@ import {
   Platform,
   RefreshControl,
   NativeModules,
+  PermissionsAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -25,6 +26,7 @@ import Iconi from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from "../../theme/colors";
 import { fontSizes } from "../../theme/Fontsize";
 import RNFS from "react-native-fs";
+import { jsPDF } from "jspdf";
 let RNHTMLtoPDF: any = null;
 try {
   // Some builds expose it via require default export
@@ -108,6 +110,18 @@ const toDate = (value: unknown) => {
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
 const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
+const getTotalThisMonth = (expenses: any[]) => {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  return expenses.reduce((sum: number, e: any) => {
+    const d = toDate(e.date);
+    if (!d) return sum;
+    if (d < monthStart || d > monthEnd) return sum;
+    return sum + toNumber(e.amount);
+  }, 0);
+};
+
 const getTimeFrameRange = (timeFrame: TimeFrame) => {
   const now = new Date();
   let start: Date;
@@ -135,6 +149,24 @@ const getTimeFrameRange = (timeFrame: TimeFrame) => {
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const ensureDownloadPermission = async () => {
+  if (Platform.OS !== "android") return true;
+  if (Platform.Version >= 29) return true;
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        title: "Storage Permission",
+        message: "Allow storage access to save the analytics PDF.",
+        buttonPositive: "OK",
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch {
+    return false;
+  }
+};
 
 const getWithRetry = async <T,>(fn: () => Promise<T>, retries = 2) => {
   let attempt = 0;
@@ -358,10 +390,15 @@ export default function ExpenseAnalytics() {
       return d ? d >= start && d <= end : false;
     });
 
-    const totalSpent = filtered.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
-    const monthsInRange =
-      timeFrame === "Quarter" ? 3 : timeFrame === "Year" ? 12 : 1;
-    const avgMonthly = monthsInRange > 0 ? totalSpent / monthsInRange : 0;
+    const computedTotalSpent = filtered.reduce(
+      (sum: number, e: any) => sum + toNumber(e.amount),
+      0
+    );
+    const totalSpent =
+      costPerKmSummary && Number.isFinite(costPerKmSummary.totalExpenses)
+        ? toNumber(costPerKmSummary.totalExpenses)
+        : computedTotalSpent;
+    const avgMonthly = getTotalThisMonth(expenses);
 
     return {
       totalSpent,
@@ -382,13 +419,11 @@ export default function ExpenseAnalytics() {
     setLoadingAnalytics(true);
     setAnalyticsError(null);
     try {
-      const now = new Date();
-      const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-      const end = endOfDay(now);
-      const vehicleQuery = vehicleIdRef.current ? `&vehicleId=${vehicleIdRef.current}` : "";
       const expensesRes = await getWithRetry(() =>
         api.get<any>(
-          `/v1/expenses?startDate=${start.toISOString()}&endDate=${end.toISOString()}${vehicleQuery}`
+          vehicleIdRef.current
+            ? `/v1/expenses?vehicleId=${vehicleIdRef.current}`
+            : "/v1/expenses"
         )
       );
 
@@ -575,11 +610,6 @@ export default function ExpenseAnalytics() {
       if (!spendingAnalysisRef.current) {
         throw new Error("Charts are not ready yet");
       }
-      if (!RNHTMLtoPDF?.convert) {
-        throw new Error(
-          "PDF module not available. Rebuild the app with react-native-html-to-pdf linked (not supported in Expo Go)."
-        );
-      }
 
       // Allow charts to render before capture
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
@@ -587,6 +617,17 @@ export default function ExpenseAnalytics() {
       const { lineChartPath, pieChartPath } = await spendingAnalysisRef.current.captureCharts();
       const linePath = normalizePath(lineChartPath);
       const piePath = normalizePath(pieChartPath);
+
+      const canWriteDownloads = await ensureDownloadPermission();
+      const baseDir =
+        Platform.OS === "android"
+          ? (canWriteDownloads && RNFS.DownloadDirectoryPath) ||
+            RNFS.ExternalDirectoryPath ||
+            RNFS.DocumentDirectoryPath
+          : RNFS.DocumentDirectoryPath;
+      const stamp = Date.now();
+      const fileBase = `expense-analytics-report-${stamp}`;
+
       const lineBase64 = await RNFS.readFile(linePath, "base64");
       const pieBase64 = await RNFS.readFile(piePath, "base64");
       const lineMime = linePath.toLowerCase().endsWith(".jpg") || linePath.toLowerCase().endsWith(".jpeg")
@@ -595,34 +636,68 @@ export default function ExpenseAnalytics() {
       const pieMime = piePath.toLowerCase().endsWith(".jpg") || piePath.toLowerCase().endsWith(".jpeg")
         ? "image/jpeg"
         : "image/png";
-      const html = buildAnalyticsHtml(
-        `data:${lineMime};base64,${lineBase64}`,
-        `data:${pieMime};base64,${pieBase64}`
-      );
+      const lineDataUrl = `data:${lineMime};base64,${lineBase64}`;
+      const pieDataUrl = `data:${pieMime};base64,${pieBase64}`;
 
-      const baseDir =
-        Platform.OS === "android"
-          ? RNFS.ExternalDirectoryPath || RNFS.DocumentDirectoryPath
-          : RNFS.DocumentDirectoryPath;
-      const stamp = Date.now();
-      const fileBase = `expense-analytics-report-${stamp}`;
-      const reportDest = `${baseDir}/${fileBase}.pdf`;
+      const doc = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 24;
+      let y = margin;
 
-      const pdf = await RNHTMLtoPDF.convert({
-        html,
-        fileName: fileBase,
-        base64: true,
-        directory: "Documents",
+      doc.setFontSize(18);
+      doc.text("Expense Analytics Report", margin, y);
+      y += 22;
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, margin, y);
+      y += 18;
+      doc.setTextColor(0);
+      doc.setFontSize(12);
+
+      const summaryLines = [
+        `TimeFrame: ${selectedTimeFrame}`,
+        `Total Spent: INR ${Math.round(analytics.totalSpent).toLocaleString("en-IN")}`,
+        `Avg Monthly: INR ${Math.round(analytics.avgMonthly).toLocaleString("en-IN")}`,
+        `Cost/Km: INR ${Number(analytics.costPerKm).toFixed(2)}`,
+      ];
+      summaryLines.forEach((line) => {
+        doc.text(line, margin, y);
+        y += 16;
       });
-      if (pdf.base64) {
-        await RNFS.writeFile(reportDest, pdf.base64, "base64");
-      } else if (pdf.filePath) {
-        await RNFS.copyFile(pdf.filePath, reportDest);
-      } else {
+      y += 8;
+
+      const addImageWithPaging = (dataUrl: string, label: string, format: "PNG" | "JPEG") => {
+        const maxWidth = pageWidth - margin * 2;
+        const imgHeight = Math.round(maxWidth * 0.6);
+        if (y + 20 + imgHeight > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFontSize(13);
+        doc.text(label, margin, y);
+        y += 12;
+        doc.addImage(dataUrl, format, margin, y, maxWidth, imgHeight);
+        y += imgHeight + 16;
+      };
+
+      addImageWithPaging(lineDataUrl, "Spending Trend", lineMime.includes("png") ? "PNG" : "JPEG");
+      addImageWithPaging(pieDataUrl, "Spending Breakdown", pieMime.includes("png") ? "PNG" : "JPEG");
+
+      const pdfBase64Uri = doc.output("datauristring");
+      const pdfBase64 = pdfBase64Uri.split(",")[1] || "";
+      if (!pdfBase64) {
         throw new Error("PDF generation returned no data");
       }
 
-      Alert.alert("Downloaded", `Analytics PDF report saved to:\n${reportDest}`);
+      await RNFS.mkdir(baseDir);
+      const reportDest = `${baseDir}/${fileBase}.pdf`;
+      await RNFS.writeFile(reportDest, pdfBase64, "base64");
+
+      Alert.alert(
+        "Downloaded",
+        `Analytics PDF report saved to:\n${reportDest}`
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to generate analytics PDF right now.";
       Alert.alert("Download Failed", message);
@@ -669,7 +744,7 @@ export default function ExpenseAnalytics() {
               ? `INR ${Math.round(analytics.totalSpent).toLocaleString("en-IN")}`
               : "No data"
           }
-          change="+12%"
+          // change="+12%"
           positive
         />
         <StatCard
@@ -681,7 +756,7 @@ export default function ExpenseAnalytics() {
               ? `INR ${Math.round(analytics.avgMonthly).toLocaleString("en-IN")}`
               : "No data"
           }
-          change="-3%"
+          // change="-3%"
         />
         <StatCard
           title="Cost/Km"
@@ -692,7 +767,7 @@ export default function ExpenseAnalytics() {
               ? `INR ${Number(analytics.costPerKm).toFixed(2)}`
               : "No data"
           }
-          change="-5%"
+          // change="-5%"
           positive
         />
       </View>
@@ -738,12 +813,12 @@ export default function ExpenseAnalytics() {
   );          
 }
 
-const StatCard = ({ title, value, change, positive }: { title: string; value: string; change: string; positive?: boolean }) => (
+const StatCard = ({ title, value, positive }: { title: string; value: string; positive?: boolean }) => (
   <View style={styles.statCard}>
     <Text style={styles.statTitle}>{title}</Text>
     <Text style={styles.statValue}>{value}</Text>
     <Text style={[styles.statChange, { color: positive ? "#2ECC71" : "#E74C3C" }]}>
-      {change}
+      {/* {change} */}
     </Text>
   </View>
 );

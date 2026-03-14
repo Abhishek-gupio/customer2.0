@@ -168,6 +168,14 @@ export default function OTP() {
     }
   };
 
+  useEffect(() => {
+    const code = otp.join('');
+    if (code.length === OTP_LENGTH && !loading) {
+      handleConfirm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otp]);
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboard}
@@ -238,18 +246,20 @@ export default function OTP() {
           ) : (
             <Text style={styles.resendText}>Didn't receive the OTP?</Text>
           )}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={[styles.resendButton, (remainingSec > 0 || resending) && styles.resendButtonDisabled]}
-            onPress={handleResend}
-            disabled={remainingSec > 0 || resending}
-          >
-            {resending ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Text style={styles.resendButtonText}>Resend OTP</Text>
-            )}
-          </TouchableOpacity>
+          {remainingSec <= 0 && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[styles.resendButton, resending && styles.resendButtonDisabled]}
+              onPress={handleResend}
+              disabled={resending}
+            >
+              {resending ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.resendButtonText}>Resend OTP</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         <TouchableOpacity

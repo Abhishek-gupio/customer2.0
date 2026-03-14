@@ -4699,6 +4699,7 @@ export namespace Prisma {
     email: string | null
     fullName: string | null
     profilePic: string | null
+    googleId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -4709,6 +4710,7 @@ export namespace Prisma {
     email: string | null
     fullName: string | null
     profilePic: string | null
+    googleId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -4719,6 +4721,7 @@ export namespace Prisma {
     email: number
     fullName: number
     profilePic: number
+    googleId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -4731,6 +4734,7 @@ export namespace Prisma {
     email?: true
     fullName?: true
     profilePic?: true
+    googleId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -4741,6 +4745,7 @@ export namespace Prisma {
     email?: true
     fullName?: true
     profilePic?: true
+    googleId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -4751,6 +4756,7 @@ export namespace Prisma {
     email?: true
     fullName?: true
     profilePic?: true
+    googleId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -4834,6 +4840,7 @@ export namespace Prisma {
     email: string | null
     fullName: string | null
     profilePic: string | null
+    googleId: string | null
     createdAt: Date
     updatedAt: Date
     _count: CustomerCountAggregateOutputType | null
@@ -4861,6 +4868,7 @@ export namespace Prisma {
     email?: boolean
     fullName?: boolean
     profilePic?: boolean
+    googleId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     chats?: boolean | Customer$chatsArgs<ExtArgs>
@@ -4884,6 +4892,7 @@ export namespace Prisma {
     email?: boolean
     fullName?: boolean
     profilePic?: boolean
+    googleId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["customer"]>
@@ -4894,6 +4903,7 @@ export namespace Prisma {
     email?: boolean
     fullName?: boolean
     profilePic?: boolean
+    googleId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["customer"]>
@@ -4904,11 +4914,12 @@ export namespace Prisma {
     email?: boolean
     fullName?: boolean
     profilePic?: boolean
+    googleId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type CustomerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phoneNumber" | "email" | "fullName" | "profilePic" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+  export type CustomerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phoneNumber" | "email" | "fullName" | "profilePic" | "googleId" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
   export type CustomerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     chats?: boolean | Customer$chatsArgs<ExtArgs>
     devices?: boolean | Customer$devicesArgs<ExtArgs>
@@ -4949,6 +4960,7 @@ export namespace Prisma {
       email: string | null
       fullName: string | null
       profilePic: string | null
+      googleId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["customer"]>
@@ -5391,6 +5403,7 @@ export namespace Prisma {
     readonly email: FieldRef<"Customer", 'String'>
     readonly fullName: FieldRef<"Customer", 'String'>
     readonly profilePic: FieldRef<"Customer", 'String'>
+    readonly googleId: FieldRef<"Customer", 'String'>
     readonly createdAt: FieldRef<"Customer", 'DateTime'>
     readonly updatedAt: FieldRef<"Customer", 'DateTime'>
   }
@@ -35164,6 +35177,7 @@ export namespace Prisma {
     email: 'email',
     fullName: 'fullName',
     profilePic: 'profilePic',
+    googleId: 'googleId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -35925,6 +35939,7 @@ export namespace Prisma {
     email?: StringNullableFilter<"Customer"> | string | null
     fullName?: StringNullableFilter<"Customer"> | string | null
     profilePic?: StringNullableFilter<"Customer"> | string | null
+    googleId?: StringNullableFilter<"Customer"> | string | null
     createdAt?: DateTimeFilter<"Customer"> | Date | string
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
     chats?: ChatSessionListRelationFilter
@@ -35947,6 +35962,7 @@ export namespace Prisma {
     email?: SortOrderInput | SortOrder
     fullName?: SortOrderInput | SortOrder
     profilePic?: SortOrderInput | SortOrder
+    googleId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     chats?: ChatSessionOrderByRelationAggregateInput
@@ -35966,6 +35982,7 @@ export namespace Prisma {
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     phoneNumber?: string
+    googleId?: string
     AND?: CustomerWhereInput | CustomerWhereInput[]
     OR?: CustomerWhereInput[]
     NOT?: CustomerWhereInput | CustomerWhereInput[]
@@ -35986,7 +36003,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
     driverExpenses?: ExpenseListRelationFilter
-  }, "id" | "phoneNumber">
+  }, "id" | "phoneNumber" | "googleId">
 
   export type CustomerOrderByWithAggregationInput = {
     id?: SortOrder
@@ -35994,6 +36011,7 @@ export namespace Prisma {
     email?: SortOrderInput | SortOrder
     fullName?: SortOrderInput | SortOrder
     profilePic?: SortOrderInput | SortOrder
+    googleId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CustomerCountOrderByAggregateInput
@@ -36010,6 +36028,7 @@ export namespace Prisma {
     email?: StringNullableWithAggregatesFilter<"Customer"> | string | null
     fullName?: StringNullableWithAggregatesFilter<"Customer"> | string | null
     profilePic?: StringNullableWithAggregatesFilter<"Customer"> | string | null
+    googleId?: StringNullableWithAggregatesFilter<"Customer"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Customer"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Customer"> | Date | string
   }
@@ -38245,6 +38264,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -38267,6 +38287,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -38289,6 +38310,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -38311,6 +38333,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -38333,6 +38356,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -38343,6 +38367,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -38353,6 +38378,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -41027,6 +41053,7 @@ export namespace Prisma {
     email?: SortOrder
     fullName?: SortOrder
     profilePic?: SortOrder
+    googleId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -41037,6 +41064,7 @@ export namespace Prisma {
     email?: SortOrder
     fullName?: SortOrder
     profilePic?: SortOrder
+    googleId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -41047,6 +41075,7 @@ export namespace Prisma {
     email?: SortOrder
     fullName?: SortOrder
     profilePic?: SortOrder
+    googleId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -45557,6 +45586,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -45578,6 +45608,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -45615,6 +45646,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -45636,6 +45668,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -45657,6 +45690,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -45678,6 +45712,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -45780,6 +45815,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -45801,6 +45837,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -45893,6 +45930,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -45914,6 +45952,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -45951,6 +45990,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -45972,6 +46012,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -46085,6 +46126,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -46106,6 +46148,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -46447,6 +46490,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -46468,6 +46512,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -46961,6 +47006,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -46982,6 +47028,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -47084,6 +47131,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -47105,6 +47153,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -47333,6 +47382,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -47354,6 +47404,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -47391,6 +47442,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -47412,6 +47464,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -47459,6 +47512,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
@@ -47480,6 +47534,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
@@ -47545,6 +47600,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
@@ -47566,6 +47622,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
@@ -47643,6 +47700,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -47664,6 +47722,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -47755,6 +47814,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -47776,6 +47836,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -47813,6 +47874,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -47834,6 +47896,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -47937,6 +48000,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -47958,6 +48022,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -47979,6 +48044,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -48000,6 +48066,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -48037,6 +48104,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -48058,6 +48126,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -48789,6 +48858,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -48810,6 +48880,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -48847,6 +48918,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -48868,6 +48940,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -48889,6 +48962,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -48910,6 +48984,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -48947,6 +49022,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -48968,6 +49044,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput

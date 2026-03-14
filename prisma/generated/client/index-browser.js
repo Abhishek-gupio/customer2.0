@@ -134,6 +134,7 @@ exports.Prisma.CustomerScalarFieldEnum = {
   email: 'email',
   fullName: 'fullName',
   profilePic: 'profilePic',
+  googleId: 'googleId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

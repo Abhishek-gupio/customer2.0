@@ -62,6 +62,8 @@ export default function AIAssistant() {
   const { voiceOwner, setVoiceOwner } = React.useContext(VoiceOwnerContext);
   const lastRouteRef = useRef<{ sessionId?: string; userMessage?: string } | null>(null);
   const isLocalSession = sessionId?.startsWith('local-');
+  const wantsListeningRef = useRef(false);
+  const voiceRetryRef = useRef(0);
 
   const quickPrompts = useMemo(
     () => [
@@ -143,6 +145,18 @@ export default function AIAssistant() {
     };
   }, []);
 
+  const startVoiceRecognition = async () => {
+    try {
+      await Voice.start('en-IN');
+    } catch {
+      try {
+        await Voice.start('en-US');
+      } catch {
+        await Voice.start('en');
+      }
+    }
+  };
+
   useEffect(() => {
     if (!Voice || typeof Voice.start !== 'function') {
       setVoiceAvailable(false);
@@ -156,14 +170,23 @@ export default function AIAssistant() {
       if (text) setMessage(text);
     };
     (Voice as any).onSpeechError = (e: any) => {
-      setIsListening(false);
-      setVoiceOwner(null);
       const code = e?.error?.code ?? e?.code;
       const message = e?.error?.message || e?.message || 'Voice recognition failed.';
-      if (code === 6 || code === 7 || code === 8 || code === 5) {
+      const nonFatalCodes = new Set([5, 6, 7, 8, 9, 11]);
+      if (nonFatalCodes.has(Number(code)) && wantsListeningRef.current) {
+        if (voiceRetryRef.current < 2) {
+          voiceRetryRef.current += 1;
+          setTimeout(() => {
+            if (!wantsListeningRef.current) return;
+            startVoiceRecognition().catch(() => {});
+          }, 350);
+        }
         return;
       }
-      Alert.alert('Voice Error', message);
+      setIsListening(false);
+      setVoiceOwner(null);
+      wantsListeningRef.current = false;
+      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
     };
 
     return () => {
@@ -180,13 +203,13 @@ export default function AIAssistant() {
   useEffect(() => {
     let isMounted = true;
     Tts.setDucking(true);
-    Tts.setDefaultRate(0.48, true);
-    Tts.setDefaultPitch(1.0);
+    Tts.setDefaultRate(0.5, true);
+    Tts.setDefaultPitch(1.05);
     Tts.getInitStatus()
       .then(() => {
         if (!isMounted) return;
         setTtsReady(true);
-        Tts.setDefaultLanguage('en-IN').catch(() => {});
+        Tts.setDefaultLanguage('en-US').catch(() => {});
       })
       .catch(() => {
         if (!isMounted) return;
@@ -242,18 +265,26 @@ export default function AIAssistant() {
     }
     try {
       if (isListening) {
+        wantsListeningRef.current = false;
+        voiceRetryRef.current = 0;
         await Voice.stop();
         setIsListening(false);
         setVoiceOwner(null);
       } else {
+        wantsListeningRef.current = true;
+        voiceRetryRef.current = 0;
         setVoiceOwner('chat' as any);
         await Voice.cancel().catch(() => {});
-        await Voice.start('en-IN');
+        await startVoiceRecognition();
       }
     } catch (e: any) {
       setIsListening(false);
       setVoiceOwner(null);
-      Alert.alert('Voice Error', e?.message ?? 'Unable to start microphone.');
+      wantsListeningRef.current = false;
+      voiceRetryRef.current = 0;
+      const code = e?.error?.code ?? e?.code;
+      const message = e?.error?.message || e?.message || 'Unable to start microphone.';
+      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
     }
   };
 
@@ -421,6 +452,34 @@ export default function AIAssistant() {
     setIsStreaming(true);
     scrollToBottom();
 
+    let fallbackAttempted = false;
+    const runFallback = async () => {
+      if (fallbackAttempted) return;
+      fallbackAttempted = true;
+      try {
+        const response = await chatService.sendMessage(messageText, sessionId);
+        setSessionId(response.sessionId);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  text: response.message,
+                  isStreaming: false,
+                  voiceUrl: response.voiceUrl,
+                  toolResults: response.toolResults,
+                  agentSteps: response.agentSteps,
+                }
+              : m,
+          ),
+        );
+      } catch {
+        if (!sessionId) setSessionId(`local-${Date.now()}`);
+        await streamLocalReply(botMsgId, getLocalBotReply(messageText));
+      }
+      setIsStreaming(false);
+    };
+
     try {
       const isPlaceholderApi = API_BASE_URL.includes('your-api.com');
       if (isPlaceholderApi) {
@@ -432,7 +491,7 @@ export default function AIAssistant() {
       await chatService.sendMessageStream(
         messageText,
         sessionId,
-        (chunk: SSEChunk) => {
+        async (chunk: SSEChunk) => {
           switch (chunk.type) {
             case 'session':
               if (chunk.sessionId) setSessionId(chunk.sessionId);
@@ -501,42 +560,14 @@ export default function AIAssistant() {
               break;
 
             case 'error':
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? { ...m, text: 'Sorry, something went wrong.', isStreaming: false }
-                    : m,
-                ),
-              );
-              setIsStreaming(false);
+              runFallback().catch(() => {});
               break;
           }
         },
       );
     } catch (error) {
       console.error('Stream error:', error);
-      try {
-        const response = await chatService.sendMessage(messageText, sessionId);
-        setSessionId(response.sessionId);
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === botMsgId
-              ? {
-                  ...m,
-                  text: response.message,
-                  isStreaming: false,
-                  voiceUrl: response.voiceUrl,
-                  toolResults: response.toolResults,
-                  agentSteps: response.agentSteps,
-                }
-              : m,
-          ),
-        );
-      } catch (fallbackError) {
-        if (!sessionId) setSessionId(`local-${Date.now()}`);
-        await streamLocalReply(botMsgId, getLocalBotReply(messageText));
-      }
-      setIsStreaming(false);
+      await runFallback();
     }
   };
 
@@ -713,6 +744,8 @@ export default function AIAssistant() {
           ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           keyboardShouldPersistTaps="handled"
           renderItem={renderMessage}
@@ -721,7 +754,7 @@ export default function AIAssistant() {
             isLoading ? (
               <View style={styles.emptyContainer}>
                 <ActivityIndicator color="#9fb3ff" size="large" />
-                <Text style={styles.emptyText}>Loading conversation...</Text>
+                <Text>Loading conversation...</Text>
               </View>
             ) : (
               <View style={styles.emptyContainer}>
@@ -738,7 +771,7 @@ export default function AIAssistant() {
                   </View>
                 </View> */}
                 <Text style={styles.heroGreeting}>
-                  {userName ? `Hello ${userName}` : 'Hello there'}
+                  {userName ? `Hello ${userName} !` : 'Hello there'}
                 </Text>
                 <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
                 <View style={styles.cardGrid}>
@@ -850,7 +883,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#101010',
-    paddingBottom: 45,
+    // paddingBottom: 45,
     paddingTop: 24,
   },
   flex: { flex: 1 },
@@ -893,7 +926,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 12,
     // paddingTop: 12,
-    paddingBottom: 8,
+    // paddingBottom: 15,
     flexGrow: 1,
   },
   messageBubbleRow: {
@@ -1032,7 +1065,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   cardGrid: {
-    marginTop: 24,
+    marginTop: 26,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
@@ -1044,8 +1077,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#151f35',
-    shadowColor: '#000',
+    borderColor: '#999',
+    shadowColor: '#c0bbbb',
     shadowOpacity: 0.25,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 8 },
@@ -1093,10 +1126,10 @@ const styles = StyleSheet.create({
 
   inputBar: {
     paddingHorizontal: 12,
-    paddingBottom: 8,
+    // paddingBottom: 8,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: '#111b2e',
+    borderTopColor: '#464d5f',
     backgroundColor: '#050b17',
   },
   inputTopRow: {
@@ -1115,7 +1148,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: '#1c2640',
+    borderColor: '#464d5f',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
@@ -1141,8 +1174,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#1c2640',
-    paddingBottom:25,
+    borderColor: '#464d5f',
+    // paddingBottom:25,
     justifyContent:'center',
     // alignItems: 'center',
   },
