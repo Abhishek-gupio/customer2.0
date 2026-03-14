@@ -286,11 +286,10 @@ export const telematicsService = {
           : new Date(Date.now() - 24 * 60 * 60 * 1000);
         const endDate = new Date();
 
-        // API expects body with Identifiers at top level (no "request" wrapper). Filter by instance + date range.
+        // API requires at least one of InstanceIds, ApplicationIds, CompanyIds, or UserId. We filter by instance.
         const requestBody = {
           Identifiers: {
-            InstanceId: device.instanceId,
-            UserId: null as string | null,
+            InstanceIds: [device.instanceId],
           },
           IncludeDetails: true,
           IncludeStatistics: true,
