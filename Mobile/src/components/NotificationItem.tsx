@@ -37,10 +37,14 @@ const iconConfig = {
     icon: "warning-outline",
     color: "#EF4444",
   },
+  odometer: {
+    icon: "speedometer-outline",
+    color: "#F59E0B",
+  },
 };
 
 const NotificationCard: React.FC<Props> = ({ item, onRemove}) => {
-  const config = iconConfig[item.type];
+  const config = iconConfig[item.type] ?? iconConfig.alert;
 
 
   return (

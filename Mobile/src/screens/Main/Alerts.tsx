@@ -49,6 +49,7 @@ const NOTIFICATION_TYPES: NotificationType[] = [
   'alert',
   'maintenance',
   'parking',
+  'odometer',
 ];
 
 function formatTimeAgo(createdAt: string): string {
