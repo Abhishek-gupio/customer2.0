@@ -13,7 +13,7 @@ import {
   Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { API_BASE_URL } from '../../config';
+import { getAbsoluteUrl } from '../../config';
 import { jsPDF } from 'jspdf';
 import RNFS from 'react-native-fs';
 import {
@@ -91,11 +91,7 @@ async function openShare(options: { fileUrls: string[]; fileName?: string; type?
 
 async function getReadyDocumentPath(doc: DocumentItem) {
   const imageUri = doc.imageUri;
-  const fullImageUri = imageUri
-    ? imageUri.startsWith('http')
-      ? imageUri
-      : `${API_BASE_URL}${imageUri}`
-    : null;
+  const fullImageUri = imageUri ? getAbsoluteUrl(imageUri) : null;
 
   if (!fullImageUri) throw new Error(`Link not available for ${doc.type}`);
 

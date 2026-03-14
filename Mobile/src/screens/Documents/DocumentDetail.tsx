@@ -32,7 +32,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
 import { removeDocumentAsync, fetchDocumentById } from '../../store/slices/documentsSlice';
-import { API_BASE_URL } from '../../config';
+import { getAbsoluteUrl } from '../../config';
 import { jsPDF } from 'jspdf';
 import RNFS from 'react-native-fs';
 import BackButton from '../../components/BackButton';
@@ -178,11 +178,7 @@ export default function DocumentDetail({ route }: Props) {
   };
 
   const imageUri = doc?.imageUri;
-  const fullImageUri = imageUri
-    ? imageUri.startsWith('http')
-      ? imageUri
-      : `${API_BASE_URL}${imageUri}`
-    : null;
+  const fullImageUri = imageUri ? getAbsoluteUrl(imageUri) : null;
 
   const isPdf = imageUri?.toLowerCase().endsWith('.pdf');
   const isImage = imageUri && !isPdf;

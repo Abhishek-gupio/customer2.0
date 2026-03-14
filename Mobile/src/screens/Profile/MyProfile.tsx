@@ -37,7 +37,7 @@ import { useDispatch } from 'react-redux';
 import { logoutStorage } from '../../services/authService';
 import { logout } from '../../store/slices/authSlice';
 import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
-import { API_BASE_URL, GEO } from '../../config';
+import { getAbsoluteUrl, GEO } from '../../config';
 import BackButton from '../../components/BackButton';
 
 // GPS-based location (same pattern as SOSButton)
@@ -514,7 +514,7 @@ export default function MyProfile() {
   if (!profile || !editData) return null;
 
   const currentPic = isEditing ? editData?.profilePic : profile?.profilePic;
-  const profilePicUri = currentPic && (currentPic.startsWith('http') ? currentPic : `${API_BASE_URL}${currentPic}`);
+  const profilePicUri = currentPic ? getAbsoluteUrl(currentPic) : undefined;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

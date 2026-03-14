@@ -21,7 +21,7 @@ import type { RootStackParamList, Bill } from '../../navigation/types';
 import BackButton from '../../components/BackButton';
 import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
-import { API_BASE_URL } from '../../config';
+import { getAbsoluteUrl } from '../../config';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
 import NotificationPermission from '../../components/NotificationPermission';
@@ -61,11 +61,7 @@ const ProgressRow = ({ label, value, percent, color }: ProgressRowProps) => {
   );
 };
 
-const toAbsoluteUrl = (url?: string | null) => {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `${API_BASE_URL}${url}`;
-};
+const toAbsoluteUrl = (url?: string | null) => getAbsoluteUrl(url);
 
 const toNumber = (value: unknown) => {
   const parsed = typeof value === 'number' ? value : Number(value ?? 0);
