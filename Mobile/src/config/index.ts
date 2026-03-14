@@ -2,12 +2,12 @@ import { Platform } from 'react-native';
 
 // ─── API ─────────────────────────────────────────────────────────────────
 /** Set to true to use production API even when running in dev (Metro). Use for testing prod. */
-const FORCE_USE_PRODUCTION_API = true;
+const FORCE_USE_PRODUCTION_API = false;
 
 const DEV_PORT = 9000;
 const DEV_HOST =
   Platform.OS === 'android'
-    ? `http://10.0.2.2:${DEV_PORT}`
+    ? `http://localhost:${DEV_PORT}`
     : `http://localhost:${DEV_PORT}`;
 
 /** Production API base URL – no trailing slash. Used in release builds (or when FORCE_USE_PRODUCTION_API is true). */

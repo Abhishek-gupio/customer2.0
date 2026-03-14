@@ -3,8 +3,8 @@ import { View, ActivityIndicator, StyleSheet, ToastAndroid, Platform, Alert } fr
 import { useRoute, useNavigation } from '../../lib/react-navigation-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
-import { AddVehicleScreen } from './sub-screens/AddVehicleScreen';
-import { DetailsScreen } from './sub-screens/DetailsScreen';
+import { AddVehicleScreen } from './AddVehicleScreen';
+import { DetailsScreen } from './DetailsScreen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ export default function GupioGarageApp() {
         setVehicles(prev => [...prev, newVehicle]);
         setActiveVehicle(newVehicle);
         setScreen('DETAILS');
-        
+
         if (Platform.OS === 'android') {
             ToastAndroid.show('Vehicle Added Successfully!', ToastAndroid.SHORT);
         }
@@ -62,7 +62,7 @@ export default function GupioGarageApp() {
             await vehicleService.deleteVehicle(id);
             const remaining = vehicles.filter(v => v.id !== id);
             setVehicles(remaining);
-            
+
             if (remaining.length === 0) {
                 setActiveVehicle(null);
                 setScreen('ADD');
