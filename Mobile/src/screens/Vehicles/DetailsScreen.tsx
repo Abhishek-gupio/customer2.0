@@ -9,11 +9,11 @@ import {
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
     Calendar, Bookmark
 } from 'lucide-react-native';
-import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../../components/Vehicles/VehicleUI';
-import { Vehicle } from '../../../services/vehicleService';
-import { api } from '../../../services/api';
-import ShareScreen from '../Share';
-import { getProfile } from '../../../services/profileService';
+import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../components/Vehicles/VehicleUI';
+import { Vehicle } from '../../services/vehicleService';
+import { api } from '../../services/api';
+import ShareScreen from './Share';
+import { getProfile } from '../../services/profileService';
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];

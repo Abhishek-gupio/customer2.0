@@ -4,12 +4,12 @@ import {
     StyleSheet, Dimensions, ActivityIndicator, Alert,
     KeyboardAvoidingView, Platform, Switch
 } from 'react-native';
-import { 
-    ArrowLeft, Car, Bike, Check, Calendar, Hash, Type, 
+import {
+    ArrowLeft, ArrowRight, Car, Bike, Check, Calendar, Hash, Type,
     ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
 } from 'lucide-react-native';
-import { COLORS } from '../../../components/Vehicles/VehicleUI';
-import { vehicleService, Vehicle } from '../../../services/vehicleService';
+import { COLORS } from '../../components/Vehicles/VehicleUI';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
 
 const { width } = Dimensions.get('window');
 
@@ -66,7 +66,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
 
 
             const saved = await vehicleService.addVehicle(payload as any);
-            
+
             onDone(saved);
         } catch (error: any) {
             console.error('[AddVehicleScreen] handleSave error:', error);
@@ -88,15 +88,14 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         <View style={styles.screen}>
             {/* Header */}
             <View style={styles.header}>
-                {(!isFirst || step === 'CONFIRM') && (
+                <View style={styles.headerLeftContainer}>
                     <TouchableOpacity onPress={handleBackStep} style={styles.backBtn}>
-                        <ArrowLeft size={24} color="#FFF" />
+                        <ArrowLeft size={28} color="#FFF" />
                     </TouchableOpacity>
-                )}
-                <Text style={styles.headerTitle}>
-                    {step === 'INPUT' ? 'Add Vehicle' : 'Confirm Details'}
-                </Text>
-                <View style={{ width: 44 }} />
+                    <Text style={[styles.headerTitle, { marginLeft: 8 }]}>
+                        {step === 'INPUT' ? 'Add Vehicle' : 'Confirm Details'}
+                    </Text>
+                </View>
             </View>
 
             <KeyboardAvoidingView
@@ -104,7 +103,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                 style={{ flex: 1 }}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
-                <ScrollView 
+                <ScrollView
                     style={{ flex: 1 }}
                     contentContainerStyle={styles.content}
                     keyboardShouldPersistTaps="handled"
@@ -113,44 +112,63 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                     {step === 'INPUT' ? (
                         <>
                             <Text style={styles.sectionTitle}>Vehicle Identification</Text>
-                            
-                            {/* Plate Input */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>REGISTRATION NUMBER</Text>
-                                <View style={styles.plateInputContainer}>
-                                    <View style={styles.indStrip}>
-                                        <View style={styles.indDot} />
-                                        <Text style={styles.indText}>IND</Text>
-                                    </View>
-                                    <TextInput
-                                        style={styles.plateInput}
-                                        placeholder="MH12AB1234"
-                                        placeholderTextColor="#444"
-                                        value={form.registrationNumber}
-                                        onChangeText={t => updateForm('registrationNumber', t.toUpperCase())}
-                                        autoCapitalize="characters"
-                                        maxLength={15}
-                                    />
-                                </View>
-                            </View>
 
-                            {/* Type Toggle */}
-                            <View style={styles.typeToggleContainer}>
-                                <TouchableOpacity 
-                                    style={[styles.typeOption, form.vehicleType !== 'BIKE' && styles.typeOptionActive]}
-                                    onPress={() => updateForm('vehicleType', 'SEDAN')}
-                                >
-                                    <Car size={24} color={form.vehicleType !== 'BIKE' ? '#000' : '#FFF'} />
-                                    <Text style={[styles.typeLabel, form.vehicleType !== 'BIKE' && styles.typeLabelActive]}>Car</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity 
-                                    style={[styles.typeOption, form.vehicleType === 'BIKE' && styles.typeOptionActive]}
-                                    onPress={() => updateForm('vehicleType', 'BIKE')}
-                                >
-                                    <Bike size={24} color={form.vehicleType === 'BIKE' ? '#000' : '#FFF'} />
-                                    <Text style={[styles.typeLabel, form.vehicleType === 'BIKE' && styles.typeLabelActive]}>Bike</Text>
-                                </TouchableOpacity>
-                            </View>
+                                {/* Plate Input */}
+                                <View style={styles.inputGroup}>
+                                    <View style={styles.plateInputContainer}>
+                                        <View style={styles.indStrip}>
+                                            <View style={styles.indDot} />
+                                            <Text style={styles.indText}>IND</Text>
+                                        </View>
+                                        <TextInput
+                                            style={styles.plateInput}
+                                            placeholder="MH12AB1234"
+                                            placeholderTextColor="#333"
+                                            value={form.registrationNumber}
+                                            onChangeText={t => updateForm('registrationNumber', t.toUpperCase())}
+                                            autoCapitalize="characters"
+                                            maxLength={15}
+                                        />
+                                    </View>
+                                    
+                                    {/* Inline Proceed Button */}
+                                    <TouchableOpacity 
+                                        style={[
+                                            styles.inlineProceedBtn, 
+                                            form.registrationNumber.length < 7 && styles.inlineProceedBtnDisabled
+                                        ]}
+                                        onPress={handleProceedToConfirm}
+                                        disabled={form.registrationNumber.length < 7}
+                                    >
+                                        <Text style={[
+                                            styles.inlineProceedText,
+                                            form.registrationNumber.length < 7 && styles.inlineProceedTextDisabled
+                                        ]}>Proceed</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* OR Separator */}
+                                <View style={styles.orSeparatorContainer}>
+                                    <View style={styles.orLine} />
+                                    <Text style={styles.orText}>OR ENTER DETAILS MANUALLY</Text>
+                                    <View style={styles.orLine} />
+                                </View>
+
+                                {/* Vehicle Type Selector */}
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>VEHICLE TYPE</Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeContainer}>
+                                        {VEHICLE_TYPES.map(type => (
+                                            <TouchableOpacity
+                                                key={type}
+                                                style={[styles.typeChip, form.vehicleType === type && styles.typeChipActive]}
+                                                onPress={() => updateForm('vehicleType', type as any)}
+                                            >
+                                                <Text style={[styles.typeChipText, form.vehicleType === type && styles.typeChipTextActive]}>{type}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
 
                             <Text style={styles.sectionTitle}>Basic Details</Text>
 
@@ -158,7 +176,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                                     <Text style={styles.label}>BRAND</Text>
                                     <View style={styles.inputWrap}>
-                                        <Type size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <Type size={18} color="#FFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="e.g. Tata"
@@ -171,7 +189,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
                                     <Text style={styles.label}>MODEL</Text>
                                     <View style={styles.inputWrap}>
-                                        <Car size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <Car size={18} color="#FFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="e.g. Nexon"
@@ -187,7 +205,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                                     <Text style={styles.label}>VARIANT</Text>
                                     <View style={styles.inputWrap}>
-                                        <Bookmark size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <Bookmark size={18} color="#FFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="e.g. XZ+"
@@ -200,7 +218,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
                                     <Text style={styles.label}>YEAR</Text>
                                     <View style={styles.inputWrap}>
-                                        <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <Calendar size={18} color="#FFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="2024"
@@ -218,7 +236,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <Text style={styles.label}>FUEL TYPE</Text>
                                 <View style={styles.fuelContainer}>
                                     {FUEL_TYPES.map(fuel => (
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             key={fuel}
                                             style={[styles.fuelChip, form.fuelType === fuel && styles.fuelChipActive]}
                                             onPress={() => updateForm('fuelType', fuel)}
@@ -232,7 +250,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>CURRENT ODOMETER (KM)</Text>
                                 <View style={styles.inputWrap}>
-                                    <Gauge size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                    <Gauge size={18} color="#FFF" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
                                         placeholder="0"
@@ -249,7 +267,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>REGISTRATION DATE</Text>
                                 <View style={styles.inputWrap}>
-                                    <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                    <Calendar size={18} color="#FFF" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
                                         placeholder="YYYY-MM-DD"
@@ -264,7 +282,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                                     <Text style={styles.label}>CHASSIS NO.</Text>
                                     <View style={styles.inputWrap}>
-                                        <Hash size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <Hash size={18} color="#FFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Chassis Number"
@@ -278,7 +296,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
                                     <Text style={styles.label}>ENGINE NO.</Text>
                                     <View style={styles.inputWrap}>
-                                        <Hash size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <Hash size={18} color="#FFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Engine Number"
@@ -291,14 +309,21 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 </View>
                             </View>
 
-
-                            <TouchableOpacity 
-                                style={styles.primaryBtn}
-                                onPress={handleProceedToConfirm}
+                            <TouchableOpacity
+                                style={[styles.saveBtn, loading && styles.saveBtnLoading]}
+                                onPress={handleSave}
+                                disabled={loading || !form.registrationNumber || !form.make || !form.model}
                             >
-                                <Text style={styles.primaryBtnText}>REVIEW DETAILS</Text>
-                                <ArrowLeft size={20} color="#000" style={{ marginLeft: 8, transform: [{ rotate: '180deg' }] }} />
+                                {loading ? (
+                                    <ActivityIndicator color="#000" />
+                                ) : (
+                                    <>
+                                        <Text style={styles.saveText}>ADD VEHICLE</Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
+
+
                         </>
                     ) : (
                         /* ── CONFIRM STEP ── */
@@ -339,7 +364,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 </Text>
                             </View>
 
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={[styles.saveBtn, loading && styles.saveBtnLoading]}
                                 onPress={handleSave}
                                 disabled={loading}
@@ -354,7 +379,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 )}
                             </TouchableOpacity>
 
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.editBtn}
                                 onPress={() => setStep('INPUT')}
                                 disabled={loading}
@@ -383,53 +408,100 @@ const ConfirmRow = ({ label, value, accent }: { label: string; value: string; ac
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
-    header: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        paddingHorizontal: 20, 
-        paddingTop: 50, 
-        paddingBottom: 20 
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 50,
+        paddingBottom: 20
     },
-    backBtn: { 
-        width: 44, height: 44, borderRadius: 22, 
-        backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center',
-        borderWidth: 1, borderColor: COLORS.border
+    backBtn: {
+        width: 44, height: 44,
+        alignItems: 'center', justifyContent: 'center',
+        marginLeft: -10, // Pull slightly left to align with padding
     },
-    headerTitle: { fontSize: 20, fontWeight: '900', color: '#FFF', fontStyle: 'italic' },
+    headerLeftContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    headerTitle: { fontSize: 22, fontWeight: '800', color: '#FFF' },
     content: { paddingHorizontal: 24 },
-    sectionTitle: { 
-        fontSize: 12, fontWeight: '900', color: COLORS.primary, 
+    sectionTitle: {
+        fontSize: 12, fontWeight: '900', color: COLORS.primary,
         letterSpacing: 2, marginTop: 24, marginBottom: 16,
         textTransform: 'uppercase'
     },
     inputGroup: { marginBottom: 20 },
     label: { color: COLORS.textMuted, fontSize: 10, fontWeight: 'bold', marginBottom: 8, letterSpacing: 1 },
-    
-    // Plate Input
-    plateInputContainer: { 
-        backgroundColor: '#FFF', borderRadius: 12, overflow: 'hidden', 
-        flexDirection: 'row', alignItems: 'center', height: 60,
-        elevation: 10, shadowColor: '#FFF', shadowOpacity: 0.1, shadowRadius: 10
-    },
-    indStrip: { backgroundColor: '#003399', width: 32, height: '100%', alignItems: 'center', justifyContent: 'center' },
-    indDot: { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 2 },
-    indText: { color: '#FFF', fontSize: 6, fontWeight: '900' },
-    plateInput: { flex: 1, paddingHorizontal: 16, fontSize: 22, fontWeight: '900', color: '#000', letterSpacing: 2 },
 
-    // Type Toggle
-    typeToggleContainer: { flexDirection: 'row', gap: 16, marginTop: 8 },
-    typeOption: { 
-        flex: 1, height: 100, borderRadius: 24, backgroundColor: COLORS.surface,
-        borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center'
+    // Plate Input (Production Black)
+    plateInputContainer: {
+        backgroundColor: '#050505', borderRadius: 12, overflow: 'hidden',
+        flexDirection: 'row', alignItems: 'center', height: 68,
+        borderWidth: 1, borderColor: '#333'
     },
-    typeOptionActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    typeLabel: { color: '#888', fontSize: 12, fontWeight: 'bold', marginTop: 8 },
-    typeLabelActive: { color: '#000' },
+    indStrip: { backgroundColor: '#003399', width: 44, height: '100%', alignItems: 'center', justifyContent: 'center' },
+    indDot: { width: 5, height: 5, backgroundColor: '#8BC34A', borderRadius: 2.5, marginBottom: 4 },
+    indText: { color: '#FFF', fontSize: 11, fontWeight: '900' },
+    plateInput: { flex: 1, paddingHorizontal: 16, fontSize: 26, fontWeight: '900', color: '#FFF', letterSpacing: 2 },
+
+    // Inline Proceed
+    inlineProceedBtn: {
+        backgroundColor: '#FFF',
+        height: 54,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 16,
+    },
+    inlineProceedBtnDisabled: {
+        backgroundColor: '#222',
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    inlineProceedText: {
+        color: '#000',
+        fontSize: 15,
+        fontWeight: '800',
+        letterSpacing: 1,
+    },
+    inlineProceedTextDisabled: {
+        color: '#555',
+    },
+
+    // Divider
+    orSeparatorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 24,
+    },
+    orLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: COLORS.border,
+    },
+    orText: {
+        color: COLORS.textMuted,
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 1.5,
+        paddingHorizontal: 16,
+    },
+
+    // Type Chips
+    typeContainer: { flexDirection: 'row', gap: 10, paddingBottom: 4 },
+    typeChip: {
+        paddingHorizontal: 16, paddingVertical: 10, borderRadius: 30,
+        backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border
+    },
+    typeChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+    typeChipText: { color: '#888', fontSize: 11, fontWeight: 'bold' },
+    typeChipTextActive: { color: '#000' },
 
     // Standard Input
-    inputWrap: { 
-        flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, 
+    inputWrap: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface,
         borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, height: 56
     },
     inputIcon: { marginLeft: 16 },
@@ -438,8 +510,8 @@ const styles = StyleSheet.create({
 
     // Fuel Chips
     fuelContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    fuelChip: { 
-        paddingHorizontal: 16, paddingVertical: 10, borderRadius: 30, 
+    fuelChip: {
+        paddingHorizontal: 16, paddingVertical: 10, borderRadius: 30,
         backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border
     },
     fuelChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
@@ -447,20 +519,13 @@ const styles = StyleSheet.create({
     fuelTextActive: { color: '#000' },
 
     // Primary Toggle
-    primaryToggleCard: { 
+    primaryToggleCard: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         backgroundColor: COLORS.surface, padding: 20, borderRadius: 24,
         marginTop: 20, borderWidth: 1, borderColor: COLORS.border
     },
     primaryTitle: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
     primarySub: { color: '#666', fontSize: 11, marginTop: 2 },
-
-    primaryBtn: { 
-        backgroundColor: COLORS.primary, height: 64, borderRadius: 32,
-        alignItems: 'center', justifyContent: 'center', marginTop: 40,
-        flexDirection: 'row'
-    },
-    primaryBtnText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
 
     // Confirm Step Styles
     confirmHeader: { alignItems: 'center', marginTop: 20, marginBottom: 32 },
@@ -474,7 +539,7 @@ const styles = StyleSheet.create({
     confirmValue: { color: '#FFF', fontSize: 14, fontWeight: '900', fontStyle: 'italic' },
     infoBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,215,0,0.05)', padding: 16, borderRadius: 16, marginTop: 24, gap: 12, borderWidth: 1, borderColor: 'rgba(255,215,0,0.1)' },
     infoText: { color: '#888', fontSize: 11, flex: 1, fontWeight: '500' },
-    saveBtn: { 
+    saveBtn: {
         backgroundColor: COLORS.primary, height: 64, borderRadius: 32,
         alignItems: 'center', justifyContent: 'center', marginTop: 32,
         flexDirection: 'row', elevation: 5

@@ -313,37 +313,6 @@ export default function Home() {
               }
               if (item === 1) {
                 return (
-                  <View style={styles.slideFull}>
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={styles.promoSubtitle}>Stay Connected</Text>
-                        <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
-                        <View style={styles.promoButtons}>
-                          <TouchableOpacity
-                            style={styles.promoBtn}
-                            onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
-                          >
-                            <Icon name="instagram" size={14} color="#000" />
-                            <Text style={styles.promoBtnText}>Instagram</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.promoBtn, { backgroundColor: '#333' }]}
-                            onPress={() => Linking.openURL('https://gupio.in/')}
-                          >
-                            <MaterialIcon name="earth" size={14} color="#fff" />
-                            <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      <View style={styles.promoRight}>
-                        <MaterialIcon name="account-group" size={wp(25)} color="rgba(255,255,255,0.1)" />
-                      </View>
-                    </View>
-                  </View>
-                );
-              }
-              if (item === 2) {
-                return (
                   <TouchableOpacity
                     style={styles.slideFull}
                     activeOpacity={0.9}
@@ -360,33 +329,76 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <MaterialIcon name="wallet" size={wp(25)} color="rgba(255,191,0,0.15)" />
+                        <Image
+                          source={require('../../assets/images/expense_AD.png') as any}
+                          style={styles.adImage}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }
+              if (item === 2) {
+                return (
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => setServiceModalVisible(true)}
+                  >
+                    <View style={styles.promoSlide}>
+                      <View style={styles.promoLeft}>
+                        <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
+                        <Text style={styles.promoTitle}>Featured Services</Text>
+                        <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
+                        <View style={styles.promoAction}>
+                          <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
+                          <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                        </View>
+                      </View>
+                      <View style={styles.promoRight}>
+                        <Image
+                          source={require('../../assets/images/vehicle_AD.png') as any}
+                          style={styles.adImage}
+                          resizeMode="contain"
+                        />
                       </View>
                     </View>
                   </TouchableOpacity>
                 );
               }
               return (
-                <TouchableOpacity
-                  style={styles.slideFull}
-                  activeOpacity={0.9}
-                  onPress={() => setServiceModalVisible(true)}
-                >
+                <View style={styles.slideFull}>
                   <View style={styles.promoSlide}>
                     <View style={styles.promoLeft}>
-                      <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
-                      <Text style={styles.promoTitle}>Featured Services</Text>
-                      <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
-                      <View style={styles.promoAction}>
-                        <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
-                        <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                      <Text style={styles.promoSubtitle}>Stay Connected</Text>
+                      <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
+                      <View style={styles.promoButtons}>
+                        <TouchableOpacity
+                          style={styles.promoBtn}
+                          onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
+                        >
+                          <Icon name="instagram" size={14} color="#000" />
+                          <Text style={styles.promoBtnText}>Instagram</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.promoBtn, { backgroundColor: '#333' }]}
+                          onPress={() => Linking.openURL('https://gupio.in/')}
+                        >
+                          <MaterialIcon name="earth" size={14} color="#fff" />
+                          <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                     <View style={styles.promoRight}>
-                      <MaterialIcon name="car-cog" size={wp(25)} color="rgba(74,222,128,0.15)" />
+                      <Image
+                        source={require('../../assets/images/insta&website_AD.png') as any}
+                        style={styles.adImage}
+                        resizeMode="contain"
+                      />
                     </View>
                   </View>
-                </TouchableOpacity>
+                </View>
               );
             }}
           />
@@ -424,7 +436,7 @@ export default function Home() {
             <TextInput
               style={styles.numberPlateInput}
               placeholder={animatedPlaceholder}
-              placeholderTextColor="#666"
+              placeholderTextColor="#fff"
               value={numberPlate}
               onChangeText={setNumberPlate}
               autoCapitalize="characters"
@@ -572,6 +584,22 @@ export default function Home() {
               </View>
             </TouchableOpacity>
           ))}
+        </View>
+
+        {/* FULL HEIGHT HOME ADVERTISEMENT */}
+        <View style={styles.fullAdSection}>
+          <Text style={styles.fullAdTitle}>Featured Services</Text>
+          <Image
+            source={require('../../assets/images/Home_AD.png') as any}
+            style={styles.fullAdImage}
+            resizeMode="contain"
+          />
+          <TouchableOpacity
+            style={styles.exploreAdButton}
+            onPress={() => navigation.navigate('Services' as any, { screen: 'ServicesHome' })}
+          >
+            <Text style={styles.exploreAdButtonText}>Explore</Text>
+          </TouchableOpacity>
         </View>
 
         {/* COMING SOON FEATURES */}
@@ -725,11 +753,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     paddingHorizontal: wp(6),
-    paddingTop: hp(6), // Increased from hp(5) to fix icon/text crowding
+    paddingTop: hp(4), // Avoid top overlay
+    alignItems: 'center', // Center vertically
   },
   headerLeft: {
     flex: 1.3,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   headerRight: {
     flex: 1,
@@ -738,35 +767,35 @@ const styles = StyleSheet.create({
   },
   headerNumberPlate: {
     color: '#fff',
-    fontSize: wp(7),
+    fontSize: wp(5.5),
     fontWeight: '800',
     letterSpacing: 1,
   },
   headerCarModel: {
     color: '#aaa',
-    fontSize: wp(4),
+    fontSize: wp(3.5),
     fontWeight: '500',
     marginTop: hp(0.2),
   },
   healthSection: {
-    marginTop: hp(2.5),
+    marginTop: hp(1.5),
   },
   healthText: {
     color: '#fff',
-    fontSize: wp(5.5),
+    fontSize: wp(4.5),
     fontWeight: '700',
   },
   healthLabel: {
     color: '#4ade80', // Greenish
-    fontSize: wp(4.5),
+    fontSize: wp(3.5),
     fontWeight: '600',
   },
   healthBarBg: {
-    width: wp(45),
-    height: hp(0.8),
+    width: wp(40),
+    height: hp(0.5),
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 4,
-    marginTop: hp(1.5), // Increased slightly for clarity
+    marginTop: hp(1),
     overflow: 'hidden',
   },
   healthBarFill: {
@@ -778,7 +807,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: hp(2.5), // Added margin to fix overlap with health bar
     paddingHorizontal: wp(6),
     paddingBottom: hp(6),
   },
@@ -797,9 +825,9 @@ const styles = StyleSheet.create({
     marginTop: hp(0.2),
   },
   headerCarImage: {
-    width: wp(45),
-    height: hp(20),
-    transform: [{ scale: 1.2 }, { translateX: wp(5) }],
+    width: wp(40),
+    height: hp(16),
+    transform: [{ scale: 1.1 }, { translateX: wp(5) }],
   },
   headerOverlay: {
     position: 'absolute',
@@ -826,16 +854,23 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     paddingHorizontal: wp(6),
-    paddingTop: hp(8), // More space for top overlay
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: hp(4), // Add space to push content down into the middle
+    paddingBottom: hp(4), // Balanced padding
   },
   promoLeft: {
-    flex: 2,
-    justifyContent: 'flex-start',
+    flex: 1.4,
+    justifyContent: 'center',
   },
   promoRight: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-end',
+  },
+  adImage: {
+    width: wp(35),
+    height: hp(18),
   },
   promoSubtitle: {
     color: '#aaa',
@@ -859,17 +894,18 @@ const styles = StyleSheet.create({
   },
   promoButtons: {
     flexDirection: 'row',
-    gap: wp(3),
+    flexWrap: 'wrap',
+    gap: wp(2),
     marginTop: hp(1),
   },
   promoBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingHorizontal: wp(3),
+    paddingHorizontal: wp(2.5),
     paddingVertical: hp(0.8),
     borderRadius: 6,
-    gap: wp(1.5),
+    gap: wp(1),
   },
   promoBtnText: {
     color: '#000',
@@ -1338,5 +1374,38 @@ const styles = StyleSheet.create({
     fontSize: wp(3.8),
     fontWeight: '500',
     paddingVertical: hp(1),
+  },
+
+  /* FULL HEIGHT AD */
+  fullAdSection: {
+    paddingHorizontal: wp(5),
+    marginBottom: hp(2.5),
+    marginTop: hp(-1), // Reduced top spacing as requested
+    width: wp(100), // Taking full available viewport instead of arbitrary percentage wrapper
+    alignItems: 'center',
+  },
+  fullAdTitle: {
+    color: '#fff',
+    fontSize: wp(5),
+    fontWeight: '700',
+    alignSelf: 'flex-start',
+    marginBottom: hp(1.5),
+  },
+  fullAdImage: {
+    width: wp(90),
+    height: hp(40), // Adjusted to reduce letterbox whitespace and fit closely above the button
+    borderRadius: 12,
+  },
+  exploreAdButton: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(1.6),
+    borderRadius: 8,
+    marginTop: hp(-2), // Pull the button slightly up against the image bounds
+  },
+  exploreAdButtonText: {
+    color: '#0a0a0a',
+    fontSize: wp(4.5),
+    fontWeight: '800',
   },
 });
