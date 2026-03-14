@@ -6,7 +6,8 @@ import {
 import {
     ArrowLeft, Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Gavel, Cpu, CheckCircle2, Star, Tag, Gauge,
-    Clock, FileCheck, Activity, IdCard, Weight, Building, Plus
+    Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
+    Calendar, Bookmark
 } from 'lucide-react-native';
 import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../../components/Vehicles/VehicleUI';
 import { Vehicle } from '../../../services/vehicleService';
@@ -21,13 +22,14 @@ type DetailsScreenProps = {
     onBack: () => void;
     onAddNew: () => void;
     onDelete: (id: string) => void;
+    onSetPrimary: (id: string) => void;
 };
 
 type MainTab = 'Alerts' | 'Details';
 type SubTab = 'Owner' | 'Vehicle' | 'Specs' | 'Dates' | 'More';
 
 export const DetailsScreen = ({
-    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete
+    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
 }: DetailsScreenProps) => {
     const [mainTab, setMainTab] = useState<MainTab>('Alerts');
     const [subTab, setSubTab] = useState<SubTab>('Vehicle');   // fixed: was 'Vehicle' but docs said 'Alerts'
@@ -197,8 +199,14 @@ export const DetailsScreen = ({
                     <Text style={styles.detailModel}>
                         {activeVehicle.model || activeVehicle.make || 'Vehicle'}
                     </Text>
-                    <View style={{ marginTop: 16 }}>
+                    <View style={{ marginTop: 16, alignItems: 'center' }}>
                         <INDPlate number={activeVehicle.registrationNumber} />
+                        {activeVehicle.isPrimary && (
+                            <View style={styles.primaryBadge}>
+                                <Star size={10} color="#000" fill="#000" />
+                                <Text style={styles.primaryBadgeText}>PRIMARY VEHICLE</Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* ── Vehicle switcher strip ── */}
@@ -330,31 +338,59 @@ export const DetailsScreen = ({
                             <View style={{ gap: 16 }}>
                                 {subTab === 'Owner' && (
                                     <>
-                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Not Available'} />
-                                        <InfoCard icon={Building} label="RTO Office" value={rto?.rto || 'Not Available'} />
+                                        <InfoCard icon={User} label="Owner Name" value={'Self'} />
+                                        <InfoCard icon={Building} label="RTO Office" value={'Auto Detected'} />
                                     </>
                                 )}
 
                                 {subTab === 'Vehicle' && (
                                     <>
-                                        <InfoCard icon={Wrench} label="Model" value={activeVehicle.model || rto?.brand || 'Unknown'} />
-                                        <InfoCard icon={Cpu} label="Chassis No." value={activeVehicle.chassisNumber || rto?.chassisNo || 'N/A'} />
-                                        <InfoCard icon={Gavel} label="Fuel Norms" value={rto?.fuelNorms || 'BS VI'} />
-                                        <InfoCard icon={Droplets} label="Fuel Type" value={activeVehicle.fuelType || rto?.fuelType || 'PETROL'} />
+                                        <TouchableOpacity 
+                                            style={[styles.premiumStatusCard, activeVehicle.isPrimary && styles.premiumStatusActive]}
+                                            onPress={() => !activeVehicle.isPrimary && onSetPrimary(activeVehicle.id)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <View style={styles.statusGlow} />
+                                            <View style={styles.statusContent}>
+                                                <View style={styles.statusIconBox}>
+                                                    <ShieldCheck size={20} color={activeVehicle.isPrimary ? COLORS.primary : '#444'} />
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={styles.statusTitle}>Garage Priority</Text>
+                                                    <Text style={styles.statusDesc}>
+                                                        {activeVehicle.isPrimary 
+                                                            ? 'This vehicle is set as your primary choice.' 
+                                                            : 'Set as primary for quick home-screen access.'}
+                                                    </Text>
+                                                </View>
+                                                {!activeVehicle.isPrimary && (
+                                                    <View style={styles.setPriorityBtn}>
+                                                        <Text style={styles.setPriorityText}>SET</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </TouchableOpacity>
+
+                                        <InfoCard icon={Wrench} label="Model" value={activeVehicle.model || 'Unknown'} />
+                                        <InfoCard icon={Bookmark} label="Variant" value={activeVehicle.variant || 'N/A'} />
+                                        <InfoCard icon={Type} label="Brand" value={activeVehicle.make || 'Unknown'} />
+                                        <InfoCard icon={Cpu} label="Chassis No." value={activeVehicle.chassisNumber || 'N/A'} />
+                                        <InfoCard icon={Droplets} label="Fuel Type" value={activeVehicle.fuelType || 'PETROL'} />
                                     </>
                                 )}
 
                                 {subTab === 'Specs' && (
                                     <>
-                                        <InfoCard icon={Tag} label="Price" value={rto?.priceRange || 'N/A'} />
+                                        <InfoCard icon={Gauge} label="Current Odometer" value={activeVehicle.currentOdometer ? `${activeVehicle.currentOdometer} KM` : 'N/A'} />
+                                        <InfoCard icon={Tag} label="Price Range" value={rto?.priceRange || 'N/A'} />
                                         <InfoCard icon={Star} label="Rating" value={rto?.rating ? `${rto.rating} / 5` : 'N/A'} />
                                         <InfoCard icon={Settings} label="Trans." value={rto?.transmission || 'N/A'} />
-                                        <InfoCard icon={Gauge} label="Mileage" value={rto?.mileage || 'N/A'} />
                                     </>
                                 )}
 
                                 {subTab === 'Dates' && (
                                     <>
+                                        <InfoCard icon={Calendar} label="Reg. Year" value={activeVehicle.year || 'N/A'} />
                                         <InfoCard icon={Clock} label="Reg. Date" value={
                                             activeVehicle.registrationDate
                                                 ? new Date(activeVehicle.registrationDate).toLocaleDateString()
@@ -413,6 +449,11 @@ const styles = StyleSheet.create({
     miniAvatarWrap: { width: 68, height: 68, borderRadius: 34, padding: 4, borderWidth: 2, borderColor: 'transparent', backgroundColor: COLORS.surface },
     miniAvatarActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(255, 215, 0, 0.1)' },
     miniAvatar: { flex: 1, borderRadius: 34, backgroundColor: '#000', overflow: 'hidden' },
+    primaryBadge: { 
+        flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.primary, 
+        paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 12, gap: 4 
+    },
+    primaryBadgeText: { color: '#000', fontSize: 8, fontWeight: '900', letterSpacing: 0.5 },
     contentPad: { paddingHorizontal: 24 },
     feedbackCard: { backgroundColor: COLORS.surface, borderRadius: 40, padding: 32, borderWidth: 1, borderColor: COLORS.border, marginTop: 32, alignItems: 'center' },
     feedbackTitle: { fontSize: 20, fontWeight: '900', color: '#FFF', fontStyle: 'italic', marginBottom: 8 },
@@ -429,4 +470,64 @@ const styles = StyleSheet.create({
     rowGridMulti: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     primaryBtn: { backgroundColor: COLORS.primary, paddingVertical: 18, borderRadius: 30, alignItems: 'center', justifyContent: 'center', width: '100%' },
     primaryBtnText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
+    premiumStatusCard: {
+        backgroundColor: COLORS.surface,
+        borderRadius: 24,
+        padding: 20,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        overflow: 'hidden'
+    },
+    premiumStatusActive: {
+        borderColor: COLORS.primary + '60',
+        backgroundColor: COLORS.primary + '10'
+    },
+    statusGlow: {
+        position: 'absolute',
+        top: -20,
+        right: -20,
+        width: 100,
+        height: 100,
+        backgroundColor: COLORS.primary + '10',
+        borderRadius: 50
+    },
+    statusContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16
+    },
+    statusIconBox: {
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        backgroundColor: '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border
+    },
+    statusTitle: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '900',
+        fontStyle: 'italic'
+    },
+    statusDesc: {
+        color: '#888',
+        fontSize: 11,
+        fontWeight: '600',
+        marginTop: 2
+    },
+    setPriorityBtn: {
+        backgroundColor: COLORS.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12
+    },
+    setPriorityText: {
+        color: '#000',
+        fontSize: 10,
+        fontWeight: '900'
+    }
 });

@@ -92,7 +92,14 @@ export const GarageListScreen = ({ vehicles, onAdd, onSelect, onDelete }: Garage
                             </View>
 
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.listTitle}>{v.registrationNumber}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Text style={styles.listTitle}>{v.registrationNumber}</Text>
+                                    {v.isPrimary && (
+                                        <View style={styles.primaryBadge}>
+                                            <Text style={styles.primaryText}>PRIMARY</Text>
+                                        </View>
+                                    )}
+                                </View>
                                 <Text style={styles.listSub} numberOfLines={1}>
                                     {v.__optimistic ? 'Saving...' : (v.model || v.make || 'Unknown Model')}
                                 </Text>
@@ -150,4 +157,6 @@ const styles = StyleSheet.create({
     addNewIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' },
     addNewTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary, fontStyle: 'italic' },
     addNewSub: { fontSize: 10, fontWeight: 'bold', color: '#888', textTransform: 'uppercase' },
+    primaryBadge: { backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' },
+    primaryText: { color: COLORS.primary, fontSize: 8, fontWeight: '900', letterSpacing: 0.5 },
 });

@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, ScrollView,
     StyleSheet, Dimensions, ActivityIndicator, Alert,
-    KeyboardAvoidingView, Platform
+    KeyboardAvoidingView, Platform, Switch
 } from 'react-native';
-import { ArrowLeft, Search, CheckCircle, Car, Bike } from 'lucide-react-native';
+import { 
+    ArrowLeft, Car, Bike, Check, Calendar, Hash, Type, 
+    ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
+} from 'lucide-react-native';
 import { COLORS } from '../../../components/Vehicles/VehicleUI';
-import { vehicleService, Vehicle, RTODetails, isValidIndianPlate } from '../../../services/vehicleService';
+import { vehicleService, Vehicle } from '../../../services/vehicleService';
 
-const { height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 type AddVehicleScreenProps = {
     onBack?: () => void;
@@ -16,108 +19,84 @@ type AddVehicleScreenProps = {
     isFirst?: boolean;
 };
 
-type Step = 'LOOKUP' | 'CONFIRM';
-type VehicleKind = 'CAR' | 'BIKE';
+type Step = 'INPUT' | 'CONFIRM';
+
+const FUEL_TYPES = ['PETROL', 'DIESEL', 'CNG', 'EV', 'HYBRID', 'OTHER'];
+const VEHICLE_TYPES = ['SEDAN', 'SUV', 'LUV', 'HATCHBACK', 'BIKE', 'TRUCK'];
 
 export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenProps) => {
-    const [step, setStep] = useState<Step>('LOOKUP');
-    const [vNo, setVNo] = useState('');
-    const [model, setModel] = useState('');
-    const [kind, setKind] = useState<VehicleKind>('CAR');
-    const [rtoDetails, setRtoDetails] = useState<RTODetails | null>(null);
-    const [lookupLoading, setLookupLoading] = useState(false);
-    const [saveLoading, setSaveLoading] = useState(false);
-    const [plateError, setPlateError] = useState('');
+    const [step, setStep] = useState<Step>('INPUT');
+    const [loading, setLoading] = useState(false);
+    const [form, setForm] = useState({
+        registrationNumber: '',
+        make: '',
+        model: '',
+        variant: '',
+        year: '',
+        fuelType: 'PETROL' as const,
+        vehicleType: 'SEDAN' as 'SEDAN' | 'BIKE' | 'SUV' | 'LUV' | 'HATCHBACK' | 'TRUCK',
+        registrationDate: '',
+        chassisNumber: '',
+        engineNumber: '',
+        currentOdometer: '',
+    });
 
-    // Maps kind → backend image lookup hint + DB vehicleType enum
-    const KIND_CONFIG = {
-        CAR:  { modelHint: 'sedan car',       vehicleType: 'SEDAN' as const, placeholder: 'e.g. Swift, Verna, City' },
-        BIKE: { modelHint: 'bike motorcycle',  vehicleType: 'BIKE'  as const, placeholder: 'e.g. Splendor, Pulsar, Activa' },
+    const updateForm = (key: string, value: any) => {
+        setForm(prev => ({ ...prev, [key]: value }));
     };
 
-    const cfg = KIND_CONFIG[kind];
-
-    // ── STEP 1: Lookup ─────────────────────────────────────────────────────────
-    const handleLookup = async () => {
-        const cleaned = vNo.toUpperCase().replace(/\s/g, '');
-        if (!isValidIndianPlate(cleaned)) {
-            setPlateError('Enter a valid plate (e.g. MH04AB1234)');
+    const handleProceedToConfirm = () => {
+        if (!form.registrationNumber || !form.make || !form.model) {
+            Alert.alert("Required Fields", "Please fill Registration Number, Brand, and Model.");
             return;
         }
-        setPlateError('');
-        setLookupLoading(true);
-        try {
-            // Combine user's model text with the kind hint so backend picks the right image
-            const modelHint = model
-                ? `${model} ${cfg.modelHint}`.trim()
-                : cfg.modelHint;
-
-            const rtoData = await vehicleService.fetchVehicleData(cleaned, modelHint);
-            setRtoDetails(rtoData ?? null);
-            setStep('CONFIRM');
-        } catch (e) {
-            console.error('[AddVehicleScreen] handleLookup error:', e);
-            setRtoDetails(null);
-            setStep('CONFIRM');
-        } finally {
-            setLookupLoading(false);
-        }
+        setStep('CONFIRM');
     };
 
-    // ── STEP 2: Save ──────────────────────────────────────────────────────────
     const handleSave = async () => {
-        setSaveLoading(true);
+        setLoading(true);
         try {
-            // Normalize fuelType to match backend Zod enum
-            let normalizedFuel = (rtoDetails?.fuelType || 'PETROL').toUpperCase().trim();
-            if (normalizedFuel.includes('PETROL')) normalizedFuel = 'PETROL';
-            else if (normalizedFuel.includes('DIESEL')) normalizedFuel = 'DIESEL';
-            else if (normalizedFuel.includes('CNG')) normalizedFuel = 'CNG';
-            else if (normalizedFuel.includes('EV') || normalizedFuel.includes('ELECTRIC')) normalizedFuel = 'EV';
-            else if (normalizedFuel.includes('HYBRID')) normalizedFuel = 'HYBRID';
-            else normalizedFuel = 'OTHER';
+            const payload = {
+                ...form,
+                registrationNumber: form.registrationNumber.toUpperCase().replace(/\s/g, ''),
+                year: form.year ? parseInt(form.year) : undefined,
+                currentOdometer: form.currentOdometer ? parseFloat(form.currentOdometer) : undefined,
+                registrationDate: form.registrationDate ? new Date(form.registrationDate).toISOString() : undefined
+            };
 
-            const saved = await vehicleService.addVehicle({
-                registrationNumber: vNo.toUpperCase().replace(/\s/g, ''),
-                make: rtoDetails?.brand || (kind === 'BIKE' ? 'Bike' : 'Car'),
-                model: model.trim() || rtoDetails?.brand || (kind === 'BIKE' ? 'Bike' : 'Car'),
-                fuelType: normalizedFuel as any,
-                vehicleType: cfg.vehicleType,
-                chassisNumber: rtoDetails?.chassisNo,
-                engineNumber: rtoDetails?.engineNo,
-                // Ensure date is in a parseable format or null
-                registrationDate: (() => {
-                    if (!rtoDetails?.regDate) return undefined;
-                    const parsed = new Date(rtoDetails.regDate);
-                    return isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
-                })(),
-            });
-            onDone({ ...saved, rtoDetails: rtoDetails ?? undefined });
+
+            const saved = await vehicleService.addVehicle(payload as any);
+            
+            onDone(saved);
         } catch (error: any) {
             console.error('[AddVehicleScreen] handleSave error:', error);
-            // Show more detailed error if possible
-            const errorMsg = error?.response?.data?.error || error?.message || 'Failed to save vehicle.';
-            Alert.alert('Error', errorMsg);
+            Alert.alert('Error', error?.message || 'Failed to save vehicle.');
         } finally {
-            setSaveLoading(false);
+            setLoading(false);
         }
     };
 
-    const handleBack = () => {
-        if (step === 'CONFIRM') { setStep('LOOKUP'); return; }
-        onBack?.();
+    const handleBackStep = () => {
+        if (step === 'CONFIRM') {
+            setStep('INPUT');
+        } else {
+            onBack?.();
+        }
     };
 
-    // ─── Render ───────────────────────────────────────────────────────────────
     return (
         <View style={styles.screen}>
             {/* Header */}
             <View style={styles.header}>
                 {(!isFirst || step === 'CONFIRM') && (
-                    <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
+                    <TouchableOpacity onPress={handleBackStep} style={styles.backBtn}>
                         <ArrowLeft size={24} color="#FFF" />
                     </TouchableOpacity>
                 )}
+                <Text style={styles.headerTitle}>
+                    {step === 'INPUT' ? 'Add Vehicle' : 'Confirm Details'}
+                </Text>
+                <View style={{ width: 44 }} />
             </View>
 
             <KeyboardAvoidingView
@@ -127,250 +106,381 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
             >
                 <ScrollView 
                     style={{ flex: 1 }}
-                    contentContainerStyle={[styles.content, { flexGrow: 1 }]} 
+                    contentContainerStyle={styles.content}
                     keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
                 >
-                    {/* Brand */}
-                    <View style={styles.brandRow}>
-                        <View style={styles.brandLogo}>
-                            <Search size={26} color="black" />
-                        </View>
-                        <Text style={styles.brandText}>
-                            GUPIO <Text style={{ color: COLORS.primary }}>GARAGE</Text>
-                        </Text>
-                    </View>
-
-                    {step === 'LOOKUP' ? (
+                    {step === 'INPUT' ? (
                         <>
-                            <Text style={styles.title}>Add your vehicle</Text>
-                            <Text style={styles.sub}>
-                                Choose Car or Bike, then enter your plate number.
-                            </Text>
-
-                            {/* ── Car / Bike Toggle ── */}
-                            <View style={styles.kindToggleRow}>
-                                <TouchableOpacity
-                                    style={[styles.kindBtn, kind === 'CAR' && styles.kindBtnActive]}
-                                    onPress={() => setKind('CAR')}
-                                    activeOpacity={0.85}
-                                >
-                                    <View style={[styles.kindIconWrap, kind === 'CAR' && styles.kindIconWrapActive]}>
-                                        <Car
-                                            size={36}
-                                            color={kind === 'CAR' ? '#000' : '#555'}
-                                            strokeWidth={kind === 'CAR' ? 2.5 : 1.5}
-                                        />
-                                    </View>
-                                    <Text style={[styles.kindLabel, kind === 'CAR' && styles.kindLabelActive]}>
-                                        CAR
-                                    </Text>
-                                    {kind === 'CAR' && <View style={styles.activePip} />}
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[styles.kindBtn, kind === 'BIKE' && styles.kindBtnActive]}
-                                    onPress={() => setKind('BIKE')}
-                                    activeOpacity={0.85}
-                                >
-                                    <View style={[styles.kindIconWrap, kind === 'BIKE' && styles.kindIconWrapActive]}>
-                                        <Bike
-                                            size={36}
-                                            color={kind === 'BIKE' ? '#000' : '#555'}
-                                            strokeWidth={kind === 'BIKE' ? 2.5 : 1.5}
-                                        />
-                                    </View>
-                                    <Text style={[styles.kindLabel, kind === 'BIKE' && styles.kindLabelActive]}>
-                                        BIKE
-                                    </Text>
-                                    {kind === 'BIKE' && <View style={styles.activePip} />}
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* ── Decorative graphic ── */}
-                            <View style={styles.graphic}>
-                                <View style={styles.glow} />
-                                {kind === 'BIKE' ? (
-                                    <Bike size={96} color={COLORS.primary} strokeWidth={1} />
-                                ) : (
-                                    <View style={styles.carSilhouette}>
-                                        <View style={[styles.carBody, { width: 190, height: 80 }]} />
-                                        <View style={[styles.carRoof, { width: 110, height: 54 }]} />
-                                    </View>
-                                )}
-                            </View>
-                        </>
-                    ) : (
-                        /* ── CONFIRM step ── */
-                        <>
-                            <Text style={styles.title}>Confirm Details</Text>
-                            <Text style={styles.sub}>
-                                {rtoDetails
-                                    ? 'RTO data fetched. Review & save.'
-                                    : 'Could not fetch RTO data. You can still save.'}
-                            </Text>
-
-                            {/* Kind badge */}
-                            <View style={styles.kindBadge}>
-                                {kind === 'CAR'
-                                    ? <Car size={14} color={COLORS.primary} />
-                                    : <Bike size={14} color={COLORS.primary} />}
-                                <Text style={styles.kindBadgeText}>{kind}</Text>
-                            </View>
-
-                            <View style={styles.confirmCard}>
-                                <ConfirmRow label="PLATE" value={vNo.toUpperCase()} />
-                                {rtoDetails && (
-                                    <>
-                                        <Divider />
-                                        <ConfirmRow label="OWNER"            value={rtoDetails.ownerName    || '—'} />
-                                        <Divider />
-                                        <ConfirmRow label="FUEL"             value={rtoDetails.fuelType     || '—'} />
-                                        <Divider />
-                                        <ConfirmRow label="INSURANCE UPTO"  value={rtoDetails.insuranceUpto || '—'} accent />
-                                        <Divider />
-                                        <ConfirmRow label="RC STATUS"        value={rtoDetails.rcStatus     || '—'} accent />
-                                    </>
-                                )}
-                            </View>
-                        </>
-                    )}
-                </ScrollView>
-
-                {/* ── Bottom input card ── */}
-                <View style={styles.bottomCard}>
-                    {step === 'LOOKUP' ? (
-                        <>
-                            {/* Plate number */}
-                            <View style={{ marginBottom: 14 }}>
-                                <Text style={styles.inputLabel}>Vehicle Number</Text>
-                                <View style={[styles.plateRow, plateError ? { borderColor: COLORS.error } : {}]}>
+                            <Text style={styles.sectionTitle}>Vehicle Identification</Text>
+                            
+                            {/* Plate Input */}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>REGISTRATION NUMBER</Text>
+                                <View style={styles.plateInputContainer}>
                                     <View style={styles.indStrip}>
                                         <View style={styles.indDot} />
                                         <Text style={styles.indText}>IND</Text>
                                     </View>
                                     <TextInput
                                         style={styles.plateInput}
-                                        placeholder="MH04AB1234"
-                                        placeholderTextColor="#555"
-                                        value={vNo}
-                                        onChangeText={t => { setVNo(t); setPlateError(''); }}
+                                        placeholder="MH12AB1234"
+                                        placeholderTextColor="#444"
+                                        value={form.registrationNumber}
+                                        onChangeText={t => updateForm('registrationNumber', t.toUpperCase())}
                                         autoCapitalize="characters"
-                                        maxLength={12}
-                                        returnKeyType="search"
-                                        onSubmitEditing={handleLookup}
-                                        blurOnSubmit={false}
+                                        maxLength={15}
                                     />
                                 </View>
-                                {plateError ? <Text style={styles.errorText}>{plateError}</Text> : null}
                             </View>
 
-                            {/* Model */}
-                            <View style={{ marginBottom: 20 }}>
-                                <Text style={styles.inputLabel}>Model (Optional)</Text>
-                                <TextInput
-                                    style={styles.modelInput}
-                                    placeholder={cfg.placeholder}
-                                    placeholderTextColor="#555"
-                                    value={model}
-                                    onChangeText={setModel}
-                                    returnKeyType="done"
-                                    onSubmitEditing={handleLookup}
-                                />
+                            {/* Type Toggle */}
+                            <View style={styles.typeToggleContainer}>
+                                <TouchableOpacity 
+                                    style={[styles.typeOption, form.vehicleType !== 'BIKE' && styles.typeOptionActive]}
+                                    onPress={() => updateForm('vehicleType', 'SEDAN')}
+                                >
+                                    <Car size={24} color={form.vehicleType !== 'BIKE' ? '#000' : '#FFF'} />
+                                    <Text style={[styles.typeLabel, form.vehicleType !== 'BIKE' && styles.typeLabelActive]}>Car</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[styles.typeOption, form.vehicleType === 'BIKE' && styles.typeOptionActive]}
+                                    onPress={() => updateForm('vehicleType', 'BIKE')}
+                                >
+                                    <Bike size={24} color={form.vehicleType === 'BIKE' ? '#000' : '#FFF'} />
+                                    <Text style={[styles.typeLabel, form.vehicleType === 'BIKE' && styles.typeLabelActive]}>Bike</Text>
+                                </TouchableOpacity>
                             </View>
 
-                            <TouchableOpacity
-                                style={[styles.primaryBtn, (!vNo || lookupLoading) && styles.primaryBtnOff]}
-                                onPress={handleLookup}
-                                disabled={lookupLoading || !vNo}
+                            <Text style={styles.sectionTitle}>Basic Details</Text>
+
+                            <View style={styles.row}>
+                                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                                    <Text style={styles.label}>BRAND</Text>
+                                    <View style={styles.inputWrap}>
+                                        <Type size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="e.g. Tata"
+                                            placeholderTextColor="#555"
+                                            value={form.make}
+                                            onChangeText={t => updateForm('make', t)}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                                    <Text style={styles.label}>MODEL</Text>
+                                    <View style={styles.inputWrap}>
+                                        <Car size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="e.g. Nexon"
+                                            placeholderTextColor="#555"
+                                            value={form.model}
+                                            onChangeText={t => updateForm('model', t)}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={styles.row}>
+                                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                                    <Text style={styles.label}>VARIANT</Text>
+                                    <View style={styles.inputWrap}>
+                                        <Bookmark size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="e.g. XZ+"
+                                            placeholderTextColor="#555"
+                                            value={form.variant}
+                                            onChangeText={t => updateForm('variant', t)}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                                    <Text style={styles.label}>YEAR</Text>
+                                    <View style={styles.inputWrap}>
+                                        <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="2024"
+                                            placeholderTextColor="#555"
+                                            value={form.year}
+                                            onChangeText={t => updateForm('year', t)}
+                                            keyboardType="numeric"
+                                            maxLength={4}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>FUEL TYPE</Text>
+                                <View style={styles.fuelContainer}>
+                                    {FUEL_TYPES.map(fuel => (
+                                        <TouchableOpacity 
+                                            key={fuel}
+                                            style={[styles.fuelChip, form.fuelType === fuel && styles.fuelChipActive]}
+                                            onPress={() => updateForm('fuelType', fuel)}
+                                        >
+                                            <Text style={[styles.fuelText, form.fuelType === fuel && styles.fuelTextActive]}>{fuel}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>CURRENT ODOMETER (KM)</Text>
+                                <View style={styles.inputWrap}>
+                                    <Gauge size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="0"
+                                        placeholderTextColor="#555"
+                                        value={form.currentOdometer}
+                                        onChangeText={t => updateForm('currentOdometer', t)}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+                            <Text style={styles.sectionTitle}>RC Information</Text>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>REGISTRATION DATE</Text>
+                                <View style={styles.inputWrap}>
+                                    <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="YYYY-MM-DD"
+                                        placeholderTextColor="#555"
+                                        value={form.registrationDate}
+                                        onChangeText={t => updateForm('registrationDate', t)}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.row}>
+                                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                                    <Text style={styles.label}>CHASSIS NO.</Text>
+                                    <View style={styles.inputWrap}>
+                                        <Hash size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Chassis Number"
+                                            placeholderTextColor="#555"
+                                            value={form.chassisNumber}
+                                            onChangeText={t => updateForm('chassisNumber', t.toUpperCase())}
+                                            autoCapitalize="characters"
+                                        />
+                                    </View>
+                                </View>
+                                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                                    <Text style={styles.label}>ENGINE NO.</Text>
+                                    <View style={styles.inputWrap}>
+                                        <Hash size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Engine Number"
+                                            placeholderTextColor="#555"
+                                            value={form.engineNumber}
+                                            onChangeText={t => updateForm('engineNumber', t.toUpperCase())}
+                                            autoCapitalize="characters"
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+
+
+                            <TouchableOpacity 
+                                style={styles.primaryBtn}
+                                onPress={handleProceedToConfirm}
                             >
-                                {lookupLoading
-                                    ? <><ActivityIndicator color="#000" style={{ marginRight: 8 }} /><Text style={styles.primaryBtnText}>FETCHING RTO DATA...</Text></>
-                                    : <Text style={[styles.primaryBtnText, !vNo && { color: '#666' }]}>LOOKUP PLATE</Text>
-                                }
+                                <Text style={styles.primaryBtnText}>REVIEW DETAILS</Text>
+                                <ArrowLeft size={20} color="#000" style={{ marginLeft: 8, transform: [{ rotate: '180deg' }] }} />
                             </TouchableOpacity>
                         </>
                     ) : (
-                        <TouchableOpacity
-                            style={[styles.primaryBtn, saveLoading && styles.primaryBtnOff]}
-                            onPress={handleSave}
-                            disabled={saveLoading}
-                        >
-                            {saveLoading
-                                ? <><ActivityIndicator color="#000" style={{ marginRight: 8 }} /><Text style={styles.primaryBtnText}>SAVING...</Text></>
-                                : <><CheckCircle size={20} color="#000" style={{ marginRight: 8 }} /><Text style={styles.primaryBtnText}>SAVE VEHICLE</Text></>
-                            }
-                        </TouchableOpacity>
+                        /* ── CONFIRM STEP ── */
+                        <>
+                            <View style={styles.confirmHeader}>
+                                <View style={styles.typeBadge}>
+                                    {form.vehicleType === 'BIKE' ? <Bike size={14} color="#000" /> : <Car size={14} color="#000" />}
+                                    <Text style={styles.typeBadgeText}>{form.vehicleType}</Text>
+                                </View>
+                                <Text style={styles.confirmTitle}>Review Vehicle Info</Text>
+                                <Text style={styles.confirmSub}>Please verify the details before saving to your garage.</Text>
+                            </View>
+
+                            <View style={styles.confirmCard}>
+                                <ConfirmRow label="REGISTRATION PLATE" value={form.registrationNumber || '—'} accent />
+                                <Divider />
+                                <ConfirmRow label="BRAND & MODEL" value={`${form.make} ${form.model}` || '—'} />
+                                <Divider />
+                                <ConfirmRow label="VARIANT" value={form.variant || '—'} />
+                                <Divider />
+                                <ConfirmRow label="YEAR" value={form.year || '—'} />
+                                <Divider />
+                                <ConfirmRow label="FUEL TYPE" value={form.fuelType || '—'} />
+                                <Divider />
+                                <ConfirmRow label="CURRENT ODOMETER" value={form.currentOdometer ? `${form.currentOdometer} KM` : '—'} />
+                                <Divider />
+                                <ConfirmRow label="REGISTRATION DATE" value={form.registrationDate || 'NOT PROVIDED'} />
+                                <Divider />
+                                <ConfirmRow label="CHASSIS NUMBER" value={form.chassisNumber || 'NOT PROVIDED'} />
+                                <Divider />
+                                <ConfirmRow label="ENGINE NUMBER" value={form.engineNumber || 'NOT PROVIDED'} />
+                            </View>
+
+                            <View style={styles.infoBox}>
+                                <Info size={16} color={COLORS.primary} />
+                                <Text style={styles.infoText}>
+                                    Vehicle images will be automatically assigned based on your model type.
+                                </Text>
+                            </View>
+
+                            <TouchableOpacity 
+                                style={[styles.saveBtn, loading && styles.saveBtnLoading]}
+                                onPress={handleSave}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#000" />
+                                ) : (
+                                    <>
+                                        <ClipboardCheck size={20} color="#000" style={{ marginRight: 8 }} />
+                                        <Text style={styles.saveText}>CONFIRM & SAVE VEHICLE</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                style={styles.editBtn}
+                                onPress={() => setStep('INPUT')}
+                                disabled={loading}
+                            >
+                                <Text style={styles.editBtnText}>EDIT DETAILS</Text>
+                            </TouchableOpacity>
+                        </>
                     )}
-                </View>
+
+                    <View style={{ height: 40 }} />
+                </ScrollView>
             </KeyboardAvoidingView>
         </View>
     );
 };
 
-// ── Small helpers ─────────────────────────────────────────────────────────────
-const Divider = () => <View style={{ height: 1, backgroundColor: COLORS.border }} />;
+// ── Helpers ──
+const Divider = () => <View style={{ height: 1, backgroundColor: COLORS.border, marginVertical: 2 }} />;
 
 const ConfirmRow = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 }}>
-        <Text style={{ color: '#888', fontSize: 10, fontWeight: '900', letterSpacing: 1 }}>{label}</Text>
-        <Text style={{ color: accent ? COLORS.success : '#FFF', fontSize: 14, fontWeight: '900', textTransform: 'uppercase' }}>{value}</Text>
+    <View style={styles.confirmRow}>
+        <Text style={styles.confirmLabel}>{label}</Text>
+        <Text style={[styles.confirmValue, accent && { color: COLORS.primary, fontSize: 16 }]}>{value}</Text>
     </View>
 );
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    screen:        { flex: 1, backgroundColor: COLORS.background },
-    header:        { padding: 24, paddingTop: 48, minHeight: 80 },
-    backBtn:       { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
-    content:       { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 40 },
-    brandRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
-    brandLogo:     { width: 48, height: 48, backgroundColor: COLORS.primary, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-    brandText:     { fontSize: 24, fontWeight: '900', color: '#FFF', fontStyle: 'italic' },
-    title:         { fontSize: 22, fontWeight: 'bold', color: '#FFF', textAlign: 'center' },
-    sub:           { color: '#888', fontSize: 13, textAlign: 'center', marginTop: 8, maxWidth: 280 },
-
-    // Car / Bike toggle
-    kindToggleRow: { flexDirection: 'row', gap: 16, marginTop: 28, width: '100%' },
-    kindBtn: {
-        flex: 1, alignItems: 'center', paddingVertical: 20,
-        backgroundColor: '#111', borderRadius: 24,
-        borderWidth: 1.5, borderColor: '#222',
-        position: 'relative',
+    screen: { flex: 1, backgroundColor: COLORS.background },
+    header: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 20, 
+        paddingTop: 50, 
+        paddingBottom: 20 
     },
-    kindBtnActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(255,215,0,0.05)' },
-    kindIconWrap: {
-        width: 64, height: 64, borderRadius: 20,
-        backgroundColor: '#1C1C1E', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 10,
+    backBtn: { 
+        width: 44, height: 44, borderRadius: 22, 
+        backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center',
+        borderWidth: 1, borderColor: COLORS.border
     },
-    kindIconWrapActive: { backgroundColor: COLORS.primary },
-    kindLabel:       { color: '#555', fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
-    kindLabelActive: { color: COLORS.primary },
-    activePip:       { position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
+    headerTitle: { fontSize: 20, fontWeight: '900', color: '#FFF', fontStyle: 'italic' },
+    content: { paddingHorizontal: 24 },
+    sectionTitle: { 
+        fontSize: 12, fontWeight: '900', color: COLORS.primary, 
+        letterSpacing: 2, marginTop: 24, marginBottom: 16,
+        textTransform: 'uppercase'
+    },
+    inputGroup: { marginBottom: 20 },
+    label: { color: COLORS.textMuted, fontSize: 10, fontWeight: 'bold', marginBottom: 8, letterSpacing: 1 },
+    
+    // Plate Input
+    plateInputContainer: { 
+        backgroundColor: '#FFF', borderRadius: 12, overflow: 'hidden', 
+        flexDirection: 'row', alignItems: 'center', height: 60,
+        elevation: 10, shadowColor: '#FFF', shadowOpacity: 0.1, shadowRadius: 10
+    },
+    indStrip: { backgroundColor: '#003399', width: 32, height: '100%', alignItems: 'center', justifyContent: 'center' },
+    indDot: { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 2 },
+    indText: { color: '#FFF', fontSize: 6, fontWeight: '900' },
+    plateInput: { flex: 1, paddingHorizontal: 16, fontSize: 22, fontWeight: '900', color: '#000', letterSpacing: 2 },
 
-    // Graphic
-    graphic:       { height: 140, marginTop: 28, alignItems: 'center', justifyContent: 'center', width: '100%' },
-    glow:          { position: 'absolute', width: 200, height: 100, backgroundColor: 'rgba(255,215,0,0.12)', borderRadius: 100 },
-    carSilhouette: { alignItems: 'center' },
-    carBody:       { backgroundColor: '#1A1A1A', borderRadius: 12, borderWidth: 1, borderColor: '#2C2C2E' },
-    carRoof:       { backgroundColor: '#1A1A1A', borderTopLeftRadius: 50, borderTopRightRadius: 50, borderWidth: 1, borderColor: '#2C2C2E', marginTop: -8 },
+    // Type Toggle
+    typeToggleContainer: { flexDirection: 'row', gap: 16, marginTop: 8 },
+    typeOption: { 
+        flex: 1, height: 100, borderRadius: 24, backgroundColor: COLORS.surface,
+        borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center'
+    },
+    typeOptionActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+    typeLabel: { color: '#888', fontSize: 12, fontWeight: 'bold', marginTop: 8 },
+    typeLabelActive: { color: '#000' },
 
-    // Confirm step
-    kindBadge:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, backgroundColor: 'rgba(255,215,0,0.1)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' },
-    kindBadgeText: { color: COLORS.primary, fontSize: 11, fontWeight: '900', letterSpacing: 1.5 },
-    confirmCard:   { width: '100%', backgroundColor: COLORS.surface, borderRadius: 32, padding: 24, borderWidth: 1, borderColor: COLORS.border, marginTop: 16 },
+    // Standard Input
+    inputWrap: { 
+        flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, 
+        borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, height: 56
+    },
+    inputIcon: { marginLeft: 16 },
+    input: { flex: 1, color: '#FFF', paddingHorizontal: 12, fontSize: 15, fontWeight: '600' },
+    row: { flexDirection: 'row' },
 
-    // Bottom card
-    bottomCard:    { backgroundColor: COLORS.surface, padding: 28, paddingBottom: height > 800 ? 44 : 28, borderTopLeftRadius: 40, borderTopRightRadius: 40, borderTopWidth: 1, borderTopColor: COLORS.border },
-    inputLabel:    { color: '#888', fontSize: 12, fontWeight: 'bold', marginBottom: 12, paddingHorizontal: 4 },
-    plateRow:      { backgroundColor: '#000', borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 16 },
-    indStrip:      { backgroundColor: '#003399', padding: 6, borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
-    indDot:        { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 2 },
-    indText:       { color: '#FFF', fontSize: 6, fontWeight: '900' },
-    plateInput:    { flex: 1, color: '#FFF', fontSize: 24, fontWeight: '900', letterSpacing: 2, paddingVertical: 10, minHeight: 60 },
-    modelInput:    { backgroundColor: '#000', borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 16, color: '#FFF', fontSize: 16, minHeight: 56 },
-    errorText:     { color: COLORS.error, fontSize: 12, fontWeight: 'bold', marginTop: 8, paddingHorizontal: 4 },
-    primaryBtn:    { backgroundColor: COLORS.primary, paddingVertical: 18, borderRadius: 30, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
-    primaryBtnOff: { backgroundColor: '#2A2A2A' },
-    primaryBtnText:{ color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
+    // Fuel Chips
+    fuelContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    fuelChip: { 
+        paddingHorizontal: 16, paddingVertical: 10, borderRadius: 30, 
+        backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border
+    },
+    fuelChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+    fuelText: { color: '#888', fontSize: 11, fontWeight: 'bold' },
+    fuelTextActive: { color: '#000' },
+
+    // Primary Toggle
+    primaryToggleCard: { 
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        backgroundColor: COLORS.surface, padding: 20, borderRadius: 24,
+        marginTop: 20, borderWidth: 1, borderColor: COLORS.border
+    },
+    primaryTitle: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
+    primarySub: { color: '#666', fontSize: 11, marginTop: 2 },
+
+    primaryBtn: { 
+        backgroundColor: COLORS.primary, height: 64, borderRadius: 32,
+        alignItems: 'center', justifyContent: 'center', marginTop: 40,
+        flexDirection: 'row'
+    },
+    primaryBtnText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
+
+    // Confirm Step Styles
+    confirmHeader: { alignItems: 'center', marginTop: 20, marginBottom: 32 },
+    typeBadge: { backgroundColor: COLORS.primary, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
+    typeBadgeText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+    confirmTitle: { color: '#FFF', fontSize: 24, fontWeight: '900', fontStyle: 'italic' },
+    confirmSub: { color: '#888', fontSize: 12, textAlign: 'center', marginTop: 8, maxWidth: '80%' },
+    confirmCard: { backgroundColor: COLORS.surface, borderRadius: 32, padding: 24, borderWidth: 1, borderColor: COLORS.border },
+    confirmRow: { paddingVertical: 14 },
+    confirmLabel: { color: COLORS.textMuted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 4 },
+    confirmValue: { color: '#FFF', fontSize: 14, fontWeight: '900', fontStyle: 'italic' },
+    infoBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,215,0,0.05)', padding: 16, borderRadius: 16, marginTop: 24, gap: 12, borderWidth: 1, borderColor: 'rgba(255,215,0,0.1)' },
+    infoText: { color: '#888', fontSize: 11, flex: 1, fontWeight: '500' },
+    saveBtn: { 
+        backgroundColor: COLORS.primary, height: 64, borderRadius: 32,
+        alignItems: 'center', justifyContent: 'center', marginTop: 32,
+        flexDirection: 'row', elevation: 5
+    },
+    saveBtnLoading: { backgroundColor: '#333' },
+    saveText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
+    editBtn: { paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+    editBtnText: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 }
 });
