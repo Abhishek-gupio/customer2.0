@@ -54,7 +54,8 @@ export const expenseService = {
       mimeType = file.mimetype;
     }
 
-    // Always resolve to a vehicle owned by this customer: prefer primary, never leave unlinked when customer has vehicles
+    // Always resolve to a vehicle owned by this customer (or where they have access):
+    // prefer primary, never leave unlinked when customer has vehicles
     let targetVehicleId = (input.vehicleId && String(input.vehicleId).trim()) || null;
     if (targetVehicleId) {
       const owned = await dbInstances.customerVehicle.findFirst({
@@ -79,6 +80,36 @@ export const expenseService = {
       }
     }
 
+    // If expense is linked to a vehicle, enforce role-based permissions:
+    // - OWNER / EDITOR / DRIVER can write
+    // - VIEWER can only read and must not create expenses against that vehicle
+    if (targetVehicleId) {
+      const vehicle = await dbInstances.customerVehicle.findUnique({
+        where: { id: targetVehicleId },
+        include: {
+          accessList: {
+            where: { customerId },
+          },
+        },
+      });
+
+      if (!vehicle) {
+        throw AppError.notFound("Vehicle not found for expense");
+      }
+
+      const isOwner = vehicle.customerId === customerId;
+      const hasWriteAccess =
+        vehicle.accessList?.some(
+          (a: any) => a.role === "EDITOR" || a.role === "DRIVER",
+        ) ?? false;
+
+      if (!isOwner && !hasWriteAccess) {
+        throw AppError.forbidden(
+          "You have view-only access to this vehicle and cannot add expenses to it",
+        );
+      }
+    }
+
     // Logic: If user provided 'odometerReading' and 'vehicleId', update vehicle log
     if (targetVehicleId && input.odometerReading) {
       await vehicleService.addOdometerLog(customerId, targetVehicleId, {
@@ -87,16 +118,40 @@ export const expenseService = {
       });
     }
 
+    // If this user is acting as a DRIVER on the selected vehicle, capture it
+    let driverId: string | null = null;
+    if (targetVehicleId) {
+      const access = await dbInstances.vehicleAccess.findFirst({
+        where: {
+          vehicleId: targetVehicleId,
+          customerId,
+          // Cast because the published enum type in @repo/db-customer
+          // may not yet include DRIVER even though the DB enum does.
+          role: "DRIVER" as any,
+        },
+        select: { id: true },
+      });
+      if (access) {
+        driverId = customerId;
+      }
+    }
+
     // Create DB Record
     const expense = await db.expense.create({
       data: {
         customerId,
         vehicleId: targetVehicleId,
+        driverId,
         amount: input.amount,
         category: input.category, // e.g. FUEL
         date: input.date ? new Date(input.date) : new Date(),
         merchantName: input.merchantName,
         location: input.location,
+        placeId: input.placeId,
+        placeName: input.placeName,
+        placeAddress: input.placeAddress,
+        placeLat: input.placeLat,
+        placeLng: input.placeLng,
         notes: input.notes,
         source: input.source || "MANUAL",
         receiptUrl,

@@ -9,8 +9,13 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Alert,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_BASE_URL } from '../../config';
+import { jsPDF } from 'jspdf';
+import RNFS from 'react-native-fs';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -57,10 +62,75 @@ function formatExpiry(dateStr?: string | null): string {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   } catch {
     return dateStr;
   }
+}
+
+async function openShare(options: { fileUrls: string[]; fileName?: string; type?: string }): Promise<void> {
+  const { fileUrls, fileName = 'Documents', type = 'application/pdf' } = options;
+  try {
+    const RNShare = (require('react-native-share') as any).default;
+    await RNShare.open({
+      urls: fileUrls,
+      type,
+      title: fileName,
+      subject: fileName,
+      failOnCancel: false,
+    });
+  } catch {
+    await Share.share({
+      url: fileUrls[0],
+      message: fileName,
+      title: fileName,
+    });
+  }
+}
+
+async function getReadyDocumentPath(doc: DocumentItem) {
+  const imageUri = doc.imageUri;
+  const fullImageUri = imageUri
+    ? imageUri.startsWith('http')
+      ? imageUri
+      : `${API_BASE_URL}${imageUri}`
+    : null;
+
+  if (!fullImageUri) throw new Error(`Link not available for ${doc.type}`);
+
+  const isPdf = imageUri?.toLowerCase().endsWith('.pdf');
+  const fileName = `${(doc.type || 'Document').replace(/\s+/g, '_')}_${Date.now()}`;
+  const tempPath = `${RNFS.TemporaryDirectoryPath}/${fileName}${isPdf ? '.pdf' : '.jpg'}`;
+
+  if (fullImageUri.startsWith('http')) {
+    const downloadResult = await RNFS.downloadFile({
+      fromUrl: fullImageUri,
+      toFile: tempPath,
+    }).promise;
+    if (downloadResult.statusCode !== 200) throw new Error(`Failed to download ${doc.type}`);
+  } else {
+    await RNFS.copyFile(fullImageUri.replace('file://', ''), tempPath).catch(() => null);
+  }
+
+  let finalPdfPath = tempPath;
+  if (!isPdf) {
+    const base64Data = await RNFS.readFile(tempPath, 'base64');
+    const imgType = fullImageUri.toLowerCase().endsWith('.png') ? 'PNG' : 'JPEG';
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 30;
+    const maxWidth = pageWidth - (margin * 2);
+    const maxHeight = pageHeight - (margin * 2);
+    pdf.addImage(`data:image/${imgType.toLowerCase()};base64,${base64Data}`, imgType, margin, margin, maxWidth, maxHeight, undefined, 'FAST');
+    const pdfBase64 = pdf.output('datauristring').split(',')[1];
+    finalPdfPath = `${RNFS.CachesDirectoryPath}/${fileName}.pdf`;
+    await RNFS.writeFile(finalPdfPath, pdfBase64, 'base64');
+    await RNFS.unlink(tempPath).catch(() => null);
+  }
+  const finalFileName = finalPdfPath.endsWith('.pdf') ? `${fileName}.pdf` : `${fileName}.pdf`;
+
+  return { path: finalPdfPath, fileName: finalFileName };
 }
 
 export default function DocumentList() {
@@ -84,42 +154,38 @@ export default function DocumentList() {
       list.push(d);
       byType.set(d.type, list);
     });
-    return FIXED_GRID_TYPES.map((type) => {
-      const docs = byType.get(type) ?? [];
-      if (docs.length === 0) {
+    return FIXED_GRID_TYPES
+      .filter(type => activeFilter === 'All' || activeFilter === type)
+      .map((type) => {
+        const docs = byType.get(type) ?? [];
+        if (docs.length === 0) {
+          return {
+            id: `empty_${type}`,
+            label: DOC_TYPE_LABELS[type] ?? type,
+            expiry: 'Not uploaded',
+            status: 'verified' as DocStatus,
+            type,
+            hasDoc: false,
+          };
+        }
+
+        const docsWithExpiry = docs.filter((d) => d.expiryDate);
+        let latest = docsWithExpiry.length > 0
+          ? docsWithExpiry.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0]
+          : docs.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0];
+
+        const expiryDate = latest.expiryDate;
+
         return {
-          id: `empty_${type}`,
+          id: latest.id,
           label: DOC_TYPE_LABELS[type] ?? type,
-          expiry: 'Not uploaded',
-          status: 'verified' as DocStatus,
+          expiry: formatExpiry(expiryDate),
+          status: latest.status,
           type,
-          hasDoc: false,
+          hasDoc: true,
         };
-      }
-
-      // Prefer a document that has an explicit expiryDate. If multiple, pick the most
-      // recently created one. Otherwise fall back to the most recently created document.
-      const docsWithExpiry = docs.filter((d) => d.expiryDate);
-      let latest = docsWithExpiry.length > 0
-        ? docsWithExpiry.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0]
-        : docs.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0];
-
-      // Always use expiryDate if present, else try dates[1] (expiry), else dates[0]
-      let expiryDate = latest?.expiryDate;
-      if (!expiryDate && latest?.dates && Array.isArray(latest.dates)) {
-        expiryDate = latest.dates[1] || latest.dates[0];
-      }
-
-      return {
-        id: latest.id,
-        label: DOC_TYPE_LABELS[type] ?? type,
-        expiry: formatExpiry(expiryDate),
-        status: latest.status,
-        type,
-        hasDoc: true,
-      };
-    });
-  }, [documents]);
+      });
+  }, [documents, activeFilter]);
 
   const filteredDocs = useMemo(() => {
     let docs = documents;
@@ -148,6 +214,61 @@ export default function DocumentList() {
         c.type.toLowerCase().includes(q),
     );
   }, [gridCards, searchText]);
+
+  const handleDownloadAll = async () => {
+    if (documents.length === 0) return Alert.alert('Error', 'No documents to download');
+    try {
+      Alert.alert('Processing', `Preparing ${documents.length} documents...`);
+      const paths: { path: string; name: string }[] = [];
+      for (const doc of documents) {
+        try {
+          const res = await getReadyDocumentPath(doc);
+          paths.push({ path: res.path, name: res.fileName });
+        } catch (e) {
+          console.log(`Skip doc ${doc.id}`, e);
+        }
+      }
+
+      if (paths.length === 0) throw new Error('Could not prepare any documents');
+
+      if (Platform.OS === 'android' && RNFS.DownloadDirectoryPath) {
+        let count = 0;
+        for (const p of paths) {
+          try {
+            await RNFS.copyFile(p.path, `${RNFS.DownloadDirectoryPath}/${p.name}`);
+            count++;
+          } catch (e) {
+            console.log('Save error', e);
+          }
+        }
+        Alert.alert('Download Complete', `${count} documents saved to your Downloads folder.`);
+      } else {
+        await openShare({ fileUrls: paths.map((p) => `file://${p.path}`) });
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Download failed');
+    }
+  };
+
+  const handleShareAll = async () => {
+    if (documents.length === 0) return Alert.alert('Error', 'No documents to share');
+    try {
+      Alert.alert('Preparing Share', `Generating PDFs for ${documents.length} documents...`);
+      const fileUrls: string[] = [];
+      for (const doc of documents) {
+        try {
+          const res = await getReadyDocumentPath(doc);
+          fileUrls.push(`file://${res.path}`);
+        } catch (e) {
+          console.log(`Skip sharing ${doc.id}`, e);
+        }
+      }
+      if (fileUrls.length === 0) throw new Error('Could not prepare any documents');
+      await openShare({ fileUrls });
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Share failed');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -272,68 +393,124 @@ export default function DocumentList() {
           </View>
         )}
 
-        {/* Vehicle Documents Grid */}
-        <Text style={styles.sectionTitle}>Vehicle Documents</Text>
+        {/* Vehicle Documents Section */}
+        <Text style={styles.sectionTitle}>
+          {activeFilter === 'All' ? 'Vehicle Documents' : `${activeFilter} Documents`}
+        </Text>
 
-        <View style={styles.gridWrap}>
-          {filteredGridCards.map((card) => (
-            <TouchableOpacity
-              key={card.type}
-              activeOpacity={0.85}
-              style={styles.gridCard}
-              onPress={() => {
-                if (card.hasDoc) {
-                  navigation.navigate('DocumentDetail', { documentId: card.id });
-                } else {
-                  navigation.navigate('UploadDocument');
-                }
-              }}
-            >
-              <View style={styles.gridCardIconWrap}>
-                <Icon name="file-alt" size={wp(6)} color="#aaa" />
-              </View>
-              <Text style={styles.gridCardLabel}>{card.label}</Text>
-              <View style={styles.gridCardExpiryRow}>
-                {card.hasDoc ? (
-                  <>
-                    {card.status === 'expiring' && (
-                      <Icon name="exclamation-triangle" size={wp(3)} color="#FFA000" style={{ marginRight: wp(1) }} />
-                    )}
-                    {card.status === 'expired' && (
-                      <Icon name="times-circle" size={wp(3)} color="#F44336" style={{ marginRight: wp(1) }} />
-                    )}
-                    {card.status === 'verified' && (
-                      <Icon name="check-circle" size={wp(3)} color="#4CAF50" style={{ marginRight: wp(1) }} />
-                    )}
-                    <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}> 
-                      {card.expiry && card.expiry !== 'Not uploaded' ? (
-                        card.status === 'expired' ? `Expired: ${card.expiry}` :
-                        card.status === 'verified' ? `Valid up to: ${card.expiry}` :
-                        `Expiring: ${card.expiry}`
-                      ) : (
-                        card.status === 'expired' ? 'Expired' : `Expires: ${card.expiry}`
+        {activeFilter === 'All' ? (
+          <View style={styles.gridWrap}>
+            {filteredGridCards.map((card) => (
+              <TouchableOpacity
+                key={card.type}
+                activeOpacity={0.85}
+                style={styles.gridCard}
+                onPress={() => {
+                  if (card.hasDoc) {
+                    navigation.navigate('DocumentDetail', { documentId: card.id });
+                  } else {
+                    navigation.navigate('UploadDocument');
+                  }
+                }}
+              >
+                <View style={styles.gridCardIconWrap}>
+                  <Icon name="file-alt" size={wp(6)} color="#aaa" />
+                </View>
+                <Text style={styles.gridCardLabel}>{card.label}</Text>
+                <View style={styles.gridCardExpiryRow}>
+                  {card.hasDoc ? (
+                    <>
+                      {card.status === 'expiring' && (
+                        <Icon name="exclamation-triangle" size={wp(3)} color="#FFA000" style={{ marginRight: wp(1) }} />
                       )}
+                      {card.status === 'expired' && (
+                        <Icon name="times-circle" size={wp(3)} color="#F44336" style={{ marginRight: wp(1) }} />
+                      )}
+                      {card.status === 'verified' && (
+                        <Icon name="check-circle" size={wp(3)} color="#4CAF50" style={{ marginRight: wp(1) }} />
+                      )}
+                      <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}>
+                        {card.expiry && card.expiry !== 'N/A' && card.expiry !== 'Not uploaded' ? (
+                          card.status === 'expired' ? `Expired: ${card.expiry}` :
+                            card.status === 'verified' ? `Valid up to: ${card.expiry}` :
+                              `Expiring: ${card.expiry}`
+                        ) : (
+                          card.status === 'expired' ? 'Expired' : card.expiry === 'Not uploaded' ? 'Not uploaded' : 'Valid'
+                        )}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.gridCardNoDoc}>Not uploaded</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.listWrap}>
+            {filteredDocs.length > 0 ? (
+              filteredDocs.map((doc) => (
+                <TouchableOpacity
+                  key={doc.id}
+                  activeOpacity={0.85}
+                  style={styles.docRow}
+                  onPress={() => navigation.navigate('DocumentDetail', { documentId: doc.id })}
+                >
+                  <View style={styles.docRowIcon}>
+                    <Icon name="file-alt" size={wp(6)} color="#FFBF00" />
+                  </View>
+                  <View style={styles.docRowInfo}>
+                    <Text style={styles.docRowName}>{DOC_TYPE_LABELS[doc.type] || doc.type}</Text>
+                    <Text style={styles.docRowVehicle}>{doc.vehicle}</Text>
+                    <View style={styles.docRowStatusRow}>
+                      <View style={[styles.statusDot, { backgroundColor: statusColor(doc.status as DocStatus) }]} />
+                      <Text style={[styles.docRowStatus, { color: statusColor(doc.status as DocStatus) }]}>
+                        {statusLabel(doc.status as DocStatus)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.docRowExpiry}>
+                      {doc.expiryDate ? formatExpiry(doc.expiryDate) : 'N/A'}
                     </Text>
-                  </>
-                ) : (
-                  <Text style={styles.gridCardNoDoc}>Not uploaded</Text>
-                )}
+                    <Icon name="chevron-right" size={wp(3.5)} color="#444" style={{ marginTop: hp(0.5) }} />
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <Icon name="file-alt" size={wp(10)} color="#333" />
+                <Text style={styles.emptyStateText}>No documents found for {activeFilter}</Text>
+                <TouchableOpacity
+                  style={[styles.chip, { marginTop: hp(2), backgroundColor: '#111' }]}
+                  onPress={() => navigation.navigate('UploadDocument')}
+                >
+                  <Text style={styles.chipText}>Upload Now</Text>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+            )}
+          </View>
+        )}
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-        <TouchableOpacity activeOpacity={0.85} style={styles.quickAction}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.quickAction}
+          onPress={handleDownloadAll}
+        >
           <View style={[styles.quickActionIcon, { borderColor: '#2196F3' }]}>
             <Icon name="download" size={wp(5)} color="#2196F3" />
           </View>
           <Text style={styles.quickActionText}>Download All</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.85} style={styles.quickAction}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.quickAction}
+          onPress={handleShareAll}
+        >
           <View style={[styles.quickActionIcon, { borderColor: '#4CAF50' }]}>
             <Icon name="share-alt" size={wp(5)} color="#4CAF50" />
           </View>
@@ -469,6 +646,10 @@ const styles = StyleSheet.create({
     fontSize: wp(3.5),
     color: '#888',
     marginTop: hp(1),
+  },
+
+  listWrap: {
+    marginBottom: hp(1),
   },
 
   gridWrap: {

@@ -316,12 +316,18 @@ exports.Prisma.ExpenseScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   vehicleId: 'vehicleId',
+  driverId: 'driverId',
   amount: 'amount',
   currency: 'currency',
   category: 'category',
   date: 'date',
   merchantName: 'merchantName',
   location: 'location',
+  placeId: 'placeId',
+  placeName: 'placeName',
+  placeAddress: 'placeAddress',
+  placeLat: 'placeLat',
+  placeLng: 'placeLng',
   notes: 'notes',
   source: 'source',
   receiptUrl: 'receiptUrl',
@@ -537,7 +543,8 @@ exports.DigiLockerStatus = exports.$Enums.DigiLockerStatus = {
 exports.AccessRole = exports.$Enums.AccessRole = {
   OWNER: 'OWNER',
   EDITOR: 'EDITOR',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
+  DRIVER: 'DRIVER'
 };
 
 exports.ExpenseCategory = exports.$Enums.ExpenseCategory = {

@@ -118,11 +118,14 @@ export const authService = {
 
   async login(phoneNumber: string) {
     const phone = normalizePhone(phoneNumber);
-    const existing = await dbInstances.customer.findUnique({
+    let existing = await dbInstances.customer.findUnique({
       where: { phoneNumber: phone },
     });
     if (!existing) {
-      throw AppError.notFound("Please sign up");
+      // Auto-register a minimal customer record for this phone
+      existing = await dbInstances.customer.create({
+        data: { phoneNumber: phone },
+      });
     }
     const canSend = await otpStore.checkRateLimit(phoneNumber);
     if (!canSend) {

@@ -46,6 +46,7 @@
     "react-native-html-to-pdf": "^1.3.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-maps": "^1.27.2",
     "react-native-mmkv": "^2.12.2",
     "react-native-modal": "14.0.0-rc.1",
     "react-native-onesignal": "^5.3.1",

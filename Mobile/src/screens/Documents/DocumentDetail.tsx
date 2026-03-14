@@ -19,7 +19,7 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PinchGestureHandler, PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -40,7 +40,7 @@ import RNFS from 'react-native-fs';
 async function openShare(options: { fileUrl: string; fileName?: string; type?: string }): Promise<void> {
   const { fileUrl, fileName = 'Document', type = 'application/pdf' } = options;
   try {
-    const RNShare = require('react-native-share').default;
+    const RNShare = (require('react-native-share') as any).default;
     await RNShare.open({
       urls: [fileUrl],
       type,
@@ -99,6 +99,10 @@ export default function DocumentDetail({ route }: Props) {
 
   // Animation handling for pinch-to-zoom (similar to MyProfile pattern)
   const zoomScale = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const lastScale = useRef(1);
+  const lastOffset = useRef({ x: 0, y: 0 });
 
   const onPinchEvent = Animated.event(
     [{ nativeEvent: { scale: zoomScale } }],
@@ -107,12 +111,42 @@ export default function DocumentDetail({ route }: Props) {
 
   const onPinchStateChange = (event: any) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
-      Animated.spring(zoomScale, {
-        toValue: 1,
-        useNativeDriver: true,
-        bounciness: 1,
-      }).start();
+      lastScale.current *= event.nativeEvent.scale;
+      if (lastScale.current < 1) {
+        lastScale.current = 1;
+        Animated.spring(zoomScale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }).start();
+      }
     }
+  };
+
+  const onPanEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
+    { useNativeDriver: true }
+  );
+
+  const onPanStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      lastOffset.current.x += event.nativeEvent.translationX;
+      lastOffset.current.y += event.nativeEvent.translationY;
+      translateX.setOffset(lastOffset.current.x);
+      translateX.setValue(0);
+      translateY.setOffset(lastOffset.current.y);
+      translateY.setValue(0);
+    }
+  };
+
+  const resetZoom = () => {
+    lastScale.current = 1;
+    lastOffset.current = { x: 0, y: 0 };
+    zoomScale.setValue(1);
+    translateX.setOffset(0);
+    translateX.setValue(0);
+    translateY.setOffset(0);
+    translateY.setValue(0);
+    setShowFullImage(false);
   };
 
   useEffect(() => {
@@ -264,13 +298,7 @@ export default function DocumentDetail({ route }: Props) {
   const fields: { label: string; value: string }[] = [];
   if (doc.documentNumber) fields.push({ label: 'Doc Number', value: doc.documentNumber });
 
-  // Expiry Date logic: prioritize 'expirydate' or 'expiryDate' from extracted fields
-  let displayExpiry: any = doc.expiryDate;
-  if (doc.extractedFields?.expirydate) {
-    displayExpiry = doc.extractedFields.expirydate;
-  } else if (doc.extractedFields?.expiryDate) {
-    displayExpiry = doc.extractedFields.expiryDate;
-  }
+  const displayExpiry = doc.expiryDate;
 
   if (displayExpiry) {
     fields.push({ label: 'Expiry', value: formatDate(displayExpiry) });
@@ -355,7 +383,7 @@ export default function DocumentDetail({ route }: Props) {
           )}
         </TouchableOpacity>
 
-        {/* Status & Source */}
+        {/* Status */}
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Status</Text>
@@ -366,18 +394,6 @@ export default function DocumentDetail({ route }: Props) {
               <Text style={[styles.statusText, { color: statusColor(doc.status) }]}>
                 {statusLabel(doc.status)}
               </Text>
-            </View>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Source</Text>
-            <View style={styles.sourceBadge}>
-              <Icon
-                name={doc.source === 'DIGILOCKER' ? 'link' : 'cloud-upload-alt'}
-                size={wp(3.5)}
-                color="#aaa"
-                style={{ marginRight: wp(1.5) }}
-              />
-              <Text style={styles.sourceText}>{doc.source}</Text>
             </View>
           </View>
         </View>
@@ -428,12 +444,12 @@ export default function DocumentDetail({ route }: Props) {
         visible={showFullImage}
         transparent={false}
         animationType="fade"
-        onRequestClose={() => setShowFullImage(false)}
+        onRequestClose={resetZoom}
       >
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowFullImage(false)} style={styles.modalCloseBtn}>
+              <TouchableOpacity onPress={resetZoom} style={styles.modalCloseBtn}>
                 <Icon name="times" size={wp(6)} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.modalTitle}>Image Preview</Text>
@@ -442,19 +458,32 @@ export default function DocumentDetail({ route }: Props) {
               </TouchableOpacity>
             </View>
             <View style={styles.modalImageWrap}>
-              <PinchGestureHandler
-                onGestureEvent={onPinchEvent}
-                onHandlerStateChange={onPinchStateChange}
+              <PanGestureHandler
+                onGestureEvent={onPanEvent}
+                onHandlerStateChange={onPanStateChange}
               >
-                <Animated.Image
-                  source={{ uri: fullImageUri || '' }}
-                  style={[
-                    styles.modalFullImage,
-                    { transform: [{ scale: zoomScale }] }
-                  ]}
-                  resizeMode="contain"
-                />
-              </PinchGestureHandler>
+                <Animated.View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                  <PinchGestureHandler
+                    onGestureEvent={onPinchEvent}
+                    onHandlerStateChange={onPinchStateChange}
+                  >
+                    <Animated.Image
+                      source={{ uri: fullImageUri || '' }}
+                      style={[
+                        styles.modalFullImage,
+                        {
+                          transform: [
+                            { scale: zoomScale },
+                            { translateX: translateX },
+                            { translateY: translateY },
+                          ]
+                        }
+                      ]}
+                      resizeMode="contain"
+                    />
+                  </PinchGestureHandler>
+                </Animated.View>
+              </PanGestureHandler>
             </View>
           </SafeAreaView>
         </GestureHandlerRootView>

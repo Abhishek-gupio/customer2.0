@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
     StyleSheet, ActivityIndicator, Alert
@@ -10,6 +10,9 @@ import {
 } from 'lucide-react-native';
 import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../../components/Vehicles/VehicleUI';
 import { Vehicle } from '../../../services/vehicleService';
+import { api } from '../../../services/api';
+import ShareScreen from '../Share';
+import { getProfile } from '../../../services/profileService';
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];
@@ -32,6 +35,25 @@ export const DetailsScreen = ({
     const [feedback, setFeedback] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedFeedback, setSubmittedFeedback] = useState<any>(null);
+    const [shareVisible, setShareVisible] = useState(false);
+    const [shareLoading, setShareLoading] = useState(false);
+    const [shareAccessList, setShareAccessList] = useState<any[]>([]);
+    const [currentCustomerId, setCurrentCustomerId] = useState<string | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const profile = await getProfile();
+                if (mounted) setCurrentCustomerId(profile.id);
+            } catch {
+                if (mounted) setCurrentCustomerId(null);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     // Hero image error state must be defined BEFORE any early returns
     const [heroError, setHeroError] = useState(false);
@@ -69,6 +91,51 @@ export const DetailsScreen = ({
         );
     };
 
+    const openShare = async () => {
+        if (!activeVehicle) return;
+        setShareVisible(true);
+        try {
+            const res: any = await api.get(`/v1/sharing/vehicle/${activeVehicle.id}/access`);
+            const raw = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+            const mapped = raw.map((row: any, idx: number) => ({
+                id: idx + 1,
+                name: row.customer?.fullName || 'User',
+                role:
+                    row.role === 'OWNER'
+                        ? 'Owner'
+                        : row.role === 'EDITOR'
+                            ? 'Editor'
+                            : row.role === 'DRIVER'
+                                ? 'Driver'
+                                : 'Viewer',
+                phone: row.customer?.phoneNumber ? `+91 ${row.customer.phoneNumber}` : '',
+                status: 'active' as const,
+            }));
+            setShareAccessList(mapped);
+        } catch {
+            setShareAccessList([]);
+        }
+    };
+
+    const handleInvite = async (phone: string, role: 'Editor' | 'Viewer' | 'Driver') => {
+        if (!activeVehicle) return;
+        setShareLoading(true);
+        try {
+            await api.post('/v1/sharing/share', {
+                vehicleId: activeVehicle.id,
+                phoneNumber: phone,
+                role: role.toUpperCase(),
+            });
+        } finally {
+            setShareLoading(false);
+        }
+    };
+
+    const handleRevoke = async (_userId: number) => {
+        // TODO: wire revoke once we expose specific access IDs in the mobile payload
+        return;
+    };
+
     // ── Helper: alert status badge ───────────────────────────────────────────
     const getInsuranceStatus = (): string => {
         if (!rto?.insuranceUpto) return 'UNKNOWN';
@@ -102,9 +169,16 @@ export const DetailsScreen = ({
                     ))}
                 </View>
 
-                <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn}>
-                    <Trash2 size={22} color="#FF453A" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {currentCustomerId && activeVehicle.customerId === currentCustomerId && (
+                        <TouchableOpacity onPress={openShare} style={styles.topRoundBtn}>
+                            <User size={18} color={COLORS.primary} />
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn}>
+                        <Trash2 size={22} color="#FF453A" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
@@ -303,6 +377,20 @@ export const DetailsScreen = ({
                     )}
                 </View>
             </ScrollView>
+
+            <ShareScreen
+                visible={shareVisible}
+                onClose={() => setShareVisible(false)}
+                vehicle={{
+                    vehicleNumber: activeVehicle.registrationNumber,
+                    model: activeVehicle.model || activeVehicle.make || 'Vehicle',
+                    brand: activeVehicle.make,
+                }}
+                accessList={shareAccessList}
+                onInvite={handleInvite}
+                onRevoke={handleRevoke}
+                isLoading={shareLoading}
+            />
         </View>
     );
 };

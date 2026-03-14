@@ -241,7 +241,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
     }
   };
 
-  const handleInvite = async (phone: string, role: 'Editor' | 'Viewer') => {
+  const handleInvite = async (phone: string, role: 'Editor' | 'Viewer' | 'Driver') => {
     setIsSharingLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));

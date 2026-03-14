@@ -21,13 +21,14 @@ export interface DocumentItem {
   extractedFields: any;
   status: 'verified' | 'expiring' | 'expired';
   createdAt: string;
-  dates?: string[]; 
+  dates?: string[];
 }
 
 function mapStatus(doc: DocumentResponse): 'verified' | 'expiring' | 'expired' {
   if (doc.verificationStatus === 'REJECTED') return 'expired';
-  if (doc.expiryDate) {
-    const exp = new Date(doc.expiryDate);
+  const expiry = doc.extractedFields?.expirydate || doc.extractedFields?.expiryDate || doc.expiryDate;
+  if (expiry) {
+    const exp = new Date(expiry);
     const now = new Date();
     if (exp < now) return 'expired';
     if (exp.getTime() - now.getTime() < 30 * 24 * 60 * 60 * 1000) return 'expiring';
@@ -37,12 +38,12 @@ function mapStatus(doc: DocumentResponse): 'verified' | 'expiring' | 'expired' {
 }
 
 function toDocumentItem(doc: DocumentResponse): DocumentItem {
-  // Ensure expiryDate is set from dates array if not provided
-  let expiryDate = doc.expiryDate;
+  // Prioritize extractedFields, then explicit expiryDate, then dates array
+  let expiryDate = doc.extractedFields?.expirydate || doc.extractedFields?.expiryDate || doc.expiryDate;
   if (!expiryDate && doc.dates && Array.isArray(doc.dates) && doc.dates.length > 1) {
     expiryDate = doc.dates[1];
   }
-  
+
   return {
     id: doc.id,
     type: BACKEND_TYPE_MAP[doc.type] || doc.type,

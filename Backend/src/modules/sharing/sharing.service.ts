@@ -6,6 +6,10 @@ import { getSMSService } from "../../services/sms.service";
 
 export const sharingService = {
   async shareVehicle(ownerId: string, input: ShareVehicleInput) {
+    // Normalize phone number to match auth module behavior (last 10 digits)
+    const digits = input.phoneNumber.replace(/\D/g, "");
+    const normalizedPhone = digits.slice(-10);
+
     // 1. Verify ownership and get owner info
     const vehicle = await dbInstances.customerVehicle.findUnique({
       where: { id: input.vehicleId },
@@ -16,13 +20,20 @@ export const sharingService = {
       throw AppError.unauthorized("You do not own this vehicle");
     }
 
-    // 2. Find target customer by phone
-    const targetCustomer = await dbInstances.customer.findUnique({
-      where: { phoneNumber: input.phoneNumber },
+    // 2. Find or auto-create target customer by phone
+    let targetCustomer = await dbInstances.customer.findUnique({
+      where: { phoneNumber: normalizedPhone },
     });
 
     if (!targetCustomer) {
-      // Smart Improvisation: If user not found, send invitation link
+      // Auto-register a minimal customer so future login works without "not registered"
+      targetCustomer = await dbInstances.customer.create({
+        data: {
+          phoneNumber: normalizedPhone,
+        },
+      });
+
+      // Still send invitation SMS with download link
       const smsService = getSMSService();
       const inviterName = vehicle.customer.fullName || "Someone";
       const message = `${inviterName} wants to share their vehicle documents with you on Gupio! Download the app now to view: https://gupio.app/download. GUPIO.`;
@@ -30,10 +41,8 @@ export const sharingService = {
       await smsService.sendSMS(input.phoneNumber, message);
       logger.info(
         { phoneNumber: input.phoneNumber },
-        "Sent invitation SMS to non-registered user",
+        "Auto-registered customer and sent invitation SMS",
       );
-
-      return { invited: true, message: "Invitation SMS sent to the user" };
     }
 
     if (targetCustomer.id === ownerId) {

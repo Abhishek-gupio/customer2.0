@@ -39,6 +39,7 @@ model Customer {
   notifications     InAppNotification[]
   sosRequests       SOSRequest[]
   sharedVehicles    VehicleAccess[]
+  driverExpenses    Expense[]             @relation("DriverExpenses")
 
   @@schema("customer")
 }
@@ -285,12 +286,18 @@ model Expense {
   id           String           @id @default(cuid())
   customerId   String
   vehicleId    String?
+  driverId     String?
   amount       Float
   currency     String           @default("INR")
   category     ExpenseCategory
   date         DateTime         @default(now())
   merchantName String?
   location     String?
+  placeId      String?
+  placeName    String?
+  placeAddress String?
+  placeLat     Float?
+  placeLng     Float?
   notes        String?
   source       ExpenseSource    @default(MANUAL)
   receiptUrl   String?
@@ -301,6 +308,7 @@ model Expense {
   updatedAt    DateTime         @updatedAt
   customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])
+  driver       Customer?        @relation("DriverExpenses", fields: [driverId], references: [id])
 
   @@index([customerId])
   @@index([vehicleId])
@@ -541,6 +549,7 @@ enum AccessRole {
   OWNER
   EDITOR
   VIEWER
+  DRIVER
 
   @@schema("customer")
 }

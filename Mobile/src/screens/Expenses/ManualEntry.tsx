@@ -77,6 +77,15 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const [placeSearch, setPlaceSearch] = useState("");
+  const [showPlaceInput, setShowPlaceInput] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<{
+    placeId: string;
+    name: string;
+    address?: string;
+    lat?: number;
+    lng?: number;
+  } | null>(null);
 
   const fetchVehicles = async () => {
     try {
@@ -221,6 +230,23 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         odometerReading: odometer ? parseFloat(odometer) : undefined,
       };
 
+      // Attach structured Google Places info if driver selected a place
+      if (selectedPlace) {
+        payload.placeId = selectedPlace.placeId;
+        payload.placeName = selectedPlace.name;
+        payload.placeAddress = selectedPlace.address;
+        if (typeof selectedPlace.lat === "number") {
+          payload.placeLat = selectedPlace.lat;
+        }
+        if (typeof selectedPlace.lng === "number") {
+          payload.placeLng = selectedPlace.lng;
+        }
+        // Keep free-text location aligned for older analytics
+        if (!payload.location && selectedPlace.address) {
+          payload.location = selectedPlace.address;
+        }
+      }
+
       const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
       if (isPartCategory) {
         payload.parts = [{
@@ -331,6 +357,16 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 placeholder="Enter description"
                 value={description}
                 onChangeText={setDescription}
+              />
+
+              <Label text="Place (Google Maps)" />
+              <Input
+                placeholder={selectedPlace ? `${selectedPlace.name}${selectedPlace.address ? " • " + selectedPlace.address : ""}` : "Search or type place"}
+                value={placeSearch}
+                onChangeText={text => {
+                  setPlaceSearch(text);
+                  setSelectedPlace(null);
+                }}
               />
 
 

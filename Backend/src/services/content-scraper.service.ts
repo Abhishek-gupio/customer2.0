@@ -12,11 +12,18 @@ const db = dbInstances as any;
  */
 
 const BROWSER_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
-    "Cache-Control": "no-cache",
-    "Pragma": "no-cache"
+    "Accept-Encoding": "gzip, deflate, br",
+    "DNT": "1",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Cache-Control": "max-age=0"
 };
 
 export const contentScraperService = {
@@ -25,65 +32,63 @@ export const contentScraperService = {
      */
     async scrapeFuelPrices(): Promise<number> {
         logger.info("🎬 Starting Fuel Price Scraping from GoodReturns...");
+        let totalSaved = 0;
+
+        const tasks = [
+            { type: "PETROL", url: "https://www.goodreturns.in/petrol-price.html" },
+            { type: "DIESEL", url: "https://www.goodreturns.in/diesel-price.html" },
+            { type: "CNG", url: "https://www.goodreturns.in/cng-price.html" }
+        ];
+
+        for (const task of tasks) {
+            try {
+                const count = await this.scrapeFromUrl(task.url, task.type as "PETROL" | "DIESEL" | "CNG");
+                totalSaved += count;
+                logger.info(`✅ Successfully scraped ${count} ${task.type} prices.`);
+            } catch (err) {
+                logger.error({ err, type: task.type }, `❌ Failed to scrape ${task.type} prices`);
+            }
+        }
+
+        logger.info(`🏁 Total fuel prices cached: ${totalSaved}`);
+        return totalSaved;
+    },
+
+    async scrapeFromUrl(url: string, fuelType: "PETROL" | "DIESEL" | "CNG"): Promise<number> {
         let savedCount = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        try {
-            const url = "https://www.goodreturns.in/petrol-price.html";
-            const response = await axios.get(url, {
-                headers: {
-                    ...BROWSER_HEADERS,
-                    "Referer": "https://www.google.com/"
-                },
-                timeout: 15000
-            });
-            const $ = cheerio.load(response.data);
+        const response = await axios.get(url, {
+            headers: {
+                ...BROWSER_HEADERS,
+                "Referer": "https://www.google.com/"
+            },
+            timeout: 15000
+        });
+        const $ = cheerio.load(response.data);
+        const promises: Promise<any>[] = [];
 
-            const promises: Promise<any>[] = [];
+        // Updated selector based on actual website structure
+        // div.gold_rate_table_inner is the container for city-wise tables
+        $("div.gold_rate_table_inner table tr, div.gold_silver_table tr, table tr").each((_, tr) => {
+            const cells = $(tr).find("td");
+            if (cells.length >= 2) {
+                const name = $(cells[0]).text().trim();
+                const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
+                const price = parseFloat(priceText);
 
-            // Targeted selectors based on GoodReturns structure
-            // They use div.gold_silver_table for their price tables
-            $("div.gold_silver_table tr").each((_, tr) => {
-                const cells = $(tr).find("td");
-                if (cells.length >= 2) {
-                    const name = $(cells[0]).text().trim();
-                    const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
-                    const price = parseFloat(priceText);
-
-                    if (name && !isNaN(price) && price > 50 && name !== "City" && name !== "State") {
-                        promises.push(this.savePriceToCache(name, "PETROL", price, today).then(ok => {
-                            if (ok) savedCount++;
-                        }));
-                    }
+                // Validation: City name exists, price is reasonable, not a header row
+                if (name && !isNaN(price) && price > 30 && name !== "City" && name !== "State" && name !== "City Name") {
+                    promises.push(this.savePriceToCache(name, fuelType, price, today).then(ok => {
+                        if (ok) savedCount++;
+                    }));
                 }
-            });
-
-            // If the above fails, try a more generic table selector
-            if (promises.length === 0) {
-                $("table tr").each((_, tr) => {
-                    const cells = $(tr).find("td");
-                    if (cells.length >= 2) {
-                        const name = $(cells[0]).text().trim();
-                        const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
-                        const price = parseFloat(priceText);
-
-                        if (name && !isNaN(price) && price > 50 && name !== "City" && name !== "State") {
-                            promises.push(this.savePriceToCache(name, "PETROL", price, today).then(ok => {
-                                if (ok) savedCount++;
-                            }));
-                        }
-                    }
-                });
             }
+        });
 
-            await Promise.all(promises);
-            logger.info(`✅ Successfully scraped and cached ${savedCount} fuel prices from GoodReturns.`);
-            return savedCount;
-        } catch (err) {
-            logger.error({ err }, "❌ Fuel price scraping failed");
-            return 0;
-        }
+        await Promise.all(promises);
+        return savedCount;
     },
 
     async savePriceToCache(city: string, fuelType: string, price: number, date: Date): Promise<boolean> {
@@ -209,20 +214,36 @@ export const contentScraperService = {
 
     mapCityToState(city: string): string {
         const map: Record<string, string> = {
-            Delhi: "Delhi",
-            Mumbai: "Maharashtra",
-            Bangalore: "Karnataka",
-            Chennai: "Tamil Nadu",
+            // Maharashtra
+            Mumbai: "Maharashtra", Pune: "Maharashtra", Nagpur: "Maharashtra", Thane: "Maharashtra", Nashik: "Maharashtra",
+            // Karnataka
+            Bangalore: "Karnataka", Bengaluru: "Karnataka", Mysore: "Karnataka", Hubli: "Karnataka",
+            // Tamil Nadu
+            Chennai: "Tamil Nadu", Coimbatore: "Tamil Nadu", Madurai: "Tamil Nadu",
+            // West Bengal
             Kolkata: "West Bengal",
+            // Telangana
             Hyderabad: "Telangana",
-            Pune: "Maharashtra",
-            Ahmedabad: "Gujarat",
-            Jaipur: "Rajasthan",
-            Lucknow: "Uttar Pradesh",
-            Noida: "Uttar Pradesh",
-            Gurgaon: "Haryana",
+            // Gujarat
+            Ahmedabad: "Gujarat", Surat: "Gujarat", Vadodara: "Gujarat", Rajkot: "Gujarat",
+            // Rajasthan
+            Jaipur: "Rajasthan", Jodhpur: "Rajasthan", Udaipur: "Rajasthan",
+            // Uttar Pradesh
+            Lucknow: "Uttar Pradesh", Noida: "Uttar Pradesh", Kanpur: "Uttar Pradesh", Agra: "Uttar Pradesh", Varanasi: "Uttar Pradesh",
+            // Delhi
+            Delhi: "Delhi", "New Delhi": "Delhi",
+            // Haryana
+            Gurgaon: "Haryana", Gurugram: "Haryana", Faridabad: "Haryana",
+            // Bihar
             Patna: "Bihar",
-            Bhopal: "Madhya Pradesh"
+            // Madhya Pradesh
+            Bhopal: "Madhya Pradesh", Indore: "Madhya Pradesh",
+            // Kerala
+            Kochi: "Kerala", Trivandrum: "Kerala", Thiruvananthapuram: "Kerala", Kozhikode: "Kerala",
+            // Punjab
+            Chandigarh: "Punjab", Ludhiana: "Punjab", Amritsar: "Punjab",
+            // Andhra Pradesh
+            Visakhapatnam: "Andhra Pradesh", Vijayawada: "Andhra Pradesh",
         };
         return map[city] || "General";
     }

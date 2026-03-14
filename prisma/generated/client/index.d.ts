@@ -196,7 +196,8 @@ export type DigiLockerStatus = (typeof DigiLockerStatus)[keyof typeof DigiLocker
 export const AccessRole: {
   OWNER: 'OWNER',
   EDITOR: 'EDITOR',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
+  DRIVER: 'DRIVER'
 };
 
 export type AccessRole = (typeof AccessRole)[keyof typeof AccessRole]
@@ -3399,6 +3400,7 @@ export namespace Prisma {
     notifications: number
     sosRequests: number
     sharedVehicles: number
+    driverExpenses: number
   }
 
   export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3412,6 +3414,7 @@ export namespace Prisma {
     notifications?: boolean | CustomerCountOutputTypeCountNotificationsArgs
     sosRequests?: boolean | CustomerCountOutputTypeCountSosRequestsArgs
     sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs
+    driverExpenses?: boolean | CustomerCountOutputTypeCountDriverExpensesArgs
   }
 
   // Custom InputTypes
@@ -3493,6 +3496,13 @@ export namespace Prisma {
    */
   export type CustomerCountOutputTypeCountSharedVehiclesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VehicleAccessWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountDriverExpensesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ExpenseWhereInput
   }
 
 
@@ -4864,6 +4874,7 @@ export namespace Prisma {
     notifications?: boolean | Customer$notificationsArgs<ExtArgs>
     sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
+    driverExpenses?: boolean | Customer$driverExpensesArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customer"]>
 
@@ -4910,6 +4921,7 @@ export namespace Prisma {
     notifications?: boolean | Customer$notificationsArgs<ExtArgs>
     sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
+    driverExpenses?: boolean | Customer$driverExpensesArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4929,6 +4941,7 @@ export namespace Prisma {
       notifications: Prisma.$InAppNotificationPayload<ExtArgs>[]
       sosRequests: Prisma.$SOSRequestPayload<ExtArgs>[]
       sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[]
+      driverExpenses: Prisma.$ExpensePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5343,6 +5356,7 @@ export namespace Prisma {
     notifications<T extends Customer$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InAppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sosRequests<T extends Customer$sosRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sosRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sharedVehicles<T extends Customer$sharedVehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sharedVehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    driverExpenses<T extends Customer$driverExpensesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$driverExpensesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6023,6 +6037,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VehicleAccessScalarFieldEnum | VehicleAccessScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.driverExpenses
+   */
+  export type Customer$driverExpensesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Expense
+     */
+    select?: ExpenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Expense
+     */
+    omit?: ExpenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExpenseInclude<ExtArgs> | null
+    where?: ExpenseWhereInput
+    orderBy?: ExpenseOrderByWithRelationInput | ExpenseOrderByWithRelationInput[]
+    cursor?: ExpenseWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ExpenseScalarFieldEnum | ExpenseScalarFieldEnum[]
   }
 
   /**
@@ -21113,22 +21151,32 @@ export namespace Prisma {
 
   export type ExpenseAvgAggregateOutputType = {
     amount: number | null
+    placeLat: number | null
+    placeLng: number | null
   }
 
   export type ExpenseSumAggregateOutputType = {
     amount: number | null
+    placeLat: number | null
+    placeLng: number | null
   }
 
   export type ExpenseMinAggregateOutputType = {
     id: string | null
     customerId: string | null
     vehicleId: string | null
+    driverId: string | null
     amount: number | null
     currency: string | null
     category: $Enums.ExpenseCategory | null
     date: Date | null
     merchantName: string | null
     location: string | null
+    placeId: string | null
+    placeName: string | null
+    placeAddress: string | null
+    placeLat: number | null
+    placeLng: number | null
     notes: string | null
     source: $Enums.ExpenseSource | null
     receiptUrl: string | null
@@ -21143,12 +21191,18 @@ export namespace Prisma {
     id: string | null
     customerId: string | null
     vehicleId: string | null
+    driverId: string | null
     amount: number | null
     currency: string | null
     category: $Enums.ExpenseCategory | null
     date: Date | null
     merchantName: string | null
     location: string | null
+    placeId: string | null
+    placeName: string | null
+    placeAddress: string | null
+    placeLat: number | null
+    placeLng: number | null
     notes: string | null
     source: $Enums.ExpenseSource | null
     receiptUrl: string | null
@@ -21163,12 +21217,18 @@ export namespace Prisma {
     id: number
     customerId: number
     vehicleId: number
+    driverId: number
     amount: number
     currency: number
     category: number
     date: number
     merchantName: number
     location: number
+    placeId: number
+    placeName: number
+    placeAddress: number
+    placeLat: number
+    placeLng: number
     notes: number
     source: number
     receiptUrl: number
@@ -21183,22 +21243,32 @@ export namespace Prisma {
 
   export type ExpenseAvgAggregateInputType = {
     amount?: true
+    placeLat?: true
+    placeLng?: true
   }
 
   export type ExpenseSumAggregateInputType = {
     amount?: true
+    placeLat?: true
+    placeLng?: true
   }
 
   export type ExpenseMinAggregateInputType = {
     id?: true
     customerId?: true
     vehicleId?: true
+    driverId?: true
     amount?: true
     currency?: true
     category?: true
     date?: true
     merchantName?: true
     location?: true
+    placeId?: true
+    placeName?: true
+    placeAddress?: true
+    placeLat?: true
+    placeLng?: true
     notes?: true
     source?: true
     receiptUrl?: true
@@ -21213,12 +21283,18 @@ export namespace Prisma {
     id?: true
     customerId?: true
     vehicleId?: true
+    driverId?: true
     amount?: true
     currency?: true
     category?: true
     date?: true
     merchantName?: true
     location?: true
+    placeId?: true
+    placeName?: true
+    placeAddress?: true
+    placeLat?: true
+    placeLng?: true
     notes?: true
     source?: true
     receiptUrl?: true
@@ -21233,12 +21309,18 @@ export namespace Prisma {
     id?: true
     customerId?: true
     vehicleId?: true
+    driverId?: true
     amount?: true
     currency?: true
     category?: true
     date?: true
     merchantName?: true
     location?: true
+    placeId?: true
+    placeName?: true
+    placeAddress?: true
+    placeLat?: true
+    placeLng?: true
     notes?: true
     source?: true
     receiptUrl?: true
@@ -21340,12 +21422,18 @@ export namespace Prisma {
     id: string
     customerId: string
     vehicleId: string | null
+    driverId: string | null
     amount: number
     currency: string
     category: $Enums.ExpenseCategory
     date: Date
     merchantName: string | null
     location: string | null
+    placeId: string | null
+    placeName: string | null
+    placeAddress: string | null
+    placeLat: number | null
+    placeLng: number | null
     notes: string | null
     source: $Enums.ExpenseSource
     receiptUrl: string | null
@@ -21379,12 +21467,18 @@ export namespace Prisma {
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
+    driverId?: boolean
     amount?: boolean
     currency?: boolean
     category?: boolean
     date?: boolean
     merchantName?: boolean
     location?: boolean
+    placeId?: boolean
+    placeName?: boolean
+    placeAddress?: boolean
+    placeLat?: boolean
+    placeLng?: boolean
     notes?: boolean
     source?: boolean
     receiptUrl?: boolean
@@ -21395,18 +21489,25 @@ export namespace Prisma {
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     vehicle?: boolean | Expense$vehicleArgs<ExtArgs>
+    driver?: boolean | Expense$driverArgs<ExtArgs>
   }, ExtArgs["result"]["expense"]>
 
   export type ExpenseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
+    driverId?: boolean
     amount?: boolean
     currency?: boolean
     category?: boolean
     date?: boolean
     merchantName?: boolean
     location?: boolean
+    placeId?: boolean
+    placeName?: boolean
+    placeAddress?: boolean
+    placeLat?: boolean
+    placeLng?: boolean
     notes?: boolean
     source?: boolean
     receiptUrl?: boolean
@@ -21417,18 +21518,25 @@ export namespace Prisma {
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     vehicle?: boolean | Expense$vehicleArgs<ExtArgs>
+    driver?: boolean | Expense$driverArgs<ExtArgs>
   }, ExtArgs["result"]["expense"]>
 
   export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
+    driverId?: boolean
     amount?: boolean
     currency?: boolean
     category?: boolean
     date?: boolean
     merchantName?: boolean
     location?: boolean
+    placeId?: boolean
+    placeName?: boolean
+    placeAddress?: boolean
+    placeLat?: boolean
+    placeLng?: boolean
     notes?: boolean
     source?: boolean
     receiptUrl?: boolean
@@ -21439,18 +21547,25 @@ export namespace Prisma {
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     vehicle?: boolean | Expense$vehicleArgs<ExtArgs>
+    driver?: boolean | Expense$driverArgs<ExtArgs>
   }, ExtArgs["result"]["expense"]>
 
   export type ExpenseSelectScalar = {
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
+    driverId?: boolean
     amount?: boolean
     currency?: boolean
     category?: boolean
     date?: boolean
     merchantName?: boolean
     location?: boolean
+    placeId?: boolean
+    placeName?: boolean
+    placeAddress?: boolean
+    placeLat?: boolean
+    placeLng?: boolean
     notes?: boolean
     source?: boolean
     receiptUrl?: boolean
@@ -21461,18 +21576,21 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type ExpenseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "vehicleId" | "amount" | "currency" | "category" | "date" | "merchantName" | "location" | "notes" | "source" | "receiptUrl" | "mimeType" | "rawText" | "isAutomated" | "createdAt" | "updatedAt", ExtArgs["result"]["expense"]>
+  export type ExpenseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "vehicleId" | "driverId" | "amount" | "currency" | "category" | "date" | "merchantName" | "location" | "placeId" | "placeName" | "placeAddress" | "placeLat" | "placeLng" | "notes" | "source" | "receiptUrl" | "mimeType" | "rawText" | "isAutomated" | "createdAt" | "updatedAt", ExtArgs["result"]["expense"]>
   export type ExpenseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     vehicle?: boolean | Expense$vehicleArgs<ExtArgs>
+    driver?: boolean | Expense$driverArgs<ExtArgs>
   }
   export type ExpenseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     vehicle?: boolean | Expense$vehicleArgs<ExtArgs>
+    driver?: boolean | Expense$driverArgs<ExtArgs>
   }
   export type ExpenseIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     vehicle?: boolean | Expense$vehicleArgs<ExtArgs>
+    driver?: boolean | Expense$driverArgs<ExtArgs>
   }
 
   export type $ExpensePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21480,17 +21598,24 @@ export namespace Prisma {
     objects: {
       customer: Prisma.$CustomerPayload<ExtArgs>
       vehicle: Prisma.$CustomerVehiclePayload<ExtArgs> | null
+      driver: Prisma.$CustomerPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       customerId: string
       vehicleId: string | null
+      driverId: string | null
       amount: number
       currency: string
       category: $Enums.ExpenseCategory
       date: Date
       merchantName: string | null
       location: string | null
+      placeId: string | null
+      placeName: string | null
+      placeAddress: string | null
+      placeLat: number | null
+      placeLng: number | null
       notes: string | null
       source: $Enums.ExpenseSource
       receiptUrl: string | null
@@ -21895,6 +22020,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     vehicle<T extends Expense$vehicleArgs<ExtArgs> = {}>(args?: Subset<T, Expense$vehicleArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    driver<T extends Expense$driverArgs<ExtArgs> = {}>(args?: Subset<T, Expense$driverArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -21927,12 +22053,18 @@ export namespace Prisma {
     readonly id: FieldRef<"Expense", 'String'>
     readonly customerId: FieldRef<"Expense", 'String'>
     readonly vehicleId: FieldRef<"Expense", 'String'>
+    readonly driverId: FieldRef<"Expense", 'String'>
     readonly amount: FieldRef<"Expense", 'Float'>
     readonly currency: FieldRef<"Expense", 'String'>
     readonly category: FieldRef<"Expense", 'ExpenseCategory'>
     readonly date: FieldRef<"Expense", 'DateTime'>
     readonly merchantName: FieldRef<"Expense", 'String'>
     readonly location: FieldRef<"Expense", 'String'>
+    readonly placeId: FieldRef<"Expense", 'String'>
+    readonly placeName: FieldRef<"Expense", 'String'>
+    readonly placeAddress: FieldRef<"Expense", 'String'>
+    readonly placeLat: FieldRef<"Expense", 'Float'>
+    readonly placeLng: FieldRef<"Expense", 'Float'>
     readonly notes: FieldRef<"Expense", 'String'>
     readonly source: FieldRef<"Expense", 'ExpenseSource'>
     readonly receiptUrl: FieldRef<"Expense", 'String'>
@@ -22353,6 +22485,25 @@ export namespace Prisma {
      */
     include?: CustomerVehicleInclude<ExtArgs> | null
     where?: CustomerVehicleWhereInput
+  }
+
+  /**
+   * Expense.driver
+   */
+  export type Expense$driverArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Customer
+     */
+    select?: CustomerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Customer
+     */
+    omit?: CustomerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerInclude<ExtArgs> | null
+    where?: CustomerWhereInput
   }
 
   /**
@@ -35237,12 +35388,18 @@ export namespace Prisma {
     id: 'id',
     customerId: 'customerId',
     vehicleId: 'vehicleId',
+    driverId: 'driverId',
     amount: 'amount',
     currency: 'currency',
     category: 'category',
     date: 'date',
     merchantName: 'merchantName',
     location: 'location',
+    placeId: 'placeId',
+    placeName: 'placeName',
+    placeAddress: 'placeAddress',
+    placeLat: 'placeLat',
+    placeLng: 'placeLng',
     notes: 'notes',
     source: 'source',
     receiptUrl: 'receiptUrl',
@@ -35781,6 +35938,7 @@ export namespace Prisma {
     notifications?: InAppNotificationListRelationFilter
     sosRequests?: SOSRequestListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
+    driverExpenses?: ExpenseListRelationFilter
   }
 
   export type CustomerOrderByWithRelationInput = {
@@ -35802,6 +35960,7 @@ export namespace Prisma {
     notifications?: InAppNotificationOrderByRelationAggregateInput
     sosRequests?: SOSRequestOrderByRelationAggregateInput
     sharedVehicles?: VehicleAccessOrderByRelationAggregateInput
+    driverExpenses?: ExpenseOrderByRelationAggregateInput
   }
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -35826,6 +35985,7 @@ export namespace Prisma {
     notifications?: InAppNotificationListRelationFilter
     sosRequests?: SOSRequestListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
+    driverExpenses?: ExpenseListRelationFilter
   }, "id" | "phoneNumber">
 
   export type CustomerOrderByWithAggregationInput = {
@@ -36969,12 +37129,18 @@ export namespace Prisma {
     id?: StringFilter<"Expense"> | string
     customerId?: StringFilter<"Expense"> | string
     vehicleId?: StringNullableFilter<"Expense"> | string | null
+    driverId?: StringNullableFilter<"Expense"> | string | null
     amount?: FloatFilter<"Expense"> | number
     currency?: StringFilter<"Expense"> | string
     category?: EnumExpenseCategoryFilter<"Expense"> | $Enums.ExpenseCategory
     date?: DateTimeFilter<"Expense"> | Date | string
     merchantName?: StringNullableFilter<"Expense"> | string | null
     location?: StringNullableFilter<"Expense"> | string | null
+    placeId?: StringNullableFilter<"Expense"> | string | null
+    placeName?: StringNullableFilter<"Expense"> | string | null
+    placeAddress?: StringNullableFilter<"Expense"> | string | null
+    placeLat?: FloatNullableFilter<"Expense"> | number | null
+    placeLng?: FloatNullableFilter<"Expense"> | number | null
     notes?: StringNullableFilter<"Expense"> | string | null
     source?: EnumExpenseSourceFilter<"Expense"> | $Enums.ExpenseSource
     receiptUrl?: StringNullableFilter<"Expense"> | string | null
@@ -36985,18 +37151,25 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Expense"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     vehicle?: XOR<CustomerVehicleNullableScalarRelationFilter, CustomerVehicleWhereInput> | null
+    driver?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
   }
 
   export type ExpenseOrderByWithRelationInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrderInput | SortOrder
+    driverId?: SortOrderInput | SortOrder
     amount?: SortOrder
     currency?: SortOrder
     category?: SortOrder
     date?: SortOrder
     merchantName?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
+    placeId?: SortOrderInput | SortOrder
+    placeName?: SortOrderInput | SortOrder
+    placeAddress?: SortOrderInput | SortOrder
+    placeLat?: SortOrderInput | SortOrder
+    placeLng?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     source?: SortOrder
     receiptUrl?: SortOrderInput | SortOrder
@@ -37007,6 +37180,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     customer?: CustomerOrderByWithRelationInput
     vehicle?: CustomerVehicleOrderByWithRelationInput
+    driver?: CustomerOrderByWithRelationInput
   }
 
   export type ExpenseWhereUniqueInput = Prisma.AtLeast<{
@@ -37016,12 +37190,18 @@ export namespace Prisma {
     NOT?: ExpenseWhereInput | ExpenseWhereInput[]
     customerId?: StringFilter<"Expense"> | string
     vehicleId?: StringNullableFilter<"Expense"> | string | null
+    driverId?: StringNullableFilter<"Expense"> | string | null
     amount?: FloatFilter<"Expense"> | number
     currency?: StringFilter<"Expense"> | string
     category?: EnumExpenseCategoryFilter<"Expense"> | $Enums.ExpenseCategory
     date?: DateTimeFilter<"Expense"> | Date | string
     merchantName?: StringNullableFilter<"Expense"> | string | null
     location?: StringNullableFilter<"Expense"> | string | null
+    placeId?: StringNullableFilter<"Expense"> | string | null
+    placeName?: StringNullableFilter<"Expense"> | string | null
+    placeAddress?: StringNullableFilter<"Expense"> | string | null
+    placeLat?: FloatNullableFilter<"Expense"> | number | null
+    placeLng?: FloatNullableFilter<"Expense"> | number | null
     notes?: StringNullableFilter<"Expense"> | string | null
     source?: EnumExpenseSourceFilter<"Expense"> | $Enums.ExpenseSource
     receiptUrl?: StringNullableFilter<"Expense"> | string | null
@@ -37032,18 +37212,25 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Expense"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     vehicle?: XOR<CustomerVehicleNullableScalarRelationFilter, CustomerVehicleWhereInput> | null
+    driver?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
   }, "id">
 
   export type ExpenseOrderByWithAggregationInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrderInput | SortOrder
+    driverId?: SortOrderInput | SortOrder
     amount?: SortOrder
     currency?: SortOrder
     category?: SortOrder
     date?: SortOrder
     merchantName?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
+    placeId?: SortOrderInput | SortOrder
+    placeName?: SortOrderInput | SortOrder
+    placeAddress?: SortOrderInput | SortOrder
+    placeLat?: SortOrderInput | SortOrder
+    placeLng?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     source?: SortOrder
     receiptUrl?: SortOrderInput | SortOrder
@@ -37066,12 +37253,18 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Expense"> | string
     customerId?: StringWithAggregatesFilter<"Expense"> | string
     vehicleId?: StringNullableWithAggregatesFilter<"Expense"> | string | null
+    driverId?: StringNullableWithAggregatesFilter<"Expense"> | string | null
     amount?: FloatWithAggregatesFilter<"Expense"> | number
     currency?: StringWithAggregatesFilter<"Expense"> | string
     category?: EnumExpenseCategoryWithAggregatesFilter<"Expense"> | $Enums.ExpenseCategory
     date?: DateTimeWithAggregatesFilter<"Expense"> | Date | string
     merchantName?: StringNullableWithAggregatesFilter<"Expense"> | string | null
     location?: StringNullableWithAggregatesFilter<"Expense"> | string | null
+    placeId?: StringNullableWithAggregatesFilter<"Expense"> | string | null
+    placeName?: StringNullableWithAggregatesFilter<"Expense"> | string | null
+    placeAddress?: StringNullableWithAggregatesFilter<"Expense"> | string | null
+    placeLat?: FloatNullableWithAggregatesFilter<"Expense"> | number | null
+    placeLng?: FloatNullableWithAggregatesFilter<"Expense"> | number | null
     notes?: StringNullableWithAggregatesFilter<"Expense"> | string | null
     source?: EnumExpenseSourceWithAggregatesFilter<"Expense"> | $Enums.ExpenseSource
     receiptUrl?: StringNullableWithAggregatesFilter<"Expense"> | string | null
@@ -38065,6 +38258,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateInput = {
@@ -38086,6 +38280,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUpdateInput = {
@@ -38107,6 +38302,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateInput = {
@@ -38128,6 +38324,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerCreateManyInput = {
@@ -39413,6 +39610,11 @@ export namespace Prisma {
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -39423,18 +39625,25 @@ export namespace Prisma {
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutExpensesInput
     vehicle?: CustomerVehicleCreateNestedOneWithoutExpensesInput
+    driver?: CustomerCreateNestedOneWithoutDriverExpensesInput
   }
 
   export type ExpenseUncheckedCreateInput = {
     id?: string
     customerId: string
     vehicleId?: string | null
+    driverId?: string | null
     amount: number
     currency?: string
     category: $Enums.ExpenseCategory
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -39453,6 +39662,11 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39463,18 +39677,25 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutExpensesNestedInput
     vehicle?: CustomerVehicleUpdateOneWithoutExpensesNestedInput
+    driver?: CustomerUpdateOneWithoutDriverExpensesNestedInput
   }
 
   export type ExpenseUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: FloatFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39489,12 +39710,18 @@ export namespace Prisma {
     id?: string
     customerId: string
     vehicleId?: string | null
+    driverId?: string | null
     amount: number
     currency?: string
     category: $Enums.ExpenseCategory
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -39513,6 +39740,11 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39527,12 +39759,18 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: FloatFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41714,6 +41952,17 @@ export namespace Prisma {
     not?: NestedEnumExpenseCategoryFilter<$PrismaModel> | $Enums.ExpenseCategory
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type EnumExpenseSourceFilter<$PrismaModel = never> = {
     equals?: $Enums.ExpenseSource | EnumExpenseSourceFieldRefInput<$PrismaModel>
     in?: $Enums.ExpenseSource[] | ListEnumExpenseSourceFieldRefInput<$PrismaModel>
@@ -41721,16 +41970,27 @@ export namespace Prisma {
     not?: NestedEnumExpenseSourceFilter<$PrismaModel> | $Enums.ExpenseSource
   }
 
+  export type CustomerNullableScalarRelationFilter = {
+    is?: CustomerWhereInput | null
+    isNot?: CustomerWhereInput | null
+  }
+
   export type ExpenseCountOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrder
+    driverId?: SortOrder
     amount?: SortOrder
     currency?: SortOrder
     category?: SortOrder
     date?: SortOrder
     merchantName?: SortOrder
     location?: SortOrder
+    placeId?: SortOrder
+    placeName?: SortOrder
+    placeAddress?: SortOrder
+    placeLat?: SortOrder
+    placeLng?: SortOrder
     notes?: SortOrder
     source?: SortOrder
     receiptUrl?: SortOrder
@@ -41743,18 +42003,26 @@ export namespace Prisma {
 
   export type ExpenseAvgOrderByAggregateInput = {
     amount?: SortOrder
+    placeLat?: SortOrder
+    placeLng?: SortOrder
   }
 
   export type ExpenseMaxOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrder
+    driverId?: SortOrder
     amount?: SortOrder
     currency?: SortOrder
     category?: SortOrder
     date?: SortOrder
     merchantName?: SortOrder
     location?: SortOrder
+    placeId?: SortOrder
+    placeName?: SortOrder
+    placeAddress?: SortOrder
+    placeLat?: SortOrder
+    placeLng?: SortOrder
     notes?: SortOrder
     source?: SortOrder
     receiptUrl?: SortOrder
@@ -41769,12 +42037,18 @@ export namespace Prisma {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrder
+    driverId?: SortOrder
     amount?: SortOrder
     currency?: SortOrder
     category?: SortOrder
     date?: SortOrder
     merchantName?: SortOrder
     location?: SortOrder
+    placeId?: SortOrder
+    placeName?: SortOrder
+    placeAddress?: SortOrder
+    placeLat?: SortOrder
+    placeLng?: SortOrder
     notes?: SortOrder
     source?: SortOrder
     receiptUrl?: SortOrder
@@ -41787,6 +42061,8 @@ export namespace Prisma {
 
   export type ExpenseSumOrderByAggregateInput = {
     amount?: SortOrder
+    placeLat?: SortOrder
+    placeLng?: SortOrder
   }
 
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -41813,6 +42089,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumExpenseCategoryFilter<$PrismaModel>
     _max?: NestedEnumExpenseCategoryFilter<$PrismaModel>
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type EnumExpenseSourceWithAggregatesFilter<$PrismaModel = never> = {
@@ -42072,17 +42364,6 @@ export namespace Prisma {
     not?: NestedEnumServicePartTypeFilter<$PrismaModel> | $Enums.ServicePartType
   }
 
-  export type FloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
   export type ServiceRecordScalarRelationFilter = {
     is?: ServiceRecordWhereInput
     isNot?: ServiceRecordWhereInput
@@ -42156,22 +42437,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumServicePartTypeFilter<$PrismaModel>
     _max?: NestedEnumServicePartTypeFilter<$PrismaModel>
-  }
-
-  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type PartReplacementIntervalMakeModelYearMinYearMaxPartTypeCompoundUniqueInput = {
@@ -42622,6 +42887,13 @@ export namespace Prisma {
     connect?: VehicleAccessWhereUniqueInput | VehicleAccessWhereUniqueInput[]
   }
 
+  export type ExpenseCreateNestedManyWithoutDriverInput = {
+    create?: XOR<ExpenseCreateWithoutDriverInput, ExpenseUncheckedCreateWithoutDriverInput> | ExpenseCreateWithoutDriverInput[] | ExpenseUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: ExpenseCreateOrConnectWithoutDriverInput | ExpenseCreateOrConnectWithoutDriverInput[]
+    createMany?: ExpenseCreateManyDriverInputEnvelope
+    connect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutCustomerInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -42696,6 +42968,13 @@ export namespace Prisma {
     connectOrCreate?: VehicleAccessCreateOrConnectWithoutCustomerInput | VehicleAccessCreateOrConnectWithoutCustomerInput[]
     createMany?: VehicleAccessCreateManyCustomerInputEnvelope
     connect?: VehicleAccessWhereUniqueInput | VehicleAccessWhereUniqueInput[]
+  }
+
+  export type ExpenseUncheckedCreateNestedManyWithoutDriverInput = {
+    create?: XOR<ExpenseCreateWithoutDriverInput, ExpenseUncheckedCreateWithoutDriverInput> | ExpenseCreateWithoutDriverInput[] | ExpenseUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: ExpenseCreateOrConnectWithoutDriverInput | ExpenseCreateOrConnectWithoutDriverInput[]
+    createMany?: ExpenseCreateManyDriverInputEnvelope
+    connect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
   }
 
   export type ChatSessionUpdateManyWithoutCustomerNestedInput = {
@@ -42848,6 +43127,20 @@ export namespace Prisma {
     deleteMany?: VehicleAccessScalarWhereInput | VehicleAccessScalarWhereInput[]
   }
 
+  export type ExpenseUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<ExpenseCreateWithoutDriverInput, ExpenseUncheckedCreateWithoutDriverInput> | ExpenseCreateWithoutDriverInput[] | ExpenseUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: ExpenseCreateOrConnectWithoutDriverInput | ExpenseCreateOrConnectWithoutDriverInput[]
+    upsert?: ExpenseUpsertWithWhereUniqueWithoutDriverInput | ExpenseUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: ExpenseCreateManyDriverInputEnvelope
+    set?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    disconnect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    delete?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    connect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    update?: ExpenseUpdateWithWhereUniqueWithoutDriverInput | ExpenseUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: ExpenseUpdateManyWithWhereWithoutDriverInput | ExpenseUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: ExpenseScalarWhereInput | ExpenseScalarWhereInput[]
+  }
+
   export type ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -42996,6 +43289,20 @@ export namespace Prisma {
     update?: VehicleAccessUpdateWithWhereUniqueWithoutCustomerInput | VehicleAccessUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: VehicleAccessUpdateManyWithWhereWithoutCustomerInput | VehicleAccessUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: VehicleAccessScalarWhereInput | VehicleAccessScalarWhereInput[]
+  }
+
+  export type ExpenseUncheckedUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<ExpenseCreateWithoutDriverInput, ExpenseUncheckedCreateWithoutDriverInput> | ExpenseCreateWithoutDriverInput[] | ExpenseUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: ExpenseCreateOrConnectWithoutDriverInput | ExpenseCreateOrConnectWithoutDriverInput[]
+    upsert?: ExpenseUpsertWithWhereUniqueWithoutDriverInput | ExpenseUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: ExpenseCreateManyDriverInputEnvelope
+    set?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    disconnect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    delete?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    connect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+    update?: ExpenseUpdateWithWhereUniqueWithoutDriverInput | ExpenseUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: ExpenseUpdateManyWithWhereWithoutDriverInput | ExpenseUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: ExpenseScalarWhereInput | ExpenseScalarWhereInput[]
   }
 
   export type CustomerCreateNestedOneWithoutDevicesInput = {
@@ -43638,6 +43945,12 @@ export namespace Prisma {
     connect?: CustomerVehicleWhereUniqueInput
   }
 
+  export type CustomerCreateNestedOneWithoutDriverExpensesInput = {
+    create?: XOR<CustomerCreateWithoutDriverExpensesInput, CustomerUncheckedCreateWithoutDriverExpensesInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutDriverExpensesInput
+    connect?: CustomerWhereUniqueInput
+  }
+
   export type FloatFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -43648,6 +43961,14 @@ export namespace Prisma {
 
   export type EnumExpenseCategoryFieldUpdateOperationsInput = {
     set?: $Enums.ExpenseCategory
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type EnumExpenseSourceFieldUpdateOperationsInput = {
@@ -43670,6 +43991,16 @@ export namespace Prisma {
     delete?: CustomerVehicleWhereInput | boolean
     connect?: CustomerVehicleWhereUniqueInput
     update?: XOR<XOR<CustomerVehicleUpdateToOneWithWhereWithoutExpensesInput, CustomerVehicleUpdateWithoutExpensesInput>, CustomerVehicleUncheckedUpdateWithoutExpensesInput>
+  }
+
+  export type CustomerUpdateOneWithoutDriverExpensesNestedInput = {
+    create?: XOR<CustomerCreateWithoutDriverExpensesInput, CustomerUncheckedCreateWithoutDriverExpensesInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutDriverExpensesInput
+    upsert?: CustomerUpsertWithoutDriverExpensesInput
+    disconnect?: CustomerWhereInput | boolean
+    delete?: CustomerWhereInput | boolean
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutDriverExpensesInput, CustomerUpdateWithoutDriverExpensesInput>, CustomerUncheckedUpdateWithoutDriverExpensesInput>
   }
 
   export type CustomerCreateNestedOneWithoutBudgetsInput = {
@@ -43750,14 +44081,6 @@ export namespace Prisma {
 
   export type EnumServicePartTypeFieldUpdateOperationsInput = {
     set?: $Enums.ServicePartType
-  }
-
-  export type NullableFloatFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type ServiceRecordUpdateOneRequiredWithoutPartsNestedInput = {
@@ -44237,6 +44560,22 @@ export namespace Prisma {
     _max?: NestedEnumExpenseCategoryFilter<$PrismaModel>
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumExpenseSourceWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ExpenseSource | EnumExpenseSourceFieldRefInput<$PrismaModel>
     in?: $Enums.ExpenseSource[] | ListEnumExpenseSourceFieldRefInput<$PrismaModel>
@@ -44285,22 +44624,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumServicePartTypeFilter<$PrismaModel>
     _max?: NestedEnumServicePartTypeFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumSOSStatusFilter<$PrismaModel = never> = {
@@ -44592,6 +44915,11 @@ export namespace Prisma {
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -44601,17 +44929,24 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     vehicle?: CustomerVehicleCreateNestedOneWithoutExpensesInput
+    driver?: CustomerCreateNestedOneWithoutDriverExpensesInput
   }
 
   export type ExpenseUncheckedCreateWithoutCustomerInput = {
     id?: string
     vehicleId?: string | null
+    driverId?: string | null
     amount: number
     currency?: string
     category: $Enums.ExpenseCategory
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -44757,6 +45092,66 @@ export namespace Prisma {
 
   export type VehicleAccessCreateManyCustomerInputEnvelope = {
     data: VehicleAccessCreateManyCustomerInput | VehicleAccessCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ExpenseCreateWithoutDriverInput = {
+    id?: string
+    amount: number
+    currency?: string
+    category: $Enums.ExpenseCategory
+    date?: Date | string
+    merchantName?: string | null
+    location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
+    notes?: string | null
+    source?: $Enums.ExpenseSource
+    receiptUrl?: string | null
+    mimeType?: string | null
+    rawText?: string | null
+    isAutomated?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutExpensesInput
+    vehicle?: CustomerVehicleCreateNestedOneWithoutExpensesInput
+  }
+
+  export type ExpenseUncheckedCreateWithoutDriverInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    amount: number
+    currency?: string
+    category: $Enums.ExpenseCategory
+    date?: Date | string
+    merchantName?: string | null
+    location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
+    notes?: string | null
+    source?: $Enums.ExpenseSource
+    receiptUrl?: string | null
+    mimeType?: string | null
+    rawText?: string | null
+    isAutomated?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ExpenseCreateOrConnectWithoutDriverInput = {
+    where: ExpenseWhereUniqueInput
+    create: XOR<ExpenseCreateWithoutDriverInput, ExpenseUncheckedCreateWithoutDriverInput>
+  }
+
+  export type ExpenseCreateManyDriverInputEnvelope = {
+    data: ExpenseCreateManyDriverInput | ExpenseCreateManyDriverInput[]
     skipDuplicates?: boolean
   }
 
@@ -44994,12 +45389,18 @@ export namespace Prisma {
     id?: StringFilter<"Expense"> | string
     customerId?: StringFilter<"Expense"> | string
     vehicleId?: StringNullableFilter<"Expense"> | string | null
+    driverId?: StringNullableFilter<"Expense"> | string | null
     amount?: FloatFilter<"Expense"> | number
     currency?: StringFilter<"Expense"> | string
     category?: EnumExpenseCategoryFilter<"Expense"> | $Enums.ExpenseCategory
     date?: DateTimeFilter<"Expense"> | Date | string
     merchantName?: StringNullableFilter<"Expense"> | string | null
     location?: StringNullableFilter<"Expense"> | string | null
+    placeId?: StringNullableFilter<"Expense"> | string | null
+    placeName?: StringNullableFilter<"Expense"> | string | null
+    placeAddress?: StringNullableFilter<"Expense"> | string | null
+    placeLat?: FloatNullableFilter<"Expense"> | number | null
+    placeLng?: FloatNullableFilter<"Expense"> | number | null
     notes?: StringNullableFilter<"Expense"> | string | null
     source?: EnumExpenseSourceFilter<"Expense"> | $Enums.ExpenseSource
     receiptUrl?: StringNullableFilter<"Expense"> | string | null
@@ -45134,6 +45535,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VehicleAccess"> | Date | string
   }
 
+  export type ExpenseUpsertWithWhereUniqueWithoutDriverInput = {
+    where: ExpenseWhereUniqueInput
+    update: XOR<ExpenseUpdateWithoutDriverInput, ExpenseUncheckedUpdateWithoutDriverInput>
+    create: XOR<ExpenseCreateWithoutDriverInput, ExpenseUncheckedCreateWithoutDriverInput>
+  }
+
+  export type ExpenseUpdateWithWhereUniqueWithoutDriverInput = {
+    where: ExpenseWhereUniqueInput
+    data: XOR<ExpenseUpdateWithoutDriverInput, ExpenseUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type ExpenseUpdateManyWithWhereWithoutDriverInput = {
+    where: ExpenseScalarWhereInput
+    data: XOR<ExpenseUpdateManyMutationInput, ExpenseUncheckedUpdateManyWithoutDriverInput>
+  }
+
   export type CustomerCreateWithoutDevicesInput = {
     id?: string
     phoneNumber: string
@@ -45152,6 +45569,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutDevicesInput = {
@@ -45172,6 +45590,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutDevicesInput = {
@@ -45208,6 +45627,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDevicesInput = {
@@ -45228,6 +45648,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerCreateWithoutDocumentsInput = {
@@ -45248,6 +45669,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutDocumentsInput = {
@@ -45268,6 +45690,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutDocumentsInput = {
@@ -45369,6 +45792,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDocumentsInput = {
@@ -45389,6 +45813,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutDocumentsInput = {
@@ -45480,6 +45905,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutDigilockerInput = {
@@ -45500,6 +45926,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutDigilockerInput = {
@@ -45536,6 +45963,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDigilockerInput = {
@@ -45556,6 +45984,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ChallanCreateWithoutVehicleInput = {
@@ -45668,6 +46097,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutVehiclesInput = {
@@ -45688,6 +46118,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutVehiclesInput = {
@@ -45749,6 +46180,11 @@ export namespace Prisma {
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -45758,17 +46194,24 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutExpensesInput
+    driver?: CustomerCreateNestedOneWithoutDriverExpensesInput
   }
 
   export type ExpenseUncheckedCreateWithoutVehicleInput = {
     id?: string
     customerId: string
+    driverId?: string | null
     amount: number
     currency?: string
     category: $Enums.ExpenseCategory
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -46016,6 +46459,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutVehiclesInput = {
@@ -46036,6 +46480,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DrivingTripUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -46528,6 +46973,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
@@ -46548,6 +46994,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
@@ -46649,6 +47096,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
@@ -46669,6 +47117,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutAccessListInput = {
@@ -46896,6 +47345,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutNotificationsInput = {
@@ -46916,6 +47366,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutNotificationsInput = {
@@ -46952,6 +47403,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutNotificationsInput = {
@@ -46972,6 +47424,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ChatMessageCreateWithoutSessionInput = {
@@ -47018,6 +47471,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutChatsInput = {
@@ -47038,6 +47492,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutChatsInput = {
@@ -47102,6 +47557,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutChatsInput = {
@@ -47122,6 +47578,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ChatSessionCreateWithoutMessagesInput = {
@@ -47198,6 +47655,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutExpensesInput = {
@@ -47218,6 +47676,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutExpensesInput = {
@@ -47290,6 +47749,53 @@ export namespace Prisma {
     create: XOR<CustomerVehicleCreateWithoutExpensesInput, CustomerVehicleUncheckedCreateWithoutExpensesInput>
   }
 
+  export type CustomerCreateWithoutDriverExpensesInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutDriverExpensesInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutDriverExpensesInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutDriverExpensesInput, CustomerUncheckedCreateWithoutDriverExpensesInput>
+  }
+
   export type CustomerUpsertWithoutExpensesInput = {
     update: XOR<CustomerUpdateWithoutExpensesInput, CustomerUncheckedUpdateWithoutExpensesInput>
     create: XOR<CustomerCreateWithoutExpensesInput, CustomerUncheckedCreateWithoutExpensesInput>
@@ -47319,6 +47825,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutExpensesInput = {
@@ -47339,6 +47846,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutExpensesInput = {
@@ -47412,6 +47920,59 @@ export namespace Prisma {
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
   }
 
+  export type CustomerUpsertWithoutDriverExpensesInput = {
+    update: XOR<CustomerUpdateWithoutDriverExpensesInput, CustomerUncheckedUpdateWithoutDriverExpensesInput>
+    create: XOR<CustomerCreateWithoutDriverExpensesInput, CustomerUncheckedCreateWithoutDriverExpensesInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutDriverExpensesInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutDriverExpensesInput, CustomerUncheckedUpdateWithoutDriverExpensesInput>
+  }
+
+  export type CustomerUpdateWithoutDriverExpensesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutDriverExpensesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
   export type CustomerCreateWithoutBudgetsInput = {
     id?: string
     phoneNumber: string
@@ -47430,6 +47991,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutBudgetsInput = {
@@ -47450,6 +48012,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutBudgetsInput = {
@@ -47486,6 +48049,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutBudgetsInput = {
@@ -47506,6 +48070,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ServicePartCreateWithoutServiceRecordInput = {
@@ -48236,6 +48801,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutSosRequestsInput = {
@@ -48256,6 +48822,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutSosRequestsInput = {
@@ -48292,6 +48859,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSosRequestsInput = {
@@ -48312,6 +48880,7 @@ export namespace Prisma {
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerCreateWithoutEmergencyContactsInput = {
@@ -48332,6 +48901,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerUncheckedCreateWithoutEmergencyContactsInput = {
@@ -48352,6 +48922,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type CustomerCreateOrConnectWithoutEmergencyContactsInput = {
@@ -48388,6 +48959,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutEmergencyContactsInput = {
@@ -48408,6 +48980,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ChatSessionCreateManyCustomerInput = {
@@ -48485,12 +49058,18 @@ export namespace Prisma {
   export type ExpenseCreateManyCustomerInput = {
     id?: string
     vehicleId?: string | null
+    driverId?: string | null
     amount: number
     currency?: string
     category: $Enums.ExpenseCategory
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -48541,6 +49120,31 @@ export namespace Prisma {
     id?: string
     vehicleId: string
     role?: $Enums.AccessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ExpenseCreateManyDriverInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    amount: number
+    currency?: string
+    category: $Enums.ExpenseCategory
+    date?: Date | string
+    merchantName?: string | null
+    location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
+    notes?: string | null
+    source?: $Enums.ExpenseSource
+    receiptUrl?: string | null
+    mimeType?: string | null
+    rawText?: string | null
+    isAutomated?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -48789,6 +49393,11 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48798,17 +49407,24 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vehicle?: CustomerVehicleUpdateOneWithoutExpensesNestedInput
+    driver?: CustomerUpdateOneWithoutDriverExpensesNestedInput
   }
 
   export type ExpenseUncheckedUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: FloatFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48822,12 +49438,18 @@ export namespace Prisma {
   export type ExpenseUncheckedUpdateManyWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: FloatFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48970,6 +49592,81 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ExpenseUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    merchantName?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    rawText?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutomated?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutExpensesNestedInput
+    vehicle?: CustomerVehicleUpdateOneWithoutExpensesNestedInput
+  }
+
+  export type ExpenseUncheckedUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: FloatFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    merchantName?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    rawText?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutomated?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ExpenseUncheckedUpdateManyWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: FloatFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    merchantName?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    rawText?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutomated?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ChallanCreateManyVehicleInput = {
     id?: string
     challanNumber: string
@@ -49026,12 +49723,18 @@ export namespace Prisma {
   export type ExpenseCreateManyVehicleInput = {
     id?: string
     customerId: string
+    driverId?: string | null
     amount: number
     currency?: string
     category: $Enums.ExpenseCategory
     date?: Date | string
     merchantName?: string | null
     location?: string | null
+    placeId?: string | null
+    placeName?: string | null
+    placeAddress?: string | null
+    placeLat?: number | null
+    placeLng?: number | null
     notes?: string | null
     source?: $Enums.ExpenseSource
     receiptUrl?: string | null
@@ -49240,6 +49943,11 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49249,17 +49957,24 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutExpensesNestedInput
+    driver?: CustomerUpdateOneWithoutDriverExpensesNestedInput
   }
 
   export type ExpenseUncheckedUpdateWithoutVehicleInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: FloatFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49273,12 +49988,18 @@ export namespace Prisma {
   export type ExpenseUncheckedUpdateManyWithoutVehicleInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: FloatFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     category?: EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     merchantName?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
+    placeId?: NullableStringFieldUpdateOperationsInput | string | null
+    placeName?: NullableStringFieldUpdateOperationsInput | string | null
+    placeAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    placeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    placeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     source?: EnumExpenseSourceFieldUpdateOperationsInput | $Enums.ExpenseSource
     receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null

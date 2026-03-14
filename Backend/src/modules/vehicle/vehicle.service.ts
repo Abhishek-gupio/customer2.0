@@ -102,7 +102,19 @@ export const vehicleService = {
     vehicleId: string,
     input: AddOdometerInput,
   ) {
-    await this.getVehicle(customerId, vehicleId); // Ownership check
+    const vehicle = await this.getVehicle(customerId, vehicleId);
+
+    const isOwner = vehicle.customerId === customerId;
+    const hasWriteAccess =
+      vehicle.accessList?.some(
+        (a: any) => a.role === "EDITOR" || a.role === "DRIVER",
+      ) ?? false;
+
+    if (!isOwner && !hasWriteAccess) {
+      throw AppError.forbidden(
+        "You have view-only access to this vehicle and cannot update the odometer",
+      );
+    }
 
     // 1. Get last log to prevent "Rewinding" odometer
     const lastLog = await (dbInstances as any).odometerLog.findFirst({
@@ -178,7 +190,11 @@ export const vehicleService = {
     vehicleId: string,
     input: UpdateVehicleInput,
   ) {
-    await this.getVehicle(customerId, vehicleId);
+    const vehicle = await this.getVehicle(customerId, vehicleId);
+
+    if (vehicle.customerId !== customerId) {
+      throw AppError.forbidden("Only the owner can update vehicle details");
+    }
 
     const updated = await dbInstances.customerVehicle.update({
       where: { id: vehicleId },
@@ -196,7 +212,11 @@ export const vehicleService = {
   },
 
   async deleteVehicle(customerId: string, vehicleId: string) {
-    await this.getVehicle(customerId, vehicleId);
+    const vehicle = await this.getVehicle(customerId, vehicleId);
+
+    if (vehicle.customerId !== customerId) {
+      throw AppError.forbidden("Only the owner can delete this vehicle");
+    }
 
     // ─── Transactional Hard Delete ──────────────────────────────────────────
     // We clean up non-cascading relations first, then delete the vehicle.
@@ -226,6 +246,12 @@ export const vehicleService = {
   },
 
   async setPrimary(customerId: string, vehicleId: string) {
+    const vehicle = await this.getVehicle(customerId, vehicleId);
+
+    if (vehicle.customerId !== customerId) {
+      throw AppError.forbidden("Only the owner can set a primary vehicle");
+    }
+
     // 1. Unset existing primary
     await dbInstances.customerVehicle.updateMany({
       where: { customerId, isPrimary: true },

@@ -8,6 +8,7 @@ import {
   TextInput,
   Modal,
   Alert,
+  Linking,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -18,7 +19,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 export interface VehicleUser {
   id: number;
   name: string;
-  role: 'Owner' | 'Editor' | 'Viewer';
+  role: 'Owner' | 'Editor' | 'Viewer' | 'Driver';
   phone: string;
   email?: string;
   invitedAt?: string;
@@ -37,7 +38,7 @@ interface ShareScreenProps {
   vehicle: Vehicle;
   currentUserId?: number;
   accessList: VehicleUser[];
-  onInvite: (phone: string, role: 'Editor' | 'Viewer') => Promise<void>;
+  onInvite: (phone: string, role: 'Editor' | 'Viewer' | 'Driver') => Promise<void>;
   onRevoke: (userId: number) => Promise<void>;
   isLoading?: boolean;
 }
@@ -52,7 +53,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
   isLoading = false,
 }) => {
   const [invitePhone, setInvitePhone] = useState('');
-  const [inviteRole, setInviteRole] = useState<'Editor' | 'Viewer'>('Viewer');
+  const [inviteRole, setInviteRole] = useState<'Editor' | 'Viewer' | 'Driver'>('Viewer');
   const [isInviting, setIsInviting] = useState(false);
 
   const handleInvite = async () => {
@@ -70,6 +71,16 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
       Alert.alert('Error', 'Failed to send invitation');
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleWhatsAppShare = async () => {
+    const message = `${vehicle.brand ? vehicle.brand + ' ' : ''}${vehicle.model} (${vehicle.vehicleNumber}) is being shared with you on Gupio.\n\nDownload the app and sign up with your phone number.\nLink: https://gupio.app/download`;
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    try {
+      await Linking.openURL(url);
+    } catch (e) {
+      Alert.alert('Error', 'Unable to open WhatsApp right now.');
     }
   };
 
@@ -96,6 +107,8 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
         return '#10b981';
       case 'Viewer':
         return '#3b82f6';
+      case 'Driver':
+        return '#f97316';
       default:
         return '#888';
     }
@@ -109,6 +122,8 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
         return 'edit';
       case 'Viewer':
         return 'eye';
+      case 'Driver':
+        return 'steering-wheel';
       default:
         return 'user';
     }
@@ -314,6 +329,38 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                       </Text>
                       <Text style={styles.roleDesc}>Full access</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setInviteRole('Driver')}
+                      style={[
+                        styles.roleBtn,
+                        inviteRole === 'Driver' && styles.roleBtnActive,
+                      ]}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[
+                          styles.roleIconBg,
+                          inviteRole === 'Driver' && {
+                            backgroundColor: '#f97316',
+                          },
+                        ]}
+                      >
+                        <FontAwesome5
+                          name="steering-wheel"
+                          size={16}
+                          color={inviteRole === 'Driver' ? '#fff' : '#555'}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.roleText,
+                          inviteRole === 'Driver' && styles.roleTextActive,
+                        ]}
+                      >
+                        Driver
+                      </Text>
+                      <Text style={styles.roleDesc}>Drive & log trips</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
 
@@ -343,10 +390,20 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
               <View style={styles.infoIcon}>
                 <FontAwesome5 name="info" size={14} color="#FFBF00" />
               </View>
-              <Text style={styles.infoText}>
-                The invited person will receive an SMS with a download link.
-                They need to install the app and sign up to access this vehicle.
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoText}>
+                  The invited person will receive an SMS with a download link.
+                  You can also share this vehicle via WhatsApp.
+                </Text>
+                <TouchableOpacity
+                  style={styles.whatsappBtn}
+                  activeOpacity={0.8}
+                  onPress={handleWhatsAppShare}
+                >
+                  <FontAwesome5 name="whatsapp" size={14} color="#fff" />
+                  <Text style={styles.whatsappText}>Share via WhatsApp</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
         </View>
@@ -646,6 +703,22 @@ const styles = StyleSheet.create({
     fontSize: wp(3),
     flex: 1,
     lineHeight: wp(4.5),
+  },
+  whatsappBtn: {
+    marginTop: hp(1.5),
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: 999,
+    backgroundColor: '#25D366',
+  },
+  whatsappText: {
+    color: '#fff',
+    fontSize: wp(3.2),
+    fontWeight: '600',
   },
 });
 

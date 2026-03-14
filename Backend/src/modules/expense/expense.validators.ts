@@ -40,7 +40,14 @@ export const createExpenseSchema = z.object({
   ]),
   date: z.string().datetime().optional(),
   merchantName: z.string().optional(),
+  // Free-text location fallback (e.g. "Indiranagar, Bangalore")
   location: z.string().optional(),
+  // Structured Google Places payload (driver spends → owner audit)
+  placeId: z.string().optional(),
+  placeName: z.string().optional(),
+  placeAddress: z.string().optional(),
+  placeLat: z.number().optional(),
+  placeLng: z.number().optional(),
   notes: z.string().optional(),
   source: z
     .enum(["MANUAL", "SMS", "NOTIFICATION", "VOICE", "RECEIPT", "UPI"])
