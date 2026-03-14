@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { 
     ArrowLeft, Car, Bike, Check, Calendar, Hash, Type, 
-    ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
+    Bookmark
 } from 'lucide-react-native';
 import { COLORS } from '../../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../../services/vehicleService';
@@ -19,13 +19,12 @@ type AddVehicleScreenProps = {
     isFirst?: boolean;
 };
 
-type Step = 'INPUT' | 'CONFIRM';
+
 
 const FUEL_TYPES = ['PETROL', 'DIESEL', 'CNG', 'EV', 'HYBRID', 'OTHER'];
 const VEHICLE_TYPES = ['SEDAN', 'SUV', 'LUV', 'HATCHBACK', 'BIKE', 'TRUCK'];
 
 export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenProps) => {
-    const [step, setStep] = useState<Step>('INPUT');
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
         registrationNumber: '',
@@ -38,19 +37,18 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         registrationDate: '',
         chassisNumber: '',
         engineNumber: '',
-        currentOdometer: '',
     });
 
     const updateForm = (key: string, value: any) => {
         setForm(prev => ({ ...prev, [key]: value }));
     };
 
-    const handleProceedToConfirm = () => {
+    const handleProceedToSave = () => {
         if (!form.registrationNumber || !form.make || !form.model) {
             Alert.alert("Required Fields", "Please fill Registration Number, Brand, and Model.");
             return;
         }
-        setStep('CONFIRM');
+        handleSave();
     };
 
     const handleSave = async () => {
@@ -60,7 +58,6 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                 ...form,
                 registrationNumber: form.registrationNumber.toUpperCase().replace(/\s/g, ''),
                 year: form.year ? parseInt(form.year) : undefined,
-                currentOdometer: form.currentOdometer ? parseFloat(form.currentOdometer) : undefined,
                 registrationDate: form.registrationDate ? new Date(form.registrationDate).toISOString() : undefined
             };
 
@@ -76,26 +73,21 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         }
     };
 
-    const handleBackStep = () => {
-        if (step === 'CONFIRM') {
-            setStep('INPUT');
-        } else {
-            onBack?.();
-        }
+    const handleBackPress = () => {
+        onBack?.();
     };
 
     return (
         <View style={styles.screen}>
             {/* Header */}
             <View style={styles.header}>
-                {(!isFirst || step === 'CONFIRM') && (
-                    <TouchableOpacity onPress={handleBackStep} style={styles.backBtn}>
+                {!isFirst ? (
+                    <TouchableOpacity onPress={handleBackPress} style={styles.backBtn}>
                         <ArrowLeft size={24} color="#FFF" />
                     </TouchableOpacity>
-                )}
-                <Text style={styles.headerTitle}>
-                    {step === 'INPUT' ? 'Add Vehicle' : 'Confirm Details'}
-                </Text>
+                ) : <View style={{ width: 44 }} />}
+                
+                <Text style={styles.headerTitle}>Add Vehicle</Text>
                 <View style={{ width: 44 }} />
             </View>
 
@@ -110,9 +102,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {step === 'INPUT' ? (
-                        <>
-                            <Text style={styles.sectionTitle}>Vehicle Identification</Text>
+                    <Text style={styles.sectionTitle}>Vehicle Identification</Text>
                             
                             {/* Plate Input */}
                             <View style={styles.inputGroup}>
@@ -229,25 +219,10 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                 </View>
                             </View>
 
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>CURRENT ODOMETER (KM)</Text>
-                                <View style={styles.inputWrap}>
-                                    <Gauge size={18} color={COLORS.primary} style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="0"
-                                        placeholderTextColor="#555"
-                                        value={form.currentOdometer}
-                                        onChangeText={t => updateForm('currentOdometer', t)}
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-                            </View>
-
-                            <Text style={styles.sectionTitle}>RC Information</Text>
+                            <Text style={styles.sectionTitle}>RC Information (Optional)</Text>
 
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>REGISTRATION DATE</Text>
+                                <Text style={styles.label}>REGISTRATION DATE (OPTIONAL)</Text>
                                 <View style={styles.inputWrap}>
                                     <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
                                     <TextInput
@@ -262,7 +237,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
 
                             <View style={styles.row}>
                                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                                    <Text style={styles.label}>CHASSIS NO.</Text>
+                                    <Text style={styles.label}>CHASSIS NO. (OPTIONAL)</Text>
                                     <View style={styles.inputWrap}>
                                         <Hash size={18} color={COLORS.primary} style={styles.inputIcon} />
                                         <TextInput
@@ -276,7 +251,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                     </View>
                                 </View>
                                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                                    <Text style={styles.label}>ENGINE NO.</Text>
+                                    <Text style={styles.label}>ENGINE NO. (OPTIONAL)</Text>
                                     <View style={styles.inputWrap}>
                                         <Hash size={18} color={COLORS.primary} style={styles.inputIcon} />
                                         <TextInput
@@ -293,76 +268,19 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
 
 
                             <TouchableOpacity 
-                                style={styles.primaryBtn}
-                                onPress={handleProceedToConfirm}
-                            >
-                                <Text style={styles.primaryBtnText}>REVIEW DETAILS</Text>
-                                <ArrowLeft size={20} color="#000" style={{ marginLeft: 8, transform: [{ rotate: '180deg' }] }} />
-                            </TouchableOpacity>
-                        </>
-                    ) : (
-                        /* ── CONFIRM STEP ── */
-                        <>
-                            <View style={styles.confirmHeader}>
-                                <View style={styles.typeBadge}>
-                                    {form.vehicleType === 'BIKE' ? <Bike size={14} color="#000" /> : <Car size={14} color="#000" />}
-                                    <Text style={styles.typeBadgeText}>{form.vehicleType}</Text>
-                                </View>
-                                <Text style={styles.confirmTitle}>Review Vehicle Info</Text>
-                                <Text style={styles.confirmSub}>Please verify the details before saving to your garage.</Text>
-                            </View>
-
-                            <View style={styles.confirmCard}>
-                                <ConfirmRow label="REGISTRATION PLATE" value={form.registrationNumber || '—'} accent />
-                                <Divider />
-                                <ConfirmRow label="BRAND & MODEL" value={`${form.make} ${form.model}` || '—'} />
-                                <Divider />
-                                <ConfirmRow label="VARIANT" value={form.variant || '—'} />
-                                <Divider />
-                                <ConfirmRow label="YEAR" value={form.year || '—'} />
-                                <Divider />
-                                <ConfirmRow label="FUEL TYPE" value={form.fuelType || '—'} />
-                                <Divider />
-                                <ConfirmRow label="CURRENT ODOMETER" value={form.currentOdometer ? `${form.currentOdometer} KM` : '—'} />
-                                <Divider />
-                                <ConfirmRow label="REGISTRATION DATE" value={form.registrationDate || 'NOT PROVIDED'} />
-                                <Divider />
-                                <ConfirmRow label="CHASSIS NUMBER" value={form.chassisNumber || 'NOT PROVIDED'} />
-                                <Divider />
-                                <ConfirmRow label="ENGINE NUMBER" value={form.engineNumber || 'NOT PROVIDED'} />
-                            </View>
-
-                            <View style={styles.infoBox}>
-                                <Info size={16} color={COLORS.primary} />
-                                <Text style={styles.infoText}>
-                                    Vehicle images will be automatically assigned based on your model type.
-                                </Text>
-                            </View>
-
-                            <TouchableOpacity 
-                                style={[styles.saveBtn, loading && styles.saveBtnLoading]}
-                                onPress={handleSave}
+                                style={[styles.primaryBtn, loading && styles.saveBtnLoading]}
+                                onPress={handleProceedToSave}
                                 disabled={loading}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#000" />
                                 ) : (
                                     <>
-                                        <ClipboardCheck size={20} color="#000" style={{ marginRight: 8 }} />
-                                        <Text style={styles.saveText}>CONFIRM & SAVE VEHICLE</Text>
+                                        <Text style={styles.primaryBtnText}>SAVE VEHICLE</Text>
+                                        <Check size={20} color="#000" style={{ marginLeft: 8 }} />
                                     </>
                                 )}
                             </TouchableOpacity>
-
-                            <TouchableOpacity 
-                                style={styles.editBtn}
-                                onPress={() => setStep('INPUT')}
-                                disabled={loading}
-                            >
-                                <Text style={styles.editBtnText}>EDIT DETAILS</Text>
-                            </TouchableOpacity>
-                        </>
-                    )}
 
                     <View style={{ height: 40 }} />
                 </ScrollView>
@@ -371,15 +289,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
     );
 };
 
-// ── Helpers ──
-const Divider = () => <View style={{ height: 1, backgroundColor: COLORS.border, marginVertical: 2 }} />;
 
-const ConfirmRow = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
-    <View style={styles.confirmRow}>
-        <Text style={styles.confirmLabel}>{label}</Text>
-        <Text style={[styles.confirmValue, accent && { color: COLORS.primary, fontSize: 16 }]}>{value}</Text>
-    </View>
-);
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
@@ -387,16 +297,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row', 
         alignItems: 'center', 
         justifyContent: 'space-between', 
-        paddingHorizontal: 20, 
-        paddingTop: 50, 
-        paddingBottom: 20 
+        padding: 24, 
+        paddingTop: 48, 
+        minHeight: 80 
     },
     backBtn: { 
         width: 44, height: 44, borderRadius: 22, 
         backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: COLORS.border
     },
-    headerTitle: { fontSize: 20, fontWeight: '900', color: '#FFF', fontStyle: 'italic' },
+    headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
     content: { paddingHorizontal: 24 },
     sectionTitle: { 
         fontSize: 12, fontWeight: '900', color: COLORS.primary, 
@@ -462,25 +372,5 @@ const styles = StyleSheet.create({
     },
     primaryBtnText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
 
-    // Confirm Step Styles
-    confirmHeader: { alignItems: 'center', marginTop: 20, marginBottom: 32 },
-    typeBadge: { backgroundColor: COLORS.primary, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-    typeBadgeText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-    confirmTitle: { color: '#FFF', fontSize: 24, fontWeight: '900', fontStyle: 'italic' },
-    confirmSub: { color: '#888', fontSize: 12, textAlign: 'center', marginTop: 8, maxWidth: '80%' },
-    confirmCard: { backgroundColor: COLORS.surface, borderRadius: 32, padding: 24, borderWidth: 1, borderColor: COLORS.border },
-    confirmRow: { paddingVertical: 14 },
-    confirmLabel: { color: COLORS.textMuted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 4 },
-    confirmValue: { color: '#FFF', fontSize: 14, fontWeight: '900', fontStyle: 'italic' },
-    infoBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,215,0,0.05)', padding: 16, borderRadius: 16, marginTop: 24, gap: 12, borderWidth: 1, borderColor: 'rgba(255,215,0,0.1)' },
-    infoText: { color: '#888', fontSize: 11, flex: 1, fontWeight: '500' },
-    saveBtn: { 
-        backgroundColor: COLORS.primary, height: 64, borderRadius: 32,
-        alignItems: 'center', justifyContent: 'center', marginTop: 32,
-        flexDirection: 'row', elevation: 5
-    },
-    saveBtnLoading: { backgroundColor: '#333' },
-    saveText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
-    editBtn: { paddingVertical: 16, alignItems: 'center', marginTop: 8 },
-    editBtnText: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 }
+    saveBtnLoading: { backgroundColor: '#333' }
 });
