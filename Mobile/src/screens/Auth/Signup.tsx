@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -30,6 +31,21 @@ export default function Signup() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [buttonScale] = useState(() => new Animated.Value(1));
+
+  const handlePressIn = () => {
+    Animated.spring(buttonScale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(buttonScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handleSubmit = async () => {
     const digits = phone.replace(/\D/g, '');
@@ -112,7 +128,7 @@ export default function Signup() {
         </View>
 
         <View style={styles.inputWrap}>
-          <Icon name="phone" size={wp(5)} color="#AAAAAA" style={styles.inputIcon} />
+          <Icon name="phone-alt" size={wp(5)} color="#AAAAAA" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter phone number"
@@ -126,21 +142,26 @@ export default function Signup() {
         </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#000" />
-          ) : (
-            <>
-              <Text style={styles.submitText}>Submit</Text>
-              <Icon name="arrow-right" size={wp(5)} color="#000" />
-            </>
-          )}
-        </TouchableOpacity>
+
+        <Animated.View style={{ width: '100%', transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <>
+                <Text style={styles.submitText}>Submit</Text>
+                <Icon name="arrow-right" size={wp(5)} color="#000" />
+              </>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
 
         <Text style={styles.footerText}>Already have an account?</Text>
         <TouchableOpacity
@@ -172,46 +193,51 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: wp(6),
     top: hp(6),
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#161616',
+    borderWidth: 1.5,
+    borderColor: '#2A2A2A',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   titleText: {
-    fontSize: wp(7.5),
-    fontWeight: '700',
-    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(8),
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: hp(1),
+    marginBottom: hp(1.2),
+    letterSpacing: -0.5,
   },
   subtitleText: {
-    fontSize: wp(3.8),
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.9)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(4.2),
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
-    marginBottom: hp(3.5),
+    marginBottom: hp(5),
+    lineHeight: wp(6),
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: '#282828',
-    borderRadius: wp(3.5),
+    backgroundColor: '#000000',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: wp(4),
-    height: hp(6.5),
-    marginBottom: hp(1.8),
+    borderColor: '#333',
+    paddingHorizontal: wp(5),
+    height: 62,
+    marginBottom: hp(2),
   },
   inputIcon: {
     marginRight: wp(3),
+    width: wp(5.5),
+    textAlign: 'center',
   },
   input: {
+    fontFamily: 'Outfit-Regular',
     flex: 1,
     fontSize: wp(4),
     color: '#fff',
@@ -223,16 +249,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     backgroundColor: '#FFBF00',
-    borderRadius: wp(3.5),
-    height: hp(6.5),
-    marginTop: hp(1),
-    marginBottom: hp(3.5),
-    gap: wp(2),
+    borderRadius: 18,
+    height: 62,
+    marginTop: hp(1.5),
+    marginBottom: hp(4),
+    gap: wp(3),
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
   submitText: {
-    fontSize: wp(4),
-    fontWeight: '700',
-    color: '#000',
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(4.5),
+    color: '#000000',
+    letterSpacing: 0,
+    fontWeight: '900',
   },
   submitButtonDisabled: {
     opacity: 0.7,
@@ -243,23 +276,25 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
   },
   footerText: {
+    fontFamily: 'Outfit-Regular',
     fontSize: wp(3.8),
     color: '#888',
     marginBottom: hp(1.2),
   },
   signInButton: {
     width: '100%',
-    backgroundColor: '#111',
-    borderRadius: wp(3.5),
+    backgroundColor: '#0A0A0A',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    height: hp(6.5),
+    borderColor: '#333',
+    height: 62,
     alignItems: 'center',
     justifyContent: 'center',
   },
   signInText: {
-    fontSize: wp(4),
-    fontWeight: '600',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(4.5),
     color: '#fff',
+    letterSpacing: 0.5,
   },
 });

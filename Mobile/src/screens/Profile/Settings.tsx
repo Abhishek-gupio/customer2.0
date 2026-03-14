@@ -104,7 +104,7 @@ export default function Settings() {
             onPress={() => navigation.goBack()}
             activeOpacity={0.85}
           >
-            <Icon name="arrow-left" size={wp(4)} color="#fff" />
+            <Icon name="arrow-left" size={wp(4)} color="#FFBF00" />
           </TouchableOpacity>
           <Text style={styles.title}>More</Text>
         </View>
@@ -118,16 +118,16 @@ export default function Settings() {
           <TouchableOpacity
             style={styles.sosCard}
             activeOpacity={0.85}
-            onPress={() =>navigation.navigate('SOSButton')}
+            onPress={() => navigation.navigate('SOSButton')}
           >
             <View style={styles.sosIconWrap}>
-              <Icon name="phone-alt" size={wp(5)} color="#fff" />
+              <Icon name="phone-alt" size={wp(5)} color="#000" />
             </View>
             <View style={styles.sosInfo}>
               <Text style={styles.sosTitle}>SOS Emergency</Text>
               <Text style={styles.sosSub}>24/7 Emergency assistance</Text>
             </View>
-            <Icon name="chevron-right" size={wp(3.5)} color="rgba(255,255,255,0.5)" />
+            <Icon name="chevron-right" size={wp(3.5)} color="#FFBF00" />
           </TouchableOpacity>
         </View>
 
@@ -221,7 +221,7 @@ function SectionGroup({
 
 /* ════════════════════ Styles ════════════════════ */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#000000' },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: hp(4) },
 
@@ -237,9 +237,9 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#111',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   /* Title */
   title: {
     fontSize: wp(6.5),
-    fontWeight: '800',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
     marginLeft: wp(3),
   },
@@ -258,7 +258,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: wp(3.8),
-    color: '#888',
+    fontFamily: 'Outfit-Medium',
+    color: 'rgba(255,255,255,0.5)',
   },
 
   /* Section */
@@ -268,27 +269,29 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: wp(3.5),
-    fontWeight: '600',
-    color: '#F44336',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
     marginBottom: hp(1),
     paddingLeft: wp(1),
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 
   /* SOS Card */
   sosCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(244,67,54,0.12)',
+    backgroundColor: 'rgba(255, 191, 0, 0.1)',
     borderRadius: wp(4),
     padding: wp(4.5),
-    borderWidth: 1.5,
-    borderColor: 'rgba(244,67,54,0.5)',
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 191, 0, 0.3)',
   },
   sosIconWrap: {
     width: wp(12),
     height: wp(12),
     borderRadius: wp(6),
-    backgroundColor: '#F44336',
+    backgroundColor: '#FFBF00',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3.5),
@@ -296,18 +299,19 @@ const styles = StyleSheet.create({
   sosInfo: { flex: 1 },
   sosTitle: {
     fontSize: wp(4.5),
-    fontWeight: '700',
-    color: '#F44336',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
   },
   sosSub: {
     fontSize: wp(3.3),
-    color: '#bbb',
+    fontFamily: 'Outfit-Medium',
+    color: 'rgba(255,255,255,0.6)',
     marginTop: hp(0.2),
   },
 
   /* Group Card */
   groupCard: {
-    backgroundColor: '#111',
+    backgroundColor: '#121212',
     borderRadius: wp(4),
     overflow: 'hidden',
     borderWidth: 1,
@@ -327,9 +331,9 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3.5),
@@ -337,7 +341,7 @@ const styles = StyleSheet.create({
   menuLabel: {
     flex: 1,
     fontSize: wp(4),
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
   },
 
@@ -346,15 +350,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121212',
     borderRadius: wp(4),
     paddingVertical: hp(2),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   logoutText: {
     fontSize: wp(4.2),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#F44336',
   },
 
@@ -365,12 +369,13 @@ const styles = StyleSheet.create({
   },
   footerApp: {
     fontSize: wp(3.5),
-    color: '#666',
-    fontWeight: '500',
+    color: '#444',
+    fontFamily: 'Outfit-Medium',
   },
   footerVersion: {
     fontSize: wp(3),
-    color: '#555',
+    color: '#333',
+    fontFamily: 'Outfit-Regular',
     marginTop: hp(0.3),
   },
 });

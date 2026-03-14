@@ -59,4 +59,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
+  label: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3),
+    color: '#fff',
+    marginTop: hp(0.5),
+    textAlign: 'center'
+  }
 });

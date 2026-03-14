@@ -59,7 +59,7 @@ export default function HeyGupioOverlay() {
   const restartDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const continuousModeRef = useRef(false);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
-  const startListeningRef = useRef<() => void>(() => {});
+  const startListeningRef = useRef<() => void>(() => { });
   const canListenRef = useRef(heyGupioCanListen);
   canListenRef.current = heyGupioCanListen;
 
@@ -89,7 +89,7 @@ export default function HeyGupioOverlay() {
     ttsFinishRef.current = onDone ?? null;
     Tts.getInitStatus()
       .then(() => {
-        Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
+        Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => { });
         Tts.setDefaultRate(0.48);
         Tts.setDefaultPitch(1.0);
         Tts.speak(text);
@@ -126,7 +126,7 @@ export default function HeyGupioOverlay() {
         startListeningRef.current();
       };
       if (typeof (Voice as any).destroy === 'function') {
-        (Voice as any).destroy().catch(() => {}).then(doStart);
+        (Voice as any).destroy().catch(() => { }).then(doStart);
       } else {
         doStart();
       }
@@ -164,7 +164,7 @@ export default function HeyGupioOverlay() {
       }
       try {
         await Voice.stop();
-      } catch (_) {}
+      } catch (_) { }
 
       modeRef.current = 'wake';
       setStatus('processing');
@@ -201,7 +201,7 @@ export default function HeyGupioOverlay() {
       clearListenTimeout();
       try {
         await Voice.stop();
-      } catch (_) {}
+      } catch (_) { }
       const msg = String(err?.error?.message ?? err?.message ?? err).toLowerCase();
       if (msg.includes('cancel') || msg.includes('no match') || msg.includes('no speech')) {
         if (isMountedRef.current) {
@@ -249,7 +249,7 @@ export default function HeyGupioOverlay() {
           listenTimeoutRef.current = setTimeout(() => {
             listenTimeoutRef.current = null;
             if (!isMountedRef.current) return;
-            Voice.stop().catch(() => {});
+            Voice.stop().catch(() => { });
             if (continuousModeRef.current) scheduleRestartListening();
             else setStatus('idle');
           }, LISTEN_TIMEOUT_MS);
@@ -292,7 +292,7 @@ export default function HeyGupioOverlay() {
       }
       Tts.getInitStatus()
         .then(() => {
-          Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
+          Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => { });
           Tts.setDefaultRate(0.48);
           Tts.setDefaultPitch(1.0);
         })
@@ -307,7 +307,7 @@ export default function HeyGupioOverlay() {
     const appSub = AppState.addEventListener('change', (next) => {
       appStateRef.current = next;
       if (next !== 'active') {
-        Voice.stop().catch(() => {});
+        Voice.stop().catch(() => { });
         if (isMountedRef.current) setStatus('idle');
       }
     });
@@ -330,14 +330,14 @@ export default function HeyGupioOverlay() {
       Tts.removeAllListeners('tts-finish');
       Tts.stop();
       try {
-        Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => {});
-      } catch (_) {}
+        Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => { });
+      } catch (_) { }
     };
   }, [requestMicPermission]);
 
   useEffect(() => {
     if (!heyGupioCanListen) {
-      Voice.stop().catch(() => {});
+      Voice.stop().catch(() => { });
       setStatus('idle');
     }
   }, [heyGupioCanListen]);
@@ -352,7 +352,7 @@ export default function HeyGupioOverlay() {
       clearTimeout(listenTimeoutRef.current);
       listenTimeoutRef.current = null;
     }
-    Voice.stop().catch(() => {});
+    Voice.stop().catch(() => { });
     Tts.stop();
     setStatus('idle');
   }, []);
@@ -418,6 +418,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 60,
     fontSize: 11,
+    fontFamily: 'Outfit-Medium',
     color: '#7a8599',
     maxWidth: 80,
   },

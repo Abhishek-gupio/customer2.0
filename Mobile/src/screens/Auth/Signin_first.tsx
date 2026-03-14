@@ -10,6 +10,10 @@ import {
   Easing,
   type ImageSourcePropType,
 } from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 import type { NativeStackScreenProps } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -21,6 +25,7 @@ export default function SigninFirst({ navigation }: Props) {
   const [carTranslateX] = useState(
     () => new Animated.Value(width * 0.8),
   );
+  const [buttonScale] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     Animated.timing(carTranslateX, {
@@ -30,6 +35,20 @@ export default function SigninFirst({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
   }, [carTranslateX]);
+
+  const handlePressIn = () => {
+    Animated.spring(buttonScale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(buttonScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handleSigninPress = () => {
     Animated.timing(carTranslateX, {
@@ -68,13 +87,17 @@ export default function SigninFirst({ navigation }: Props) {
       </View>
 
       <View style={styles.buttonSection}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.signinButton}
-          onPress={handleSigninPress}
-        >
-          <Text style={styles.signinText}>Sign in</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.signinButton}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={handleSigninPress}
+          >
+            <Text style={styles.signinText}>Sign in</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </View>
   );
@@ -94,10 +117,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   welcomeSmall: {
+    fontFamily: 'Outfit-Bold',
     fontSize: 36,
-    color: '#fff',
-    fontWeight: '600',
-    marginBottom: 12,
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   logoImage: {
     width: width * 0.48,
@@ -125,17 +149,24 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   signinButton: {
-    backgroundColor: '#111',
-    borderRadius: 999,
-    paddingVertical: 18,
+    backgroundColor: '#FFBF00',
+    borderRadius: 18,
+    width: '100%',
+    height: 62,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#555',
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   signinText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#fff',
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(4.5),
+    color: '#000000',
+    letterSpacing: 0,
+    fontWeight: '900',
   },
 });
 
