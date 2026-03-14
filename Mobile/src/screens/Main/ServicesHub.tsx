@@ -260,8 +260,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
   },
   headerTitle: {
+    flex: 1,
     fontSize: wp(5.5),
-    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
     color: '#fff',
     marginLeft: wp(3),
   },
