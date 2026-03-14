@@ -185,33 +185,6 @@ export const vehicleService = {
         const response = await api.patch<{ success: boolean; data: Challan }>(`/v1/vehicles/challans/${challanId}/pay`);
         return response.data;
     },
-
-    // ── AI: RTO Plate Lookup ─────────────────────────────────────────────────
-    /**
-     * Calls the BACKEND which in turn calls Gemini server-side.
-     * The Gemini API key is NEVER in the mobile app.
-     * Returns RTO details PLUS an AI-generated imageUrl (both from backend).
-     */
-    fetchVehicleData: async (vNo: string, model?: string): Promise<RTODetails | null> => {
-        try {
-            const params = model ? `?model=${encodeURIComponent(model)}` : '';
-            const response = await api.get<{ success: boolean; data: RTODetails }>(
-                `/v1/vehicles/lookup/${encodeURIComponent(vNo)}${params}`
-            );
-            // Backend already embedded imageUrl in the response
-            return response.data;
-        } catch (e) {
-            console.error('[vehicleService] fetchVehicleData error:', e);
-            return null;
-        }
-    },
-
-    // ── AI: Vehicle Image (kept for compatibility, proxied via backend) ────────
-    generateVehicleImage: async (_model: string): Promise<string> => {
-        // Image generation now happens server-side in vehicle.service.ts.
-        // This stub exists so AddVehicleScreen.tsx doesn't break during transition.
-        return FALLBACK_CAR_IMAGE;
-    },
 };
 
 export const FALLBACK_CAR_IMAGE =
