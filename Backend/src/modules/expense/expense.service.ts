@@ -54,8 +54,17 @@ export const expenseService = {
       mimeType = file.mimetype;
     }
 
-    // Logic: If vehicleId is not provided, try to find the primary vehicle for this customer
+    // Resolve vehicleId (validate ownership -> fallback to primary)
     let targetVehicleId = input.vehicleId || null;
+    if (targetVehicleId) {
+      const ownsVehicle = await (dbInstances as any).customerVehicle.findFirst({
+        where: { id: targetVehicleId, customerId, isActive: true },
+        select: { id: true },
+      });
+      if (!ownsVehicle) {
+        targetVehicleId = null;
+      }
+    }
     if (!targetVehicleId) {
       const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
         where: { customerId, isPrimary: true, isActive: true },

@@ -99,6 +99,42 @@ export const contextService = {
                 }
             }
 
+            const vehicleIds = vehicles.map((v: any) => v.id);
+
+            // --- Expense summaries ---
+            if (vehicleIds.length > 0) {
+                const startOfMonth = new Date();
+                startOfMonth.setDate(1);
+                startOfMonth.setHours(0, 0, 0, 0);
+
+                const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+                const [monthSpend, last30Spend] = await Promise.all([
+                    db.expense.aggregate({
+                        where: {
+                            customerId,
+                            date: { gte: startOfMonth },
+                        },
+                        _sum: { amount: true },
+                    }),
+                    db.expense.aggregate({
+                        where: {
+                            customerId,
+                            date: { gte: last30Days },
+                        },
+                        _sum: { amount: true },
+                    }),
+                ]);
+
+                lines.push("\n=== EXPENSE SUMMARY ===");
+                lines.push(
+                    `This month: â‚¹${(monthSpend?._sum?.amount || 0).toLocaleString("en-IN")}`,
+                );
+                lines.push(
+                    `Last 30 days: â‚¹${(last30Spend?._sum?.amount || 0).toLocaleString("en-IN")}`,
+                );
+            }
+
             // --- Budgets ---
             if (budgets.length > 0) {
                 lines.push("\n=== BUDGETS ===");
@@ -132,6 +168,103 @@ export const contextService = {
                     lines.push(
                         `₹${e.amount} ${e.category} on ${new Date(e.date).toLocaleDateString("en-IN")}${e.merchantName ? ` at ${e.merchantName}` : ""}`,
                     );
+                }
+            }
+
+            // --- Documents (summary) ---
+            if (vehicleIds.length > 0) {
+                try {
+                    const docs = await db.customerDocument.findMany({
+                        where: { customerId },
+                        orderBy: { createdAt: "desc" },
+                        take: 10,
+                        select: {
+                            type: true,
+                            expiryDate: true,
+                            documentNumber: true,
+                            vehicle: { select: { make: true, model: true } },
+                        },
+                    });
+                    if (docs.length > 0) {
+                        lines.push("\n=== DOCUMENTS (Recent) ===");
+                        for (const d of docs) {
+                            const vehicleLabel = d.vehicle
+                                ? `${d.vehicle.make || ""} ${d.vehicle.model || ""}`.trim()
+                                : "General";
+                            const expiry = d.expiryDate
+                                ? new Date(d.expiryDate).toLocaleDateString("en-IN")
+                                : "No expiry";
+                            const docNo = d.documentNumber ? ` (${d.documentNumber})` : "";
+                            lines.push(`${d.type}${docNo} â€” ${vehicleLabel}, Expiry: ${expiry}`);
+                        }
+                    }
+                } catch (e) {
+                    logger.debug({ e }, "Failed to load document context");
+                }
+            }
+
+            // --- Service records (recent) ---
+            if (vehicleIds.length > 0) {
+                try {
+                    const serviceRecords = await db.serviceRecord.findMany({
+                        where: { vehicleId: { in: vehicleIds } },
+                        orderBy: { createdAt: "desc" },
+                        take: 5,
+                        select: {
+                            serviceType: true,
+                            odometerAtService: true,
+                            garageName: true,
+                            createdAt: true,
+                            vehicleId: true,
+                        },
+                    });
+                    if (serviceRecords.length > 0) {
+                        lines.push("\n=== SERVICE HISTORY (Recent) ===");
+                        for (const s of serviceRecords) {
+                            const vehicle = vehicles.find((v: any) => v.id === s.vehicleId);
+                            const vehicleLabel = vehicle
+                                ? `${vehicle.make || ""} ${vehicle.model || ""}`.trim()
+                                : "Vehicle";
+                            lines.push(
+                                `${s.serviceType || "Service"} on ${new Date(s.createdAt).toLocaleDateString("en-IN")} â€” ${vehicleLabel}` +
+                                `${s.odometerAtService ? ` @ ${s.odometerAtService} km` : ""}` +
+                                `${s.garageName ? ` (${s.garageName})` : ""}`,
+                            );
+                        }
+                    }
+                } catch (e) {
+                    logger.debug({ e }, "Failed to load service history context");
+                }
+            }
+
+            // --- Challans (unpaid) ---
+            if (vehicleIds.length > 0) {
+                try {
+                    const challans = await db.challan.findMany({
+                        where: { vehicleId: { in: vehicleIds }, status: "UNPAID" },
+                        orderBy: { createdAt: "desc" },
+                        take: 5,
+                        select: {
+                            challanNumber: true,
+                            amount: true,
+                            createdAt: true,
+                            vehicleId: true,
+                        },
+                    });
+                    if (challans.length > 0) {
+                        lines.push("\n=== CHALLANS (Unpaid) ===");
+                        for (const c of challans) {
+                            const vehicle = vehicles.find((v: any) => v.id === c.vehicleId);
+                            const vehicleLabel = vehicle
+                                ? `${vehicle.make || ""} ${vehicle.model || ""}`.trim()
+                                : "Vehicle";
+                            lines.push(
+                                `${c.challanNumber} â€” â‚¹${c.amount} on ${new Date(c.createdAt).toLocaleDateString("en-IN")} (${vehicleLabel})`,
+                            );
+                        }
+                    }
+                } catch (e) {
+                    logger.debug({ e }, "Failed to load challan context");
                 }
             }
 

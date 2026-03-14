@@ -11,12 +11,8 @@ import { analyticsService } from "./analytics.service";
 
 const db = dbInstances as any;
 
-const genAI = env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
-  : null;
-const cacheManager = env.GEMINI_API_KEY
-  ? new GoogleAICacheManager(env.GEMINI_API_KEY)
-  : null;
+const genAI = null;
+const cacheManager = null;
 
 // Global singleton to store the current cache name
 let activeCache: { name: string; expiry: number } | null = null;
@@ -26,6 +22,8 @@ let activeCache: { name: string; expiry: number } | null = null;
 // ============================================================================
 const SYSTEM_PROMPT = `You are an intelligent automotive assistant for 'Gupio'.
 Always reply in the user's language. Be concise and proactive.
+Use ONLY the provided USER PROFILE & DATA, RELEVANT RECORDS, and tool results for factual answers about the user's data.
+If the answer is not in the provided data, call the appropriate tool(s) to fetch it; if still unavailable, say you don't have it yet.
 When the user asks a compound question requiring multiple actions, call each relevant tool.
 When reasoning about complex queries, think step by step.
 If you call a tool, wait for the result before responding.
@@ -109,7 +107,7 @@ export const aiService = {
    * Get Gemini model — uses cached version if available, otherwise inline system prompt + tools
    */
   getModel(cacheName: string | null) {
-    if (!genAI) throw new Error("AI not configured");
+    if (!genAI) throw new Error("AI disabled");
 
     if (cacheName) {
       return genAI.getGenerativeModel(
@@ -302,6 +300,12 @@ Write a concise summary (max 200 words) capturing all important details.`,
   ) {
     const startTime = Date.now();
 
+    // Local/offline mode (Gemini disabled)
+    if (!genAI) {
+      const local = await this.localRespond(customerId, message, sessionId);
+      return local;
+    }
+
     // 🚀 PARALLEL INIT: Cache + Session + Vector + User Context
     const [cacheName, sessionData, contextDocs, userContext] =
       await Promise.all([
@@ -478,6 +482,19 @@ Write a concise summary (max 200 words) capturing all important details.`,
     mimeType?: string,
   ): AsyncGenerator<string> {
     const startTime = Date.now();
+
+    // Local/offline mode (Gemini disabled)
+    if (!genAI) {
+      const local = await this.localRespond(customerId, message, sessionId);
+      yield JSON.stringify({ type: "session", sessionId: local.sessionId });
+      yield JSON.stringify({ type: "chunk", text: local.message });
+      yield JSON.stringify({
+        type: "done",
+        voiceUrl: local.voiceUrl,
+        toolResults: local.toolResults,
+      });
+      return;
+    }
 
     const [cacheName, sessionData, contextDocs, userContext] =
       await Promise.all([
@@ -762,6 +779,119 @@ Write a concise summary (max 200 words) capturing all important details.`,
     steps.push({ step: maxIterations + 1, type: "forced_summary", text: finalText });
 
     return { responseText: finalText, toolResults, steps };
+  },
+
+  // ========================================================================
+  // LOCAL RESPONDER (no Gemini)
+  // ========================================================================
+  async localRespond(customerId: string, message: string, sessionId?: string) {
+    const startTime = Date.now();
+    const session =
+      sessionId
+        ? await db.chatSession.findUnique({
+          where: { id: sessionId, customerId },
+          include: { messages: { orderBy: { createdAt: "asc" } } },
+        })
+        : await db.chatSession.create({
+          data: {
+            customerId,
+            title: message.substring(0, 50),
+            messages: { create: [] },
+          },
+          include: { messages: true },
+        });
+
+    const finalSessionId = (session as any).id;
+    const userContext = await contextService.buildUserContext(customerId);
+
+    const normalized = message.toLowerCase();
+    const wants = (list: string[]) => list.some((k) => normalized.includes(k));
+    const toolResults: any[] = [];
+
+    const runTool = async (toolName: keyof typeof toolRegistry, args: any = {}) => {
+      const tool = toolRegistry[toolName];
+      if (!tool) return null;
+      const result = await tool.execute(customerId, args);
+      toolResults.push({ tool: toolName, args, result });
+      return result;
+    };
+
+    let responseText = "";
+
+    if (wants(["my profile", "profile", "name", "email", "phone"])) {
+      const res = await runTool("get_profile");
+      responseText =
+        res?.success && res?.profile
+          ? `Your profile: Name ${res.profile.fullName}, Email ${res.profile.email}, Phone ${res.profile.phoneNumber}.`
+          : "I couldn't fetch your profile right now.";
+    } else if (wants(["expenses", "spent", "spend", "fuel", "service", "toll", "parking", "insurance", "challan"])) {
+      const res = await runTool("get_expenses_summary", { days: 30 });
+      responseText = res?.message || "I couldn't fetch your expenses summary right now.";
+    } else if (wants(["vehicles", "vehicle", "car", "bike"])) {
+      const res = await runTool("list_my_vehicles");
+      responseText =
+        res?.vehicles?.length
+          ? `Your vehicles: ${res.vehicles.map((v: any) => v.name).join(", ")}.`
+          : res?.message || "I couldn't find any vehicles.";
+    } else if (wants(["document", "rc", "insurance", "puc", "paper"])) {
+      const res = await runTool("list_documents");
+      responseText =
+        res?.documents?.length
+          ? `Documents: ${res.documents.map((d: any) => `${d.type} (${d.vehicle})`).join(", ")}.`
+          : res?.message || "No documents found.";
+    } else if (wants(["notification", "alert", "reminder"])) {
+      const res = await runTool("get_notifications", { unreadOnly: "true" });
+      responseText =
+        res?.notifications?.length
+          ? `You have ${res.count} unread notifications.`
+          : "No unread notifications.";
+    } else if (wants(["budget"])) {
+      responseText = "Tell me the category and amount to set your budget (e.g., 'Set fuel budget to 5000').";
+    } else if (wants(["hello", "hi", "hey"])) {
+      responseText = "Hello! I can help with your expenses, vehicles, documents, and alerts. What do you want to check?";
+    } else {
+      // Fallback: give a short data-based summary from context
+      const lines = userContext.split("\n").filter((l) => l.trim().length > 0);
+      const summary = lines.slice(0, 12).join("\n");
+      responseText = `Here's what I know from your data:\n${summary}\nAsk me about expenses, vehicles, documents, or alerts.`;
+    }
+
+    const voiceUrl = await voiceService.generateSpeechUrl(responseText);
+
+    await db.$transaction([
+      db.chatMessage.create({
+        data: {
+          sessionId: finalSessionId,
+          role: "user",
+          content: message,
+        },
+      }),
+      db.chatMessage.create({
+        data: {
+          sessionId: finalSessionId,
+          role: "assistant",
+          content: responseText,
+          metadata: toolResults.length > 0 ? { toolResults } : undefined,
+        },
+      }),
+    ]);
+
+    await analyticsService.trackInteraction({
+      customerId,
+      sessionId: finalSessionId,
+      toolName: toolResults[0]?.tool || undefined,
+      responseTimeMs: Date.now() - startTime,
+      hadToolCall: toolResults.length > 0,
+      hadImage: false,
+      wasStreaming: false,
+    });
+
+    return {
+      sessionId: finalSessionId,
+      message: responseText,
+      voiceUrl,
+      toolResults: toolResults.length > 0 ? toolResults : undefined,
+    };
   },
 
   // ==========================================================================
