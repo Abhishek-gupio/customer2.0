@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, ScrollView,
     StyleSheet, Dimensions, ActivityIndicator, Alert,
-    KeyboardAvoidingView, Platform, Switch
+    KeyboardAvoidingView, Platform, Switch, Modal
 } from 'react-native';
 import { 
     ArrowLeft, Car, Bike, Check, Calendar, Hash, Type, 
-    Bookmark
+    Bookmark, ChevronLeft, ChevronRight, X
 } from 'lucide-react-native';
 import { COLORS } from '../../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../../services/vehicleService';
+import { format, parse, isValid as isValidDate } from 'date-fns';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +39,57 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         chassisNumber: '',
         engineNumber: '',
     });
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [calendarMonth, setCalendarMonth] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+    });
+    const [showMonthPicker, setShowMonthPicker] = useState(false);
+    const [showYearPicker, setShowYearPicker] = useState(false);
+
+    const MONTHS = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const currentYear = new Date().getFullYear();
+    const YEARS = Array.from({ length: 100 }, (_, i) => currentYear - 70 + i).reverse();
+
+    const parseManualDate = (value: string): Date | null => {
+        const trimmed = value.trim();
+        if (!trimmed) return null;
+        const formats = ["dd-MM-yyyy", "yyyy-MM-dd"];
+        for (const fmt of formats) {
+            const d = parse(trimmed, fmt, new Date());
+            if (isValidDate(d)) return d;
+        }
+        return null;
+    };
+
+    const sameDay = (a: Date, b: Date) =>
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate();
+
+    const openDatePicker = () => {
+        const parsed = parseManualDate(form.registrationDate);
+        const refDate = parsed || new Date();
+        setCalendarMonth(new Date(refDate.getFullYear(), refDate.getMonth(), 1));
+        setShowDatePicker(true);
+    };
+
+    const calendarTitle = format(calendarMonth, "MMMM yyyy");
+
+    const buildCalendarDays = React.useMemo(() => {
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const cells: (Date | null)[] = [];
+        for (let i = 0; i < firstDay; i += 1) cells.push(null);
+        for (let d = 1; d <= daysInMonth; d += 1) cells.push(new Date(year, month, d));
+        while (cells.length % 7 !== 0) cells.push(null);
+        return cells;
+    }, [calendarMonth]);
 
     const updateForm = (key: string, value: any) => {
         setForm(prev => ({ ...prev, [key]: value }));
@@ -223,16 +275,19 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
 
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>REGISTRATION DATE (OPTIONAL)</Text>
-                                <View style={styles.inputWrap}>
-                                    <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="YYYY-MM-DD"
-                                        placeholderTextColor="#555"
-                                        value={form.registrationDate}
-                                        onChangeText={t => updateForm('registrationDate', t)}
-                                    />
-                                </View>
+                                <TouchableOpacity onPress={openDatePicker} activeOpacity={0.7}>
+                                    <View style={styles.inputWrap}>
+                                        <Calendar size={18} color={COLORS.primary} style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="DD-MM-YYYY"
+                                            placeholderTextColor="#555"
+                                            value={form.registrationDate}
+                                            editable={false}
+                                            pointerEvents="none"
+                                        />
+                                    </View>
+                                </TouchableOpacity>
                             </View>
 
                             <View style={styles.row}>
@@ -285,6 +340,145 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                     <View style={{ height: 40 }} />
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <Modal transparent visible={showDatePicker} animationType="fade">
+                <View style={styles.modalBackdrop}>
+                    <TouchableOpacity 
+                        style={StyleSheet.absoluteFill} 
+                        activeOpacity={1} 
+                        onPress={() => setShowDatePicker(false)} 
+                    />
+                    <View style={styles.calendarPanel}>
+                        <View style={styles.calendarHeader}>
+                            <TouchableOpacity
+                                onPress={() =>
+                                    setCalendarMonth(
+                                        prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+                                    )
+                                }
+                            >
+                                <ChevronLeft size={20} color="#fff" />
+                            </TouchableOpacity>
+                            
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <TouchableOpacity onPress={() => setShowMonthPicker(!showMonthPicker)} style={styles.headerSelectBtn}>
+                                    <Text style={styles.calendarTitleText}>{format(calendarMonth, "MMMM")}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setShowYearPicker(!showYearPicker)} style={[styles.headerSelectBtn, { marginLeft: 8 }]}>
+                                    <Text style={styles.calendarTitleText}>{format(calendarMonth, "yyyy")}</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={() =>
+                                    setCalendarMonth(
+                                        prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+                                    )
+                                }
+                            >
+                                <ChevronRight size={20} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={{ position: 'relative' }}>
+                            <View style={styles.weekHeader}>
+                                {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
+                                    <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>{day}</Text>
+                                ))}
+                            </View>
+
+                            <View style={styles.calendarGrid}>
+                                {buildCalendarDays.map((day, index) => {
+                                    if (!day) {
+                                        return <View key={`empty-${index}`} style={styles.dayCell} />;
+                                    }
+
+                                    const selectedDate = parseManualDate(form.registrationDate);
+                                    const isSelected = selectedDate ? sameDay(day, selectedDate) : false;
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={day.toISOString()}
+                                            style={[styles.dayCell, isSelected && styles.dayCellSelected]}
+                                            onPress={() => {
+                                                updateForm('registrationDate', format(day, "dd-MM-yyyy"));
+                                                setShowDatePicker(false);
+                                            }}
+                                        >
+                                            <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                                                {day.getDate()}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
+                            {/* Selection Overlays */}
+                            {showMonthPicker && (
+                                <View style={styles.pickerOverlay}>
+                                    <ScrollView contentContainerStyle={styles.pickerGrid} showsVerticalScrollIndicator={false}>
+                                        {MONTHS.map((m, idx) => (
+                                            <TouchableOpacity 
+                                                key={m} 
+                                                style={[styles.pickerItem, calendarMonth.getMonth() === idx && styles.pickerItemActive]}
+                                                onPress={() => {
+                                                    setCalendarMonth(new Date(calendarMonth.getFullYear(), idx, 1));
+                                                    setShowMonthPicker(false);
+                                                }}
+                                            >
+                                                <Text style={[styles.pickerText, calendarMonth.getMonth() === idx && styles.pickerTextActive]}>{m}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            )}
+
+                            {showYearPicker && (
+                                <View style={styles.pickerOverlay}>
+                                    <ScrollView contentContainerStyle={styles.pickerGrid} showsVerticalScrollIndicator={false}>
+                                        {YEARS.map(y => (
+                                            <TouchableOpacity 
+                                                key={y} 
+                                                style={[styles.pickerItem, calendarMonth.getFullYear() === y && styles.pickerItemActive]}
+                                                onPress={() => {
+                                                    setCalendarMonth(new Date(y, calendarMonth.getMonth(), 1));
+                                                    setShowYearPicker(false);
+                                                }}
+                                            >
+                                                <Text style={[styles.pickerText, calendarMonth.getFullYear() === y && styles.pickerTextActive]}>{y}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            )}
+                        </View>
+
+                        <View style={styles.calendarActions}>
+                            <TouchableOpacity
+                                style={styles.actionBtn}
+                                onPress={() => {
+                                    updateForm('registrationDate', '');
+                                    setShowDatePicker(false);
+                                    setShowMonthPicker(false);
+                                    setShowYearPicker(false);
+                                }}
+                            >
+                                <Text style={styles.actionBtnText}>Clear</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.actionBtn}
+                                onPress={() => {
+                                    setShowDatePicker(false);
+                                    setShowMonthPicker(false);
+                                    setShowYearPicker(false);
+                                }}
+                            >
+                                <Text style={styles.actionBtnText}>Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -372,5 +566,118 @@ const styles = StyleSheet.create({
     },
     primaryBtnText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
 
+    // Modal & Calendar
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.8)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    calendarPanel: {
+        width: "90%",
+        maxWidth: 360,
+        backgroundColor: COLORS.surface,
+        borderRadius: 24,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border
+    },
+    calendarHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    calendarTitleText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+    },
+    weekHeader: {
+        flexDirection: "row",
+        marginBottom: 10,
+    },
+    weekHeaderText: {
+        width: `${100 / 7}%`,
+        textAlign: "center",
+        color: COLORS.textMuted,
+        fontWeight: "bold",
+        fontSize: 12
+    },
+    calendarGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+    },
+    dayCell: {
+        width: `${100 / 7}%`,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 12,
+        borderRadius: 12,
+    },
+    dayCellSelected: {
+        backgroundColor: COLORS.primary,
+    },
+    dayText: {
+        color: "#fff",
+        fontSize: 14,
+    },
+    dayTextSelected: {
+        color: "#000",
+        fontWeight: "bold",
+    },
+    calendarActions: {
+        marginTop: 20,
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        gap: 12,
+    },
+    actionBtn: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 12,
+        backgroundColor: "rgba(255,255,255,0.05)"
+    },
+    actionBtnText: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: 14
+    },
+    headerSelectBtn: {
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 8,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+    },
+    pickerOverlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: COLORS.surface,
+        borderRadius: 12,
+        zIndex: 10,
+    },
+    pickerGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        padding: 10,
+    },
+    pickerItem: {
+        width: '33.33%',
+        paddingVertical: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 12,
+    },
+    pickerItemActive: {
+        backgroundColor: COLORS.primary,
+    },
+    pickerText: {
+        color: '#FFF',
+        fontSize: 13,
+        fontWeight: 'bold',
+    },
+    pickerTextActive: {
+        color: '#000',
+    },
     saveBtnLoading: { backgroundColor: '#333' }
 });
