@@ -22,7 +22,7 @@ export const colors: COLORS =
     Border: '#cccccc',
     Primary: '#fff',
     Secondary: '#888',
-    Success: '#28a745',
+    Success: '#32D74B',
     Warning: '#ffc107',
     Error: '#dc3545',
     Info: '#17a2b8',

@@ -15,6 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { vehicleService } from '../../services/vehicleService';
 
 export interface Challan {
@@ -175,15 +176,9 @@ const Challans: React.FC<any> = ({ navigation, route }: any) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
 
+      <BackButton onPress={() => navigation.goBack()} />
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.7}
-        >
-          <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
+        <View style={[styles.headerCenter, { marginLeft: 0 }]}>
           <Text style={styles.headerTitle}>Challans</Text>
           <Text style={styles.headerSubtitle}>
             {vehicleData?.plate ||

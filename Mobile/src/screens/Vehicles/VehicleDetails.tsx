@@ -25,6 +25,7 @@ import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { launchCamera } from 'react-native-image-picker';
 import Share, { VehicleUser } from './Share';
 import { vehicleService } from '../../services/vehicleService';
+import BackButton from '../../components/BackButton';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -284,9 +285,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
-          <FontAwesome5 name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Vehicle Details</Text>
           <Text style={styles.headerSubtitle}>

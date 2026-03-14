@@ -13,7 +13,9 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { api } from '../../services/api';
+import BackButton from '../../components/BackButton';
 
 const CATEGORIES = [
     { id: 'FUEL', label: 'Fuel', icon: 'water-outline' },
@@ -84,14 +86,8 @@ export default function BudgetSettings() {
             style={styles.container}
         >
             <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                </TouchableOpacity>
+                <BackButton onPress={() => navigation.goBack()} />
                 <Text style={styles.headerTitle}>Set Budget</Text>
-                <View style={styles.backButton} /> {/* Placeholder for balance */}
             </View>
 
             <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
@@ -204,7 +200,6 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingHorizontal: 20,
         paddingBottom: 20,
@@ -213,9 +208,11 @@ const styles = StyleSheet.create({
         borderBottomColor: '#333',
     },
     headerTitle: {
+        flex: 1,
         color: '#fff',
-        fontSize: 20,
+        fontSize: wp(5.5),
         fontWeight: '700',
+        marginLeft: 12,
     },
     backButton: {
         width: 40,

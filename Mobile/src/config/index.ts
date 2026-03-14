@@ -8,7 +8,7 @@ const DEV_HOST =
     : `http://localhost:${DEV_PORT}`;
 
 /** Production API base URL – change this or replace with env (e.g. react-native-config) when building for prod */
-const PRODUCTION_API_BASE_URL = 'https://your-api.com';
+const PRODUCTION_API_BASE_URL = 'https://customerapi.gupio.tech';
 
 export const API_BASE_URL = __DEV__ ? DEV_HOST : PRODUCTION_API_BASE_URL;
 export const AUTH_PATH = '/api/v1/auth';

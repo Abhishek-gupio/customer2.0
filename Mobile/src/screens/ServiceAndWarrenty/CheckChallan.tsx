@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
+import BackButton from '../../components/BackButton';
 
 export default function CheckChallan() {
   const navigation = useNavigation();
@@ -84,9 +85,7 @@ export default function CheckChallan() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon name="arrow-left" size={wp(5)} color="#1a1a1a" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Check Pending Challans</Text>
       </View>
 
@@ -209,9 +208,10 @@ const styles = StyleSheet.create({
     marginRight: wp(3),
   },
   headerTitle: {
-    fontSize: wp(5),
+    fontSize: wp(5.5),
     fontWeight: '700',
     color: '#1a1a1a',
+    marginLeft: wp(3),
   },
   scrollContent: {
     paddingHorizontal: wp(5),

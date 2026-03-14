@@ -21,6 +21,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -278,10 +279,8 @@ export default function DocumentList() {
       />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
+        <BackButton onPress={() => navigation.goBack()} />
+        <View style={[styles.headerCenter, { marginLeft: wp(3) }]}>
           <Text style={styles.headerTitle}>Documents</Text>
           <Text style={styles.headerSub}>All vehicle documents</Text>
         </View>
@@ -529,12 +528,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
   },
   backBtn: { padding: wp(2) },
   headerCenter: { flex: 1, marginLeft: wp(2) },
-  headerTitle: { fontSize: wp(6), fontWeight: '700', color: '#fff' },
+  headerTitle: { fontSize: wp(5.5), fontWeight: '700', color: '#fff' },
   headerSub: { fontSize: wp(3.5), color: '#888', marginTop: hp(0.2) },
   searchBtn: {
     width: wp(10),

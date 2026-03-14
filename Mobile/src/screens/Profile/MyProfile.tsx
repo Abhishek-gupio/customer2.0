@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,9 @@ import {
   PermissionsAndroid,
   Platform,
   Animated,
+  Easing,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -28,7 +30,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { useNavigation } from '../../lib/react-navigation-native';
+import { useNavigation, CommonActions } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { useDispatch } from 'react-redux';
@@ -36,6 +38,7 @@ import { logoutStorage } from '../../services/authService';
 import { logout } from '../../store/slices/authSlice';
 import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
 import { API_BASE_URL, GEO } from '../../config';
+import BackButton from '../../components/BackButton';
 
 // GPS-based location (same pattern as SOSButton)
 let Geolocation: any = null;
@@ -97,13 +100,35 @@ export default function MyProfile() {
   const [profilePicModal, setProfilePicModal] = useState(false);
   const [avatarModal, setAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
-  const [popup, setPopup] = useState<{ visible: boolean; title: string; message: string; type: 'success' | 'error' }>({
-    visible: false,
-    title: '',
-    message: '',
-    type: 'success',
-  });
+  const [infoModal, setInfoModal] = useState(false);
   const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: () => {
+          logoutStorage();
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'Signin' }],
+            })
+          );
+        },
+      },
+    ]);
+  };
+
+  const handleMenuPress = (route?: keyof RootStackParamList, onPress?: () => void) => {
+    if (route) {
+      navigation.navigate(route as never);
+    } else if (onPress) {
+      onPress();
+    }
+  };
 
   // Animation handling for pinch-to-zoom
   const zoomScale = React.useRef(new Animated.Value(1)).current;
@@ -123,9 +148,6 @@ export default function MyProfile() {
     }
   };
 
-  const showPopup = (title: string, message: string, type: 'success' | 'error' = 'success') => {
-    setPopup({ visible: true, title, message, type });
-  };
 
   const validate = () => {
     let isValid = true;
@@ -303,7 +325,7 @@ export default function MyProfile() {
       setStats(statsData);
       fetchUserLocation();
     } catch (error: any) {
-      showPopup('Error', error.message || 'Failed to fetch profile', 'error');
+      Alert.alert('Error', error.message || 'Failed to fetch profile');
     } finally {
       setLoading(false);
     }
@@ -353,7 +375,7 @@ export default function MyProfile() {
 
       mapProfileData(updated);
       setIsEditing(false);
-      showPopup('Success', 'Profile updated successfully', 'success');
+      Alert.alert('Success', 'Profile updated successfully');
     } catch (error: any) {
       let errorMessage = error.response?.data?.message || error.message || 'Could not save changes';
       if (Array.isArray(errorMessage)) {
@@ -361,7 +383,7 @@ export default function MyProfile() {
       } else if (typeof errorMessage === 'object') {
         errorMessage = JSON.stringify(errorMessage);
       }
-      showPopup('Update Failed', errorMessage, 'error');
+      Alert.alert('Update Failed', errorMessage);
     } finally {
       setSaving(false);
     }
@@ -417,7 +439,7 @@ export default function MyProfile() {
       mapProfileData(updated);
       mapProfileData(updated);
     } catch (err: any) {
-      showPopup('Error', err.message || 'Failed to set avatar', 'error');
+      Alert.alert('Error', err.message || 'Failed to set avatar');
     } finally {
       setSaving(false);
     }
@@ -440,9 +462,9 @@ export default function MyProfile() {
               const updated = await updateProfile({ profilePic: '' });
               mapProfileData(updated);
               mapProfileData(updated);
-              showPopup('Success', 'Profile picture removed!', 'success');
+              Alert.alert('Success', 'Profile picture removed!');
             } catch (err: any) {
-              showPopup('Error', err.message || 'Failed to remove picture', 'error');
+              Alert.alert('Error', err.message || 'Failed to remove picture');
             } finally {
               setSaving(false);
             }
@@ -470,9 +492,9 @@ export default function MyProfile() {
             } as any);
             const updated = await uploadProfilePicture(formData);
             mapProfileData(updated);
-            showPopup('Success', 'Profile picture updated!', 'success');
+            Alert.alert('Success', 'Profile picture updated!');
           } catch (err: any) {
-            showPopup('Error', err.message || 'Failed to update picture', 'error');
+            Alert.alert('Error', err.message || 'Failed to update picture');
           } finally {
             setSaving(false);
           }
@@ -491,48 +513,13 @@ export default function MyProfile() {
 
   if (!profile || !editData) return null;
 
-  const currentPic = isEditing ? editData?.profilePic : profile.profilePic;
+  const currentPic = isEditing ? editData?.profilePic : profile?.profilePic;
   const profilePicUri = currentPic && (currentPic.startsWith('http') ? currentPic : `${API_BASE_URL}${currentPic}`);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
 
-      {/* ── Custom Minimal Alert Popup Modal ── */}
-      <Modal
-        visible={popup.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPopup(prev => ({ ...prev, visible: false }))}
-        statusBarTranslucent
-      >
-        <TouchableWithoutFeedback onPress={() => setPopup(prev => ({ ...prev, visible: false }))}>
-          <View style={styles.popupOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.popupCard}>
-                <View style={styles.popupHeader}>
-                  <Icon
-                    name={popup.type === 'success' ? 'check-circle' : 'exclamation-triangle'}
-                    size={20}
-                    color={popup.type === 'success' ? '#25D366' : '#ff4444'}
-                  />
-                  <Text style={styles.popupTitle}>{popup.title}</Text>
-                </View>
-
-                <Text style={styles.popupMessage}>{popup.message}</Text>
-
-                <TouchableOpacity
-                  style={styles.popupBtnMinimal}
-                  activeOpacity={0.7}
-                  onPress={() => setPopup(prev => ({ ...prev, visible: false }))}
-                >
-                  <Text style={styles.popupBtnTextMinimal}>Okay</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
 
       {/* ── Full-screen Photo Preview Modal ── */}
       <Modal
@@ -656,13 +643,7 @@ export default function MyProfile() {
         <View style={styles.avatarModalContainer}>
           {/* Avatar Modal Header */}
           <View style={styles.avatarModalHeader}>
-            <TouchableOpacity
-              onPress={() => setAvatarModal(false)}
-              activeOpacity={0.7}
-              style={styles.avatarModalBackBtn}
-            >
-              <Icon name="arrow-left" size={20} color="#fff" />
-            </TouchableOpacity>
+            <BackButton onPress={() => setAvatarModal(false)} />
             <Text style={[styles.avatarModalTitle, { fontFamily: 'Outfit-Bold' }]}>Choose Avatar</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -724,6 +705,146 @@ export default function MyProfile() {
         </View>
       </Modal>
 
+      {/* ── Advanced Profile Modal (Personal Info) ── */}
+      <Modal
+        visible={infoModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (isEditing) handleCancel();
+          setInfoModal(false);
+        }}
+        statusBarTranslucent
+      >
+        <View style={styles.advancedModalOverlay}>
+          <TouchableWithoutFeedback onPress={() => {
+            if (!isEditing) setInfoModal(false);
+          }}>
+            <View style={styles.advancedModalBlur} />
+          </TouchableWithoutFeedback>
+
+          <Animated.View style={styles.advancedModalContent}>
+            {/* Modal Pull Handle */}
+            <View style={styles.modalHandle} />
+
+            <View style={styles.advancedModalHeader}>
+              <View>
+                <Text style={styles.advancedModalTitle}>Account Details</Text>
+                <Text style={styles.advancedModalSubtitle}>Personal information & settings</Text>
+              </View>
+              <View style={styles.headerActions}>
+                {!isEditing ? (
+                  <TouchableOpacity style={styles.editPill} onPress={handleEdit}>
+                    <Icon name="pen" size={10} color="#FFBF00" />
+                    <Text style={styles.editPillText}>Edit</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+                      <Icon name="times" size={12} color="#ff4444" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.savePill, saving && { opacity: 0.6 }]}
+                      onPress={handleSave}
+                      disabled={saving}
+                    >
+                      {saving ? (
+                        <ActivityIndicator size="small" color="#000" />
+                      ) : (
+                        <>
+                          <Icon name="save" size={12} color="#000" />
+                          <Text style={styles.savePillText}>Save</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.advancedModalScroll} showsVerticalScrollIndicator={false}>
+              {/* Profile Image Preview logic within modal */}
+              <View style={styles.modalIdentityRow}>
+                <TouchableOpacity
+                  activeOpacity={currentPic ? 0.8 : 1}
+                  onPress={() => { if (currentPic) setPhotoPreview(true); }}
+                >
+                  <View style={styles.modalAvatar}>
+                    {currentPic ? (
+                      <Image source={{ uri: profilePicUri }} style={styles.avatarImage} />
+                    ) : (
+                      <View style={styles.avatarPlaceholder}>
+                        <Icon name="user" size={wp(6)} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.modalIdentityText}>
+                  <Text style={styles.modalName}>{profile.fullName}</Text>
+                  <Text style={styles.modalEmail}>{profile.email}</Text>
+                </View>
+              </View>
+
+              <View style={styles.modalInfoList}>
+                <VerticalInfoRow
+                  icon="user"
+                  label="Full Name"
+                  value={isEditing ? editData.fullName : profile.fullName}
+                  isEditing={isEditing}
+                  onChange={(v: string) => updateField('fullName', v)}
+                  error={errors.fullName}
+                />
+
+                <VerticalInfoRow
+                  icon="envelope"
+                  label="Email Address"
+                  value={isEditing ? editData.email : profile.email}
+                  isEditing={isEditing}
+                  onChange={(v: string) => updateField('email', v)}
+                  keyboardType="email-address"
+                  error={errors.email}
+                />
+
+                <VerticalInfoRow
+                  icon="phone-alt"
+                  label="Phone Number"
+                  value={isEditing ? editData.phone : profile.phone}
+                  isEditing={isEditing}
+                  onChange={(v: string) => updateField('phone', v)}
+                  keyboardType="phone-pad"
+                  error={errors.phone}
+                />
+
+                <VerticalInfoRow
+                  icon="map-marker-alt"
+                  label="Location"
+                  value={profile.location}
+                  isEditing={false}
+                />
+
+                <VerticalInfoRow
+                  icon="calendar-alt"
+                  label="Member Since"
+                  value={profile.memberSince}
+                  isEditing={false}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalCloseBtnFull}
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (isEditing) handleCancel();
+                  setInfoModal(false);
+                }}
+              >
+                <Text style={styles.modalCloseText}>Done</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </Animated.View>
+        </View>
+      </Modal>
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -733,154 +854,130 @@ export default function MyProfile() {
         {/* ── Top Header Bar: back arrow + settings gear ── */}
         <View style={styles.topBar}>
           <View style={styles.headerLeft}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
-              <Icon name="arrow-left" size={wp(5)} color="#fff" />
-            </TouchableOpacity>
+            <BackButton onPress={() => navigation.goBack()} />
             <Text style={styles.headerTitle}>Profile</Text>
           </View>
-          <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Settings' as any)}>
-            <Icon name="cog" size={wp(5)} color="#888" />
-          </TouchableOpacity>
+          {/* Settings icon removed as requested */}
         </View>
 
-        {/* ── Identity: avatar + name ── */}
-        <View style={styles.identityContainer}>
-          <View style={styles.avatarWrap}>
-            {/* Tapping the avatar opens photo preview (only if photo exists) */}
-            <TouchableOpacity
-              activeOpacity={currentPic ? 0.8 : 1}
-              onPress={() => { if (currentPic) setPhotoPreview(true); }}
-            >
-              <View style={styles.avatar}>
-                {currentPic ? (
-                  <Image
-                    source={{ uri: profilePicUri }}
-                    style={styles.avatarImage}
-                  />
+        {/* ── Identity: Improved Avatar + Premium Badge ── */}
+        <View style={styles.premiumHeaderBackground}>
+          <LinearGradient
+            colors={['rgba(255, 215, 0, 0.08)', 'transparent']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+          />
+          <View style={styles.identityContainer}>
+            <View style={styles.avatarWrap}>
+              <View style={styles.avatarGlow} />
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setInfoModal(true)}
+              >
+                <View style={styles.avatar}>
+                  {currentPic ? (
+                    <Image
+                      source={{ uri: profilePicUri }}
+                      style={styles.avatarImage}
+                    />
+                  ) : (
+                    <View style={styles.avatarPlaceholder}>
+                      <Icon name="user" size={wp(8)} color="#FFFFFF" />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cameraBtn}
+                activeOpacity={0.9}
+                onPress={handleImagePick}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#000" />
                 ) : (
-                  <View style={styles.avatarPlaceholder}>
-                    <Icon name="user" size={wp(8)} color="#FFFFFF" />
-                  </View>
+                  <Icon name="camera" size={wp(3.2)} color="#000" />
                 )}
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cameraBtn}
-              activeOpacity={0.9}
-              onPress={handleImagePick}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#000" />
-              ) : (
-                <Icon name="camera" size={wp(3.2)} color="#000" />
-              )}
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
 
-          <View style={styles.identityTextInfo}>
-            <Text style={styles.profileName}>{profile.fullName || 'User'}</Text>
-          </View>
-        </View>
-
-        {/* Personal Info Card */}
-        <View style={styles.infoCard}>
-          <View style={styles.cardHeaderLarge}>
-            <Text style={styles.cardInfoTitle}>Personal Information</Text>
-
-            <View style={styles.headerActions}>
-              {!isEditing ? (
-                <TouchableOpacity style={styles.editPill} onPress={handleEdit}>
-                  <Icon name="pen" size={10} color="#FFBF00" />
-                  <Text style={styles.editPillText}>Edit</Text>
-                </TouchableOpacity>
-              ) : (
-                <>
-                  <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-                    <Icon name="times" size={12} color="#ff4444" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.savePill, saving && { opacity: 0.6 }]}
-                    onPress={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? (
-                      <ActivityIndicator size="small" color="#000" />
-                    ) : (
-                      <>
-                        <Icon name="save" size={12} color="#000" />
-                        <Text style={styles.savePillText}>Save</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                </>
-              )}
             </View>
-          </View>
 
-          <VerticalInfoRow
-            icon="user"
-            label="Full Name"
-            value={isEditing ? editData.fullName : profile.fullName}
-            isEditing={isEditing}
-            onChange={(v: string) => updateField('fullName', v)}
-            error={errors.fullName}
-          />
-
-          <VerticalInfoRow
-            icon="envelope"
-            label="Email Address"
-            value={isEditing ? editData.email : profile.email}
-            isEditing={isEditing}
-            onChange={(v: string) => updateField('email', v)}
-            keyboardType="email-address"
-            error={errors.email}
-          />
-
-          <VerticalInfoRow
-            icon="phone-alt"
-            label="Phone Number"
-            value={isEditing ? editData.phone : profile.phone}
-            isEditing={isEditing}
-            onChange={(v: string) => updateField('phone', v)}
-            keyboardType="phone-pad"
-            error={errors.phone}
-          />
-
-          <VerticalInfoRow
-            icon="map-marker-alt"
-            label="Location"
-            value={profile.location}
-            isEditing={false}
-          />
-
-          <VerticalInfoRow
-            icon="calendar-alt"
-            label="Member Since"
-            value={profile.memberSince}
-            isEditing={false}
-          />
-        </View>
-
-        {/* Quick Stats Grid – real counts from API */}
-        <View style={styles.statsCard}>
-          <Text style={styles.statsTitle}>Quick Stats</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{String(stats.vehicles)}</Text>
-              <Text style={styles.statLabel}>Vehicles</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{String(stats.expenses)}</Text>
-              <Text style={styles.statLabel}>Expenses</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{String(stats.documents)}</Text>
-              <Text style={styles.statLabel}>Documents</Text>
+            <View style={styles.identityTextInfo}>
+              <Text style={styles.profileName}>{profile.fullName?.toUpperCase() || 'USER'}</Text>
+              <Text style={styles.memberSinceText}>Member since {profile.memberSince.split(' ').pop()}</Text>
             </View>
           </View>
         </View>
 
-        <View style={{ height: hp(5) }} />
+
+        {/* ── Quick Stats: Premium Glassmorphic Grid ── */}
+        <View style={styles.statsContainer}>
+          <Text style={styles.statsSectionTitle}>FLEET INSIGHTS</Text>
+          <View style={styles.premiumStatsGrid}>
+            <StatCard
+              icon="car"
+              label="Vehicles"
+              value={String(stats.vehicles)}
+              color="#FFD700"
+            />
+            <StatCard
+              icon="receipt"
+              label="Expenses"
+              value={String(stats.expenses)}
+              color="#00F2FF"
+            />
+            <StatCard
+              icon="file-alt"
+              label="Docs"
+              value={String(stats.documents)}
+              color="#FF4B2B"
+            />
+          </View>
+        </View>
+
+        {/* ── Settings & Preferences Section ── */}
+        <View style={styles.integratedSettingsCard}>
+          <Text style={styles.integratedSettingsTitle}>Settings & Preferences</Text>
+
+          <View style={styles.integratedGroupCard}>
+            <MenuRow
+              icon="phone-alt"
+              label="SOS Emergency"
+              onPress={() => handleMenuPress('SOSButton')}
+              color="#FFD700"
+              bgColor="rgba(255, 215, 0, 0.1)"
+            />
+            <MenuRow
+              icon="bell"
+              label="Notifications"
+              onPress={() => { }}
+            />
+            <MenuRow
+              icon="shield-alt"
+              label="Privacy & Security"
+              onPress={() => { }}
+            />
+            <MenuRow
+              icon="ellipsis-h"
+              label="App Settings"
+              onPress={() => { }}
+            />
+            <MenuRow
+              icon="question-circle"
+              label="Help & Support"
+              onPress={() => handleMenuPress('HelpSupport')}
+            />
+            <MenuRow
+              icon="sign-out-alt"
+              label="Logout"
+              onPress={handleLogout}
+              color="#F44336"
+              isLast
+            />
+          </View>
+        </View>
+
+        <View style={{ height: hp(10) }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -945,104 +1042,130 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-  },
-  backBtn: {
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5),
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(3.5),
   },
   headerTitle: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(6),
-    color: '#FFFFFF',
+    color: '#fff',
+    fontSize: wp(5.5),
+    fontFamily: 'Outfit-Black',
+    marginLeft: wp(3),
+    letterSpacing: 1,
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#111',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  /* ── Identity Row ── */
+  /* ── Identity Section ── */
+  premiumHeaderBackground: {
+    marginBottom: hp(3),
+  },
   identityContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingTop: hp(0.5),
-    paddingBottom: hp(2.5),
+    paddingVertical: hp(1),
   },
   avatarWrap: {
     position: 'relative',
-    marginRight: wp(4),
+    marginBottom: hp(2),
+  },
+  avatarGlow: {
+    position: 'absolute',
+    top: -wp(1),
+    left: -wp(1),
+    right: -wp(1),
+    bottom: -wp(1),
+    borderRadius: wp(14),
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
   },
   avatar: {
-    width: wp(20),
-    height: wp(20),
-    borderRadius: wp(10),
-    backgroundColor: '#111',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
+    borderWidth: 3,
+    borderColor: '#111',
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: '#333',
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#222',
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderColor: '#FFBF00',
-    borderWidth: 2,
-    borderRadius: wp(10),
+  },
+  avatarPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#222',
   },
   cameraBtn: {
     position: 'absolute',
-    bottom: 0,
-    right: -2,
-    backgroundColor: '#FFFFFF',
-    width: wp(7.5),
-    height: wp(7.5),
-    borderRadius: wp(3.75),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
+    bottom: 2,
+    right: 2,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFD700',
+    borderWidth: 3,
     borderColor: '#000',
-    elevation: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -10,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  premiumBadgeText: {
+    color: '#000',
+    fontFamily: 'Outfit-Black',
+    fontSize: 7,
+    letterSpacing: 0.5,
   },
   identityTextInfo: {
-    flex: 1,
+    alignItems: 'center',
   },
   profileName: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(6),
+    fontFamily: 'Outfit-Black',
     color: '#FFFFFF',
-    letterSpacing: -0.5,
+    fontSize: wp(6),
+    letterSpacing: 1.5,
   },
-  profileMeta: {
-    fontFamily: 'Outfit-Regular',
-    fontSize: 12,
-    color: '#888',
-    marginTop: 2,
-  },
-  settingsBtn: {
-    padding: 10,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+  memberSinceText: {
+    fontFamily: 'Outfit-Medium',
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: wp(3),
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 
+  /* ── Personal Info Card ── */
   infoCard: {
     backgroundColor: '#121212',
     marginHorizontal: wp(4),
@@ -1052,7 +1175,7 @@ const styles = StyleSheet.create({
     paddingBottom: wp(2),
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   cardHeaderLarge: {
     flexDirection: 'row',
@@ -1125,7 +1248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: wp(3),
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: 'rgba(255,255,255,0.08)',
     backgroundColor: '#0A0A0A',
   },
   vContentWrap: {
@@ -1143,7 +1266,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: '#0A0A0A',
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   inputContainerActive: {
     borderColor: '#FFFFFF',
@@ -1173,46 +1296,104 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
-  statsCard: {
-    backgroundColor: '#121212',
-    marginHorizontal: wp(4),
+  /* ── Stats Container ── */
+  statsContainer: {
+    paddingHorizontal: wp(4),
     marginTop: hp(2),
-    paddingTop: wp(6),
-    paddingHorizontal: wp(5),
-    paddingBottom: wp(6),
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#222222',
+    marginBottom: hp(3),
   },
-  statsTitle: {
-    fontFamily: 'Outfit-Bold',
-    color: '#FFFFFF',
-    fontSize: wp(4.8),
-    marginBottom: hp(2.5),
-    letterSpacing: -0.2,
+  statsSectionTitle: {
+    fontFamily: 'Outfit-Black',
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: wp(3.2),
+    marginBottom: hp(1.5),
+    paddingLeft: wp(1),
+    letterSpacing: 2,
   },
-  statsRow: {
+  premiumStatsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(2),
+    gap: wp(3),
   },
-  statItem: {
+  glassStatCard: {
+    flex: 1,
+    backgroundColor: '#121212',
+    padding: wp(4),
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
   },
+  statIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
   statValue: {
-    fontFamily: 'Outfit-Bold',
+    fontFamily: 'Outfit-Black',
     color: '#FFFFFF',
-    fontSize: wp(6.5),
-    marginBottom: 4,
-    letterSpacing: -0.3,
+    fontSize: wp(5.5),
+    marginBottom: 2,
   },
   statLabel: {
-    fontFamily: 'Outfit-Medium',
-    color: '#888',
-    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: wp(2.8),
+    textTransform: 'uppercase',
   },
 
-  /* ── Photo Preview Modal ── */
+  /* ── Integrated Settings Styles ── */
+  integratedSettingsCard: {
+    paddingHorizontal: wp(4),
+    marginTop: hp(1),
+  },
+  integratedSettingsTitle: {
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
+    marginBottom: hp(1.2),
+    paddingLeft: wp(1),
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  integratedGroupCard: {
+    backgroundColor: '#121212',
+    borderRadius: wp(4),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(2.2),
+    paddingHorizontal: wp(4.5),
+  },
+  menuRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  menuIconWrap: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    backgroundColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(3.5),
+  },
+  menuLabel: {
+    flex: 1,
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+
+  /* ── Modals & Previews ── */
   previewOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.93)',
@@ -1243,8 +1424,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  /* ── Profile Picture Bottom Sheet ── */
   bottomSheetOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -1274,7 +1453,7 @@ const styles = StyleSheet.create({
   bottomSheetTitle: {
     color: '#fff',
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   bottomSheetOptions: {
     flexDirection: 'row',
@@ -1298,10 +1477,8 @@ const styles = StyleSheet.create({
   bottomSheetOptionText: {
     color: '#d1d1d1',
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
   },
-
-  /* ── Avatar Selection Modal ── */
   avatarModalContainer: {
     flex: 1,
     backgroundColor: '#0a0b0e',
@@ -1327,7 +1504,7 @@ const styles = StyleSheet.create({
   avatarModalTitle: {
     color: '#fff',
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   avatarGrid: {
     paddingHorizontal: wp(6),
@@ -1371,7 +1548,7 @@ const styles = StyleSheet.create({
   avatarGridLabel: {
     color: '#888',
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
     marginTop: 8,
   },
   avatarGridLabelSelected: {
@@ -1399,13 +1576,13 @@ const styles = StyleSheet.create({
   avatarConfirmText: {
     color: '#000',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
 
   /* ── Custom Alert Popup ── */
   popupOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)', // Softer background
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: wp(8),
@@ -1432,7 +1609,7 @@ const styles = StyleSheet.create({
   popupTitle: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   popupMessage: {
     color: '#a0a0a0',
@@ -1451,4 +1628,151 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.5,
   },
+  /* ── Advanced Profile Modal Styles ── */
+  advancedModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  advancedModalBlur: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+  },
+  advancedModalContent: {
+    backgroundColor: '#0a0b0e',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    minHeight: hp(85),
+    paddingTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  modalHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  advancedModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(6),
+    marginBottom: hp(2),
+  },
+  advancedModalTitle: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(5.5),
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  advancedModalSubtitle: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.2),
+    color: '#666',
+    marginTop: 2,
+  },
+  advancedModalScroll: {
+    paddingBottom: hp(10),
+  },
+  modalIdentityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(6),
+    marginBottom: hp(4),
+    marginTop: hp(1),
+  },
+  modalAvatar: {
+    width: wp(16),
+    height: wp(16),
+    borderRadius: wp(8),
+    borderWidth: 2,
+    borderColor: '#FFD700',
+    overflow: 'hidden',
+  },
+  modalIdentityText: {
+    marginLeft: wp(4),
+  },
+  modalName: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.5),
+    color: '#fff',
+  },
+  modalEmail: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.2),
+    color: '#888',
+  },
+  modalInfoList: {
+    paddingHorizontal: wp(6),
+  },
+  modalCloseBtnFull: {
+    marginHorizontal: wp(6),
+    marginTop: hp(4),
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingVertical: hp(2),
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  modalCloseText: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4),
+    color: '#fff',
+  },
 });
+
+/* ── Menu Row Sub-component with Animation ── */
+function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", isLast = false }: any) {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+    >
+      <Animated.View style={[
+        styles.menuRow,
+        !isLast && styles.menuRowBorder,
+        { transform: [{ scale: scaleAnim }] }
+      ]}>
+        <View style={[styles.menuIconWrap, { backgroundColor: bgColor }]}>
+          <Icon name={icon} size={wp(4.2)} color={color} />
+        </View>
+        <Text style={[styles.menuLabel, label === 'Logout' && { color: '#F44336' }]}>{label}</Text>
+        <Icon name="chevron-right" size={wp(3)} color="#333" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
+/* ── Stat Card Sub-component ── */
+function StatCard({ icon, label, value, color }: any) {
+  return (
+    <View style={styles.glassStatCard}>
+      <View style={[styles.statIconBox, { backgroundColor: `${color}15` }]}>
+        <Icon name={icon} size={14} color={color} />
+      </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}

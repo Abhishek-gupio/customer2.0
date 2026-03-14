@@ -3,4 +3,4 @@ export {
   useDispatch,
   useSelector,
   type TypedUseSelectorHook,
-} from '../../node_modules/react-redux';
+} from 'react-redux';

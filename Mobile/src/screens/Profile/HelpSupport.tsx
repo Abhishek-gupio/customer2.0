@@ -15,6 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 
 /* ── Data ── */
@@ -79,18 +80,11 @@ export default function HelpSupport() {
       >
         {/* ─── Header ─── */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.85}
-          >
-            <Icon name="arrow-left" size={wp(4.5)} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>Help & Support</Text>
-          <Text style={styles.subtitle}>We're here to help you</Text>
+          <BackButton onPress={() => navigation.goBack()} />
+          <View style={{ flex: 1, marginLeft: wp(3) }}>
+            <Text style={styles.title}>Help & Support</Text>
+            <Text style={styles.subtitle}>We're here to help you</Text>
+          </View>
         </View>
 
         {/* ─── Support Channels ─── */}
@@ -208,21 +202,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  /* Title */
-  titleWrap: {
-    paddingHorizontal: wp(5),
-    paddingTop: hp(2),
-    paddingBottom: hp(2.5),
-  },
   title: {
-    fontSize: wp(7),
+    fontSize: wp(6.5),
     fontWeight: '800',
     color: '#fff',
   },
   subtitle: {
     fontSize: wp(3.8),
     color: '#888',
-    marginTop: hp(0.5),
+    marginTop: hp(0.2),
   },
 
   /* Section */
