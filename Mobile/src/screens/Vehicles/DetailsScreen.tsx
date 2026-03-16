@@ -443,18 +443,23 @@ export const DetailsScreen = ({
                                             source={v.vehicleType === 'BIKE' ? BikeImage : CarImage}
                                             style={StyleSheet.absoluteFill}
                                             resizeMode="cover"
+                                            blurRadius={activeVehicle.id === v.id ? 2 : 0}
                                         />
+                                        <View style={styles.miniModelOverlay}>
+                                            <Text style={styles.miniModelText} numberOfLines={1}>{v.model || v.make || 'V'}</Text>
+                                        </View>
                                         {v.isPrimary && (
                                             <View style={styles.miniPrimaryIndicator}>
                                                 <Star size={10} color="#000" fill="#000" />
                                             </View>
                                         )}
                                     </View>
-                                    {activeVehicle.id === v.id && (
-                                        <Text style={styles.activeMiniLabel} numberOfLines={1}>
-                                            {v.registrationNumber}
-                                        </Text>
-                                    )}
+                                    <Text 
+                                        style={[styles.activeMiniLabel, activeVehicle.id === v.id && { color: COLORS.primary }]} 
+                                        numberOfLines={1}
+                                    >
+                                        {v.registrationNumber}
+                                    </Text>
                                 </TouchableOpacity>
                             ))}
                     </View>
@@ -763,7 +768,9 @@ const styles = StyleSheet.create({
     miniCircleWrap: { alignItems: 'center', gap: 4 },
     miniCircleInner: { width: 64, height: 64, borderRadius: 32, padding: 4, borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
     miniCircleActive: { transform: [{ scale: 1.1 }] },
-    activeMiniLabel: { fontSize: 9, fontFamily: 'Outfit-Black', color: COLORS.primary, position: 'absolute', bottom: -18, textAlign: 'center', width: 80 },
+    miniModelOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 32 },
+    miniModelText: { color: '#FFF', fontSize: 10, fontFamily: 'Outfit-Black', textAlign: 'center', paddingHorizontal: 4 },
+    activeMiniLabel: { fontSize: 8, fontFamily: 'Outfit-Bold', color: '#888', position: 'absolute', bottom: -18, textAlign: 'center', width: 80 },
     miniPrimaryIndicator: {
         position: 'absolute',
         top: 4,

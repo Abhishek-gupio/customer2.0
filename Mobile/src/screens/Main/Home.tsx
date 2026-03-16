@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import QuickServicesGrid from '../../components/QuickServicesGrid';
-import { useNavigation } from '../../lib/react-navigation-native';
+import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
@@ -54,15 +54,15 @@ export default function Home() {
 
   // Fetch all home data
   useEffect(() => {
-    const loadData = async () => {
-      await Promise.all([
-        fetchPrimaryVehicle(),
-        fetchFuelPrices(),
-        fetchDiscoveryContent()
-      ]);
-    };
-    loadData();
+    fetchFuelPrices();
+    fetchDiscoveryContent();
   }, [selectedState]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPrimaryVehicle();
+    }, [])
+  );
 
   // Auto-scroll carousel every 5 seconds
   // Use a ref to avoid stale closure & re-creating the interval on every slide,
@@ -299,7 +299,11 @@ export default function Home() {
                       </View>
                       <View style={styles.headerRight}>
                         <Image
-                          source={require('../../assets/images/car_vehicle_demo.png') as any}
+                          source={(
+                            vehicle?.vehicleType === 'BIKE' 
+                              ? require('../../assets/images/bike.png')
+                              : require('../../assets/images/car_vehicle_demo.png')
+                          ) as any}
                           style={styles.headerCarImage}
                           resizeMode="contain"
                         />

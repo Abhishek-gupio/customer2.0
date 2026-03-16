@@ -27,7 +27,7 @@ export async function checkImageQuality(
   try {
     let meta: { width: number; height: number } | null = null;
     const pipeline = sharp(buffer);
-    meta = await pipeline.metadata().then((m) =>
+    meta = await pipeline.metadata().then((m: any) =>
       m.width && m.height ? { width: m.width, height: m.height } : null,
     );
     if (!meta) return { ok: true, hints: [] };
