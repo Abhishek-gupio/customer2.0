@@ -899,7 +899,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop:3,
+    paddingTop:5,
     // paddingVertical: 1,
     borderBottomWidth: 1,
     borderBottomColor: '#111b2e',
@@ -907,7 +907,8 @@ const styles = StyleSheet.create({
   headerCenter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    
+    gap: 8, 
   },
   headerActions: {
     flexDirection: 'row',
@@ -919,7 +920,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '700',
   },
 
