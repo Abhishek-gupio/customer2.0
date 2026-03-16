@@ -306,11 +306,13 @@ export type TicketPriority = (typeof TicketPriority)[keyof typeof TicketPriority
 
 
 export const TicketCategory: {
-  GENERAL: 'GENERAL',
-  TECHNICAL: 'TECHNICAL',
-  BILLING: 'BILLING',
   VEHICLE: 'VEHICLE',
-  APP_ISSUE: 'APP_ISSUE',
+  DOCUMENTS: 'DOCUMENTS',
+  VALET: 'VALET',
+  AI_ASSISTANT: 'AI_ASSISTANT',
+  BILLING: 'BILLING',
+  ACCOUNT: 'ACCOUNT',
+  TECHNICAL: 'TECHNICAL',
   OTHER: 'OTHER'
 };
 
@@ -53721,6 +53723,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
@@ -53743,6 +53746,7 @@ export namespace Prisma {
     email?: string | null
     fullName?: string | null
     profilePic?: string | null
+    googleId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
@@ -53807,6 +53811,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
@@ -53829,6 +53834,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: NullableStringFieldUpdateOperationsInput | string | null
     profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput

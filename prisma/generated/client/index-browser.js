@@ -647,11 +647,13 @@ exports.TicketPriority = exports.$Enums.TicketPriority = {
 };
 
 exports.TicketCategory = exports.$Enums.TicketCategory = {
-  GENERAL: 'GENERAL',
-  TECHNICAL: 'TECHNICAL',
-  BILLING: 'BILLING',
   VEHICLE: 'VEHICLE',
-  APP_ISSUE: 'APP_ISSUE',
+  DOCUMENTS: 'DOCUMENTS',
+  VALET: 'VALET',
+  AI_ASSISTANT: 'AI_ASSISTANT',
+  BILLING: 'BILLING',
+  ACCOUNT: 'ACCOUNT',
+  TECHNICAL: 'TECHNICAL',
   OTHER: 'OTHER'
 };
 

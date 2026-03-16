@@ -69,7 +69,12 @@ export const supportService = {
   },
 
   async listFaqs() {
-    return await (dbInstances as any).fAQ.findMany({
+    // Prisma exposes FAQ model as .fAQ; fallback to .faq for different client builds
+    const faqDelegate = (dbInstances as any).fAQ ?? (dbInstances as any).faq;
+    if (!faqDelegate?.findMany) {
+      return [];
+    }
+    return await faqDelegate.findMany({
       where: { isActive: true },
       orderBy: [{ category: 'asc' }, { order: 'asc' }]
     });
