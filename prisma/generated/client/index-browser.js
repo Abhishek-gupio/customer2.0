@@ -483,6 +483,38 @@ exports.Prisma.EmergencyContactScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SupportTicketScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  subject: 'subject',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  category: 'category',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TicketMessageScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  senderId: 'senderId',
+  senderRole: 'senderRole',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FAQScalarFieldEnum = {
+  id: 'id',
+  question: 'question',
+  answer: 'answer',
+  category: 'category',
+  order: 'order',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -599,6 +631,29 @@ exports.SOSType = exports.$Enums.SOSType = {
   OTHER: 'OTHER'
 };
 
+exports.TicketStatus = exports.$Enums.TicketStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.TicketPriority = exports.$Enums.TicketPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
+};
+
+exports.TicketCategory = exports.$Enums.TicketCategory = {
+  GENERAL: 'GENERAL',
+  TECHNICAL: 'TECHNICAL',
+  BILLING: 'BILLING',
+  VEHICLE: 'VEHICLE',
+  APP_ISSUE: 'APP_ISSUE',
+  OTHER: 'OTHER'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Customer: 'Customer',
@@ -626,7 +681,10 @@ exports.Prisma.ModelName = {
   DrivingTrip: 'DrivingTrip',
   DrivingEvent: 'DrivingEvent',
   SOSRequest: 'SOSRequest',
-  EmergencyContact: 'EmergencyContact'
+  EmergencyContact: 'EmergencyContact',
+  SupportTicket: 'SupportTicket',
+  TicketMessage: 'TicketMessage',
+  FAQ: 'FAQ'
 };
 
 /**

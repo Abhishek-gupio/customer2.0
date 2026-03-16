@@ -15,6 +15,7 @@ import { sosRoutes } from "./modules/sos/sos.routes";
 import { placesRoutes } from "./modules/places/places.routes";
 import { fuelRoutes } from "./modules/fuel/fuel.routes";
 import { discoveryRoutes } from "./modules/discovery/discovery.routes";
+import { supportRoutes } from "./modules/support/support.routes";
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use("/v1/sos", sosRoutes);
 router.use("/v1/places", placesRoutes);
 router.use("/v1/fuel", fuelRoutes);
 router.use("/v1/discovery", discoveryRoutes);
+router.use("/v1/support", supportRoutes);
 
 export const apiRoutes = router;

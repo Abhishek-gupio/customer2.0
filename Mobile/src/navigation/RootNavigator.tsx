@@ -15,6 +15,10 @@ import UploadDocument from '../screens/Documents/UploadDocument';
 import DocumentDetail from '../screens/Documents/DocumentDetail';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
+import LiveChat from '../screens/Profile/LiveChat';
+import ContactSupport from '../screens/Profile/ContactSupport';
+import TicketHistory from '../screens/Profile/TicketHistory';
+import TicketDetail from '../screens/Profile/TicketDetail';
 import Settings from '../screens/Profile/Settings';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
 // NOTE: VehicleDetails and AddVehicle are self-contained inside GupioGarageApp.
@@ -76,6 +80,10 @@ export function RootNavigator() {
       <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
+      <Stack.Screen name="LiveChat" component={LiveChat} />
+      <Stack.Screen name="ContactSupport" component={ContactSupport} />
+      <Stack.Screen name="TicketHistory" component={TicketHistory} />
+      <Stack.Screen name="TicketDetail" component={TicketDetail} />
       <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen name="BudgetSettings" component={BudgetSettings} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />

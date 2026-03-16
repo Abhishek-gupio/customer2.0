@@ -39,6 +39,7 @@ model Customer {
   notifications     InAppNotification[]
   sosRequests       SOSRequest[]
   sharedVehicles    VehicleAccess[]
+  supportTickets    SupportTicket[]
   driverExpenses    Expense[]           @relation("DriverExpenses")
 
   @@schema("customer")
@@ -510,6 +511,50 @@ model EmergencyContact {
   @@schema("customer")
 }
 
+model SupportTicket {
+  id          String         @id @default(cuid())
+  customerId  String
+  subject     String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  category    TicketCategory @default(OTHER)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  customer    Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages    TicketMessage[]
+
+  @@index([customerId])
+  @@index([status])
+  @@schema("customer")
+}
+
+model TicketMessage {
+  id        String        @id @default(cuid())
+  ticketId  String
+  senderId  String        // customerId or supportAgentId
+  senderRole String       // 'CUSTOMER' or 'AGENT'
+  content   String
+  createdAt DateTime      @default(now())
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@schema("customer")
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("customer")
+}
+
 enum DocumentType {
   RC
   INSURANCE
@@ -612,6 +657,37 @@ enum SOSType {
   POLICE
   MECHANICAL
   ACCIDENT
+  OTHER
+
+  @@schema("customer")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+
+  @@schema("customer")
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@schema("customer")
+}
+
+enum TicketCategory {
+  VEHICLE
+  DOCUMENTS
+  VALET
+  AI_ASSISTANT
+  BILLING
+  ACCOUNT
+  TECHNICAL
   OTHER
 
   @@schema("customer")
