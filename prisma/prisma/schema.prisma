@@ -682,6 +682,7 @@ enum TicketPriority {
 }
 
 enum TicketCategory {
+  GENERAL
   VEHICLE
   DOCUMENTS
   VALET
@@ -689,6 +690,7 @@ enum TicketCategory {
   BILLING
   ACCOUNT
   TECHNICAL
+  APP_ISSUE
   OTHER
 
   @@schema("customer")

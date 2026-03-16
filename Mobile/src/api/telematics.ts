@@ -69,6 +69,22 @@ export const telematicsApi = {
     },
 
     /**
+     * A5: Get end-trip summary with score + money tip + safety tip
+     */
+    async getTripSummary(tripId: string): Promise<{
+        trip: { id: string; startTime: string; endTime: string; distanceKm: number; durationMin: number; safetyScore: number };
+        moneyTip: string;
+        safetyTip: string;
+    }> {
+        const response = await axios.get(
+            `${API_URL}/telematics/trips/${tripId}/summary`,
+            { headers: authHeaders() },
+        );
+        const raw = response.data?.data ?? response.data;
+        return raw;
+    },
+
+    /**
      * Get real-time AI driving coach advice
      * @param events Array of recent driving events (e.g. from the last few minutes)
      * @param context Additional context like current speed, weather, etc.

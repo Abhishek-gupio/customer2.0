@@ -96,3 +96,15 @@ export function getAutoExpenseEnabled(): boolean {
 export function setAutoExpenseEnabled(val: boolean): void {
   storage!.set(AUTO_EXPENSE_ENABLED_KEY, val ? 'true' : 'false');
 }
+
+// Telematics: per-vehicle link flag
+export function getTelematicsLinked(vehicleId: string | null | undefined): boolean {
+  if (!vehicleId) return false;
+  const s = storage!.getString(`telematics_linked_${vehicleId}`);
+  return s === 'true';
+}
+
+export function setTelematicsLinked(vehicleId: string | null | undefined, linked: boolean): void {
+  if (!vehicleId) return;
+  storage!.set(`telematics_linked_${vehicleId}`, linked ? 'true' : 'false');
+}

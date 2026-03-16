@@ -31,7 +31,7 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { useAppDispatch } from '../../store/hooks';
 import { addDocumentFromResponse, toDocItem } from '../../store/slices/documentsSlice';
-import { uploadDocument } from '../../services/documentService';
+import { uploadDocument, checkImageQuality } from '../../services/documentService';
 import BackButton from '../../components/BackButton';
 
 type UploadDocNavProp = NativeStackNavigationProp<RootStackParamList, 'UploadDocument'>;
@@ -54,6 +54,11 @@ export default function UploadDocument() {
   const [uploading, setUploading] = useState(false);
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [primaryVehicle, setPrimaryVehicle] = useState<any>(null);
+  const [qualityCheckLoading, setQualityCheckLoading] = useState(false);
+  const [showQualityModal, setShowQualityModal] = useState(false);
+  const [qualityHints, setQualityHints] = useState<string[]>([]);
+  const [pendingImageAsset, setPendingImageAsset] = useState<{ uri: string; fileName?: string; type?: string } | null>(null);
+  const [previewError, setPreviewError] = useState(false);
 
   useEffect(() => {
     fetchPrimaryVehicle();
@@ -128,10 +133,13 @@ export default function UploadDocument() {
         allowMultiSelection: false,
       });
       if (res?.[0]) {
+        setPreviewError(false);
+        const r = res[0];
+        const isImageType = (r.type || '').startsWith('image/') || /\.(jpe?g|png|gif|webp)$/i.test(r.name || '');
         setFileInfo({
-          uri: res[0].uri,
-          name: res[0].name || `file_${Date.now()}`,
-          type: res[0].type || 'application/octet-stream',
+          uri: r.uri,
+          name: r.name || `file_${Date.now()}`,
+          type: r.type || (isImageType ? 'image/jpeg' : 'application/octet-stream'),
         });
       }
     } catch (e: unknown) {
@@ -139,6 +147,35 @@ export default function UploadDocument() {
       if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
         Alert.alert('Error', 'Could not pick file');
       }
+    }
+  };
+
+  const setFileFromImageAsset = (asset: { uri: string; fileName?: string; type?: string }, source: 'gallery' | 'camera') => {
+    setPreviewError(false);
+    setFileInfo({
+      uri: asset.uri,
+      name: asset.fileName || (source === 'camera' ? `camera_${Date.now()}.jpg` : `photo_${Date.now()}.jpg`),
+      type: asset.type || 'image/jpeg',
+    });
+  };
+
+  const runQualityCheckAndSetFile = async (asset: { uri: string; fileName?: string; type?: string }) => {
+    setQualityCheckLoading(true);
+    setPendingImageAsset(null);
+    setQualityHints([]);
+    try {
+      const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || 'image/jpeg');
+      if (result.ok) {
+        setFileFromImageAsset(asset, 'gallery');
+      } else {
+        setQualityHints(result.hints);
+        setPendingImageAsset(asset);
+        setShowQualityModal(true);
+      }
+    } catch {
+      setFileFromImageAsset(asset, 'gallery');
+    } finally {
+      setQualityCheckLoading(false);
     }
   };
 
@@ -151,12 +188,13 @@ export default function UploadDocument() {
       }
     }
     try {
+      setShowSourceModal(false);
       const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
       if (res?.assets?.[0]) {
         const asset = res.assets[0];
-        setFileInfo({
+        await runQualityCheckAndSetFile({
           uri: asset.uri!,
-          name: asset.fileName || `photo_${Date.now()}.jpg`,
+          fileName: asset.fileName || `photo_${Date.now()}.jpg`,
           type: asset.type || 'image/jpeg',
         });
       }
@@ -174,12 +212,13 @@ export default function UploadDocument() {
       }
     }
     try {
+      setShowSourceModal(false);
       const res = await launchCamera({ mediaType: 'photo', quality: 0.8 });
       if (res?.assets?.[0]) {
         const asset = res.assets[0];
-        setFileInfo({
+        await runQualityCheckAndSetFile({
           uri: asset.uri!,
-          name: asset.fileName || `camera_${Date.now()}.jpg`,
+          fileName: asset.fileName || `camera_${Date.now()}.jpg`,
           type: asset.type || 'image/jpeg',
         });
       }
@@ -220,6 +259,16 @@ export default function UploadDocument() {
   };
 
   const isImage = fileInfo?.type?.startsWith('image/');
+
+  // Normalize URI for Image preview (Android may need file:// for absolute paths)
+  const previewUri =
+    fileInfo?.uri && isImage
+      ? fileInfo.uri.startsWith('file://') || fileInfo.uri.startsWith('content://') || fileInfo.uri.startsWith('http')
+        ? fileInfo.uri
+        : Platform.OS === 'android' && fileInfo.uri.startsWith('/')
+        ? `file://${fileInfo.uri}`
+        : fileInfo.uri
+      : '';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -315,7 +364,22 @@ export default function UploadDocument() {
           onPress={handleTapToUpload}
         >
           {fileInfo && isImage ? (
-            <Image source={{ uri: fileInfo.uri }} style={styles.previewImage} resizeMode="cover" />
+            previewError ? (
+              <View style={styles.previewFallback}>
+                <Icon name="file-image" size={wp(12)} color="#FFBF00" />
+                <Text style={styles.previewFallbackText}>Image selected</Text>
+                <Text style={styles.uploadSub}>Preview unavailable • Tap to change</Text>
+              </View>
+            ) : (
+              <Image
+                key={fileInfo.uri}
+                source={{ uri: previewUri || fileInfo.uri }}
+                style={styles.previewImage}
+                resizeMode="cover"
+                onError={() => setPreviewError(true)}
+                onLoad={() => setPreviewError(false)}
+              />
+            )
           ) : fileInfo ? (
             <View style={styles.filePreview}>
               <Icon name="file-pdf" size={wp(10)} color="#FFBF00" />
@@ -405,7 +469,7 @@ export default function UploadDocument() {
                 <View style={styles.modalOptions}>
                   <TouchableOpacity
                     style={styles.modalOption}
-                    onPress={() => { setShowSourceModal(false); handleTakePhoto(); }}
+                    onPress={() => { setShowSourceModal(false); void handleTakePhoto(); }}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
                       <Icon name="camera" size={wp(5)} color="#4CAF50" />
@@ -415,7 +479,7 @@ export default function UploadDocument() {
 
                   <TouchableOpacity
                     style={styles.modalOption}
-                    onPress={() => { setShowSourceModal(false); handlePickImage(); }}
+                    onPress={() => { setShowSourceModal(false); void handlePickImage(); }}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
                       <Icon name="images" size={wp(5)} color="#2196F3" />
@@ -445,6 +509,56 @@ export default function UploadDocument() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* Quality check retake modal (A3) */}
+      <Modal visible={showQualityModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Image quality</Text>
+              <TouchableOpacity onPress={() => { setShowQualityModal(false); setPendingImageAsset(null); }}>
+                <Icon name="times" size={wp(5)} color="#888" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.qualityHintText}>
+              For better results:
+            </Text>
+            {qualityHints.map((hint, i) => (
+              <Text key={i} style={styles.qualityHintItem}>• {hint}</Text>
+            ))}
+            <View style={styles.qualityActions}>
+              <TouchableOpacity
+                style={[styles.modalOption, styles.qualityRetakeBtn]}
+                onPress={() => { setShowQualityModal(false); setPendingImageAsset(null); }}
+              >
+                <Icon name="camera" size={wp(4)} color="#FFBF00" />
+                <Text style={styles.qualityRetakeText}>Retake</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalOption, styles.qualityUseAnywayBtn]}
+                onPress={() => {
+                  if (pendingImageAsset) {
+                    setFileFromImageAsset(pendingImageAsset, 'gallery');
+                    setShowQualityModal(false);
+                    setPendingImageAsset(null);
+                  }
+                }}
+              >
+                <Text style={styles.qualityUseAnywayText}>Use anyway</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {qualityCheckLoading && (
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-only">
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <ActivityIndicator size="large" color="#FFBF00" />
+            <Text style={{ color: '#fff', marginTop: hp(2) }}>Checking image quality…</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -573,7 +687,24 @@ const styles = StyleSheet.create({
   previewImage: {
     width: '100%',
     height: hp(25),
+    minHeight: hp(20),
     borderRadius: wp(2),
+  },
+  previewFallback: {
+    width: '100%',
+    height: hp(25),
+    minHeight: hp(20),
+    borderRadius: wp(2),
+    backgroundColor: '#1a1a1a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(2),
+  },
+  previewFallbackText: {
+    fontSize: wp(4),
+    fontWeight: '600',
+    color: '#fff',
+    marginTop: hp(1),
   },
   filePreview: {
     alignItems: 'center',
@@ -731,4 +862,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#888',
   },
+  qualityHintText: {
+    fontSize: wp(4),
+    color: '#ccc',
+    marginBottom: hp(1.5),
+  },
+  qualityHintItem: {
+    fontSize: wp(3.8),
+    color: '#aaa',
+    marginBottom: hp(1),
+    paddingLeft: wp(2),
+  },
+  qualityActions: {
+    flexDirection: 'row',
+    gap: wp(4),
+    marginTop: hp(3),
+  },
+  qualityRetakeBtn: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: wp(2),
+    borderWidth: 1,
+    borderColor: '#FFBF00',
+  },
+  qualityRetakeText: { fontSize: wp(4), fontWeight: '600', color: '#FFBF00' },
+  qualityUseAnywayBtn: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  qualityUseAnywayText: { fontSize: wp(4), fontWeight: '600', color: '#fff' },
 });

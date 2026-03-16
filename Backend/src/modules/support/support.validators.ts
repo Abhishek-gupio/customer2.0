@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createTicketSchema = z.object({
   subject: z.string().min(5).max(100),
-  description: z.string().min(10).max(5000), // Increased max to match frontend
+  description: z.string().min(1).max(5000), // Increased max to match frontend
   category: z.enum(['VEHICLE', 'DOCUMENTS', 'VALET', 'AI_ASSISTANT', 'BILLING', 'ACCOUNT', 'TECHNICAL', 'OTHER']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
 });

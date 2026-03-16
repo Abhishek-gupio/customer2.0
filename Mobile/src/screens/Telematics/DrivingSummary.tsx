@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Platform, Alert, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Platform, Alert, StatusBar, PermissionsAndroid } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -7,8 +7,9 @@ import Tts from 'react-native-tts';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService } from '../../services/vehicleService';
 import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
-import { getUserId } from '../../services/storage';
+import { getUserId, getTelematicsLinked, setTelematicsLinked } from '../../services/storage';
 import BackButton from '../../components/BackButton';
+import { damoovTelematics } from '../../native/damoovTelematics';
 
 const Geolocation: any = (() => {
     try {
@@ -55,8 +56,13 @@ export default function DrivingSummary({ navigation }: any) {
                 const primary = vehiclesData.find((v: any) => v.isPrimary) || vehiclesData[0];
                 setPrimaryVehicle(primary);
 
-                // 2. Fetch Trips for that vehicle
+                // 2. For this vehicle, check stored link flag and fetch trips
                 if (primary?.id) {
+                    const storedLinked = getTelematicsLinked(primary.id);
+                    if (storedLinked) {
+                        setLinkDone(true);
+                    }
+
                     const tripsRes = await telematicsApi.getTrips(primary.id);
                     // API returns { success: true, data: { data: trips[], pagination } }
                     const tripsArray = Array.isArray(tripsRes?.data?.data) ? tripsRes.data.data : (Array.isArray(tripsRes?.data) ? tripsRes.data : []);
@@ -91,6 +97,9 @@ export default function DrivingSummary({ navigation }: any) {
                             harshBraking: harshBrakingCount.toString(),
                             hardAccel: hardAccelCount.toString()
                         });
+                        // Mark device as linked if this vehicle already has trips
+                        setTelematicsLinked(primary.id, true);
+                        setLinkDone(true);
                     } else {
                         setScore(null);
                         setMetrics({
@@ -230,11 +239,37 @@ export default function DrivingSummary({ navigation }: any) {
         fetchAdvice();
     };
 
+    const requestTelematicsPermissions = async (): Promise<boolean> => {
+        if (Platform.OS !== 'android') return true;
+        try {
+            const perms = [
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+            ];
+            const apiLevel = (Platform as any).Version;
+            if (apiLevel >= 29 && PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION) {
+                perms.push(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION);
+            }
+            const result = await PermissionsAndroid.requestMultiple(perms);
+            const fine = result[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
+            return fine === PermissionsAndroid.RESULTS.GRANTED;
+        } catch {
+            return false;
+        }
+    };
+
     const handleLinkDevice = async () => {
         if (!primaryVehicle?.id) return;
         const userId = getUserId() || 'user';
         setLinkLoading(true);
         try {
+            if (Platform.OS === 'android' && damoovTelematics.isAvailable()) {
+                const granted = await requestTelematicsPermissions();
+                if (!granted) {
+                    Alert.alert('Permissions needed', 'Location permission is required to record trips. Please allow it in Settings and try again.', [{ text: 'OK' }]);
+                    return;
+                }
+            }
             const deviceToken = await telematicsApi.registerUser(userId);
             if (!deviceToken) throw new Error('No DeviceToken from server');
             const instanceId = `app-${userId}-${Date.now()}`;
@@ -244,10 +279,17 @@ export default function DrivingSummary({ navigation }: any) {
                 deviceToken,
                 Platform.OS as 'ios' | 'android',
             );
+            if (damoovTelematics.isAvailable()) {
+                await damoovTelematics.setDeviceId(deviceToken);
+                await damoovTelematics.setEnabled(true);
+            }
+            setTelematicsLinked(primaryVehicle.id, true);
             setLinkDone(true);
             Alert.alert(
                 'Device linked',
-                'This phone is now linked for driving trips. With the Damoov SDK integrated, your trips will appear here after you drive.',
+                damoovTelematics.isAvailable()
+                    ? 'Trip tracking is on. Your drives will be recorded and appear here after sync.'
+                    : 'This phone is now linked for driving trips. Your trips will appear here after you drive.',
                 [{ text: 'OK' }],
             );
         } catch (e: any) {

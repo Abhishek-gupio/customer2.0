@@ -594,7 +594,7 @@ export default function Home() {
         </View>
 
         {/* FULL HEIGHT HOME ADVERTISEMENT */}
-        <View style={styles.fullAdSection}>
+        {/* <View style={styles.fullAdSection}>
           <Text style={styles.fullAdTitle}>Featured Services</Text>
           <Image
             source={require('../../assets/images/Home_AD.png') as any}
@@ -607,7 +607,7 @@ export default function Home() {
           >
             <Text style={styles.exploreAdButtonText}>Explore</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* COMING SOON FEATURES */}
         <View style={styles.section}>

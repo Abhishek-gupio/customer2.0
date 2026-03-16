@@ -172,6 +172,47 @@ export const vehicleService = {
       throw AppError.notFound("Vehicle not found");
     }
 
+    // A4: Explainability – add scoreChangeReason and components for "Why this score?" and "What to do next?"
+    if (vehicle.healthScore) {
+      const recs = Array.isArray(vehicle.healthScore.recommendations)
+        ? (vehicle.healthScore.recommendations as string[])
+        : [];
+      const expls = Array.isArray(vehicle.healthScore.explanations)
+        ? (vehicle.healthScore.explanations as string[])
+        : [];
+      const scoreChangeReason =
+        recs[0] ?? expls[0] ?? "Score based on maintenance, documents, and driving data.";
+      const components: { name: string; score: number | null; label: string }[] = [
+        {
+          name: "maintenance",
+          score: vehicle.healthScore.maintenanceScore ?? null,
+          label: "Maintenance",
+        },
+        {
+          name: "driving",
+          score: vehicle.healthScore.drivingScore ?? null,
+          label: "Driving",
+        },
+        {
+          name: "age",
+          score: vehicle.healthScore.ageScore ?? null,
+          label: "Age",
+        },
+        {
+          name: "mileage",
+          score: vehicle.healthScore.mileageScore ?? null,
+          label: "Mileage",
+        },
+      ];
+      (vehicle as any).healthScore = {
+        ...vehicle.healthScore,
+        scoreChangeReason,
+        components,
+        recommendations: recs,
+        explanations: expls,
+      };
+    }
+
     return vehicle;
   },
 

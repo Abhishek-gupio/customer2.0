@@ -7,6 +7,71 @@ const db = dbInstances as any;
 
 const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
 
+/** Cache admin token to avoid hitting Damoov login rate limit (reuse for 50 min). */
+const ADMIN_TOKEN_CACHE_TTL_MS = 50 * 60 * 1000;
+let adminTokenCache: { token: string; expiresAt: number } | null = null;
+
+/** After rate limit, skip login attempts for 2 hours so Damoov's limit can reset. */
+const RATE_LIMIT_BACKOFF_MS = 2 * 60 * 60 * 1000;
+let rateLimitBackoffUntil = 0;
+
+function isRateLimitError(err: any): boolean {
+  const status = err.response?.status;
+  const body = err.response?.data;
+  const msg = typeof body === "string" ? body : body?.error || body?.message || "";
+  return status === 429 || /rate limit exceeded/i.test(String(msg));
+}
+
+async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null> {
+  if (adminTokenCache && Date.now() < adminTokenCache.expiresAt) {
+    return adminTokenCache.token;
+  }
+  adminTokenCache = null;
+
+  if (!forceLogin && Date.now() < rateLimitBackoffUntil) {
+    logger.debug(
+      { backoffUntil: new Date(rateLimitBackoffUntil).toISOString() },
+      "Skipping Damoov login (rate limit backoff)"
+    );
+    return null;
+  }
+
+  if (!env.DAMOOV_ADMIN_EMAIL || !env.DAMOOV_ADMIN_PASSWORD) {
+    return null;
+  }
+
+  try {
+    const authRes = await axios.post(
+      "https://user.telematicssdk.com/v1/Auth/Login",
+      {
+        LoginFields: JSON.stringify({ email: env.DAMOOV_ADMIN_EMAIL }),
+        Password: env.DAMOOV_ADMIN_PASSWORD,
+      },
+      {
+        headers: { accept: "application/json", "content-type": "application/json" },
+      }
+    );
+    const token = authRes.data?.Result?.AccessToken?.Token;
+    if (!token) return null;
+    adminTokenCache = { token, expiresAt: Date.now() + ADMIN_TOKEN_CACHE_TTL_MS };
+    return token;
+  } catch (err: any) {
+    if (isRateLimitError(err)) {
+      rateLimitBackoffUntil = Date.now() + RATE_LIMIT_BACKOFF_MS;
+      logger.warn(
+        { error: err.response?.data || err.message, backoffMinutes: 120 },
+        "Damoov Admin API rate limited on login; skipping login for 2 hours"
+      );
+    } else {
+      logger.error(
+        { error: err.response?.data || err.message },
+        "Failed to login to Damoov Admin API"
+      );
+    }
+    return null;
+  }
+}
+
 export const telematicsService = {
   /**
    * Register a user with Damoov explicitly to get a DeviceToken
@@ -245,13 +310,77 @@ export const telematicsService = {
   },
 
   /**
-   * Pull trips for all active devices from Damoov API (Cron job Alternative)
+   * A5: End-trip summary with score + money tip + safety tip for Telematics Value Presentation
    */
-  async syncTripsForAllDevices() {
+  async getTripSummaryById(tripId: string): Promise<{
+    trip: { id: string; startTime: Date; endTime: Date; distanceKm: number; durationMin: number; safetyScore: number };
+    moneyTip: string;
+    safetyTip: string;
+  }> {
+    const trip = await db.drivingTrip.findUnique({
+      where: { id: tripId },
+      include: { events: true },
+    });
+
+    if (!trip) throw new Error("Trip not found");
+
+    const events = (trip as any).events || [];
+    const harshBraking = events.filter((e: any) => /harsh|brak|brake/i.test(String(e.eventType))).length;
+    const hardAccel = events.filter((e: any) => /accel|acceleration|hard.*accel/i.test(String(e.eventType))).length;
+    const speeding = events.filter((e: any) => /speed|overspeed/i.test(String(e.eventType))).length;
+    const totalEvents = harshBraking + hardAccel + speeding;
+
+    const score = trip.safetyScore ?? 100;
+    const distanceKm = trip.distanceKm ?? 0;
+
+    let moneyTip: string;
+    if (totalEvents === 0 && score >= 80) {
+      moneyTip = "Smooth driving helps tyres and brakes last longer — you're on track.";
+    } else if (totalEvents > 0) {
+      const roughSavings = totalEvents * 50; // rough ₹ per trip impact
+      moneyTip = `${totalEvents} event${totalEvents > 1 ? "s" : ""} (harsh brake/accel/speed) add wear. Smoother driving could save ~₹${roughSavings}+ on wear per month.`;
+    } else {
+      moneyTip = "Gentle braking and steady speed reduce fuel use and wear — keep it up.";
+    }
+
+    let safetyTip: string;
+    if (score >= 85) {
+      safetyTip = "Great safety score. Maintain smooth braking and steady speed.";
+    } else if (harshBraking > 0 || hardAccel > 0) {
+      const parts: string[] = [];
+      if (harshBraking > 0) parts.push(`${harshBraking} harsh brake${harshBraking > 1 ? "s" : ""}`);
+      if (hardAccel > 0) parts.push(`${hardAccel} hard acceleration${hardAccel > 1 ? "s" : ""}`);
+      safetyTip = `Fewer ${parts.join(" and ")} = safer trips and less wear.`;
+    } else if (speeding > 0) {
+      safetyTip = "Staying within speed limits improves safety and fuel efficiency.";
+    } else {
+      safetyTip = "Small improvements in smoothness can raise your score and reduce wear.";
+    }
+
+    return {
+      trip: {
+        id: trip.id,
+        startTime: trip.startTime,
+        endTime: trip.endTime,
+        distanceKm,
+        durationMin: trip.durationMin ?? 0,
+        safetyScore: score,
+      },
+      moneyTip,
+      safetyTip,
+    };
+  },
+
+  /**
+   * Pull trips for all active devices from Damoov API (Cron job Alternative).
+   * Uses cached admin token to avoid login rate limits; on 429 skips this run and retries next schedule.
+   * @param options.forceLogin - If true, attempt login even during rate-limit backoff (for manual/immediate sync).
+   */
+  async syncTripsForAllDevices(options?: { forceLogin?: boolean }) {
     logger.info("Starting Damoov API sync for all devices (Admin Method)");
 
-    if (!env.DAMOOV_ADMIN_EMAIL || !env.DAMOOV_ADMIN_PASSWORD) {
-      logger.error("Missing DAMOOV_ADMIN_EMAIL or DAMOOV_ADMIN_PASSWORD for sync");
+    const accessToken = await getDamoovAdminToken(options?.forceLogin);
+    if (!accessToken) {
       return;
     }
 
@@ -262,23 +391,6 @@ export const telematicsService = {
 
     if (!devices.length) return;
 
-    let accessToken = "";
-    try {
-      // 1. Authenticate as Admin
-      const authRes = await axios.post("https://user.telematicssdk.com/v1/Auth/Login", {
-        LoginFields: JSON.stringify({ email: env.DAMOOV_ADMIN_EMAIL }),
-        Password: env.DAMOOV_ADMIN_PASSWORD
-      }, {
-        headers: { "accept": "application/json", "content-type": "application/json" }
-      });
-      accessToken = authRes.data?.Result?.AccessToken?.Token;
-      if (!accessToken) throw new Error("No AccessToken in response");
-    } catch (err: any) {
-      logger.error({ error: err.response?.data || err.message }, "Failed to login to Damoov Admin API");
-      return;
-    }
-
-    // 2. Poll for each device
     for (const device of devices) {
       try {
         const startDate = device.lastSyncAt
@@ -286,7 +398,6 @@ export const telematicsService = {
           : new Date(Date.now() - 24 * 60 * 60 * 1000);
         const endDate = new Date();
 
-        // API requires at least one of InstanceIds, ApplicationIds, CompanyIds, or UserId. We filter by instance.
         const requestBody = {
           Identifiers: {
             InstanceIds: [device.instanceId],
@@ -300,46 +411,62 @@ export const telematicsService = {
         };
 
         const response = await axios.post(
-          `https://api.telematicssdk.com/trips/get/admin/v1`,
+          "https://api.telematicssdk.com/trips/get/admin/v1",
           requestBody,
           {
             headers: {
-              "Accept": "application/json",
+              Accept: "application/json",
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${accessToken}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
 
-        // API sometimes returns trips inside Result.Trips
+        if (response.status === 401) {
+          adminTokenCache = null;
+          logger.warn("Damoov admin token expired; will re-login on next sync");
+          return;
+        }
+
         const fetchedTrips = response.data?.Result?.Trips || response.data?.Trips || [];
 
         for (const trip of fetchedTrips) {
-          const tripId = trip.TripID || trip.Id;
+          const tripId = String(trip.TripID ?? trip.Id ?? "");
+          if (!tripId) continue;
           const existingTrip = await db.drivingTrip.findUnique({
-            where: { tripId }
+            where: { tripId },
           });
 
           if (!existingTrip) {
             await this.processWebhook({
               InstanceID: device.instanceId,
               TripID: tripId,
-              StartDate: trip.StartDate || Math.floor(new Date(trip.StartDateUtc || Date.now()).getTime() / 1000),
-              EndDate: trip.EndDate || Math.floor(new Date(trip.EndDateUtc || Date.now()).getTime() / 1000),
-              Distance: trip.Distance || trip.Statistics?.Distance || 0,
-              Duration: trip.Duration || trip.Statistics?.Duration || 0,
-              Score_Overall: trip.Score_Overall || trip.Scores?.Overall || trip.Score || 100,
-              Events: trip.Events || []
+              StartDate: trip.StartDate ?? Math.floor(new Date(trip.StartDateUtc ?? Date.now()).getTime() / 1000),
+              EndDate: trip.EndDate ?? Math.floor(new Date(trip.EndDateUtc ?? Date.now()).getTime() / 1000),
+              Distance: trip.Distance ?? trip.Statistics?.Distance ?? 0,
+              Duration: trip.Duration ?? trip.Statistics?.Duration ?? 0,
+              Score_Overall: trip.Score_Overall ?? trip.Scores?.Overall ?? trip.Score ?? 100,
+              Events: trip.Events ?? [],
             });
           }
         }
 
         await db.telematicsDevice.update({
           where: { id: device.id },
-          data: { lastSyncAt: endDate }
+          data: { lastSyncAt: endDate },
         });
-
       } catch (error: any) {
+        if (error.response?.status === 401) {
+          adminTokenCache = null;
+          logger.warn("Damoov admin token rejected; will re-login on next sync");
+          return;
+        }
+        if (isRateLimitError(error)) {
+          logger.warn(
+            "Damoov Admin API rate limited during trip fetch; skipping this sync, will retry on next schedule"
+          );
+          return;
+        }
         if (error.response?.status === 404) {
           logger.warn(
             { deviceId: device.id, instanceId: device.instanceId },

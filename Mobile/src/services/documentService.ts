@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { API_BASE_URL } from '../config';
 import { getAccessToken } from './storage';
+import { api } from './api';
 
 const DOCUMENTS_URL = `${API_BASE_URL}/api/v1/documents`;
 
@@ -57,6 +58,39 @@ function authHeaders(): Record<string, string> {
   const token = getAccessToken();
   if (token) return { Authorization: `Bearer ${token}` };
   return {};
+}
+
+/** Result of pre-upload image quality check (A3: reduce failed uploads). */
+export interface ImageQualityResult {
+  ok: boolean;
+  hints: string[];
+}
+
+/** Pre-upload check: blur and glare. Call before upload for documents/receipts. */
+export async function checkImageQuality(
+  fileUri: string,
+  fileName?: string,
+  mimeType?: string,
+): Promise<ImageQualityResult> {
+  try {
+    const formData = new FormData();
+    formData.append('file', {
+      uri: fileUri,
+      name: fileName || `image_${Date.now()}.jpg`,
+      type: mimeType || 'image/jpeg',
+    } as any);
+    const res = await api.upload<{ success?: boolean; data?: ImageQualityResult; ok?: boolean; hints?: string[] }>(
+      '/v1/documents/check-image-quality',
+      formData,
+    );
+    const data = (res as any)?.data ?? res;
+    return {
+      ok: data?.ok ?? true,
+      hints: Array.isArray(data?.hints) ? data.hints : [],
+    };
+  } catch {
+    return { ok: true, hints: [] };
+  }
 }
 
 export async function uploadDocument(params: UploadDocumentParams): Promise<DocumentResponse> {
