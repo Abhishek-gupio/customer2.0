@@ -11,6 +11,8 @@ import {
   View,
   PermissionsAndroid,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
@@ -18,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { MainTabParamList } from '../../navigation/types';
-import { chatService, type SSEChunk } from '../../services/chatService';
+import { chatService, type SSEChunk, type SuggestedAction } from '../../services/chatService';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { VoiceOwnerContext } from '../../context/VoiceOwnerContext';
@@ -37,6 +39,7 @@ interface UIMessage {
   agentSteps?: any[];
   feedback?: 1 | -1 | null;
   hadImage?: boolean;
+  suggestedActions?: SuggestedAction[];
   timestamp: Date;
 }
 
@@ -64,6 +67,50 @@ export default function AIAssistant() {
   const isLocalSession = sessionId?.startsWith('local-');
   const wantsListeningRef = useRef(false);
   const voiceRetryRef = useRef(0);
+
+  const [quickExpenseVisible, setQuickExpenseVisible] = useState(false);
+  const [quickExpenseAmount, setQuickExpenseAmount] = useState('');
+  const [quickExpenseCategory, setQuickExpenseCategory] = useState<string>('FUEL');
+
+  const DEFAULT_ACTIONS: SuggestedAction[] = useMemo(
+    () => [
+      { label: 'Log expense', prompt: 'Add an expense for my vehicle' },
+      { label: 'Set reminder', prompt: 'Set a reminder for my vehicle' },
+      { label: 'Documents', prompt: 'Show my document status' },
+      { label: 'Support', prompt: 'I need help or support' },
+    ],
+    [],
+  );
+
+  const EXPENSE_CATEGORIES = useMemo(
+    () => [
+      { id: 'FUEL', label: 'Fuel' },
+      { id: 'TOLL', label: 'Toll' },
+      { id: 'SERVICE', label: 'Service' },
+      { id: 'PARKING', label: 'Parking' },
+      { id: 'INSURANCE', label: 'Insurance' },
+      { id: 'CHALLAN', label: 'Challan' },
+      { id: 'OTHER', label: 'Other' },
+    ],
+    [],
+  );
+
+  const orderActionsByRelevance = useCallback(
+    (actions: SuggestedAction[], botText: string): SuggestedAction[] => {
+      if (!botText || botText.length < 10) return actions;
+      const lower = botText.toLowerCase();
+      const score: Record<string, number> = {};
+      actions.forEach((a) => {
+        score[a.label] = 0;
+        if (/expense|fuel|spend|cost|toll|rupee|₹/i.test(lower) && a.label === 'Log expense') score[a.label] += 2;
+        if (/document|insurance|rc|puc|expir|renew/i.test(lower) && a.label === 'Documents') score[a.label] += 2;
+        if (/remind|service|due|schedule|maintenance/i.test(lower) && a.label === 'Set reminder') score[a.label] += 2;
+        if (/help|support|issue|problem|contact/i.test(lower) && a.label === 'Support') score[a.label] += 2;
+      });
+      return [...actions].sort((a, b) => (score[b.label] ?? 0) - (score[a.label] ?? 0));
+    },
+    [],
+  );
 
   const quickPrompts = useMemo(
     () => [
@@ -469,6 +516,7 @@ export default function AIAssistant() {
                   voiceUrl: response.voiceUrl,
                   toolResults: response.toolResults,
                   agentSteps: response.agentSteps,
+                  suggestedActions: (response as any).suggestedActions,
                 }
               : m,
           ),
@@ -552,6 +600,7 @@ export default function AIAssistant() {
                         isStreaming: false,
                         voiceUrl: chunk.voiceUrl,
                         toolResults: chunk.toolResults || m.toolResults,
+                        suggestedActions: chunk.suggestedActions,
                       }
                     : m,
                 ),
@@ -626,9 +675,46 @@ export default function AIAssistant() {
     setIsStreaming(false);
   };
 
+  const actionChipIcon: Record<string, string> = {
+    'Log expense': 'add-circle-outline',
+    'Set reminder': 'notifications-outline',
+    Documents: 'document-text-outline',
+    Support: 'help-buoy-outline',
+  };
+
+  const onActionChipPress = useCallback(
+    (action: SuggestedAction) => {
+      if (isLoading || isStreaming) return;
+      if (action.label === 'Log expense') {
+        setQuickExpenseAmount('');
+        setQuickExpenseCategory('FUEL');
+        setQuickExpenseVisible(true);
+      } else {
+        handleSend(action.prompt);
+      }
+    },
+    [isLoading, isStreaming],
+  );
+
+  const submitQuickExpense = useCallback(() => {
+    const amount = quickExpenseAmount.trim().replace(/[^0-9.]/g, '');
+    if (!amount || Number.isNaN(Number(amount))) {
+      Alert.alert('Invalid amount', 'Please enter a valid number.');
+      return;
+    }
+    const prompt = `Add an expense of ₹${amount} for ${quickExpenseCategory}`;
+    setQuickExpenseVisible(false);
+    setQuickExpenseAmount('');
+    handleSend(prompt);
+  }, [quickExpenseAmount, quickExpenseCategory]);
+
   const renderMessage = ({ item }: { item: UIMessage }) => {
     const isUser = item.sender === 'user';
     const isBot = item.sender === 'bot';
+    const actionChips =
+      item.suggestedActions?.length > 0
+        ? item.suggestedActions
+        : orderActionsByRelevance(DEFAULT_ACTIONS, item.text);
 
     return (
       <View style={[styles.messageBubbleRow, isUser && styles.messageBubbleRowRight]}>
@@ -663,47 +749,69 @@ export default function AIAssistant() {
           )}
 
           {isBot && !item.isStreaming && item.text.length > 0 && (
-            <View style={styles.actionRow}>
-              <Pressable
-                onPress={() => handleVoicePlay(item.voiceUrl, item.text, item.id)}
-                style={styles.actionBtn}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={
-                    (item.voiceUrl && playingVoiceUrl === item.voiceUrl) ||
-                    (!item.voiceUrl && ttsSpeakingId === item.id)
-                      ? 'volume-mute-outline'
-                      : 'volume-medium-outline'
-                  }
-                  size={16}
-                  color="#7a8599"
-                />
-              </Pressable>
+            <>
+              <View style={styles.actionChipsRow}>
+                {actionChips.map((action) => (
+                  <Pressable
+                    key={action.label}
+                    onPress={() => onActionChipPress(action)}
+                    style={[styles.actionChip, (isLoading || isStreaming) && styles.actionChipDisabled]}
+                    hitSlop={6}
+                    disabled={isLoading || isStreaming}
+                    accessibilityLabel={action.label}
+                    accessibilityHint={`Asks AI: ${action.prompt}`}
+                  >
+                    <Ionicons
+                      name={(actionChipIcon[action.label] || 'ellipse-outline') as any}
+                      size={14}
+                      color="#9fb3ff"
+                    />
+                    <Text style={styles.actionChipText}>{action.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={styles.actionRow}>
+                <Pressable
+                  onPress={() => handleVoicePlay(item.voiceUrl, item.text, item.id)}
+                  style={styles.actionBtn}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name={
+                      (item.voiceUrl && playingVoiceUrl === item.voiceUrl) ||
+                      (!item.voiceUrl && ttsSpeakingId === item.id)
+                        ? 'volume-mute-outline'
+                        : 'volume-medium-outline'
+                    }
+                    size={16}
+                    color="#7a8599"
+                  />
+                </Pressable>
 
-              <Pressable
-                onPress={() => handleFeedback(item.id, 1)}
-                style={styles.actionBtn}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={item.feedback === 1 ? 'thumbs-up' : 'thumbs-up-outline'}
-                  size={14}
-                  color={item.feedback === 1 ? '#65d9a5' : '#7a8599'}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() => handleFeedback(item.id, -1)}
-                style={styles.actionBtn}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={item.feedback === -1 ? 'thumbs-down' : 'thumbs-down-outline'}
-                  size={14}
-                  color={item.feedback === -1 ? '#ff6b6b' : '#7a8599'}
-                />
-              </Pressable>
-            </View>
+                <Pressable
+                  onPress={() => handleFeedback(item.id, 1)}
+                  style={styles.actionBtn}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name={item.feedback === 1 ? 'thumbs-up' : 'thumbs-up-outline'}
+                    size={14}
+                    color={item.feedback === 1 ? '#65d9a5' : '#7a8599'}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() => handleFeedback(item.id, -1)}
+                  style={styles.actionBtn}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name={item.feedback === -1 ? 'thumbs-down' : 'thumbs-down-outline'}
+                    size={14}
+                    color={item.feedback === -1 ? '#ff6b6b' : '#7a8599'}
+                  />
+                </Pressable>
+              </View>
+            </>
           )}
 
           <Text style={styles.timestamp}>
@@ -864,6 +972,60 @@ export default function AIAssistant() {
         </View>
       </KeyboardAvoidingView>
 
+      <Modal
+        visible={quickExpenseVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQuickExpenseVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setQuickExpenseVisible(false)}
+        >
+          <Pressable style={styles.quickExpenseCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.quickExpenseTitle}>Quick add expense</Text>
+            <TextInput
+              value={quickExpenseAmount}
+              onChangeText={setQuickExpenseAmount}
+              placeholder="Amount (e.g. 500)"
+              placeholderTextColor="#7a8599"
+              keyboardType="decimal-pad"
+              style={styles.quickExpenseInput}
+            />
+            <Text style={styles.quickExpenseLabel}>Category</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              {EXPENSE_CATEGORIES.map((cat) => (
+                <Pressable
+                  key={cat.id}
+                  onPress={() => setQuickExpenseCategory(cat.id)}
+                  style={[
+                    styles.categoryChip,
+                    quickExpenseCategory === cat.id && styles.categoryChipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      quickExpenseCategory === cat.id && styles.categoryChipTextActive,
+                    ]}
+                  >
+                    {cat.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <View style={styles.quickExpenseActions}>
+              <Pressable onPress={() => setQuickExpenseVisible(false)} style={styles.quickExpenseBtn}>
+                <Text style={styles.quickExpenseBtnTextSecondary}>Cancel</Text>
+              </Pressable>
+              <Pressable onPress={submitQuickExpense} style={[styles.quickExpenseBtn, styles.quickExpenseBtnPrimary]}>
+                <Text style={styles.quickExpenseBtnText}>Add expense</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {playingVoiceUrl ? (
         <Video
           source={{ uri: playingVoiceUrl }}
@@ -992,6 +1154,118 @@ const styles = StyleSheet.create({
   toolBadgeText: {
     color: '#9fb3ff',
     fontSize: 12,
+  },
+
+  actionChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  actionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(159, 179, 255, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(159, 179, 255, 0.25)',
+  },
+  actionChipText: {
+    color: '#9fb3ff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionChipDisabled: {
+    opacity: 0.5,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  quickExpenseCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#0d1a30',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#1c2640',
+  },
+  quickExpenseTitle: {
+    color: '#e8edf5',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  quickExpenseInput: {
+    backgroundColor: '#111b2e',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#1c2640',
+  },
+  quickExpenseLabel: {
+    color: '#7a8599',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  categoryScroll: {
+    marginBottom: 20,
+  },
+  categoryChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#111b2e',
+    borderWidth: 1,
+    borderColor: '#1c2640',
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    backgroundColor: 'rgba(159, 179, 255, 0.2)',
+    borderColor: '#9fb3ff',
+  },
+  categoryChipText: {
+    color: '#9fb3ff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  categoryChipTextActive: {
+    color: '#e8edf5',
+  },
+  quickExpenseActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  quickExpenseBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+  },
+  quickExpenseBtnPrimary: {
+    backgroundColor: '#3b6dd4',
+  },
+  quickExpenseBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  quickExpenseBtnTextSecondary: {
+    color: '#7a8599',
+    fontSize: 15,
   },
 
   actionRow: {
