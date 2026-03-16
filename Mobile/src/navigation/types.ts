@@ -13,8 +13,6 @@ export type RootStackParamList = {
   VehicleDetails: { vehicleId: string };
   AddVehicle: undefined;
   Challans: { vehicle: any };
-  UploadDocument: undefined;
-  DocumentDetail: { documentId: string };
   Expenses: undefined;
   addExpense: undefined;
   ExpenseAnalytics: undefined;

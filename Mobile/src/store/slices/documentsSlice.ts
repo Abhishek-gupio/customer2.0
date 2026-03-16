@@ -6,6 +6,7 @@ import {
   type DocumentResponse,
   BACKEND_TYPE_MAP,
 } from '../../services/documentService';
+import { getAbsoluteUrl } from '../../config';
 
 export interface DocumentItem {
   id: string;
@@ -48,7 +49,7 @@ function toDocumentItem(doc: DocumentResponse): DocumentItem {
     id: doc.id,
     type: BACKEND_TYPE_MAP[doc.type] || doc.type,
     vehicle: doc.vehicle?.registrationNumber || '',
-    imageUri: doc.fileUrl,
+    imageUri: getAbsoluteUrl(doc.fileUrl),
     documentNumber: doc.documentNumber,
     issueDate: doc.issueDate,
     expiryDate: expiryDate,
