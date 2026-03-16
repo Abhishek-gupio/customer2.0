@@ -307,9 +307,13 @@ export type TicketPriority = (typeof TicketPriority)[keyof typeof TicketPriority
 
 export const TicketCategory: {
   GENERAL: 'GENERAL',
-  TECHNICAL: 'TECHNICAL',
-  BILLING: 'BILLING',
   VEHICLE: 'VEHICLE',
+  DOCUMENTS: 'DOCUMENTS',
+  VALET: 'VALET',
+  AI_ASSISTANT: 'AI_ASSISTANT',
+  BILLING: 'BILLING',
+  ACCOUNT: 'ACCOUNT',
+  TECHNICAL: 'TECHNICAL',
   APP_ISSUE: 'APP_ISSUE',
   OTHER: 'OTHER'
 };

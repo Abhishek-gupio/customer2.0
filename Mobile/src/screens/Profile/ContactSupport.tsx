@@ -65,8 +65,12 @@ export default function ContactSupport() {
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       }
-    } catch (err) {
-      Alert.alert('Error', 'Failed to submit ticket. Please try again.');
+    } catch (err: any) {
+      const errorObj = err.response?.data?.error;
+      const msg = typeof errorObj === 'string' 
+        ? errorObj 
+        : (errorObj?.message || 'Failed to submit ticket. Please try again.');
+      Alert.alert('Error', msg);
     } finally {
       setLoading(false);
     }
@@ -128,7 +132,7 @@ export default function ContactSupport() {
             value={description}
             onChangeText={(text) => text.length <= 5000 && setDescription(text)}
           />
-          <Text style={styles.hint}>Min. 20 characters</Text>
+          <Text style={styles.hint}>Describe your issue in detail</Text>
 
           <Text style={styles.label}>Priority</Text>
           <View style={styles.priorityRow}>
