@@ -2,10 +2,10 @@ import { Platform } from 'react-native';
 
 // ─── API ─────────────────────────────────────────────────────────────────
 /** Set to true to use production API even when running in dev (Metro). Use for testing prod. */
-const FORCE_USE_PRODUCTION_API = true;
+const FORCE_USE_PRODUCTION_API = false;
 
 const DEV_PORT = 9000;
-const DEV_HOST = `http://192.168.1.17:${DEV_PORT}`;
+const DEV_HOST = `http://localhost:${DEV_PORT}`;
 
 /** Production API base URL – no trailing slash. Used in release builds (or when FORCE_USE_PRODUCTION_API is true). */
 const PRODUCTION_API_BASE_URL = 'https://customerapi.gupio.tech';
