@@ -58,6 +58,7 @@ export default function UploadDocument() {
   const [showQualityModal, setShowQualityModal] = useState(false);
   const [qualityHints, setQualityHints] = useState<string[]>([]);
   const [pendingImageAsset, setPendingImageAsset] = useState<{ uri: string; fileName?: string; type?: string } | null>(null);
+  const [previewError, setPreviewError] = useState(false);
 
   useEffect(() => {
     fetchPrimaryVehicle();
@@ -132,10 +133,13 @@ export default function UploadDocument() {
         allowMultiSelection: false,
       });
       if (res?.[0]) {
+        setPreviewError(false);
+        const r = res[0];
+        const isImageType = (r.type || '').startsWith('image/') || /\.(jpe?g|png|gif|webp)$/i.test(r.name || '');
         setFileInfo({
-          uri: res[0].uri,
-          name: res[0].name || `file_${Date.now()}`,
-          type: res[0].type || 'application/octet-stream',
+          uri: r.uri,
+          name: r.name || `file_${Date.now()}`,
+          type: r.type || (isImageType ? 'image/jpeg' : 'application/octet-stream'),
         });
       }
     } catch (e: unknown) {
@@ -147,6 +151,7 @@ export default function UploadDocument() {
   };
 
   const setFileFromImageAsset = (asset: { uri: string; fileName?: string; type?: string }, source: 'gallery' | 'camera') => {
+    setPreviewError(false);
     setFileInfo({
       uri: asset.uri,
       name: asset.fileName || (source === 'camera' ? `camera_${Date.now()}.jpg` : `photo_${Date.now()}.jpg`),
@@ -255,6 +260,16 @@ export default function UploadDocument() {
 
   const isImage = fileInfo?.type?.startsWith('image/');
 
+  // Normalize URI for Image preview (Android may need file:// for absolute paths)
+  const previewUri =
+    fileInfo?.uri && isImage
+      ? fileInfo.uri.startsWith('file://') || fileInfo.uri.startsWith('content://') || fileInfo.uri.startsWith('http')
+        ? fileInfo.uri
+        : Platform.OS === 'android' && fileInfo.uri.startsWith('/')
+        ? `file://${fileInfo.uri}`
+        : fileInfo.uri
+      : '';
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -349,7 +364,22 @@ export default function UploadDocument() {
           onPress={handleTapToUpload}
         >
           {fileInfo && isImage ? (
-            <Image source={{ uri: fileInfo.uri }} style={styles.previewImage} resizeMode="cover" />
+            previewError ? (
+              <View style={styles.previewFallback}>
+                <Icon name="file-image" size={wp(12)} color="#FFBF00" />
+                <Text style={styles.previewFallbackText}>Image selected</Text>
+                <Text style={styles.uploadSub}>Preview unavailable • Tap to change</Text>
+              </View>
+            ) : (
+              <Image
+                key={fileInfo.uri}
+                source={{ uri: previewUri || fileInfo.uri }}
+                style={styles.previewImage}
+                resizeMode="cover"
+                onError={() => setPreviewError(true)}
+                onLoad={() => setPreviewError(false)}
+              />
+            )
           ) : fileInfo ? (
             <View style={styles.filePreview}>
               <Icon name="file-pdf" size={wp(10)} color="#FFBF00" />
@@ -657,7 +687,24 @@ const styles = StyleSheet.create({
   previewImage: {
     width: '100%',
     height: hp(25),
+    minHeight: hp(20),
     borderRadius: wp(2),
+  },
+  previewFallback: {
+    width: '100%',
+    height: hp(25),
+    minHeight: hp(20),
+    borderRadius: wp(2),
+    backgroundColor: '#1a1a1a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(2),
+  },
+  previewFallbackText: {
+    fontSize: wp(4),
+    fontWeight: '600',
+    color: '#fff',
+    marginTop: hp(1),
   },
   filePreview: {
     alignItems: 'center',

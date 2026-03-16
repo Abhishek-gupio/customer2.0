@@ -22,7 +22,7 @@ type AddVehicleScreenProps = {
 type Step = 'INPUT' | 'CONFIRM';
 
 const FUEL_TYPES = ['PETROL', 'DIESEL', 'CNG', 'EV', 'HYBRID', 'OTHER'];
-const VEHICLE_TYPES = ['SEDAN', 'SUV', 'LUV', 'HATCHBACK', 'BIKE', 'TRUCK'];
+const VEHICLE_TYPES = ['CAR', 'BIKE'];
 
 export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenProps) => {
     const [step, setStep] = useState<Step>('INPUT');
@@ -34,7 +34,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         variant: '',
         year: '',
         fuelType: 'PETROL' as const,
-        vehicleType: 'SEDAN' as 'SEDAN' | 'BIKE' | 'SUV' | 'LUV' | 'HATCHBACK' | 'TRUCK',
+        vehicleType: 'CAR' as 'CAR' | 'BIKE',
         registrationDate: '',
         chassisNumber: '',
         engineNumber: '',

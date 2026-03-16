@@ -1,20 +1,30 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
-    StyleSheet, ActivityIndicator, Alert
+    StyleSheet, ActivityIndicator, Alert, Dimensions
 } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
 import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, ChevronDown, ChevronUp, Info
+    Calendar, Bookmark, ChevronDown, ChevronUp, Info, Upload
 } from 'lucide-react-native';
+
 import BackButton from '../../components/BackButton';
-import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../components/Vehicles/VehicleUI';
+import { useNavigation } from '../../lib/react-navigation-native';
+import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
+import type { RootStackParamList } from '../../navigation/types';
+import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate, GloveboxItem, StatusCard } from '../../components/Vehicles/VehicleUI';
 import { Vehicle, vehicleService } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import ShareScreen from './Share';
 import { getProfile } from '../../services/profileService';
+
+const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
+const BikeImage = require('../../assets/images/bike.png') as any;
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];
@@ -32,6 +42,7 @@ type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Specs' | 'Dates' | 'More';
 export const DetailsScreen = ({
     vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
 }: DetailsScreenProps) => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const [mainTab, setMainTab] = useState<MainTab>('Alerts');
     const [subTab, setSubTab] = useState<SubTab>('Health');
     const [healthScoreDetail, setHealthScoreDetail] = useState<{
@@ -91,9 +102,7 @@ export const DetailsScreen = ({
     const rto = activeVehicle.rtoDetails;
 
     // Hero image source
-    const heroSrc = (!heroError && (activeVehicle.imageUrl || activeVehicle.rtoDetails?.imageUrl))
-        ? { uri: activeVehicle.imageUrl || activeVehicle.rtoDetails?.imageUrl }
-        : { uri: FALLBACK_IMAGE };
+    const heroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
 
     const handleFeedbackSubmit = () => {
         if (!rating) return;
@@ -205,155 +214,99 @@ export const DetailsScreen = ({
                 </View>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-                {/* ── Hero ── */}
-                <View style={styles.detailHero}>
-                    <View style={styles.heroImgBox}>
-                        <View style={styles.heroGlow} />
-                        <Image
-                            source={heroSrc}
-                            style={styles.heroFallbackImage}
-                            resizeMode="cover"
-                            onError={() => setHeroError(true)}
-                        />
-                    </View>
-
-                    <Text style={styles.detailModel}>
-                        {activeVehicle.model || activeVehicle.make || 'Vehicle'}
-                    </Text>
-                    <View style={{ marginTop: 16, alignItems: 'center' }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+                {/* ── Hero section as per mockup ── */}
+                <View style={styles.heroSection}>
+                    <Image
+                        source={heroSrc}
+                        style={styles.heroImage}
+                        resizeMode="contain"
+                        onError={() => setHeroError(true)}
+                    />
+                    
+                    <Text style={styles.brandName}>{activeVehicle.make?.toUpperCase() || 'VEHICLE'}</Text>
+                    <Text style={styles.modelName}>{activeVehicle.model?.toUpperCase() || 'MODEL'}</Text>
+                    
+                    <View style={styles.heroPlateBox}>
                         <INDPlate number={activeVehicle.registrationNumber} />
-                        {activeVehicle.isPrimary && (
-                            <View style={styles.primaryBadge}>
-                                <Star size={10} color="#000" fill="#000" />
-                                <Text style={styles.primaryBadgeText}>PRIMARY VEHICLE</Text>
-                            </View>
-                        )}
                     </View>
 
-                    {/* ── Vehicle switcher strip ── */}
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.horizVehicleList}
-                    >
-                        <TouchableOpacity onPress={onAddNew} style={styles.addMiniBtn}>
+                    {/* ── Vehicle switcher circle icons ── */}
+                    <View style={styles.switcherRow}>
+                        <TouchableOpacity onPress={onAddNew} style={styles.addCircleBtn}>
                             <Plus size={24} color={COLORS.primary} />
                         </TouchableOpacity>
                         {vehicles
-                            .filter(v => !v.__optimistic)   // don't show pending vehicles in switcher
+                            .filter(v => !v.__optimistic)
                             .map((v: Vehicle) => (
                                 <TouchableOpacity
                                     key={v.id}
                                     onPress={() => setActiveVehicle(v)}
                                     style={[
-                                        styles.miniAvatarWrap,
-                                        activeVehicle.id === v.id && styles.miniAvatarActive
+                                        styles.miniCircleWrap,
+                                        activeVehicle.id === v.id && styles.miniCircleActive
                                     ]}
                                 >
-                                    <View style={styles.miniAvatar}>
+                                    <View style={[styles.miniCircleInner, activeVehicle.id === v.id && { borderColor: COLORS.primary }]}>
                                         <Image
-                                            source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }}
+                                            source={v.vehicleType === 'BIKE' ? BikeImage : CarImage}
                                             style={StyleSheet.absoluteFill}
                                             resizeMode="cover"
-                                            onError={(_e) => { /* silent — FALLBACK_IMAGE is already the src */ }}
                                         />
                                     </View>
+                                    {activeVehicle.id === v.id && (
+                                        <Text style={styles.activeMiniLabel} numberOfLines={1}>
+                                            {v.registrationNumber}
+                                        </Text>
+                                    )}
                                 </TouchableOpacity>
                             ))}
-                    </ScrollView>
+                    </View>
                 </View>
 
-                <View style={styles.contentPad}>
-                    {/* ═══════════════════════════════════════════════════════
-                        ALERTS TAB — uses real rtoDetails data
-                    ═══════════════════════════════════════════════════════ */}
+                {/* ── Tab Content ── */}
+                <View style={styles.sectionPad}>
                     {mainTab === 'Alerts' ? (
-                        <View style={{ gap: 16 }}>
-                            <InfoCard icon={FileText} label="CHALLAN" value="0" />
-                            <View style={styles.rowGrid}>
-                                <View style={{ flex: 1 }}>
-                                    <InfoCard
-                                        icon={ShieldCheck}
-                                        label="INSURANCE"
-                                        value={rto?.insuranceUpto ? `${getInsuranceStatus()}\n${rto.insuranceUpto}` : 'UNKNOWN'}
-                                        style={{ padding: 16, flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
-                                    />
-                                </View>
-                                <View style={{ width: 16 }} />
-                                <View style={{ flex: 1 }}>
-                                    <InfoCard
-                                        icon={AlertCircle}
-                                        label="PUC"
-                                        value={rto?.pollutionUpto ? `${getPucStatus()}\n${rto.pollutionUpto}` : 'UNKNOWN'}
-                                        style={{ padding: 16, flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
-                                    />
-                                </View>
+                        <>
+                            {/* ── Status Grid (Challans & PUCC) ── */}
+                            <View style={styles.statusGrid}>
+                                <StatusCard 
+                                    icon={FileText} 
+                                    label="challans" 
+                                    value="CHECK NOW" 
+                                />
+                                <StatusCard 
+                                    icon={ShieldCheck} 
+                                    label="PUCC" 
+                                    value="ACTIVE" 
+                                />
                             </View>
 
-                            {/* ── Feedback card ── */}
-                            <View style={styles.feedbackCard}>
-                                {submittedFeedback ? (
-                                    <View style={{ alignItems: 'center', paddingVertical: 24 }}>
-                                        <View style={styles.successIconBox}>
-                                            <CheckCircle2 size={32} color={COLORS.primary} />
-                                        </View>
-                                        <Text style={styles.feedbackTitle}>Thank you!</Text>
-                                        <Text style={styles.feedbackSub}>Your feedback helps us improve.</Text>
-                                        <TouchableOpacity onPress={() => setSubmittedFeedback(null)}>
-                                            <Text style={styles.resetFeedback}>GIVE ANOTHER FEEDBACK</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : (
-                                    <>
-                                        <Text style={styles.feedbackTitle}>Help us improve Gupio</Text>
-                                        <View style={styles.starRow}>
-                                            {[1, 2, 3, 4, 5].map(s => (
-                                                <TouchableOpacity key={s} onPress={() => setRating(s)}>
-                                                    <Star
-                                                        size={36}
-                                                        color={s <= rating ? COLORS.primary : '#333'}
-                                                        fill={s <= rating ? COLORS.primary : 'transparent'}
-                                                    />
-                                                </TouchableOpacity>
-                                            ))}
-                                        </View>
-                                        <TextInput
-                                            style={styles.feedbackInput}
-                                            placeholder="Share your thoughts here..."
-                                            placeholderTextColor="#555"
-                                            multiline
-                                            value={feedback}
-                                            onChangeText={setFeedback}
-                                        />
-                                        <TouchableOpacity
-                                            onPress={handleFeedbackSubmit}
-                                            disabled={!rating || isSubmitting}
-                                            style={[
-                                                styles.primaryBtn,
-                                                (!rating || isSubmitting) && { backgroundColor: '#333' },
-                                                { marginTop: 24 }
-                                            ]}
-                                        >
-                                            {isSubmitting
-                                                ? <ActivityIndicator color="#000" />
-                                                : <Text style={[styles.primaryBtnText, (!rating || isSubmitting) && { color: '#666' }]}>SUBMIT FEEDBACK</Text>
-                                            }
-                                        </TouchableOpacity>
-                                    </>
-                                )}
+                            {/* ── Your Glovebox ── */}
+                            <View style={{ marginTop: 32 }}>
+                                <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
+                                <View style={styles.gloveboxGrid}>
+                                    <GloveboxItem label="reg certificate" icon={Upload} onPress={() => {}} />
+                                    <GloveboxItem label="driver's licence" icon={Upload} onPress={() => {}} />
+                                    <GloveboxItem label="insurance policy" icon={Upload} onPress={() => {}} />
+                                    <GloveboxItem label="puc certificate" icon={Upload} onPress={() => {}} />
+                                </View>
+                                
+                                <TouchableOpacity 
+                                    style={styles.viewAllDocsBtn}
+                                    onPress={() => navigation.navigate('DocumentList')}
+                                >
+                                    <Text style={styles.viewAllDocsText}>View all documents</Text>
+                                </TouchableOpacity>
                             </View>
-                        </View>
-
+                        </>
                     ) : (
-                        /* ═══════════════════════════════════════════════════════
-                           DETAILS TAB — uses real rtoDetails + DB vehicle fields
-                        ═══════════════════════════════════════════════════════ */
+                        /* ── Details Tab (Sub-Tab Navigation) ── */
                         <View>
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                style={styles.subTabRow}
+                            <ScrollView 
+                                horizontal 
+                                showsHorizontalScrollIndicator={false} 
+                                contentContainerStyle={styles.subTabNav}
                             >
                                 {(['Health', 'Owner', 'Vehicle', 'Specs', 'Dates', 'More'] as SubTab[]).map(t => (
                                     <TouchableOpacity
@@ -361,7 +314,9 @@ export const DetailsScreen = ({
                                         onPress={() => setSubTab(t)}
                                         style={[styles.subTab, subTab === t && styles.subTabActive]}
                                     >
-                                        <Text style={[styles.subTabText, subTab === t && { color: COLORS.primary }]}>{t}</Text>
+                                        <Text style={[styles.subTabText, subTab === t && styles.subTabTextActive]}>
+                                            {t}
+                                        </Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -451,77 +406,44 @@ export const DetailsScreen = ({
                                         )}
                                     </>
                                 )}
-
                                 {subTab === 'Owner' && (
                                     <>
-                                        <InfoCard icon={User} label="Owner Name" value={'Self'} />
-                                        <InfoCard icon={Building} label="RTO Office" value={'Auto Detected'} />
+                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Unknown'} />
+                                        <InfoCard icon={Building} label="RTO Office" value={rto?.rto || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
                                     </>
                                 )}
-
                                 {subTab === 'Vehicle' && (
                                     <>
-                                        <TouchableOpacity 
-                                            style={[styles.premiumStatusCard, activeVehicle.isPrimary && styles.premiumStatusActive]}
-                                            onPress={() => !activeVehicle.isPrimary && onSetPrimary(activeVehicle.id)}
-                                            activeOpacity={0.8}
-                                        >
-                                            <View style={styles.statusGlow} />
-                                            <View style={styles.statusContent}>
-                                                <View style={styles.statusIconBox}>
-                                                    <ShieldCheck size={20} color={activeVehicle.isPrimary ? COLORS.primary : '#444'} />
-                                                </View>
-                                                <View style={{ flex: 1 }}>
-                                                    <Text style={styles.statusTitle}>Garage Priority</Text>
-                                                    <Text style={styles.statusDesc}>
-                                                        {activeVehicle.isPrimary 
-                                                            ? 'This vehicle is set as your primary choice.' 
-                                                            : 'Set as primary for quick home-screen access.'}
-                                                    </Text>
-                                                </View>
-                                                {!activeVehicle.isPrimary && (
-                                                    <View style={styles.setPriorityBtn}>
-                                                        <Text style={styles.setPriorityText}>SET</Text>
-                                                    </View>
-                                                )}
-                                            </View>
-                                        </TouchableOpacity>
-
-                                        <InfoCard icon={Wrench} label="Model" value={activeVehicle.model || 'Unknown'} />
-                                        <InfoCard icon={Bookmark} label="Variant" value={activeVehicle.variant || 'N/A'} />
-                                        <InfoCard icon={Type} label="Brand" value={activeVehicle.make || 'Unknown'} />
-                                        <InfoCard icon={Cpu} label="Chassis No." value={activeVehicle.chassisNumber || 'N/A'} />
-                                        <InfoCard icon={Droplets} label="Fuel Type" value={activeVehicle.fuelType || 'PETROL'} />
+                                        <InfoCard icon={Tag} label="Brand" value={activeVehicle.make || 'Unknown'} />
+                                        <InfoCard icon={Star} label="Model" value={activeVehicle.model || 'Unknown'} />
+                                        <InfoCard icon={Type} label="Variant" value={activeVehicle.variant || 'N/A'} />
+                                        <InfoCard icon={Droplets} label="Fuel Type" value={activeVehicle.fuelType || 'Petrol'} />
+                                        <InfoCard icon={Gauge} label="Fuel Norms" value={rto?.fuelNorms || 'BS VI'} />
                                     </>
                                 )}
-
                                 {subTab === 'Specs' && (
                                     <>
-                                        <InfoCard icon={Gauge} label="Current Odometer" value={activeVehicle.currentOdometer ? `${activeVehicle.currentOdometer} KM` : 'N/A'} />
-                                        <InfoCard icon={Tag} label="Price Range" value={rto?.priceRange || 'N/A'} />
-                                        <InfoCard icon={Star} label="Rating" value={rto?.rating ? `${rto.rating} / 5` : 'N/A'} />
-                                        <InfoCard icon={Settings} label="Trans." value={rto?.transmission || 'N/A'} />
+                                        <InfoCard icon={Cpu} label="Engine No." value={rto?.engineNo || 'N/A'} />
+                                        <InfoCard icon={Activity} label="Chassis No." value={activeVehicle.chassisNumber || 'N/A'} />
+                                        <InfoCard icon={Weight} label="Unloaded Weight" value={rto?.unloadedWeight || 'N/A'} />
+                                        <InfoCard icon={Type} label="Transmission" value={rto?.transmission || 'N/A'} />
                                     </>
                                 )}
-
                                 {subTab === 'Dates' && (
                                     <>
-                                        <InfoCard icon={Calendar} label="Reg. Year" value={activeVehicle.year || 'N/A'} />
-                                        <InfoCard icon={Clock} label="Reg. Date" value={
-                                            activeVehicle.registrationDate
-                                                ? new Date(activeVehicle.registrationDate).toLocaleDateString()
-                                                : rto?.regDate || 'N/A'
-                                        } />
-                                        <InfoCard icon={FileCheck} label="Fitness Upto" value={rto?.fitnessUpto || 'N/A'} />
-                                        <InfoCard icon={Activity} label="Insurance" value={rto?.insuranceUpto || 'N/A'} />
+                                        <InfoCard icon={Calendar} label="Reg. Date" value={rto?.regDate || 'N/A'} />
+                                        <InfoCard icon={Clock} label="Reg. Year" value={activeVehicle.year?.toString() || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="Pollution Upto" value={rto?.pollutionUpto || 'N/A'} />
+                                        <InfoCard icon={Calendar} label="Fitness Upto" value={rto?.fitnessUpto || 'N/A'} />
                                     </>
                                 )}
-
                                 {subTab === 'More' && (
                                     <>
-                                        <InfoCard icon={IdCard} label="Reg Number" value={activeVehicle.registrationNumber} />
-                                        <InfoCard icon={Weight} label="Weight" value={rto?.unloadedWeight || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || (activeVehicle.isActive ? 'ACTIVE' : 'INACTIVE')} />
+                                        <InfoCard icon={Gauge} label="Mileage" value={rto?.mileage || 'N/A'} />
+                                        <InfoCard icon={Tag} label="Price Range" value={rto?.priceRange || 'N/A'} />
+                                        <InfoCard icon={User} label="Registration Authority" value={rto?.rto || 'N/A'} />
                                     </>
                                 )}
                             </View>
@@ -548,26 +470,47 @@ export const DetailsScreen = ({
 };
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: COLORS.background },
+    screen: { flex: 1, backgroundColor: '#000000' },
     header: { paddingHorizontal: 20, paddingTop: 48, paddingBottom: 20, minHeight: 80 },
     topRoundBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
-    tabPillContainer: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: 30, padding: 4, borderWidth: 1, borderColor: COLORS.border, width: 220 },
+    tabPillContainer: { 
+        flexDirection: 'row', 
+        backgroundColor: COLORS.surface, 
+        borderRadius: 30, 
+        padding: 4, 
+        borderWidth: 1, 
+        borderColor: COLORS.border, 
+        width: 180,
+        marginHorizontal: 16
+    },
     tabPill: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 30 },
     tabPillActive: { backgroundColor: COLORS.primary },
     tabPillText: { fontSize: 12, fontFamily: 'Outfit-Black', color: '#888' },
-    detailHero: { alignItems: 'center', paddingHorizontal: 24, marginTop: 20 },
-    heroImgBox: { width: '100%', height: 200, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    heroFallbackImage: { width: 280, height: 160, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-    heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderRadius: 150 },
-    detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', textAlign: 'center' },
-    horizVehicleList: { paddingHorizontal: 24, paddingVertical: 24, gap: 16, alignItems: 'center' },
-    addMiniBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(255, 215, 0, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)', alignItems: 'center', justifyContent: 'center' },
-    miniAvatarWrap: { width: 68, height: 68, borderRadius: 34, padding: 4, borderWidth: 2, borderColor: 'transparent', backgroundColor: COLORS.surface },
-    miniAvatarActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(255, 215, 0, 0.1)' },
-    miniAvatar: { flex: 1, borderRadius: 34, backgroundColor: '#000', overflow: 'hidden' },
-    primaryBadge: { 
-        flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.primary, 
-        paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 12, gap: 4 
+    
+    // Hero Section
+    heroSection: { alignItems: 'center', paddingBottom: 16 },
+    heroImage: { width: width * 0.8, height: 160, marginBottom: -10 },
+    brandName: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase' },
+    modelName: { fontSize: 32, fontWeight: '900', color: '#FFF', marginTop: -5 },
+    heroPlateBox: { marginTop: 12 },
+
+    // Switcher Row
+    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 40, paddingHorizontal: 24 },
+    addCircleBtn: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)' },
+    miniCircleWrap: { alignItems: 'center', gap: 4 },
+    miniCircleInner: { width: 64, height: 64, borderRadius: 32, padding: 4, borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
+    miniCircleActive: { transform: [{ scale: 1.1 }] },
+    activeMiniLabel: { fontSize: 9, fontFamily: 'Outfit-Black', color: COLORS.primary, position: 'absolute', bottom: -18, textAlign: 'center', width: 80 },
+
+    sectionPad: { paddingHorizontal: 24, paddingTop: 20 },
+    sectionHeading: { fontSize: 10, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: 16 },
+
+    // Status Boxes
+    statusGrid: { flexDirection: 'row', gap: 12 },
+    statusBox: { 
+        flex: 1, backgroundColor: '#0A0A0A', padding: 24, borderRadius: 24, 
+        flexDirection: 'column', alignItems: 'center', gap: 16, 
+        borderWidth: 1, borderColor: '#1F1F1F'
     },
     primaryBadgeText: { color: '#000', fontSize: 8, fontWeight: '900', letterSpacing: 0.5 },
     contentPad: { paddingHorizontal: 24 },
@@ -700,4 +643,10 @@ const styles = StyleSheet.create({
     nextActionItem: { paddingVertical: 10, paddingHorizontal: 4 },
     nextActionText: { color: '#CCC', fontSize: 13 },
     healthLoadingHint: { color: '#666', fontSize: 12, textAlign: 'center', paddingVertical: 24 },
+    gloveboxGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8 },
+    viewAllDocsBtn: { marginTop: 16, paddingVertical: 12, alignItems: 'center' },
+    viewAllDocsText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: COLORS.primary },
+    subTabNav: { paddingHorizontal: 8, gap: 4, paddingBottom: 8 },
+    subTabTextActive: { color: COLORS.primary },
+    detailsSpecsContainer: { gap: 16, marginTop: 10 },
 });

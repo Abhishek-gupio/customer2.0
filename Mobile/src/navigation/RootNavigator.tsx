@@ -11,8 +11,6 @@ import Signup from '../screens/Auth/Signup';
 import OTP from '../screens/Auth/OTP';
 import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
 import DocumentList from '../screens/Documents/DocumentList';
-import UploadDocument from '../screens/Documents/UploadDocument';
-import DocumentDetail from '../screens/Documents/DocumentDetail';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
 import LiveChat from '../screens/Profile/LiveChat';
@@ -72,9 +70,6 @@ export function RootNavigator() {
       <Stack.Screen name="VehicleDetails" component={GupioGarageApp} />
       <Stack.Screen name="AddVehicle" component={GupioGarageApp} />
       <Stack.Screen name="Challans" component={Challans} />
-
-      <Stack.Screen name="UploadDocument" component={UploadDocument} />
-      <Stack.Screen name="DocumentDetail" component={DocumentDetail} />
       <Stack.Screen name="Main" component={MainScreen} />
       <Stack.Screen name="Expenses" component={ExpensesList} />
       <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />

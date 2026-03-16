@@ -1,332 +1,362 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   StatusBar,
   Platform,
   ActivityIndicator,
+  Dimensions,
+  Image,
+  Modal,
   Alert,
-  Share,
+  PermissionsAndroid,
+  TouchableWithoutFeedback,
+  Share as RNShare,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getAbsoluteUrl } from '../../config';
-import { jsPDF } from 'jspdf';
+import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
+import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+  ShieldCheck,
+  FileText,
+  ArrowRight,
+  Plus,
+  Camera,
+  Image as ImageIcon,
+  FileUp,
+  X,
+  Download,
+  Share2,
+  Trash2,
+} from 'lucide-react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { pick as pickDocument, types as docTypes } from '@react-native-documents/picker';
 import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
-import { fetchDocuments } from '../../store/slices/documentsSlice';
-import type { DocumentItem } from '../../store/slices/documentsSlice';
+import { fetchDocuments, addDocumentFromResponse, toDocItem, removeDocumentAsync } from '../../store/slices/documentsSlice';
+import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
+import { uploadDocument } from '../../services/documentService';
+
+const { width } = Dimensions.get('window');
+const CarImage = require('../../assets/images/car_vehicle_demo.png');
+const BikeImage = require('../../assets/images/bike.png');
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
-
-const CATEGORIES = ['All', 'RC', 'Insurance', 'PUC', 'FASTag', 'DL', 'Other'];
-
-const DOC_TYPE_LABELS: Record<string, string> = {
-  RC: 'RC Book',
-  Insurance: 'Insurance',
-  PUC: 'PUC Certificate',
-  FASTag: 'FASTag',
-  DL: 'Driving License',
-  Other: 'Other',
-};
-
-const FIXED_GRID_TYPES = ['RC', 'Insurance', 'PUC', 'DL'] as const;
-
-type DocStatus = 'verified' | 'expiring' | 'expired';
-
-function statusColor(s: DocStatus) {
-  if (s === 'verified') return '#4CAF50';
-  if (s === 'expiring') return '#FFA000';
-  return '#F44336';
-}
-function statusLabel(s: DocStatus) {
-  if (s === 'verified') return 'Verified';
-  if (s === 'expiring') return 'Expiring Soon';
-  return 'Expired';
-}
-
-function formatExpiry(dateStr?: string | null): string {
-  if (!dateStr) return 'N/A';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-}
-
-async function openShare(options: { fileUrls: string[]; fileName?: string; type?: string }): Promise<void> {
-  const { fileUrls, fileName = 'Documents', type = 'application/pdf' } = options;
-  try {
-    const RNShare = (require('react-native-share') as any).default;
-    await RNShare.open({
-      urls: fileUrls,
-      type,
-      title: fileName,
-      subject: fileName,
-      failOnCancel: false,
-    });
-  } catch {
-    await Share.share({
-      url: fileUrls[0],
-      message: fileName,
-      title: fileName,
-    });
-  }
-}
-
-async function getReadyDocumentPath(doc: DocumentItem) {
-  const imageUri = doc.imageUri;
-  const fullImageUri = imageUri ? getAbsoluteUrl(imageUri) : null;
-
-  if (!fullImageUri) throw new Error(`Link not available for ${doc.type}`);
-
-  const isPdf = imageUri?.toLowerCase().endsWith('.pdf');
-  const fileName = `${(doc.type || 'Document').replace(/\s+/g, '_')}_${Date.now()}`;
-  const tempPath = `${RNFS.TemporaryDirectoryPath}/${fileName}${isPdf ? '.pdf' : '.jpg'}`;
-
-  if (fullImageUri.startsWith('http')) {
-    const downloadResult = await RNFS.downloadFile({
-      fromUrl: fullImageUri,
-      toFile: tempPath,
-    }).promise;
-    if (downloadResult.statusCode !== 200) throw new Error(`Failed to download ${doc.type}`);
-  } else {
-    await RNFS.copyFile(fullImageUri.replace('file://', ''), tempPath).catch(() => null);
-  }
-
-  let finalPdfPath = tempPath;
-  if (!isPdf) {
-    const base64Data = await RNFS.readFile(tempPath, 'base64');
-    const imgType = fullImageUri.toLowerCase().endsWith('.png') ? 'PNG' : 'JPEG';
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 30;
-    const maxWidth = pageWidth - (margin * 2);
-    const maxHeight = pageHeight - (margin * 2);
-    pdf.addImage(`data:image/${imgType.toLowerCase()};base64,${base64Data}`, imgType, margin, margin, maxWidth, maxHeight, undefined, 'FAST');
-    const pdfBase64 = pdf.output('datauristring').split(',')[1];
-    finalPdfPath = `${RNFS.CachesDirectoryPath}/${fileName}.pdf`;
-    await RNFS.writeFile(finalPdfPath, pdfBase64, 'base64');
-    await RNFS.unlink(tempPath).catch(() => null);
-  }
-  const finalFileName = finalPdfPath.endsWith('.pdf') ? `${fileName}.pdf` : `${fileName}.pdf`;
-
-  return { path: finalPdfPath, fileName: finalFileName };
-}
 
 export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
   const dispatch = useAppDispatch();
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [searchText, setSearchText] = useState('');
-  const [searchVisible, setSearchVisible] = useState(false);
-  const searchRef = useRef<TextInput>(null);
-
   const { documents, loading } = useAppSelector((state: RootState) => state.documents);
+  const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
+  const [showSourceModal, setShowSourceModal] = useState(false);
+  const [showViewerModal, setShowViewerModal] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState<string>('');
+  const [viewingDoc, setViewingDoc] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchDocuments());
+    loadPrimaryVehicle();
   }, [dispatch]);
 
-  const gridCards = useMemo(() => {
-    const byType = new Map<string, DocumentItem[]>();
-    documents.forEach((d) => {
-      const list = byType.get(d.type) ?? [];
-      list.push(d);
-      byType.set(d.type, list);
-    });
-    return FIXED_GRID_TYPES
-      .filter(type => activeFilter === 'All' || activeFilter === type)
-      .map((type) => {
-        const docs = byType.get(type) ?? [];
-        if (docs.length === 0) {
-          return {
-            id: `empty_${type}`,
-            label: DOC_TYPE_LABELS[type] ?? type,
-            expiry: 'Not uploaded',
-            status: 'verified' as DocStatus,
-            type,
-            hasDoc: false,
-          };
-        }
-
-        const docsWithExpiry = docs.filter((d) => d.expiryDate);
-        let latest = docsWithExpiry.length > 0
-          ? docsWithExpiry.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0]
-          : docs.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0];
-
-        const expiryDate = latest.expiryDate;
-
-        return {
-          id: latest.id,
-          label: DOC_TYPE_LABELS[type] ?? type,
-          expiry: formatExpiry(expiryDate),
-          status: latest.status,
-          type,
-          hasDoc: true,
-        };
-      });
-  }, [documents, activeFilter]);
-
-  const filteredDocs = useMemo(() => {
-    let docs = documents;
-    if (activeFilter !== 'All') {
-      docs = docs.filter((d) => d.type === activeFilter);
-    }
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
-      docs = docs.filter(
-        (d) =>
-          d.type.toLowerCase().includes(q) ||
-          (DOC_TYPE_LABELS[d.type] ?? '').toLowerCase().includes(q) ||
-          d.vehicle.toLowerCase().includes(q) ||
-          (d.documentNumber ?? '').toLowerCase().includes(q),
-      );
-    }
-    return docs;
-  }, [documents, activeFilter, searchText]);
-
-  const filteredGridCards = useMemo(() => {
-    if (!searchText.trim()) return gridCards;
-    const q = searchText.toLowerCase();
-    return gridCards.filter(
-      (c) =>
-        c.label.toLowerCase().includes(q) ||
-        c.type.toLowerCase().includes(q),
-    );
-  }, [gridCards, searchText]);
-
-  const handleDownloadAll = async () => {
-    if (documents.length === 0) return Alert.alert('Error', 'No documents to download');
+  const loadPrimaryVehicle = async () => {
     try {
-      Alert.alert('Processing', `Preparing ${documents.length} documents...`);
-      const paths: { path: string; name: string }[] = [];
-      for (const doc of documents) {
-        try {
-          const res = await getReadyDocumentPath(doc);
-          paths.push({ path: res.path, name: res.fileName });
-        } catch (e) {
-          console.log(`Skip doc ${doc.id}`, e);
-        }
-      }
-
-      if (paths.length === 0) throw new Error('Could not prepare any documents');
-
-      if (Platform.OS === 'android' && RNFS.DownloadDirectoryPath) {
-        let count = 0;
-        for (const p of paths) {
-          try {
-            await RNFS.copyFile(p.path, `${RNFS.DownloadDirectoryPath}/${p.name}`);
-            count++;
-          } catch (e) {
-            console.log('Save error', e);
-          }
-        }
-        Alert.alert('Download Complete', `${count} documents saved to your Downloads folder.`);
-      } else {
-        await openShare({ fileUrls: paths.map((p) => `file://${p.path}`) });
-      }
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Download failed');
+      const vehicles = await vehicleService.getVehicles();
+      const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
+      setPrimaryVehicle(primary || null);
+    } catch {
+      setPrimaryVehicle(null);
     }
   };
 
-  const handleShareAll = async () => {
-    if (documents.length === 0) return Alert.alert('Error', 'No documents to share');
+  const requestAndroidPermissions = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
     try {
-      Alert.alert('Preparing Share', `Generating PDFs for ${documents.length} documents...`);
-      const fileUrls: string[] = [];
-      for (const doc of documents) {
-        try {
-          const res = await getReadyDocumentPath(doc);
-          fileUrls.push(`file://${res.path}`);
-        } catch (e) {
-          console.log(`Skip sharing ${doc.id}`, e);
-        }
-      }
-      if (fileUrls.length === 0) throw new Error('Could not prepare any documents');
-      await openShare({ fileUrls });
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Share failed');
+      const camera = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs camera access to capture documents',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      const storage = Platform.Version >= 33
+        ? await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          {
+            title: 'Photo Library Permission',
+            message: 'App needs photo library access to select documents',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        )
+        : await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs storage access to select documents',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+      return (
+        camera === PermissionsAndroid.RESULTS.GRANTED &&
+        storage === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch {
+      return false;
     }
+  };
+
+  const handlePickDocument = async (type: string) => {
+    try {
+      const res = await pickDocument({
+        type: [docTypes.pdf, docTypes.images],
+        allowMultiSelection: false,
+      });
+      if (res?.[0]) {
+        performUpload(type, res[0].uri, res[0].name || `file_${Date.now()}`, res[0].type || 'application/octet-stream');
+      }
+    } catch (e: any) {
+      if (e?.code !== 'DOCUMENT_PICKER_CANCELED') {
+        Alert.alert('Error', 'Could not pick file');
+      }
+    }
+  };
+
+  const handlePickImage = async (type: string) => {
+    if (Platform.OS === 'android') {
+      const hasPermission = await requestAndroidPermissions();
+      if (!hasPermission) {
+        Alert.alert('Permission needed', 'Camera and photo library access are required.');
+        return;
+      }
+    }
+    try {
+      const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
+      if (res?.assets?.[0]) {
+        const asset = res.assets[0];
+        performUpload(type, asset.uri!, asset.fileName || `photo_${Date.now()}.jpg`, asset.type || 'image/jpeg');
+      }
+    } catch {
+      Alert.alert('Error', 'Could not pick image');
+    }
+  };
+
+  const handleTakePhoto = async (type: string) => {
+    if (Platform.OS === 'android') {
+      const hasPermission = await requestAndroidPermissions();
+      if (!hasPermission) {
+        Alert.alert('Permission needed', 'Camera access is required.');
+        return;
+      }
+    }
+    try {
+      const res = await launchCamera({ mediaType: 'photo', quality: 0.8 });
+      if (res?.assets?.[0]) {
+        const asset = res.assets[0];
+        performUpload(type, asset.uri!, asset.fileName || `camera_${Date.now()}.jpg`, asset.type || 'image/jpeg');
+      }
+    } catch {
+      Alert.alert('Error', 'Could not take photo');
+    }
+  };
+
+  const performUpload = async (type: string, uri: string, name: string, mime: string) => {
+    setIsUploading(true);
+    try {
+      const result = await uploadDocument({
+        type: type,
+        fileUri: uri,
+        fileName: name,
+        mimeType: mime,
+        documentNumber: primaryVehicle?.registrationNumber,
+      });
+
+      dispatch(addDocumentFromResponse(toDocItem(result)));
+      Alert.alert('Success', `${type} uploaded successfully`);
+    } catch (err: any) {
+      Alert.alert('Upload Failed', err.message || 'Something went wrong');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const createPDFFromImage = async (doc: any) => {
+    try {
+      const options = {
+        html: `
+          <html>
+            <body style="margin:0;padding:0;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
+              <img src="${doc.imageUri}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            </body>
+          </html>
+        `,
+        fileName: `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
+        directory: 'Documents',
+      };
+      const file = await convertToPDF(options);
+      return file.filePath;
+    } catch (error) {
+      console.error('PDF Generation Error:', error);
+      throw new Error('Failed to generate PDF');
+    }
+  };
+
+  const handleShareDoc = async (doc: any) => {
+    if (!doc?.imageUri) return;
+    try {
+      setIsUploading(true); // Reuse as a general "processing" state or add a new one
+      const pdfPath = await createPDFFromImage(doc);
+      setIsUploading(false);
+      
+      await RNShareCustom.open({
+        url: `file://${pdfPath}`,
+        type: 'application/pdf',
+        title: `Share ${doc.type}`,
+        message: `Sending ${doc.type} for vehicle ${primaryVehicle?.registrationNumber}`,
+      });
+    } catch (error: any) {
+      setIsUploading(false);
+      if (error?.message !== 'User did not share') {
+        Alert.alert('Error', 'Could not share document as PDF');
+      }
+    }
+  };
+
+  const handleDownloadDoc = async (doc: any) => {
+    if (!doc?.imageUri) return;
+    try {
+      setIsUploading(true);
+      const tempPdfPath = await createPDFFromImage(doc);
+      
+      const fileName = tempPdfPath.split('/').pop();
+      let finalPath = tempPdfPath;
+
+      if (Platform.OS === 'android') {
+        const downloadDir = RNFS.DownloadDirectoryPath;
+        finalPath = `${downloadDir}/${fileName}`;
+        await RNFS.moveFile(tempPdfPath, finalPath);
+        // Important: Android Media Scanner might need a nudge, but for File Manager, it's there.
+      } else if (Platform.OS === 'ios') {
+        // iOS handled differently usually via UIDocumentPicker or just internal docs.
+        // For simplicity on iOS, we leave it in the default app docs folder.
+      }
+
+      setIsUploading(false);
+      Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
+    } catch (error: any) {
+      setIsUploading(false);
+      console.error('Download Error:', error);
+      Alert.alert('Error', error.message || 'Could not download document as PDF');
+    }
+  };
+
+  const getDocByType = (type: string) => {
+    return documents.find(d => d.type === type);
+  };
+
+  const requiredDocTypes = ['RC', 'Insurance', 'PUC', 'DL'];
+  const uploadedDocsCount = documents.filter(d => requiredDocTypes.includes(d.type)).length;
+  const MAX_DOCS = 4;
+  const totalDocs = Math.min(uploadedDocsCount, MAX_DOCS);
+  const progressPercent = Math.round((totalDocs / MAX_DOCS) * 100);
+
+  const handleDeleteDoc = async (id: string, type: string) => {
+    Alert.alert(
+      'Delete Document',
+      `Are you sure you want to delete your ${type}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await dispatch(removeDocumentAsync(id)).unwrap();
+              Alert.alert('Success', `${type} deleted successfully`);
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to delete');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
+    const doc = getDocByType(type);
+    return (
+      <View style={styles.slotContainer}>
+        <TouchableOpacity
+          style={styles.slotBox}
+          onPress={() => {
+            if (doc) {
+              setViewingDoc(doc);
+              setShowViewerModal(true);
+            } else {
+              setSelectedDocType(type);
+              setShowSourceModal(true);
+            }
+          }}
+        >
+          {doc ? (
+            <View style={styles.imageWrapper}>
+              <Image 
+                source={{ uri: doc.imageUri }} 
+                style={styles.slotImage} 
+                resizeMode="cover"
+                onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
+              />
+            </View>
+          ) : (
+            <Plus size={24} color="#333" />
+          )}
+        </TouchableOpacity>
+        <Text style={styles.slotLabel}>{label}</Text>
+      </View>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined}
-      />
+      <StatusBar barStyle="light-content" />
 
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
-        <View style={[styles.headerCenter, { marginLeft: wp(3) }]}>
-          <Text style={styles.headerTitle}>Documents</Text>
-          <Text style={styles.headerSub}>All vehicle documents</Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>glovebox</Text>
+          {totalDocs > 0 ? (
+            <View style={styles.progressHeaderRow}>
+               <Text style={styles.progressTextLeft}>{totalDocs} out of {MAX_DOCS} documents stored</Text>
+               <Text style={styles.progressTextRight}>{progressPercent}% COMPLETE</Text>
+            </View>
+          ) : (
+            <Text style={styles.headerSubtitle}>one place for all your vehicle documents</Text>
+          )}
         </View>
-        <TouchableOpacity
-          style={styles.searchBtn}
-          activeOpacity={0.85}
-          onPress={() => {
-            setSearchVisible((v) => {
-              if (v) {
-                setSearchText('');
-                searchRef.current?.blur();
-              } else {
-                setTimeout(() => searchRef.current?.focus(), 100);
-              }
-              return !v;
-            });
-          }}
-        >
-          <Icon name="search" size={wp(4.5)} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 44 }} />
       </View>
-
-      {searchVisible && (
-        <TouchableOpacity
-          activeOpacity={1}
-          style={styles.searchBarWrap}
-          onPress={() => searchRef.current?.focus()}
-        >
-          <Icon name="search" size={wp(4)} color="#888" style={styles.searchBarIcon} />
-          <TextInput
-            ref={searchRef}
-            style={styles.searchBarInput}
-            placeholder="Search documents..."
-            placeholderTextColor="#888"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-          />
-          <TouchableOpacity
-            onPress={() => {
-              setSearchText('');
-              setSearchVisible(false);
-              searchRef.current?.blur();
-            }}
-            style={styles.searchBarClear}
-            activeOpacity={0.7}
-          >
-            <Icon name="times" size={wp(4)} color="#888" />
-          </TouchableOpacity>
-        </TouchableOpacity>
+      
+      {totalDocs > 0 && (
+        <View style={styles.progressBarContainer}>
+          <View style={styles.progressBarTrack}>
+            <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+          </View>
+        </View>
       )}
 
       <ScrollView
@@ -334,413 +364,505 @@ export default function DocumentList() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.trustBadge}>
+          <ShieldCheck size={14} color="#00C853" />
+          <Text style={styles.trustText}>100% safe and secure</Text>
+        </View>
+
         {/* DigiLocker Banner */}
-        <TouchableOpacity activeOpacity={0.85} style={styles.digilockerBanner}>
-          <View style={styles.digilockerIcon}>
-            <Icon name="file-alt" size={wp(6)} color="#aaa" />
+        <View style={styles.digiBanner}>
+          <View style={styles.digiTopRow}>
+            <View style={styles.digiTextSection}>
+              {totalDocs > 0 ? (
+                 <Text style={styles.digiTitle}>add your official driving license to your glovebox</Text>
+              ) : (
+                 <Text style={styles.digiTitle}>accepted as official documents by traffic police everywhere</Text>
+              )}
+            </View>
+            <View style={styles.digiGraphic}>
+              <View style={styles.graphicRect}>
+                <FileText size={32} color="#DDD" />
+                <View style={styles.alertCircle}>
+                  <Text style={styles.alertText}>!</Text>
+                </View>
+              </View>
+            </View>
           </View>
-          <View style={styles.digilockerInfo}>
-            <Text style={styles.digilockerTitle}>Connect DigiLocker</Text>
-            <Text style={styles.digilockerSub}>Auto-sync your documents securely</Text>
-          </View>
-          <Icon name="arrow-right" size={wp(4.5)} color="#888" />
-        </TouchableOpacity>
 
-        {/* Scan New Document */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.scanCard}
-          onPress={() => navigation.navigate('UploadDocument')}
-        >
-          <View style={styles.scanIconWrap}>
-            <Icon name="camera" size={wp(7)} color="#aaa" />
+          <View style={styles.dotRow}>
+            <View style={[styles.dot, styles.dotActive]} />
+            <View style={styles.dot} />
+            <View style={styles.dot} />
           </View>
-          <Text style={styles.scanTitle}>Scan New Document</Text>
-          <Text style={styles.scanSub}>RC / Insurance / Bills / Warranty</Text>
-        </TouchableOpacity>
 
-        {/* Category Filter Chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipScroll}
-          contentContainerStyle={styles.chipContainer}
-        >
-          {CATEGORIES.map((cat) => (
+          <TouchableOpacity style={styles.digiBtn}>
+            <View style={styles.digiBtnContent}>
+              <View style={styles.digiLogoPlaceholder}>
+                <FileText size={16} color="#FFF" />
+              </View>
+              <Text style={styles.digiBtnText}>Link to Digilocker</Text>
+            </View>
+            <ArrowRight size={20} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Your Vehicle Documents */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>YOUR VEHICLE DOCUMENTS</Text>
+        </View>
+
+        {primaryVehicle && (
+          <View style={styles.vehicleSummaryCard}>
+            <View style={styles.vehicleIconCircle}>
+              <Image
+                source={(primaryVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) as any}
+                style={styles.vehicleThumb}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.vehicleInfo}>
+              <Text style={styles.vehicleName}>{primaryVehicle.model?.toUpperCase() || 'SXL'}</Text>
+              <View style={styles.plateWrap}>
+                <INDPlate number={primaryVehicle.registrationNumber} />
+              </View>
+            </View>
             <TouchableOpacity
-              key={cat}
-              activeOpacity={0.85}
-              style={[styles.chip, activeFilter === cat && styles.chipActive]}
-              onPress={() => setActiveFilter(cat)}
+              onPress={() => navigation.navigate('VehicleDetails', { vehicleId: primaryVehicle.id })}
+              style={styles.viewDetailsBtn}
             >
-              <Text style={[styles.chipText, activeFilter === cat && styles.chipTextActive]}>
-                {cat}
-              </Text>
+              <Text style={styles.viewDetailsText}>View details</Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Loading */}
-        {loading && documents.length === 0 && (
-          <View style={styles.loadingWrap}>
-            <ActivityIndicator size="large" color="#FFBF00" />
-            <Text style={styles.loadingText}>Loading documents...</Text>
           </View>
         )}
 
-        {/* Vehicle Documents Section */}
-        <Text style={styles.sectionTitle}>
-          {activeFilter === 'All' ? 'Vehicle Documents' : `${activeFilter} Documents`}
-        </Text>
+        <View style={styles.gloveboxGrid}>
+          <DocumentSlot label="reg certificate" type="RC" />
+          <DocumentSlot label="insurance policy" type="Insurance" />
+          <DocumentSlot label="puc certificate" type="PUC" />
+        </View>
 
-        {activeFilter === 'All' ? (
-          <View style={styles.gridWrap}>
-            {filteredGridCards.map((card) => (
+        {/* Your Personal Documents */}
+        <View style={[styles.sectionHeaderRow, { marginTop: 40 }]}>
+          <Text style={styles.sectionTitle}>YOUR PERSONAL DOCUMENTS</Text>
+        </View>
+
+        <View style={styles.personalGrid}>
+          <View style={[styles.slotContainer, { width: '100%', alignItems: 'flex-start' }]}>
+            <TouchableOpacity
+              style={[styles.slotBox, { width: '30%', aspectRatio: 1.2 }]}
+              onPress={() => {
+                const doc = getDocByType('DL');
+                if (doc) {
+                   setViewingDoc(doc);
+                   setShowViewerModal(true);
+                } else {
+                   setSelectedDocType('DL');
+                   setShowSourceModal(true);
+                }
+              }}
+            >
+              {getDocByType('DL') ? (
+                <View style={styles.imageWrapper}>
+                  <Image 
+                    source={{ uri: getDocByType('DL')?.imageUri }} 
+                    style={styles.slotImage} 
+                    resizeMode="cover"
+                    onError={(e) => console.log('DL Image Load Error:', e.nativeEvent.error)}
+                  />
+                </View>
+              ) : (
+                <Plus size={24} color="#333" />
+              )}
+            </TouchableOpacity>
+            <Text style={styles.slotLabel}>driving license</Text>
+          </View>
+        </View>
+
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.actionBtn}>
+            <FileText size={20} color="#FFF" />
+            <Text style={styles.actionBtnText}>Download All</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionBtn, styles.actionBtnOutline]}>
+            <ArrowRight size={20} color="#FFF" />
+            <Text style={styles.actionBtnText}>Share Documents</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 60 }} />
+      </ScrollView>
+
+      {isUploading || loading ? (
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color="#FFC107" />
+          {isUploading && <Text style={styles.loaderText}>Uploading document...</Text>}
+        </View>
+      ) : null}
+
+      {/* Source Selection Modal */}
+      <Modal
+        visible={showSourceModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSourceModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowSourceModal(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Choose Source</Text>
+                  <TouchableOpacity onPress={() => setShowSourceModal(false)}>
+                    <X size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.modalOptions}>
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => { setShowSourceModal(false); handleTakePhoto(selectedDocType); }}
+                  >
+                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(255, 193, 7, 0.1)' }]}>
+                      <Camera size={22} color="#FFC107" />
+                    </View>
+                    <Text style={styles.modalOptionText}>Take Photo</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => { setShowSourceModal(false); handlePickImage(selectedDocType); }}
+                  >
+                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
+                      <ImageIcon size={22} color="#2196F3" />
+                    </View>
+                    <Text style={styles.modalOptionText}>From Gallery</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => { setShowSourceModal(false); handlePickDocument(selectedDocType); }}
+                  >
+                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
+                      <FileUp size={22} color="#4CAF50" />
+                    </View>
+                    <Text style={styles.modalOptionText}>Choose File (PDF)</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  onPress={() => setShowSourceModal(false)}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Document Viewer Modal (v14) */}
+      <Modal
+        visible={showViewerModal}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => setShowViewerModal(false)}
+      >
+        <SafeAreaView style={styles.viewerContainer}>
+          <View style={styles.viewerHeader}>
+            <View style={styles.viewerHeaderLeft}>
+              <Text style={styles.viewerTitle}>{viewingDoc?.type || 'Document'}</Text>
+              <Text style={styles.viewerSubtitle}>{primaryVehicle?.registrationNumber}</Text>
+            </View>
+            <View style={styles.viewerHeaderRight}>
               <TouchableOpacity
-                key={card.type}
-                activeOpacity={0.85}
-                style={styles.gridCard}
+                style={styles.viewerHeaderIcon}
                 onPress={() => {
-                  if (card.hasDoc) {
-                    navigation.navigate('DocumentDetail', { documentId: card.id });
-                  } else {
-                    navigation.navigate('UploadDocument');
+                  if (viewingDoc) {
+                    handleDeleteDoc(viewingDoc.id, viewingDoc.type);
+                    setShowViewerModal(false);
                   }
                 }}
               >
-                <View style={styles.gridCardIconWrap}>
-                  <Icon name="file-alt" size={wp(6)} color="#aaa" />
-                </View>
-                <Text style={styles.gridCardLabel}>{card.label}</Text>
-                <View style={styles.gridCardExpiryRow}>
-                  {card.hasDoc ? (
-                    <>
-                      {card.status === 'expiring' && (
-                        <Icon name="exclamation-triangle" size={wp(3)} color="#FFA000" style={{ marginRight: wp(1) }} />
-                      )}
-                      {card.status === 'expired' && (
-                        <Icon name="times-circle" size={wp(3)} color="#F44336" style={{ marginRight: wp(1) }} />
-                      )}
-                      {card.status === 'verified' && (
-                        <Icon name="check-circle" size={wp(3)} color="#4CAF50" style={{ marginRight: wp(1) }} />
-                      )}
-                      <Text style={[styles.gridCardExpiry, { color: statusColor(card.status) }]}>
-                        {card.expiry && card.expiry !== 'N/A' && card.expiry !== 'Not uploaded' ? (
-                          card.status === 'expired' ? `Expired: ${card.expiry}` :
-                            card.status === 'verified' ? `Valid up to: ${card.expiry}` :
-                              `Expiring: ${card.expiry}`
-                        ) : (
-                          card.status === 'expired' ? 'Expired' : card.expiry === 'Not uploaded' ? 'Not uploaded' : 'Valid'
-                        )}
-                      </Text>
-                    </>
-                  ) : (
-                    <Text style={styles.gridCardNoDoc}>Not uploaded</Text>
-                  )}
-                </View>
+                <Trash2 size={22} color="#FF453A" />
               </TouchableOpacity>
-            ))}
+              <TouchableOpacity 
+                style={[styles.viewerHeaderIcon, { marginLeft: 16 }]} 
+                onPress={() => setShowViewerModal(false)}
+              >
+                <X size={24} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           </View>
-        ) : (
-          <View style={styles.listWrap}>
-            {filteredDocs.length > 0 ? (
-              filteredDocs.map((doc) => (
-                <TouchableOpacity
-                  key={doc.id}
-                  activeOpacity={0.85}
-                  style={styles.docRow}
-                  onPress={() => navigation.navigate('DocumentDetail', { documentId: doc.id })}
-                >
-                  <View style={styles.docRowIcon}>
-                    <Icon name="file-alt" size={wp(6)} color="#FFBF00" />
-                  </View>
-                  <View style={styles.docRowInfo}>
-                    <Text style={styles.docRowName}>{DOC_TYPE_LABELS[doc.type] || doc.type}</Text>
-                    <Text style={styles.docRowVehicle}>{doc.vehicle}</Text>
-                    <View style={styles.docRowStatusRow}>
-                      <View style={[styles.statusDot, { backgroundColor: statusColor(doc.status as DocStatus) }]} />
-                      <Text style={[styles.docRowStatus, { color: statusColor(doc.status as DocStatus) }]}>
-                        {statusLabel(doc.status as DocStatus)}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.docRowExpiry}>
-                      {doc.expiryDate ? formatExpiry(doc.expiryDate) : 'N/A'}
-                    </Text>
-                    <Icon name="chevron-right" size={wp(3.5)} color="#444" style={{ marginTop: hp(0.5) }} />
-                  </View>
-                </TouchableOpacity>
-              ))
+
+          <ScrollView 
+            contentContainerStyle={styles.viewerContent} 
+            centerContent={true}
+            showsVerticalScrollIndicator={false}
+          >
+            {viewingDoc?.imageUri ? (
+              <Image
+                source={{ uri: viewingDoc.imageUri }}
+                style={styles.fullImage}
+                resizeMode="contain"
+                onError={(e) => console.log('Viewer Image Load Error:', e.nativeEvent.error)}
+              />
             ) : (
-              <View style={styles.emptyState}>
-                <Icon name="file-alt" size={wp(10)} color="#333" />
-                <Text style={styles.emptyStateText}>No documents found for {activeFilter}</Text>
-                <TouchableOpacity
-                  style={[styles.chip, { marginTop: hp(2), backgroundColor: '#111' }]}
-                  onPress={() => navigation.navigate('UploadDocument')}
-                >
-                  <Text style={styles.chipText}>Upload Now</Text>
-                </TouchableOpacity>
+              <View style={styles.viewerPlaceholder}>
+                <FileText size={64} color="#333" />
+                <Text style={styles.placeholderText}>Preview not available</Text>
               </View>
             )}
+          </ScrollView>
+
+          <View style={styles.viewerFooter}>
+            <TouchableOpacity style={styles.viewerActionBtn} onPress={() => handleShareDoc(viewingDoc)}>
+              <Share2 size={20} color="#FFF" />
+              <Text style={styles.viewerActionText}>Share as PDF</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.viewerActionBtn, styles.viewerActionBtnOutline]} onPress={() => handleDownloadDoc(viewingDoc)}>
+              <Download size={20} color="#FFF" />
+              <Text style={styles.viewerActionText}>Download PDF</Text>
+            </TouchableOpacity>
           </View>
-        )}
-
-        {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.quickAction}
-          onPress={handleDownloadAll}
-        >
-          <View style={[styles.quickActionIcon, { borderColor: '#2196F3' }]}>
-            <Icon name="download" size={wp(5)} color="#2196F3" />
-          </View>
-          <Text style={styles.quickActionText}>Download All</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.quickAction}
-          onPress={handleShareAll}
-        >
-          <View style={[styles.quickActionIcon, { borderColor: '#4CAF50' }]}>
-            <Icon name="share-alt" size={wp(5)} color="#4CAF50" />
-          </View>
-          <Text style={styles.quickActionText}>Share Documents</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: hp(12) }} />
-      </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
-
+  container: { flex: 1, backgroundColor: '#000000' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(2),
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 24 : 12,
+    paddingBottom: 24,
   },
-  backBtn: { padding: wp(2) },
-  headerCenter: { flex: 1, marginLeft: wp(2) },
-  headerTitle: { fontSize: wp(5.5), fontWeight: '700', color: '#fff' },
-  headerSub: { fontSize: wp(3.5), color: '#888', marginTop: hp(0.2) },
-  searchBtn: {
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  searchBarWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(3),
-    marginHorizontal: wp(4),
-    marginBottom: hp(1.5),
-    paddingHorizontal: wp(3),
-    height: hp(5.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  searchBarIcon: { marginRight: wp(2) },
-  searchBarInput: {
-    flex: 1,
-    fontSize: wp(3.8),
-    color: '#fff',
-    padding: 0,
-  },
-  searchBarClear: { padding: wp(1.5) },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  headerTitleContainer: { marginLeft: 16, justifyContent: 'center' },
+  headerRightAction: { padding: 4 },
+  headerTitle: { fontSize: 28, fontFamily: 'Outfit-Bold', color: '#FFF', fontWeight: '800', lineHeight: 32, letterSpacing: -0.5, textTransform: 'lowercase' },
+  headerSubtitle: { fontSize: 11, fontFamily: 'Outfit-Regular', color: '#666', marginTop: 1, textTransform: 'lowercase' },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: wp(4), paddingTop: hp(1.5) },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 0 },
 
-  digilockerBanner: {
+  trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  trustText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#00C853', fontWeight: '600' },
+
+  // DigiLocker Banner
+  digiBanner: { backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginTop: 32 },
+  digiTopRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
+  digiTextSection: { flex: 1, paddingRight: 12 },
+  digiTitle: { fontSize: 18, fontFamily: 'Outfit-Bold', color: '#000', lineHeight: 24, fontWeight: '700' },
+  digiGraphic: { width: 80, alignItems: 'flex-end' },
+  graphicRect: { width: 68, height: 64, backgroundColor: '#F0F0F0', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#EEE' },
+  alertCircle: { position: 'absolute', bottom: -5, right: -5, width: 22, height: 22, borderRadius: 11, backgroundColor: '#6200EA', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
+  alertText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
+
+  dotRow: { flexDirection: 'row', gap: 6, marginBottom: 28 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#DDD' },
+  dotActive: { width: 14, backgroundColor: '#AAA' },
+
+  digiBtn: { backgroundColor: '#000', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 18 },
+  digiBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  digiLogoPlaceholder: { width: 24, height: 24, borderRadius: 6, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
+  digiBtnText: { color: '#FFF', fontSize: 15, fontFamily: 'Outfit-Bold', fontWeight: '600' },
+
+  // Sections
+  sectionHeaderRow: { marginTop: 44, marginBottom: 24 },
+  sectionTitle: { fontSize: 11, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1, fontWeight: '700' },
+
+  vehicleSummaryCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(180,180,180,0.25)',
-    borderRadius: wp(4),
-    padding: wp(4),
-    marginBottom: hp(2),
+    backgroundColor: '#0F0F0F',
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: '#1A1A1A',
+    marginBottom: 32
   },
-  digilockerIcon: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(3),
-    backgroundColor: 'rgba(200,200,200,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: wp(3),
-  },
-  digilockerInfo: { flex: 1 },
-  digilockerTitle: { fontSize: wp(4.5), fontWeight: '700', color: '#fff' },
-  digilockerSub: { fontSize: wp(3.2), color: '#bbb', marginTop: hp(0.3) },
+  vehicleIconCircle: { width: 56, height: 56, borderRadius: 12, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
+  vehicleThumb: { width: 40, height: 40 },
+  vehicleInfo: { flex: 1, marginLeft: 16 },
+  vehicleName: { color: '#FFF', fontSize: 16, fontFamily: 'Outfit-Bold', marginBottom: 2, fontWeight: '700' },
+  plateWrap: { alignSelf: 'flex-start', transform: [{ scale: 0.65 }], marginLeft: -24, marginTop: -4 },
+  viewDetailsBtn: { paddingVertical: 4 },
+  viewDetailsText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Medium', borderBottomWidth: 1, borderBottomColor: '#FFF' },
 
-  scanCard: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(4),
-    paddingVertical: hp(4),
-    marginBottom: hp(2),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  scanIconWrap: {
-    width: wp(16),
-    height: wp(16),
-    borderRadius: wp(8),
-    borderWidth: 2,
-    borderColor: '#444',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: hp(1.5),
-  },
-  scanTitle: { fontSize: wp(4.5), fontWeight: '700', color: '#fff' },
-  scanSub: { fontSize: wp(3.3), color: '#888', marginTop: hp(0.5) },
+  gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  personalGrid: { flexDirection: 'row', gap: 12 },
 
-  chipScroll: { marginBottom: hp(2) },
-  chipContainer: { paddingRight: wp(4), gap: wp(2) },
-  chip: {
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(0.9),
-    borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  chipActive: { backgroundColor: '#FFBF00', borderColor: '#FFBF00' },
-  chipText: { fontSize: wp(3.5), color: '#aaa' },
-  chipTextActive: { color: '#000', fontWeight: '600' },
+  slotContainer: { width: (width - 72) / 3, gap: 12 },
+  slotBox: { width: '100%', aspectRatio: 1, backgroundColor: '#0A0A0A', borderRadius: 14, borderWidth: 1, borderColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
+  slotLabel: { fontSize: 11, fontFamily: 'Outfit-Medium', color: '#8E8E93', textTransform: 'lowercase', textAlign: 'center' },
 
-  sectionTitle: {
-    fontSize: wp(4.8),
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: hp(1.8),
-    marginTop: hp(1),
-  },
-
-  loadingWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: hp(4),
-  },
-  loadingText: {
-    fontSize: wp(3.5),
-    color: '#888',
-    marginTop: hp(1),
-  },
-
-  listWrap: {
-    marginBottom: hp(1),
-  },
-
-  gridWrap: {
+  quickActions: { marginTop: 40, gap: 12 },
+  actionBtn: {
+    backgroundColor: '#000',
+    borderRadius: 12,
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#222'
+  },
+  actionBtnOutline: { backgroundColor: 'transparent', borderColor: '#333' },
+  actionBtnText: { color: '#FFF', fontSize: 16, fontFamily: 'Outfit-Bold', fontWeight: '700' },
+
+  loaderOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.85)', alignItems: 'center', justifyContent: 'center' },
+  loaderText: { color: '#FFF', marginTop: 16, fontFamily: 'Outfit-Medium', fontSize: 14 },
+
+  // Modals
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#121212',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  modalHeader: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: hp(1),
-  },
-  gridCard: {
-    width: '48%',
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(4),
-    padding: wp(4),
-    marginBottom: hp(1.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  gridCardIconWrap: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(3),
-    backgroundColor: '#2a2a2a',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: hp(1.5),
+    marginBottom: 24,
   },
-  gridCardLabel: {
-    fontSize: wp(4),
-    fontWeight: '700',
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
-    marginBottom: hp(0.5),
   },
-  gridCardExpiryRow: {
+  modalOptions: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  gridCardExpiry: { fontSize: wp(3.2) },
-  gridCardNoDoc: { fontSize: wp(3.2), color: '#666' },
-
-  docRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(3.5),
-    padding: wp(4),
-    marginBottom: hp(1.2),
+    backgroundColor: '#0A0A0A',
+    padding: 18,
+    borderRadius: 16,
+    gap: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#1A1A1A',
   },
-  docRowIcon: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(3),
-    backgroundColor: 'rgba(255,191,0,0.12)',
+  modalOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(3),
   },
-  docRowInfo: { flex: 1 },
-  docRowName: { fontSize: wp(4), fontWeight: '600', color: '#fff' },
-  docRowVehicle: { fontSize: wp(3.3), color: '#888', marginTop: hp(0.2) },
-  docRowStatusRow: { flexDirection: 'row', alignItems: 'center', marginTop: hp(0.4) },
-  statusDot: { width: wp(2), height: wp(2), borderRadius: wp(1), marginRight: wp(1.5) },
-  docRowStatus: { fontSize: wp(3.2), fontWeight: '500' },
-  docRowExpiry: { fontSize: wp(3), color: '#666', marginTop: hp(0.2) },
+  modalOptionText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  modalCancelBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#888',
+  },
 
-  quickAction: {
+  // Viewer (v14)
+  viewerContainer: { flex: 1, backgroundColor: '#000' },
+  viewerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A'
+  },
+  viewerHeaderLeft: { flex: 1 },
+  viewerHeaderRight: { flexDirection: 'row', alignItems: 'center' },
+  viewerTitle: { color: '#FFF', fontSize: 20, fontFamily: 'Outfit-Bold', textTransform: 'lowercase' },
+  viewerSubtitle: { color: '#8E8E93', fontSize: 12, fontFamily: 'Outfit-Medium', marginTop: 2, textTransform: 'uppercase' },
+  viewerHeaderIcon: { padding: 4 },
+  viewerContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  fullImage: { width: '100%', height: '100%' },
+  viewerPlaceholder: { alignItems: 'center' },
+  placeholderText: { color: '#444', marginTop: 16, fontFamily: 'Outfit-Medium' },
+  viewerFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#1A1A1A'
+  },
+  viewerActionBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(3.5),
-    padding: wp(4),
-    marginBottom: hp(1.2),
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#333'
   },
-  quickActionIcon: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
-    borderWidth: 1.5,
+  viewerActionBtnOutline: {
+    backgroundColor: 'transparent',
+    borderColor: '#333'
+  },
+  viewerActionText: { color: '#FFF', fontSize: 15, fontFamily: 'Outfit-Bold' },
+  
+  // Progress Bar
+  progressHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: wp(3),
+    marginTop: 4,
+    width: width - 92, // Account for padding and back button
   },
-  quickActionText: { fontSize: wp(4), fontWeight: '600', color: '#fff' },
+  progressTextLeft: {
+    fontSize: 11, fontFamily: 'Outfit-Regular', color: '#8E8E93', textTransform: 'lowercase'
+  },
+  progressTextRight: {
+    fontSize: 10, fontFamily: 'Outfit-Bold', color: '#FF9800', letterSpacing: 1
+  },
+  progressBarContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
+  progressBarTrack: {
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 2,
+    width: '100%',
+    overflow: 'hidden'
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#FF9800',
+    borderRadius: 2
+  },
 
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: hp(4),
-    marginBottom: hp(2),
-  },
-  emptyStateText: {
-    fontSize: wp(3.5),
-    color: '#666',
-    marginTop: hp(1.5),
-  },
+  // New Styles
+  imageWrapper: { width: '100%', height: '100%', borderRadius: 14, overflow: 'hidden' },
+  slotImage: { width: '100%', height: '100%', backgroundColor: '#1A1A1A' },
 });
