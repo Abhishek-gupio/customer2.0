@@ -7,6 +7,7 @@ import {
   getAccessToken,
   getRefreshToken,
 } from './storage';
+import { damoovTelematics } from '../native/damoovTelematics';
 
 /** Decode JWT payload without verification (client-side only for id). */
 function decodeJwtPayload(token: string): { id: string } | null {
@@ -136,6 +137,7 @@ export function getStoredRefreshToken(): string | undefined {
 }
 
 export function logoutStorage(): void {
+  damoovTelematics.logout().catch(() => {});
   clearAuthStorage();
 }
 

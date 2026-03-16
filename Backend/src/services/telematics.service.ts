@@ -11,6 +11,10 @@ const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
 const ADMIN_TOKEN_CACHE_TTL_MS = 50 * 60 * 1000;
 let adminTokenCache: { token: string; expiresAt: number } | null = null;
 
+/** After rate limit, skip login attempts for 2 hours so Damoov's limit can reset. */
+const RATE_LIMIT_BACKOFF_MS = 2 * 60 * 60 * 1000;
+let rateLimitBackoffUntil = 0;
+
 function isRateLimitError(err: any): boolean {
   const status = err.response?.status;
   const body = err.response?.data;
@@ -18,11 +22,19 @@ function isRateLimitError(err: any): boolean {
   return status === 429 || /rate limit exceeded/i.test(String(msg));
 }
 
-async function getDamoovAdminToken(): Promise<string | null> {
+async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null> {
   if (adminTokenCache && Date.now() < adminTokenCache.expiresAt) {
     return adminTokenCache.token;
   }
   adminTokenCache = null;
+
+  if (!forceLogin && Date.now() < rateLimitBackoffUntil) {
+    logger.debug(
+      { backoffUntil: new Date(rateLimitBackoffUntil).toISOString() },
+      "Skipping Damoov login (rate limit backoff)"
+    );
+    return null;
+  }
 
   if (!env.DAMOOV_ADMIN_EMAIL || !env.DAMOOV_ADMIN_PASSWORD) {
     return null;
@@ -45,9 +57,10 @@ async function getDamoovAdminToken(): Promise<string | null> {
     return token;
   } catch (err: any) {
     if (isRateLimitError(err)) {
+      rateLimitBackoffUntil = Date.now() + RATE_LIMIT_BACKOFF_MS;
       logger.warn(
-        { error: err.response?.data || err.message },
-        "Damoov Admin API rate limited on login; will retry on next scheduled sync"
+        { error: err.response?.data || err.message, backoffMinutes: 120 },
+        "Damoov Admin API rate limited on login; skipping login for 2 hours"
       );
     } else {
       logger.error(
@@ -361,11 +374,12 @@ export const telematicsService = {
   /**
    * Pull trips for all active devices from Damoov API (Cron job Alternative).
    * Uses cached admin token to avoid login rate limits; on 429 skips this run and retries next schedule.
+   * @param options.forceLogin - If true, attempt login even during rate-limit backoff (for manual/immediate sync).
    */
-  async syncTripsForAllDevices() {
+  async syncTripsForAllDevices(options?: { forceLogin?: boolean }) {
     logger.info("Starting Damoov API sync for all devices (Admin Method)");
 
-    const accessToken = await getDamoovAdminToken();
+    const accessToken = await getDamoovAdminToken(options?.forceLogin);
     if (!accessToken) {
       return;
     }

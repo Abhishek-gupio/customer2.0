@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 // ─── API ─────────────────────────────────────────────────────────────────
 /** Set to true to use production API even when running in dev (Metro). Use for testing prod. */
-const FORCE_USE_PRODUCTION_API = true;
+const FORCE_USE_PRODUCTION_API = false;
 
 const DEV_PORT = 9000;
 const DEV_HOST =

@@ -7,4 +7,7 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
+# Damoov Telematics SDK
+-keep public class com.telematicssdk.tracking.** {*;}
+
 # Add any project specific keep options here:

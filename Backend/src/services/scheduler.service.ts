@@ -32,16 +32,23 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
 
-    // A2. Telematics Sync (Every 30 minutes — avoids Damoov Admin API rate limit)
+    // A2. Telematics Sync (Every 60 min — single job; duplicates removed to avoid double login / rate limit)
+    const repeatable = await queues.maintenance.getRepeatableJobs();
+    for (const job of repeatable) {
+      if (job.name === "sync-telematics") {
+        await queues.maintenance.removeRepeatableByKey(job.key);
+        logger.info({ key: job.key }, "Removed duplicate sync-telematics repeatable job");
+      }
+    }
     await queues.maintenance.add(
       "sync-telematics",
       {},
       {
-        repeat: { pattern: "*/30 * * * *" },
+        repeat: { pattern: "0 * * * *" },
         jobId: "sync-telematics-job",
       },
     );
-    logger.info("Scheduled: Telematics Sync (*/30 * * * *)");
+    logger.info("Scheduled: Telematics Sync (0 * * * * — hourly)");
 
     // A3. Daily Scraper (Fuel, News, Content at 6:30 AM)
     await queues.maintenance.add(
