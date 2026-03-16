@@ -126,14 +126,18 @@ export default function ReceiptReviewer({
     "Emi",
     "Other",
   ];
-  const isValid = amount.trim().length > 0;
+  const numAmount = parseFloat(String(amount).replace(/,/g, ""));
+  const isValid = amount.trim().length > 0 && !isNaN(numAmount) && numAmount > 0;
 
   const handleSave = async () => {
-    if (!isValid) return;
+    if (!isValid) {
+      Alert.alert("Invalid amount", "Please enter a valid positive amount.");
+      return;
+    }
 
     setLoading(true);
     try {
-      let parsedDate;
+      let parsedDate: string | undefined;
       if (date) {
         try {
           const d = parse(date, "dd-MM-yyyy", new Date());
@@ -142,10 +146,10 @@ export default function ReceiptReviewer({
       }
 
       const payload = {
-        amount: parseFloat(amount),
+        amount: numAmount,
         category: category.toUpperCase(),
         vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
-        notes: description,
+        notes: description.trim() || undefined,
         date: parsedDate,
         source,
         receiptUrl: receiptUrl ?? undefined,

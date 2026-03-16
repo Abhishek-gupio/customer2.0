@@ -54,6 +54,7 @@ export default function AddExpenseScreen() {
   const navigation = useNavigation();
   const { setVoiceOwner } = useContext(VoiceOwnerContext);
   const [showManual, setShowManual] = useState(false);
+  const [manualInitialData, setManualInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceText, setVoiceText] = useState("");
@@ -78,19 +79,27 @@ export default function AddExpenseScreen() {
   }, [setVoiceOwner]);
 
   const processVoiceCommand = async (speechText: string) => {
+    const trimmed = (speechText || "").trim();
+    if (trimmed.length < 2) {
+      Alert.alert(
+        "No speech detected",
+        "Please speak clearly with amount and category (e.g. 500 rupees fuel today).",
+      );
+      return;
+    }
+
     setLoading(true);
     try {
-      // Get extracted data only (dryRun) so we can show confirmation screen
       const response = await api.post('/v1/expenses/parse/voice/text?dryRun=true', {
-        text: speechText,
+        text: trimmed,
       });
 
       const resData = response as any;
-      const result = resData?.data?.data ?? resData?.data ?? resData;
+      const result = resData?.data ?? resData;
+      const expense = result?.expense ?? result?.data?.expense;
 
-      if (result?.success && result?.expense) {
-        const exp = result.expense;
-        // Convert date from YYYY-MM-DD to dd-MM-yyyy for ManualEntry
+      if (expense && (typeof expense.amount === "number" ? expense.amount > 0 : Number(expense.amount) > 0)) {
+        const exp = expense;
         let dateStr = "";
         if (exp.date) {
           const d = new Date(exp.date);
@@ -104,23 +113,51 @@ export default function AddExpenseScreen() {
         setScannedData({
           amount: String(exp.amount ?? ""),
           category: exp.category ?? "OTHER",
-          description: [exp.merchantName, exp.notes].filter(Boolean).join(" · ") || exp.transcription || "",
+          description: [exp.merchantName, exp.notes].filter(Boolean).join(" · ") || exp.transcription || trimmed,
           date: dateStr,
           source: "voice",
         });
         setReviewSource("VOICE");
         setShowReviewer(true);
-      } else if (result?.success === false && result?.error) {
+      } else if (result?.error?.message || result?.error) {
         Alert.alert(
           "Voice Processing",
-          result.error?.message || "Could not parse expense from voice command.",
+          result.error?.message || result.error || "Could not parse expense from voice command.",
+        );
+      } else if (!expense) {
+        Alert.alert(
+          "Couldn't understand",
+          "Say amount and category clearly (e.g. 500 rupees fuel today). Or use manual entry.",
         );
       }
     } catch (error: any) {
       console.error("Voice processing error:", error);
       const msg =
         error?.error?.message ?? error?.message ?? "Failed to process voice command. Please try again.";
-      Alert.alert("Error", msg);
+      const isAiNotConfigured = /AI not configured|not configured/i.test(String(msg));
+      const isNoAmount =
+        /could not detect expense amount/i.test(String(msg)) ||
+        /say the amount clearly/i.test(String(msg));
+
+      if (isAiNotConfigured || isNoAmount) {
+        Alert.alert(
+          "Voice Not Available",
+          isAiNotConfigured
+            ? "Voice parsing is not set up on the server. We’ll open manual entry with your spoken text."
+            : "We couldn't detect the amount from your voice. We'll open manual entry with your spoken text.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setManualInitialData({ description: trimmed });
+                setShowManual(true);
+              },
+            },
+          ],
+        );
+      } else {
+        Alert.alert("Error", msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -363,11 +400,54 @@ export default function AddExpenseScreen() {
       };
       (Voice as any).onSpeechError = (error: any) => {
         setIsRecording(false);
-        const msgStr = typeof error?.error?.message === "string" ? error.error.message : String(error?.error || "");
-        console.log("Speech Error:", msgStr);
-        if (msgStr.toLowerCase().includes("permission") || msgStr.includes("9/")) {
-          Alert.alert("Voice Recognition Error", "Microphone permission denied. Please enable it in settings.");
+        const rawMsg =
+          typeof error?.error?.message === "string"
+            ? error.error.message
+            : typeof error?.message === "string"
+            ? error.message
+            : String(error?.error || error || "");
+        const msg = rawMsg.toLowerCase();
+        console.log("Speech Error:", rawMsg);
+
+        // Common benign cases: no speech / user canceled / no match / low confidence
+        if (
+          msg.includes("no speech") ||
+          msg.includes("no match") ||
+          msg.includes("timeout") ||
+          msg.includes("didn't understand") ||
+          msg.startsWith("7/") || // 7/No match on some devices
+          msg.startsWith("11/") // 11/Didn't understand, please try again.
+        ) {
+          Alert.alert(
+            "Couldn’t hear you",
+            "We didn’t catch any speech. Try again closer to the mic and speak clearly.",
+          );
+          return;
         }
+
+        // Permission / privacy
+        if (msg.includes("permission") || msg.includes("denied") || msg.includes("record audio")) {
+          Alert.alert(
+            "Microphone blocked",
+            "Microphone permission is off. Please enable it in system settings for this app.",
+          );
+          return;
+        }
+
+        // Recognizer / engine not present on device
+        if (msg.includes("recognizer not present") || msg.includes("service not available") || msg.includes("not available")) {
+          Alert.alert(
+            "Voice not available",
+            "This device doesn’t have a working speech recognizer. Please use manual entry or scan receipt.",
+          );
+          return;
+        }
+
+        // Fallback: generic error
+        Alert.alert(
+          "Voice Error",
+          rawMsg || "There was a problem with voice recognition. Please try again or use manual entry.",
+        );
       };
 
       // Use saved default language (or Auto = device locale)
@@ -458,6 +538,7 @@ export default function AddExpenseScreen() {
             label="Enter Manually"
             onPress={() => {
               setScannedData(null);
+              setManualInitialData(null);
               setShowManual(true);
             }}
           />
@@ -466,7 +547,7 @@ export default function AddExpenseScreen() {
 
       <ManualEntryOverlay
         visible={showManual}
-        initialData={null}
+        initialData={manualInitialData}
         onClose={() => {
           setShowManual(false);
         }}
