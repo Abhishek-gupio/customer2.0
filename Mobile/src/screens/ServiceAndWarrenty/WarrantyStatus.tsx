@@ -269,18 +269,17 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    marginLeft: wp(3),
+    marginLeft: wp(3), // Added marginLeft
   },
   headerTitle: {
     color: '#fff',
     fontSize: wp(5.5),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
   },
   vehicleSub: {
     color: '#888',
     fontSize: wp(3.5),
-    fontWeight: '500',
-    marginTop: 2,
+    fontFamily: 'Outfit-Medium',
   },
   list: {
     flex: 1,

@@ -136,14 +136,14 @@ const styles = StyleSheet.create({
 
     headerTitle: {
         fontSize: wp(5.5),
-        fontWeight: '700',
+        fontFamily: 'Outfit-Bold',
         color: '#fff',
         marginLeft: wp(3),
     },
 
     vehicle: {
         fontSize: wp(4.5),
-        fontWeight: '500',
+        fontFamily: 'Outfit-Medium',
         marginBottom: hp('2%'),
         color: '#fff',
     },
