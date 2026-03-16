@@ -32,16 +32,16 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
 
-    // A2. Telematics Sync (Every 10 minutes)
+    // A2. Telematics Sync (Every 30 minutes — avoids Damoov Admin API rate limit)
     await queues.maintenance.add(
       "sync-telematics",
       {},
       {
-        repeat: { pattern: "*/10 * * * *" },
+        repeat: { pattern: "*/30 * * * *" },
         jobId: "sync-telematics-job",
       },
     );
-    logger.info("Scheduled: Telematics Sync (*/10 * * * *)");
+    logger.info("Scheduled: Telematics Sync (*/30 * * * *)");
 
     // A3. Daily Scraper (Fuel, News, Content at 6:30 AM)
     await queues.maintenance.add(
