@@ -1,18 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
-    StyleSheet, ActivityIndicator, Alert, Dimensions
+    StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
+import RNShareCustom from 'react-native-share';
+import RNFS from 'react-native-fs';
 
 const { width } = Dimensions.get('window');
 import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload
+    Calendar, Bookmark, Upload, X, Download, Share2
 } from 'lucide-react-native';
 import BackButton from '../../components/BackButton';
-import { useNavigation } from '../../lib/react-navigation-native';
+import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate, GloveboxItem, StatusCard } from '../../components/Vehicles/VehicleUI';
@@ -20,6 +24,9 @@ import { Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import ShareScreen from './Share';
 import { getProfile } from '../../services/profileService';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { RootState } from '../../store';
+import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
 
 const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
 const BikeImage = require('../../assets/images/bike.png') as any;
@@ -51,6 +58,18 @@ export const DetailsScreen = ({
     const [shareLoading, setShareLoading] = useState(false);
     const [shareAccessList, setShareAccessList] = useState<any[]>([]);
     const [currentCustomerId, setCurrentCustomerId] = useState<string | null>(null);
+    const dispatch = useAppDispatch();
+    const { documents, loading } = useAppSelector((state: RootState) => state.documents);
+
+    const [showViewerModal, setShowViewerModal] = useState(false);
+    const [viewingDoc, setViewingDoc] = useState<any>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            dispatch(fetchDocuments());
+        }, [dispatch])
+    );
 
     useEffect(() => {
         let mounted = true;
@@ -146,6 +165,109 @@ export const DetailsScreen = ({
         return;
     };
 
+    // ── Document Actions ──
+    const createPDFFromImage = async (doc: any) => {
+        try {
+            const options = {
+                html: `
+          <html>
+            <body style="margin:0;padding:0;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
+              <img src="${doc.imageUri}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            </body>
+          </html>
+        `,
+                fileName: `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
+                directory: 'Documents',
+            };
+            const file = await convertToPDF(options);
+            return file.filePath;
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            throw new Error('Failed to generate PDF');
+        }
+    };
+
+    const handleShareDoc = async (doc: any) => {
+        if (!doc?.imageUri) return;
+        try {
+            setIsProcessing(true);
+            const pdfPath = await createPDFFromImage(doc);
+            setIsProcessing(false);
+
+            await RNShareCustom.open({
+                url: `file://${pdfPath}`,
+                type: 'application/pdf',
+                title: `Share ${doc.type}`,
+                message: `Sending ${doc.type} for vehicle ${activeVehicle?.registrationNumber}`,
+            });
+        } catch (error: any) {
+            setIsProcessing(false);
+            if (error?.message !== 'User did not share') {
+                Alert.alert('Error', 'Could not share document as PDF');
+            }
+        }
+    };
+
+    const handleDownloadDoc = async (doc: any) => {
+        if (!doc?.imageUri) return;
+        try {
+            setIsProcessing(true);
+
+            if (Platform.OS === 'android') {
+                await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                    {
+                        title: 'Storage Permission',
+                        message: 'App needs access to your storage to download the PDF',
+                        buttonNeutral: 'Ask Me Later',
+                        buttonNegative: 'Cancel',
+                        buttonPositive: 'OK',
+                    }
+                );
+            }
+
+            const tempPdfPath = await createPDFFromImage(doc);
+            const fileName = tempPdfPath.split('/').pop();
+            let finalPath = tempPdfPath;
+
+            if (Platform.OS === 'android') {
+                const downloadDir = RNFS.DownloadDirectoryPath;
+                finalPath = `${downloadDir}/${fileName}`;
+                await RNFS.copyFile(tempPdfPath, finalPath);
+                await RNFS.unlink(tempPdfPath);
+            }
+
+            setIsProcessing(false);
+            Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
+        } catch (error: any) {
+            setIsProcessing(false);
+            Alert.alert('Error', error.message || 'Could not download document as PDF');
+        }
+    };
+
+    const handleDeleteDoc = async (id: string, type: string) => {
+        Alert.alert(
+            'Delete Document',
+            `Are you sure you want to delete your ${type}?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await dispatch(removeDocumentAsync(id)).unwrap();
+                            setShowViewerModal(false);
+                            Alert.alert('Success', `${type} deleted successfully`);
+                        } catch (err: any) {
+                            Alert.alert('Error', err.message || 'Failed to delete');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     // ── Helper: alert status badge ───────────────────────────────────────────
     const getInsuranceStatus = (): string => {
         if (!rto?.insuranceUpto) return 'UNKNOWN';
@@ -157,6 +279,60 @@ export const DetailsScreen = ({
         if (!rto?.pollutionUpto) return 'UNKNOWN';
         const expiry = new Date(rto.pollutionUpto);
         return expiry > new Date() ? 'VALID' : 'EXPIRED';
+    };
+
+    const getDocByType = (docType: string) => {
+        const typeMap: Record<string, string> = {
+            'reg certificate': 'RC',
+            "driver's licence": 'DL',
+            'insurance policy': 'Insurance',
+            'puc certificate': 'PUC'
+        };
+        const mappedType = typeMap[docType] || docType;
+        
+        // Normalize for matching
+        const targetType = mappedType.toUpperCase();
+        const targetPlate = activeVehicle.registrationNumber?.replace(/\s+/g, '').toUpperCase();
+        
+        return documents.find(d => {
+            const docTypeMatch = d.type.toUpperCase() === targetType;
+            const docPlate = (d.vehicle || d.documentNumber || '')?.replace(/\s+/g, '').toUpperCase();
+            
+            // Match if type matches AND (plate matches OR we don't have a plate for this doc yet)
+            // This is safer than strict matching if the backend linking is slightly off
+            return docTypeMatch && (docPlate === targetPlate || !docPlate || docPlate === '');
+        });
+    };
+
+    const GloveboxImageItem = ({ label, icon: Icon, onPress }: { label: string, icon: any, onPress: () => void }) => {
+        const doc = getDocByType(label);
+
+        const handlePress = () => {
+            if (doc) {
+                setViewingDoc(doc);
+                setShowViewerModal(true);
+            } else {
+                navigation.navigate('DocumentList');
+            }
+        };
+
+        return (
+            <TouchableOpacity onPress={handlePress} style={styles.gloveboxItem}>
+                <View style={styles.gloveboxIconBox}>
+                    {doc ? (
+                        <Image 
+                            key={`preview_${doc.id}_${doc.imageUri}`}
+                            source={{ uri: doc.imageUri }} 
+                            style={styles.gloveboxPreview} 
+                            resizeMode="cover" 
+                        />
+                    ) : (
+                        Icon && <Icon size={20} color="#666" />
+                    )}
+                </View>
+                <Text style={styles.gloveboxLabel} numberOfLines={1}>{label}</Text>
+            </TouchableOpacity>
+        );
     };
 
     return (
@@ -198,13 +374,28 @@ export const DetailsScreen = ({
                         resizeMode="contain"
                         onError={() => setHeroError(true)}
                     />
-                    
+
                     <Text style={styles.brandName}>{activeVehicle.make?.toUpperCase() || 'VEHICLE'}</Text>
                     <Text style={styles.modelName}>{activeVehicle.model?.toUpperCase() || 'MODEL'}</Text>
-                    
+
                     <View style={styles.heroPlateBox}>
                         <INDPlate number={activeVehicle.registrationNumber} />
                     </View>
+
+                    {activeVehicle.isPrimary ? (
+                        <View style={styles.primaryBadge}>
+                            <Star size={14} color="#000" fill="#000" />
+                            <Text style={styles.primaryBadgeText}>PRIMARY VEHICLE</Text>
+                        </View>
+                    ) : (
+                        <TouchableOpacity
+                            style={styles.setPrimaryBtn}
+                            onPress={() => onSetPrimary(activeVehicle.id)}
+                        >
+                            <Star size={14} color={COLORS.primary} />
+                            <Text style={styles.setPrimaryBtnText}>SET AS PRIMARY</Text>
+                        </TouchableOpacity>
+                    )}
 
                     {/* ── Vehicle switcher circle icons ── */}
                     <View style={styles.switcherRow}>
@@ -228,6 +419,11 @@ export const DetailsScreen = ({
                                             style={StyleSheet.absoluteFill}
                                             resizeMode="cover"
                                         />
+                                        {v.isPrimary && (
+                                            <View style={styles.miniPrimaryIndicator}>
+                                                <Star size={10} color="#000" fill="#000" />
+                                            </View>
+                                        )}
                                     </View>
                                     {activeVehicle.id === v.id && (
                                         <Text style={styles.activeMiniLabel} numberOfLines={1}>
@@ -245,15 +441,15 @@ export const DetailsScreen = ({
                         <>
                             {/* ── Status Grid (Challans & PUCC) ── */}
                             <View style={styles.statusGrid}>
-                                <StatusCard 
-                                    icon={FileText} 
-                                    label="challans" 
-                                    value="CHECK NOW" 
+                                <StatusCard
+                                    icon={FileText}
+                                    label="challans"
+                                    value="CHECK NOW"
                                 />
-                                <StatusCard 
-                                    icon={ShieldCheck} 
-                                    label="PUCC" 
-                                    value="ACTIVE" 
+                                <StatusCard
+                                    icon={ShieldCheck}
+                                    label="PUCC"
+                                    value="ACTIVE"
                                 />
                             </View>
 
@@ -261,13 +457,13 @@ export const DetailsScreen = ({
                             <View style={{ marginTop: 32 }}>
                                 <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
                                 <View style={styles.gloveboxGrid}>
-                                    <GloveboxItem label="reg certificate" icon={Upload} onPress={() => {}} />
-                                    <GloveboxItem label="driver's licence" icon={Upload} onPress={() => {}} />
-                                    <GloveboxItem label="insurance policy" icon={Upload} onPress={() => {}} />
-                                    <GloveboxItem label="puc certificate" icon={Upload} onPress={() => {}} />
+                                    <GloveboxImageItem label="reg certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
+                                    <GloveboxImageItem label="driver's licence" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
+                                    <GloveboxImageItem label="insurance policy" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
+                                    <GloveboxImageItem label="puc certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
                                 </View>
-                                
-                                <TouchableOpacity 
+
+                                <TouchableOpacity
                                     style={styles.viewAllDocsBtn}
                                     onPress={() => navigation.navigate('DocumentList')}
                                 >
@@ -278,14 +474,14 @@ export const DetailsScreen = ({
                     ) : (
                         /* ── Details Tab (Sub-Tab Navigation) ── */
                         <View>
-                            <ScrollView 
-                                horizontal 
-                                showsHorizontalScrollIndicator={false} 
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
                                 contentContainerStyle={styles.subTabNav}
                             >
                                 {(['Owner', 'Vehicle', 'Specs', 'Dates', 'More'] as SubTab[]).map(st => (
-                                    <TouchableOpacity 
-                                        key={st} 
+                                    <TouchableOpacity
+                                        key={st}
                                         onPress={() => setSubTab(st)}
                                         style={[styles.subTabItem, subTab === st && styles.subTabItemActive]}
                                     >
@@ -356,6 +552,73 @@ export const DetailsScreen = ({
                 onRevoke={handleRevoke}
                 isLoading={shareLoading}
             />
+
+            {/* Document Viewer Modal */}
+            <Modal
+                visible={showViewerModal}
+                transparent={false}
+                animationType="fade"
+                onRequestClose={() => setShowViewerModal(false)}
+            >
+                <SafeAreaView style={styles.viewerContainer}>
+                    <View style={styles.viewerHeader}>
+                        <View style={styles.viewerHeaderLeft}>
+                            <Text style={styles.viewerTitle}>{viewingDoc?.type || 'Document'}</Text>
+                            <Text style={styles.viewerSubtitle}>{activeVehicle?.registrationNumber}</Text>
+                        </View>
+                        <View style={styles.viewerHeaderRight}>
+                            <TouchableOpacity
+                                style={styles.viewerHeaderIcon}
+                                onPress={() => viewingDoc && handleDeleteDoc(viewingDoc.id, viewingDoc.type)}
+                            >
+                                <Trash2 size={22} color="#FF453A" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.viewerHeaderIcon, { marginLeft: 16 }]}
+                                onPress={() => setShowViewerModal(false)}
+                            >
+                                <X size={24} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <ScrollView
+                        contentContainerStyle={styles.viewerContent}
+                        centerContent={true}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        {viewingDoc?.imageUri ? (
+                            <Image
+                                source={{ uri: viewingDoc.imageUri }}
+                                style={styles.fullImage}
+                                resizeMode="contain"
+                            />
+                        ) : (
+                            <View style={styles.viewerPlaceholder}>
+                                <FileText size={64} color="#333" />
+                                <Text style={styles.placeholderText}>Preview not available</Text>
+                            </View>
+                        )}
+                    </ScrollView>
+
+                    <View style={styles.viewerFooter}>
+                        <TouchableOpacity style={styles.viewerActionBtn} onPress={() => handleShareDoc(viewingDoc)}>
+                            <Share2 size={20} color="#FFF" />
+                            <Text style={styles.viewerActionText}>Share as PDF</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.viewerActionBtn, styles.viewerActionBtnOutline]} onPress={() => handleDownloadDoc(viewingDoc)}>
+                            <Download size={20} color="#FFF" />
+                            <Text style={styles.viewerActionText}>Download PDF</Text>
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
+            </Modal>
+
+            {isProcessing && (
+                <View style={styles.loaderOverlay}>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                </View>
+            )}
         </View>
     );
 };
@@ -364,20 +627,20 @@ const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: '#000000' },
     header: { paddingHorizontal: 20, paddingTop: 48, paddingBottom: 20, minHeight: 80 },
     topRoundBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
-    tabPillContainer: { 
-        flexDirection: 'row', 
-        backgroundColor: COLORS.surface, 
-        borderRadius: 30, 
-        padding: 4, 
-        borderWidth: 1, 
-        borderColor: COLORS.border, 
+    tabPillContainer: {
+        flexDirection: 'row',
+        backgroundColor: COLORS.surface,
+        borderRadius: 30,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: COLORS.border,
         width: 180,
         marginHorizontal: 16
     },
     tabPill: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 30 },
     tabPillActive: { backgroundColor: COLORS.primary },
     tabPillText: { fontSize: 12, fontFamily: 'Outfit-Black', color: '#888' },
-    
+
     // Hero Section
     heroSection: { alignItems: 'center', paddingBottom: 16 },
     heroImage: { width: width * 0.8, height: 160, marginBottom: -10 },
@@ -392,15 +655,61 @@ const styles = StyleSheet.create({
     miniCircleInner: { width: 64, height: 64, borderRadius: 32, padding: 4, borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
     miniCircleActive: { transform: [{ scale: 1.1 }] },
     activeMiniLabel: { fontSize: 9, fontFamily: 'Outfit-Black', color: COLORS.primary, position: 'absolute', bottom: -18, textAlign: 'center', width: 80 },
+    miniPrimaryIndicator: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        backgroundColor: COLORS.primary,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#000'
+    },
+
+    primaryBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: COLORS.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 20,
+        marginTop: 16
+    },
+    primaryBadgeText: {
+        color: '#000',
+        fontSize: 11,
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 0.5
+    },
+    setPrimaryBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        borderWidth: 1,
+        borderColor: COLORS.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 20,
+        marginTop: 16
+    },
+    setPrimaryBtnText: {
+        color: COLORS.primary,
+        fontSize: 11,
+        fontFamily: 'Outfit-Bold'
+    },
 
     sectionPad: { paddingHorizontal: 24, paddingTop: 20 },
     sectionHeading: { fontSize: 10, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: 16 },
 
     // Status Boxes
     statusGrid: { flexDirection: 'row', gap: 12 },
-    statusBox: { 
-        flex: 1, backgroundColor: '#0A0A0A', padding: 24, borderRadius: 24, 
-        flexDirection: 'column', alignItems: 'center', gap: 16, 
+    statusBox: {
+        flex: 1, backgroundColor: '#0A0A0A', padding: 24, borderRadius: 24,
+        flexDirection: 'column', alignItems: 'center', gap: 16,
         borderWidth: 1, borderColor: '#1F1F1F'
     },
 
@@ -408,6 +717,10 @@ const styles = StyleSheet.create({
 
     // Glovebox
     gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+    gloveboxItem: { width: (width - 84) / 4, alignItems: 'center', gap: 8 },
+    gloveboxIconBox: { width: '100%', aspectRatio: 1, backgroundColor: '#1A1A1A', borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
+    gloveboxLabel: { color: '#AAA', fontSize: 10, fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit' },
+    gloveboxPreview: { width: '100%', height: '100%', borderRadius: 16 },
     viewAllDocsBtn: { marginTop: 24, borderWidth: 1, borderColor: '#333', borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: '#1A1A1A' },
     viewAllDocsText: { color: COLORS.primary, fontSize: 13, fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: 1.5 },
 
@@ -418,5 +731,60 @@ const styles = StyleSheet.create({
     subTabText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#888' },
     subTabTextActive: { color: '#000' },
 
-    detailsSpecsContainer: { gap: 16, marginTop: 10 }
+    detailsSpecsContainer: { gap: 16, marginTop: 10 },
+
+    // Viewer Styles (Ported)
+    viewerContainer: { flex: 1, backgroundColor: '#000' },
+    viewerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#1A1A1A'
+    },
+    viewerHeaderLeft: { flex: 1 },
+    viewerHeaderRight: { flexDirection: 'row', alignItems: 'center' },
+    viewerTitle: { color: '#FFF', fontSize: 20, fontFamily: 'Outfit-Bold', textTransform: 'lowercase' },
+    viewerSubtitle: { color: '#8E8E93', fontSize: 12, fontFamily: 'Outfit-Medium', marginTop: 2, textTransform: 'uppercase' },
+    viewerHeaderIcon: { padding: 4 },
+    viewerContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+    fullImage: { width: '100%', height: '100%' },
+    viewerPlaceholder: { alignItems: 'center' },
+    placeholderText: { color: '#444', marginTop: 16, fontFamily: 'Outfit-Medium' },
+    viewerFooter: {
+        flexDirection: 'row',
+        gap: 12,
+        paddingHorizontal: 24,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#1A1A1A',
+        backgroundColor: '#000'
+    },
+    viewerActionBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        backgroundColor: '#1A1A1A',
+        paddingVertical: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    viewerActionBtnOutline: {
+        backgroundColor: 'transparent',
+        borderColor: '#333'
+    },
+    viewerActionText: { color: '#FFF', fontSize: 13, fontFamily: 'Outfit-Bold' },
+    loaderOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999
+    }
 });

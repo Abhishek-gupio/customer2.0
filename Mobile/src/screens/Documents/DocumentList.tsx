@@ -241,6 +241,25 @@ export default function DocumentList() {
     if (!doc?.imageUri) return;
     try {
       setIsUploading(true);
+
+      // Check permissions for Android
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs access to your storage to download the PDF',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED && Platform.Version < 33) {
+           // For Android 13+ (API 33), WRITE_EXTERNAL_STORAGE is not used for media/docs
+           // But let's log and proceed or handle based on version if needed.
+        }
+      }
+
       const tempPdfPath = await createPDFFromImage(doc);
       
       const fileName = tempPdfPath.split('/').pop();
@@ -249,11 +268,13 @@ export default function DocumentList() {
       if (Platform.OS === 'android') {
         const downloadDir = RNFS.DownloadDirectoryPath;
         finalPath = `${downloadDir}/${fileName}`;
-        await RNFS.moveFile(tempPdfPath, finalPath);
-        // Important: Android Media Scanner might need a nudge, but for File Manager, it's there.
+        
+        // Use copy instead of move to avoid permission issues with different volumes/mounts
+        await RNFS.copyFile(tempPdfPath, finalPath);
+        // Delete the temp file from library cache
+        await RNFS.unlink(tempPdfPath);
       } else if (Platform.OS === 'ios') {
         // iOS handled differently usually via UIDocumentPicker or just internal docs.
-        // For simplicity on iOS, we leave it in the default app docs folder.
       }
 
       setIsUploading(false);
