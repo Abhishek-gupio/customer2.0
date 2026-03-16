@@ -10,6 +10,7 @@ import {
   Linking,
   Platform,
   PermissionsAndroid,
+  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import { placesService, type NearbyPlace } from '../../services/placesService';
+import BackButton from '../../components/BackButton';
 
 let Geolocation: any = null;
 try {
@@ -65,36 +67,27 @@ const PLACE_LABELS: Record<string, string> = {
 type PlaceItem = { id: PlaceType; name: string; icon: string; iconSet: 'fa' | 'mc' };
 
 const PLACE_ITEMS: PlaceItem[] = [
-  { id: 'FuelStations', name: 'Fuel Stations', icon: 'gas-station', iconSet: 'mc' },
+  { id: 'FuelStations', name: 'Fuel', icon: 'gas-station', iconSet: 'mc' },
   { id: 'Hospital', name: 'Hospital', icon: 'hospital', iconSet: 'fa' },
-  { id: 'PoliceStation', name: 'Police Station', icon: 'building', iconSet: 'fa' },
+  { id: 'PoliceStation', name: 'Police', icon: 'building', iconSet: 'fa' },
   { id: 'Hotel', name: 'Hotel', icon: 'hotel', iconSet: 'fa' },
-  { id: 'ChargingStation', name: 'Charging Station', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'Mechanics', name: 'Mechanics', icon: 'wrench', iconSet: 'fa' },
+  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
+  { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
   { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
   { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
   { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
   { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'TyreShop', name: 'Tyre Shop', icon: 'car-tire-alert', iconSet: 'mc' },
-  { id: 'DocumentServices', name: 'Document Services', icon: 'file-document', iconSet: 'mc' },
-  { id: 'CarSpa', name: 'Car Spa', icon: 'spa', iconSet: 'mc' },
 ];
 
 const getPlaceById = (id: PlaceType) => PLACE_ITEMS.find((i) => i.id === id)!;
 
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
-
 const NEARBY_CATEGORIES: { title: string; itemIds: PlaceType[] }[] = [
-  { title: 'Fuel & charging', itemIds: ['FuelStations', 'ChargingStation'] },
-  { title: 'Repair & service', itemIds: ['Mechanics', 'TyreShop', 'CarWash', 'CarSpa', 'Towing'] },
-  { title: 'Emergency & safety', itemIds: ['Hospital', 'PoliceStation'] },
-  { title: 'Stay & parking', itemIds: ['Hotel', 'Parking'] },
-  { title: 'RTO & documents', itemIds: ['RTO', 'DocumentServices', 'Insurance'] },
+  { title: 'Fuel & Charging', itemIds: ['FuelStations', 'ChargingStation'] },
+  { title: 'Service & Repair', itemIds: ['Mechanics', 'CarWash', 'Towing', 'TyreShop'] },
+  { title: 'Emergency & Safety', itemIds: ['Hospital', 'PoliceStation'] },
+  { title: 'Others', itemIds: ['Hotel', 'Parking', 'RTO', 'Insurance'] },
 ];
 
 function openMapsNavigation(lat: number, lng: number, label?: string) {
@@ -213,7 +206,7 @@ function NearbyPlacesListScreen({
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [apiType, title]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -245,15 +238,13 @@ function NearbyPlacesListScreen({
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={onBack} />
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
 
       {location && (
         <View style={styles.locationPill}>
-          <Icon name="map-marker-alt" size={wp(3.5)} color="#FFC107" />
+          <Icon name="map-marker-alt" size={wp(3.5)} color="#FFBF00" />
           <Text style={styles.locationPillText}>
             Near {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
           </Text>
@@ -272,7 +263,7 @@ function NearbyPlacesListScreen({
 
       {loading && !refreshing ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color="#FFC107" />
+          <ActivityIndicator size="large" color="#FFBF00" />
           <Text style={styles.loadingText}>Finding nearby {title.toLowerCase()}…</Text>
         </View>
       ) : permissionDenied ? (
@@ -305,7 +296,7 @@ function NearbyPlacesListScreen({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#FFC107"
+              tintColor="#FFBF00"
             />
           }
         >
@@ -313,13 +304,7 @@ function NearbyPlacesListScreen({
             <View key={place.placeId || place.name} style={styles.fuelCard}>
               <View style={styles.fuelCardLeft}>
                 <View style={styles.fuelCardIconWrap}>
-                  {(() => {
-                    const config = getPlaceById(placeType);
-                    if (config.iconSet === 'mc') {
-                      return <IconMC name={config.icon as any} size={wp(6)} color="#FFC107" />;
-                    }
-                    return <Icon name={config.icon as any} size={wp(6)} color="#FFC107" />;
-                  })()}
+                   <Icon name="map-pin" size={wp(5)} color="#FFBF00" />
                 </View>
                 <View style={styles.fuelCardBody}>
                   <Text style={styles.fuelCardName} numberOfLines={1}>{place.name}</Text>
@@ -333,7 +318,7 @@ function NearbyPlacesListScreen({
                     </View>
                     {place.rating != null && (
                       <View style={styles.ratingBadge}>
-                        <Icon name="star" size={wp(3)} color="#FFC107" solid />
+                        <Icon name="star" size={wp(3)} color="#FFBF00" solid />
                         <Text style={styles.ratingText}>{place.rating.toFixed(1)}</Text>
                       </View>
                     )}
@@ -345,8 +330,8 @@ function NearbyPlacesListScreen({
                 onPress={() => openMapsNavigation(place.latitude, place.longitude, place.name)}
                 activeOpacity={0.8}
               >
-                <Icon name="directions" size={wp(4)} color="#0a0a0a" />
-                <Text style={styles.navigateBtnText}>Navigate</Text>
+                <Icon name="directions" size={wp(4)} color="#000" />
+                <Text style={styles.navigateBtnText}>GO</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -359,6 +344,8 @@ function NearbyPlacesListScreen({
 export default function NearbyPlaces() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const placeType = route.params?.placeType as PlaceType | undefined;
   const title = placeType ? PLACE_LABELS[placeType] || 'Nearby' : 'Nearby Places';
   const isBrowse = !placeType;
@@ -383,13 +370,11 @@ export default function NearbyPlaces() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={wp(5)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
         <View style={styles.placeholder}>
-          <Icon name="map-marker-alt" size={wp(20)} color="#333" />
+          <Icon name="map-marker-alt" size={wp(20)} color="#222" />
           <Text style={styles.placeholderTitle}>Coming soon</Text>
           <Text style={styles.placeholderText}>
             Nearby {title.toLowerCase()} will show here. We're working on it.
@@ -402,54 +387,55 @@ export default function NearbyPlaces() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.section}>
-          {NEARBY_CATEGORIES.map((cat) => {
-            const items = cat.itemIds.map((id) => getPlaceById(id));
-            const rows = chunk(items, 4);
-            return (
-              <View key={cat.title} style={styles.categoryBlock}>
-                <Text style={styles.categoryTitle}>{cat.title}</Text>
-                <View style={styles.grid}>
-                  {rows.map((row, rowIndex) => (
-                    <View key={rowIndex} style={styles.row}>
-                      {row.map((item) => (
-                        <TouchableOpacity
-                          key={item.id}
-                          style={styles.card}
-                          onPress={() => onPlacePress(item.id)}
-                          activeOpacity={0.7}
-                        >
-                          <View style={styles.iconContainer}>
-                            {item.iconSet === 'mc' ? (
-                              <IconMC name={item.icon as any} size={wp(5.5)} color="#fff" />
-                            ) : (
-                              <Icon name={item.icon as any} size={wp(5.5)} color="#fff" />
-                            )}
-                          </View>
-                          <Text style={styles.cardText} numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                      {row.length < 4 &&
-                        Array.from({ length: 4 - row.length }).map((_, i) => (
-                          <View key={`pad-${i}`} style={[styles.card, styles.cardPad]} />
-                        ))}
-                    </View>
-                  ))}
-                </View>
+        <View style={styles.searchWrapper}>
+          <View style={styles.searchBar}>
+            <Icon name="search" size={wp(4)} color="#666" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search category..."
+              placeholderTextColor="#666"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+
+        <View style={styles.contentSection}>
+          {NEARBY_CATEGORIES.map((cat) => (
+            <View key={cat.title} style={styles.categoryWrap}>
+              <Text style={styles.categoryTitle}>{cat.title}</Text>
+              <View style={styles.row}>
+                {cat.itemIds.map((id) => {
+                  const item = getPlaceById(id);
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.button}
+                      onPress={() => onPlacePress(item.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.iconBox}>
+                        {item.id === 'FuelStations' || item.id === 'ChargingStation' || item.id === 'CarWash' || item.id === 'Insurance' || item.id === 'TyreShop' ? (
+                          <IconMC name={item.icon as any} size={wp(5.8)} color="#fff" />
+                        ) : (
+                          <Icon name={item.icon as any} size={wp(5.8)} color="#fff" />
+                        )}
+                      </View>
+                      <Text style={styles.label} numberOfLines={1}>{item.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            );
-          })}
+            </View>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -464,92 +450,83 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(5),
     paddingVertical: hp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
-  },
-  backBtn: {
-    width: wp(10),
-    height: wp(10),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(3),
   },
   headerTitle: {
-    fontSize: wp(5),
-    fontWeight: '700',
+    fontSize: wp(5.5),
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
+    marginLeft: wp(3),
   },
   scrollContent: {
-    paddingTop: hp(2),
     paddingBottom: hp(4),
   },
-  section: {
+  searchWrapper: {
     paddingHorizontal: wp(5),
-    marginBottom: hp(2.5),
+    paddingBottom: hp(2),
   },
-  categoryBlock: {
-    marginBottom: hp(2.5),
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#161616',
+    borderRadius: 16,
+    paddingHorizontal: wp(4),
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  searchIcon: {
+    marginRight: wp(3),
+  },
+  searchInput: {
+    flex: 1,
+    color: '#fff',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(4),
+    padding: 0,
+  },
+  contentSection: {
+    paddingHorizontal: wp(6),
+    paddingTop: hp(1),
+  },
+  categoryWrap: {
+    marginBottom: hp(4),
   },
   categoryTitle: {
-    color: '#e0e0e0',
+    fontFamily: 'Outfit-Bold',
     fontSize: wp(4.2),
-    fontWeight: '600',
-    marginBottom: hp(1.2),
-    textTransform: 'capitalize',
-  },
-  grid: {
-    paddingVertical: hp(1.5),
+    color: '#aaa',
+    marginBottom: hp(2),
+    paddingLeft: 2,
+    letterSpacing: 0.5,
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: wp(4),
+  },
+  button: {
+    width: (wp(100) - wp(12) - wp(12)) / 4,
     alignItems: 'center',
-    marginBottom: hp(1.5),
+    marginBottom: hp(1),
   },
-  card: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  cardPad: {
-    opacity: 0,
-  },
-  iconContainer: {
+  iconBox: {
     width: wp(14),
     height: wp(14),
-    borderRadius: wp(7),
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: wp(4),
+    backgroundColor: '#1a1a1a',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(0.8),
+    marginBottom: hp(1),
   },
-  cardText: {
-    fontSize: wp(2.8),
-    fontWeight: '500',
-    color: '#ccc',
-    textAlign: 'center',
-    marginTop: hp(0.4),
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: wp(8),
-  },
-  placeholderTitle: {
-    fontSize: wp(5),
-    fontWeight: '700',
+  label: {
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Medium',
     color: '#fff',
-    marginTop: hp(2),
-  },
-  placeholderText: {
-    fontSize: wp(4),
-    color: '#888',
     textAlign: 'center',
-    marginTop: hp(1),
   },
   locationPill: {
     flexDirection: 'row',
@@ -559,46 +536,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.8),
     borderRadius: 20,
-    marginTop: hp(1),
+    marginBottom: hp(1),
     gap: wp(1.5),
   },
   locationPillText: {
     fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
     color: '#aaa',
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: wp(5),
-    marginTop: hp(2),
+    marginBottom: hp(2),
     padding: wp(4),
-    backgroundColor: 'rgba(245,158,11,0.15)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(245,158,11,0.1)',
+    borderRadius: 16,
     gap: wp(2),
   },
   errorBannerText: {
     flex: 1,
-    fontSize: wp(3.8),
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
     color: '#f59e0b',
   },
   errorRetryBtn: {
     paddingHorizontal: wp(3),
-    paddingVertical: hp(0.6),
   },
   errorRetryText: {
-    fontSize: wp(3.8),
-    fontWeight: '600',
-    color: '#FFC107',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
   },
   loadingWrap: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: hp(4),
   },
   loadingText: {
     marginTop: hp(2),
     fontSize: wp(4),
+    fontFamily: 'Outfit-Medium',
     color: '#888',
   },
   emptyWrap: {
@@ -609,43 +587,45 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: wp(5),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     marginTop: hp(2),
   },
   emptyText: {
     fontSize: wp(4),
+    fontFamily: 'Outfit-Medium',
     color: '#888',
     textAlign: 'center',
     marginTop: hp(1),
   },
   retryButton: {
     marginTop: hp(3),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: wp(6),
-    paddingVertical: hp(1.2),
-    borderRadius: 10,
+    backgroundColor: '#161616',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(1.5),
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   retryButtonText: {
     fontSize: wp(4),
-    fontWeight: '600',
-    color: '#FFC107',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
   },
   fuelListContent: {
-    paddingHorizontal: wp(4),
-    paddingTop: hp(1.5),
+    paddingHorizontal: wp(5),
     paddingBottom: hp(4),
   },
   fuelCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 14,
+    backgroundColor: '#111',
+    borderRadius: 18,
     padding: wp(4),
-    marginBottom: hp(1.5),
+    marginBottom: hp(1.8),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: '#222',
   },
   fuelCardLeft: {
     flexDirection: 'row',
@@ -657,23 +637,23 @@ const styles = StyleSheet.create({
     width: wp(12),
     height: wp(12),
     borderRadius: wp(6),
-    backgroundColor: 'rgba(255,193,7,0.15)',
+    backgroundColor: 'rgba(255,191,0,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3),
   },
   fuelCardBody: {
     flex: 1,
-    minWidth: 0,
   },
   fuelCardName: {
     fontSize: wp(4.2),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     marginBottom: hp(0.3),
   },
   fuelCardAddress: {
     fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
     color: '#999',
     marginBottom: hp(0.8),
   },
@@ -689,6 +669,7 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
     color: '#888',
   },
   ratingBadge: {
@@ -698,22 +679,39 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: wp(3.2),
-    color: '#FFC107',
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
   },
   navigateBtn: {
-    flexDirection: 'row',
+    backgroundColor: '#FFBF00',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFC107',
-    paddingHorizontal: wp(3.5),
-    paddingVertical: hp(1.2),
-    borderRadius: 10,
-    gap: wp(1.5),
   },
   navigateBtnText: {
     fontSize: wp(3.5),
-    fontWeight: '700',
-    color: '#0a0a0a',
+    fontFamily: 'Outfit-Black',
+    color: '#000',
+  },
+  placeholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: hp(10),
+  },
+  placeholderTitle: {
+    fontSize: wp(5),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+    marginTop: hp(2),
+  },
+  placeholderText: {
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Medium',
+    color: '#888',
+    textAlign: 'center',
+    marginTop: hp(1),
   },
 });

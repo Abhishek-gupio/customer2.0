@@ -2,18 +2,21 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  SafeAreaView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { format } from 'date-fns';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService, type Vehicle } from '../../services/vehicleService';
+import BackButton from '../../components/BackButton';
 
 type DrivingTrip = {
   id: string;
@@ -170,13 +173,11 @@ export default function DrivingTimeline({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined} />
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBack} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Driving Timeline</Text>
-        <View style={{ width: wp(10) }} />
       </View>
 
       <View style={styles.dateBar}>
@@ -275,7 +276,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
   },
@@ -285,9 +285,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: wp(5),
+    flex: 1,
+    fontSize: wp(5.5),
     fontWeight: '700',
     color: '#fff',
+    marginLeft: wp(3),
   },
   dateBar: {
     flexDirection: 'row',

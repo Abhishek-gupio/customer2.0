@@ -47,19 +47,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(8),
   },
   successImage: {
-    width: wp(35),
-    height: wp(35),
+    width: wp(40),
+    height: wp(40),
     marginBottom: hp(3),
   },
   title: {
     fontSize: wp(6),
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     marginBottom: hp(1),
     textAlign: 'center',
   },
   subtitle: {
     fontSize: wp(4),
+    fontFamily: 'Outfit-Regular',
     color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
   },

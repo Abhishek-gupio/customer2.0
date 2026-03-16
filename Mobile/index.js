@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 /**
  * @format
  */
@@ -13,9 +14,9 @@ AppRegistry.registerComponent(appName, () => App);
 
 // Initialize OneSignal
 // Note: In production, store this App ID in .env
-OneSignal.Debug.setLogLevel(LogLevel.Verbose);
-OneSignal.initialize("YOUR_ONESIGNAL_APP_ID");
-OneSignal.Notifications.requestPermission(true);
+// OneSignal.Debug.setLogLevel(LogLevel.Verbose);
+// OneSignal.initialize("YOUR_ONESIGNAL_APP_ID");
+// OneSignal.Notifications.requestPermission(true);
 
 // Register headless task for background notification listening (Android only)
 AppRegistry.registerHeadlessTask(

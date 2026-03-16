@@ -67,7 +67,18 @@ async function request<T>(
   const fetchBody: RequestInit['body'] =
     body != null ? JSON.stringify(body) : undefined;
 
-  const res = await fetch(url, { ...rest, headers, body: fetchBody });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...rest, headers, body: fetchBody });
+  } catch (e: any) {
+    const msg = e?.message || '';
+    const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
+    throw new Error(
+      isNetworkErr
+        ? 'Network error. Check internet and that the server is reachable.'
+        : msg || 'Request failed',
+    );
+  }
   const data = await res.json().catch(() => ({}));
 
   if (res.status === 401 && !isRetry) {

@@ -164,7 +164,7 @@ export function MainBottomTabs() {
           }}
           listeners={({ navigation }) => ({
             tabPress: () => {
-              navigation.navigate('Services', { screen: 'ServicesHome' });
+              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
             },
           })}
         />
@@ -174,6 +174,7 @@ export function MainBottomTabs() {
           options={{
             tabBarLabel: () => null,
             tabBarIcon: () => null,
+            tabBarStyle: { display: 'none' },
             tabBarButton: (props) => (
               <CenterTabButton
                 onPress={props.onPress as (e: unknown) => void}

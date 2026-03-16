@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   carImage: {
-    width: width * 1,
+    width: width - 8,
     // maxWidth: 700,
     height: width * 0.8,
   },

@@ -286,18 +286,17 @@ export const telematicsService = {
           : new Date(Date.now() - 24 * 60 * 60 * 1000);
         const endDate = new Date();
 
-        // API expects body under "request" and Identifiers.UserId as nullable GUID (not our CUID instanceId).
-        // We only have instanceId; pass null for UserId and rely on date range. If API requires UserId, add damoovUserId to schema later.
+        // API requires at least one of InstanceIds, ApplicationIds, CompanyIds, or UserId. We filter by instance.
         const requestBody = {
-          request: {
-            Identifiers: { UserId: null as string | null },
-            IncludeDetails: true,
-            IncludeStatistics: true,
-            IncludeScores: true,
-            IncludeEvents: true,
-            StartDateTimestampSec: Math.floor(startDate.getTime() / 1000),
-            EndDateTimestampSec: Math.floor(endDate.getTime() / 1000),
+          Identifiers: {
+            InstanceIds: [device.instanceId],
           },
+          IncludeDetails: true,
+          IncludeStatistics: true,
+          IncludeScores: true,
+          IncludeEvents: true,
+          StartDateTimestampSec: Math.floor(startDate.getTime() / 1000),
+          EndDateTimestampSec: Math.floor(endDate.getTime() / 1000),
         };
 
         const response = await axios.post(

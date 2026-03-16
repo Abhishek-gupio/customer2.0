@@ -5,7 +5,8 @@ export type NotificationType =
   | "fuel"
   | "alert"
   | "maintenance"
-  | "parking";
+  | "parking"
+  | "odometer";
 
 export interface NotificationItem {
   id: string;

@@ -21,6 +21,7 @@ import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { PartStatusCard } from '../../components/ServiceAndWarranty/PartStatusCard';
 import { WarrantySummary } from '../../components/ServiceAndWarranty/WarrantySummary';
 import { getAndClearWarrantyStatusRefresh } from '../../utils/refreshManager';
+import BackButton from '../../components/BackButton';
 
 interface PartData {
   id: string;
@@ -188,9 +189,7 @@ export const WarrantyStatus = () => {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={wp(5)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <Text style={styles.headerTitle}>Warranty Status</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
@@ -208,12 +207,7 @@ export const WarrantyStatus = () => {
       <StatusBar barStyle="light-content" />
       <View style={styles.headerContainer}>
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backBtn}
-          >
-            <Icon name="arrow-left" size={wp(5)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Warranty Status</Text>
             {vehicle && <Text style={styles.vehicleSub}>{vehicle.registrationNumber}</Text>}
@@ -275,17 +269,17 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+    marginLeft: wp(3), // Added marginLeft
   },
   headerTitle: {
     color: '#fff',
     fontSize: wp(5.5),
-    fontWeight: '800',
+    fontFamily: 'Outfit-Bold',
   },
   vehicleSub: {
     color: '#888',
     fontSize: wp(3.5),
-    fontWeight: '500',
-    marginTop: 2,
+    fontFamily: 'Outfit-Medium',
   },
   list: {
     flex: 1,

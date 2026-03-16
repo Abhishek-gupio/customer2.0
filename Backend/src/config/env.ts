@@ -69,6 +69,9 @@ const envSchema = z.object({
 
   // Voice (Enhanced TTS)
   GOOGLE_CLOUD_TTS_KEY: z.string().optional(),
+
+  // Google Sign-In (OAuth 2.0 Web client ID for server-side ID token verification)
+  GOOGLE_CLIENT_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

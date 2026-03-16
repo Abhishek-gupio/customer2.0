@@ -17,6 +17,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -84,18 +85,12 @@ export default function Signup() {
       style={styles.keyboard}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <BackButton onPress={() => navigation.navigate('Signin')} isAbsolute={true} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.backButton}
-          onPress={() => navigation.navigate('Signin')}
-        >
-          <Icon name="arrow-left" size={wp(5.5)} color="#fff" />
-        </TouchableOpacity>
 
         <Text style={styles.titleText}>Create Account</Text>
         <Text style={styles.subtitleText}>Join Gupio today</Text>
@@ -265,7 +260,6 @@ const styles = StyleSheet.create({
     fontSize: wp(4.5),
     color: '#000000',
     letterSpacing: 0,
-    fontWeight: '900',
   },
   submitButtonDisabled: {
     opacity: 0.7,

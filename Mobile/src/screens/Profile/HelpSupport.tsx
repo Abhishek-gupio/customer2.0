@@ -15,6 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 import { supportApi } from '../../api/support';
 

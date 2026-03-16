@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import {
   widthPercentageToDP as wp,
@@ -57,9 +57,15 @@ const CostPerKmCard: React.FC<Props> = ({
     monthlyData.length > 0 &&
     Array.isArray(labels) &&
     labels.length > 0;
-  const chartLabels = hasInput ? (labels as string[]) : fallbackLabels;
-  const chartData = hasInput ? (monthlyData as number[]) : fallbackData;
+  const rawLabels = hasInput ? (labels as string[]) : fallbackLabels;
+  const rawData = hasInput ? (monthlyData as number[]) : fallbackData;
+  const usableLength = Math.min(rawLabels.length, rawData.length);
+  const chartLabels = rawLabels.slice(0, usableLength);
+  const chartData = rawData
+    .slice(0, usableLength)
+    .map((value) => (Number.isFinite(value) ? value : 0));
   const safeAvgCost = Number.isFinite(avgCost ?? NaN) ? (avgCost as number) : 0;
+  const lineChartWidth = Math.max(screenWidth - 4, chartLabels.length * wp(7.5));
 
   return (
     <View style={styles.card}>
@@ -73,56 +79,62 @@ const CostPerKmCard: React.FC<Props> = ({
 
 
       <View style={styles.chartWrapper}>
-        {chartLabels.length ? (
-          <LineChart
-            data={{
-              labels: chartLabels,
-              datasets: [
-                {
-                  data: chartData,
-                  color: () => '#4e73df',
-                  strokeWidth: 3,
+        {chartLabels.length && chartData.length ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chartScrollContent}
+          >
+            <LineChart
+              data={{
+                labels: chartLabels,
+                datasets: [
+                  {
+                    data: chartData,
+                    color: () => '#4e73df',
+                    strokeWidth: 3,
+                  },
+                ],
+              }}
+              width={lineChartWidth}
+              height={220}
+              chartConfig={{
+                backgroundGradientFrom: '#121212',
+                backgroundGradientTo: '#121212',
+                decimalPlaces: 1,
+                color: (opacity = 1) => `rgba(78, 115, 223, ${opacity})`,
+                labelColor: () => '#ffffff',
+                propsForDots: {
+                  r: '5',
+                  strokeWidth: '2',
+                  stroke: '#4e73df',
                 },
-              ],
-            }}
-            width={screenWidth - 4}
-            height={220}
-            chartConfig={{
-              backgroundGradientFrom: '#121212',
-              backgroundGradientTo: '#121212',
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(78, 115, 223, ${opacity})`,
-              labelColor: () => '#ffffff',
-              propsForDots: {
-                r: '5',
-                strokeWidth: '2',
-                stroke: '#4e73df',
-              },
-              propsForBackgroundLines: {
-                stroke: '#333',
-              },
-            }}
-            style={styles.chartStyle}
-            bezier
-            fromZero
-            onDataPointClick={handlePointClick}
-            decorator={() => {
-              return tooltip.visible ? (
-                <View
-                  style={[
-                    styles.tooltip,
-                    {
-                      top: tooltip.y + hp(5),
-                      left: tooltip.x - 30,
-                    },
-                  ]}
-                >
-                  <Text style={styles.tooltipValue}>₹{tooltip.value}</Text>
-                  <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
-                </View>
-              ) : null;
-            }}
-          />
+                propsForBackgroundLines: {
+                  stroke: '#333',
+                },
+              }}
+              style={styles.chartStyle}
+              bezier
+              fromZero
+              onDataPointClick={handlePointClick}
+              decorator={() => {
+                return tooltip.visible ? (
+                  <View
+                    style={[
+                      styles.tooltip,
+                      {
+                        top: tooltip.y + hp(5),
+                        left: tooltip.x - 30,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.tooltipValue}>₹{tooltip.value}</Text>
+                    <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
+                  </View>
+                ) : null;
+              }}
+            />
+          </ScrollView>
         ) : (
           <View style={styles.noTrend}>
             <Text style={styles.noTrendText}>No trend data available</Text>
@@ -205,6 +217,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: wp(2),
     // marginLeft: -wp(5),
+  },
+  chartScrollContent: {
+    paddingRight: wp(3),
   },
   noTrend: {
     height: 220,

@@ -40,8 +40,8 @@ const INDPlate = ({ number }: { number: string }) => (
     </View>
 );
 
-const InfoCard = ({ icon: Icon, label, value }: { icon: any, label: string, value: string | number }) => (
-    <View style={styles.card}>
+const InfoCard = ({ icon: Icon, label, value, style }: { icon: any, label: string, value: string | number, style?: any }) => (
+    <View style={[styles.card, style]}>
         <View style={styles.iconBox}>
             {Icon && <Icon size={20} color={COLORS.primary} />}
         </View>
@@ -308,8 +308,25 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                     {mainTab === 'Alerts' ? (
                         <View style={{ gap: 16 }}>
                             <InfoCard icon={FileText} label="CHALLAN" value="0" />
-                            <InfoCard icon={ShieldCheck} label="INSURANCE" value={'VALID'} />
-                            <InfoCard icon={AlertCircle} label="PUC CERTIFICATE" value={'EXPIRED'} />
+                            <View style={styles.rowGrid}>
+                                <View style={{ flex: 1 }}>
+                                    <InfoCard
+                                        icon={ShieldCheck}
+                                        label="INSURANCE"
+                                        value={'VALID'}
+                                        style={{ padding: 16, flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
+                                    />
+                                </View>
+                                <View style={{ width: 16 }} />
+                                <View style={{ flex: 1 }}>
+                                    <InfoCard
+                                        icon={AlertCircle}
+                                        label="PUC"
+                                        value={'EXPIRED'}
+                                        style={{ padding: 16, flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
+                                    />
+                                </View>
+                            </View>
 
                             <View style={styles.feedbackCard}>
                                 {submittedFeedback ? (
@@ -525,8 +542,8 @@ const styles = StyleSheet.create({
     plateInputContainer: { backgroundColor: '#000', borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 16 },
     plateInput: { flex: 1, color: '#FFF', fontSize: 24, fontFamily: 'Outfit-Bold', letterSpacing: 2, padding: 0 },
     normalInput: { backgroundColor: '#000', borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 16, color: '#FFF', fontSize: 16, fontFamily: 'Outfit-Regular' },
-    primaryBtn: { backgroundColor: COLORS.primary, paddingVertical: 18, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
-    primaryBtnText: { color: '#000', fontSize: 16, fontFamily: 'Outfit-Bold', fontStyle: 'italic' },
+    primaryBtn: { backgroundColor: COLORS.primary, height: 62, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+    primaryBtnText: { color: '#000', fontSize: 16, fontFamily: 'Outfit-Black' },
 
     // Garage Screen
     headerIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },

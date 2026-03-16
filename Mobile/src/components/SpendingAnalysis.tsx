@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { LineChart, PieChart } from "react-native-chart-kit";
 import {
@@ -51,6 +52,13 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("Month");
   const lineChartRef = useRef<ViewShot>(null);
   const pieChartRef = useRef<ViewShot>(null);
+
+  const lineChartWidth = useMemo(() => {
+    const labelCount = analytics?.trend.labels.length ?? 0;
+    const minWidth = screenWidth;
+    const perLabel = wp(8);
+    return Math.max(minWidth, labelCount * perLabel);
+  }, [analytics]);
 
   const handleTimeFrameChange = (next: TimeFrame) => {
     setTimeFrame(next);
@@ -156,14 +164,20 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
         )}
 
         {view === "trend" && lineData && (
-          <LineChart
-            data={lineData}
-            width={screenWidth - wp(5)}
-            height={hp(32)}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chartScrollContent}
+          >
+            <LineChart
+              data={lineData}
+              width={lineChartWidth}
+              height={hp(36)}
+              chartConfig={chartConfig}
+              bezier
+              style={styles.chart}
+            />
+          </ScrollView>
         )}
 
         {view === "trend" && analytics && (
@@ -180,7 +194,7 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
         {view === "breakdown" && pieData && (
         <PieChart
             data={pieData}
-            width={screenWidth - wp(10)}
+            width={screenWidth - wp(1)}
             height={hp(32)}
             chartConfig={chartConfig}
             accessor="population"
@@ -212,15 +226,16 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
           collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
-          <View style={styles.exportCard}>
+          <View style={[styles.exportCard, { width: lineChartWidth }]}>
             <Text style={styles.exportTitle}>Spending Trend ({timeFrame})</Text>
             {lineData && (
               <LineChart
                 data={lineData}
-                width={screenWidth - wp(5)}
-                height={hp(32)}
+                width={lineChartWidth}
+                height={hp(36)}
                 chartConfig={chartConfig}
                 bezier
+                horizontalLabelRotation={-35}
                 style={styles.chart}
               />
             )}
@@ -382,6 +397,9 @@ inactiveText: {
     marginVertical: hp(1),
     // borderRadius: wp(4),
     backgroundColor: "#151515",
+  },
+  chartScrollContent: {
+    paddingRight: wp(3),
   },
   exportCaptureContainer: {
     position: "absolute",

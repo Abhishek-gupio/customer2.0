@@ -11,6 +11,8 @@ import {
   View,
   PermissionsAndroid,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
@@ -18,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { MainTabParamList } from '../../navigation/types';
-import { chatService, type SSEChunk } from '../../services/chatService';
+import { chatService, type SSEChunk, type SuggestedAction } from '../../services/chatService';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { VoiceOwnerContext } from '../../context/VoiceOwnerContext';
@@ -37,6 +39,7 @@ interface UIMessage {
   agentSteps?: any[];
   feedback?: 1 | -1 | null;
   hadImage?: boolean;
+  suggestedActions?: SuggestedAction[];
   timestamp: Date;
 }
 
@@ -62,6 +65,52 @@ export default function AIAssistant() {
   const { voiceOwner, setVoiceOwner } = React.useContext(VoiceOwnerContext);
   const lastRouteRef = useRef<{ sessionId?: string; userMessage?: string } | null>(null);
   const isLocalSession = sessionId?.startsWith('local-');
+  const wantsListeningRef = useRef(false);
+  const voiceRetryRef = useRef(0);
+
+  const [quickExpenseVisible, setQuickExpenseVisible] = useState(false);
+  const [quickExpenseAmount, setQuickExpenseAmount] = useState('');
+  const [quickExpenseCategory, setQuickExpenseCategory] = useState<string>('FUEL');
+
+  const DEFAULT_ACTIONS: SuggestedAction[] = useMemo(
+    () => [
+      { label: 'Log expense', prompt: 'Add an expense for my vehicle' },
+      { label: 'Set reminder', prompt: 'Set a reminder for my vehicle' },
+      { label: 'Documents', prompt: 'Show my document status' },
+      { label: 'Support', prompt: 'I need help or support' },
+    ],
+    [],
+  );
+
+  const EXPENSE_CATEGORIES = useMemo(
+    () => [
+      { id: 'FUEL', label: 'Fuel' },
+      { id: 'TOLL', label: 'Toll' },
+      { id: 'SERVICE', label: 'Service' },
+      { id: 'PARKING', label: 'Parking' },
+      { id: 'INSURANCE', label: 'Insurance' },
+      { id: 'CHALLAN', label: 'Challan' },
+      { id: 'OTHER', label: 'Other' },
+    ],
+    [],
+  );
+
+  const orderActionsByRelevance = useCallback(
+    (actions: SuggestedAction[], botText: string): SuggestedAction[] => {
+      if (!botText || botText.length < 10) return actions;
+      const lower = botText.toLowerCase();
+      const score: Record<string, number> = {};
+      actions.forEach((a) => {
+        score[a.label] = 0;
+        if (/expense|fuel|spend|cost|toll|rupee|₹/i.test(lower) && a.label === 'Log expense') score[a.label] += 2;
+        if (/document|insurance|rc|puc|expir|renew/i.test(lower) && a.label === 'Documents') score[a.label] += 2;
+        if (/remind|service|due|schedule|maintenance/i.test(lower) && a.label === 'Set reminder') score[a.label] += 2;
+        if (/help|support|issue|problem|contact/i.test(lower) && a.label === 'Support') score[a.label] += 2;
+      });
+      return [...actions].sort((a, b) => (score[b.label] ?? 0) - (score[a.label] ?? 0));
+    },
+    [],
+  );
 
   const quickPrompts = useMemo(
     () => [
@@ -143,6 +192,18 @@ export default function AIAssistant() {
     };
   }, []);
 
+  const startVoiceRecognition = async () => {
+    try {
+      await Voice.start('en-IN');
+    } catch {
+      try {
+        await Voice.start('en-US');
+      } catch {
+        await Voice.start('en');
+      }
+    }
+  };
+
   useEffect(() => {
     if (!Voice || typeof Voice.start !== 'function') {
       setVoiceAvailable(false);
@@ -156,14 +217,23 @@ export default function AIAssistant() {
       if (text) setMessage(text);
     };
     (Voice as any).onSpeechError = (e: any) => {
-      setIsListening(false);
-      setVoiceOwner(null);
       const code = e?.error?.code ?? e?.code;
       const message = e?.error?.message || e?.message || 'Voice recognition failed.';
-      if (code === 6 || code === 7 || code === 8 || code === 5) {
+      const nonFatalCodes = new Set([5, 6, 7, 8, 9, 11]);
+      if (nonFatalCodes.has(Number(code)) && wantsListeningRef.current) {
+        if (voiceRetryRef.current < 2) {
+          voiceRetryRef.current += 1;
+          setTimeout(() => {
+            if (!wantsListeningRef.current) return;
+            startVoiceRecognition().catch(() => {});
+          }, 350);
+        }
         return;
       }
-      Alert.alert('Voice Error', message);
+      setIsListening(false);
+      setVoiceOwner(null);
+      wantsListeningRef.current = false;
+      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
     };
 
     return () => {
@@ -180,13 +250,13 @@ export default function AIAssistant() {
   useEffect(() => {
     let isMounted = true;
     Tts.setDucking(true);
-    Tts.setDefaultRate(0.48, true);
-    Tts.setDefaultPitch(1.0);
+    Tts.setDefaultRate(0.5, true);
+    Tts.setDefaultPitch(1.05);
     Tts.getInitStatus()
       .then(() => {
         if (!isMounted) return;
         setTtsReady(true);
-        Tts.setDefaultLanguage('en-IN').catch(() => {});
+        Tts.setDefaultLanguage('en-US').catch(() => {});
       })
       .catch(() => {
         if (!isMounted) return;
@@ -242,18 +312,26 @@ export default function AIAssistant() {
     }
     try {
       if (isListening) {
+        wantsListeningRef.current = false;
+        voiceRetryRef.current = 0;
         await Voice.stop();
         setIsListening(false);
         setVoiceOwner(null);
       } else {
+        wantsListeningRef.current = true;
+        voiceRetryRef.current = 0;
         setVoiceOwner('chat' as any);
         await Voice.cancel().catch(() => {});
-        await Voice.start('en-IN');
+        await startVoiceRecognition();
       }
     } catch (e: any) {
       setIsListening(false);
       setVoiceOwner(null);
-      Alert.alert('Voice Error', e?.message ?? 'Unable to start microphone.');
+      wantsListeningRef.current = false;
+      voiceRetryRef.current = 0;
+      const code = e?.error?.code ?? e?.code;
+      const message = e?.error?.message || e?.message || 'Unable to start microphone.';
+      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
     }
   };
 
@@ -421,6 +499,35 @@ export default function AIAssistant() {
     setIsStreaming(true);
     scrollToBottom();
 
+    let fallbackAttempted = false;
+    const runFallback = async () => {
+      if (fallbackAttempted) return;
+      fallbackAttempted = true;
+      try {
+        const response = await chatService.sendMessage(messageText, sessionId);
+        setSessionId(response.sessionId);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  text: response.message,
+                  isStreaming: false,
+                  voiceUrl: response.voiceUrl,
+                  toolResults: response.toolResults,
+                  agentSteps: response.agentSteps,
+                  suggestedActions: (response as any).suggestedActions,
+                }
+              : m,
+          ),
+        );
+      } catch {
+        if (!sessionId) setSessionId(`local-${Date.now()}`);
+        await streamLocalReply(botMsgId, getLocalBotReply(messageText));
+      }
+      setIsStreaming(false);
+    };
+
     try {
       const isPlaceholderApi = API_BASE_URL.includes('your-api.com');
       if (isPlaceholderApi) {
@@ -432,7 +539,7 @@ export default function AIAssistant() {
       await chatService.sendMessageStream(
         messageText,
         sessionId,
-        (chunk: SSEChunk) => {
+        async (chunk: SSEChunk) => {
           switch (chunk.type) {
             case 'session':
               if (chunk.sessionId) setSessionId(chunk.sessionId);
@@ -493,6 +600,7 @@ export default function AIAssistant() {
                         isStreaming: false,
                         voiceUrl: chunk.voiceUrl,
                         toolResults: chunk.toolResults || m.toolResults,
+                        suggestedActions: chunk.suggestedActions,
                       }
                     : m,
                 ),
@@ -501,42 +609,14 @@ export default function AIAssistant() {
               break;
 
             case 'error':
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? { ...m, text: 'Sorry, something went wrong.', isStreaming: false }
-                    : m,
-                ),
-              );
-              setIsStreaming(false);
+              runFallback().catch(() => {});
               break;
           }
         },
       );
     } catch (error) {
       console.error('Stream error:', error);
-      try {
-        const response = await chatService.sendMessage(messageText, sessionId);
-        setSessionId(response.sessionId);
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === botMsgId
-              ? {
-                  ...m,
-                  text: response.message,
-                  isStreaming: false,
-                  voiceUrl: response.voiceUrl,
-                  toolResults: response.toolResults,
-                  agentSteps: response.agentSteps,
-                }
-              : m,
-          ),
-        );
-      } catch (fallbackError) {
-        if (!sessionId) setSessionId(`local-${Date.now()}`);
-        await streamLocalReply(botMsgId, getLocalBotReply(messageText));
-      }
-      setIsStreaming(false);
+      await runFallback();
     }
   };
 
@@ -595,9 +675,46 @@ export default function AIAssistant() {
     setIsStreaming(false);
   };
 
+  const actionChipIcon: Record<string, string> = {
+    'Log expense': 'add-circle-outline',
+    'Set reminder': 'notifications-outline',
+    Documents: 'document-text-outline',
+    Support: 'help-buoy-outline',
+  };
+
+  const onActionChipPress = useCallback(
+    (action: SuggestedAction) => {
+      if (isLoading || isStreaming) return;
+      if (action.label === 'Log expense') {
+        setQuickExpenseAmount('');
+        setQuickExpenseCategory('FUEL');
+        setQuickExpenseVisible(true);
+      } else {
+        handleSend(action.prompt);
+      }
+    },
+    [isLoading, isStreaming],
+  );
+
+  const submitQuickExpense = useCallback(() => {
+    const amount = quickExpenseAmount.trim().replace(/[^0-9.]/g, '');
+    if (!amount || Number.isNaN(Number(amount))) {
+      Alert.alert('Invalid amount', 'Please enter a valid number.');
+      return;
+    }
+    const prompt = `Add an expense of ₹${amount} for ${quickExpenseCategory}`;
+    setQuickExpenseVisible(false);
+    setQuickExpenseAmount('');
+    handleSend(prompt);
+  }, [quickExpenseAmount, quickExpenseCategory]);
+
   const renderMessage = ({ item }: { item: UIMessage }) => {
     const isUser = item.sender === 'user';
     const isBot = item.sender === 'bot';
+    const actionChips =
+      item.suggestedActions?.length > 0
+        ? item.suggestedActions
+        : orderActionsByRelevance(DEFAULT_ACTIONS, item.text);
 
     return (
       <View style={[styles.messageBubbleRow, isUser && styles.messageBubbleRowRight]}>
@@ -632,47 +749,69 @@ export default function AIAssistant() {
           )}
 
           {isBot && !item.isStreaming && item.text.length > 0 && (
-            <View style={styles.actionRow}>
-              <Pressable
-                onPress={() => handleVoicePlay(item.voiceUrl, item.text, item.id)}
-                style={styles.actionBtn}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={
-                    (item.voiceUrl && playingVoiceUrl === item.voiceUrl) ||
-                    (!item.voiceUrl && ttsSpeakingId === item.id)
-                      ? 'volume-mute-outline'
-                      : 'volume-medium-outline'
-                  }
-                  size={16}
-                  color="#7a8599"
-                />
-              </Pressable>
+            <>
+              <View style={styles.actionChipsRow}>
+                {actionChips.map((action) => (
+                  <Pressable
+                    key={action.label}
+                    onPress={() => onActionChipPress(action)}
+                    style={[styles.actionChip, (isLoading || isStreaming) && styles.actionChipDisabled]}
+                    hitSlop={6}
+                    disabled={isLoading || isStreaming}
+                    accessibilityLabel={action.label}
+                    accessibilityHint={`Asks AI: ${action.prompt}`}
+                  >
+                    <Ionicons
+                      name={(actionChipIcon[action.label] || 'ellipse-outline') as any}
+                      size={14}
+                      color="#9fb3ff"
+                    />
+                    <Text style={styles.actionChipText}>{action.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={styles.actionRow}>
+                <Pressable
+                  onPress={() => handleVoicePlay(item.voiceUrl, item.text, item.id)}
+                  style={styles.actionBtn}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name={
+                      (item.voiceUrl && playingVoiceUrl === item.voiceUrl) ||
+                      (!item.voiceUrl && ttsSpeakingId === item.id)
+                        ? 'volume-mute-outline'
+                        : 'volume-medium-outline'
+                    }
+                    size={16}
+                    color="#7a8599"
+                  />
+                </Pressable>
 
-              <Pressable
-                onPress={() => handleFeedback(item.id, 1)}
-                style={styles.actionBtn}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={item.feedback === 1 ? 'thumbs-up' : 'thumbs-up-outline'}
-                  size={14}
-                  color={item.feedback === 1 ? '#65d9a5' : '#7a8599'}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() => handleFeedback(item.id, -1)}
-                style={styles.actionBtn}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={item.feedback === -1 ? 'thumbs-down' : 'thumbs-down-outline'}
-                  size={14}
-                  color={item.feedback === -1 ? '#ff6b6b' : '#7a8599'}
-                />
-              </Pressable>
-            </View>
+                <Pressable
+                  onPress={() => handleFeedback(item.id, 1)}
+                  style={styles.actionBtn}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name={item.feedback === 1 ? 'thumbs-up' : 'thumbs-up-outline'}
+                    size={14}
+                    color={item.feedback === 1 ? '#65d9a5' : '#7a8599'}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() => handleFeedback(item.id, -1)}
+                  style={styles.actionBtn}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name={item.feedback === -1 ? 'thumbs-down' : 'thumbs-down-outline'}
+                    size={14}
+                    color={item.feedback === -1 ? '#ff6b6b' : '#7a8599'}
+                  />
+                </Pressable>
+              </View>
+            </>
           )}
 
           <Text style={styles.timestamp}>
@@ -713,6 +852,8 @@ export default function AIAssistant() {
           ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           keyboardShouldPersistTaps="handled"
           renderItem={renderMessage}
@@ -721,7 +862,7 @@ export default function AIAssistant() {
             isLoading ? (
               <View style={styles.emptyContainer}>
                 <ActivityIndicator color="#9fb3ff" size="large" />
-                <Text style={styles.emptyText}>Loading conversation...</Text>
+                <Text>Loading conversation...</Text>
               </View>
             ) : (
               <View style={styles.emptyContainer}>
@@ -738,7 +879,7 @@ export default function AIAssistant() {
                   </View>
                 </View> */}
                 <Text style={styles.heroGreeting}>
-                  {userName ? `Hello ${userName}` : 'Hello there'}
+                  {userName ? `Hello ${userName} !` : 'Hello there'}
                 </Text>
                 <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
                 <View style={styles.cardGrid}>
@@ -831,6 +972,60 @@ export default function AIAssistant() {
         </View>
       </KeyboardAvoidingView>
 
+      <Modal
+        visible={quickExpenseVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQuickExpenseVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setQuickExpenseVisible(false)}
+        >
+          <Pressable style={styles.quickExpenseCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.quickExpenseTitle}>Quick add expense</Text>
+            <TextInput
+              value={quickExpenseAmount}
+              onChangeText={setQuickExpenseAmount}
+              placeholder="Amount (e.g. 500)"
+              placeholderTextColor="#7a8599"
+              keyboardType="decimal-pad"
+              style={styles.quickExpenseInput}
+            />
+            <Text style={styles.quickExpenseLabel}>Category</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              {EXPENSE_CATEGORIES.map((cat) => (
+                <Pressable
+                  key={cat.id}
+                  onPress={() => setQuickExpenseCategory(cat.id)}
+                  style={[
+                    styles.categoryChip,
+                    quickExpenseCategory === cat.id && styles.categoryChipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      quickExpenseCategory === cat.id && styles.categoryChipTextActive,
+                    ]}
+                  >
+                    {cat.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <View style={styles.quickExpenseActions}>
+              <Pressable onPress={() => setQuickExpenseVisible(false)} style={styles.quickExpenseBtn}>
+                <Text style={styles.quickExpenseBtnTextSecondary}>Cancel</Text>
+              </Pressable>
+              <Pressable onPress={submitQuickExpense} style={[styles.quickExpenseBtn, styles.quickExpenseBtnPrimary]}>
+                <Text style={styles.quickExpenseBtnText}>Add expense</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {playingVoiceUrl ? (
         <Video
           source={{ uri: playingVoiceUrl }}
@@ -850,7 +1045,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#101010',
-    paddingBottom: 45,
+    // paddingBottom: 45,
     paddingTop: 24,
   },
   flex: { flex: 1 },
@@ -893,7 +1088,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 12,
     // paddingTop: 12,
-    paddingBottom: 8,
+    // paddingBottom: 15,
     flexGrow: 1,
   },
   messageBubbleRow: {
@@ -959,6 +1154,118 @@ const styles = StyleSheet.create({
   toolBadgeText: {
     color: '#9fb3ff',
     fontSize: 12,
+  },
+
+  actionChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  actionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(159, 179, 255, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(159, 179, 255, 0.25)',
+  },
+  actionChipText: {
+    color: '#9fb3ff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionChipDisabled: {
+    opacity: 0.5,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  quickExpenseCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#0d1a30',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#1c2640',
+  },
+  quickExpenseTitle: {
+    color: '#e8edf5',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  quickExpenseInput: {
+    backgroundColor: '#111b2e',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#1c2640',
+  },
+  quickExpenseLabel: {
+    color: '#7a8599',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  categoryScroll: {
+    marginBottom: 20,
+  },
+  categoryChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#111b2e',
+    borderWidth: 1,
+    borderColor: '#1c2640',
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    backgroundColor: 'rgba(159, 179, 255, 0.2)',
+    borderColor: '#9fb3ff',
+  },
+  categoryChipText: {
+    color: '#9fb3ff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  categoryChipTextActive: {
+    color: '#e8edf5',
+  },
+  quickExpenseActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  quickExpenseBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+  },
+  quickExpenseBtnPrimary: {
+    backgroundColor: '#3b6dd4',
+  },
+  quickExpenseBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  quickExpenseBtnTextSecondary: {
+    color: '#7a8599',
+    fontSize: 15,
   },
 
   actionRow: {
@@ -1032,7 +1339,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   cardGrid: {
-    marginTop: 24,
+    marginTop: 26,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
@@ -1044,8 +1351,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#151f35',
-    shadowColor: '#000',
+    borderColor: '#999',
+    shadowColor: '#c0bbbb',
     shadowOpacity: 0.25,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 8 },
@@ -1093,10 +1400,10 @@ const styles = StyleSheet.create({
 
   inputBar: {
     paddingHorizontal: 12,
-    paddingBottom: 8,
+    // paddingBottom: 8,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: '#111b2e',
+    borderTopColor: '#464d5f',
     backgroundColor: '#050b17',
   },
   inputTopRow: {
@@ -1115,7 +1422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: '#1c2640',
+    borderColor: '#464d5f',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
@@ -1141,8 +1448,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#1c2640',
-    paddingBottom:25,
+    borderColor: '#464d5f',
+    // paddingBottom:25,
     justifyContent:'center',
     // alignItems: 'center',
   },

@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { authService } from "./auth.service";
 import {
+  googleSignInSchema,
   loginSchema,
   sendOtpSchema,
   signupSchema,
@@ -50,6 +51,12 @@ export const authController = {
   login: asyncHandler(async (req: Request, res: Response) => {
     const body = parseBody(req, loginSchema);
     const data = await authService.login(body.phoneNumber);
+    success(res, data);
+  }),
+
+  google: asyncHandler(async (req: Request, res: Response) => {
+    const body = parseBody(req, googleSignInSchema);
+    const data = await authService.signInWithGoogle(body.idToken);
     success(res, data);
   }),
 

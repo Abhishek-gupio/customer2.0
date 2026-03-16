@@ -25,6 +25,11 @@ export interface ChatSession {
     updatedAt: string;
 }
 
+export interface SuggestedAction {
+    label: string;
+    prompt: string;
+}
+
 export interface ChatResponse {
     data: {
         sessionId: string;
@@ -33,6 +38,7 @@ export interface ChatResponse {
         contextUsed: number;
         toolResults?: any[];
         agentSteps?: any[];
+        suggestedActions?: SuggestedAction[];
     };
 }
 
@@ -76,6 +82,7 @@ export interface SSEChunk {
     voiceUrl?: string;
     contextUsed?: number;
     toolResults?: any[];
+    suggestedActions?: SuggestedAction[];
 }
 
 // ============================================================================

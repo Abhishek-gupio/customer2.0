@@ -32,6 +32,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { useAppDispatch } from '../../store/hooks';
 import { addDocumentFromResponse, toDocItem } from '../../store/slices/documentsSlice';
 import { uploadDocument } from '../../services/documentService';
+import BackButton from '../../components/BackButton';
 
 type UploadDocNavProp = NativeStackNavigationProp<RootStackParamList, 'UploadDocument'>;
 
@@ -228,13 +229,7 @@ export default function UploadDocument() {
       />
 
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.85}
-        >
-          <Icon name="arrow-left" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Upload Document</Text>
         <View style={styles.headerRight} />
       </View>
@@ -460,14 +455,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   backBtn: { padding: wp(2) },
-  headerTitle: { fontSize: wp(5), fontWeight: '700', color: '#fff' },
+  headerTitle: { flex: 1, fontSize: wp(5.5), fontWeight: '700', color: '#fff', marginLeft: wp(3) },
   headerRight: { width: wp(10) },
 
   scroll: { flex: 1 },

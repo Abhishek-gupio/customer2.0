@@ -4,16 +4,17 @@ import {
     StyleSheet, ActivityIndicator, Alert
 } from 'react-native';
 import {
-    ArrowLeft, Trash2, FileText, Wrench, AlertCircle, User, Settings,
-    ShieldCheck, Droplets, Gavel, Cpu, CheckCircle2, Star, Tag, Gauge,
+    Trash2, FileText, Wrench, AlertCircle, User, Settings,
+    ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
     Calendar, Bookmark
 } from 'lucide-react-native';
-import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../../components/Vehicles/VehicleUI';
-import { Vehicle } from '../../../services/vehicleService';
-import { api } from '../../../services/api';
-import ShareScreen from '../Share';
-import { getProfile } from '../../../services/profileService';
+import BackButton from '../../components/BackButton';
+import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../components/Vehicles/VehicleUI';
+import { Vehicle } from '../../services/vehicleService';
+import { api } from '../../services/api';
+import ShareScreen from './Share';
+import { getProfile } from '../../services/profileService';
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];
@@ -155,9 +156,7 @@ export const DetailsScreen = ({
         <View style={styles.screen}>
             {/* ── Header ── */}
             <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                <TouchableOpacity onPress={onBack} style={styles.topRoundBtn}>
-                    <ArrowLeft size={22} color="#FFF" />
-                </TouchableOpacity>
+                <BackButton onPress={onBack} />
 
                 <View style={styles.tabPillContainer}>
                     {(['Alerts', 'Details'] as MainTab[]).map(t => (
@@ -249,16 +248,25 @@ export const DetailsScreen = ({
                     {mainTab === 'Alerts' ? (
                         <View style={{ gap: 16 }}>
                             <InfoCard icon={FileText} label="CHALLAN" value="0" />
-                            <InfoCard
-                                icon={ShieldCheck}
-                                label="INSURANCE"
-                                value={rto?.insuranceUpto ? `${getInsuranceStatus()} · ${rto.insuranceUpto}` : 'UNKNOWN'}
-                            />
-                            <InfoCard
-                                icon={AlertCircle}
-                                label="PUC CERTIFICATE"
-                                value={rto?.pollutionUpto ? `${getPucStatus()} · ${rto.pollutionUpto}` : 'UNKNOWN'}
-                            />
+                            <View style={styles.rowGrid}>
+                                <View style={{ flex: 1 }}>
+                                    <InfoCard
+                                        icon={ShieldCheck}
+                                        label="INSURANCE"
+                                        value={rto?.insuranceUpto ? `${getInsuranceStatus()}\n${rto.insuranceUpto}` : 'UNKNOWN'}
+                                        style={{ padding: 16, flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
+                                    />
+                                </View>
+                                <View style={{ width: 16 }} />
+                                <View style={{ flex: 1 }}>
+                                    <InfoCard
+                                        icon={AlertCircle}
+                                        label="PUC"
+                                        value={rto?.pollutionUpto ? `${getPucStatus()}\n${rto.pollutionUpto}` : 'UNKNOWN'}
+                                        style={{ padding: 16, flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
+                                    />
+                                </View>
+                            </View>
 
                             {/* ── Feedback card ── */}
                             <View style={styles.feedbackCard}>
@@ -433,17 +441,17 @@ export const DetailsScreen = ({
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
-    header: { padding: 24, paddingTop: 48, minHeight: 80 },
+    header: { paddingHorizontal: 20, paddingTop: 48, paddingBottom: 20, minHeight: 80 },
     topRoundBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
     tabPillContainer: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: 30, padding: 4, borderWidth: 1, borderColor: COLORS.border, width: 220 },
     tabPill: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 30 },
     tabPillActive: { backgroundColor: COLORS.primary },
-    tabPillText: { fontSize: 12, fontWeight: '900', color: '#888' },
+    tabPillText: { fontSize: 12, fontFamily: 'Outfit-Black', color: '#888' },
     detailHero: { alignItems: 'center', paddingHorizontal: 24, marginTop: 20 },
     heroImgBox: { width: '100%', height: 200, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     heroFallbackImage: { width: 280, height: 160, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderRadius: 150 },
-    detailModel: { fontSize: 32, fontWeight: '900', color: '#FFF', fontStyle: 'italic', fontFamily: 'serif', textAlign: 'center' },
+    detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', textAlign: 'center' },
     horizVehicleList: { paddingHorizontal: 24, paddingVertical: 24, gap: 16, alignItems: 'center' },
     addMiniBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(255, 215, 0, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)', alignItems: 'center', justifyContent: 'center' },
     miniAvatarWrap: { width: 68, height: 68, borderRadius: 34, padding: 4, borderWidth: 2, borderColor: 'transparent', backgroundColor: COLORS.surface },
@@ -465,11 +473,11 @@ const styles = StyleSheet.create({
     subTabRow: { marginBottom: 32, borderBottomWidth: 1, borderBottomColor: '#333' },
     subTab: { paddingBottom: 12, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: 'transparent' },
     subTabActive: { borderBottomColor: COLORS.primary },
-    subTabText: { fontSize: 13, fontWeight: '900', color: '#888', textTransform: 'uppercase', letterSpacing: 1 },
+    subTabText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#888', textTransform: 'uppercase', letterSpacing: 1 },
     rowGrid: { flexDirection: 'row', alignItems: 'stretch' },
     rowGridMulti: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-    primaryBtn: { backgroundColor: COLORS.primary, paddingVertical: 18, borderRadius: 30, alignItems: 'center', justifyContent: 'center', width: '100%' },
-    primaryBtnText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
+    primaryBtn: { backgroundColor: COLORS.primary, height: 62, borderRadius: 18, alignItems: 'center', justifyContent: 'center', width: '100%' },
+    primaryBtnText: { color: '#000', fontSize: 16, fontFamily: 'Outfit-Black' },
     premiumStatusCard: {
         backgroundColor: COLORS.surface,
         borderRadius: 24,
@@ -510,13 +518,12 @@ const styles = StyleSheet.create({
     statusTitle: {
         color: '#FFF',
         fontSize: 14,
-        fontWeight: '900',
-        fontStyle: 'italic'
+        fontFamily: 'Outfit-Bold',
     },
     statusDesc: {
         color: '#888',
         fontSize: 11,
-        fontWeight: '600',
+        fontFamily: 'Outfit-Regular',
         marginTop: 2
     },
     setPriorityBtn: {

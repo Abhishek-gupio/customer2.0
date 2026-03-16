@@ -26,6 +26,7 @@ model Customer {
   email             String?
   fullName          String?
   profilePic        String?
+  googleId          String?               @unique
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   chats             ChatSession[]

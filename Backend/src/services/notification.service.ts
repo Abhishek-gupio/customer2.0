@@ -141,6 +141,53 @@ export const notificationService = {
     }
   },
 
+  /**
+   * Daily reminder: create one in-app (and push) notification per customer to update odometer.
+   * Only one reminder per customer per calendar day.
+   */
+  async sendDailyOdometerReminders() {
+    logger.info("Starting daily odometer update reminder...");
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const customersWithVehicles = await (dbInstances as any).customerVehicle.findMany({
+      where: { isActive: true },
+      select: { customerId: true },
+      distinct: ["customerId"],
+    });
+    const customerIds: string[] = [
+      ...new Set(
+        (customersWithVehicles as { customerId: string }[]).map((v) => v.customerId)
+      ),
+    ];
+
+    for (const customerId of customerIds) {
+      try {
+        const alreadySentToday = await (dbInstances as any).inAppNotification.findFirst({
+          where: {
+            customerId,
+            type: "odometer",
+            createdAt: { gte: todayStart },
+          },
+        });
+        if (alreadySentToday) continue;
+
+        await this.notifyCustomer(customerId, {
+          title: "Update Odometer",
+          body: "Log your current odometer reading for accurate service and warranty tracking.",
+          type: "odometer",
+          link: "/odometer",
+          metadata: { source: "daily_reminder" },
+        });
+        logger.info({ customerId }, "Daily odometer reminder sent");
+      } catch (err) {
+        logger.error({ err, customerId }, "Failed to send daily odometer reminder");
+      }
+    }
+    logger.info({ count: customerIds.length }, "Daily odometer reminders completed");
+  },
+
   async getNotifications(customerId: string) {
     return (dbInstances as any).inAppNotification.findMany({
       where: { customerId },
@@ -160,14 +207,19 @@ export const notificationService = {
    * Initialize the background cron jobs
    */
   initCronJobs() {
-    // Run daily at 10:00 AM
+    // Run daily at 9:00 AM – odometer update reminder (one per customer per day)
+    cron.schedule("0 9 * * *", async () => {
+      await this.sendDailyOdometerReminders();
+    });
+
+    // Run daily at 10:00 AM – document expiry + challan sync
     cron.schedule("0 10 * * *", async () => {
       await this.checkExpiringDocuments();
       await challanService.syncAllVehicles();
     });
 
     logger.info(
-      "Background cron jobs initialized (Docs & Challans Check at 10:00 AM)",
+      "Background cron jobs initialized (Odometer reminder 9 AM; Docs & Challans 10 AM)",
     );
   },
 };

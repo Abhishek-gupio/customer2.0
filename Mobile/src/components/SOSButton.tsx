@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid } from 'react-native'
-import React, { useCallback, useEffect, useState } from 'react'
+import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid, Animated, Easing } from 'react-native'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../theme/colors'
 import { fontWeights as FW } from '../theme/Fontsize'
@@ -9,6 +9,7 @@ import { useNavigation } from '../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../services/sosService';
+import { getProfile, type ProfileResponse } from '../services/profileService';
 
 let Geolocation: any = null;
 try {
@@ -17,8 +18,6 @@ try {
 } catch {
   Geolocation = null;
 }
-
-
 
 const SOSButton = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -37,6 +36,74 @@ const SOSButton = () => {
   const [lastGeoError, setLastGeoError] = useState<{ code?: number; message?: string } | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   const [locatingSince, setLocatingSince] = useState<number | null>(null);
+  const [userData, setUserData] = useState<ProfileResponse | null>(null);
+
+  // Animation refs
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  const buttonScale = useRef(new Animated.Value(1)).current;
+  const badgeOpacity = useRef(new Animated.Value(0.6)).current;
+
+  // Pulse & Breathing animations
+  useEffect(() => {
+    // 1. Triple Ring Expansion (Staggered)
+    Animated.loop(
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // 2. Button Scale Breathing
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonScale, {
+          toValue: 1.05,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonScale, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // 3. Badge Breathing
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(badgeOpacity, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(badgeOpacity, {
+          toValue: 0.6,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [pulseAnim, buttonScale, badgeOpacity]);
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await getProfile();
+        setUserData(profile);
+      } catch (err) {
+        console.log('Failed to fetch profile in SOS:', err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const requestLocationPermission = useCallback(async () => {
     if (Platform.OS === 'ios') {
@@ -155,7 +222,6 @@ const SOSButton = () => {
   }, [requestLocationPermission]);
 
   useEffect(() => {
-    // Kick off permission request on mount so status is known
     requestLocationPermission()
       .then((ok) => {
         if (ok) fetchLocation();
@@ -200,7 +266,6 @@ const SOSButton = () => {
         { enableHighAccuracy: true, distanceFilter: 10, interval: 10000, fastestInterval: 5000, forceRequestLocation: true },
       );
 
-      // If watch doesn't yield, retry getCurrentPosition periodically
       retryTimer = setInterval(() => {
         if (!currentLocation) fetchLocation();
       }, 15000);
@@ -347,51 +412,35 @@ const SOSButton = () => {
     Linking.openSettings();
   }, []);
 
-
-  type ActionButtonProps = {
-    icon: string;
-    label: string;
-    color: string;
-    onPress?: () => void;
-  };
-
-  const ActionButton = ({ icon, label, color, onPress }: ActionButtonProps) => (
-    <TouchableOpacity style={styles.action} onPress={onPress}>
-      <View style={[styles.circle, { backgroundColor: color }]}>
-        <Ionicons name={icon} size={28} color="#111" />
-      </View>
-      <Text style={styles.label}>{label}</Text>
-    </TouchableOpacity>
-  );
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.profileRow}>
           <Image
-            source={{ uri: "https://m.media-amazon.com/images/I/41EjjV414pL.jpg" }}
+            source={{ uri: userData?.profilePic || "https://api.dicebear.com/9.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4&scale=90" }}
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.title}>Hello, Shree!</Text>
+            <Text style={styles.title}>Hello, {(userData?.fullName || '').split(' ')[0] || 'User'}!</Text>
             <Text style={styles.subTitle}>Stay protected wherever you are</Text>
           </View>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("Alerts")} style={styles.iconButton}>
-          <Ionicons name="notifications-outline" size={20} color="#FFBF00" />
+          <Ionicons name="notifications-outline" size={20} color="#FFD700" />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
-            <View style={[styles.heroBadge, gpsOff && styles.heroBadgeWarning]}>
-              <Ionicons name="shield-checkmark-outline" size={14} color={gpsOff ? "#ef4444" : "#22c55e"} />
-              <Text style={styles.heroBadgeText}>
-                {gpsOff ? 'GPS Off' : 'Protected'}
+            <Animated.View style={[styles.heroBadge, gpsOff && styles.heroBadgeWarning, { opacity: badgeOpacity }]}>
+              <Ionicons name="shield-checkmark-outline" size={14} color={gpsOff ? "#FF4F00" : "#00F2FF"} />
+              <Text style={[styles.heroBadgeText, { color: gpsOff ? "#FF4F00" : "#00F2FF" }]}>
+                {gpsOff ? 'GPS Off' : 'Active'}
               </Text>
-            </View>
+            </Animated.View>
             <TouchableOpacity style={styles.heroChip} onPress={fetchLocation}>
-              <Ionicons name="location-outline" size={14} color="#FFBF00" />
+              <Ionicons name="location-outline" size={14} color="#FFD700" />
               <Text style={styles.heroChipText}>
                 {showRetryHint ? 'Tap to retry' : locationLabel}
               </Text>
@@ -399,15 +448,40 @@ const SOSButton = () => {
           </View>
 
           <View style={styles.sosRing}>
+            {/* Expansion Rings */}
+            {[0, 0.4, 0.8].map((delay, i) => (
+              <Animated.View
+                key={i}
+                style={[
+                  styles.pulseRing,
+                  {
+                    transform: [{
+                      scale: pulseAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 2],
+                      })
+                    }],
+                    opacity: pulseAnim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0.6, 0.3, 0],
+                    })
+                  }
+                ]}
+              />
+            ))}
+
             <View style={styles.sosOuter}>
-              <TouchableOpacity
-                style={styles.sosButton}
-                onLongPress={handleSOS}
-                delayLongPress={1500}
-              >
-                <Ionicons name="alert" size={38} color="#000" />
-                <Text style={styles.sosText}>SOS</Text>
-              </TouchableOpacity>
+              <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  style={styles.sosButton}
+                  onLongPress={handleSOS}
+                  delayLongPress={1500}
+                >
+                  <Ionicons name="alert" size={38} color="#000" />
+                  <Text style={styles.sosText}>SOS</Text>
+                </TouchableOpacity>
+              </Animated.View>
             </View>
           </View>
 
@@ -556,7 +630,7 @@ const SOSButton = () => {
               onPress={handleAddContact}
               disabled={addingContact}
             >
-              <Text style={styles.addButtonText}>{addingContact ? 'Adding...' : 'Add'}</Text>
+              <Text style={styles.addButtonText}>{addingContact ? '...' : 'Add'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -591,7 +665,21 @@ const SOSButton = () => {
   )
 }
 
-export default SOSButton
+type ActionButtonProps = {
+  icon: string;
+  label: string;
+  color: string;
+  onPress?: () => void;
+};
+
+const ActionButton = ({ icon, label, color, onPress }: ActionButtonProps) => (
+  <TouchableOpacity style={styles.action} onPress={onPress}>
+    <View style={[styles.circle, { backgroundColor: color }]}>
+      <Ionicons name={icon} size={28} color="#111" />
+    </View>
+    <Text style={styles.label}>{label}</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -642,87 +730,101 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.1)",
   },
   heroCard: {
-    backgroundColor: "#121212",
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
     marginHorizontal: wp(5),
     borderRadius: wp(6),
-    padding: wp(5),
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-    shadowColor: "#FFBF00",
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 6,
+    padding: wp(6),
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 4,
   },
   heroTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: hp(2),
+    marginBottom: hp(3),
   },
   heroBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: wp(1.5),
-    backgroundColor: "rgba(34, 197, 94, 0.15)",
-    paddingHorizontal: wp(3.2),
-    paddingVertical: hp(0.5),
+    backgroundColor: "rgba(0, 242, 255, 0.06)",
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(0.6),
     borderRadius: wp(5),
+    borderWidth: 0.5,
+    borderColor: "rgba(0, 242, 255, 0.2)",
   },
   heroBadgeWarning: {
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    backgroundColor: "rgba(255, 79, 0, 0.1)",
+    borderColor: "rgba(255, 79, 0, 0.3)",
   },
   heroBadgeText: {
     color: "#fff",
     fontFamily: 'Outfit-Bold',
-    fontSize: wp(3.2),
+    fontSize: wp(3.4),
+    letterSpacing: 0.5,
   },
   heroChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: wp(1.5),
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.5),
+    backgroundColor: "rgba(255, 215, 0, 0.08)",
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(0.6),
     borderRadius: wp(5),
   },
   heroChipText: {
-    color: "#FFBF00",
+    color: "#FFD700",
     fontFamily: 'Outfit-Medium',
-    fontSize: wp(3.2),
+    fontSize: wp(3.4),
   },
   sosRing: {
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: hp(1.5),
+    height: 220,
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 1.5,
+    borderColor: '#FFD700',
   },
   sosOuter: {
-    width: 190,
-    height: 190,
-    borderRadius: 95,
-    backgroundColor: "rgba(255, 191, 0, 0.1)",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(255, 215, 0, 0.03)",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255, 191, 0, 0.2)",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 215, 0, 0.1)",
   },
   sosButton: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "#FFBF00",
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: "#FFD700",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#FFBF00",
-    shadowOpacity: 0.6,
-    shadowRadius: 25,
-    elevation: 15,
+    shadowColor: "#FFD700",
+    shadowOpacity: 0.8,
+    shadowRadius: 40,
+    elevation: 25,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   sosText: {
-    fontSize: 32,
+    fontSize: 28,
     fontFamily: "Outfit-Black",
     color: "#000",
-    letterSpacing: 1.5,
-    marginTop: 2,
+    letterSpacing: 2,
+    marginTop: 1,
   },
   hint: {
     marginTop: hp(1.5),
@@ -757,27 +859,28 @@ const styles = StyleSheet.create({
     fontSize: wp(3),
   },
   sectionCard: {
-    backgroundColor: "#121212",
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
     marginHorizontal: wp(5),
     marginTop: hp(2.5),
     padding: wp(5),
     borderRadius: wp(6),
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.06)",
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: hp(2.5),
+    marginBottom: hp(2),
   },
   sectionTitle: {
-    fontSize: wp(4.8),
+    fontSize: wp(4.5),
     color: "#fff",
     fontFamily: 'Outfit-Bold',
+    letterSpacing: 0.3,
   },
   sectionMeta: {
-    color: "#FFBF00",
+    color: "#FFD700",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
   },
@@ -808,7 +911,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
     textAlign: 'center',
   },
-  /* Safe Zones */
   safeZoneItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -834,7 +936,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Regular',
     marginTop: hp(0.2),
   },
-  /* Inputs */
   inputRow: {
     flexDirection: "row",
     gap: wp(3),
@@ -853,21 +954,21 @@ const styles = StyleSheet.create({
     fontSize: wp(3.8),
   },
   addButton: {
-    flex: 0.6,
-    backgroundColor: "#FFBF00",
+    flex: 0.4,
+    backgroundColor: "#FFD700",
     borderRadius: wp(3),
     alignItems: "center",
     justifyContent: "center",
+    height: 48,
   },
   addButtonDisabled: {
     opacity: 0.5,
   },
   addButtonText: {
     color: "#000",
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(4),
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(3.8),
   },
-  /* Contacts */
   contactItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -881,14 +982,16 @@ const styles = StyleSheet.create({
   contactAvatar: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255, 191, 0, 0.15)",
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 215, 0, 0.1)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: wp(3.5),
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 215, 0, 0.2)",
   },
   contactAvatarText: {
-    color: "#FFBF00",
+    color: "#FFD700",
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.5),
   },
@@ -910,5 +1013,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: 'Outfit-Regular',
     marginTop: hp(2),
-  }
-})
+  },
+});
+
+export default SOSButton;

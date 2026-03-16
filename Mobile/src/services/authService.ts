@@ -138,3 +138,16 @@ export function getStoredRefreshToken(): string | undefined {
 export function logoutStorage(): void {
   clearAuthStorage();
 }
+
+export type LoginWithGoogleResponse = VerifyOtpResponse;
+
+/** Sign in with Google: exchange ID token for app tokens and persist. */
+export async function loginWithGoogle(idToken: string): Promise<LoginWithGoogleResponse & { userId?: string }> {
+  const res = await api.post<{ data?: LoginWithGoogleResponse } & LoginWithGoogleResponse>('/v1/auth/google', { idToken });
+  const payload = (res as any).data ?? res;
+  setAccessToken(payload.accessToken);
+  setRefreshToken(payload.refreshToken);
+  const jwtPayload = decodeJwtPayload(payload.accessToken);
+  if (jwtPayload?.id) setUserId(jwtPayload.id);
+  return { ...payload, userId: jwtPayload?.id };
+}

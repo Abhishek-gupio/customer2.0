@@ -42,19 +42,20 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
     color: COLORS.textPrimary,
     marginBottom: 6,
   },
   text: {
     fontSize: 14,
+    fontFamily: 'Outfit-Regular',
     color: COLORS.textSecondary,
     marginBottom: 2,
   },
   next: {
     marginTop: 8,
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit-Medium',
     color: COLORS.accent,
   },
 });

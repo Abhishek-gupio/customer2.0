@@ -22,6 +22,38 @@ const cacheManager = env.GEMINI_API_KEY
 let activeCache: { name: string; expiry: number } | null = null;
 
 // ============================================================================
+// Suggested actions derived from assistant response (for action chips in app)
+// ============================================================================
+const DEFAULT_ACTIONS: { label: string; prompt: string }[] = [
+  { label: "Log expense", prompt: "Add an expense for my vehicle" },
+  { label: "Set reminder", prompt: "Set a reminder for my vehicle" },
+  { label: "Documents", prompt: "Show my document status" },
+  { label: "Support", prompt: "I need help or support" },
+];
+
+function getSuggestedActionsFromText(text: string): { label: string; prompt: string }[] {
+  if (!text || typeof text !== "string") return DEFAULT_ACTIONS;
+  const lower = text.toLowerCase();
+  const score: Record<string, number> = {
+    "Log expense": 0,
+    "Set reminder": 0,
+    Documents: 0,
+    Support: 0,
+  };
+  if (/\b(expense|fuel|spend|cost|toll|rupee|₹|inr)\b/.test(lower)) score["Log expense"] += 2;
+  if (/\b(document|insurance|rc|puc|expir|renew|upload)\b/.test(lower)) score["Documents"] += 2;
+  if (/\b(remind|service|due|schedule|maintenance)\b/.test(lower)) score["Set reminder"] += 2;
+  if (/\b(help|support|issue|problem|contact)\b/.test(lower)) score["Support"] += 2;
+  const sorted = (Object.entries(score) as [keyof typeof score, number][])
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label]) => DEFAULT_ACTIONS.find((a) => a.label === label)!)
+    .filter(Boolean);
+  const rest = DEFAULT_ACTIONS.filter((a) => !sorted.some((s) => s.label === a.label));
+  return [...sorted, ...rest].slice(0, 4);
+}
+
+// ============================================================================
 // SYSTEM PROMPT — Enhanced with agent capabilities
 // ============================================================================
 const SYSTEM_PROMPT = `You are an intelligent automotive assistant for 'Gupio'.
@@ -460,6 +492,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
         toolResults:
           allToolResults.length > 0 ? allToolResults : undefined,
         agentSteps: agentSteps.length > 0 ? agentSteps : undefined,
+        suggestedActions: getSuggestedActionsFromText(responseText),
       };
     } catch (error) {
       logger.error({ error }, "AI Chat generation failed");
@@ -601,11 +634,13 @@ Write a concise summary (max 200 words) capturing all important details.`,
       const voiceUrl =
         await voiceService.generateSpeechUrl(fullResponse);
 
+      const suggestedActions = getSuggestedActionsFromText(fullResponse);
       yield JSON.stringify({
         type: "done",
         voiceUrl,
         contextUsed: contextDocs.length,
         toolResults: toolResults.length > 0 ? toolResults : undefined,
+        suggestedActions,
       });
 
       // Background: save messages + analytics

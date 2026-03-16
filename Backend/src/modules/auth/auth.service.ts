@@ -1,4 +1,5 @@
 import { randomInt } from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import { dbInstances } from "@repo/db-customer";
 import { AppError } from "../../utils/AppError";
 import {
@@ -190,5 +191,81 @@ export const authService = {
     });
     if (!customer) throw AppError.notFound("Customer not found");
     return customer;
+  },
+
+  /**
+   * Sign in with Google ID token. Verifies the token, then finds or creates
+   * a customer and returns access + refresh tokens.
+   */
+  async signInWithGoogle(idToken: string) {
+    const clientId = env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      throw AppError.badRequest(
+        "Google Sign-In is not configured. Set GOOGLE_CLIENT_ID in the server environment.",
+      );
+    }
+    const client = new OAuth2Client(clientId);
+    let payload: { sub: string; email?: string; name?: string; picture?: string };
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: clientId,
+      });
+      const p = ticket.getPayload();
+      if (!p?.sub) {
+        throw new Error("Invalid token payload");
+      }
+      payload = {
+        sub: p.sub,
+        email: p.email ?? undefined,
+        name: p.name ?? undefined,
+        picture: p.picture ?? undefined,
+      };
+    } catch (err) {
+      throw AppError.unauthorized(
+        "Invalid or expired Google token. Please try signing in again.",
+      );
+    }
+
+    const googleId = payload.sub;
+    let customer = await dbInstances.customer.findUnique({
+      where: { googleId },
+    });
+    if (!customer && payload.email) {
+      customer = await dbInstances.customer.findFirst({
+        where: { email: payload.email },
+      });
+    }
+    if (!customer) {
+      const placeholderPhone = `google_${googleId}`;
+      customer = await dbInstances.customer.create({
+        data: {
+          googleId,
+          phoneNumber: placeholderPhone,
+          email: payload.email ?? null,
+          fullName: payload.name ?? null,
+          profilePic: payload.picture ?? null,
+        },
+      });
+    } else if (!customer.googleId) {
+      customer = await dbInstances.customer.update({
+        where: { id: customer.id },
+        data: {
+          googleId,
+          fullName: customer.fullName ?? payload.name ?? null,
+          profilePic: customer.profilePic ?? payload.picture ?? null,
+        },
+      });
+    }
+
+    const jwtPayload = { id: customer.id, phoneNumber: customer.phoneNumber };
+    const accessToken = signAccess(jwtPayload);
+    const refreshToken = signRefresh(jwtPayload);
+    return {
+      message: "Signed in with Google",
+      accessToken,
+      refreshToken,
+      expiresIn: getAccessExpirySeconds(),
+    };
   },
 };

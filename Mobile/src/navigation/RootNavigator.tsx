@@ -36,7 +36,7 @@ import AiBotHome from '../screens/AiBot/HomeScreen';
 import ChatSessionsScreen from '../screens/AiBot/ChatSessionsScreen';
 import DrivingSummary from '../screens/Telematics/DrivingSummary';
 import DrivingTimeline from '../screens/Telematics/DrivingTimeline';
-import TripDetail from '../screens/Telematics/TripDetail';
+// import TripDetail from '../screens/Telematics/TripDetail';
 import SOSButton from '../components/SOSButton';
 import Alerts from '../screens/Main/Alerts';
 
@@ -94,7 +94,7 @@ export function RootNavigator() {
 
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
       <Stack.Screen name="DrivingTimeline" component={DrivingTimeline} />
-      <Stack.Screen name="TripDetail" component={TripDetail} />
+      {/* <Stack.Screen name="TripDetail" component={TripDetail} /> */}
       <Stack.Screen name="SOSButton" component={SOSButton} />
       <Stack.Screen name="Alerts" component={Alerts} />
     </Stack.Navigator>

@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '../../lib/react-navigation-native';
+import BackButton from '../../components/BackButton';
 import ServiceCard from '../../components/ServiceCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -76,9 +77,7 @@ export default function ServiceHistoryScreen({ navigation }: any) {
         <SafeAreaView style={styles.safe}>
             <View style={styles.shader}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation?.goBack()}>
-                        <Text style={styles.back}>←</Text>
-                    </TouchableOpacity>
+                    <BackButton onPress={() => navigation?.goBack()} />
                     <Text style={styles.headerTitle}>Service History</Text>
                 </View>
                 <Text style={styles.vehicle}>
@@ -136,14 +135,15 @@ const styles = StyleSheet.create({
     },
 
     headerTitle: {
-        fontSize: wp(7),
-        fontWeight: '600',
+        fontSize: wp(5.5),
+        fontFamily: 'Outfit-Bold',
         color: '#fff',
+        marginLeft: wp(3),
     },
 
     vehicle: {
         fontSize: wp(4.5),
-        fontWeight: '500',
+        fontFamily: 'Outfit-Medium',
         marginBottom: hp('2%'),
         color: '#fff',
     },
@@ -165,6 +165,6 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: wp('5%'),
         borderBottomRightRadius: wp('5%'),
         paddingBottom: hp('2%'),
-        paddingHorizontal: wp('4%'),
+        paddingHorizontal: wp('5%'),
     },
 });
