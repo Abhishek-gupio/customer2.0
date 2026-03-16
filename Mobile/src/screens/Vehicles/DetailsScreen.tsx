@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
     StyleSheet, ActivityIndicator, Alert
@@ -7,11 +7,11 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark
+    Calendar, Bookmark, ChevronDown, ChevronUp, Info
 } from 'lucide-react-native';
 import BackButton from '../../components/BackButton';
 import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate } from '../../components/Vehicles/VehicleUI';
-import { Vehicle } from '../../services/vehicleService';
+import { Vehicle, vehicleService } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import ShareScreen from './Share';
 import { getProfile } from '../../services/profileService';
@@ -27,13 +27,22 @@ type DetailsScreenProps = {
 };
 
 type MainTab = 'Alerts' | 'Details';
-type SubTab = 'Owner' | 'Vehicle' | 'Specs' | 'Dates' | 'More';
+type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Specs' | 'Dates' | 'More';
 
 export const DetailsScreen = ({
     vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
 }: DetailsScreenProps) => {
     const [mainTab, setMainTab] = useState<MainTab>('Alerts');
-    const [subTab, setSubTab] = useState<SubTab>('Vehicle');   // fixed: was 'Vehicle' but docs said 'Alerts'
+    const [subTab, setSubTab] = useState<SubTab>('Health');
+    const [healthScoreDetail, setHealthScoreDetail] = useState<{
+        overallScore?: number;
+        scoreChangeReason?: string;
+        components?: { name: string; score: number | null; label: string }[];
+        recommendations?: string[];
+        explanations?: string[];
+    } | null>(null);
+    const [expandWhyScore, setExpandWhyScore] = useState(false);
+    const [expandNextActions, setExpandNextActions] = useState(false);
     const [rating, setRating] = useState(0);
     const [feedback, setFeedback] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,6 +66,20 @@ export const DetailsScreen = ({
             mounted = false;
         };
     }, []);
+
+    const fetchHealthDetail = useCallback(async (vehicleId: string) => {
+        try {
+            const data = await vehicleService.getVehicleById(vehicleId);
+            const hs = data?.healthScore as typeof healthScoreDetail;
+            setHealthScoreDetail(hs ?? null);
+        } catch {
+            setHealthScoreDetail(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (activeVehicle?.id) fetchHealthDetail(activeVehicle.id);
+    }, [activeVehicle?.id, fetchHealthDetail]);
 
     // Hero image error state must be defined BEFORE any early returns
     const [heroError, setHeroError] = useState(false);
@@ -332,7 +355,7 @@ export const DetailsScreen = ({
                                 showsHorizontalScrollIndicator={false}
                                 style={styles.subTabRow}
                             >
-                                {(['Owner', 'Vehicle', 'Specs', 'Dates', 'More'] as SubTab[]).map(t => (
+                                {(['Health', 'Owner', 'Vehicle', 'Specs', 'Dates', 'More'] as SubTab[]).map(t => (
                                     <TouchableOpacity
                                         key={t}
                                         onPress={() => setSubTab(t)}
@@ -344,6 +367,91 @@ export const DetailsScreen = ({
                             </ScrollView>
 
                             <View style={{ gap: 16 }}>
+                                {subTab === 'Health' && (
+                                    <>
+                                        <View style={styles.healthScoreCard}>
+                                            <Text style={styles.healthScoreValue}>
+                                                {healthScoreDetail?.overallScore ?? activeVehicle.healthScore?.overallScore ?? '—'}
+                                            </Text>
+                                            <Text style={styles.healthScoreLabel}>/ 100 Health</Text>
+                                        </View>
+                                        <View style={styles.healthBasedOnCard}>
+                                            <Text style={styles.healthBasedOnTitle}>What this score is based on</Text>
+                                            {healthScoreDetail?.components?.some(c => c.name === 'driving' && c.score != null) ? (
+                                                <>
+                                                    <Text style={styles.healthBasedOnItem}>• Compliance (20%) — Insurance & PUC documents</Text>
+                                                    <Text style={styles.healthBasedOnItem}>• Maintenance (50%) — Parts, mileage & vehicle age</Text>
+                                                    <Text style={styles.healthBasedOnItem}>• Driving (30%) — Last 20 trips safety score</Text>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Text style={styles.healthBasedOnItem}>• Compliance (20%) — Insurance & PUC documents</Text>
+                                                    <Text style={styles.healthBasedOnItem}>• Maintenance (80%) — Parts, mileage & vehicle age</Text>
+                                                    <Text style={styles.healthBasedOnItem}>• Driving — Not used yet (no trips; add trips to include)</Text>
+                                                </>
+                                            )}
+                                        </View>
+                                        {healthScoreDetail?.components && healthScoreDetail.components.length > 0 && (
+                                            <View style={styles.healthComponentsRow}>
+                                                {healthScoreDetail.components.map((c) => (
+                                                    <View key={c.name} style={styles.healthComponentBox}>
+                                                        <Text style={styles.healthComponentLabel}>{c.label}</Text>
+                                                        <Text style={styles.healthComponentValue}>{c.score != null ? c.score : '—'}%</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        )}
+                                        {(healthScoreDetail?.scoreChangeReason || healthScoreDetail?.explanations?.length) ? (
+                                            <>
+                                                <TouchableOpacity
+                                                    style={styles.whyScoreRow}
+                                                    onPress={() => setExpandWhyScore((v) => !v)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Info size={18} color={COLORS.primary} />
+                                                    <Text style={styles.whyScoreLabel}>Score changed because…</Text>
+                                                    {expandWhyScore ? <ChevronUp size={18} color="#888" /> : <ChevronDown size={18} color="#888" />}
+                                                </TouchableOpacity>
+                                                {expandWhyScore && (
+                                                    <View style={styles.whyScoreBody}>
+                                                        <Text style={styles.whyScoreText}>{healthScoreDetail?.scoreChangeReason ?? healthScoreDetail?.explanations?.[0] ?? '—'}</Text>
+                                                        {healthScoreDetail?.explanations && healthScoreDetail.explanations.length > 1 && (
+                                                            healthScoreDetail.explanations.slice(1, 4).map((e: string, i: number) => (
+                                                                <Text key={i} style={styles.explanationItem}>• {e}</Text>
+                                                            ))
+                                                        )}
+                                                    </View>
+                                                )}
+                                            </>
+                                        ) : null}
+                                        {healthScoreDetail?.recommendations && healthScoreDetail.recommendations.length > 0 && (
+                                            <>
+                                                <TouchableOpacity
+                                                    style={styles.whyScoreRow}
+                                                    onPress={() => setExpandNextActions((v) => !v)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Activity size={18} color={COLORS.primary} />
+                                                    <Text style={styles.whyScoreLabel}>What to do next</Text>
+                                                    {expandNextActions ? <ChevronUp size={18} color="#888" /> : <ChevronDown size={18} color="#888" />}
+                                                </TouchableOpacity>
+                                                {expandNextActions && (
+                                                    <View style={styles.nextActionsBody}>
+                                                        {healthScoreDetail.recommendations.map((r: string, i: number) => (
+                                                            <View key={i} style={styles.nextActionItem}>
+                                                                <Text style={styles.nextActionText}>{r}</Text>
+                                                            </View>
+                                                        ))}
+                                                    </View>
+                                                )}
+                                            </>
+                                        )}
+                                        {!healthScoreDetail && (
+                                            <Text style={styles.healthLoadingHint}>Recalculate health from vehicle settings to see breakdown.</Text>
+                                        )}
+                                    </>
+                                )}
+
                                 {subTab === 'Owner' && (
                                     <>
                                         <InfoCard icon={User} label="Owner Name" value={'Self'} />
@@ -536,5 +644,60 @@ const styles = StyleSheet.create({
         color: '#000',
         fontSize: 10,
         fontWeight: '900'
-    }
+    },
+    healthScoreCard: {
+        backgroundColor: COLORS.surface,
+        borderRadius: 24,
+        padding: 24,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    healthScoreValue: { fontSize: 48, fontFamily: 'Outfit-Black', color: COLORS.primary },
+    healthScoreLabel: { fontSize: 14, color: '#888', marginTop: 4 },
+    healthBasedOnCard: {
+        backgroundColor: 'rgba(255,215,0,0.06)',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255,215,0,0.2)',
+    },
+    healthBasedOnTitle: { fontSize: 12, fontFamily: 'Outfit-Bold', color: COLORS.primary, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+    healthBasedOnItem: { fontSize: 12, color: '#AAA', marginTop: 4, lineHeight: 18 },
+    healthComponentsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    healthComponentBox: {
+        flex: 1,
+        minWidth: '30%',
+        backgroundColor: COLORS.surface,
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    healthComponentLabel: { fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 },
+    healthComponentValue: { fontSize: 18, fontFamily: 'Outfit-Bold', color: '#FFF', marginTop: 4 },
+    whyScoreRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        padding: 16,
+        backgroundColor: COLORS.surface,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    whyScoreLabel: { flex: 1, color: '#FFF', fontSize: 13, fontFamily: 'Outfit-Bold' },
+    whyScoreBody: {
+        padding: 16,
+        backgroundColor: '#0D0D0D',
+        borderRadius: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: COLORS.primary,
+    },
+    whyScoreText: { color: '#CCC', fontSize: 13, lineHeight: 20 },
+    explanationItem: { color: '#888', fontSize: 12, marginTop: 8 },
+    nextActionsBody: { gap: 8, paddingVertical: 8 },
+    nextActionItem: { paddingVertical: 10, paddingHorizontal: 4 },
+    nextActionText: { color: '#CCC', fontSize: 13 },
+    healthLoadingHint: { color: '#666', fontSize: 12, textAlign: 'center', paddingVertical: 24 },
 });

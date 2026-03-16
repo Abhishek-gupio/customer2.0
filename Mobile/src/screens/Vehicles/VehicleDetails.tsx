@@ -107,8 +107,17 @@ const VehicleDetails = ({ navigation, route }: any) => {
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [isOdoModalVisible, setIsOdoModalVisible] = useState(false);
   const [odoInput, setOdoInput] = useState('');
+  const [expandWhyScore, setExpandWhyScore] = useState(false);
+  const [expandNextActions, setExpandNextActions] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
   const spinValue = useRef(new Animated.Value(0)).current;
+
+  const healthDetail = vehicle.healthScoreDetail as {
+    scoreChangeReason?: string;
+    components?: { name: string; score: number | null; label: string }[];
+    recommendations?: string[];
+    explanations?: string[];
+  } | null;
 
   const parseHealth = (val: any) => {
     if (typeof val === 'number') return val;
@@ -126,7 +135,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
       const data = await vehicleService.getVehicleById(vehicle.id);
       setVehicle((prev: any) => ({
         ...prev,
-        healthScore: data.healthScore?.overallScore || 0,
+        healthScore: data.healthScore?.overallScore ?? prev.healthScore ?? 0,
+        healthScoreDetail: data.healthScore ?? null,
         odometer: data.currentOdometer ? `${data.currentOdometer.toLocaleString()} km` : prev.odometer,
         photo: data.photo || prev.photo || prev.img,
         chassisNumber: data.chassisNumber,
@@ -380,29 +390,111 @@ const VehicleDetails = ({ navigation, route }: any) => {
               </View>
             </View>
 
-            <View style={styles.statsRow}>
-              <View style={styles.statBox}>
-                <FontAwesome5 name="calendar-alt" size={wp(4)} color="#666" />
-                <Text style={styles.statSmallLabel}>Age</Text>
-                <Text style={styles.statValue}>
-                  90 <Text style={styles.unitText}>days</Text>
-                </Text>
-              </View>
-              <View style={styles.statBox}>
-                <FontAwesome5 name="wrench" size={wp(4)} color="#666" />
-                <Text style={styles.statSmallLabel}>Service</Text>
-                <Text style={styles.statValue}>
-                  80 <Text style={styles.unitText}>%</Text>
-                </Text>
-              </View>
-              <View style={styles.statBox}>
-                <FontAwesome5 name="tachometer-alt" size={wp(4)} color="#666" />
-                <Text style={styles.statSmallLabel}>Mileage</Text>
-                <Text style={styles.statValue}>
-                  18.5 <Text style={styles.unitText}>km/l</Text>
-                </Text>
-              </View>
+            <View style={styles.healthBasedOnCard}>
+              <Text style={styles.healthBasedOnTitle}>What this score is based on</Text>
+              {healthDetail?.components?.some((c: { name: string; score: number | null }) => c.name === 'driving' && c.score != null) ? (
+                <>
+                  <Text style={styles.healthBasedOnItem}>• Compliance (20%) — Insurance & PUC documents</Text>
+                  <Text style={styles.healthBasedOnItem}>• Maintenance (50%) — Parts, mileage & vehicle age</Text>
+                  <Text style={styles.healthBasedOnItem}>• Driving (30%) — Last 20 trips safety score</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.healthBasedOnItem}>• Compliance (20%) — Insurance & PUC documents</Text>
+                  <Text style={styles.healthBasedOnItem}>• Maintenance (80%) — Parts, mileage & vehicle age</Text>
+                  <Text style={styles.healthBasedOnItem}>• Driving — Not used yet (no trips; add trips to include)</Text>
+                </>
+              )}
             </View>
+
+            {healthDetail?.components && healthDetail.components.length > 0 && (
+              <View style={styles.statsRow}>
+                {healthDetail.components.map((c) => (
+                  <View key={c.name} style={styles.statBox}>
+                    <FontAwesome5
+                      name={
+                        c.name === 'maintenance' ? 'wrench' :
+                        c.name === 'driving' ? 'car' :
+                        c.name === 'age' ? 'calendar-alt' : 'tachometer-alt'
+                      }
+                      size={wp(4)}
+                      color="#666"
+                    />
+                    <Text style={styles.statSmallLabel}>{c.label}</Text>
+                    <Text style={styles.statValue}>
+                      {c.score != null ? c.score : '—'}
+                      <Text style={styles.unitText}>%</Text>
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {healthDetail?.scoreChangeReason && (
+              <TouchableOpacity
+                style={styles.whyScoreRow}
+                onPress={() => setExpandWhyScore((v) => !v)}
+                activeOpacity={0.7}
+              >
+                <FontAwesome5 name="info-circle" size={wp(4)} color="#FFBF00" />
+                <Text style={styles.whyScoreLabel}>
+                  Score changed because…
+                </Text>
+                <FontAwesome5
+                  name={expandWhyScore ? 'chevron-up' : 'chevron-down'}
+                  size={wp(3.5)}
+                  color="#888"
+                />
+              </TouchableOpacity>
+            )}
+            {expandWhyScore && healthDetail?.scoreChangeReason && (
+              <View style={styles.whyScoreBody}>
+                <Text style={styles.whyScoreText}>{healthDetail.scoreChangeReason}</Text>
+                {healthDetail.explanations && healthDetail.explanations.length > 1 && (
+                  <View style={styles.explanationsList}>
+                    {healthDetail.explanations.slice(1, 4).map((e: string, i: number) => (
+                      <Text key={i} style={styles.explanationItem}>• {e}</Text>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {healthDetail?.recommendations && healthDetail.recommendations.length > 0 && (
+              <>
+                <TouchableOpacity
+                  style={styles.whyScoreRow}
+                  onPress={() => setExpandNextActions((v) => !v)}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome5 name="tasks" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.whyScoreLabel}>What to do next</Text>
+                  <FontAwesome5
+                    name={expandNextActions ? 'chevron-up' : 'chevron-down'}
+                    size={wp(3.5)}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+                {expandNextActions && (
+                  <View style={styles.nextActionsBody}>
+                    {healthDetail.recommendations.map((r: string, i: number) => (
+                      <TouchableOpacity
+                        key={i}
+                        style={styles.nextActionItem}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          if (r.toLowerCase().includes('insurance') || r.toLowerCase().includes('document')) navigation.navigate('DocumentList' as any);
+                          else if (r.toLowerCase().includes('service') || r.toLowerCase().includes('puc')) navigation.navigate('ServiceHistory' as any);
+                        }}
+                      >
+                        <FontAwesome5 name="chevron-right" size={wp(3)} color="#FFBF00" />
+                        <Text style={styles.nextActionText}>{r}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
 
             <TouchableOpacity
               style={[
@@ -702,6 +794,57 @@ const styles = StyleSheet.create({
   },
   recalcBtnDisabled: { opacity: 0.5 },
   recalcText: { color: '#FFBF00', fontSize: wp(3.5), fontWeight: '600' },
+
+  healthBasedOnCard: {
+    backgroundColor: 'rgba(255,191,0,0.06)',
+    borderRadius: 12,
+    padding: wp(4),
+    marginTop: hp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.2)',
+  },
+  healthBasedOnTitle: { fontSize: wp(3.2), fontWeight: '700', color: '#FFBF00', marginBottom: hp(1), textTransform: 'uppercase', letterSpacing: 0.5 },
+  healthBasedOnItem: { fontSize: wp(3.2), color: '#aaa', marginTop: 4, lineHeight: 20 },
+
+  whyScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2.5),
+    marginTop: hp(2),
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 10,
+  },
+  whyScoreLabel: { flex: 1, color: '#ccc', fontSize: wp(3.8), fontWeight: '600' },
+  whyScoreBody: {
+    marginTop: hp(1),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FFBF00',
+  },
+  whyScoreText: { color: '#ccc', fontSize: wp(3.6), lineHeight: 22 },
+  explanationsList: { marginTop: hp(1.2) },
+  explanationItem: { color: '#999', fontSize: wp(3.4), marginTop: 4 },
+
+  nextActionsBody: {
+    marginTop: hp(1),
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(1),
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 10,
+  },
+  nextActionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(2),
+  },
+  nextActionText: { flex: 1, color: '#ddd', fontSize: wp(3.6) },
 
   infoCard: {
     backgroundColor: '#121212',

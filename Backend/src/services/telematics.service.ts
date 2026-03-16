@@ -245,6 +245,68 @@ export const telematicsService = {
   },
 
   /**
+   * A5: End-trip summary with score + money tip + safety tip for Telematics Value Presentation
+   */
+  async getTripSummaryById(tripId: string): Promise<{
+    trip: { id: string; startTime: Date; endTime: Date; distanceKm: number; durationMin: number; safetyScore: number };
+    moneyTip: string;
+    safetyTip: string;
+  }> {
+    const trip = await db.drivingTrip.findUnique({
+      where: { id: tripId },
+      include: { events: true },
+    });
+
+    if (!trip) throw new Error("Trip not found");
+
+    const events = (trip as any).events || [];
+    const harshBraking = events.filter((e: any) => /harsh|brak|brake/i.test(String(e.eventType))).length;
+    const hardAccel = events.filter((e: any) => /accel|acceleration|hard.*accel/i.test(String(e.eventType))).length;
+    const speeding = events.filter((e: any) => /speed|overspeed/i.test(String(e.eventType))).length;
+    const totalEvents = harshBraking + hardAccel + speeding;
+
+    const score = trip.safetyScore ?? 100;
+    const distanceKm = trip.distanceKm ?? 0;
+
+    let moneyTip: string;
+    if (totalEvents === 0 && score >= 80) {
+      moneyTip = "Smooth driving helps tyres and brakes last longer — you're on track.";
+    } else if (totalEvents > 0) {
+      const roughSavings = totalEvents * 50; // rough ₹ per trip impact
+      moneyTip = `${totalEvents} event${totalEvents > 1 ? "s" : ""} (harsh brake/accel/speed) add wear. Smoother driving could save ~₹${roughSavings}+ on wear per month.`;
+    } else {
+      moneyTip = "Gentle braking and steady speed reduce fuel use and wear — keep it up.";
+    }
+
+    let safetyTip: string;
+    if (score >= 85) {
+      safetyTip = "Great safety score. Maintain smooth braking and steady speed.";
+    } else if (harshBraking > 0 || hardAccel > 0) {
+      const parts: string[] = [];
+      if (harshBraking > 0) parts.push(`${harshBraking} harsh brake${harshBraking > 1 ? "s" : ""}`);
+      if (hardAccel > 0) parts.push(`${hardAccel} hard acceleration${hardAccel > 1 ? "s" : ""}`);
+      safetyTip = `Fewer ${parts.join(" and ")} = safer trips and less wear.`;
+    } else if (speeding > 0) {
+      safetyTip = "Staying within speed limits improves safety and fuel efficiency.";
+    } else {
+      safetyTip = "Small improvements in smoothness can raise your score and reduce wear.";
+    }
+
+    return {
+      trip: {
+        id: trip.id,
+        startTime: trip.startTime,
+        endTime: trip.endTime,
+        distanceKm,
+        durationMin: trip.durationMin ?? 0,
+        safetyScore: score,
+      },
+      moneyTip,
+      safetyTip,
+    };
+  },
+
+  /**
    * Pull trips for all active devices from Damoov API (Cron job Alternative)
    */
   async syncTripsForAllDevices() {

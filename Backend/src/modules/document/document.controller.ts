@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { documentService } from "./document.service";
 import { uploadDocumentSchema } from "./document.validators";
+import { checkImageQuality } from "../../services/imageQuality.service";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { dbInstances } from "@repo/db-customer";
@@ -99,5 +100,15 @@ export const documentController = {
       req.params.id as string,
     );
     success(res, result);
+  }),
+
+  /** Pre-upload image quality check (blur, glare). Returns { ok, hints }. */
+  checkImageQuality: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.file) {
+      throw AppError.badRequest("No file uploaded");
+    }
+    const mime = req.file.mimetype || "image/jpeg";
+    const result = await checkImageQuality(req.file.buffer, mime);
+    return success(res, result);
   }),
 };

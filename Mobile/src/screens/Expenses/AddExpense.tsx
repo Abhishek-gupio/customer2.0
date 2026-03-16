@@ -31,6 +31,7 @@ import Voice from "@react-native-voice/voice";
 import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "../../lib/react-navigation-native";
 import { api } from "../../services/api";
+import { checkImageQuality } from "../../services/documentService";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
 import { VoiceOwnerContext } from "../../context/VoiceOwnerContext";
@@ -230,9 +231,21 @@ export default function AddExpenseScreen() {
       }
       if (!response.didCancel && response.assets?.[0]) {
         const asset = response.assets[0];
-        setTimeout(() => {
+        setLoading(true);
+        const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || "image/jpeg");
+        if (result.ok) {
           uploadAndParseReceipt(asset);
-        }, 500);
+        } else {
+          setLoading(false);
+          Alert.alert(
+            "Image quality",
+            result.hints.join("\n\n") + "\n\nYou can retake or use this image anyway.",
+            [
+              { text: "Retake", style: "cancel" },
+              { text: "Use anyway", onPress: () => uploadAndParseReceipt(asset) },
+            ]
+          );
+        }
       }
     } catch (error: any) {
       setLoading(false);
@@ -259,9 +272,21 @@ export default function AddExpenseScreen() {
       }
       if (!response.didCancel && response.assets?.[0]) {
         const asset = response.assets[0];
-        setTimeout(() => {
+        setLoading(true);
+        const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || "image/jpeg");
+        if (result.ok) {
           uploadAndParseReceipt(asset);
-        }, 500);
+        } else {
+          setLoading(false);
+          Alert.alert(
+            "Image quality",
+            result.hints.join("\n\n") + "\n\nYou can pick another or use this image anyway.",
+            [
+              { text: "Pick another", style: "cancel" },
+              { text: "Use anyway", onPress: () => uploadAndParseReceipt(asset) },
+            ]
+          );
+        }
       }
     } catch (error: any) {
       setLoading(false);

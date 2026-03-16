@@ -173,7 +173,16 @@ export const predictionService = {
       maintenanceScore = 100;
     }
 
-    // Secondary Penalties (Mileage/Age)
+    // Mileage score: gradual scale so it's not always 100% under 100k (0–50k=100%, 50–75k=90%, 75–100k=80%, 100–125k=60%, 125–150k=40%, 150k+=20%)
+    const mileageScore =
+      predictedKM <= 50000 ? 100
+        : predictedKM <= 75000 ? 90
+        : predictedKM <= 100000 ? 80
+        : predictedKM <= 125000 ? 60
+        : predictedKM <= 150000 ? 40
+        : Math.max(20, 40 - Math.floor((predictedKM - 150000) / 10000));
+
+    // Secondary Penalties (Mileage/Age) — still apply to maintenanceScore for overall
     if (predictedKM > 100000) maintenanceScore -= 10;
     if (vehicle.registrationDate) {
       const ageYears = (now.getTime() - vehicle.registrationDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
@@ -210,7 +219,7 @@ export const predictionService = {
           0,
           100 - (maintenanceScore < 100 ? 100 - maintenanceScore : 0),
         ), // Simplified
-        mileageScore: predictedKM > 100000 ? 50 : 100,
+        mileageScore,
         maintenanceScore: Math.max(0, maintenanceScore),
         explanations: explanations as any,
         recommendations: recommendations as any,

@@ -89,4 +89,18 @@ export const telematicsController = {
     const data = await telematicsService.getTripPathById(tripId as string);
     success(res, data);
   }),
+
+  /**
+   * A5: Get end-trip summary with score + money tip + safety tip
+   */
+  getTripSummary: asyncHandler(async (req: Request, res: Response) => {
+    const { tripId } = req.params;
+
+    if (!tripId) {
+      throw AppError.badRequest("tripId is required");
+    }
+
+    const data = await telematicsService.getTripSummaryById(tripId as string);
+    success(res, data);
+  }),
 };

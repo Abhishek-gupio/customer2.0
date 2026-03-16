@@ -132,7 +132,8 @@ export const vehicleService = {
 
     getVehicleById: async (id: string): Promise<Vehicle> => {
         const response = await api.get<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`);
-        return response.data;
+        const raw = response as unknown as { data?: Vehicle; success?: boolean };
+        return raw?.data ?? (response as unknown as Vehicle);
     },
 
     updateVehicle: async (id: string, data: UpdateVehicleInput): Promise<Vehicle> => {
