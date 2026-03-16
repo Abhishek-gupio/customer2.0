@@ -20,6 +20,10 @@ export type RootStackParamList = {
   ExpenseAnalytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
+  LiveChat: undefined;
+  ContactSupport: { category?: string };
+  TicketHistory: undefined;
+  TicketDetail: { ticketId: string };
   Settings: undefined;
   BudgetSettings: undefined;
   ServiceHistory: undefined;

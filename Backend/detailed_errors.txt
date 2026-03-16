@@ -1,0 +1,6 @@
+﻿src/modules/support/support.service.ts(10,30): error TS2339: Property 'supportTicket' does not exist on type 'PrismaClient<{ adapter: PrismaPg; log: ("error" | "warn")[]; }, "error" | "warn", DefaultArgs>'.
+src/modules/support/support.service.ts(22,38): error TS2339: Property 'supportTicket' does not exist on type 'PrismaClient<{ adapter: PrismaPg; log: ("error" | "warn")[]; }, "error" | "warn", DefaultArgs>'.
+src/modules/support/support.service.ts(37,30): error TS2339: Property 'supportTicket' does not exist on type 'PrismaClient<{ adapter: PrismaPg; log: ("error" | "warn")[]; }, "error" | "warn", DefaultArgs>'.
+src/modules/support/support.service.ts(50,38): error TS2339: Property 'supportTicket' does not exist on type 'PrismaClient<{ adapter: PrismaPg; log: ("error" | "warn")[]; }, "error" | "warn", DefaultArgs>'.
+src/modules/support/support.service.ts(57,30): error TS2339: Property 'ticketMessage' does not exist on type 'PrismaClient<{ adapter: PrismaPg; log: ("error" | "warn")[]; }, "error" | "warn", DefaultArgs>'.
+src/modules/support/support.service.ts(68,30): error TS2339: Property 'faq' does not exist on type 'PrismaClient<{ adapter: PrismaPg; log: ("error" | "warn")[]; }, "error" | "warn", DefaultArgs>'.
