@@ -501,6 +501,7 @@ model EmergencyContact {
   customerId  String
   name        String
   phoneNumber String
+  email       String?
   relation    String?
   priority    Int      @default(1)
   createdAt   DateTime @default(now())

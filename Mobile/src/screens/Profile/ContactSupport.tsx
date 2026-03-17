@@ -8,7 +8,17 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { vehicleService, type Vehicle } from '../../services/vehicleService';
+
+let Geolocation: any = null;
+try {
+  const geoModule = require('@react-native-community/geolocation') as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -44,6 +54,37 @@ export default function ContactSupport() {
   const [category, setCategory] = useState(route.params?.category || 'VEHICLE');
   const [priority, setPriority] = useState('LOW');
   const [loading, setLoading] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [fetchingVehicles, setFetchingVehicles] = useState(false);
+
+  React.useEffect(() => {
+    const loadVehicles = async () => {
+      setFetchingVehicles(true);
+      try {
+        const list = await vehicleService.getVehicles();
+        setVehicles(list);
+        const primary = list.find(v => v.isPrimary) || list[0];
+        if (primary) setSelectedVehicleId(primary.id);
+      } catch (err) {
+        console.log('Failed to load vehicles in Support:', err);
+      } finally {
+        setFetchingVehicles(false);
+      }
+    };
+    loadVehicles();
+  }, []);
+
+  const getCurrentLocation = (): Promise<{ lat: number; lon: number } | null> => {
+    return new Promise((resolve) => {
+      if (!Geolocation) return resolve(null);
+      Geolocation.getCurrentPosition(
+        (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    });
+  };
 
   const handleSubmit = async () => {
     if (!subject || !description) {
@@ -53,12 +94,19 @@ export default function ContactSupport() {
 
     setLoading(true);
     try {
+      const location = await getCurrentLocation();
       const resp = await supportApi.createTicket({ 
         subject, 
         description, 
         category,
-        priority
-      });
+        priority,
+        vehicleId: selectedVehicleId || undefined,
+        metadata: {
+          location,
+          platform: Platform.OS,
+          vehicleId: selectedVehicleId,
+        }
+      } as any);
       if (resp.success) {
         Alert.alert('Success', 'Ticket raised successfully!', [
           { text: 'View Tickets', onPress: () => navigation.replace('TicketHistory') },
@@ -105,6 +153,49 @@ export default function ContactSupport() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {fetchingVehicles ? (
+            <ActivityIndicator color="#4CAF50" style={{ marginBottom: hp(2) }} />
+          ) : (
+            vehicles.length > 0 && (
+              <>
+                <Text style={styles.label}>Select Vehicle</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.vehicleScroll} contentContainerStyle={{ paddingRight: wp(5) }}>
+                  {vehicles.map((v) => (
+                    <TouchableOpacity
+                      key={v.id}
+                      style={[
+                        styles.vehicleCard,
+                        selectedVehicleId === v.id && styles.vehicleCardActive
+                      ]}
+                      onPress={() => setSelectedVehicleId(v.id)}
+                    >
+                      <View style={[styles.vehicleIcon, selectedVehicleId === v.id && { backgroundColor: '#4CAF50' }]}>
+                        <Icon name="car" size={wp(3)} color={selectedVehicleId === v.id ? '#000' : '#888'} />
+                      </View>
+                      <Text style={[styles.vehicleLabel, selectedVehicleId === v.id && styles.vehicleLabelActive]}>
+                        {v.registrationNumber}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    style={[
+                      styles.vehicleCard,
+                      selectedVehicleId === null && styles.vehicleCardActive
+                    ]}
+                    onPress={() => setSelectedVehicleId(null)}
+                  >
+                    <View style={[styles.vehicleIcon, selectedVehicleId === null && { backgroundColor: '#4CAF50' }]}>
+                      <Icon name="times" size={wp(3)} color={selectedVehicleId === null ? '#000' : '#888'} />
+                    </View>
+                    <Text style={[styles.vehicleLabel, selectedVehicleId === null && styles.vehicleLabelActive]}>
+                      None
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </>
+            )
+          )}
 
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Subject <Text style={{color: '#F44336'}}>*</Text></Text>
@@ -231,6 +322,24 @@ const styles = StyleSheet.create({
   catBtnActive: { borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.08)' },
   catText: { fontSize: wp(3.3), color: '#888', marginLeft: wp(2) },
   catTextActive: { color: '#4CAF50', fontWeight: '600' },
+  
+  vehicleScroll: { marginBottom: hp(2.5), marginHorizontal: -wp(1) },
+  vehicleCard: {
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
+    borderRadius: wp(5),
+    borderWidth: 1,
+    borderColor: '#1a1a1a',
+    backgroundColor: '#121212',
+    marginHorizontal: wp(1),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+  },
+  vehicleCardActive: { borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.1)' },
+  vehicleIcon: { width: wp(6), height: wp(6), borderRadius: wp(3), backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center' },
+  vehicleLabel: { fontSize: wp(3.2), color: '#888', fontWeight: '500' },
+  vehicleLabelActive: { color: '#4CAF50', fontWeight: '700' },
   
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   counter: { fontSize: wp(3), color: '#444' },

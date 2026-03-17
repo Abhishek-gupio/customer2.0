@@ -478,6 +478,7 @@ exports.Prisma.EmergencyContactScalarFieldEnum = {
   customerId: 'customerId',
   name: 'name',
   phoneNumber: 'phoneNumber',
+  email: 'email',
   relation: 'relation',
   priority: 'priority',
   createdAt: 'createdAt',

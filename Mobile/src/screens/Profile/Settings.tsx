@@ -113,7 +113,7 @@ export default function Settings() {
           <TouchableOpacity
             style={styles.sosCard}
             activeOpacity={0.85}
-            onPress={() => navigation.navigate('SOSButton')}
+            onPress={() => navigation.navigate('SOS')}
           >
             <View style={styles.sosIconWrap}>
               <Icon name="phone-alt" size={wp(5)} color="#000" />

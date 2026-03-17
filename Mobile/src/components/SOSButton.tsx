@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid, Animated, Easing } from 'react-native'
+import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid, Animated, Easing, Vibration, Share } from 'react-native'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../theme/colors'
@@ -8,6 +8,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useNavigation } from '../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import { vehicleService, type Vehicle } from '../services/vehicleService';
 import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../services/sosService';
 import { getProfile, type ProfileResponse } from '../services/profileService';
 
@@ -31,17 +32,20 @@ const SOSButton = () => {
   const [addingContact, setAddingContact] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactEmail, setNewContactEmail] = useState('');
   const [newContactRelation, setNewContactRelation] = useState('');
   const [locationStatus, setLocationStatus] = useState<'idle' | 'requesting' | 'denied' | 'error' | 'fixed'>('idle');
   const [lastGeoError, setLastGeoError] = useState<{ code?: number; message?: string } | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   const [locatingSince, setLocatingSince] = useState<number | null>(null);
   const [userData, setUserData] = useState<ProfileResponse | null>(null);
+  const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
 
   // Animation refs
   const pulseAnim = useRef(new Animated.Value(0)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
   const badgeOpacity = useRef(new Animated.Value(0.6)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Pulse & Breathing animations
   useEffect(() => {
@@ -94,15 +98,38 @@ const SOSButton = () => {
 
   // Fetch user profile on mount
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
       try {
         const profile = await getProfile();
         setUserData(profile);
+        
+        // Fetch vehicles and find primary
+        const vehicles = await vehicleService.getVehicles();
+        const primary = vehicles.find(v => v.isPrimary) || vehicles[0] || null;
+        setPrimaryVehicle(primary);
       } catch (err) {
-        console.log('Failed to fetch profile in SOS:', err);
+        console.log('Failed to fetch user or vehicle data in SOS:', err);
       }
     };
-    fetchProfile();
+    fetchProfileData();
+
+    // Check for active SOS on mount
+    const checkActive = async () => {
+      try {
+        const active = await sosService.getActiveSOS();
+        if (active) {
+          navigation.replace('ActiveSOS', {
+            sosId: active.id,
+            type: active.type,
+            lat: active.latitude,
+            lon: active.longitude
+          });
+        }
+      } catch (err) {
+        console.log('Failed to check active SOS:', err);
+      }
+    };
+    checkActive();
   }, []);
 
   const requestLocationPermission = useCallback(async () => {
@@ -194,8 +221,8 @@ const SOSButton = () => {
     // Try high accuracy first, then fallback to low accuracy
     const first = await getPositionOnce({
       enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0,
+      timeout: 5000,
+      maximumAge: 60000, // Use cached location up to 1 minute old
       forceRequestLocation: true,
     });
     if (first) {
@@ -206,8 +233,8 @@ const SOSButton = () => {
 
     const second = await getPositionOnce({
       enableHighAccuracy: false,
-      timeout: 15000,
-      maximumAge: 0,
+      timeout: 5000,
+      maximumAge: 60000,
       forceRequestLocation: true,
     });
     if (second) {
@@ -341,10 +368,12 @@ const SOSButton = () => {
       await sosService.addContact({
         name: newContactName.trim(),
         phoneNumber: newContactPhone.trim(),
+        email: newContactEmail.trim() || undefined,
         relation: newContactRelation.trim() || undefined,
       });
       setNewContactName('');
       setNewContactPhone('');
+      setNewContactEmail('');
       setNewContactRelation('');
       await loadContacts();
       Alert.alert('Contact added', 'Emergency contact saved.');
@@ -369,31 +398,67 @@ const SOSButton = () => {
     return fetchLocation();
   }, [currentLocation, fetchLocation]);
 
-  const handleSOS = useCallback(async () => {
+  const startProgress = () => {
+    Vibration.vibrate(50); // Small feedback on touch start
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: 1000,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const cancelProgress = () => {
+    Animated.timing(progressAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleSOS = useCallback(async (customType?: SOSType) => {
     if (sendingSOS) return;
+    const sosType = customType || 'OTHER';
     setSendingSOS(true);
     try {
+      Vibration.vibrate([0, 100, 50, 200]); // SOS Trigger feedback
       const coords = await ensureLocation();
       if (!coords) {
         Alert.alert('Location required', 'Enable GPS to trigger SOS.');
         return;
       }
-      await sosService.createSOS({
+      const resp = await sosService.createSOS({
         latitude: coords.lat,
         longitude: coords.lon,
-        type: 'OTHER',
+        type: sosType,
         metadata: {
           source: 'MOBILE_SOS_SCREEN',
           triggeredAt: new Date().toISOString(),
+          platform: Platform.OS,
+          platformVersion: Platform.Version,
+          primaryVehicle: primaryVehicle ? {
+            id: primaryVehicle.id,
+            registrationNumber: primaryVehicle.registrationNumber,
+            make: primaryVehicle.make,
+            model: primaryVehicle.model
+          } : 'NONE_DETECTED'
         },
       });
-      Alert.alert('Emergency triggered', 'Your SOS has been sent to the backend.');
+      
+      // Navigate to ActiveSOS on success
+      navigation.replace('ActiveSOS', {
+        sosId: resp.id,
+        type: sosType,
+        lat: coords.lat,
+        lon: coords.lon
+      });
     } catch (error: any) {
       Alert.alert('SOS failed', error?.message || 'Unable to trigger SOS. Please try again.');
     } finally {
       setSendingSOS(false);
+      progressAnim.setValue(0);
     }
-  }, [ensureLocation, sendingSOS]);
+  }, [ensureLocation, sendingSOS, primaryVehicle, navigation]);
 
   const makeCall = (number: string) => {
     Linking.openURL(`tel:${number}`);
@@ -425,7 +490,14 @@ const SOSButton = () => {
             <Text style={styles.subTitle}>Stay protected wherever you are</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("Alerts")} style={styles.iconButton}>
+        <TouchableOpacity 
+          onPress={() => {
+            navigation.navigate('Main', {
+              screen: 'Alerts',
+            });
+          }} 
+          style={styles.iconButton}
+        >
           <Ionicons name="notifications-outline" size={20} color="#FFD700" />
         </TouchableOpacity>
       </View>
@@ -471,12 +543,36 @@ const SOSButton = () => {
             ))}
 
             <View style={styles.sosOuter}>
+              <Animated.View style={{ 
+                position: 'absolute',
+                width: 160,
+                height: 160,
+                borderRadius: 80,
+                borderWidth: 6,
+                borderColor: 'rgba(255, 215, 0, 0.3)',
+                transform: [{ scale: 1.1 }]
+              }} />
+              
+              <Animated.View style={[styles.progressRing, {
+                transform: [{
+                  scale: progressAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1.1]
+                  })
+                }],
+                opacity: progressAnim,
+                borderWidth: 6,
+                borderColor: '#FFD700',
+              }]} />
+
               <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                 <TouchableOpacity
                   activeOpacity={0.9}
                   style={styles.sosButton}
-                  onLongPress={handleSOS}
-                  delayLongPress={1500}
+                  onLongPress={() => handleSOS('OTHER')}
+                  onPressIn={startProgress}
+                  onPressOut={cancelProgress}
+                  delayLongPress={1000}
                 >
                   <Ionicons name="alert" size={38} color="#000" />
                   <Text style={styles.sosText}>SOS</Text>
@@ -486,7 +582,7 @@ const SOSButton = () => {
           </View>
 
           <Text style={styles.hint}>
-            {sendingSOS ? 'Sending SOS...' : 'Long press for 1.5s to trigger'}
+            {sendingSOS ? 'Sending SOS...' : 'Long press for 1s to trigger'}
           </Text>
           {(gpsOff || showRetryHint) && (
             <TouchableOpacity style={styles.settingsButton} onPress={openAppSettings}>
@@ -520,10 +616,11 @@ const SOSButton = () => {
                   Alert.alert('Location unavailable', 'Unable to access GPS.');
                   return;
                 }
-                Alert.alert(
-                  'Location Ready',
-                  `Lat ${coords.lat.toFixed(4)}, Lon ${coords.lon.toFixed(4)}`,
-                );
+                const mapUrl = `https://maps.google.com/?q=${coords.lat},${coords.lon}`;
+                Share.share({
+                  message: `My Emergency Location: ${mapUrl}`,
+                  title: 'Share Location'
+                });
               }}
             />
 
@@ -531,14 +628,38 @@ const SOSButton = () => {
               icon="people-outline"
               label={"Alert\nFamily"}
               color="#f97316"
-              onPress={handleSOS}
+              onPress={() => handleSOS('OTHER')}
             />
 
             <ActionButton
               icon="call-outline"
               label={"Call\nPolice"}
               color="#3b82f6"
-              onPress={() => makeCall("100")}
+              onPress={() => {
+                handleSOS('POLICE');
+                makeCall("100");
+              }}
+            />
+          </View>
+          
+          <View style={[styles.row, {marginTop: 15}]}>
+            <ActionButton
+              icon="medical-outline"
+              label={"Medical\nHelp"}
+              color="#ef4444"
+              onPress={() => handleSOS('MEDICAL')}
+            />
+            <ActionButton
+              icon="construct-outline"
+              label={"Vehicle\nHelp"}
+              color="#eab308"
+              onPress={() => handleSOS('MECHANICAL')}
+            />
+            <ActionButton
+              icon="car-sport-outline"
+              label={"Road\nAccident"}
+              color="#a855f7"
+              onPress={() => handleSOS('ACCIDENT')}
             />
           </View>
         </View>
@@ -625,12 +746,23 @@ const SOSButton = () => {
               value={newContactRelation}
               onChangeText={setNewContactRelation}
             />
+            <TextInput
+              placeholder="Email (optional)"
+              placeholderTextColor="#7c7c7c"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={newContactEmail}
+              onChangeText={setNewContactEmail}
+            />
+          </View>
+          <View style={styles.inputActionRow}>
             <TouchableOpacity
-              style={[styles.addButton, addingContact && styles.addButtonDisabled]}
+              style={[styles.addButton, addingContact && styles.addButtonDisabled, { width: '100%' }]}
               onPress={handleAddContact}
               disabled={addingContact}
             >
-              <Text style={styles.addButtonText}>{addingContact ? '...' : 'Add'}</Text>
+              <Text style={styles.addButtonText}>{addingContact ? 'Adding...' : 'Add Emergency Contact'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -650,6 +782,7 @@ const SOSButton = () => {
                     {contact.phoneNumber}
                     {contact.relation ? ` • ${contact.relation}` : ''}
                   </Text>
+                  {!!contact.email && <Text style={styles.contactEmail}>{contact.email}</Text>}
                 </View>
                 <TouchableOpacity onPress={() => handleDeleteContact(contact.id)}>
                   <Ionicons name="trash-outline" size={22} color="rgba(255,255,255,0.4)" />
@@ -786,6 +919,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 220,
+  },
+  progressRing: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
   },
   pulseRing: {
     position: 'absolute',
@@ -1013,6 +1152,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: 'Outfit-Regular',
     marginTop: hp(2),
+  },
+  inputActionRow: {
+    marginTop: hp(1.5),
+  },
+  contactEmail: {
+    color: "#FFD700",
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.2),
+    marginTop: 2,
   },
 });
 

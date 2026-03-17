@@ -34429,6 +34429,7 @@ export namespace Prisma {
     customerId: string | null
     name: string | null
     phoneNumber: string | null
+    email: string | null
     relation: string | null
     priority: number | null
     createdAt: Date | null
@@ -34440,6 +34441,7 @@ export namespace Prisma {
     customerId: string | null
     name: string | null
     phoneNumber: string | null
+    email: string | null
     relation: string | null
     priority: number | null
     createdAt: Date | null
@@ -34451,6 +34453,7 @@ export namespace Prisma {
     customerId: number
     name: number
     phoneNumber: number
+    email: number
     relation: number
     priority: number
     createdAt: number
@@ -34472,6 +34475,7 @@ export namespace Prisma {
     customerId?: true
     name?: true
     phoneNumber?: true
+    email?: true
     relation?: true
     priority?: true
     createdAt?: true
@@ -34483,6 +34487,7 @@ export namespace Prisma {
     customerId?: true
     name?: true
     phoneNumber?: true
+    email?: true
     relation?: true
     priority?: true
     createdAt?: true
@@ -34494,6 +34499,7 @@ export namespace Prisma {
     customerId?: true
     name?: true
     phoneNumber?: true
+    email?: true
     relation?: true
     priority?: true
     createdAt?: true
@@ -34592,6 +34598,7 @@ export namespace Prisma {
     customerId: string
     name: string
     phoneNumber: string
+    email: string | null
     relation: string | null
     priority: number
     createdAt: Date
@@ -34622,6 +34629,7 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -34634,6 +34642,7 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -34646,6 +34655,7 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -34658,13 +34668,14 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type EmergencyContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "name" | "phoneNumber" | "relation" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["emergencyContact"]>
+  export type EmergencyContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "name" | "phoneNumber" | "email" | "relation" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["emergencyContact"]>
   export type EmergencyContactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }
@@ -34685,6 +34696,7 @@ export namespace Prisma {
       customerId: string
       name: string
       phoneNumber: string
+      email: string | null
       relation: string | null
       priority: number
       createdAt: Date
@@ -35117,6 +35129,7 @@ export namespace Prisma {
     readonly customerId: FieldRef<"EmergencyContact", 'String'>
     readonly name: FieldRef<"EmergencyContact", 'String'>
     readonly phoneNumber: FieldRef<"EmergencyContact", 'String'>
+    readonly email: FieldRef<"EmergencyContact", 'String'>
     readonly relation: FieldRef<"EmergencyContact", 'String'>
     readonly priority: FieldRef<"EmergencyContact", 'Int'>
     readonly createdAt: FieldRef<"EmergencyContact", 'DateTime'>
@@ -39264,6 +39277,7 @@ export namespace Prisma {
     customerId: 'customerId',
     name: 'name',
     phoneNumber: 'phoneNumber',
+    email: 'email',
     relation: 'relation',
     priority: 'priority',
     createdAt: 'createdAt',
@@ -41892,6 +41906,7 @@ export namespace Prisma {
     customerId?: StringFilter<"EmergencyContact"> | string
     name?: StringFilter<"EmergencyContact"> | string
     phoneNumber?: StringFilter<"EmergencyContact"> | string
+    email?: StringNullableFilter<"EmergencyContact"> | string | null
     relation?: StringNullableFilter<"EmergencyContact"> | string | null
     priority?: IntFilter<"EmergencyContact"> | number
     createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
@@ -41904,6 +41919,7 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
     relation?: SortOrderInput | SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -41919,6 +41935,7 @@ export namespace Prisma {
     customerId?: StringFilter<"EmergencyContact"> | string
     name?: StringFilter<"EmergencyContact"> | string
     phoneNumber?: StringFilter<"EmergencyContact"> | string
+    email?: StringNullableFilter<"EmergencyContact"> | string | null
     relation?: StringNullableFilter<"EmergencyContact"> | string | null
     priority?: IntFilter<"EmergencyContact"> | number
     createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
@@ -41931,6 +41948,7 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
     relation?: SortOrderInput | SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -41950,6 +41968,7 @@ export namespace Prisma {
     customerId?: StringWithAggregatesFilter<"EmergencyContact"> | string
     name?: StringWithAggregatesFilter<"EmergencyContact"> | string
     phoneNumber?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    email?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
     relation?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
     priority?: IntWithAggregatesFilter<"EmergencyContact"> | number
     createdAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
@@ -44715,6 +44734,7 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
@@ -44727,6 +44747,7 @@ export namespace Prisma {
     customerId: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
@@ -44737,6 +44758,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44749,6 +44771,7 @@ export namespace Prisma {
     customerId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44760,6 +44783,7 @@ export namespace Prisma {
     customerId: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
@@ -44770,6 +44794,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44781,6 +44806,7 @@ export namespace Prisma {
     customerId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46993,6 +47019,7 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrder
     relation?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -47008,6 +47035,7 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrder
     relation?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -47019,6 +47047,7 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrder
     relation?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -49456,6 +49485,7 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
@@ -49466,6 +49496,7 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
@@ -49969,6 +50000,7 @@ export namespace Prisma {
     customerId?: StringFilter<"EmergencyContact"> | string
     name?: StringFilter<"EmergencyContact"> | string
     phoneNumber?: StringFilter<"EmergencyContact"> | string
+    email?: StringNullableFilter<"EmergencyContact"> | string | null
     relation?: StringNullableFilter<"EmergencyContact"> | string | null
     priority?: IntFilter<"EmergencyContact"> | number
     createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
@@ -54011,6 +54043,7 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
@@ -54332,6 +54365,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -54342,6 +54376,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -54352,6 +54387,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

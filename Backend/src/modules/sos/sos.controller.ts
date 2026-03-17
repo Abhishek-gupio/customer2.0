@@ -119,3 +119,15 @@ export const deleteContact = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getActiveSOS = async (req: Request, res: Response) => {
+  try {
+    if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
+    const customerId = req.customer.id;
+    const sos = await sosService.getActiveSOS(customerId);
+    res.status(200).json(sos || null);
+  } catch (error) {
+    console.error("Error fetching active SOS:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
