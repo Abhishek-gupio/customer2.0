@@ -249,6 +249,32 @@ export const expenseService = {
     opts?: { returnOnNoAmount?: boolean; dryRun?: boolean },
   ) {
     const text = input.text;
+    const targetVehicleId = await (async () => {
+      let vehicleId = (input.vehicleId && String(input.vehicleId).trim()) || null;
+      if (vehicleId) {
+        const owned = await dbInstances.customerVehicle.findFirst({
+          where: { id: vehicleId, customerId, isActive: true },
+          select: { id: true },
+        });
+        if (!owned) vehicleId = null;
+      }
+      if (!vehicleId) {
+        const primaryVehicle = await dbInstances.customerVehicle.findFirst({
+          where: { customerId, isPrimary: true, isActive: true },
+          select: { id: true },
+        });
+        if (primaryVehicle) {
+          vehicleId = primaryVehicle.id;
+        } else {
+          const firstVehicle = await dbInstances.customerVehicle.findFirst({
+            where: { customerId, isActive: true },
+            select: { id: true },
+          });
+          if (firstVehicle) vehicleId = firstVehicle.id;
+        }
+      }
+      return vehicleId;
+    })();
 
     // ===== STEP 0: DEDUPLICATION CHECK =====
     if (await expenseIntelligenceService.isRawTextDuplicate(customerId, text)) {
@@ -323,6 +349,7 @@ export const expenseService = {
         const expense = await db.expense.create({
           data: {
             customerId,
+            vehicleId: targetVehicleId,
             amount: aiResult.amount,
             category: aiResult.category as ExpenseCategory,
             merchantName: aiResult.merchantName || null,
@@ -455,6 +482,7 @@ export const expenseService = {
         const expense = await db.expense.create({
           data: {
             customerId,
+            vehicleId: targetVehicleId,
             amount: upiResult.amount,
             category: upiResult.category as ExpenseCategory,
             merchantName: upiResult.merchantName || "Unknown Merchant",
@@ -607,6 +635,7 @@ export const expenseService = {
     const expense = await db.expense.create({
       data: {
         customerId,
+        vehicleId: targetVehicleId,
         amount,
         category,
         merchantName,

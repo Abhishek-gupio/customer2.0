@@ -18,6 +18,12 @@ const BANKING_PACKAGES = new Set([
     'com.whatsapp',                            // WhatsApp Pay
     'in.amazon.mShop.android.shopping',        // Amazon Pay
 
+    // SMS apps (to catch transaction alerts)
+    'com.google.android.apps.messaging',       // Google Messages
+    'com.samsung.android.messaging',           // Samsung Messages
+    'com.android.messaging',                   // AOSP Messages
+    'com.oneplus.mms',                         // OnePlus Messages
+
     // Banks
     'com.sbi.SBIFreedom',                      // SBI YONO
     'com.sbi.lotusintouch',                    // SBI YONO Lite
@@ -78,7 +84,43 @@ function isFinancialText(text: string): boolean {
     return FINANCIAL_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
 }
 
-// ─── Send to backend ────────────────────────────────────────────────────
+// Primary vehicle lookup (cached)
+let cachedPrimaryVehicleId: string | null = null;
+let lastPrimaryVehicleFetch = 0;
+const PRIMARY_VEHICLE_TTL_MS = 5 * 60 * 1000;
+
+async function getPrimaryVehicleId(token: string): Promise<string | null> {
+    const now = Date.now();
+    if (cachedPrimaryVehicleId && now - lastPrimaryVehicleFetch < PRIMARY_VEHICLE_TTL_MS) {
+        return cachedPrimaryVehicleId;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/vehicles`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return null;
+
+        const list = Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data)
+                ? data
+                : [];
+        const primary = list.find((v: any) => v?.isPrimary) || list[0];
+        cachedPrimaryVehicleId = primary?.id ?? null;
+        lastPrimaryVehicleFetch = now;
+        return cachedPrimaryVehicleId;
+    } catch {
+        return null;
+    }
+}
+
+// Send to backend
 async function sendToBackend(text: string): Promise<void> {
     const token = getAccessToken();
     if (!token) {
@@ -86,6 +128,7 @@ async function sendToBackend(text: string): Promise<void> {
         return;
     }
 
+    const vehicleId = await getPrimaryVehicleId(token);
     const url = `${API_BASE_URL}/api/v1/expenses/parse/text`;
 
     try {
@@ -95,7 +138,11 @@ async function sendToBackend(text: string): Promise<void> {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ text, source: 'NOTIFICATION' }),
+            body: JSON.stringify({
+                text,
+                source: 'NOTIFICATION',
+                ...(vehicleId ? { vehicleId } : {}),
+            }),
         });
 
         const data = await res.json().catch(() => ({}));
@@ -108,7 +155,11 @@ async function sendToBackend(text: string): Promise<void> {
                 console.log('[NotifExpense] ⏭️ Skipped:', result.reason);
             }
         } else {
-            console.log('[NotifExpense] ❌ API error:', res.status, data?.message);
+            const message =
+                data?.error?.message ??
+                data?.message ??
+                (typeof data === 'string' ? data : undefined);
+            console.log('[NotifExpense] ❌ API error:', res.status, message ?? data);
         }
     } catch (err) {
         console.error('[NotifExpense] Network error:', err);
@@ -133,13 +184,23 @@ export const headlessNotificationListener = async ({ notification }: { notificat
         const content = bigText || text || title || '';
         if (!content || content.length < 10) return;
 
+        // Android may redact sensitive notification text on lockscreen or for messaging apps.
+        // Those placeholders are not parseable and will cause 400s; skip them.
+        const lowerContent = String(content).toLowerCase();
+        if (
+            lowerContent.includes('sensitive notification content hidden') ||
+            lowerContent.includes('is doing work in the background')
+        ) {
+            console.log(`[NotifExpense] 🔒 Redacted/non-transaction notification from ${app} — skipping`);
+            return;
+        }
+
         // 3. If not a known app, check for financial keywords
         if (!isKnownApp && !isFinancialText(content)) return;
 
         // 4. Local dedup
         if (isDuplicate(content)) return;
 
-        // 5. Send to backend (auto-creates expense)
         console.log(`[NotifExpense] 📩 Processing notification from ${app}: ${content.substring(0, 80)}...`);
         await sendToBackend(content);
     } catch (err) {
