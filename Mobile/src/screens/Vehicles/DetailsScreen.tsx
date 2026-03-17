@@ -193,11 +193,34 @@ export const DetailsScreen = ({
     // ── Document Actions ──
     const createPDFFromImage = async (doc: any) => {
         try {
+            let base64Data = '';
+            
+            // Check if it's a remote URL or local path
+            if (doc.imageUri.startsWith('http')) {
+                const response = await fetch(doc.imageUri);
+                const blob = await response.blob();
+                base64Data = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+            } else {
+                // For local files, use RNFS
+                const path = doc.imageUri.replace('file://', '');
+                const content = await RNFS.readFile(path, 'base64');
+                const extension = path.split('.').pop()?.toLowerCase() || 'jpg';
+                base64Data = `data:image/${extension === 'png' ? 'png' : 'jpeg'};base64,${content}`;
+            }
+
             const options = {
                 html: `
           <html>
-            <body style="margin:0;padding:0;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
-              <img src="${doc.imageUri}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            <body style="margin:0;padding:20;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
+              <div style="width:100%; text-align:center;">
+                <h1 style="font-family: Arial; font-size: 24px;">${doc.type.toUpperCase()}</h1>
+                <p style="font-family: Arial; font-size: 16px; color: #666;">Vehicle: ${activeVehicle?.registrationNumber}</p>
+                <img src="${base64Data}" style="max-width:90%; max-height:800px; object-fit:contain; border: 1px solid #ccc; padding: 10px;" />
+              </div>
             </body>
           </html>
         `,
@@ -208,7 +231,7 @@ export const DetailsScreen = ({
             return file.filePath;
         } catch (error) {
             console.error('PDF Generation Error:', error);
-            throw new Error('Failed to generate PDF');
+            throw new Error('Failed to generate PDF. Make sure the document is fully loaded.');
         }
     };
 
@@ -217,19 +240,46 @@ export const DetailsScreen = ({
         try {
             setIsProcessing(true);
             const pdfPath = await createPDFFromImage(doc);
+            
+            // Generate a clean temp path in cache with .pdf extension
+            const cleanFileName = `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+            const tempPath = `${RNFS.CachesDirectoryPath}/${cleanFileName}`;
+            
+            // Copy to the clean path to ensure extension and accessibility
+            await RNFS.copyFile(pdfPath, tempPath);
+            
+            const shareOptions: any = {
+                title: `Share ${doc.type}`,
+                failOnCancel: false,
+                type: 'application/pdf',
+                filename: cleanFileName,
+            };
+
+            if (Platform.OS === 'android') {
+                // Ensure file:// prefix and use the raw path
+                shareOptions.url = `file://${tempPath}`;
+            } else {
+                // Use base64 for iOS
+                const base64Data = await RNFS.readFile(tempPath, 'base64');
+                shareOptions.url = `data:application/pdf;base64,${base64Data}`;
+            }
+
+            // Small delay to ensure file system has flushed
+            await new Promise(r => setTimeout(r, 600));
             setIsProcessing(false);
 
-            await RNShareCustom.open({
-                url: `file://${pdfPath}`,
-                type: 'application/pdf',
-                title: `Share ${doc.type}`,
-                message: `Sending ${doc.type} for vehicle ${activeVehicle?.registrationNumber}`,
-            });
+            await RNShareCustom.open(shareOptions);
+            
+            // Clean up temp file
+            setTimeout(() => RNFS.unlink(tempPath).catch(() => {}), 5000);
         } catch (error: any) {
             setIsProcessing(false);
-            if (error?.message !== 'User did not share') {
-                Alert.alert('Error', 'Could not share document as PDF');
+            const msg = error?.message || '';
+            if (msg.includes('User did not share') || msg.toLowerCase().includes('cancel') || msg.includes('dismissed')) {
+                return;
             }
+            Alert.alert('Error', 'Could not share document as PDF. Please try again.');
+            console.error('Share Error:', error);
         }
     };
 
@@ -346,10 +396,10 @@ export const DetailsScreen = ({
                 <View style={styles.gloveboxIconBox}>
                     {doc ? (
                         <Image 
-                            key={`preview_${doc.id}_${doc.imageUri}`}
                             source={{ uri: doc.imageUri }} 
                             style={styles.gloveboxPreview} 
                             resizeMode="cover" 
+                            blurRadius={25}
                         />
                     ) : (
                         Icon && <Icon size={20} color="#666" />
@@ -483,9 +533,9 @@ export const DetailsScreen = ({
                                 />
                             </View>
 
-                            {/* ── Your Glovebox ── */}
+                            {/* ── Your GloverBox ── */}
                             <View style={{ marginTop: 32 }}>
-                                <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
+                                <Text style={styles.sectionHeading}>YOUR GLOVERBOX</Text>
                                 <View style={styles.gloveboxGrid}>
                                     <GloveboxImageItem label="reg certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
                                     <GloveboxImageItem label="driver's licence" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
@@ -700,6 +750,9 @@ export const DetailsScreen = ({
                         contentContainerStyle={styles.viewerContent}
                         centerContent={true}
                         showsVerticalScrollIndicator={false}
+                        maximumZoomScale={5}
+                        minimumZoomScale={1}
+                        bouncesZoom={true}
                     >
                         {viewingDoc?.imageUri ? (
                             <Image

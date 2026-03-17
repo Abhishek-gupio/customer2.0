@@ -13,12 +13,17 @@ import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import NotificationCard from '../../components/NotificationItem';
 import { colors, COLORS } from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW } from '../../theme/Fontsize';
 import { api } from '../../services/api';
 import { RootState } from '../../store';
 import type { NotificationItem, NotificationType } from '../Main/notifiData';
+import Modal from 'react-native-modal';
+import { useNavigation } from '../../lib/react-navigation-native';
+import { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
+import { RootStackParamList } from '../../navigation/types';
 
 /** Backend returns { success: true, data: AppNotification[] }. Unwrap safely. */
 function parseNotificationsResponse(response: unknown): AppNotification[] {
@@ -83,11 +88,16 @@ function mapApiToNotificationItem(n: AppNotification): NotificationItem {
 
 export default function Alerts() {
   const { user } = useSelector((state: RootState) => state.auth);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [search, setSearch] = useState('');
   const [notificationsList, setNotificationsList] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isLongPressModalVisible, setIsLongPressModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<NotificationItem | null>(null);
+
 
   const fetchNotifications = useCallback(async (isRefresh = false) => {
     if (!user?.id) return;
@@ -136,6 +146,52 @@ export default function Alerts() {
     }
   };
 
+  const handleNotificationPress = (item: NotificationItem) => {
+    // 1. Mark as read on backend
+    api.patch(`/v1/notifications/${item.id}/read`).catch(() => {});
+    
+    // 2. Remove dot locally immediately
+    setNotificationsList(prev => prev.map(n => n.id === item.id ? { ...n, unread: false } : n));
+
+    // 3. Specialized Navigation
+    const titleLower = item.title.toLowerCase();
+    const descLower = item.description.toLowerCase();
+
+    if (item.type === 'odometer' || titleLower.includes('odometer')) {
+      navigation.navigate('Odometer');
+    } else if (item.type === 'maintenance' || item.type === 'service' || descLower.includes('overdue')) {
+      navigation.navigate('WarrantyStatus');
+    } else if (item.type === 'expense' || titleLower.includes('spending') || titleLower.includes('expense')) {
+      navigation.navigate('Expenses');
+    }
+  };
+
+  const handleLongPress = (item: NotificationItem) => {
+    setSelectedItem(item);
+    setIsLongPressModalVisible(true);
+  };
+
+  const markAsUnread = (id: string) => {
+    setNotificationsList(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
+    setIsLongPressModalVisible(false);
+  };
+
+  const markAsRead = (id: string) => {
+    api.patch(`/v1/notifications/${id}/read`).catch(() => {});
+    setNotificationsList(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    setIsLongPressModalVisible(false);
+  };
+
+  const pinNotification = (id: string) => {
+    // Simplified pin logic: move to top
+    setNotificationsList(prev => {
+      const item = prev.find(n => n.id === id);
+      if (!item) return prev;
+      return [item, ...prev.filter(n => n.id !== id)];
+    });
+    setIsLongPressModalVisible(false);
+  };
+
   if (!user?.id) {
     return (
       <SafeAreaView style={styles.container}>
@@ -148,20 +204,95 @@ export default function Alerts() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Notification</Text>
-        <Text style={styles.subtitle}>Stay updated with alerts</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Notifications</Text>
+          <TouchableOpacity onPress={() => setIsMenuVisible(true)} style={styles.menuButton}>
+            <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.subtitle}>Stay updated with your vehicle alerts</Text>
+        
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={22} color="white" />
+          <Ionicons name="search" size={20} color="rgba(255,255,255,0.4)" />
           <TextInput
-            placeholder="Search notifications..."
-            placeholderTextColor={colors.Secondary}
+            placeholder="Search notification..."
+            placeholderTextColor="rgba(255,255,255,0.4)"
             value={search}
             onChangeText={setSearch}
             style={styles.searchBarText}
           />
         </View>
       </View>
+
+      {/* Options Menu Modal */}
+      <Modal
+        isVisible={isMenuVisible}
+        onBackdropPress={() => setIsMenuVisible(false)}
+        onBackButtonPress={() => setIsMenuVisible(false)}
+        backdropOpacity={0.5}
+        animationIn="fadeInUp"
+        animationOut="fadeOutDown"
+        style={styles.modal}
+      >
+        <View style={styles.menuContent}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => setIsMenuVisible(false)}>
+            <MaterialCommunityIcons name="checkbox-multiple-marked-outline" size={22} color="#fff" />
+            <Text style={styles.menuItemText}>Select messages</Text>
+          </TouchableOpacity>
+          <View style={styles.menuDivider} />
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => setIsMenuVisible(false)}>
+            <Ionicons name="trash-outline" size={22} color="#ff4444" />
+            <Text style={[styles.menuItemText, { color: '#ff4444' }]}>Delete all</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Long Press Options Modal */}
+      <Modal
+        isVisible={isLongPressModalVisible}
+        onBackdropPress={() => setIsLongPressModalVisible(false)}
+        onBackButtonPress={() => setIsLongPressModalVisible(false)}
+        backdropOpacity={0.5}
+        animationIn="fadeInUp"
+        animationOut="fadeOutDown"
+        style={styles.modal}
+      >
+        <View style={styles.menuContent}>
+          <Text style={styles.modalHeaderTitle}>{selectedItem?.title}</Text>
+          <View style={[styles.menuDivider, { marginBottom: hp(1) }]} />
+          
+          <TouchableOpacity style={styles.menuItem} onPress={() => selectedItem && pinNotification(selectedItem.id)}>
+            <Ionicons name="pin-outline" size={22} color="#fff" />
+            <Text style={styles.menuItemText}>Pin to top</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.menuDivider} />
+          
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => selectedItem && (selectedItem.unread ? markAsRead(selectedItem.id) : markAsUnread(selectedItem.id))}
+          >
+            <MaterialCommunityIcons 
+              name={selectedItem?.unread ? "email-open-outline" : "email-mark-as-unread"} 
+              size={22} 
+              color="#fff" 
+            />
+            <Text style={styles.menuItemText}>
+              {selectedItem?.unread ? "Mark as read" : "Mark as unread"}
+            </Text>
+          </TouchableOpacity>
+          
+          <View style={styles.menuDivider} />
+          
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => selectedItem && removeNotification(selectedItem.id).then(() => setIsLongPressModalVisible(false))}>
+            <Ionicons name="trash-outline" size={22} color="#ff4444" />
+            <Text style={[styles.menuItemText, { color: '#ff4444' }]}>Delete notification</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       <View style={styles.listWrapper}>
         {loading && !refreshing ? (
           <View style={styles.center}>
@@ -182,8 +313,15 @@ export default function Alerts() {
             data={filteredNotifications}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <NotificationCard item={item} onRemove={removeNotification} />
+              <NotificationCard 
+                item={item} 
+                onRemove={removeNotification} 
+                onPress={() => handleNotificationPress(item)}
+                onLongPress={() => handleLongPress(item)}
+                onSwipeDelete={() => removeNotification(item.id)}
+              />
             )}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -205,7 +343,7 @@ export default function Alerts() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.Background,
+    backgroundColor: '#000',
   },
   center: {
     flex: 1,
@@ -213,44 +351,95 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
+    paddingHorizontal: wp(6),
+    paddingTop: hp(2),
+    paddingBottom: hp(1),
+  },
+  headerTop: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: hp(1),
-    paddingHorizontal: wp(4.5),
+    alignItems: 'center',
+    marginBottom: hp(0.5),
   },
   title: {
-    fontSize: FS.header,
+    fontSize: wp(7.5),
     fontFamily: 'Outfit-Bold',
-    color: colors.Primary,
+    color: '#fff',
+  },
+  menuButton: {
+    padding: wp(2),
   },
   subtitle: {
-    fontSize: FS.subHeader,
+    fontSize: wp(3.8),
     fontFamily: 'Outfit-Medium',
-    color: colors.Secondary,
+    color: 'rgba(255,255,255,0.5)',
+    marginBottom: hp(2.5),
   },
   searchBar: {
     flexDirection: 'row',
-    borderColor: colors.Border,
-    borderRadius: wp(5),
-    borderWidth: wp(0.1),
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(0.8),
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: wp(3),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
     alignItems: 'center',
-    gap: wp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    gap: wp(3),
   },
   searchBarText: {
-    fontSize: wp(4.5),
-    color: colors.Primary,
+    fontSize: wp(3.8),
+    color: '#fff',
+    flex: 1,
+    padding: 0,
+    fontFamily: 'Outfit-Regular',
   },
   listWrapper: {
     flex: 1,
-    paddingHorizontal: wp(4.5),
+  },
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginHorizontal: wp(6),
   },
   emptyText: {
     textAlign: 'center',
-    color: colors.Secondary,
+    color: 'rgba(255,255,255,0.4)',
     marginTop: hp(4),
-    fontSize: FS.subHeader,
-    paddingHorizontal: wp(4),
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Medium',
+  },
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  menuContent: {
+    backgroundColor: '#111',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: wp(6),
+    paddingBottom: hp(4),
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(2),
+    gap: wp(4),
+  },
+  menuItemText: {
+    fontSize: wp(4.2),
+    fontFamily: 'Outfit-SemiBold',
+    color: '#fff',
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  modalHeaderTitle: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
+    marginBottom: hp(1.5),
+    textAlign: 'center',
   },
   retryButton: {
     marginTop: hp(2),

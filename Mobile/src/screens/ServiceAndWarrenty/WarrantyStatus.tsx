@@ -22,6 +22,7 @@ import { PartStatusCard } from '../../components/ServiceAndWarranty/PartStatusCa
 import { WarrantySummary } from '../../components/ServiceAndWarranty/WarrantySummary';
 import { getAndClearWarrantyStatusRefresh } from '../../utils/refreshManager';
 import BackButton from '../../components/BackButton';
+import ManualEntryOverlay from '../Expenses/ManualEntry';
 
 interface PartData {
   id: string;
@@ -54,6 +55,8 @@ export const WarrantyStatus = () => {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [parts, setParts] = useState<PartData[]>([]);
   const [summary, setSummary] = useState({ active: 0, expired: 0, critical: 0 });
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [selectedPartForReplace, setSelectedPartForReplace] = useState<PartData | null>(null);
 
   const getPartIcon = (type: string) => {
     switch (type) {
@@ -161,6 +164,11 @@ export const WarrantyStatus = () => {
     setRefreshing(false);
   }, []);
 
+  const handleReplace = (part: PartData) => {
+    setSelectedPartForReplace(part);
+    setShowManualEntry(true);
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -236,8 +244,29 @@ export const WarrantyStatus = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
         }
-        renderItem={({ item }) => <PartStatusCard {...item} />}
+        renderItem={({ item }) => (
+          <PartStatusCard 
+            {...item} 
+            onReplace={() => handleReplace(item)} 
+          />
+        )}
         style={styles.list}
+      />
+
+      <ManualEntryOverlay
+        visible={showManualEntry}
+        onClose={() => {
+          setShowManualEntry(false);
+          setSelectedPartForReplace(null);
+        }}
+        onSuccess={() => {
+          fetchData();
+        }}
+        initialData={selectedPartForReplace ? {
+          category: 'Service',
+          description: `Replacement of ${selectedPartForReplace.title}`,
+          partType: selectedPartForReplace.id,
+        } : null}
       />
     </SafeAreaView>
   );

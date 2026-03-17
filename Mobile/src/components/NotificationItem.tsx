@@ -1,79 +1,80 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { NotificationItem } from "../screens/Main/notifiData";
+import { Swipeable, RectButton } from 'react-native-gesture-handler';
 
 interface Props {
   item: NotificationItem;
   onRemove: (id: string) => void;
+  onPress?: () => void;
+  onLongPress?: () => void;
+  onSwipeDelete?: () => void;
 }
 
 const iconConfig = {
-  insurance: {
-    icon: "alert-circle-outline",
-    color: "#FFC107",
-  },
-  service: {
-    icon: "checkmark-circle-outline",
-    color: "#00E676",
-  },
-  expense: {
-    icon: "wallet-outline",
-    color: "#3B82F6",
-  },
-  maintenance: {
-    icon: "construct-outline",
-    color: "#8B5CF6",
-  },
-  parking: {
-    icon: "car-outline",
-    color: "#06B6D4",
-  },
-  fuel: {
-    icon: "water-outline",
-    color: "#22C55E",
-  },
-  alert: {
-    icon: "warning-outline",
-    color: "#EF4444",
-  },
-  odometer: {
-    icon: "speedometer-outline",
-    color: "#F59E0B",
-  },
+  insurance: { icon: "shield-outline", color: "#FFC107" },
+  service: { icon: "build-outline", color: "#00E676" },
+  expense: { icon: "wallet-outline", color: "#3B82F6" },
+  maintenance: { icon: "construct-outline", color: "#8B5CF6" },
+  parking: { icon: "car-outline", color: "#06B6D4" },
+  fuel: { icon: "water-outline", color: "#22C55E" },
+  alert: { icon: "warning-outline", color: "#EF4444" },
+  odometer: { icon: "speedometer-outline", color: "#F59E0B" },
 };
 
-const NotificationCard: React.FC<Props> = ({ item, onRemove}) => {
+const NotificationCard: React.FC<Props> = ({ item, onRemove, onPress, onLongPress, onSwipeDelete }) => {
   const config = iconConfig[item.type] ?? iconConfig.alert;
 
+  const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
+    const trans = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [0, 100],
+    });
+    return (
+      <RectButton style={styles.deleteAction} onPress={onSwipeDelete}>
+        <Ionicons name="trash-outline" size={24} color="#fff" />
+      </RectButton>
+    );
+  };
 
   return (
-    <View style={styles.card}>
-      {/* Icon */}
-      <View style={[styles.iconContainer, { borderColor: config.color }]}>
-        <Ionicons name={config.icon} size={24} color={config.color} />
-      </View>
+    <Swipeable 
+      renderRightActions={renderRightActions}
+      onSwipeableWillOpen={onSwipeDelete}
+    >
+      <TouchableOpacity 
+        activeOpacity={0.7} 
+        style={styles.card} 
+        onPress={onPress} 
+        onLongPress={onLongPress}
+        delayLongPress={300}
+      >
+        <View style={styles.container}>
+          {/* Icon */}
+          <View style={[styles.iconContainer, { backgroundColor: `${config.color}15` }]}>
+            <Ionicons name={config.icon} size={22} color={config.color} />
+          </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.description}>{item.description}</Text>
+          {/* Content Column */}
+          <View style={styles.contentColumn}>
+            <View style={styles.contentHeader}>
+              <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+            </View>
+            
+            <Text style={styles.description} numberOfLines={3}>
+              {item.description}
+            </Text>
 
-        <View style={styles.timeRow}>
-          <Ionicons name="time-outline" size={14} color="#aaa" />
-          <Text style={styles.time}>{item.time}</Text>
+            <View style={styles.bottomRow}>
+              <Text style={styles.time}>{item.time}</Text>
+            </View>
+          </View>
+
+          {/* Unread Dot */}
+          {item.unread && <View style={styles.dot} />}
         </View>
-      </View>
-
-      {/* Unread Dot */}
-      {item.unread && <View style={styles.dot} />}
-
-      <TouchableOpacity onPress={() => onRemove(item.id)}>
-        <Ionicons name="trash-outline" size={20} color="#999" />
       </TouchableOpacity>
-
-
-    </View>
+    </Swipeable>
   );
 };
 
@@ -81,56 +82,67 @@ export default NotificationCard;
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    backgroundColor: "#0b0f19",
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 14,
-    alignItems: "center",
+    backgroundColor: '#000',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
   },
-
+  container: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
   iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
+    marginRight: 15,
+    marginTop: 2,
   },
-
-  content: {
+  contentColumn: {
     flex: 1,
+    gap: 4,
   },
-
+  contentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   title: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontFamily: 'Outfit-Bold',
+    lineHeight: 20,
   },
-
   description: {
-    color: "#9CA3AF",
-    fontSize: 14,
-    marginTop: 3,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
+    fontFamily: 'Outfit-Regular',
+    lineHeight: 18,
   },
-
-  timeRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+  },
+  time: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 10,
+    fontFamily: 'Outfit-Regular',
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: "#FFBF00",
+    marginLeft: 12,
     marginTop: 6,
   },
-
-  time: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    marginLeft: 4,
-  },
-
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#FFC107",
+  deleteAction: {
+    backgroundColor: '#ff4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
   },
 });
