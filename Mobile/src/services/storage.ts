@@ -88,6 +88,8 @@ export function setVoiceLanguageIndex(index: number): void {
 
 const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
 
+const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
+
 export function getAutoExpenseEnabled(): boolean {
   const s = storage!.getString(AUTO_EXPENSE_ENABLED_KEY);
   return s === 'true';
@@ -95,6 +97,23 @@ export function getAutoExpenseEnabled(): boolean {
 
 export function setAutoExpenseEnabled(val: boolean): void {
   storage!.set(AUTO_EXPENSE_ENABLED_KEY, val ? 'true' : 'false');
+}
+
+export function setPrimaryVehicleId(id: string | null | undefined): void {
+  if (!id) {
+    if (storage!.remove) {
+      storage!.remove(PRIMARY_VEHICLE_ID_KEY);
+    } else {
+      storage!.set(PRIMARY_VEHICLE_ID_KEY, '');
+    }
+    return;
+  }
+  storage!.set(PRIMARY_VEHICLE_ID_KEY, id);
+}
+
+export function getPrimaryVehicleId(): string | null {
+  const s = storage!.getString(PRIMARY_VEHICLE_ID_KEY);
+  return s && s.length > 0 ? s : null;
 }
 
 // Telematics: per-vehicle link flag

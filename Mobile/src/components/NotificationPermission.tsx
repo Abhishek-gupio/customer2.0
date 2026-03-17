@@ -13,6 +13,8 @@ import {
     Platform,
     Switch,
     AppState,
+    Alert,
+    Linking,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -77,9 +79,28 @@ export default function NotificationPermission() {
         }
     };
 
+    const openAppDetailsSettings = async () => {
+        try {
+            await Linking.openSettings();
+        } catch {
+            // no-op
+        }
+    };
+
     const handleToggle = (val: boolean) => {
         if (val && status !== 'authorized') {
-            openSettings();
+            // On many Android 13/14 devices, sideloaded APKs are blocked by "Restricted settings"
+            // for high-risk permissions like Notification Access. We can't bypass it in code,
+            // but we can guide the user to allow restricted settings from the app details page.
+            Alert.alert(
+                'Enable notification access',
+                'If you see "Restricted settings / Access denied", open App info → (⋮) → Allow restricted settings, then enable Notification access.\n\nAfter enabling, come back here and toggle again.',
+                [
+                    { text: 'Open app settings', onPress: openAppDetailsSettings },
+                    { text: 'Open notification access', onPress: openSettings },
+                    { text: 'Cancel', style: 'cancel' },
+                ],
+            );
             return;
         }
         setEnabled(val);

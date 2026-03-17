@@ -221,7 +221,9 @@ export default function OTP() {
               onChangeText={(v) => handleChange(v, i)}
               onKeyPress={(e) => handleKeyPress(e, i)}
               keyboardType="number-pad"
-              maxLength={1}
+              // Allow OS autofill/paste to deliver the full code into the first box.
+              // We then fan it out across all boxes inside handleChange().
+              maxLength={i === 0 ? OTP_LENGTH : 1}
               selectTextOnFocus
               placeholder=""
               textContentType={i === 0 ? 'oneTimeCode' : 'none'}
