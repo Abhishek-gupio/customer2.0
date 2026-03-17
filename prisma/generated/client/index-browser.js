@@ -128,6 +128,17 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AdminUserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  name: 'name',
+  role: 'role',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CustomerScalarFieldEnum = {
   id: 'id',
   phoneNumber: 'phoneNumber',
@@ -545,6 +556,12 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.AdminRole = exports.$Enums.AdminRole = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
+  SUPPORT: 'SUPPORT'
+};
+
 exports.DocumentType = exports.$Enums.DocumentType = {
   RC: 'RC',
   INSURANCE: 'INSURANCE',
@@ -661,6 +678,7 @@ exports.TicketCategory = exports.$Enums.TicketCategory = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  AdminUser: 'AdminUser',
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
   CustomerDocument: 'CustomerDocument',

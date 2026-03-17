@@ -10,7 +10,8 @@ const envSchema = z.object({
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
   CORS_ORIGIN: z.string().default("*"),
-  RATE_LIMIT_MAX: z.coerce.number().default(100),
+  /** Max requests per IP per 15 min. Increase if API docs / Try it out burns limit (e.g. 300). */
+  RATE_LIMIT_MAX: z.coerce.number().default(300),
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z
     .string()
@@ -19,6 +20,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1).default("dev-secret-change-in-production"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
   JWT_REFRESH_EXPIRY: z.string().default("7d"),
+  ADMIN_JWT_EXPIRY: z.string().default("24h"),
   OTP_EXPIRY_SEC: z.coerce.number().default(300),
   OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(60),
 

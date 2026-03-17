@@ -7,6 +7,7 @@ import {
   ExpenseSource,
 } from "./expense.validators";
 import { AppError } from "../../utils/AppError";
+import { isGeminiRateLimitError } from "../../utils/geminiRateLimit";
 import { logger } from "../../config/logger";
 import { storageService } from "../../services/storage.service";
 import { vehicleService } from "../vehicle/vehicle.service";
@@ -821,11 +822,22 @@ export const expenseService = {
       },
     };
 
-    const result = await model.generateContent([prompt, imagePart]);
-    const response = await result.response;
-    const responseText = response.text();
-    const jsonStr = responseText.replace(/```json|```/g, "").trim();
-    const billData = JSON.parse(jsonStr);
+    let billData: any;
+    try {
+      const result = await model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const responseText = response.text();
+      const jsonStr = responseText.replace(/```json|```/g, "").trim();
+      billData = JSON.parse(jsonStr);
+    } catch (err) {
+      if (isGeminiRateLimitError(err)) {
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
+      throw err;
+    }
 
     // 4. Update expense with bill image
     await db.expense.update({

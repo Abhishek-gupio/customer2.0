@@ -1,0 +1,223 @@
+const API_BASE = '/api';
+
+function getToken(): string | null {
+  return localStorage.getItem('adminToken');
+}
+
+/** In-flight GET requests by key so duplicate calls reuse the same request (one API call instead of many). */
+const inFlightGet = new Map<string, Promise<{ success: true; data: unknown } | { success: false; error: { message: string } }>>();
+
+export async function api<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<{ success: true; data: T } | { success: false; error: { message: string } }> {
+  const method = (options.method || 'GET').toUpperCase();
+  const key = `${method}:${path}`;
+
+  async function run(): Promise<{ success: true; data: T } | { success: false; error: { message: string } }> {
+    const token = getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+    if (token) {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return {
+        success: false,
+        error: { message: json?.error?.message ?? json?.message ?? 'Request failed' },
+      };
+    }
+    return json as { success: true; data: T };
+  }
+
+  if (method === 'GET') {
+    let promise = inFlightGet.get(key);
+    if (!promise) {
+      promise = run().finally(() => {
+        inFlightGet.delete(key);
+      });
+      inFlightGet.set(key, promise);
+    }
+    return promise as Promise<{ success: true; data: T } | { success: false; error: { message: string } }>;
+  }
+
+  return run();
+}
+
+export const adminApi = {
+  login: (email: string, password: string) =>
+    api<{ accessToken: string; expiresIn: number; admin: { id: string; email: string; name: string | null; role: string } }>(
+      '/v1/admin/auth/login',
+      { method: 'POST', body: JSON.stringify({ email, password }) }
+    ),
+  me: () => api<{ admin: { id: string; email: string; role: string } }>('/v1/admin/me'),
+  stats: () =>
+    api<{
+      customers: number;
+      vehicles: number;
+      totalExpenses: number;
+      expenseCount: number;
+      supportTicketsOpen: number;
+      weeklyTrend?: { date: string; label: string; customers: number; expenseAmount: number }[];
+      databaseAvailable?: boolean;
+    }>('/v1/admin/stats'),
+  listCustomers: (params?: { page?: number; limit?: number; search?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    const q = sp.toString();
+    return api<{ data: CustomerListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/customers${q ? `?${q}` : ''}`
+    );
+  },
+  getCustomer: (id: string) => api<CustomerDetail>(`/v1/admin/customers/${id}`),
+};
+
+export interface CustomerListItem {
+  id: string;
+  phoneNumber: string;
+  email: string | null;
+  fullName: string | null;
+  profilePic: string | null;
+  createdAt: string;
+  _count: { vehicles: number; expenses: number; documents: number; supportTickets: number };
+}
+
+/** Vehicle-related data as returned by admin customer detail (matches app vehicle info). */
+export interface AdminVehicleDetail {
+  id: string;
+  registrationNumber: string;
+  make: string | null;
+  model: string | null;
+  variant: string | null;
+  year: number | null;
+  fuelType: string | null;
+  vehicleType: string | null;
+  currentOdometer: number | null;
+  registrationDate: string | null;
+  rcVerified: boolean;
+  isActive: boolean;
+  isPrimary: boolean;
+  chassisNumber: string | null;
+  engineNumber: string | null;
+  imageUrl: string | null;
+  _count: { challans: number; documents: number; expenses: number };
+  healthScore: AdminVehicleHealthScore | null;
+  telematicsDevice: AdminTelematicsDevice | null;
+  accessList: AdminVehicleAccess[];
+  challans: AdminChallan[];
+  documents: AdminVehicleDocument[];
+  odometerLogs: AdminOdometerLog[];
+  serviceRecords: AdminServiceRecord[];
+  drivingTrips: AdminDrivingTrip[];
+}
+
+export interface AdminVehicleHealthScore {
+  id: string;
+  overallScore: number;
+  ageScore: number | null;
+  mileageScore: number | null;
+  maintenanceScore: number | null;
+  drivingScore: number | null;
+  explanations: unknown;
+  recommendations: unknown;
+  lastCalculated: string;
+  nextDueDate: string | null;
+}
+
+export interface AdminTelematicsDevice {
+  id: string;
+  instanceId: string;
+  platform: string | null;
+  isActive: boolean;
+  lastSyncAt: string | null;
+}
+
+export interface AdminVehicleAccess {
+  id: string;
+  role: string;
+  customer: { id: string; fullName: string | null; email: string | null; phoneNumber: string };
+}
+
+export interface AdminChallan {
+  id: string;
+  challanNumber: string;
+  amount: number;
+  status: string;
+  date: string;
+  violationType: string;
+  location: string | null;
+  source: string;
+}
+
+export interface AdminVehicleDocument {
+  id: string;
+  type: string;
+  verificationStatus: string | null;
+  expiryDate: string | null;
+  documentNumber: string | null;
+}
+
+export interface AdminOdometerLog {
+  id: string;
+  reading: number;
+  date: string;
+}
+
+export interface AdminServiceRecord {
+  id: string;
+  serviceType: string;
+  garageName: string | null;
+  odometerAtService: number | null;
+  serviceDate: string;
+  nextServiceDate: string | null;
+  nextServiceKm: number | null;
+  notes: string | null;
+  parts: AdminServicePart[];
+}
+
+export interface AdminServicePart {
+  id: string;
+  partType: string;
+  partName: string | null;
+  brand: string | null;
+  cost: number | null;
+  warrantyMonths: number | null;
+  warrantyKm: number | null;
+}
+
+export interface AdminDrivingTrip {
+  id: string;
+  tripId: string;
+  startTime: string;
+  endTime: string;
+  distanceKm: number;
+  durationMin: number;
+  maxSpeed: number | null;
+  avgSpeed: number | null;
+  safetyScore: number;
+  status: string;
+}
+
+export interface CustomerDetail {
+  id: string;
+  phoneNumber: string;
+  email: string | null;
+  fullName: string | null;
+  profilePic: string | null;
+  createdAt: string;
+  updatedAt: string;
+  vehicles: AdminVehicleDetail[];
+  devices: unknown[];
+  emergencyContacts: unknown[];
+  digilocker: unknown;
+  _count: { vehicles: number; expenses: number; documents: number; supportTickets: number; chats: number; sosRequests: number };
+  expenses?: unknown[];
+  documents?: unknown[];
+  supportTickets?: unknown[];
+}

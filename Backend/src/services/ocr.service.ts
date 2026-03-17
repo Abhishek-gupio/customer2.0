@@ -2,6 +2,8 @@ import { createWorker } from "tesseract.js";
 import { GoogleGenerativeAI, Part } from "@google/generative-ai";
 import { logger } from "../config/logger";
 import { env } from "../config/env";
+import { AppError } from "../utils/AppError";
+import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
 
 // Initialize Gemini if API key is present
 const genAI = env.GEMINI_API_KEY
@@ -262,6 +264,12 @@ Return ONLY a JSON object with: transcription, amount, category, merchantName, d
       const parsed = this.parseJsonFromVoiceResponse(text, "");
       return parsed;
     } catch (error) {
+      if (isGeminiRateLimitError(error)) {
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
       logger.error({ error }, "Gemini Voice Expense parsing failed");
       return { error: "Voice parsing failed", rawText: "" };
     }
@@ -349,6 +357,12 @@ JSON:`;
       const parsed = this.parseJsonFromVoiceResponse(text, transcription);
       return parsed;
     } catch (error) {
+      if (isGeminiRateLimitError(error)) {
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
       logger.error({ error }, "Gemini Voice Text parsing failed");
       return { error: "Voice text parsing failed", rawText: transcription };
     }

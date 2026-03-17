@@ -8,6 +8,8 @@ import { toolRegistry } from "./tools.service";
 import { voiceService } from "./voice.service";
 import { contextService } from "./context.service";
 import { analyticsService } from "./analytics.service";
+import { AppError } from "../utils/AppError";
+import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
 
 const db = dbInstances as any;
 
@@ -495,6 +497,13 @@ Write a concise summary (max 200 words) capturing all important details.`,
         suggestedActions: getSuggestedActionsFromText(responseText),
       };
     } catch (error) {
+      if (isGeminiRateLimitError(error)) {
+        logger.warn({ error }, "AI Chat generation hit Gemini rate limit");
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
       logger.error({ error }, "AI Chat generation failed");
       throw new Error("Failed to generate response");
     }
@@ -682,6 +691,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
         logger.error({ err }, "Background stream logging failed"),
       );
     } catch (error) {
+      if (isGeminiRateLimitError(error)) {
+        logger.warn({ error }, "AI Stream hit Gemini rate limit");
+        yield JSON.stringify({
+          type: "error",
+          message: "AI is busy. Please try again in a moment.",
+          code: "GEMINI_RATE_LIMIT",
+        });
+        return;
+      }
       logger.error({ error }, "AI Stream generation failed");
       yield JSON.stringify({ type: "error", message: "Stream failed" });
     }
