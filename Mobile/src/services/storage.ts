@@ -1,6 +1,7 @@
 const ACCESS_TOKEN_KEY = 'auth_access_token';
 const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
+const AUTH_PERSISTED_AT_KEY = 'auth_persisted_at_ms';
 const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
 
 type StorageImpl = {
@@ -30,6 +31,7 @@ if (__DEV__ && !storage!.getString(ACCESS_TOKEN_KEY)) {
   // Token signed with default dev secret; expires in 30 days. Login via OTP to get real tokens + refresh.
   storage!.set(ACCESS_TOKEN_KEY, DEV_TOKEN);
   storage!.set(USER_ID_KEY, 'cmlt5zln80000j2utjmahxj34');
+  storage!.set(AUTH_PERSISTED_AT_KEY, String(Date.now()));
   console.log('[DEV] Seeded dummy auth token (login via OTP for refresh token)');
 }
 
@@ -67,11 +69,24 @@ export function clearAuthStorage() {
     storage!.remove(ACCESS_TOKEN_KEY);
     storage!.remove(REFRESH_TOKEN_KEY);
     storage!.remove(USER_ID_KEY);
+    storage!.remove(AUTH_PERSISTED_AT_KEY);
   } else {
     storage!.set(ACCESS_TOKEN_KEY, '');
     storage!.set(REFRESH_TOKEN_KEY, '');
     storage!.set(USER_ID_KEY, '');
+    storage!.set(AUTH_PERSISTED_AT_KEY, '');
   }
+}
+
+export function setAuthPersistedAt(msSinceEpoch: number): void {
+  storage!.set(AUTH_PERSISTED_AT_KEY, String(Math.floor(msSinceEpoch)));
+}
+
+export function getAuthPersistedAt(): number | undefined {
+  const s = storage!.getString(AUTH_PERSISTED_AT_KEY);
+  if (s == null || s === '') return undefined;
+  const n = parseInt(s, 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
 /** Default voice language for Add by Voice (0 = Auto/device, 1+ = specific locale). Persisted. */

@@ -19,7 +19,7 @@ const envSchema = z.object({
     .transform((v) => (v === "" ? undefined : v)),
   JWT_SECRET: z.string().min(1).default("dev-secret-change-in-production"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
-  JWT_REFRESH_EXPIRY: z.string().default("7d"),
+  JWT_REFRESH_EXPIRY: z.string().default("30d"),
   ADMIN_JWT_EXPIRY: z.string().default("24h"),
   OTP_EXPIRY_SEC: z.coerce.number().default(300),
   OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(60),

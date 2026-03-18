@@ -6,6 +6,7 @@ import {
   clearAuthStorage,
   getAccessToken,
   getRefreshToken,
+  setAuthPersistedAt,
 } from './storage';
 import { damoovTelematics } from '../native/damoovTelematics';
 
@@ -120,6 +121,7 @@ export async function verifyOtp(phoneNumber: string, otp: string): Promise<Verif
   const payload = res.data ? res.data : res;
   setAccessToken(payload.accessToken);
   setRefreshToken(payload.refreshToken);
+  setAuthPersistedAt(Date.now());
   if (typeof console !== 'undefined') {
     console.log('Access token set:', payload.accessToken);
   }
@@ -149,6 +151,7 @@ export async function loginWithGoogle(idToken: string): Promise<LoginWithGoogleR
   const payload = (res as any).data ?? res;
   setAccessToken(payload.accessToken);
   setRefreshToken(payload.refreshToken);
+  setAuthPersistedAt(Date.now());
   const jwtPayload = decodeJwtPayload(payload.accessToken);
   if (jwtPayload?.id) setUserId(jwtPayload.id);
   return { ...payload, userId: jwtPayload?.id };

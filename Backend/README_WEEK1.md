@@ -13,7 +13,7 @@ Optional for local dev:
 - `REDIS_URL` – if unset, OTP and refresh blacklist use in-memory fallback.
 - `JWT_SECRET` – default dev secret; set in production.
 - `JWT_ACCESS_EXPIRY` – default `15m`.
-- `JWT_REFRESH_EXPIRY` – default `7d`.
+- `JWT_REFRESH_EXPIRY` – default `30d`.
 - `OTP_EXPIRY_SEC` – default 300.
 - `OTP_RATE_LIMIT_WINDOW_SEC` – default 60 (one OTP per phone per minute).
 
