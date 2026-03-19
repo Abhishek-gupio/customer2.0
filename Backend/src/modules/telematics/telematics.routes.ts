@@ -21,4 +21,7 @@ router.get("/trips/:tripId/path", telematicsController.getTripPath);
 // A5: End-trip summary with score + money tip + safety tip
 router.get("/trips/:tripId/summary", telematicsController.getTripSummary);
 
+// Manual sync
+router.post("/sync", telematicsController.sync);
+
 export { router as telematicsRoutes };

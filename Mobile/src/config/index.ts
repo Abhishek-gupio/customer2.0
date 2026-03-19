@@ -18,7 +18,7 @@ export const AUTH_PATH = '/api/v1/auth';
 
 // Socket/realtime (e.g. notifications)
 const SOCKET_PORT = 3000;
-const DEV_SOCKET_HOST = `http://192.168.1.17:${SOCKET_PORT}`;
+const DEV_SOCKET_HOST = `http://localhost:${SOCKET_PORT}`;
 const PRODUCTION_SOCKET_BASE_URL = 'https://customerapi.gupio.tech';
 export const SOCKET_BASE_URL = (__DEV__ && !FORCE_USE_PRODUCTION_API) ? DEV_SOCKET_HOST : PRODUCTION_SOCKET_BASE_URL;
 

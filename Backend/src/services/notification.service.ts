@@ -3,6 +3,7 @@ import { getSMSService } from "./sms.service";
 import { logger } from "../config/logger";
 import cron from "node-cron";
 import { challanService } from "./challan.service";
+import { telematicsService } from "./telematics.service";
 import * as OneSignal from '@onesignal/node-onesignal';
 
 // Initialize OneSignal with API keys from environment
@@ -218,8 +219,17 @@ export const notificationService = {
       await challanService.syncAllVehicles();
     });
 
+    // Run every 5 minutes – Telematics Sync (Pull method)
+    cron.schedule("*/5 * * * *", async () => {
+      try {
+        await telematicsService.syncTripsForAllDevices();
+      } catch (err) {
+        logger.error({ err }, "Periodic Telematics Sync failed");
+      }
+    });
+
     logger.info(
-      "Background cron jobs initialized (Odometer reminder 9 AM; Docs & Challans 10 AM)",
+      "Background cron jobs initialized (Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",
     );
   },
 };
