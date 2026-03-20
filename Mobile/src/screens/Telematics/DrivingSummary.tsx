@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Platform, Alert, StatusBar, PermissionsAndroid } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Platform, Alert, StatusBar, PermissionsAndroid, Modal } from 'react-native';
+import MapView, { Polyline, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -10,6 +11,15 @@ import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
 import { getUserId, getTelematicsLinked, setTelematicsLinked } from '../../services/storage';
 import BackButton from '../../components/BackButton';
 import { damoovTelematics } from '../../native/damoovTelematics';
+
+// Damoov admin trip sync expects `Identifiers.InstanceIds[0]` to be GUID-like.
+// Until the native SDK provides the true SDK InstanceID to JS, we generate a GUID-like placeholder.
+const uuidV4 = (): string =>
+    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
 
 const Geolocation: any = (() => {
     try {
@@ -24,6 +34,11 @@ const Geolocation: any = (() => {
 export default function DrivingSummary({ navigation }: any) {
     const [score, setScore] = useState<number | null>(null);
     const [metrics, setMetrics] = useState({ distance: '0', duration: '0h 0m', harshBraking: '0', hardAccel: '0' });
+    const [latestTrip, setLatestTrip] = useState<any | null>(null);
+    const [latestPath, setLatestPath] = useState<any[]>([]);
+    const [latestPathLoading, setLatestPathLoading] = useState(false);
+    const [latestMapReady, setLatestMapReady] = useState(false);
+    const [latestMapFullscreen, setLatestMapFullscreen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isCoachActive, setIsCoachActive] = useState(false);
     const [currentSpeed, setCurrentSpeed] = useState<number>(0);
@@ -37,6 +52,7 @@ export default function DrivingSummary({ navigation }: any) {
     const locationWatchId = useRef<number | null>(null);
     const currentSpeedRef = useRef(0);
     const currentLocationRef = useRef<{ lat: number, lon: number } | null>(null);
+    const latestMapRef = useRef<MapView>(null);
 
     useEffect(() => {
         currentSpeedRef.current = currentSpeed;
@@ -75,40 +91,51 @@ export default function DrivingSummary({ navigation }: any) {
                     const tripsArray = Array.isArray(tripsRes?.data?.data) ? tripsRes.data.data : (Array.isArray(tripsRes?.data) ? tripsRes.data : []);
 
                     if (tripsArray.length > 0) {
-                        const trips = tripsArray;
-                        // Aggregate data from all fetched trips
-                        const totalDistance = trips.reduce((acc: number, t: any) => acc + (t.distanceKm || 0), 0);
-                        const totalDuration = trips.reduce((acc: number, t: any) => acc + (t.durationMin || 0), 0);
-                        const avgScore = trips.reduce((acc: number, t: any) => acc + (t.safetyScore || 0), 0) / trips.length;
+                        // Show latest trip only on this screen.
+                        const latest = tripsArray[0];
+                        setLatestTrip(latest);
 
-                        // Count events across all trips
-                        let harshBrakingCount = 0;
-                        let hardAccelCount = 0;
+                        const latestDistanceKm = Number(latest?.distanceKm ?? 0) || 0;
+                        const latestDurationMin = Number(latest?.durationMin ?? 0) || 0;
+                        const latestScore = latest?.safetyScore != null ? Number(latest.safetyScore) : null;
 
-                        trips.forEach((t: any) => {
-                            if (t.events && Array.isArray(t.events)) {
-                                t.events.forEach((e: any) => {
-                                    if (e.eventType === 'HARSH_BRAKING') harshBrakingCount++;
-                                    if (e.eventType === 'HARSH_ACCEL' || e.eventType === 'HARSH_ACCELERATION') hardAccelCount++;
-                                });
-                            }
-                        });
+                        // Accurate Damoov counts from Statistics.
+                        const latestStats = latest?.damoovStatistics || {};
+                        const harshBrakingCountFromStats =
+                            latestStats?.BrakingsCount != null ? Number(latestStats.BrakingsCount) : null;
+                        const hardAccelCountFromStats =
+                            latestStats?.AccelerationsCount != null ? Number(latestStats.AccelerationsCount) : null;
 
-                        const hours = Math.floor(totalDuration / 60);
-                        const minutes = Math.floor(totalDuration % 60);
+                        // Fallback: count from stored events if Damoov stats are missing.
+                        const latestEvents: any[] = Array.isArray(latest?.events) ? latest.events : [];
+                        const harshBrakingCountFromEvents =
+                            latestEvents.filter((e: any) => /brak|brake/i.test(String(e?.eventType ?? ""))).length;
+                        const hardAccelCountFromEvents =
+                            latestEvents.filter((e: any) => /accel|acceleration/i.test(String(e?.eventType ?? ""))).length;
 
-                        setScore(Math.round(avgScore));
+                        const harshBrakingCount =
+                            harshBrakingCountFromStats != null ? harshBrakingCountFromStats : harshBrakingCountFromEvents;
+                        const hardAccelCount =
+                            hardAccelCountFromStats != null ? hardAccelCountFromStats : hardAccelCountFromEvents;
+
+                        const hours = Math.floor(latestDurationMin / 60);
+                        const minutes = Math.floor(latestDurationMin % 60);
+
+                        setScore(latestScore != null ? Math.round(latestScore) : null);
                         setMetrics({
-                            distance: Math.round(totalDistance).toString(),
+                            distance: Math.round(latestDistanceKm).toString(),
                             duration: `${hours}h ${minutes}m`,
+                            // Keep for backward compatibility with existing grid styles
                             harshBraking: harshBrakingCount.toString(),
-                            hardAccel: hardAccelCount.toString()
+                            hardAccel: hardAccelCount.toString(),
                         });
+
                         // Mark device as linked if this vehicle already has trips
                         setTelematicsLinked(primary.id, true);
                         setLinkDone(true);
                     } else {
                         setScore(null);
+                        setLatestTrip(null);
                         setMetrics({
                             distance: '0',
                             duration: '0h 0m',
@@ -127,6 +154,50 @@ export default function DrivingSummary({ navigation }: any) {
         };
         fetchTelemetry();
     }, []);
+
+    // Load GPS path for the latest trip so we can show a map here too.
+    useEffect(() => {
+        const loadLatestPath = async () => {
+            if (!latestTrip?.id) {
+                setLatestPath([]);
+                return;
+            }
+            try {
+                setLatestPathLoading(true);
+                setLatestMapReady(false);
+                const path = await telematicsApi.getTripPath(String(latestTrip.id));
+                const validPath = Array.isArray(path)
+                    ? path.filter((p: any) => p && !isNaN(Number(p.lat)) && !isNaN(Number(p.lon)))
+                    : [];
+                setLatestPath(validPath);
+            } catch (e) {
+                console.error('DrivingSummary latestPath error', e);
+                setLatestPath([]);
+            } finally {
+                setLatestPathLoading(false);
+            }
+        };
+        loadLatestPath();
+    }, [latestTrip?.id]);
+
+    useEffect(() => {
+        if (!latestPathLoading && latestPath.length > 0 && latestMapRef.current && latestMapReady) {
+            try {
+                const first = latestPath[0];
+                latestMapRef.current.animateToRegion(
+                    {
+                        latitude: Number(first.lat),
+                        longitude: Number(first.lon),
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                    },
+                    800,
+                );
+            } catch {
+                // ignore map animate errors
+            }
+        }
+    }, [latestPath, latestMapReady, latestPathLoading]);
 
     // Initialize TTS
     useEffect(() => {
@@ -279,7 +350,7 @@ export default function DrivingSummary({ navigation }: any) {
             }
             const deviceToken = await telematicsApi.registerUser(userId);
             if (!deviceToken) throw new Error('No DeviceToken from server');
-            const instanceId = `app-${userId}-${Date.now()}`;
+            const instanceId = uuidV4();
             await telematicsApi.linkDevice(
                 primaryVehicle.id,
                 instanceId,
@@ -427,7 +498,7 @@ export default function DrivingSummary({ navigation }: any) {
                     </View>
                 )}
 
-                {/* Insight Grid */}
+                {/* Earlier Summary Grid (harsh breaking, hard accel, distance, drive time) */}
                 {!isCoachActive && (
                     <View style={styles.grid}>
                         <View style={styles.gridItem}>
@@ -453,6 +524,227 @@ export default function DrivingSummary({ navigation }: any) {
                     </View>
                 )}
 
+                {/* Latest Trip Details */}
+                {!isCoachActive && (
+                    <View style={styles.latestCard}>
+                        {latestTrip ? (
+                            <>
+                                <Text style={styles.latestTitle}>Latest trip</Text>
+
+                                <View style={styles.latestMapContainer}>
+                                    {latestTrip?.id ? (
+                                        <TouchableOpacity
+                                            style={styles.latestMapExpandButton}
+                                        onPress={() => setLatestMapFullscreen(true)}
+                                        >
+                                            <Icon name="expand-arrows-alt" size={wp(4)} color="#fff" />
+                                            <Text style={styles.latestMapExpandText}>Full screen</Text>
+                                        </TouchableOpacity>
+                                    ) : null}
+                                    {latestPathLoading ? (
+                                        <View style={styles.latestMapCenter}>
+                                            <ActivityIndicator color="#fff" />
+                                            <Text style={styles.latestMapText}>Loading map...</Text>
+                                        </View>
+                                    ) : latestPath.length > 0 ? (
+                                        <MapView
+                                            ref={latestMapRef}
+                                            style={styles.latestMap}
+                                            initialRegion={{
+                                                latitude: Number(latestPath[0].lat),
+                                                longitude: Number(latestPath[0].lon),
+                                                latitudeDelta: 0.05,
+                                                longitudeDelta: 0.05,
+                                            }}
+                                            onMapReady={() => setLatestMapReady(true)}
+                                            scrollEnabled={true}
+                                            zoomEnabled={true}
+                                            rotateEnabled={true}
+                                            pitchEnabled={false}
+                                        >
+                                            <Polyline
+                                                coordinates={latestPath.map(p => ({
+                                                    latitude: Number(p.lat),
+                                                    longitude: Number(p.lon),
+                                                }))}
+                                                strokeWidth={4}
+                                                strokeColor="#ffbf00"
+                                            />
+                                            {/* Start/End markers (stand out above the rest) */}
+                                            {(() => {
+                                                const first = latestPath[0];
+                                                const last = latestPath[latestPath.length - 1];
+                                                const firstLat = Number(first?.lat);
+                                                const firstLon = Number(first?.lon);
+                                                const lastLat = Number(last?.lat);
+                                                const lastLon = Number(last?.lon);
+                                                if ([firstLat, firstLon, lastLat, lastLon].some(n => isNaN(n))) return null;
+                                                return (
+                                                    <>
+                                                        <Marker
+                                                            coordinate={{ latitude: firstLat, longitude: firstLon }}
+                                                            title="Start"
+                                                        >
+                                                            <View style={styles.startEndStartMarker}>
+                                                                <Icon name="map-marker-alt" size={10} color="#fff" />
+                                                            </View>
+                                                        </Marker>
+                                                        <Marker
+                                                            coordinate={{ latitude: lastLat, longitude: lastLon }}
+                                                            title="End"
+                                                        >
+                                                            <View style={styles.startEndEndMarker}>
+                                                                <Icon name="map-marker-alt" size={10} color="#fff" />
+                                                            </View>
+                                                        </Marker>
+                                                    </>
+                                                );
+                                            })()}
+                                            {latestPath.map((p: any, index: number) => {
+                                                const lat = Number(p?.lat);
+                                                const lon = Number(p?.lon);
+                                                if (isNaN(lat) || isNaN(lon)) return null;
+
+                                                const eventType = p?.eventType ? String(p.eventType) : '';
+                                                return (
+                                                    <Marker
+                                                        key={`latest-marker-${latestTrip?.id ?? 'trip'}-${index}`}
+                                                        coordinate={{ latitude: lat, longitude: lon }}
+                                                        title={eventType || 'Point'}
+                                                    >
+                                                        <View
+                                                            style={[
+                                                                styles.markerDot,
+                                                                eventType ? styles.eventMarker : styles.pathMarker,
+                                                            ]}
+                                                        >
+                                                            {eventType ? <Icon name="exclamation" size={8} color="#fff" /> : null}
+                                                        </View>
+                                                    </Marker>
+                                                );
+                                            })}
+                                        </MapView>
+                                    ) : (
+                                        <View style={styles.latestMapCenter}>
+                                            <Text style={styles.latestMapText}>No GPS points for this trip.</Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {(() => {
+                                    const scores = latestTrip?.damoovScores || {};
+                                    const stats = latestTrip?.damoovStatistics || {};
+                                    const startParts = latestTrip?.startLocation?.Parts || {};
+                                    const endParts = latestTrip?.endLocation?.Parts || {};
+                                    const region = startParts?.State || startParts?.District || null;
+                                    const country = startParts?.Country || startParts?.CountryCode || null;
+                                    const cityStart = startParts?.City || null;
+                                    const cityFinish = endParts?.City || null;
+                                    const addressStart = latestTrip?.startLocation?.Full || null;
+                                    const addressEnd = latestTrip?.endLocation?.Full || null;
+                                    const safe = (v: any) => (v == null || Number.isNaN(Number(v)) ? '—' : String(Math.round(Number(v))));
+                                    const safeFloor = (v: any) => (v == null || Number.isNaN(Number(v)) ? '—' : String(Math.floor(Number(v))));
+                                    const safeOneDecimal = (v: any) =>
+                                        v == null || Number.isNaN(Number(v)) ? '—' : String(Number(v).toFixed(1));
+
+                                    return (
+                                        <>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Mileage</Text>
+                                                <Text style={styles.latestVal}>{safe(stats?.Mileage ?? latestTrip?.distanceKm)} km</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Time Driven (min)</Text>
+                                                <Text style={styles.latestVal}>{safeFloor(stats?.DurationMinutes ?? latestTrip?.durationMin)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Max Speed</Text>
+                                                <Text style={styles.latestVal}>{latestTrip?.maxSpeed != null ? `${safeOneDecimal(latestTrip?.maxSpeed)} km/h` : '—'}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Average Speed</Text>
+                                                <Text style={styles.latestVal}>{latestTrip?.avgSpeed != null ? `${safeOneDecimal(latestTrip?.avgSpeed)} km/h` : '—'}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Safety Score</Text>
+                                                <Text style={styles.latestVal}>{latestTrip?.safetyScore != null ? `${safe(latestTrip.safetyScore)} / 100` : '—'}</Text>
+                                            </View>
+
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Speeding</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.Speeding)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Acceleration Score / Braking Score</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.Acceleration)} / {safe(scores.Braking)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Phone Usage Score</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.PhoneUsage)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Phone usage (time, distance)</Text>
+                                                <Text style={styles.latestVal}>
+                                                    {stats?.PhoneUsageDurationMinutes != null || stats?.PhoneUsageMileage != null
+                                                        ? `(${safeFloor(stats?.PhoneUsageDurationMinutes)} min, ${safeOneDecimal(stats?.PhoneUsageMileage)} km)`
+                                                        : '—'}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Cornering</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.Cornering)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Harsh Breaking (count)</Text>
+                                                <Text style={styles.latestVal}>{stats?.BrakingsCount != null ? String(stats.BrakingsCount) : '—'}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Hard Acceleration (count)</Text>
+                                                <Text style={styles.latestVal}>{stats?.AccelerationsCount != null ? String(stats.AccelerationsCount) : '—'}</Text>
+                                            </View>
+
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Eco Score</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.Eco)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>EcoFuel / EcoTyres / EcoBrakes</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.EcoFuel)} / {safe(scores.EcoTyres)} / {safe(scores.EcoBrakes)}</Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Eco Depreciation</Text>
+                                                <Text style={styles.latestVal}>{safe(scores.EcoDepreciation)}</Text>
+                                            </View>
+
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>Region / Country</Text>
+                                                <Text style={styles.latestVal}>
+                                                    {region ? String(region) : '—'}
+                                                    {country ? `, ${country}` : ''}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.latestRow}>
+                                                <Text style={styles.latestKey}>City Start → Finish</Text>
+                                                <Text style={styles.latestVal}>
+                                                    {(cityStart ? String(cityStart) : '—') + ' → ' + (cityFinish ? String(cityFinish) : '—')}
+                                                </Text>
+                                            </View>
+                                            <View style={{ marginTop: hp(1) }}>
+                                                <Text style={styles.latestKey}>Address Start</Text>
+                                                <Text style={styles.latestVal} numberOfLines={2}>{addressStart || '—'}</Text>
+                                                <Text style={[styles.latestKey, { marginTop: hp(0.5) }]}>Address Finish</Text>
+                                                <Text style={styles.latestVal} numberOfLines={2}>{addressEnd || '—'}</Text>
+                                            </View>
+                                        </>
+                                    );
+                                })()}
+                            </>
+                        ) : (
+                            <Text style={{ color: '#aaa' }}>No trip data yet.</Text>
+                        )}
+                    </View>
+                )}
+
             </ScrollView>
 
             {/* Assistance FAB (Only when Live Drive is active) */}
@@ -472,6 +764,110 @@ export default function DrivingSummary({ navigation }: any) {
                 currentLat={currentLocation?.lat || null}
                 currentLon={currentLocation?.lon || null}
             />
+
+            {/* Full-screen map overlay (map only) */}
+            <Modal visible={latestMapFullscreen} animationType="slide" presentationStyle="fullScreen">
+                <SafeAreaView style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
+                    <View style={styles.fullscreenHeader}>
+                        <TouchableOpacity
+                            style={styles.fullscreenCloseButton}
+                            onPress={() => setLatestMapFullscreen(false)}
+                        >
+                            <Icon name="times" size={wp(5)} color="#fff" />
+                        </TouchableOpacity>
+                        <View style={{ flex: 1 }} />
+                    </View>
+
+                    <View style={styles.fullscreenMapContainer}>
+                        {latestPathLoading ? (
+                            <View style={styles.latestMapCenter}>
+                                <ActivityIndicator color="#fff" />
+                                <Text style={styles.latestMapText}>Loading map...</Text>
+                            </View>
+                        ) : latestPath.length > 0 ? (
+                            <MapView
+                                style={styles.fullscreenMap}
+                                initialRegion={{
+                                    latitude: Number(latestPath[0].lat),
+                                    longitude: Number(latestPath[0].lon),
+                                    latitudeDelta: 0.05,
+                                    longitudeDelta: 0.05,
+                                }}
+                                scrollEnabled={true}
+                                zoomEnabled={true}
+                                rotateEnabled={true}
+                                pitchEnabled={false}
+                            >
+                                <Polyline
+                                    coordinates={latestPath.map(p => ({
+                                        latitude: Number(p.lat),
+                                        longitude: Number(p.lon),
+                                    }))}
+                                    strokeWidth={4}
+                                    strokeColor="#ffbf00"
+                                />
+                                                {/* Start/End markers (stand out above the rest) */}
+                                                {(() => {
+                                                    const first = latestPath[0];
+                                                    const last = latestPath[latestPath.length - 1];
+                                                    const firstLat = Number(first?.lat);
+                                                    const firstLon = Number(first?.lon);
+                                                    const lastLat = Number(last?.lat);
+                                                    const lastLon = Number(last?.lon);
+                                                    if ([firstLat, firstLon, lastLat, lastLon].some(n => isNaN(n))) return null;
+                                                    return (
+                                                        <>
+                                                            <Marker
+                                                                coordinate={{ latitude: firstLat, longitude: firstLon }}
+                                                                title="Start"
+                                                            >
+                                                                <View style={styles.startEndStartMarker}>
+                                                                    <Icon name="map-marker-alt" size={10} color="#fff" />
+                                                                </View>
+                                                            </Marker>
+                                                            <Marker
+                                                                coordinate={{ latitude: lastLat, longitude: lastLon }}
+                                                                title="End"
+                                                            >
+                                                                <View style={styles.startEndEndMarker}>
+                                                                    <Icon name="map-marker-alt" size={10} color="#fff" />
+                                                                </View>
+                                                            </Marker>
+                                                        </>
+                                                    );
+                                                })()}
+                                {latestPath.map((p: any, index: number) => {
+                                    const lat = Number(p?.lat);
+                                    const lon = Number(p?.lon);
+                                    if (isNaN(lat) || isNaN(lon)) return null;
+
+                                    const eventType = p?.eventType ? String(p.eventType) : '';
+                                    return (
+                                        <Marker
+                                            key={`fs-marker-${latestTrip?.id ?? 'trip'}-${index}`}
+                                            coordinate={{ latitude: lat, longitude: lon }}
+                                            title={eventType || 'Point'}
+                                        >
+                                            <View
+                                                style={[
+                                                    styles.markerDot,
+                                                    eventType ? styles.eventMarker : styles.pathMarker,
+                                                ]}
+                                            >
+                                                {eventType ? <Icon name="exclamation" size={8} color="#fff" /> : null}
+                                            </View>
+                                        </Marker>
+                                    );
+                                })}
+                            </MapView>
+                        ) : (
+                            <View style={styles.latestMapCenter}>
+                                <Text style={styles.latestMapText}>No GPS points for this trip.</Text>
+                            </View>
+                        )}
+                    </View>
+                </SafeAreaView>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -569,6 +965,146 @@ const styles = StyleSheet.create({
         marginBottom: hp(2),
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
+    },
+    latestCard: {
+        backgroundColor: '#141414',
+        borderRadius: wp(5),
+        padding: wp(5),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
+        marginVertical: hp(2),
+    },
+    latestTitle: {
+        color: '#FFBF00',
+        fontSize: wp(4.3),
+        fontWeight: '800',
+        marginBottom: hp(1.5),
+    },
+    latestRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginTop: hp(0.8),
+        gap: wp(3),
+    },
+    latestKey: {
+        flex: 1,
+        color: '#888',
+        fontSize: wp(3.1),
+    },
+    latestVal: {
+        flex: 1,
+        color: '#fff',
+        fontSize: wp(3.1),
+        fontWeight: '600',
+        textAlign: 'right',
+    },
+    latestMapContainer: {
+        width: '100%',
+        height: hp(28),
+        borderRadius: wp(4),
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
+        marginBottom: hp(1.5),
+        backgroundColor: '#0d0d0d',
+    },
+    latestMap: {
+        width: '100%',
+        height: '100%',
+    },
+    latestMapCenter: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: hp(0.5),
+        padding: wp(3),
+    },
+    latestMapExpandButton: {
+        position: 'absolute',
+        top: hp(1),
+        right: wp(3),
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.12)',
+        paddingHorizontal: wp(2),
+        paddingVertical: hp(0.8),
+        borderRadius: wp(6),
+        zIndex: 10,
+        gap: wp(1.5),
+    },
+    latestMapExpandText: {
+        color: '#fff',
+        fontSize: wp(3),
+        fontWeight: '700',
+    },
+    latestMapText: {
+        color: '#aaa',
+        fontSize: wp(3.2),
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    fullscreenHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: wp(3),
+        paddingTop: hp(1),
+        paddingBottom: hp(1),
+        backgroundColor: '#0a0a0a',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.06)',
+    },
+    fullscreenCloseButton: {
+        width: wp(10),
+        height: wp(10),
+        borderRadius: wp(5),
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
+    },
+    fullscreenMapContainer: {
+        flex: 1,
+        backgroundColor: '#0a0a0a',
+    },
+    fullscreenMap: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
+    markerDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    pathMarker: { backgroundColor: '#ffbf00' },
+    eventMarker: { backgroundColor: '#ef4444', width: 16, height: 16, borderRadius: 8 },
+    startEndStartMarker: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#22c55e',
+        borderWidth: 2,
+        borderColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    startEndEndMarker: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#f43f5e',
+        borderWidth: 2,
+        borderColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     gridValue: {
         fontSize: wp(5),

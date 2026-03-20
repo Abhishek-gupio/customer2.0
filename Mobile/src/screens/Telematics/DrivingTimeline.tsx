@@ -25,6 +25,12 @@ type DrivingTrip = {
   distanceKm: number;
   durationMin: number;
   safetyScore?: number | null;
+  maxSpeed?: number | null;
+  avgSpeed?: number | null;
+  damoovStatistics?: any;
+  damoovScores?: any;
+  startLocation?: any;
+  endLocation?: any;
 };
 
 type Props = {
@@ -77,6 +83,12 @@ export default function DrivingTimeline({ navigation }: Props) {
           distanceKm: t.distanceKm ?? t.Distance ?? 0,
           durationMin: t.durationMin ?? (t.Duration ? t.Duration / 60 : 0),
           safetyScore: t.safetyScore ?? t.Score_Overall ?? t.score ?? null,
+          maxSpeed: t.maxSpeed ?? t.MaxSpeed ?? null,
+          avgSpeed: t.avgSpeed ?? t.AverageSpeed ?? null,
+          damoovStatistics: t.damoovStatistics ?? t.Statistics ?? null,
+          damoovScores: t.damoovScores ?? t.Scores ?? null,
+          startLocation: t.startLocation ?? t.StartLocation ?? null,
+          endLocation: t.endLocation ?? t.EndLocation ?? null,
         }))
           // Filter out malformed rows without timestamps
           .filter(trip => !!trip.startTime && !!trip.endTime);
@@ -134,16 +146,20 @@ export default function DrivingTimeline({ navigation }: Props) {
     const start = new Date(item.startTime);
     const end = new Date(item.endTime);
     const timeRange = `${format(start, 'HH:mm')} → ${format(end, 'HH:mm')}`;
-    const distanceLabel =
-      !item.distanceKm || Number.isNaN(item.distanceKm)
-        ? '—'
-        : item.distanceKm < 1
-          ? `${Math.round(item.distanceKm * 1000)} m`
-          : `${item.distanceKm.toFixed(1)} km`;
 
     const hours = Math.floor(item.durationMin / 60);
     const minutes = Math.floor(item.durationMin % 60);
     const durationLabel = `${hours}h ${minutes}m`;
+
+    const startParts = item.startLocation?.Parts || {};
+    const endParts = item.endLocation?.Parts || {};
+    const cityStart = startParts?.City || null;
+    const cityFinish = endParts?.City || null;
+    const addressStart = item.startLocation?.Full || null;
+    const addressEnd = item.endLocation?.Full || null;
+
+    const startLabel = (cityStart || addressStart) ?? '—';
+    const endLabel = (cityFinish || addressEnd) ?? '—';
 
     return (
       <TouchableOpacity
@@ -153,19 +169,18 @@ export default function DrivingTimeline({ navigation }: Props) {
         <View style={styles.tripCard}>
           <View style={styles.tripHeaderRow}>
             <Text style={styles.tripTime}>{timeRange}</Text>
-            <Text style={styles.tripDistance}>{distanceLabel}</Text>
           </View>
           <View style={styles.tripMetaRow}>
             <View style={styles.tripMetaItem}>
               <Icon name="clock" size={wp(3.5)} color="#aaa" />
               <Text style={styles.tripMetaText}>{durationLabel}</Text>
             </View>
-            {item.safetyScore != null && (
-              <View style={styles.tripMetaItem}>
-                <Icon name="shield-alt" size={wp(3.5)} color="#4ade80" />
-                <Text style={styles.tripMetaText}>{Math.round(item.safetyScore)} / 100</Text>
-              </View>
-            )}
+          </View>
+
+          {/* Start/End only */}
+          <View style={{ marginTop: hp(0.6) }}>
+            <Text style={styles.tripMetaText}>Start: {startLabel}</Text>
+            <Text style={styles.tripMetaText}>End: {endLabel}</Text>
           </View>
         </View>
       </TouchableOpacity>

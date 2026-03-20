@@ -72,7 +72,20 @@ export const telematicsApi = {
      * A5: Get end-trip summary with score + money tip + safety tip
      */
     async getTripSummary(tripId: string): Promise<{
-        trip: { id: string; startTime: string; endTime: string; distanceKm: number; durationMin: number; safetyScore: number };
+        trip: {
+            id: string;
+            startTime: string;
+            endTime: string;
+            distanceKm: number;
+            durationMin: number;
+            safetyScore: number;
+            maxSpeed?: number | null;
+            avgSpeed?: number | null;
+            damoovStatistics?: any;
+            damoovScores?: any;
+            startLocation?: any;
+            endLocation?: any;
+        };
         moneyTip: string;
         safetyTip: string;
     }> {

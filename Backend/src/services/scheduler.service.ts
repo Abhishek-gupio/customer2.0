@@ -32,23 +32,38 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
 
-    // A2. Telematics Sync (Every 60 min — single job; duplicates removed to avoid double login / rate limit)
-    const repeatable = await queues.maintenance.getRepeatableJobs();
-    for (const job of repeatable) {
-      if (job.name === "sync-telematics") {
-        await queues.maintenance.removeRepeatableByKey(job.key);
-        logger.info({ key: job.key }, "Removed duplicate sync-telematics repeatable job");
+    const enableBullmqTelematicsSync =
+      String(process.env.TELEMATICS_SYNC_BULLMQ_ENABLED).toLowerCase() === "true";
+
+    if (!enableBullmqTelematicsSync) {
+      // Ensure any previously scheduled repeatable job is removed so it doesn't keep firing.
+      const repeatable = await queues.maintenance.getRepeatableJobs();
+      for (const job of repeatable) {
+        if (job.name === "sync-telematics") {
+          await queues.maintenance.removeRepeatableByKey(job.key);
+          logger.info({ key: job.key }, "Removed sync-telematics repeatable job (bullmq disabled)");
+        }
       }
+      logger.info("Telematics BullMQ periodic sync disabled by default");
+    } else {
+      // A2. Telematics Sync (Every 60 min — single job; duplicates removed to avoid double login / rate limit)
+      const repeatable = await queues.maintenance.getRepeatableJobs();
+      for (const job of repeatable) {
+        if (job.name === "sync-telematics") {
+          await queues.maintenance.removeRepeatableByKey(job.key);
+          logger.info({ key: job.key }, "Removed duplicate sync-telematics repeatable job");
+        }
+      }
+      await queues.maintenance.add(
+        "sync-telematics",
+        {},
+        {
+          repeat: { pattern: "0 * * * *" },
+          jobId: "sync-telematics-job",
+        },
+      );
+      logger.info("Scheduled: Telematics Sync (0 * * * * — hourly)");
     }
-    await queues.maintenance.add(
-      "sync-telematics",
-      {},
-      {
-        repeat: { pattern: "0 * * * *" },
-        jobId: "sync-telematics-job",
-      },
-    );
-    logger.info("Scheduled: Telematics Sync (0 * * * * — hourly)");
 
     // A3. Daily Scraper (Fuel, News, Content at 6:30 AM)
     await queues.maintenance.add(

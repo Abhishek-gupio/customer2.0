@@ -220,13 +220,20 @@ export const notificationService = {
     });
 
     // Run every 5 minutes – Telematics Sync (Pull method)
-    cron.schedule("*/5 * * * *", async () => {
-      try {
-        await telematicsService.syncTripsForAllDevices();
-      } catch (err) {
-        logger.error({ err }, "Periodic Telematics Sync failed");
-      }
-    });
+    // Keep this OFF by default so Damoov sync only happens when explicitly triggered
+    // (e.g. when you open the Driving Behavior screen or call /telematics/sync).
+    if (String(process.env.TELEMATICS_SYNC_CRON_ENABLED).toLowerCase() === "true") {
+      cron.schedule("*/5 * * * *", async () => {
+        try {
+          await telematicsService.syncTripsForAllDevices();
+        } catch (err) {
+          logger.error({ err }, "Periodic Telematics Sync failed");
+        }
+      });
+      logger.info("Telematics periodic cron enabled (*/5 * * * *)");
+    } else {
+      logger.info("Telematics periodic cron disabled by default");
+    }
 
     logger.info(
       "Background cron jobs initialized (Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",

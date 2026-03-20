@@ -269,6 +269,119 @@ export const telematicsService = {
       db.drivingTrip.count({ where: { vehicleId } }),
     ]);
 
+    // Debugging aid: quickly see if trips exist but UI day-filter is excluding them.
+    // (We avoid logging events to keep logs lightweight.)
+    if (typeof total === "number") {
+      const latest = Array.isArray(trips) && trips.length ? trips[0].startTime : null;
+      logger.info(
+        { vehicleId, totalTrips: total, latestStartTime: latest ? new Date(latest).toISOString() : null },
+        "telematics.getTrips result"
+      );
+    }
+
+    // Enrich with Damoov trip detail so the app can display full breakdown
+    // (Mileage, Eco scores, PhoneUsage, Region/Cities, etc.) without relying on DB migrations.
+    // This is best-effort: if Damoov calls fail, we still return stored trip data.
+    if (trips.length) {
+      try {
+        const device = await db.telematicsDevice.findUnique({
+          where: { vehicleId },
+        });
+
+        if (device) {
+          const ADMIN_INSTANCE_ID_GUID_REGEX =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+          const deviceTokenLooksLikeGuid =
+            !!device.deviceToken && ADMIN_INSTANCE_ID_GUID_REGEX.test(String(device.deviceToken));
+          const instanceIdLooksLikeGuid =
+            !!device.instanceId && ADMIN_INSTANCE_ID_GUID_REGEX.test(String(device.instanceId));
+
+          const candidates = Array.from(
+            new Set(
+              [
+                deviceTokenLooksLikeGuid ? String(device.deviceToken) : null,
+                instanceIdLooksLikeGuid ? String(device.instanceId) : null,
+              ].filter(Boolean),
+            ),
+          ) as string[];
+
+          const candidate = candidates[0] || (device.deviceToken ? String(device.deviceToken) : null);
+          if (candidate) {
+            const accessToken = await getDamoovAdminToken();
+            const authHeaders = {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            };
+
+            const enrichTrip = async (trip: any) => {
+              try {
+                const tripDetailRes = await axios.post(
+                  `https://api.telematicssdk.com/trips/get/admin/v1/${trip.tripId}`,
+                  {
+                    Identifiers: { UserId: candidate },
+                    IncludeDetails: true,
+                    IncludeStatistics: true,
+                    IncludeScores: true,
+                  },
+                  { headers: authHeaders },
+                );
+
+                const tripDetail = tripDetailRes.data?.Result?.Trip;
+                if (!tripDetail) return trip;
+
+                const stats = tripDetail?.Statistics ?? {};
+                const scores = tripDetail?.Scores ?? {};
+                const addresses = tripDetail?.Data?.Addresses ?? {};
+
+                const distanceKm = Number(stats?.Mileage ?? trip.distanceKm ?? 0) || 0;
+                const durationMin = Number(stats?.DurationMinutes ?? trip.durationMin ?? 0) || 0;
+                const maxSpeed =
+                  stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : trip.maxSpeed ?? null;
+                const avgSpeed =
+                  stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : trip.avgSpeed ?? null;
+                const safetyScore =
+                  Math.round(Number(scores?.Safety ?? scores?.Overall ?? trip.safetyScore ?? 100)) || 100;
+
+                return {
+                  ...trip,
+                  distanceKm,
+                  durationMin,
+                  maxSpeed,
+                  avgSpeed,
+                  safetyScore,
+                  startLocation: addresses?.Start ?? trip.startLocation,
+                  endLocation: addresses?.End ?? trip.endLocation,
+                  // These are not persisted fields, but mobile expects these in the response.
+                  damoovStatistics: stats,
+                  damoovScores: scores,
+                };
+              } catch (e: any) {
+                logger.warn(
+                  { tripDbId: trip.id, tripId: trip.tripId, err: e?.response?.data || e?.message },
+                  "Failed to enrich trip from Damoov; returning stored trip data"
+                );
+                return trip;
+              }
+            };
+
+            // Enrich in small batches to reduce rate-limit risk.
+            const batchSize = 3;
+            for (let i = 0; i < trips.length; i += batchSize) {
+              const batch = trips.slice(i, i + batchSize);
+              const results = await Promise.all(batch.map(enrichTrip));
+              for (let j = 0; j < results.length; j++) {
+                trips[i + j] = results[j];
+              }
+            }
+          }
+        }
+      } catch (e: any) {
+        logger.warn({ err: e?.message }, "Trip enrichment skipped (best-effort)");
+      }
+    }
+
     return {
       data: trips,
       pagination: {
@@ -313,7 +426,20 @@ export const telematicsService = {
    * A5: End-trip summary with score + money tip + safety tip for Telematics Value Presentation
    */
   async getTripSummaryById(tripId: string): Promise<{
-    trip: { id: string; startTime: Date; endTime: Date; distanceKm: number; durationMin: number; safetyScore: number };
+    trip: {
+      id: string;
+      startTime: Date;
+      endTime: Date;
+      distanceKm: number;
+      durationMin: number;
+      safetyScore: number;
+      maxSpeed: number | null;
+      avgSpeed: number | null;
+      damoovStatistics: any;
+      damoovScores: any;
+      startLocation: any;
+      endLocation: any;
+    };
     moneyTip: string;
     safetyTip: string;
   }> {
@@ -330,8 +456,84 @@ export const telematicsService = {
     const speeding = events.filter((e: any) => /speed|overspeed/i.test(String(e.eventType))).length;
     const totalEvents = harshBraking + hardAccel + speeding;
 
-    const score = trip.safetyScore ?? 100;
-    const distanceKm = trip.distanceKm ?? 0;
+    let score = trip.safetyScore ?? 100;
+    let distanceKm = trip.distanceKm ?? 0;
+    let maxSpeed = trip.maxSpeed ?? null;
+    let avgSpeed = trip.avgSpeed ?? null;
+    let damoovStatistics = (trip as any).damoovStatistics ?? null;
+    let damoovScores = (trip as any).damoovScores ?? null;
+    let startLocation = trip.startLocation ?? null;
+    let endLocation = trip.endLocation ?? null;
+
+    // Best-effort enrichment for full breakdown (Eco scores, Speeding, PhoneUsage, etc.)
+    try {
+      const device = await db.telematicsDevice.findUnique({
+        where: { vehicleId: trip.vehicleId },
+      });
+
+      if (device && trip.tripId) {
+        const ADMIN_INSTANCE_ID_GUID_REGEX =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+        const deviceTokenLooksLikeGuid =
+          !!device.deviceToken && ADMIN_INSTANCE_ID_GUID_REGEX.test(String(device.deviceToken));
+        const instanceIdLooksLikeGuid =
+          !!device.instanceId && ADMIN_INSTANCE_ID_GUID_REGEX.test(String(device.instanceId));
+
+        const candidates = Array.from(
+          new Set(
+            [
+              deviceTokenLooksLikeGuid ? String(device.deviceToken) : null,
+              instanceIdLooksLikeGuid ? String(device.instanceId) : null,
+            ].filter(Boolean),
+          ),
+        ) as string[];
+
+        const candidate = candidates[0] || (device.deviceToken ? String(device.deviceToken) : null);
+        if (candidate) {
+          const accessToken = await getDamoovAdminToken();
+          const authHeaders = {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          };
+
+          const tripDetailRes = await axios.post(
+            `https://api.telematicssdk.com/trips/get/admin/v1/${trip.tripId}`,
+            {
+              Identifiers: { UserId: candidate },
+              IncludeDetails: true,
+              IncludeStatistics: true,
+              IncludeScores: true,
+            },
+            { headers: authHeaders },
+          );
+
+          const tripDetail = tripDetailRes.data?.Result?.Trip;
+          if (tripDetail) {
+            const stats = tripDetail?.Statistics ?? {};
+            const scores = tripDetail?.Scores ?? {};
+            const addresses = tripDetail?.Data?.Addresses ?? {};
+
+            distanceKm = Number(stats?.Mileage ?? distanceKm) || 0;
+            maxSpeed = stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : maxSpeed;
+            avgSpeed = stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : avgSpeed;
+            score =
+              Math.round(Number(scores?.Safety ?? scores?.Overall ?? score)) || score;
+
+            damoovStatistics = stats;
+            damoovScores = scores;
+            startLocation = addresses?.Start ?? startLocation;
+            endLocation = addresses?.End ?? endLocation;
+          }
+        }
+      }
+    } catch (e: any) {
+      logger.warn(
+        { err: e?.response?.data || e?.message, tripDbId: trip.id, tripId: trip.tripId },
+        "Failed to enrich trip summary from Damoov; falling back to stored values"
+      );
+    }
 
     let moneyTip: string;
     if (totalEvents === 0 && score >= 80) {
@@ -365,6 +567,12 @@ export const telematicsService = {
         distanceKm,
         durationMin: trip.durationMin ?? 0,
         safetyScore: score,
+        maxSpeed,
+        avgSpeed,
+        damoovStatistics,
+        damoovScores,
+        startLocation,
+        endLocation,
       },
       moneyTip,
       safetyTip,
@@ -393,63 +601,390 @@ export const telematicsService = {
 
     for (const device of devices) {
       try {
+        // Admin trips API needs a GUID-like identifier. In this integration,
+        // that GUID is stored as `TelematicsDevice.deviceToken`.
+        if (!device.deviceToken) {
+          logger.warn(
+            { deviceId: device.id, vehicleId: device.vehicleId, instanceId: device.instanceId },
+            "Skipping Damoov admin trip sync: deviceToken missing"
+          );
+          continue;
+        }
+
+        const ADMIN_INSTANCE_ID_GUID_REGEX =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const deviceTokenLooksLikeGuid =
+          !!device.deviceToken && ADMIN_INSTANCE_ID_GUID_REGEX.test(String(device.deviceToken));
+        const instanceIdLooksLikeGuid =
+          !!device.instanceId && ADMIN_INSTANCE_ID_GUID_REGEX.test(String(device.instanceId));
+
+        // Some deployments store a placeholder `instanceId` (e.g. "app-...") and a GUID-like `deviceToken`.
+        // Use whichever value looks like a GUID for the admin API.
+        if (!deviceTokenLooksLikeGuid && !instanceIdLooksLikeGuid) {
+          logger.warn(
+            {
+              deviceId: device.id,
+              vehicleId: device.vehicleId,
+              instanceId: device.instanceId,
+              deviceToken: device.deviceToken,
+              deviceTokenLooksLikeGuid,
+              instanceIdLooksLikeGuid,
+            },
+            "Skipping Damoov admin trip sync: no GUID-like identifier found"
+          );
+          continue;
+        }
+
+        // Query a wider window so we don't miss trips due to clock skew
+        // or small "lastSyncAt" gaps (and to cover when the test trip was created).
         const startDate = device.lastSyncAt
-          ? new Date(device.lastSyncAt.getTime() - 5 * 60000)
-          : new Date(Date.now() - 24 * 60 * 60 * 1000);
+          ? new Date(device.lastSyncAt.getTime() - 30 * 24 * 60 * 60 * 1000) // - 30d
+          : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // default - 30d
         const endDate = new Date();
 
+        // Damoov expects a payload shaped like the official python SDK:
+        // - Identifiers at top-level
+        // - include flags + date range at top-level
+        // (no `{ request: ... }` wrapper).
         const requestBody = {
-          Identifiers: {
-            InstanceIds: [device.deviceToken], // Use GUID DeviceToken as the InstanceId
-          },
           IncludeDetails: true,
           IncludeStatistics: true,
           IncludeScores: true,
-          IncludeEvents: true,
+          IncludeRelated: true,
+          Locale: "EN",
+          UnitSystem: "Si",
           StartDateTimestampSec: Math.floor(startDate.getTime() / 1000),
           EndDateTimestampSec: Math.floor(endDate.getTime() / 1000),
+          SortBy: "StartDateUtc_Desc",
+          Paging: { Page: 1, Count: 100, IncludePagingInfo: true },
         };
 
-        const response = await axios.post(
-          "https://api.telematicssdk.com/trips/get/admin/v1",
-          requestBody,
-          {
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
+        // Damoov trips list fetch expects `Identifiers.UserId` (user/device identifier).
+        // Depending on how the integration is set up, the "user id" may map to either
+        // our stored `deviceToken` or `instanceId`. Try both.
+        const candidates = Array.from(
+          new Set(
+            [
+              deviceTokenLooksLikeGuid ? String(device.deviceToken) : null,
+              instanceIdLooksLikeGuid ? String(device.instanceId) : null,
+            ].filter(Boolean),
+          ),
+        ) as string[];
+
+        let createdTrips = 0;
+        for (const candidate of candidates) {
+          const identifiers = {
+            // Required identifier for trip list in Damoov Telematics API.
+            // (Telematics Python SDK calls this `user_id`.)
+            UserId: candidate,
+          };
+          const candidateShort = `${candidate.slice(0, 8)}...${candidate.slice(-6)}`;
+
+          logger.info(
+            {
+              vehicleId: device.vehicleId,
+              instanceId: device.instanceId,
+              deviceToken: device.deviceToken ? String(device.deviceToken) : null,
+              adminSyncCandidateShort: candidateShort,
+              startDate: startDate.toISOString(),
+              endDate: endDate.toISOString(),
             },
+            "Damoov admin trip sync request (candidate)"
+          );
+
+          const response = await axios.post(
+            "https://api.telematicssdk.com/trips/get/admin/v1",
+            { Identifiers: identifiers, ...requestBody },
+            {
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (response.status === 401) {
+            adminTokenCache = null;
+            logger.warn("Damoov admin token expired; will re-login on next sync");
+            return;
           }
-        );
 
-        if (response.status === 401) {
-          adminTokenCache = null;
-          logger.warn("Damoov admin token expired; will re-login on next sync");
-          return;
-        }
+          // Different Damoov responses may nest trips differently.
+          // First, log the response shape (preview only) so we can fix parsing accurately.
+          const resultTop = response.data?.Result;
+          const tripsResult = response.data?.Result?.Trips;
+          const responsePreview =
+            JSON.stringify(response.data, (_k, v) => {
+              if (typeof v === "string" && /(token|secret|password|authorization)/i.test(_k)) return "[REDACTED]";
+              return v;
+            }).slice(0, 1200);
 
-        const fetchedTrips = response.data?.Result?.Trips || response.data?.Trips || [];
+          logger.info(
+            {
+              vehicleId: device.vehicleId,
+              adminSyncCandidateShort: candidateShort,
+              responseStatus: response.status,
+              responseTopKeys: response.data && typeof response.data === "object" ? Object.keys(response.data) : null,
+              resultTopKeys: resultTop && typeof resultTop === "object" ? Object.keys(resultTop) : null,
+              tripsResultType: tripsResult == null ? null : typeof tripsResult,
+              tripsResultKeys:
+                tripsResult && typeof tripsResult === "object" && !Array.isArray(tripsResult)
+                  ? Object.keys(tripsResult)
+                  : null,
+              responsePreview,
+            },
+            "Damoov admin sync response preview (candidate)"
+          );
 
-        for (const trip of fetchedTrips) {
-          const tripId = String(trip.TripID ?? trip.Id ?? "");
-          if (!tripId) continue;
-          const existingTrip = await db.drivingTrip.findUnique({
-            where: { tripId },
-          });
+          let fetchedTrips: any[] = [];
+          // Primary: Result.Trips (array or object-with-array)
+          if (Array.isArray(tripsResult)) {
+            fetchedTrips = tripsResult;
+          } else if (tripsResult?.Items && Array.isArray(tripsResult.Items)) {
+            fetchedTrips = tripsResult.Items;
+          } else if (tripsResult?.Data && Array.isArray(tripsResult.Data)) {
+            fetchedTrips = tripsResult.Data;
+          } else if (tripsResult?.Trips && Array.isArray(tripsResult.Trips)) {
+            fetchedTrips = tripsResult.Trips;
+          } else if (tripsResult?.Trip && Array.isArray(tripsResult.Trip)) {
+            fetchedTrips = tripsResult.Trip;
+          } else {
+            // Fallbacks
+            const alt =
+              response.data?.Trips ??
+              response.data?.Items ??
+              response.data?.Result?.Items ??
+              response.data?.Result?.Data ??
+              null;
 
-          if (!existingTrip) {
-            await this.processWebhook({
-              InstanceID: device.instanceId,
-              TripID: tripId,
-              StartDate: trip.StartDate ?? Math.floor(new Date(trip.StartDateUtc ?? Date.now()).getTime() / 1000),
-              EndDate: trip.EndDate ?? Math.floor(new Date(trip.EndDateUtc ?? Date.now()).getTime() / 1000),
-              Distance: trip.Distance ?? trip.Statistics?.Distance ?? 0,
-              Duration: trip.Duration ?? trip.Statistics?.Duration ?? 0,
-              Score_Overall: trip.Score_Overall ?? trip.Scores?.Overall ?? trip.Score ?? 100,
-              Events: trip.Events ?? [],
+            if (Array.isArray(alt)) fetchedTrips = alt;
+            else if (alt?.Items && Array.isArray(alt.Items)) fetchedTrips = alt.Items;
+            else if (alt?.Data && Array.isArray(alt.Data)) fetchedTrips = alt.Data;
+            else if (alt?.Trips && Array.isArray(alt.Trips)) fetchedTrips = alt.Trips;
+          }
+
+          logger.info(
+            {
+              vehicleId: device.vehicleId,
+              adminSyncCandidateShort: candidateShort,
+              fetchedTripsCount: fetchedTrips.length,
+            },
+            "Fetched trips from Damoov (admin sync, candidate)"
+          );
+
+              const authHeaders = {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              };
+
+          if (fetchedTrips.length > 0) {
+            const first = fetchedTrips[0];
+            logger.info(
+              {
+                adminSyncCandidateShort: candidateShort,
+                firstTripId: first?.TripID ?? first?.Id ?? null,
+                firstTripKeys: first && typeof first === "object" ? Object.keys(first) : null,
+                hasData: !!first?.Data,
+                dataKeys: first?.Data && typeof first.Data === "object" ? Object.keys(first.Data) : null,
+                hasStart: first?.StartDate != null || first?.StartDateUtc != null || first?.Data?.StartDate != null,
+                hasEnd: first?.EndDate != null || first?.EndDateUtc != null || first?.Data?.EndDate != null,
+                hasDistance: first?.Distance != null || first?.Statistics?.Distance != null || first?.Data?.Distance != null,
+                hasDuration:
+                  first?.Duration != null ||
+                  first?.Statistics?.Duration != null ||
+                  (first?.Statistics?.DurationMinutes != null) ||
+                  first?.Data?.Duration != null,
+                hasScore:
+                  first?.Score_Overall != null ||
+                  first?.Scores?.Overall != null ||
+                  first?.Scores?.Safety != null,
+                hasRelated: Array.isArray(first?.Related) || (first?.Related && typeof first.Related === "object"),
+                relatedPreview:
+                  Array.isArray(first?.Related) ? first.Related.slice(0, 3).map((r: any) => ({ Type: r?.Type, Uri: r?.Uri })) : null,
+              },
+              "Damoov trip list first item shape (debug)"
+            );
+          }
+
+          for (const trip of fetchedTrips) {
+            const tripId = String(trip.TripID ?? trip.Id ?? "");
+            if (!tripId) continue;
+                const existingTrip = await db.drivingTrip.findUnique({
+              where: { tripId },
             });
+                const existingEventsCount = existingTrip
+                  ? await db.drivingEvent.count({
+                      where: { tripId: existingTrip.id },
+                    })
+                  : 0;
+
+                const looksLikePlaceholder =
+                  existingTrip?.safetyScore === 100 &&
+                  (existingTrip.distanceKm === 0 || existingTrip.durationMin === 0);
+
+                // If trip is missing in DB OR events/waypoints are missing in DB,
+                // fetch full trip details + waypoints and persist.
+                const needsFullDetails =
+                  !existingTrip || looksLikePlaceholder || existingEventsCount === 0;
+
+                if (!needsFullDetails) continue;
+
+                // Fetch complete trip detail (includes Events + Data + Statistics + Scores)
+                // and fetch track waypoints (so TripDetail map path renders).
+                const [detailRes, waypointsRes] = await Promise.all([
+                  axios.post(
+                    `https://api.telematicssdk.com/trips/get/admin/v1/${tripId}`,
+                    {
+                      Identifiers: { UserId: candidate },
+                      IncludeDetails: true,
+                      IncludeEvents: true,
+                      IncludeScores: true,
+                      IncludeStatistics: true,
+                    },
+                    { headers: authHeaders }
+                  ),
+                  axios.post(
+                    `https://api.telematicssdk.com/trips/get/admin/v1/${tripId}/waypoints`,
+                    { Identifiers: { UserId: candidate }, IncludeWaypoints: true },
+                    { headers: authHeaders }
+                  ),
+                ]);
+
+                const tripDetail = detailRes.data?.Result?.Trip;
+                const waypoints = waypointsRes.data?.Result?.Trip?.Waypoints ?? [];
+
+                if (!tripDetail) {
+                  logger.warn(
+                    { tripId, candidateShort },
+                    "Skipping trip: no trip detail returned"
+                  );
+                  continue;
+                }
+
+                const startDateIso = tripDetail?.Data?.StartDate;
+                const endDateIso = tripDetail?.Data?.EndDate;
+
+                const startDate = startDateIso ? new Date(startDateIso) : new Date();
+                const endDate = endDateIso ? new Date(endDateIso) : new Date();
+
+                const stats = tripDetail?.Statistics ?? {};
+                const scores = tripDetail?.Scores ?? {};
+
+                const distanceKm: number = Number(stats?.Mileage ?? 0) || 0;
+                const durationMin: number = Number(stats?.DurationMinutes ?? 0) || 0;
+
+                const maxSpeed: number | null = stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : null;
+                const avgSpeed: number | null = stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : null;
+
+                const safetyScore: number =
+                  Math.round(Number(scores?.Safety ?? scores?.Overall ?? 100)) || 100;
+
+                const startLocation = tripDetail?.Data?.Addresses?.Start ?? null;
+                const endLocation = tripDetail?.Data?.Addresses?.End ?? null;
+
+                const eventsFromTrip = Array.isArray(tripDetail?.Events)
+                  ? tripDetail.Events
+                  : [];
+
+                // Map Damoov events to DrivingEvent.
+                const eventRows = eventsFromTrip
+                  .map((e: any) => ({
+                    eventType: String(e?.Type ?? ""), // e.g. "Acceleration", "Braking"
+                    timestamp: e?.Date ? new Date(e.Date) : null,
+                    latitude: e?.Lat,
+                    longitude: e?.Long,
+                    severity: e?.Value != null ? Number(e.Value) : null,
+                    speed: e?.Speed != null ? Number(e.Speed) : null,
+                  }))
+                  .filter(
+                    (r: any) =>
+                      r.timestamp instanceof Date &&
+                      !Number.isNaN(r.latitude) &&
+                      !Number.isNaN(r.longitude)
+                  );
+
+                // Map waypoints (track points) to DrivingEvent with eventType="" so UI uses path markers.
+                const waypointRows = Array.isArray(waypoints)
+                  ? waypoints
+                      .map((w: any) => ({
+                        eventType: "",
+                        timestamp:
+                          w?.PointDateUnixMilliseconds != null
+                            ? new Date(Number(w.PointDateUnixMilliseconds))
+                            : null,
+                        latitude: w?.Lat,
+                        longitude: w?.Long,
+                        severity: null,
+                        speed: w?.Speed != null ? Number(w.Speed) : null,
+                      }))
+                      .filter(
+                        (r: any) =>
+                          r.timestamp instanceof Date &&
+                          !Number.isNaN(r.latitude) &&
+                          !Number.isNaN(r.longitude)
+                      )
+                  : [];
+
+                // Persist trip + replace events for idempotency.
+                if (!existingTrip) {
+                  await db.drivingTrip.create({
+                    data: {
+                      vehicleId: device.vehicleId,
+                      tripId,
+                      startTime: startDate,
+                      endTime: endDate,
+                      distanceKm,
+                      durationMin,
+                      maxSpeed,
+                      avgSpeed,
+                      safetyScore,
+                      status: "COMPLETED",
+                      startLocation,
+                      endLocation,
+                      events: {
+                        create: [...eventRows, ...waypointRows],
+                      },
+                    },
+                  });
+                } else {
+                  await db.drivingTrip.update({
+                    where: { tripId },
+                    data: {
+                      startTime: startDate,
+                      endTime: endDate,
+                      distanceKm,
+                      durationMin,
+                      maxSpeed,
+                      avgSpeed,
+                      safetyScore,
+                      status: "COMPLETED",
+                      startLocation,
+                      endLocation,
+                    },
+                  });
+
+                  // Clear and re-insert track points + events.
+                  await db.drivingEvent.deleteMany({
+                    where: { tripId: existingTrip.id },
+                  });
+                  await db.drivingEvent.createMany({
+                    data: [...eventRows, ...waypointRows].map((r: any) => ({
+                      ...r,
+                      tripId: existingTrip.id,
+                    })),
+                  });
+                }
+
+                createdTrips += 1;
           }
         }
+
+        logger.info(
+          { vehicleId: device.vehicleId, instanceId: device.instanceId, createdTrips },
+          "Damoov admin sync persisted trips"
+        );
 
         await db.telematicsDevice.update({
           where: { id: device.id },

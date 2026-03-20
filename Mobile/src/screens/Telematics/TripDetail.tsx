@@ -16,7 +16,20 @@ type Props = {
 type PathPoint = { lat: number; lon: number; timestamp?: string; eventType?: string };
 
 type TripSummary = {
-  trip: { id: string; startTime: string; endTime: string; distanceKm: number; durationMin: number; safetyScore: number };
+  trip: {
+    id: string;
+    startTime: string;
+    endTime: string;
+    distanceKm: number;
+    durationMin: number;
+    safetyScore: number;
+    maxSpeed?: number | null;
+    avgSpeed?: number | null;
+    damoovStatistics?: any;
+    damoovScores?: any;
+    startLocation?: any;
+    endLocation?: any;
+  };
   moneyTip: string;
   safetyTip: string;
 };
@@ -98,6 +111,22 @@ export default function TripDetail({ navigation, route }: Props) {
   const durMin = t?.durationMin ?? 0;
   const durStr = `${Math.floor(durMin / 60)}h ${Math.floor(durMin % 60)}m`;
 
+  const stats = t?.damoovStatistics || {};
+  const scores = t?.damoovScores || {};
+
+  const safe = (v: any) => (v == null || Number.isNaN(Number(v)) ? '—' : String(Math.floor(Number(v))));
+  const safeFloat = (v: any) =>
+    v == null || Number.isNaN(Number(v)) ? '—' : String(Number(v).toFixed(1));
+
+  const startParts = t?.startLocation?.Parts || {};
+  const endParts = t?.endLocation?.Parts || {};
+  const region = startParts?.State || startParts?.District || null;
+  const country = startParts?.Country || startParts?.CountryCode || null;
+  const cityStart = startParts?.City || null;
+  const cityFinish = endParts?.City || null;
+  const addressStart = t?.startLocation?.Full || null;
+  const addressEnd = t?.endLocation?.Full || null;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined} />
@@ -128,6 +157,115 @@ export default function TripDetail({ navigation, route }: Props) {
             <View style={styles.tipBox}>
               <Icon name="shield-alt" size={wp(3.5)} color="#4ade80" style={styles.tipIcon} />
               <Text style={styles.tipText}>{summary.safetyTip}</Text>
+            </View>
+          </View>
+        )}
+
+        {summary && (
+          <View style={[styles.summaryCard, { borderColor: 'rgba(255,255,255,0.08)' }]}>
+            <Text style={styles.detailsTitle}>Trip details (Damoov)</Text>
+
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Mileage</Text>
+                <Text style={styles.detailsVal}>{distStr}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Time Driven (min)</Text>
+                <Text style={styles.detailsVal}>{safe(stats?.DurationMinutes ?? t?.durationMin)}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Max Speed</Text>
+                <Text style={styles.detailsVal}>{t?.maxSpeed != null ? `${safeFloat(t.maxSpeed)} km/h` : '—'}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Average Speed</Text>
+                <Text style={styles.detailsVal}>{t?.avgSpeed != null ? `${safeFloat(t.avgSpeed)} km/h` : '—'}</Text>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Safety Score</Text>
+                <Text style={styles.detailsVal}>{t?.safetyScore != null ? `${safe(t.safetyScore)} / 100` : '—'}</Text>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Speeding</Text>
+                <Text style={styles.detailsVal}>{safe(scores?.Speeding)}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Acceleration Score / Braking Score</Text>
+                <Text style={styles.detailsVal}>
+                  {safe(scores?.Acceleration)} / {safe(scores?.Braking)}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Phone Usage Score</Text>
+                <Text style={styles.detailsVal}>
+                  {safe(scores?.PhoneUsage)}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Phone usage (time, distance)</Text>
+                <Text style={styles.detailsVal}>
+                  {stats?.PhoneUsageDurationMinutes != null || stats?.PhoneUsageMileage != null
+                    ? `(${safeFloat(stats?.PhoneUsageDurationMinutes)} min, ${safeFloat(stats?.PhoneUsageMileage)} km)`
+                    : '—'}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Cornering</Text>
+                <Text style={styles.detailsVal}>{safe(scores?.Cornering)}</Text>
+              </View>
+
+              {/* Harsh breaking / hard acceleration counts (from Damoov Statistics) */}
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Harsh Breaking (count)</Text>
+                <Text style={styles.detailsVal}>{stats?.BrakingsCount != null ? String(stats.BrakingsCount) : '—'}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Hard Acceleration (count)</Text>
+                <Text style={styles.detailsVal}>{stats?.AccelerationsCount != null ? String(stats.AccelerationsCount) : '—'}</Text>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Eco Score</Text>
+                <Text style={styles.detailsVal}>{safe(scores?.Eco)}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Eco Fuel / Tyres / Brakes</Text>
+                <Text style={styles.detailsVal}>
+                  {safe(scores?.EcoFuel)} / {safe(scores?.EcoTyres)} / {safe(scores?.EcoBrakes)}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Eco Depreciation</Text>
+                <Text style={styles.detailsVal}>{safe(scores?.EcoDepreciation)}</Text>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Region / Country</Text>
+                <Text style={styles.detailsVal}>
+                  {region ? String(region) : '—'}{country ? `, ${country}` : ''}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>City Start → Finish</Text>
+                <Text style={styles.detailsVal}>
+                  {(cityStart ? String(cityStart) : '—') + ' → ' + (cityFinish ? String(cityFinish) : '—')}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Address Start</Text>
+                <Text style={styles.detailsVal} numberOfLines={3}>
+                  {addressStart || '—'}
+                </Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsKey}>Address Finish</Text>
+                <Text style={styles.detailsVal} numberOfLines={3}>
+                  {addressEnd || '—'}
+                </Text>
+              </View>
             </View>
           </View>
         )}
@@ -241,6 +379,17 @@ const styles = StyleSheet.create({
   },
   tipIcon: { marginRight: wp(2.5), marginTop: 2 },
   tipText: { flex: 1, fontSize: wp(3.6), color: '#bbb', lineHeight: 20 },
+  detailsTitle: { fontSize: wp(3.8), fontWeight: '700', color: '#fff', marginBottom: hp(1.5) },
+  detailsGrid: { marginTop: hp(0.5) },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginTop: hp(0.9),
+    gap: wp(3),
+  },
+  detailsKey: { flex: 1, color: '#888', fontSize: wp(3.2) },
+  detailsVal: { flex: 1, color: '#fff', fontSize: wp(3.2), fontWeight: '600', textAlign: 'right' },
   mapContainer: {
     height: hp(28),
     marginHorizontal: wp(4),
