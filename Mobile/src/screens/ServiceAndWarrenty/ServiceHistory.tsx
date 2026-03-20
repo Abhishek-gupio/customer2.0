@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
     safe: {
         flex: 1,
         backgroundColor: 'black',
+        paddingBottom: hp(5),
     },
 
     container: {

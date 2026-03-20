@@ -313,7 +313,9 @@ export const WarrantyStatus = () => {
         <WarrantySummary
           active={summary.active}
           expired={summary.expired}
+          health={vehicle?.healthScore?.overallScore ?? 0}
         />
+        
       </View>
 
       {parts.some(p => (p.intervalSource || '').toUpperCase() !== 'OEM_WEBSITE') && (

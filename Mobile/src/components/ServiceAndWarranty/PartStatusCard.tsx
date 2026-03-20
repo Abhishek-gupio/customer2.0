@@ -71,7 +71,7 @@ export const PartStatusCard = ({
 
     return (
         <View style={styles.card}>
-            <TouchableOpacity activeOpacity={0.9} onPress={onPressHistory} style={styles.cardPressable}>
+            <TouchableOpacity activeOpacity={0.9} style={styles.cardPressable}>
             <View style={styles.topRow}>
                 <View style={styles.leftInfo}>
                     <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
@@ -113,7 +113,7 @@ export const PartStatusCard = ({
             <View style={styles.bottomRow}>
                 <TouchableOpacity
                     activeOpacity={0.9}
-                    onPress={onPressHistory}
+                    // onPress={onPressHistory}
                     style={styles.bottomInfo}
                 >
                     {overdueByKm != null && overdueByKm > 0 ? (
