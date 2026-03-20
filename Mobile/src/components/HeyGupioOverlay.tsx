@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useContext } from 'react';
 import {
+  Animated,
   View,
   Text,
   StyleSheet,
@@ -9,6 +10,8 @@ import {
   AppState,
   AppStateStatus,
   TouchableOpacity,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
@@ -16,12 +19,13 @@ import { chatService } from '../services/chatService';
 import { VoiceOwnerContext } from '../context/VoiceOwnerContext';
 
 const VOICE_LOCALE = 'en-IN';
-/** Stop listening after this many ms if no speech result (so we don't listen forever). */
 const LISTEN_TIMEOUT_MS = 12000;
-/** Delay before restarting mic after agent speaks (let TTS release audio; then we reset Voice). */
 const RESTART_DELAY_MS = Platform.OS === 'android' ? 1200 : 600;
+const FAB_SIZE = 56;
+const FAB_MARGIN = 20;
+const FAB_BOTTOM_OFFSET = 88;
+const MIN_TOP_OFFSET = 72;
 
-/** Normalize for matching: lowercase, collapse spaces */
 function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
 }
@@ -29,17 +33,14 @@ function normalize(s: string): string {
 function isWakeWord(transcript: string): boolean {
   const t = normalize(transcript);
   if (!t) return false;
-  // Exact or at start
   if (t === 'hey gupio' || t === 'gupio') return true;
   if (t.startsWith('hey gupio ') || t.startsWith('gupio ')) return true;
-  // Some engines return "hey Gupio" or "hey, gupio" - be flexible
   if (t.includes('hey gupio') || t.includes('gupio')) return true;
   return false;
 }
 
 function extractCommand(transcript: string): string {
   const t = normalize(transcript);
-  // After "hey gupio" or "gupio" (from start or anywhere)
   const afterHeyGupio = t.split('hey gupio').pop()?.trim() ?? '';
   const afterGupio = t.split('gupio').pop()?.trim() ?? '';
   if (afterHeyGupio.length > 0 && afterHeyGupio.length < t.length) return afterHeyGupio;
@@ -48,6 +49,7 @@ function extractCommand(transcript: string): string {
 }
 
 export default function HeyGupioOverlay() {
+  const window = Dimensions.get('window');
   const { heyGupioCanListen } = useContext(VoiceOwnerContext);
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
@@ -59,9 +61,70 @@ export default function HeyGupioOverlay() {
   const restartDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const continuousModeRef = useRef(false);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
-  const startListeningRef = useRef<() => void>(() => { });
+  const startListeningRef = useRef<() => void>(() => {});
   const canListenRef = useRef(heyGupioCanListen);
+  const clampPosition = useCallback(
+    (x: number, y: number) => {
+      const maxX = Math.max(FAB_MARGIN, window.width - FAB_SIZE - FAB_MARGIN);
+      const maxY = Math.max(MIN_TOP_OFFSET, window.height - FAB_SIZE - FAB_BOTTOM_OFFSET);
+      return {
+        x: Math.min(Math.max(x, FAB_MARGIN), maxX),
+        y: Math.min(Math.max(y, MIN_TOP_OFFSET), maxY),
+      };
+    },
+    [window.height, window.width],
+  );
+  const dragPosition = useRef(
+    new Animated.ValueXY(
+      clampPosition(window.width - FAB_SIZE - FAB_MARGIN, window.height - FAB_SIZE - FAB_BOTTOM_OFFSET),
+    ),
+  ).current;
+  const dragValueRef = useRef(
+    clampPosition(window.width - FAB_SIZE - FAB_MARGIN, window.height - FAB_SIZE - FAB_BOTTOM_OFFSET),
+  );
   canListenRef.current = heyGupioCanListen;
+
+  useEffect(() => {
+    const listenerId = dragPosition.addListener((value) => {
+      dragValueRef.current = value;
+    });
+    return () => {
+      dragPosition.removeListener(listenerId);
+    };
+  }, [dragPosition]);
+
+  useEffect(() => {
+    const next = clampPosition(dragValueRef.current.x, dragValueRef.current.y);
+    dragPosition.setValue(next);
+  }, [clampPosition, dragPosition]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > 4 || Math.abs(gestureState.dy) > 4,
+      onPanResponderGrant: () => {
+        dragPosition.stopAnimation();
+        dragPosition.setOffset(dragValueRef.current);
+        dragPosition.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: Animated.event([null, { dx: dragPosition.x, dy: dragPosition.y }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: (_, gestureState) => {
+        dragPosition.flattenOffset();
+        const next = clampPosition(
+          dragValueRef.current.x + gestureState.dx,
+          dragValueRef.current.y + gestureState.dy,
+        );
+        dragPosition.setValue(next);
+      },
+      onPanResponderTerminate: () => {
+        dragPosition.flattenOffset();
+        dragPosition.setValue(clampPosition(dragValueRef.current.x, dragValueRef.current.y));
+      },
+    }),
+  ).current;
 
   const requestMicPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS !== 'android') return true;
@@ -89,11 +152,10 @@ export default function HeyGupioOverlay() {
     ttsFinishRef.current = onDone ?? null;
     Tts.getInitStatus()
       .then(() => {
-        Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => { });
+        Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
         Tts.setDefaultRate(0.48);
         Tts.setDefaultPitch(1.0);
         Tts.speak(text);
-        // Fallback: if tts-finish never fires, still run onDone after ~length-based delay
         const delay = Math.min(Math.max(text.length * 90, 3000), 25000);
         ttsFallbackRef.current = setTimeout(() => {
           ttsFallbackRef.current = null;
@@ -109,7 +171,6 @@ export default function HeyGupioOverlay() {
       });
   }, []);
 
-  /** After agent speaks: wait a bit, release TTS, reset recognizer, then start listening again. */
   const scheduleRestartListening = useCallback(() => {
     if (restartDelayRef.current) {
       clearTimeout(restartDelayRef.current);
@@ -119,14 +180,13 @@ export default function HeyGupioOverlay() {
       restartDelayRef.current = null;
       if (!isMountedRef.current || !continuousModeRef.current || !canListenRef.current) return;
       setStatus('listening');
-      // Release TTS so it doesn't hold audio; reset Voice so next start() actually listens
       Tts.stop();
       const doStart = () => {
         if (!isMountedRef.current || !continuousModeRef.current) return;
         startListeningRef.current();
       };
       if (typeof (Voice as any).destroy === 'function') {
-        (Voice as any).destroy().catch(() => { }).then(doStart);
+        (Voice as any).destroy().catch(() => {}).then(doStart);
       } else {
         doStart();
       }
@@ -135,7 +195,7 @@ export default function HeyGupioOverlay() {
 
   const startListening = useCallback(() => {
     if (!isMountedRef.current) return;
-    modeRef.current = 'command'; // Tap-to-talk: first phrase is the command, no "Hey Gupio" needed
+    modeRef.current = 'command';
     const clearListenTimeout = () => {
       if (listenTimeoutRef.current) {
         clearTimeout(listenTimeoutRef.current);
@@ -164,7 +224,7 @@ export default function HeyGupioOverlay() {
       }
       try {
         await Voice.stop();
-      } catch (_) { }
+      } catch (_) {}
 
       modeRef.current = 'wake';
       setStatus('processing');
@@ -201,7 +261,7 @@ export default function HeyGupioOverlay() {
       clearListenTimeout();
       try {
         await Voice.stop();
-      } catch (_) { }
+      } catch (_) {}
       const msg = String(err?.error?.message ?? err?.message ?? err).toLowerCase();
       if (msg.includes('cancel') || msg.includes('no match') || msg.includes('no speech')) {
         if (isMountedRef.current) {
@@ -233,9 +293,10 @@ export default function HeyGupioOverlay() {
 
     const tryStart = (attempt = 0) => {
       if (!isMountedRef.current || !canListenRef.current || appStateRef.current !== 'active') return;
-      // Fresh recognizer: destroy then re-attach handlers and start (fixes "listening" but no results)
       Promise.resolve()
-        .then(() => (typeof (Voice as any).destroy === 'function' ? (Voice as any).destroy() : Promise.resolve()))
+        .then(() =>
+          typeof (Voice as any).destroy === 'function' ? (Voice as any).destroy() : Promise.resolve(),
+        )
         .catch(() => {})
         .then(() => {
           if (!isMountedRef.current || !canListenRef.current) return;
@@ -249,7 +310,7 @@ export default function HeyGupioOverlay() {
           listenTimeoutRef.current = setTimeout(() => {
             listenTimeoutRef.current = null;
             if (!isMountedRef.current) return;
-            Voice.stop().catch(() => { });
+            Voice.stop().catch(() => {});
             if (continuousModeRef.current) scheduleRestartListening();
             else setStatus('idle');
           }, LISTEN_TIMEOUT_MS);
@@ -265,7 +326,7 @@ export default function HeyGupioOverlay() {
         });
     };
     tryStart();
-  }, [speakWithTts, scheduleRestartListening]);
+  }, [scheduleRestartListening, speakWithTts]);
 
   startListeningRef.current = startListening;
 
@@ -292,7 +353,7 @@ export default function HeyGupioOverlay() {
       }
       Tts.getInitStatus()
         .then(() => {
-          Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => { });
+          Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
           Tts.setDefaultRate(0.48);
           Tts.setDefaultPitch(1.0);
         })
@@ -307,7 +368,7 @@ export default function HeyGupioOverlay() {
     const appSub = AppState.addEventListener('change', (next) => {
       appStateRef.current = next;
       if (next !== 'active') {
-        Voice.stop().catch(() => { });
+        Voice.stop().catch(() => {});
         if (isMountedRef.current) setStatus('idle');
       }
     });
@@ -330,14 +391,14 @@ export default function HeyGupioOverlay() {
       Tts.removeAllListeners('tts-finish');
       Tts.stop();
       try {
-        Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => { });
-      } catch (_) { }
+        Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => {});
+      } catch (_) {}
     };
   }, [requestMicPermission]);
 
   useEffect(() => {
     if (!heyGupioCanListen) {
-      Voice.stop().catch(() => { });
+      Voice.stop().catch(() => {});
       setStatus('idle');
     }
   }, [heyGupioCanListen]);
@@ -352,7 +413,7 @@ export default function HeyGupioOverlay() {
       clearTimeout(listenTimeoutRef.current);
       listenTimeoutRef.current = null;
     }
-    Voice.stop().catch(() => { });
+    Voice.stop().catch(() => {});
     Tts.stop();
     setStatus('idle');
   }, []);
@@ -365,43 +426,55 @@ export default function HeyGupioOverlay() {
     } else {
       stopContinuous();
     }
-  }, [heyGupioCanListen, status, startListening, stopContinuous]);
+  }, [heyGupioCanListen, startListening, status, stopContinuous]);
 
   if (!ready) return null;
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onFloatingTap}
-      style={[styles.fab, !heyGupioCanListen && styles.fabDisabled]}
-      disabled={!heyGupioCanListen}
-      accessibilityLabel={status === 'idle' ? 'Tap to start talking to Gupio' : 'Tap to stop'}
-      accessibilityRole="button"
+    <Animated.View
+      style={[
+        styles.fabWrap,
+        {
+          transform: [{ translateX: dragPosition.x }, { translateY: dragPosition.y }],
+        },
+      ]}
+      {...panResponder.panHandlers}
     >
-      <Text style={styles.fabIcon}>{status === 'listening' ? '🎤' : status === 'processing' ? '…' : status === 'speaking' ? '🔊' : '🎙'}</Text>
-      {status !== 'idle' && (
-        <Text style={styles.fabLabel} numberOfLines={1}>
-          {status === 'listening' && 'Listening… Tap to stop'}
-          {status === 'processing' && 'Thinking…'}
-          {status === 'speaking' && 'Speaking… Tap to stop'}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={onFloatingTap}
+        style={[styles.fab, !heyGupioCanListen && styles.fabDisabled]}
+        disabled={!heyGupioCanListen}
+        accessibilityLabel={status === 'idle' ? 'Tap to start talking to Gupio' : 'Tap to stop'}
+        accessibilityRole="button"
+      >
+        <Text style={styles.fabIcon}>
+          {status === 'listening' ? '🎤' : status === 'processing' ? '…' : status === 'speaking' ? '🔊' : '🎙'}
         </Text>
-      )}
-    </TouchableOpacity>
+        {status !== 'idle' && (
+          <Text style={styles.fabLabel} numberOfLines={1}>
+            {status === 'listening' && 'Listening… Tap to stop'}
+            {status === 'processing' && 'Thinking…'}
+            {status === 'speaking' && 'Speaking… Tap to stop'}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  fab: {
+  fabWrap: {
     position: 'absolute',
-    bottom: 88,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    zIndex: 999,
+  },
+  fab: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
     backgroundColor: '#1a1a2e',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 999,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

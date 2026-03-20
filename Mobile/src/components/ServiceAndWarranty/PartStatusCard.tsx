@@ -71,7 +71,7 @@ export const PartStatusCard = ({
 
     return (
         <View style={styles.card}>
-            <TouchableOpacity activeOpacity={0.9} style={styles.cardPressable}>
+            <View style={styles.cardPressable}>
             <View style={styles.topRow}>
                 <View style={styles.leftInfo}>
                     <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
@@ -108,14 +108,10 @@ export const PartStatusCard = ({
                     />
                 </View>
             </View>
-            </TouchableOpacity>
+            </View>
 
             <View style={styles.bottomRow}>
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    // onPress={onPressHistory}
-                    style={styles.bottomInfo}
-                >
+                <View style={styles.bottomInfo}>
                     {overdueByKm != null && overdueByKm > 0 ? (
                         <Text style={styles.predictionText}>
                             Interval <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. Overdue by <Text style={{ color: '#EF4444', fontWeight: '800' }}>{overdueByKm.toLocaleString()} km</Text>
@@ -137,7 +133,7 @@ export const PartStatusCard = ({
                             <Text style={styles.criticalText}>REPLACE</Text>
                         </View>
                     )}
-                </TouchableOpacity>
+                </View>
                 <TouchableOpacity onPress={toggleExpand} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
                 </TouchableOpacity>

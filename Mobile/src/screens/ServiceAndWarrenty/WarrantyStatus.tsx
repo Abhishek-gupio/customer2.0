@@ -180,7 +180,9 @@ export const WarrantyStatus = () => {
     setUpdateOdometer(vehicle?.currentOdometer ? String(vehicle.currentOdometer) : '');
     setUpdateDate(new Date().toISOString().slice(0, 10));
     setUpdateNotes(part.subtitle || '');
-    setIsUpdateModalVisible(true);
+    requestAnimationFrame(() => {
+      setIsUpdateModalVisible(true);
+    });
   };
 
   const closeUpdateModal = () => {
@@ -257,11 +259,6 @@ export const WarrantyStatus = () => {
     await fetchData();
     setRefreshing(false);
   }, []);
-
-  const handleReplace = (part: PartData) => {
-    setSelectedPartForReplace(part);
-    setShowManualEntry(true);
-  };
 
   useFocusEffect(
     useCallback(() => {
@@ -352,13 +349,13 @@ export const WarrantyStatus = () => {
         style={styles.list}
       />
 
-      <Modal transparent visible={isUpdateModalVisible} animationType="fade">
+      <Modal transparent visible={isUpdateModalVisible} animationType="fade" statusBarTranslucent>
         <Pressable style={styles.modalBackdrop} onPress={closeUpdateModal}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             style={styles.modalKeyboard}
           >
-            <Pressable style={styles.modalPanel} onPress={() => {}}>
+            <Pressable style={styles.modalPanel} onPress={(e) => e.stopPropagation()}>
               <View style={styles.modalHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalTitle}>Update Part</Text>
