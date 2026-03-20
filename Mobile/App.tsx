@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { StatusBar, useColorScheme, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StatusBar, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -7,9 +7,31 @@ import { Provider } from './src/lib/react-redux';
 import { store } from './src/store';
 import { setUser } from './src/store/slices/authSlice';
 import { getStoredAccessToken } from './src/services/authService';
-import { clearAuthStorage, getAuthPersistedAt, getUserId } from './src/services/storage';
+import {
+  clearAuthStorage,
+  getAuthPersistedAt,
+  getUserId,
+  hydrateAuthFromPersistedStorage,
+  setUserId,
+} from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
+
+function tryDecodeUserIdFromJwt(token: string): string | undefined {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return undefined;
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+    const base64 = b64 + pad;
+    if (!globalThis.atob) return undefined;
+    const json = globalThis.atob(base64);
+    const payload = JSON.parse(json) as { id?: string };
+    return payload.id;
+  } catch {
+    return undefined;
+  }
+}
 
 function AuthRestore() {
   useEffect(() => {
@@ -20,7 +42,11 @@ function AuthRestore() {
       return;
     }
     const token = getStoredAccessToken();
-    const id = getUserId();
+    let id = getUserId();
+    if (token && !id) {
+      id = tryDecodeUserIdFromJwt(token);
+      if (id) setUserId(id);
+    }
     if (token && id) {
       store.dispatch(setUser({ id, email: undefined }));
     }
@@ -30,6 +56,19 @@ function AuthRestore() {
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  const [storageReady, setStorageReady] = useState(false);
+
+  useEffect(() => {
+    hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
+  }, []);
+
+  if (!storageReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <Provider store={store}>

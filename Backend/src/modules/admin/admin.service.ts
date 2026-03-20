@@ -14,9 +14,25 @@ export const adminService = {
       logger.error("Prisma client has no adminUser model - run: cd prisma && pnpm run build");
       throw new Error("Admin auth not available: missing adminUser model. Rebuild prisma package.");
     }
-    const admin = await db.adminUser.findUnique({
-      where: { email: input.email.toLowerCase().trim() },
-    });
+    let admin;
+    try {
+      admin = await db.adminUser.findUnique({
+        where: { email: input.email.toLowerCase().trim() },
+      });
+    } catch (e: unknown) {
+      const code =
+        e && typeof e === "object" && "code" in e
+          ? String((e as { code: unknown }).code)
+          : "";
+      if (code === "P2021") {
+        throw AppError.internal(
+          "Admin database tables are missing. Apply Prisma migrations to this DATABASE_URL: " +
+            "cd prisma && pnpm prisma:migrate:deploy (or from repo root: pnpm --filter @repo/db-customer prisma:migrate:deploy)",
+          "ADMIN_SCHEMA_MISSING",
+        );
+      }
+      throw e;
+    }
     if (!admin || !admin.isActive) {
       throw AppError.unauthorized("Invalid email or password");
     }

@@ -20,6 +20,16 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Ensure all modules (including AsyncStorage) can resolve Maven artifacts.
+allprojects {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+    }
+}
 // Avoid duplicate classes: exclude old support libs (AndroidX is used)
 gradle.projectsLoaded {
     rootProject.subprojects { subproject ->

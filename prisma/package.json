@@ -13,6 +13,7 @@
     "scripts": {
         "prisma:generate": "prisma generate",
         "prisma:migrate:dev": "prisma migrate dev",
+        "prisma:migrate:deploy": "prisma migrate deploy",
         "prisma:studio": "prisma studio",
         "db:up:local": "bash ../scripts/db-start.sh",
         "db:migrate": "prisma migrate dev",

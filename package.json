@@ -11,6 +11,7 @@
         "db:migrate": "pnpm --filter @repo/db-customer prisma:migrate:dev",
         "db:setup": "bash scripts/db-start.sh && sleep 3 && pnpm db:migrate",
         "prisma:migrate:dev": "pnpm --filter @repo/db-customer prisma:migrate:dev",
+        "prisma:migrate:deploy": "pnpm --filter @repo/db-customer prisma:migrate:deploy",
         "prisma:generate": "pnpm --filter @repo/db-customer prisma:generate",
         "prisma:studio": "pnpm --filter @repo/db-customer prisma:studio",
         "admin:dev": "pnpm --filter admin-dashboard dev",

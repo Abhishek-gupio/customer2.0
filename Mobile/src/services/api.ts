@@ -31,10 +31,14 @@ async function doRefresh(): Promise<boolean> {
         if (payload.refreshToken) setRefreshToken(payload.refreshToken);
         return true;
       }
-      clearAuthStorage();
+      // Only clear local auth if refresh token is actually invalid/revoked.
+      // For transient backend/network issues, keep tokens so the user isn't forced to re-login.
+      if (res.status === 401 || res.status === 403) {
+        clearAuthStorage();
+      }
       return false;
     } catch {
-      clearAuthStorage();
+      // Network/server unreachable: don't wipe auth; allow retry later.
       return false;
     } finally {
       refreshPromise = null;

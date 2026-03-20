@@ -71,6 +71,7 @@ export type VerifyOtpResponse = {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
+  userId?: string;
 };
 
 export type LoginResponse = {
@@ -125,9 +126,11 @@ export async function verifyOtp(phoneNumber: string, otp: string): Promise<Verif
   if (typeof console !== 'undefined') {
     console.log('Access token set:', payload.accessToken);
   }
+  const idFromServer = payload.userId as string | undefined;
   const jwtPayload = decodeJwtPayload(payload.accessToken);
-  if (jwtPayload?.id) setUserId(jwtPayload.id);
-  return { ...payload, userId: jwtPayload?.id };
+  const id = idFromServer ?? jwtPayload?.id;
+  if (id) setUserId(id);
+  return { ...payload, userId: id };
 }
 
 export function getStoredAccessToken(): string | undefined {
@@ -152,7 +155,9 @@ export async function loginWithGoogle(idToken: string): Promise<LoginWithGoogleR
   setAccessToken(payload.accessToken);
   setRefreshToken(payload.refreshToken);
   setAuthPersistedAt(Date.now());
+  const idFromServer = payload.userId as string | undefined;
   const jwtPayload = decodeJwtPayload(payload.accessToken);
-  if (jwtPayload?.id) setUserId(jwtPayload.id);
-  return { ...payload, userId: jwtPayload?.id };
+  const id = idFromServer ?? jwtPayload?.id;
+  if (id) setUserId(id);
+  return { ...payload, userId: id };
 }

@@ -114,6 +114,7 @@ export const authService = {
     const refreshToken = signRefresh(payload);
     return {
       message: "Verified",
+      userId: customer.id,
       accessToken,
       refreshToken,
       expiresIn: getAccessExpirySeconds(),
@@ -167,6 +168,7 @@ export const authService = {
     const newRefreshToken = signRefresh(payload);
     await blacklistRefreshToken(refreshToken);
     return {
+      userId: payload.id,
       accessToken,
       refreshToken: newRefreshToken,
       expiresIn: getAccessExpirySeconds(),
@@ -263,6 +265,7 @@ export const authService = {
     const refreshToken = signRefresh(jwtPayload);
     return {
       message: "Signed in with Google",
+      userId: customer.id,
       accessToken,
       refreshToken,
       expiresIn: getAccessExpirySeconds(),
