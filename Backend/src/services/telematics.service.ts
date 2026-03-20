@@ -400,7 +400,7 @@ export const telematicsService = {
 
         const requestBody = {
           Identifiers: {
-            InstanceIds: [device.instanceId],
+            InstanceIds: [device.deviceToken], // Use GUID DeviceToken as the InstanceId
           },
           IncludeDetails: true,
           IncludeStatistics: true,

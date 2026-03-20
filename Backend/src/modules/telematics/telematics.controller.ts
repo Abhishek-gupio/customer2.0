@@ -103,4 +103,11 @@ export const telematicsController = {
     const data = await telematicsService.getTripSummaryById(tripId as string);
     success(res, data);
   }),
+  /**
+   * Manual sync with Damoov
+   */
+  sync: asyncHandler(async (req: Request, res: Response) => {
+    await telematicsService.syncTripsForAllDevices({ forceLogin: true });
+    success(res, { success: true, message: "Sync completed" });
+  }),
 };

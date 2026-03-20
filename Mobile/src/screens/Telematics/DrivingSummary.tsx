@@ -46,7 +46,14 @@ export default function DrivingSummary({ navigation }: any) {
     useEffect(() => {
         const fetchTelemetry = async () => {
             try {
-                // 1. Get user's primary vehicle
+                // 1. Trigger fresh sync from Damoov
+                try {
+                    await telematicsApi.syncTrips();
+                } catch (e) {
+                    console.log('Skipping auto-sync (likely logged out or rate limited)', e);
+                }
+
+                // 2. Get user's primary vehicle
                 const res = await vehicleService.getVehicles();
                 let vehiclesData: any[] = [];
                 if (Array.isArray(res)) vehiclesData = res;
