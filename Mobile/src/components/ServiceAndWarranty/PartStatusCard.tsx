@@ -31,7 +31,8 @@ interface PartStatusCardProps {
     overdueByKm?: number;
     /** OEM_WEBSITE = from OEM manual; else not from OEM, may be incorrect */
     intervalSource?: string;
-    onReplace?: () => void;
+    onPressHistory?: () => void;
+    onPressUpdate?: () => void;
 }
 
 export const PartStatusCard = ({
@@ -54,7 +55,8 @@ export const PartStatusCard = ({
     currentOdo,
     overdueByKm,
     intervalSource,
-    onReplace,
+    onPressHistory,
+    onPressUpdate,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
     const isCritical = urgency === 'OVERDUE';
@@ -68,7 +70,8 @@ export const PartStatusCard = ({
     const kmRemaining = lifecycleKm && kmSinceReplacement !== undefined ? Math.max(0, lifecycleKm - kmSinceReplacement) : null;
 
     return (
-        <TouchableOpacity activeOpacity={0.9} onPress={toggleExpand} style={styles.card}>
+        <View style={styles.card}>
+            <TouchableOpacity activeOpacity={0.9} onPress={onPressHistory} style={styles.cardPressable}>
             <View style={styles.topRow}>
                 <View style={styles.leftInfo}>
                     <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
@@ -81,6 +84,13 @@ export const PartStatusCard = ({
                 </View>
 
                 <View style={styles.rightScore}>
+                    <TouchableOpacity
+                        onPress={onPressHistory}
+                        activeOpacity={0.8}
+                        style={styles.historyButton}
+                    >
+                        <Icon name="history" size={wp(4.5)} color="#FFBF00" />
+                    </TouchableOpacity>
                     <Text style={[styles.scoreText, { color }]}>{displayPercentage}%</Text>
                     <View style={[styles.statusBadge, { backgroundColor: `${color}20` }]}>
                         <Text style={[styles.statusBadgeText, { color }]}>{statusText}</Text>
@@ -98,35 +108,39 @@ export const PartStatusCard = ({
                     />
                 </View>
             </View>
+            </TouchableOpacity>
 
             <View style={styles.bottomRow}>
-                {overdueByKm != null && overdueByKm > 0 ? (
-                    <Text style={styles.predictionText}>
-                        Interval <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. Overdue by <Text style={{ color: '#EF4444', fontWeight: '800' }}>{overdueByKm.toLocaleString()} km</Text>
-                    </Text>
-                ) : kmRemaining !== null ? (
-                    <Text style={styles.predictionText}>
-                        Due at <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. <Text style={{ color: '#fff', fontWeight: '800' }}>{kmRemaining} km</Text> more
-                    </Text>
-                ) : predictedDate ? (
-                    <Text style={styles.predictionText}>
-                        Estimated: <Text style={{ color: '#fff', fontWeight: '600' }}>{predictedDate}</Text>
-                    </Text>
-                ) : (
-                    <Text style={styles.predictionText}>Status: {statusText}</Text>
-                )}
-                {isCritical ? (
-                    <View style={styles.criticalNotice}>
-                        <Icon name="alert-circle" size={wp(3.5)} color="#EF4444" />
-                        <Text style={styles.criticalText}>REPLACE</Text>
-                    </View>
-                ) : percentage < 50 ? (
-                    <View style={[styles.criticalNotice, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                        <Icon name="clock-outline" size={wp(3.5)} color="#F59E0B" />
-                        <Text style={[styles.criticalText, { color: '#F59E0B' }]}>DUE SOON</Text>
-                    </View>
-                ) : null}
-                <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
+                <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={onPressHistory}
+                    style={styles.bottomInfo}
+                >
+                    {overdueByKm != null && overdueByKm > 0 ? (
+                        <Text style={styles.predictionText}>
+                            Interval <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. Overdue by <Text style={{ color: '#EF4444', fontWeight: '800' }}>{overdueByKm.toLocaleString()} km</Text>
+                        </Text>
+                    ) : kmRemaining !== null ? (
+                        <Text style={styles.predictionText}>
+                            Due at <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. <Text style={{ color: '#fff', fontWeight: '800' }}>{kmRemaining} km</Text> more
+                        </Text>
+                    ) : predictedDate ? (
+                        <Text style={styles.predictionText}>
+                            Estimated: <Text style={{ color: '#fff', fontWeight: '600' }}>{predictedDate}</Text>
+                        </Text>
+                    ) : (
+                        <Text style={styles.predictionText}>Status: {statusText}</Text>
+                    )}
+                    {isCritical && (
+                        <View style={styles.criticalNotice}>
+                            <Icon name="alert-circle" size={wp(3.5)} color="#EF4444" />
+                            <Text style={styles.criticalText}>REPLACE</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+                <TouchableOpacity onPress={toggleExpand} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
+                </TouchableOpacity>
             </View>
 
             {expanded && (
@@ -179,18 +193,12 @@ export const PartStatusCard = ({
                         </View>
                     </View>
 
-                    {isCritical && !title.toUpperCase().includes('ENGINE OIL') ? (
-                        <TouchableOpacity style={styles.bookButton}>
-                            <Text style={styles.bookButtonText}>Book Service Now</Text>
-                        </TouchableOpacity>
-                    ) : (percentage < 50 || (isCritical && title.toUpperCase().includes('ENGINE OIL'))) ? (
-                        <TouchableOpacity style={[styles.bookButton, { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#FFBF00' }]} onPress={onReplace}>
-                            <Text style={[styles.bookButtonText, { color: '#FFBF00' }]}>Mark as Replaced</Text>
-                        </TouchableOpacity>
-                    ) : null}
+                    <TouchableOpacity style={styles.bookButton} onPress={onPressUpdate} activeOpacity={0.85}>
+                        <Text style={styles.bookButtonText}>Update Part</Text>
+                    </TouchableOpacity>
                 </View>
             )}
-        </TouchableOpacity>
+        </View>
     );
 };
 
@@ -198,10 +206,13 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: '#111',
         borderRadius: wp(5),
-        padding: wp(4.5),
+        overflow: 'hidden',
         marginBottom: hp(2),
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
+    },
+    cardPressable: {
+        padding: wp(4.5),
     },
     topRow: {
         flexDirection: 'row',
@@ -238,6 +249,15 @@ const styles = StyleSheet.create({
     rightScore: {
         alignItems: 'flex-end',
     },
+    historyButton: {
+        width: wp(9),
+        height: wp(9),
+        borderRadius: wp(4.5),
+        backgroundColor: 'rgba(255,191,0,0.12)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: hp(1),
+    },
     scoreText: {
         fontSize: wp(4.5),
         fontWeight: '800',
@@ -270,6 +290,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingHorizontal: wp(4.5),
+        paddingBottom: wp(4.5),
+        gap: wp(2),
+    },
+    bottomInfo: {
+        flex: 1,
     },
     predictionText: {
         color: '#666',

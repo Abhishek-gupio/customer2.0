@@ -101,5 +101,16 @@ export const telematicsApi = {
             console.error("AI Coach API error:", error);
             return "Drive safely and maintain a steady speed.";
         }
+    },
+
+    /**
+     * Trigger a background sync with Damoov
+     */
+    async syncTrips(): Promise<void> {
+        await axios.post(
+            `${API_URL}/telematics/sync`,
+            {},
+            { headers: authHeaders() },
+        );
     }
 };

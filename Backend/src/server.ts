@@ -1,4 +1,4 @@
-// Triggering restart to pick up prisma changes
+// Initializing telematics polling job...
 import "dotenv/config";
 
 import { createServer } from "http"; // Server entry point reload

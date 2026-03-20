@@ -24,7 +24,7 @@ export type RootStackParamList = {
   TicketDetail: { ticketId: string };
   Settings: undefined;
   BudgetSettings: undefined;
-  ServiceHistory: undefined;
+  ServiceHistory: { selectedPartType?: string } | undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;
   ChatSessions: undefined;

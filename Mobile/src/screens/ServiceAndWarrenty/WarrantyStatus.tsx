@@ -8,6 +8,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   StatusBar,
+  Modal,
+  Pressable,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
@@ -20,9 +26,14 @@ import { api } from '../../services/api';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { PartStatusCard } from '../../components/ServiceAndWarranty/PartStatusCard';
 import { WarrantySummary } from '../../components/ServiceAndWarranty/WarrantySummary';
-import { getAndClearWarrantyStatusRefresh } from '../../utils/refreshManager';
+import {
+  getAndClearWarrantyStatusRefresh,
+  setExpenseListNeedsRefresh,
+  setWarrantyStatusNeedsRefresh,
+} from '../../utils/refreshManager';
 import BackButton from '../../components/BackButton';
-import ManualEntryOverlay from '../Expenses/ManualEntry';
+import type { RootStackParamList } from '../../navigation/types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 interface PartData {
   id: string;
@@ -49,14 +60,19 @@ interface PartData {
 }
 
 export const WarrantyStatus = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [parts, setParts] = useState<PartData[]>([]);
   const [summary, setSummary] = useState({ active: 0, expired: 0, critical: 0 });
-  const [showManualEntry, setShowManualEntry] = useState(false);
-  const [selectedPartForReplace, setSelectedPartForReplace] = useState<PartData | null>(null);
+  const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [updateAmount, setUpdateAmount] = useState('');
+  const [updateOdometer, setUpdateOdometer] = useState('');
+  const [updateDate, setUpdateDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [updateNotes, setUpdateNotes] = useState('');
+  const [savingUpdate, setSavingUpdate] = useState(false);
 
   const getPartIcon = (type: string) => {
     switch (type) {
@@ -158,6 +174,84 @@ export const WarrantyStatus = () => {
     }
   };
 
+  const openUpdateModal = (part: PartData) => {
+    setSelectedPart(part);
+    setUpdateAmount('');
+    setUpdateOdometer(vehicle?.currentOdometer ? String(vehicle.currentOdometer) : '');
+    setUpdateDate(new Date().toISOString().slice(0, 10));
+    setUpdateNotes(part.subtitle || '');
+    setIsUpdateModalVisible(true);
+  };
+
+  const closeUpdateModal = () => {
+    setIsUpdateModalVisible(false);
+    setSelectedPart(null);
+    setUpdateAmount('');
+    setUpdateOdometer('');
+    setUpdateDate(new Date().toISOString().slice(0, 10));
+    setUpdateNotes('');
+  };
+
+  const handlePartUpdate = async () => {
+    if (!vehicle || !selectedPart) {
+      return;
+    }
+
+    const parsedAmount = Number(updateAmount);
+    const parsedOdometer = Number(updateOdometer);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      Alert.alert('Invalid amount', 'Enter a valid part cost.');
+      return;
+    }
+
+    if (!Number.isFinite(parsedOdometer) || parsedOdometer <= 0) {
+      Alert.alert('Invalid odometer', 'Enter a valid odometer reading.');
+      return;
+    }
+
+    if (!updateDate.trim()) {
+      Alert.alert('Missing date', 'Enter the service date in YYYY-MM-DD format.');
+      return;
+    }
+
+    const parsedDate = new Date(updateDate);
+    if (Number.isNaN(parsedDate.getTime())) {
+      Alert.alert('Invalid date', 'Enter the service date in YYYY-MM-DD format.');
+      return;
+    }
+
+    setSavingUpdate(true);
+    try {
+      await api.post('/v1/expenses', {
+        amount: parsedAmount,
+        category: 'SERVICE',
+        vehicleId: vehicle.id,
+        notes: updateNotes.trim() || undefined,
+        date: parsedDate.toISOString(),
+        source: 'MANUAL',
+        odometerReading: parsedOdometer,
+        parts: [
+          {
+            partType: selectedPart.id,
+            cost: parsedAmount,
+          },
+        ],
+      });
+
+      setExpenseListNeedsRefresh();
+      setWarrantyStatusNeedsRefresh();
+      closeUpdateModal();
+      await fetchData();
+      Alert.alert('Success', `${selectedPart.title} updated successfully.`);
+    } catch (error: any) {
+      console.error('Part update failed:', error);
+      Alert.alert('Error', error?.message || 'Failed to update part.');
+    } finally {
+      setSavingUpdate(false);
+    }
+  };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchData();
@@ -245,29 +339,88 @@ export const WarrantyStatus = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
         }
         renderItem={({ item }) => (
-          <PartStatusCard 
-            {...item} 
-            onReplace={() => handleReplace(item)} 
+          <PartStatusCard
+            {...item}
+            onPressHistory={() =>
+              navigation.navigate('ServiceHistory', { selectedPartType: item.id })
+            }
+            onPressUpdate={() => openUpdateModal(item)}
           />
         )}
         style={styles.list}
       />
 
-      <ManualEntryOverlay
-        visible={showManualEntry}
-        onClose={() => {
-          setShowManualEntry(false);
-          setSelectedPartForReplace(null);
-        }}
-        onSuccess={() => {
-          fetchData();
-        }}
-        initialData={selectedPartForReplace ? {
-          category: 'Service',
-          description: `Replacement of ${selectedPartForReplace.title}`,
-          partType: selectedPartForReplace.id,
-        } : null}
-      />
+      <Modal transparent visible={isUpdateModalVisible} animationType="fade">
+        <Pressable style={styles.modalBackdrop} onPress={closeUpdateModal}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalKeyboard}
+          >
+            <Pressable style={styles.modalPanel} onPress={() => {}}>
+              <View style={styles.modalHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalTitle}>Update Part</Text>
+                  <Text style={styles.modalSubtitle}>{selectedPart?.title || ''}</Text>
+                </View>
+                <TouchableOpacity onPress={closeUpdateModal} disabled={savingUpdate}>
+                  <Icon name="times" size={wp(5)} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.inputLabel}>Part Cost</Text>
+              <TextInput
+                value={updateAmount}
+                onChangeText={setUpdateAmount}
+                keyboardType="numeric"
+                placeholder="Enter amount"
+                placeholderTextColor="#666"
+                style={styles.input}
+              />
+
+              <Text style={styles.inputLabel}>Odometer Reading</Text>
+              <TextInput
+                value={updateOdometer}
+                onChangeText={setUpdateOdometer}
+                keyboardType="numeric"
+                placeholder="Enter km"
+                placeholderTextColor="#666"
+                style={styles.input}
+              />
+
+              <Text style={styles.inputLabel}>Service Date</Text>
+              <TextInput
+                value={updateDate}
+                onChangeText={setUpdateDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor="#666"
+                style={styles.input}
+              />
+
+              <Text style={styles.inputLabel}>Notes</Text>
+              <TextInput
+                value={updateNotes}
+                onChangeText={setUpdateNotes}
+                placeholder="Optional notes"
+                placeholderTextColor="#666"
+                style={[styles.input, styles.notesInput]}
+                multiline
+              />
+
+              <TouchableOpacity
+                style={[styles.updateButton, savingUpdate && styles.updateButtonDisabled]}
+                onPress={handlePartUpdate}
+                disabled={savingUpdate}
+              >
+                {savingUpdate ? (
+                  <ActivityIndicator color="#000" />
+                ) : (
+                  <Text style={styles.updateButtonText}>Save Update</Text>
+                )}
+              </TouchableOpacity>
+            </Pressable>
+          </KeyboardAvoidingView>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -335,5 +488,77 @@ const styles = StyleSheet.create({
     fontSize: wp(3.2),
     color: '#F59E0B',
     lineHeight: 18,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.88)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+  },
+  modalKeyboard: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalPanel: {
+    width: '100%',
+    backgroundColor: '#151515',
+    borderRadius: wp(6),
+    padding: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(2),
+    gap: wp(3),
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: wp(5),
+    fontFamily: 'Outfit-Bold',
+  },
+  modalSubtitle: {
+    color: '#999',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Regular',
+    marginTop: hp(0.3),
+  },
+  inputLabel: {
+    color: '#bbb',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
+    marginBottom: hp(0.8),
+  },
+  input: {
+    backgroundColor: '#0f0f0f',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: wp(4),
+    color: '#fff',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    marginBottom: hp(1.8),
+  },
+  notesInput: {
+    minHeight: hp(10),
+    textAlignVertical: 'top',
+  },
+  updateButton: {
+    backgroundColor: '#FFBF00',
+    borderRadius: wp(4),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: hp(6.5),
+    marginTop: hp(1),
+  },
+  updateButtonDisabled: {
+    opacity: 0.7,
+  },
+  updateButtonText: {
+    color: '#000',
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
   },
 });
