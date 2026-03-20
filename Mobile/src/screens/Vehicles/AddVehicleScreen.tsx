@@ -39,6 +39,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         chassisNumber: '',
         engineNumber: '',
         currentOdometer: '',
+        rtoDetails: null as any,
     });
 
     const updateForm = (key: string, value: any) => {
@@ -56,18 +57,24 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
     const handleSave = async () => {
         setLoading(true);
         try {
-            const payload = {
-                ...form,
+            const vehicleData = {
                 registrationNumber: form.registrationNumber.toUpperCase().replace(/\s/g, ''),
-                year: form.year ? parseInt(form.year) : undefined,
-                currentOdometer: form.currentOdometer ? parseFloat(form.currentOdometer) : undefined,
-                registrationDate: form.registrationDate ? new Date(form.registrationDate).toISOString() : undefined
+                make: form.make,
+                model: form.model,
+                variant: form.variant,
+                year: form.year ? Number(form.year) : undefined,
+                fuelType: form.fuelType,
+                vehicleType: form.vehicleType,
+                currentOdometer: form.currentOdometer ? Number(form.currentOdometer) : undefined,
+                registrationDate: form.registrationDate ? new Date(form.registrationDate).toISOString() : undefined,
+                chassisNumber: form.chassisNumber,
+                engineNumber: form.engineNumber,
+                ...form.rtoDetails, // Spread additional RTO details
             };
 
+            const result = await vehicleService.addVehicle(vehicleData as any);
 
-            const saved = await vehicleService.addVehicle(payload as any);
-
-            onDone(saved);
+            onDone(result);
         } catch (error: any) {
             console.error('[AddVehicleScreen] handleSave error:', error);
             Alert.alert('Error', error?.message || 'Failed to save vehicle.');
@@ -135,195 +142,43 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
                                     <TouchableOpacity 
                                         style={[
                                             styles.inlineProceedBtn, 
-                                            form.registrationNumber.length < 7 && styles.inlineProceedBtnDisabled
+                                            (form.registrationNumber.length < 7 || loading) && styles.inlineProceedBtnDisabled
                                         ]}
-                                        onPress={handleProceedToConfirm}
-                                        disabled={form.registrationNumber.length < 7}
+                                        onPress={async () => {
+                                            setLoading(true);
+                                            try {
+                                                const rtoData = await vehicleService.verifyVehicle(form.registrationNumber);
+                                                setForm(prev => ({
+                                                    ...prev,
+                                                    make: rtoData.make || rtoData.brand || '',
+                                                    model: rtoData.model || '',
+                                                    vehicleType: (rtoData.vehicleType as any) || prev.vehicleType,
+                                                    fuelType: (rtoData.fuelType as any) || prev.fuelType,
+                                                    chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
+                                                    engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
+                                                    registrationDate: rtoData.regDate || rtoData.registrationDate || '',
+                                                    year: rtoData.year ? String(rtoData.year) : prev.year,
+                                                    rtoDetails: rtoData,
+                                                }));
+                                                setStep('CONFIRM');
+                                            } catch (error: any) {
+                                                Alert.alert("Verification Failed", error?.message || "Could not verify vehicle details.");
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }}
+                                        disabled={form.registrationNumber.length < 7 || loading}
                                     >
-                                        <Text style={[
-                                            styles.inlineProceedText,
-                                            form.registrationNumber.length < 7 && styles.inlineProceedTextDisabled
-                                        ]}>Proceed</Text>
+                                        {loading ? (
+                                            <ActivityIndicator color="#000" />
+                                        ) : (
+                                            <Text style={[
+                                                styles.inlineProceedText,
+                                                form.registrationNumber.length < 7 && styles.inlineProceedTextDisabled
+                                            ]}>Verify Vehicle</Text>
+                                        )}
                                     </TouchableOpacity>
                                 </View>
-
-                                {/* OR Separator */}
-                                <View style={styles.orSeparatorContainer}>
-                                    <View style={styles.orLine} />
-                                    <Text style={styles.orText}>OR ENTER DETAILS MANUALLY</Text>
-                                    <View style={styles.orLine} />
-                                </View>
-
-                                {/* Vehicle Type Selector */}
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>VEHICLE TYPE</Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeContainer}>
-                                        {VEHICLE_TYPES.map(type => (
-                                            <TouchableOpacity
-                                                key={type}
-                                                style={[styles.typeChip, form.vehicleType === type && styles.typeChipActive]}
-                                                onPress={() => updateForm('vehicleType', type as any)}
-                                            >
-                                                <Text style={[styles.typeChipText, form.vehicleType === type && styles.typeChipTextActive]}>{type}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-
-                            <Text style={styles.sectionTitle}>Basic Details</Text>
-
-                            <View style={styles.row}>
-                                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                                    <Text style={styles.label}>BRAND</Text>
-                                    <View style={styles.inputWrap}>
-                                        <Type size={18} color="#FFF" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="e.g. Tata"
-                                            placeholderTextColor="#555"
-                                            value={form.make}
-                                            onChangeText={t => updateForm('make', t)}
-                                        />
-                                    </View>
-                                </View>
-                                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                                    <Text style={styles.label}>MODEL</Text>
-                                    <View style={styles.inputWrap}>
-                                        <Car size={18} color="#FFF" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="e.g. Nexon"
-                                            placeholderTextColor="#555"
-                                            value={form.model}
-                                            onChangeText={t => updateForm('model', t)}
-                                        />
-                                    </View>
-                                </View>
-                            </View>
-
-                            <View style={styles.row}>
-                                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                                    <Text style={styles.label}>VARIANT</Text>
-                                    <View style={styles.inputWrap}>
-                                        <Bookmark size={18} color="#FFF" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="e.g. XZ+"
-                                            placeholderTextColor="#555"
-                                            value={form.variant}
-                                            onChangeText={t => updateForm('variant', t)}
-                                        />
-                                    </View>
-                                </View>
-                                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                                    <Text style={styles.label}>YEAR</Text>
-                                    <View style={styles.inputWrap}>
-                                        <Calendar size={18} color="#FFF" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="2024"
-                                            placeholderTextColor="#555"
-                                            value={form.year}
-                                            onChangeText={t => updateForm('year', t)}
-                                            keyboardType="numeric"
-                                            maxLength={4}
-                                        />
-                                    </View>
-                                </View>
-                            </View>
-
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>FUEL TYPE</Text>
-                                <View style={styles.fuelContainer}>
-                                    {FUEL_TYPES.map(fuel => (
-                                        <TouchableOpacity
-                                            key={fuel}
-                                            style={[styles.fuelChip, form.fuelType === fuel && styles.fuelChipActive]}
-                                            onPress={() => updateForm('fuelType', fuel)}
-                                        >
-                                            <Text style={[styles.fuelText, form.fuelType === fuel && styles.fuelTextActive]}>{fuel}</Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
-
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>CURRENT ODOMETER (KM)</Text>
-                                <View style={styles.inputWrap}>
-                                    <Gauge size={18} color="#FFF" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="0"
-                                        placeholderTextColor="#555"
-                                        value={form.currentOdometer}
-                                        onChangeText={t => updateForm('currentOdometer', t)}
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-                            </View>
-
-                            <Text style={styles.sectionTitle}>RC Information</Text>
-
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>REGISTRATION DATE</Text>
-                                <View style={styles.inputWrap}>
-                                    <Calendar size={18} color="#FFF" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="YYYY-MM-DD"
-                                        placeholderTextColor="#555"
-                                        value={form.registrationDate}
-                                        onChangeText={t => updateForm('registrationDate', t)}
-                                    />
-                                </View>
-                            </View>
-
-                            <View style={styles.row}>
-                                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                                    <Text style={styles.label}>CHASSIS NO.</Text>
-                                    <View style={styles.inputWrap}>
-                                        <Hash size={18} color="#FFF" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Chassis Number"
-                                            placeholderTextColor="#555"
-                                            value={form.chassisNumber}
-                                            onChangeText={t => updateForm('chassisNumber', t.toUpperCase())}
-                                            autoCapitalize="characters"
-                                        />
-                                    </View>
-                                </View>
-                                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                                    <Text style={styles.label}>ENGINE NO.</Text>
-                                    <View style={styles.inputWrap}>
-                                        <Hash size={18} color="#FFF" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Engine Number"
-                                            placeholderTextColor="#555"
-                                            value={form.engineNumber}
-                                            onChangeText={t => updateForm('engineNumber', t.toUpperCase())}
-                                            autoCapitalize="characters"
-                                        />
-                                    </View>
-                                </View>
-                            </View>
-
-                            <TouchableOpacity
-                                style={[styles.saveBtn, loading && styles.saveBtnLoading]}
-                                onPress={handleSave}
-                                disabled={loading || !form.registrationNumber || !form.make || !form.model}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#000" />
-                                ) : (
-                                    <>
-                                        <Text style={styles.saveText}>ADD VEHICLE</Text>
-                                    </>
-                                )}
-                            </TouchableOpacity>
-
-
                         </>
                     ) : (
                         /* ── CONFIRM STEP ── */

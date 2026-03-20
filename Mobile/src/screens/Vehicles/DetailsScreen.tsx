@@ -3,6 +3,7 @@ import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
     StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid
 } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
@@ -14,7 +15,7 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown
+    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
@@ -44,7 +45,7 @@ type DetailsScreenProps = {
 };
 
 type MainTab = 'Alerts' | 'Details';
-type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Specs' | 'Dates' | 'More';
+type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'More';
 
 export const DetailsScreen = ({
     vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
@@ -118,7 +119,7 @@ export const DetailsScreen = ({
 
     // rtoDetails comes from the Gemini lookup, merged into the vehicle object
     // by AddVehicleScreen → onDone → GupioGarageApp state.
-    const rto = activeVehicle.rtoDetails;
+    const rto = activeVehicle.rtoDetails || activeVehicle;
 
     // Hero image source
     const heroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
@@ -533,6 +534,8 @@ export const DetailsScreen = ({
                                 />
                             </View>
 
+
+
                             {/* ── Your GloverBox ── */}
                             <View style={{ marginTop: 32 }}>
                                 <Text style={styles.sectionHeading}>YOUR GLOVERBOX</Text>
@@ -557,9 +560,9 @@ export const DetailsScreen = ({
                             <ScrollView
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.subTabNav}
-                            >
-                                {(['Health', 'Owner', 'Vehicle', 'Specs', 'Dates', 'More'] as SubTab[]).map(st => (
+                                 contentContainerStyle={[styles.subTabNav, { flexGrow: 1, justifyContent: 'center' }]}
+                             >
+                                 {(['Health', 'Owner', 'Vehicle', 'More'] as SubTab[]).map(st => (
                                     <TouchableOpacity
                                         key={st}
                                         onPress={() => setSubTab(st)}
@@ -657,44 +660,29 @@ export const DetailsScreen = ({
                                         )}
                                     </>
                                 )}
+
                                 {subTab === 'Owner' && (
                                     <>
                                         <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Unknown'} />
-                                        <InfoCard icon={Building} label="RTO Office" value={rto?.rto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
+                                        <InfoCard icon={Building} label="RTO" value={rto?.rto || 'N/A'} />
                                     </>
                                 )}
                                 {subTab === 'Vehicle' && (
                                     <>
-                                        <InfoCard icon={Tag} label="Brand" value={activeVehicle.make || 'Unknown'} />
-                                        <InfoCard icon={Star} label="Model" value={activeVehicle.model || 'Unknown'} />
-                                        <InfoCard icon={Type} label="Variant" value={activeVehicle.variant || 'N/A'} />
-                                        <InfoCard icon={Droplets} label="Fuel Type" value={activeVehicle.fuelType || 'Petrol'} />
-                                        <InfoCard icon={Gauge} label="Fuel Norms" value={rto?.fuelNorms || 'BS VI'} />
-                                    </>
-                                )}
-                                {subTab === 'Specs' && (
-                                    <>
-                                        <InfoCard icon={Cpu} label="Engine No." value={rto?.engineNo || 'N/A'} />
-                                        <InfoCard icon={Activity} label="Chassis No." value={activeVehicle.chassisNumber || 'N/A'} />
-                                        <InfoCard icon={Weight} label="Unloaded Weight" value={rto?.unloadedWeight || 'N/A'} />
-                                        <InfoCard icon={Type} label="Transmission" value={rto?.transmission || 'N/A'} />
-                                    </>
-                                )}
-                                {subTab === 'Dates' && (
-                                    <>
-                                        <InfoCard icon={Calendar} label="Reg. Date" value={rto?.regDate || 'N/A'} />
-                                        <InfoCard icon={Clock} label="Reg. Year" value={activeVehicle.year?.toString() || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Pollution Upto" value={rto?.pollutionUpto || 'N/A'} />
-                                        <InfoCard icon={Calendar} label="Fitness Upto" value={rto?.fitnessUpto || 'N/A'} />
+                                        <InfoCard icon={Tag} label="Make" value={rto?.make || activeVehicle.make || 'Unknown'} />
+                                        <InfoCard icon={Star} label="Model" value={rto?.model || activeVehicle.model || 'Unknown'} />
+                                        <InfoCard icon={Type} label="Class" value={rto?.vehicleClass || activeVehicle.vehicleType || 'Unknown'} />
+                                        <InfoCard icon={Hash} label="Engine Number" value={rto?.engineNumber || rto?.engineNo || 'N/A'} />
+                                        <InfoCard icon={Hash} label="Chassis Number" value={rto?.chassisNumber || rto?.chassisNo || activeVehicle.chassisNumber || 'N/A'} />
+                                        <InfoCard icon={Droplets} label="Fuel Type" value={rto?.fuelType || activeVehicle.fuelType || 'Petrol'} />
                                     </>
                                 )}
                                 {subTab === 'More' && (
                                     <>
-                                        <InfoCard icon={Gauge} label="Mileage" value={rto?.mileage || 'N/A'} />
-                                        <InfoCard icon={Tag} label="Price Range" value={rto?.priceRange || 'N/A'} />
-                                        <InfoCard icon={User} label="Registration Authority" value={rto?.rto || 'N/A'} />
+                                        <InfoCard icon={Tag} label="Registration Number" value={rto?.registrationNumber || activeVehicle.registrationNumber || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
+                                        <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
                                     </>
                                 )}
                             </View>
@@ -1021,11 +1009,18 @@ const styles = StyleSheet.create({
     },
 
     // Details Sub-Tabs
-    subTabNav: { paddingBottom: 16, gap: 12 },
+    subTabNav: { paddingBottom: 16, gap: 12, width: '100%' },
     subTabItem: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
     subTabItemActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
     subTabText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#888' },
     subTabTextActive: { color: '#000' },
+
+    // RC Details section
+    rcInfoSection: { marginTop: 24, paddingHorizontal: 4 },
+    rcGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 16 },
+    rcItem: { width: '47%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#222' },
+    rcItemLabel: { fontSize: 10, color: '#666', fontFamily: 'Outfit-Medium' },
+    rcItemValue: { fontSize: 13, color: '#FFF', fontFamily: 'Outfit-Bold', marginTop: 1 },
 
     detailsSpecsContainer: { gap: 16, marginTop: 10 },
 

@@ -106,9 +106,9 @@ exports.Prisma.CustomerScalarFieldEnum = {
   email: 'email',
   fullName: 'fullName',
   profilePic: 'profilePic',
-  googleId: 'googleId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  googleId: 'googleId'
 };
 
 exports.Prisma.CustomerDeviceScalarFieldEnum = {
@@ -179,7 +179,27 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   updatedAt: 'updatedAt',
   chassisNumber: 'chassisNumber',
   engineNumber: 'engineNumber',
-  imageUrl: 'imageUrl'
+  imageUrl: 'imageUrl',
+  ownerName: 'ownerName',
+  rto: 'rto',
+  vehicleClass: 'vehicleClass',
+  fuelNorms: 'fuelNorms',
+  transmission: 'transmission',
+  priceRange: 'priceRange',
+  rating: 'rating',
+  rcStatus: 'rcStatus',
+  unloadedWeight: 'unloadedWeight',
+  fitnessUpto: 'fitnessUpto',
+  insuranceUpto: 'insuranceUpto',
+  pollutionUpto: 'pollutionUpto',
+  mileage: 'mileage',
+  brand: 'brand',
+  color: 'color',
+  seatingCapacity: 'seatingCapacity',
+  cylinderCount: 'cylinderCount',
+  cubicCapacity: 'cubicCapacity',
+  grossWeight: 'grossWeight',
+  bodyType: 'bodyType'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {
@@ -246,10 +266,10 @@ exports.Prisma.ChatSessionScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   title: 'title',
-  summary: 'summary',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  summary: 'summary'
 };
 
 exports.Prisma.ChatMessageScalarFieldEnum = {
@@ -289,18 +309,12 @@ exports.Prisma.ExpenseScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   vehicleId: 'vehicleId',
-  driverId: 'driverId',
   amount: 'amount',
   currency: 'currency',
   category: 'category',
   date: 'date',
   merchantName: 'merchantName',
   location: 'location',
-  placeId: 'placeId',
-  placeName: 'placeName',
-  placeAddress: 'placeAddress',
-  placeLat: 'placeLat',
-  placeLng: 'placeLng',
   notes: 'notes',
   source: 'source',
   receiptUrl: 'receiptUrl',
@@ -308,7 +322,13 @@ exports.Prisma.ExpenseScalarFieldEnum = {
   rawText: 'rawText',
   isAutomated: 'isAutomated',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  driverId: 'driverId',
+  placeAddress: 'placeAddress',
+  placeId: 'placeId',
+  placeLat: 'placeLat',
+  placeLng: 'placeLng',
+  placeName: 'placeName'
 };
 
 exports.Prisma.ExpenseBudgetScalarFieldEnum = {
@@ -397,9 +417,9 @@ exports.Prisma.TelematicsDeviceScalarFieldEnum = {
   deviceToken: 'deviceToken',
   platform: 'platform',
   isActive: 'isActive',
-  lastSyncAt: 'lastSyncAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastSyncAt: 'lastSyncAt'
 };
 
 exports.Prisma.DrivingTripScalarFieldEnum = {
@@ -453,7 +473,8 @@ exports.Prisma.EmergencyContactScalarFieldEnum = {
   relation: 'relation',
   priority: 'priority',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  email: 'email'
 };
 
 exports.Prisma.SupportTicketScalarFieldEnum = {
@@ -486,6 +507,598 @@ exports.Prisma.FAQScalarFieldEnum = {
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BankAccountDetailsScalarFieldEnum = {
+  id: 'id',
+  bankAccountNumber: 'bankAccountNumber',
+  ifscCode: 'ifscCode',
+  bankAccountHolderName: 'bankAccountHolderName',
+  bankDocuments: 'bankDocuments',
+  documentId: 'documentId'
+};
+
+exports.Prisma.ClientScalarFieldEnum = {
+  id: 'id',
+  clientType: 'clientType',
+  clientName: 'clientName',
+  clientAddress: 'clientAddress',
+  clientEmail: 'clientEmail',
+  contactNumber: 'contactNumber',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  admin1Name: 'admin1Name',
+  admin1Email: 'admin1Email',
+  admin1Phone: 'admin1Phone',
+  admin2Name: 'admin2Name',
+  admin2Email: 'admin2Email',
+  admin2Phone: 'admin2Phone',
+  financeName: 'financeName',
+  financeEmail: 'financeEmail',
+  financePhone: 'financePhone',
+  gstNumber: 'gstNumber',
+  panNumber: 'panNumber',
+  paymentTerms: 'paymentTerms',
+  paymentMode: 'paymentMode',
+  ifsc: 'ifsc',
+  bankAccHolderName: 'bankAccHolderName',
+  accountNumber: 'accountNumber',
+  depositAmount: 'depositAmount',
+  depositDate: 'depositDate',
+  companyLogo: 'companyLogo',
+  documents: 'documents',
+  siteId: 'siteId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  password: 'password',
+  serviceStartTime: 'serviceStartTime',
+  serviceEndTime: 'serviceEndTime',
+  isQrVerified: 'isQrVerified',
+  servicesProvided: 'servicesProvided',
+  allottedParkingSlots: 'allottedParkingSlots',
+  googleFormId: 'googleFormId',
+  googleFormUrl: 'googleFormUrl',
+  parentId: 'parentId',
+  tenantRole: 'tenantRole',
+  parkingMode: 'parkingMode',
+  dropRequestEnabled: 'dropRequestEnabled'
+};
+
+exports.Prisma.ClientNotificationScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  type: 'type',
+  title: 'title',
+  message: 'message',
+  metadata: 'metadata',
+  isRead: 'isRead',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ContactFormScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  companyName: 'companyName',
+  communicationMethod: 'communicationMethod',
+  city: 'city',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Public_CustomerScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  password: 'password',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId',
+  image: 'image',
+  isActive: 'isActive'
+};
+
+exports.Prisma.CustomerRequestScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  customerId: 'customerId',
+  notes: 'notes',
+  requestType: 'requestType',
+  vehicleId: 'vehicleId'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  aadharNumber: 'aadharNumber',
+  aadharFrontImage: 'aadharFrontImage',
+  aadharBackImage: 'aadharBackImage',
+  voterIdNumber: 'voterIdNumber',
+  voterIdImage: 'voterIdImage',
+  panCardNumber: 'panCardNumber',
+  panCardImage: 'panCardImage',
+  drivingLicenseNumber: 'drivingLicenseNumber',
+  drivingLicenseImage: 'drivingLicenseImage',
+  localAddressProof: 'localAddressProof',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  userId: 'userId'
+};
+
+exports.Prisma.HelpSupportScalarFieldEnum = {
+  id: 'id',
+  subject: 'subject',
+  message: 'message',
+  userId: 'userId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceScalarFieldEnum = {
+  id: 'id',
+  invoiceNumber: 'invoiceNumber',
+  clientId: 'clientId',
+  status: 'status',
+  issueDate: 'issueDate',
+  dueDate: 'dueDate',
+  subtotal: 'subtotal',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  pdfUrl: 'pdfUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceItemScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  name: 'name',
+  description: 'description',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  amount: 'amount'
+};
+
+exports.Prisma.LeaveRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  reason: 'reason',
+  status: 'status',
+  approvedById: 'approvedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  leaveType: 'leaveType',
+  adminNote: 'adminNote'
+};
+
+exports.Prisma.OperatorClientAssignmentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  clientId: 'clientId',
+  assignedAt: 'assignedAt'
+};
+
+exports.Prisma.ParkingSlotScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  status: 'status',
+  slotLabel: 'slotLabel',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  invoiceId: 'invoiceId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  paymentType: 'paymentType',
+  paymentMethod: 'paymentMethod',
+  gateway: 'gateway',
+  subscriptionId: 'subscriptionId',
+  receiptUrl: 'receiptUrl',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentAuditLogScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  action: 'action',
+  actorType: 'actorType',
+  actorId: 'actorId',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PaymentTransactionScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  gateway: 'gateway',
+  gatewayTxId: 'gatewayTxId',
+  paymentMethod: 'paymentMethod',
+  failureCode: 'failureCode',
+  failureReason: 'failureReason',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PickupScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  valetId: 'valetId',
+  siteId: 'siteId',
+  clientId: 'clientId',
+  status: 'status',
+  notes: 'notes',
+  pickupFrom: 'pickupFrom',
+  parkAt: 'parkAt',
+  meterPhotoUrl: 'meterPhotoUrl',
+  vehiclePhotoUrl: 'vehiclePhotoUrl',
+  vehicleVideoUrl: 'vehicleVideoUrl',
+  pickupTime: 'pickupTime',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  dropLocation: 'dropLocation',
+  dropTime: 'dropTime',
+  droppedByValetId: 'droppedByValetId',
+  pendingDropLocation: 'pendingDropLocation',
+  pendingDropTime: 'pendingDropTime',
+  pendingDroppedByValetId: 'pendingDroppedByValetId',
+  pendingDropNotes: 'pendingDropNotes'
+};
+
+exports.Prisma.RazorpayOrderScalarFieldEnum = {
+  id: 'id',
+  paymentTransactionId: 'paymentTransactionId',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
+  amountPaise: 'amountPaise',
+  currency: 'currency',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RazorpayWebhookLogScalarFieldEnum = {
+  id: 'id',
+  event: 'event',
+  payload: 'payload',
+  signature: 'signature',
+  processed: 'processed',
+  processedAt: 'processedAt',
+  error: 'error',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RefundScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  paymentTransactionId: 'paymentTransactionId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  gatewayRefundId: 'gatewayRefundId',
+  reason: 'reason',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SelfParkingScalarFieldEnum = {
+  id: 'id',
+  vehicleNumber: 'vehicleNumber',
+  vehiclePhoto: 'vehiclePhoto',
+  entryTime: 'entryTime',
+  exitTime: 'exitTime',
+  valetId: 'valetId',
+  siteId: 'siteId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId',
+  contactNumber: 'contactNumber',
+  isRegistered: 'isRegistered',
+  ownerName: 'ownerName',
+  vehicleColor: 'vehicleColor',
+  vehicleManufacturer: 'vehicleManufacturer'
+};
+
+exports.Prisma.ShiftAttendanceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startTime: 'startTime',
+  startPhotoUrl: 'startPhotoUrl',
+  startLatitude: 'startLatitude',
+  startLongitude: 'startLongitude',
+  startAddress: 'startAddress',
+  endTime: 'endTime',
+  endPhotoUrl: 'endPhotoUrl',
+  endLatitude: 'endLatitude',
+  endLongitude: 'endLongitude',
+  endAddress: 'endAddress',
+  totalMinutes: 'totalMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  status: 'status'
+};
+
+exports.Prisma.SiteScalarFieldEnum = {
+  id: 'id',
+  siteName: 'siteName',
+  siteOwnerName: 'siteOwnerName',
+  ownerPhoneNumber: 'ownerPhoneNumber',
+  ownerEmail: 'ownerEmail',
+  pincode: 'pincode',
+  city: 'city',
+  state: 'state',
+  siteAddress: 'siteAddress',
+  bankAccName: 'bankAccName',
+  accountNumber: 'accountNumber',
+  ifsc: 'ifsc',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  noticePeriod: 'noticePeriod',
+  lockInPeriod: 'lockInPeriod',
+  depositAmount: 'depositAmount',
+  monthlyRental: 'monthlyRental',
+  sitePaymentMethod: 'sitePaymentMethod',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  sitePictures: 'sitePictures',
+  status: 'status',
+  valetCount: 'valetCount',
+  supervisorCount: 'supervisorCount',
+  depositDate: 'depositDate',
+  siteDocuments: 'siteDocuments',
+  fourWheelerCapacity: 'fourWheelerCapacity',
+  twoWheelerCapacity: 'twoWheelerCapacity',
+  siteLength: 'siteLength',
+  siteWidth: 'siteWidth',
+  operatorEmail: 'operatorEmail',
+  operatorName: 'operatorName',
+  operatorPhone: 'operatorPhone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SiteAssignedScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  siteId: 'siteId',
+  role: 'role',
+  assignedAt: 'assignedAt',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId'
+};
+
+exports.Prisma.TicketScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  clientId: 'clientId',
+  subject: 'subject',
+  category: 'category',
+  description: 'description',
+  priority: 'priority',
+  status: 'status',
+  attachments: 'attachments',
+  assignedTo: 'assignedTo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TicketCommentScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  senderId: 'senderId',
+  message: 'message',
+  attachmentUrl: 'attachmentUrl',
+  isAdmin: 'isAdmin',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Public_UserScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  city: 'city',
+  state: 'state',
+  pinCode: 'pinCode',
+  applyingFor: 'applyingFor',
+  password: 'password',
+  profilePic: 'profilePic',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  employeeNumber: 'employeeNumber',
+  employeeId: 'employeeId',
+  status: 'status',
+  permanentAddress: 'permanentAddress',
+  clientId: 'clientId',
+  dateOfBirth: 'dateOfBirth',
+  gender: 'gender',
+  maritalStatus: 'maritalStatus',
+  alternatePhoneNumber: 'alternatePhoneNumber',
+  currentAddress: 'currentAddress',
+  fatherName: 'fatherName',
+  fatherContactNumber: 'fatherContactNumber',
+  dateOfJoining: 'dateOfJoining',
+  workingLocation: 'workingLocation',
+  workingSiteName: 'workingSiteName',
+  shiftTiming: 'shiftTiming',
+  tShirtSize: 'tShirtSize',
+  pantSize: 'pantSize'
+};
+
+exports.Prisma.VehicleScalarFieldEnum = {
+  id: 'id',
+  vehicleNumber: 'vehicleNumber',
+  vehicleType: 'vehicleType',
+  vehicleModel: 'vehicleModel',
+  vehicleBrand: 'vehicleBrand',
+  vehicleColor: 'vehicleColor',
+  ownerName: 'ownerName',
+  ownerPhone: 'ownerPhone',
+  isPhoneVerified: 'isPhoneVerified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  siteId: 'siteId',
+  ownerEmail: 'ownerEmail',
+  status: 'status'
+};
+
+exports.Prisma.Admin_email_verificationsScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  email: 'email',
+  otp: 'otp',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Admin_password_resetsScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  email: 'email',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AdminsScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  password: 'password',
+  profilePic: 'profilePic',
+  bio: 'bio',
+  role: 'role',
+  isEmailVerified: 'isEmailVerified',
+  emailVerifiedAt: 'emailVerifiedAt',
+  lastLoginAt: 'lastLoginAt',
+  socialLinks: 'socialLinks',
+  address: 'address',
+  departmentId: 'departmentId',
+  roleId: 'roleId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Approval_logsScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  approvedBy: 'approvedBy',
+  action: 'action',
+  status: 'status',
+  comments: 'comments',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Client_email_verificationsScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  email: 'email',
+  otp: 'otp',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Client_password_resetsScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  email: 'email',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Customer_fcm_tokensScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  token: 'token',
+  device_info: 'device_info',
+  is_active: 'is_active',
+  last_seen: 'last_seen',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.DepartmentsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Fcm_tokensScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  token: 'token',
+  device_info: 'device_info',
+  is_active: 'is_active',
+  last_seen: 'last_seen',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.PermissionsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  module: 'module',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Role_permissionsScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  permissionId: 'permissionId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RolesScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  departmentId: 'departmentId',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isSuperAdmin: 'isSuperAdmin',
+  permissionKeys: 'permissionKeys',
+  permissionsMask: 'permissionsMask'
 };
 
 exports.Prisma.SortOrder = {
@@ -620,15 +1233,275 @@ exports.TicketPriority = exports.$Enums.TicketPriority = {
 
 exports.TicketCategory = exports.$Enums.TicketCategory = {
   GENERAL: 'GENERAL',
+  TECHNICAL: 'TECHNICAL',
+  BILLING: 'BILLING',
   VEHICLE: 'VEHICLE',
+  APP_ISSUE: 'APP_ISSUE',
+  OTHER: 'OTHER',
   DOCUMENTS: 'DOCUMENTS',
   VALET: 'VALET',
   AI_ASSISTANT: 'AI_ASSISTANT',
-  BILLING: 'BILLING',
-  ACCOUNT: 'ACCOUNT',
-  TECHNICAL: 'TECHNICAL',
-  APP_ISSUE: 'APP_ISSUE',
+  ACCOUNT: 'ACCOUNT'
+};
+
+exports.AdminStatus = exports.$Enums.AdminStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REJECTED: 'REJECTED',
+  INACTIVE: 'INACTIVE'
+};
+
+exports.ApprovalAction = exports.$Enums.ApprovalAction = {
+  SIGNUP_REQUEST: 'SIGNUP_REQUEST',
+  ROLE_CHANGE: 'ROLE_CHANGE',
+  DEPARTMENT_CHANGE: 'DEPARTMENT_CHANGE',
+  ACTIVATION: 'ACTIVATION',
+  DEACTIVATION: 'DEACTIVATION'
+};
+
+exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.CLIENT_NOTIFICATION_TYPE = exports.$Enums.CLIENT_NOTIFICATION_TYPE = {
+  TICKET_UPDATE: 'TICKET_UPDATE',
+  INVOICE_SENT: 'INVOICE_SENT',
+  VALET_ASSIGNED: 'VALET_ASSIGNED',
+  SUPERVISOR_ASSIGNED: 'SUPERVISOR_ASSIGNED'
+};
+
+exports.CLIENT_TYPE = exports.$Enums.CLIENT_TYPE = {
+  Business: 'Business',
+  Individual: 'Individual'
+};
+
+exports.COMMUNICATION_METHOD = exports.$Enums.COMMUNICATION_METHOD = {
+  EMAIL: 'EMAIL',
+  GOOGLE_MEET: 'GOOGLE_MEET',
+  WHATSAPP: 'WHATSAPP',
+  TEXT: 'TEXT',
+  CALL: 'CALL'
+};
+
+exports.ClientStatus = exports.$Enums.ClientStatus = {
+  ACTIVE: 'ACTIVE',
+  IN_ACTIVE: 'IN_ACTIVE'
+};
+
+exports.ClientTenantRole = exports.$Enums.ClientTenantRole = {
+  SUPER_CLIENT_ADMIN: 'SUPER_CLIENT_ADMIN',
+  CLIENT_ADMIN: 'CLIENT_ADMIN'
+};
+
+exports.CustomerStatus = exports.$Enums.CustomerStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.Gender = exports.$Enums.Gender = {
+  M: 'M',
+  F: 'F',
   OTHER: 'OTHER'
+};
+
+exports.HELP_SUPPORT_STATUS = exports.$Enums.HELP_SUPPORT_STATUS = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.INVOICE_STATUS = exports.$Enums.INVOICE_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  OVERDUE: 'OVERDUE',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.KEY_BOX_TYPE = exports.$Enums.KEY_BOX_TYPE = {
+  VTP: 'VTP',
+  KYD: 'KYD'
+};
+
+exports.LEAVE_STATUS = exports.$Enums.LEAVE_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELED: 'CANCELED'
+};
+
+exports.LEAVE_TYPE = exports.$Enums.LEAVE_TYPE = {
+  SICK: 'SICK',
+  CASUAL: 'CASUAL',
+  PAID: 'PAID',
+  EMERGENCY: 'EMERGENCY'
+};
+
+exports.MaritalStatus = exports.$Enums.MaritalStatus = {
+  SINGLE: 'SINGLE',
+  MARRIED: 'MARRIED',
+  DIVORCED: 'DIVORCED',
+  WIDOWED: 'WIDOWED'
+};
+
+exports.PAYMENT_MODE = exports.$Enums.PAYMENT_MODE = {
+  Cheque: 'Cheque',
+  Online: 'Online',
+  UPI: 'UPI',
+  Manual: 'Manual'
+};
+
+exports.PICKUP_STATUS = exports.$Enums.PICKUP_STATUS = {
+  PICKED_UP: 'PICKED_UP',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.PantSize = exports.$Enums.PantSize = {
+  S: 'S',
+  M: 'M',
+  L: 'L',
+  XL: 'XL',
+  XXL: 'XXL',
+  XXXL: 'XXXL'
+};
+
+exports.PaymentGateway = exports.$Enums.PaymentGateway = {
+  RAZORPAY: 'RAZORPAY',
+  STRIPE: 'STRIPE',
+  PAYU: 'PAYU',
+  MANUAL: 'MANUAL'
+};
+
+exports.PaymentMethodType = exports.$Enums.PaymentMethodType = {
+  UPI: 'UPI',
+  CARD: 'CARD',
+  NETBANKING: 'NETBANKING',
+  WALLET: 'WALLET',
+  EMI: 'EMI',
+  OTHER: 'OTHER'
+};
+
+exports.PaymentStatus = exports.$Enums.PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.PaymentType = exports.$Enums.PaymentType = {
+  INVOICE: 'INVOICE',
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  SERVICE_CHARGE: 'SERVICE_CHARGE',
+  ADHOC: 'ADHOC'
+};
+
+exports.REQUEST_STATUS = exports.$Enums.REQUEST_STATUS = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.RefundStatus = exports.$Enums.RefundStatus = {
+  PENDING: 'PENDING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.SHIFT_FINAL_STATUS = exports.$Enums.SHIFT_FINAL_STATUS = {
+  PENDING: 'PENDING',
+  PRESENT: 'PRESENT',
+  ABSENT: 'ABSENT'
+};
+
+exports.SHIFT_STATUS = exports.$Enums.SHIFT_STATUS = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  PENDING: 'PENDING'
+};
+
+exports.SITE_PAYMENT_METHOD = exports.$Enums.SITE_PAYMENT_METHOD = {
+  PREPAID: 'PREPAID',
+  POSTPAID: 'POSTPAID'
+};
+
+exports.SITE_STATUS = exports.$Enums.SITE_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.ShiftTiming = exports.$Enums.ShiftTiming = {
+  NINE_TO_SEVEN: 'NINE_TO_SEVEN',
+  TEN_TO_EIGHT: 'TEN_TO_EIGHT'
+};
+
+exports.SlotStatus = exports.$Enums.SlotStatus = {
+  AVAILABLE: 'AVAILABLE',
+  BOOKED: 'BOOKED'
+};
+
+exports.TICKET_CATEGORY = exports.$Enums.TICKET_CATEGORY = {
+  TECHNICAL: 'TECHNICAL',
+  BILLING: 'BILLING',
+  GENERAL: 'GENERAL',
+  OTHER: 'OTHER'
+};
+
+exports.TICKET_PRIORITY = exports.$Enums.TICKET_PRIORITY = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
+};
+
+exports.TICKET_STATUS = exports.$Enums.TICKET_STATUS = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
+  REOPENED: 'REOPENED'
+};
+
+exports.TShirtSize = exports.$Enums.TShirtSize = {
+  S: 'S',
+  M: 'M',
+  L: 'L',
+  XL: 'XL',
+  XXL: 'XXL'
+};
+
+exports.UserStatus = exports.$Enums.UserStatus = {
+  ACTIVE: 'ACTIVE',
+  IN_ACTIVE: 'IN_ACTIVE'
+};
+
+exports.VALET_ROLE = exports.$Enums.VALET_ROLE = {
+  VALET: 'VALET',
+  SUPERVISOR: 'SUPERVISOR',
+  GUPTIO_SUPERVISOR: 'GUPTIO_SUPERVISOR',
+  OPERATOR: 'OPERATOR'
+};
+
+exports.VEHICLE_TYPE = exports.$Enums.VEHICLE_TYPE = {
+  CAR: 'CAR',
+  MOTORCYCLE: 'MOTORCYCLE'
+};
+
+exports.VehicleStatus = exports.$Enums.VehicleStatus = {
+  PARKED: 'PARKED',
+  PICKED_UP: 'PICKED_UP',
+  IN_TRANSIT: 'IN_TRANSIT',
+  RETURNED: 'RETURNED'
 };
 
 exports.Prisma.ModelName = {
@@ -661,7 +1534,47 @@ exports.Prisma.ModelName = {
   EmergencyContact: 'EmergencyContact',
   SupportTicket: 'SupportTicket',
   TicketMessage: 'TicketMessage',
-  FAQ: 'FAQ'
+  FAQ: 'FAQ',
+  BankAccountDetails: 'BankAccountDetails',
+  Client: 'Client',
+  ClientNotification: 'ClientNotification',
+  ContactForm: 'ContactForm',
+  public_Customer: 'public_Customer',
+  CustomerRequest: 'CustomerRequest',
+  Document: 'Document',
+  HelpSupport: 'HelpSupport',
+  Invoice: 'Invoice',
+  InvoiceItem: 'InvoiceItem',
+  LeaveRequest: 'LeaveRequest',
+  OperatorClientAssignment: 'OperatorClientAssignment',
+  ParkingSlot: 'ParkingSlot',
+  Payment: 'Payment',
+  PaymentAuditLog: 'PaymentAuditLog',
+  PaymentTransaction: 'PaymentTransaction',
+  Pickup: 'Pickup',
+  RazorpayOrder: 'RazorpayOrder',
+  RazorpayWebhookLog: 'RazorpayWebhookLog',
+  Refund: 'Refund',
+  SelfParking: 'SelfParking',
+  ShiftAttendance: 'ShiftAttendance',
+  Site: 'Site',
+  SiteAssigned: 'SiteAssigned',
+  Ticket: 'Ticket',
+  TicketComment: 'TicketComment',
+  public_User: 'public_User',
+  Vehicle: 'Vehicle',
+  admin_email_verifications: 'admin_email_verifications',
+  admin_password_resets: 'admin_password_resets',
+  admins: 'admins',
+  approval_logs: 'approval_logs',
+  client_email_verifications: 'client_email_verifications',
+  client_password_resets: 'client_password_resets',
+  customer_fcm_tokens: 'customer_fcm_tokens',
+  departments: 'departments',
+  fcm_tokens: 'fcm_tokens',
+  permissions: 'permissions',
+  role_permissions: 'role_permissions',
+  roles: 'roles'
 };
 /**
  * Create the Client
@@ -674,10 +1587,10 @@ const config = {
   "clientVersion": "7.3.0",
   "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../generated/client\"\n  previewFeatures = [\"driverAdapters\", \"postgresqlExtensions\"]\n}\n\ndatasource db {\n  provider   = \"postgresql\"\n  extensions = [uuid_ossp(map: \"uuid-ossp\", schema: \"public\")]\n  schemas    = [\"customer\", \"public\"]\n}\n\nmodel User {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  name      String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n\nmodel Customer {\n  id                String                @id @default(cuid())\n  phoneNumber       String                @unique\n  email             String?\n  fullName          String?\n  profilePic        String?\n  googleId          String?               @unique\n  createdAt         DateTime              @default(now())\n  updatedAt         DateTime              @updatedAt\n  chats             ChatSession[]\n  devices           CustomerDevice[]\n  documents         CustomerDocument[]\n  vehicles          CustomerVehicle[]\n  digilocker        DigiLockerConnection?\n  emergencyContacts EmergencyContact[]\n  expenses          Expense[]\n  budgets           ExpenseBudget[]\n  notifications     InAppNotification[]\n  sosRequests       SOSRequest[]\n  sharedVehicles    VehicleAccess[]\n  supportTickets    SupportTicket[]\n  driverExpenses    Expense[]             @relation(\"DriverExpenses\")\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerDevice {\n  id           String   @id @default(cuid())\n  customerId   String\n  platform     String\n  deviceToken  String?\n  deviceInfo   String?\n  lastActiveAt DateTime @default(now())\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerDocument {\n  id                 String             @id @default(cuid())\n  customerId         String\n  vehicleId          String?\n  type               DocumentType\n  documentNumber     String?\n  issueDate          DateTime?\n  expiryDate         DateTime?\n  issuerName         String?\n  fileUrl            String\n  thumbnailUrl       String?\n  fileSize           Int?\n  mimeType           String?\n  ocrData            Json?\n  extractedFields    Json?\n  verificationStatus VerificationStatus @default(PENDING)\n  verifiedAt         DateTime?\n  verifiedBy         String?\n  source             DocumentSource     @default(UPLOAD)\n  createdAt          DateTime           @default(now())\n  updatedAt          DateTime           @updatedAt\n  customer           Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  vehicle            CustomerVehicle?   @relation(fields: [vehicleId], references: [id])\n\n  @@index([customerId])\n  @@index([vehicleId])\n  @@index([type])\n  @@schema(\"customer\")\n}\n\nmodel DigiLockerConnection {\n  id           String           @id @default(cuid())\n  customerId   String           @unique\n  accessToken  String\n  refreshToken String\n  expiresAt    DateTime\n  scope        String?\n  consentId    String?\n  consentDate  DateTime?\n  status       DigiLockerStatus @default(CONNECTED)\n  lastSyncAt   DateTime?\n  connectedAt  DateTime         @default(now())\n  updatedAt    DateTime         @updatedAt\n  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerVehicle {\n  id                 String              @id @default(cuid())\n  customerId         String\n  registrationNumber String              @unique\n  make               String?\n  model              String?\n  variant            String?\n  year               Int?\n  fuelType           String?\n  vehicleType        String?\n  currentOdometer    Int?                @default(0)\n  registrationDate   DateTime?\n  rcVerified         Boolean             @default(false)\n  isActive           Boolean             @default(true)\n  isPrimary          Boolean             @default(false)\n  createdAt          DateTime            @default(now())\n  updatedAt          DateTime            @updatedAt\n  chassisNumber      String?\n  engineNumber       String?\n  imageUrl           String? // AI-generated Unsplash URL, saved at vehicle creation\n  challans           Challan[]\n  documents          CustomerDocument[]\n  customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  drivingTrips       DrivingTrip[]\n  expenses           Expense[]\n  odometerLogs       OdometerLog[]\n  serviceRecords     ServiceRecord[]\n  telematicsDevice   TelematicsDevice?\n  accessList         VehicleAccess[]\n  healthScore        VehicleHealthScore?\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel OdometerLog {\n  id        String          @id @default(cuid())\n  vehicleId String\n  reading   Int\n  date      DateTime        @default(now())\n  createdAt DateTime        @default(now())\n  vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@schema(\"customer\")\n}\n\nmodel Challan {\n  id            String          @id @default(cuid())\n  vehicleId     String\n  challanNumber String          @unique\n  amount        Int\n  status        String\n  date          DateTime\n  violationType String\n  location      String?\n  source        String\n  lastCheckedAt DateTime        @default(now())\n  createdAt     DateTime        @default(now())\n  updatedAt     DateTime        @updatedAt\n  vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@schema(\"customer\")\n}\n\nmodel VehicleAccess {\n  id         String          @id @default(cuid())\n  vehicleId  String\n  customerId String\n  role       AccessRole      @default(VIEWER)\n  createdAt  DateTime        @default(now())\n  updatedAt  DateTime        @updatedAt\n  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  vehicle    CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@unique([vehicleId, customerId])\n  @@schema(\"customer\")\n}\n\nmodel VehicleHealthScore {\n  id               String          @id @default(cuid())\n  vehicleId        String          @unique\n  overallScore     Int             @default(100)\n  ageScore         Int?\n  mileageScore     Int?\n  maintenanceScore Int?\n  drivingScore     Int?\n  explanations     Json?\n  recommendations  Json?\n  lastCalculated   DateTime        @default(now())\n  nextDueDate      DateTime?\n  vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel InAppNotification {\n  id         String    @id @default(cuid())\n  customerId String\n  title      String\n  body       String\n  type       String\n  link       String?\n  metadata   Json?\n  isRead     Boolean   @default(false)\n  readAt     DateTime?\n  createdAt  DateTime  @default(now())\n  updatedAt  DateTime  @updatedAt\n  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel ChatSession {\n  id         String        @id @default(cuid())\n  customerId String\n  title      String?\n  summary    String? // AI-generated summary of older messages\n  isActive   Boolean       @default(true)\n  createdAt  DateTime      @default(now())\n  updatedAt  DateTime      @updatedAt\n  messages   ChatMessage[]\n  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel ChatMessage {\n  id        String      @id @default(cuid())\n  sessionId String\n  role      String\n  content   String\n  metadata  Json?\n  createdAt DateTime    @default(now())\n  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n\n  @@index([sessionId])\n  @@schema(\"customer\")\n}\n\nmodel DocumentEmbedding {\n  id         String   @id @default(cuid())\n  customerId String\n  entityId   String\n  entityType String\n  content    String\n  createdAt  DateTime @default(now())\n\n  @@index([customerId])\n  @@index([entityId])\n  @@schema(\"customer\")\n}\n\nmodel ChatAnalytics {\n  id             String   @id @default(cuid())\n  customerId     String\n  sessionId      String\n  toolName       String?\n  intent         String?\n  responseTimeMs Int?\n  messageCount   Int      @default(1)\n  hadToolCall    Boolean  @default(false)\n  hadImage       Boolean  @default(false)\n  wasStreaming   Boolean  @default(false)\n  feedback       Int? // -1 = thumbs down, 1 = thumbs up\n  createdAt      DateTime @default(now())\n\n  @@index([customerId])\n  @@index([sessionId])\n  @@index([createdAt])\n  @@schema(\"customer\")\n}\n\nmodel Expense {\n  id           String           @id @default(cuid())\n  customerId   String\n  vehicleId    String?\n  driverId     String?\n  amount       Float\n  currency     String           @default(\"INR\")\n  category     ExpenseCategory\n  date         DateTime         @default(now())\n  merchantName String?\n  location     String?\n  placeId      String?\n  placeName    String?\n  placeAddress String?\n  placeLat     Float?\n  placeLng     Float?\n  notes        String?\n  source       ExpenseSource    @default(MANUAL)\n  receiptUrl   String?\n  mimeType     String?\n  rawText      String?\n  isAutomated  Boolean          @default(false)\n  createdAt    DateTime         @default(now())\n  updatedAt    DateTime         @updatedAt\n  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])\n  driver       Customer?        @relation(\"DriverExpenses\", fields: [driverId], references: [id])\n\n  @@index([customerId])\n  @@index([vehicleId])\n  @@index([category])\n  @@schema(\"customer\")\n}\n\nmodel ExpenseBudget {\n  id              String          @id @default(cuid())\n  customerId      String\n  category        ExpenseCategory\n  amount          Float\n  period          String          @default(\"MONTHLY\")\n  notifyThreshold Int             @default(80)\n  isActive        Boolean         @default(true)\n  createdAt       DateTime        @default(now())\n  updatedAt       DateTime        @updatedAt\n  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@unique([customerId, category])\n  @@schema(\"customer\")\n}\n\nmodel FuelPriceCache {\n  id        String   @id @default(cuid())\n  city      String\n  state     String\n  fuelType  String\n  price     Float\n  date      DateTime @default(now())\n  source    String   @default(\"IOCL_API\")\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@unique([city, fuelType, date])\n  @@index([city, fuelType])\n  @@schema(\"customer\")\n}\n\nmodel DiscoveryContent {\n  id        String   @id @default(cuid())\n  type      String // 'NEWS' or 'VIDEO'\n  content   Json // Stored list of news/videos\n  date      DateTime @default(now())\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([type, date])\n  @@schema(\"customer\")\n}\n\nmodel ServiceRecord {\n  id                String          @id @default(cuid())\n  vehicleId         String\n  expenseId         String?\n  serviceType       String\n  garageName        String?\n  odometerAtService Int?\n  serviceDate       DateTime        @default(now())\n  nextServiceDate   DateTime?\n  nextServiceKm     Int?\n  notes             String?\n  createdAt         DateTime        @default(now())\n  updatedAt         DateTime        @updatedAt\n  parts             ServicePart[]\n  vehicle           CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@schema(\"customer\")\n}\n\nmodel ServicePart {\n  id                 String          @id @default(cuid())\n  serviceRecordId    String\n  partType           ServicePartType\n  partName           String?\n  brand              String?\n  cost               Float?\n  warrantyMonths     Int?\n  warrantyKm         Int?\n  warrantyExpiresAt  DateTime?\n  lastReplacedAt     DateTime        @default(now())\n  nextReplacementDue DateTime?\n  createdAt          DateTime        @default(now())\n  updatedAt          DateTime        @updatedAt\n  serviceRecord      ServiceRecord   @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)\n\n  @@index([serviceRecordId])\n  @@index([partType])\n  @@schema(\"customer\")\n}\n\nmodel PartReplacementInterval {\n  id                    String          @id @default(cuid())\n  make                  String\n  model                 String?\n  yearMin               Int?\n  yearMax               Int?\n  partType              ServicePartType\n  intervalMonths        Int\n  intervalKm            Int\n  defaultWarrantyMonths Int             @default(0)\n  source                String?\n  createdAt             DateTime        @default(now())\n  updatedAt             DateTime        @updatedAt\n\n  @@unique([make, model, yearMin, yearMax, partType])\n  @@index([partType])\n  @@index([make, model])\n  @@schema(\"customer\")\n}\n\nmodel TelematicsDevice {\n  id          String          @id @default(cuid())\n  vehicleId   String          @unique\n  instanceId  String          @unique // Damoov Instance ID\n  deviceToken String? // Damoov Device Token\n  platform    String? // iOS/Android\n  isActive    Boolean         @default(true)\n  lastSyncAt  DateTime?\n  createdAt   DateTime        @default(now())\n  updatedAt   DateTime        @updatedAt\n  vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel DrivingTrip {\n  id            String          @id @default(cuid())\n  vehicleId     String\n  tripId        String          @unique\n  startTime     DateTime\n  endTime       DateTime\n  distanceKm    Float\n  durationMin   Float\n  maxSpeed      Float?\n  avgSpeed      Float?\n  fuelConsumed  Float?\n  safetyScore   Int\n  startLocation Json?\n  endLocation   Json?\n  status        String\n  createdAt     DateTime        @default(now())\n  events        DrivingEvent[]\n  vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@index([startTime])\n  @@schema(\"customer\")\n}\n\nmodel DrivingEvent {\n  id        String      @id @default(cuid())\n  tripId    String\n  eventType String\n  timestamp DateTime\n  latitude  Float\n  longitude Float\n  severity  Float?\n  speed     Float?\n  createdAt DateTime    @default(now())\n  trip      DrivingTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)\n\n  @@index([tripId])\n  @@schema(\"customer\")\n}\n\nmodel SOSRequest {\n  id         String    @id @default(cuid())\n  customerId String\n  latitude   Float\n  longitude  Float\n  address    String?\n  status     SOSStatus @default(ACTIVE)\n  type       SOSType   @default(OTHER)\n  metadata   Json?\n  createdAt  DateTime  @default(now())\n  resolvedAt DateTime?\n  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@index([status])\n  @@schema(\"customer\")\n}\n\nmodel EmergencyContact {\n  id          String   @id @default(cuid())\n  customerId  String\n  name        String\n  phoneNumber String\n  relation    String?\n  priority    Int      @default(1)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel SupportTicket {\n  id          String          @id @default(cuid())\n  customerId  String\n  subject     String\n  description String\n  status      TicketStatus    @default(OPEN)\n  priority    TicketPriority  @default(MEDIUM)\n  category    TicketCategory  @default(OTHER)\n  createdAt   DateTime        @default(now())\n  updatedAt   DateTime        @updatedAt\n  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  messages    TicketMessage[]\n\n  @@index([customerId])\n  @@index([status])\n  @@schema(\"customer\")\n}\n\nmodel TicketMessage {\n  id         String        @id @default(cuid())\n  ticketId   String\n  senderId   String // customerId or supportAgentId\n  senderRole String // 'CUSTOMER' or 'AGENT'\n  content    String\n  createdAt  DateTime      @default(now())\n  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)\n\n  @@index([ticketId])\n  @@schema(\"customer\")\n}\n\nmodel FAQ {\n  id        String   @id @default(cuid())\n  question  String\n  answer    String\n  category  String?\n  order     Int      @default(0)\n  isActive  Boolean  @default(true)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n\nenum DocumentType {\n  RC\n  INSURANCE\n  PUC\n  FASTAG\n  DL\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum VerificationStatus {\n  PENDING\n  VERIFIED\n  REJECTED\n\n  @@schema(\"customer\")\n}\n\nenum DocumentSource {\n  UPLOAD\n  DIGILOCKER\n  PARIVAHAN\n\n  @@schema(\"customer\")\n}\n\nenum DigiLockerStatus {\n  CONNECTED\n  DISCONNECTED\n  EXPIRED\n  REVOKED\n\n  @@schema(\"customer\")\n}\n\nenum AccessRole {\n  OWNER\n  EDITOR\n  VIEWER\n  DRIVER\n\n  @@schema(\"customer\")\n}\n\nenum ExpenseCategory {\n  FUEL\n  TOLL\n  PARKING\n  SERVICE\n  INSURANCE\n  CHALLAN\n  EMI\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum ExpenseSource {\n  MANUAL\n  SMS\n  NOTIFICATION\n  VOICE\n  RECEIPT\n\n  @@schema(\"customer\")\n}\n\nenum ServicePartType {\n  ENGINE_OIL\n  OIL_FILTER\n  AIR_FILTER\n  BRAKE_PADS\n  BRAKE_DISCS\n  BATTERY\n  TYRES_FRONT\n  TYRES_REAR\n  CLUTCH_PLATE\n  SPARK_PLUGS\n  COOLANT\n  TIMING_BELT\n  AC_FILTER\n  WIPER_BLADES\n  HEADLIGHT_BULB\n  OTHER_PART\n\n  @@schema(\"customer\")\n}\n\nenum SOSStatus {\n  ACTIVE\n  RESOLVED\n  CANCELLED\n\n  @@schema(\"customer\")\n}\n\nenum SOSType {\n  MEDICAL\n  POLICE\n  MECHANICAL\n  ACCIDENT\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum TicketStatus {\n  OPEN\n  IN_PROGRESS\n  RESOLVED\n  CLOSED\n\n  @@schema(\"customer\")\n}\n\nenum TicketPriority {\n  LOW\n  MEDIUM\n  HIGH\n  URGENT\n\n  @@schema(\"customer\")\n}\n\nenum TicketCategory {\n  GENERAL\n  VEHICLE\n  DOCUMENTS\n  VALET\n  AI_ASSISTANT\n  BILLING\n  ACCOUNT\n  TECHNICAL\n  APP_ISSUE\n  OTHER\n\n  @@schema(\"customer\")\n}\n"
+  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../generated/client\"\n  previewFeatures = [\"driverAdapters\", \"postgresqlExtensions\"]\n}\n\ndatasource db {\n  provider   = \"postgresql\"\n  extensions = [uuid_ossp(map: \"uuid-ossp\", schema: \"public\")]\n  schemas    = [\"customer\", \"public\"]\n}\n\nmodel User {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  name      String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n\nmodel Customer {\n  id                String                @id @default(cuid())\n  phoneNumber       String                @unique\n  email             String?\n  fullName          String?\n  profilePic        String?\n  createdAt         DateTime              @default(now())\n  updatedAt         DateTime              @updatedAt\n  googleId          String?               @unique\n  chats             ChatSession[]\n  devices           CustomerDevice[]\n  documents         CustomerDocument[]\n  vehicles          CustomerVehicle[]\n  digilocker        DigiLockerConnection?\n  emergencyContacts EmergencyContact[]\n  expenses          Expense[]\n  driverExpenses    Expense[]             @relation(\"DriverExpenses\")\n  budgets           ExpenseBudget[]\n  notifications     InAppNotification[]\n  sosRequests       SOSRequest[]\n  supportTickets    SupportTicket[]\n  sharedVehicles    VehicleAccess[]\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerDevice {\n  id           String   @id @default(cuid())\n  customerId   String\n  platform     String\n  deviceToken  String?\n  deviceInfo   String?\n  lastActiveAt DateTime @default(now())\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerDocument {\n  id                 String             @id @default(cuid())\n  customerId         String\n  vehicleId          String?\n  type               DocumentType\n  documentNumber     String?\n  issueDate          DateTime?\n  expiryDate         DateTime?\n  issuerName         String?\n  fileUrl            String\n  thumbnailUrl       String?\n  fileSize           Int?\n  mimeType           String?\n  ocrData            Json?\n  extractedFields    Json?\n  verificationStatus VerificationStatus @default(PENDING)\n  verifiedAt         DateTime?\n  verifiedBy         String?\n  source             DocumentSource     @default(UPLOAD)\n  createdAt          DateTime           @default(now())\n  updatedAt          DateTime           @updatedAt\n  customer           Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  vehicle            CustomerVehicle?   @relation(fields: [vehicleId], references: [id])\n\n  @@index([customerId])\n  @@index([vehicleId])\n  @@index([type])\n  @@schema(\"customer\")\n}\n\nmodel DigiLockerConnection {\n  id           String           @id @default(cuid())\n  customerId   String           @unique\n  accessToken  String\n  refreshToken String\n  expiresAt    DateTime\n  scope        String?\n  consentId    String?\n  consentDate  DateTime?\n  status       DigiLockerStatus @default(CONNECTED)\n  lastSyncAt   DateTime?\n  connectedAt  DateTime         @default(now())\n  updatedAt    DateTime         @updatedAt\n  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel CustomerVehicle {\n  id                 String              @id @default(cuid())\n  customerId         String\n  registrationNumber String              @unique\n  make               String?\n  model              String?\n  variant            String?\n  year               Int?\n  fuelType           String?\n  vehicleType        String?\n  currentOdometer    Int?                @default(0)\n  registrationDate   DateTime?\n  rcVerified         Boolean             @default(false)\n  isActive           Boolean             @default(true)\n  isPrimary          Boolean             @default(false)\n  createdAt          DateTime            @default(now())\n  updatedAt          DateTime            @updatedAt\n  chassisNumber      String?\n  engineNumber       String?\n  imageUrl           String?\n  ownerName          String?\n  rto                String?\n  vehicleClass       String?\n  fuelNorms          String?\n  transmission       String?\n  priceRange         String?\n  rating             String?\n  rcStatus           String?\n  unloadedWeight     String?\n  fitnessUpto        String?\n  insuranceUpto      String?\n  pollutionUpto      String?\n  mileage            String?\n  brand              String?\n  color              String?\n  seatingCapacity    String?\n  cylinderCount      String?\n  cubicCapacity      String?\n  grossWeight        String?\n  bodyType           String?\n  challans           Challan[]\n  documents          CustomerDocument[]\n  customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  drivingTrips       DrivingTrip[]\n  expenses           Expense[]\n  odometerLogs       OdometerLog[]\n  serviceRecords     ServiceRecord[]\n  telematicsDevice   TelematicsDevice?\n  accessList         VehicleAccess[]\n  healthScore        VehicleHealthScore?\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel OdometerLog {\n  id        String          @id @default(cuid())\n  vehicleId String\n  reading   Int\n  date      DateTime        @default(now())\n  createdAt DateTime        @default(now())\n  vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@schema(\"customer\")\n}\n\nmodel Challan {\n  id            String          @id @default(cuid())\n  vehicleId     String\n  challanNumber String          @unique\n  amount        Int\n  status        String\n  date          DateTime\n  violationType String\n  location      String?\n  source        String\n  lastCheckedAt DateTime        @default(now())\n  createdAt     DateTime        @default(now())\n  updatedAt     DateTime        @updatedAt\n  vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@schema(\"customer\")\n}\n\nmodel VehicleAccess {\n  id         String          @id @default(cuid())\n  vehicleId  String\n  customerId String\n  role       AccessRole      @default(VIEWER)\n  createdAt  DateTime        @default(now())\n  updatedAt  DateTime        @updatedAt\n  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  vehicle    CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@unique([vehicleId, customerId])\n  @@schema(\"customer\")\n}\n\nmodel VehicleHealthScore {\n  id               String          @id @default(cuid())\n  vehicleId        String          @unique\n  overallScore     Int             @default(100)\n  ageScore         Int?\n  mileageScore     Int?\n  maintenanceScore Int?\n  drivingScore     Int?\n  explanations     Json?\n  recommendations  Json?\n  lastCalculated   DateTime        @default(now())\n  nextDueDate      DateTime?\n  vehicle          CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel InAppNotification {\n  id         String    @id @default(cuid())\n  customerId String\n  title      String\n  body       String\n  type       String\n  link       String?\n  metadata   Json?\n  isRead     Boolean   @default(false)\n  readAt     DateTime?\n  createdAt  DateTime  @default(now())\n  updatedAt  DateTime  @updatedAt\n  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel ChatSession {\n  id         String        @id @default(cuid())\n  customerId String\n  title      String?\n  isActive   Boolean       @default(true)\n  createdAt  DateTime      @default(now())\n  updatedAt  DateTime      @updatedAt\n  summary    String?\n  messages   ChatMessage[]\n  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel ChatMessage {\n  id        String      @id @default(cuid())\n  sessionId String\n  role      String\n  content   String\n  metadata  Json?\n  createdAt DateTime    @default(now())\n  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n\n  @@index([sessionId])\n  @@schema(\"customer\")\n}\n\nmodel DocumentEmbedding {\n  id         String                 @id @default(cuid())\n  customerId String\n  entityId   String\n  entityType String\n  content    String\n  createdAt  DateTime               @default(now())\n  vector     Unsupported(\"vector\")?\n\n  @@index([customerId])\n  @@index([entityId])\n  @@schema(\"customer\")\n}\n\nmodel ChatAnalytics {\n  id             String   @id @default(cuid())\n  customerId     String\n  sessionId      String\n  toolName       String?\n  intent         String?\n  responseTimeMs Int?\n  messageCount   Int      @default(1)\n  hadToolCall    Boolean  @default(false)\n  hadImage       Boolean  @default(false)\n  wasStreaming   Boolean  @default(false)\n  feedback       Int?\n  createdAt      DateTime @default(now())\n\n  @@index([customerId])\n  @@index([sessionId])\n  @@index([createdAt])\n  @@schema(\"customer\")\n}\n\nmodel Expense {\n  id           String           @id @default(cuid())\n  customerId   String\n  vehicleId    String?\n  amount       Float\n  currency     String           @default(\"INR\")\n  category     ExpenseCategory\n  date         DateTime         @default(now())\n  merchantName String?\n  location     String?\n  notes        String?\n  source       ExpenseSource    @default(MANUAL)\n  receiptUrl   String?\n  mimeType     String?\n  rawText      String?\n  isAutomated  Boolean          @default(false)\n  createdAt    DateTime         @default(now())\n  updatedAt    DateTime         @updatedAt\n  driverId     String?\n  placeAddress String?\n  placeId      String?\n  placeLat     Float?\n  placeLng     Float?\n  placeName    String?\n  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  driver       Customer?        @relation(\"DriverExpenses\", fields: [driverId], references: [id])\n  vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])\n\n  @@index([customerId])\n  @@index([vehicleId])\n  @@index([category])\n  @@schema(\"customer\")\n}\n\nmodel ExpenseBudget {\n  id              String          @id @default(cuid())\n  customerId      String\n  category        ExpenseCategory\n  amount          Float\n  period          String          @default(\"MONTHLY\")\n  notifyThreshold Int             @default(80)\n  isActive        Boolean         @default(true)\n  createdAt       DateTime        @default(now())\n  updatedAt       DateTime        @updatedAt\n  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@unique([customerId, category])\n  @@schema(\"customer\")\n}\n\nmodel FuelPriceCache {\n  id        String   @id @default(cuid())\n  city      String\n  state     String\n  fuelType  String\n  price     Float\n  date      DateTime @default(now())\n  source    String   @default(\"IOCL_API\")\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@unique([city, fuelType, date])\n  @@index([city, fuelType])\n  @@schema(\"customer\")\n}\n\nmodel DiscoveryContent {\n  id        String   @id @default(cuid())\n  type      String\n  content   Json\n  date      DateTime @default(now())\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([type, date])\n  @@schema(\"customer\")\n}\n\nmodel ServiceRecord {\n  id                String          @id @default(cuid())\n  vehicleId         String\n  expenseId         String?\n  serviceType       String\n  garageName        String?\n  odometerAtService Int?\n  serviceDate       DateTime        @default(now())\n  nextServiceDate   DateTime?\n  nextServiceKm     Int?\n  notes             String?\n  createdAt         DateTime        @default(now())\n  updatedAt         DateTime        @updatedAt\n  parts             ServicePart[]\n  vehicle           CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@schema(\"customer\")\n}\n\nmodel ServicePart {\n  id                 String          @id @default(cuid())\n  serviceRecordId    String\n  partType           ServicePartType\n  partName           String?\n  brand              String?\n  cost               Float?\n  warrantyMonths     Int?\n  warrantyKm         Int?\n  warrantyExpiresAt  DateTime?\n  lastReplacedAt     DateTime        @default(now())\n  nextReplacementDue DateTime?\n  createdAt          DateTime        @default(now())\n  updatedAt          DateTime        @updatedAt\n  serviceRecord      ServiceRecord   @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)\n\n  @@index([serviceRecordId])\n  @@index([partType])\n  @@schema(\"customer\")\n}\n\nmodel PartReplacementInterval {\n  id                    String          @id @default(cuid())\n  make                  String\n  model                 String?\n  yearMin               Int?\n  yearMax               Int?\n  partType              ServicePartType\n  intervalMonths        Int\n  intervalKm            Int\n  defaultWarrantyMonths Int             @default(0)\n  source                String?\n  createdAt             DateTime        @default(now())\n  updatedAt             DateTime        @updatedAt\n\n  @@unique([make, model, yearMin, yearMax, partType])\n  @@index([partType])\n  @@index([make, model])\n  @@schema(\"customer\")\n}\n\nmodel TelematicsDevice {\n  id          String          @id @default(cuid())\n  vehicleId   String          @unique\n  instanceId  String          @unique\n  deviceToken String?\n  platform    String?\n  isActive    Boolean         @default(true)\n  createdAt   DateTime        @default(now())\n  updatedAt   DateTime        @updatedAt\n  lastSyncAt  DateTime?\n  vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@schema(\"customer\")\n}\n\nmodel DrivingTrip {\n  id            String          @id @default(cuid())\n  vehicleId     String\n  tripId        String          @unique\n  startTime     DateTime\n  endTime       DateTime\n  distanceKm    Float\n  durationMin   Float\n  maxSpeed      Float?\n  avgSpeed      Float?\n  fuelConsumed  Float?\n  safetyScore   Int\n  startLocation Json?\n  endLocation   Json?\n  status        String\n  createdAt     DateTime        @default(now())\n  events        DrivingEvent[]\n  vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)\n\n  @@index([vehicleId])\n  @@index([startTime])\n  @@schema(\"customer\")\n}\n\nmodel DrivingEvent {\n  id        String      @id @default(cuid())\n  tripId    String\n  eventType String\n  timestamp DateTime\n  latitude  Float\n  longitude Float\n  severity  Float?\n  speed     Float?\n  createdAt DateTime    @default(now())\n  trip      DrivingTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)\n\n  @@index([tripId])\n  @@schema(\"customer\")\n}\n\nmodel SOSRequest {\n  id         String    @id @default(cuid())\n  customerId String\n  latitude   Float\n  longitude  Float\n  address    String?\n  status     SOSStatus @default(ACTIVE)\n  type       SOSType   @default(OTHER)\n  metadata   Json?\n  createdAt  DateTime  @default(now())\n  resolvedAt DateTime?\n  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@index([status])\n  @@schema(\"customer\")\n}\n\nmodel EmergencyContact {\n  id          String   @id @default(cuid())\n  customerId  String\n  name        String\n  phoneNumber String\n  relation    String?\n  priority    Int      @default(1)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  email       String?\n  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n\n  @@index([customerId])\n  @@schema(\"customer\")\n}\n\nmodel SupportTicket {\n  id          String          @id @default(cuid())\n  customerId  String\n  subject     String\n  description String\n  status      TicketStatus    @default(OPEN)\n  priority    TicketPriority  @default(MEDIUM)\n  category    TicketCategory  @default(OTHER)\n  createdAt   DateTime        @default(now())\n  updatedAt   DateTime        @updatedAt\n  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  messages    TicketMessage[]\n\n  @@index([customerId])\n  @@index([status])\n  @@schema(\"customer\")\n}\n\nmodel TicketMessage {\n  id         String        @id @default(cuid())\n  ticketId   String\n  senderId   String\n  senderRole String\n  content    String\n  createdAt  DateTime      @default(now())\n  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)\n\n  @@index([ticketId])\n  @@schema(\"customer\")\n}\n\nmodel FAQ {\n  id        String   @id @default(cuid())\n  question  String\n  answer    String\n  category  String?\n  order     Int      @default(0)\n  isActive  Boolean  @default(true)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@schema(\"customer\")\n}\n\nmodel BankAccountDetails {\n  id                    String   @id\n  bankAccountNumber     String\n  ifscCode              String\n  bankAccountHolderName String\n  bankDocuments         String\n  documentId            String   @unique\n  Document              Document @relation(fields: [documentId], references: [id])\n\n  @@schema(\"public\")\n}\n\nmodel Client {\n  id                         String                       @id\n  clientType                 CLIENT_TYPE\n  clientName                 String\n  clientAddress              String\n  clientEmail                String                       @unique\n  contactNumber              String                       @unique\n  city                       String\n  state                      String\n  pincode                    String\n  admin1Name                 String\n  admin1Email                String\n  admin1Phone                String\n  admin2Name                 String\n  admin2Email                String\n  admin2Phone                String\n  financeName                String\n  financeEmail               String\n  financePhone               String\n  gstNumber                  String?\n  panNumber                  String\n  paymentTerms               String\n  paymentMode                PAYMENT_MODE\n  ifsc                       String\n  bankAccHolderName          String\n  accountNumber              String\n  depositAmount              Float                        @default(0)\n  depositDate                DateTime?\n  companyLogo                String?\n  documents                  Json                         @default(\"[]\")\n  siteId                     String\n  isActive                   ClientStatus                 @default(ACTIVE)\n  createdAt                  DateTime                     @default(now())\n  updatedAt                  DateTime\n  password                   String\n  serviceStartTime           String\n  serviceEndTime             String\n  isQrVerified               Boolean                      @default(false)\n  servicesProvided           String?\n  allottedParkingSlots       Int                          @default(0)\n  googleFormId               String?\n  googleFormUrl              String?\n  parentId                   String?\n  tenantRole                 ClientTenantRole?\n  parkingMode                String?                      @default(\"NORMAL\")\n  dropRequestEnabled         Boolean                      @default(true)\n  Client                     Client?                      @relation(\"ClientToClient\", fields: [parentId], references: [id], onDelete: Restrict)\n  other_Client               Client[]                     @relation(\"ClientToClient\")\n  Site                       Site                         @relation(fields: [siteId], references: [id])\n  ClientNotification         ClientNotification[]\n  Customer                   public_Customer[]\n  Invoice                    Invoice[]\n  OperatorClientAssignment   OperatorClientAssignment[]\n  ParkingSlot                ParkingSlot[]\n  Payment                    Payment[]\n  Pickup                     Pickup[]\n  SelfParking                SelfParking[]\n  Ticket                     Ticket[]\n  User                       public_User[]\n  client_email_verifications client_email_verifications[]\n  client_password_resets     client_password_resets[]\n\n  @@index([clientEmail])\n  @@index([createdAt])\n  @@index([isActive])\n  @@index([parentId])\n  @@index([parentId, tenantRole])\n  @@index([siteId])\n  @@schema(\"public\")\n}\n\nmodel ClientNotification {\n  id        String                   @id\n  clientId  String\n  type      CLIENT_NOTIFICATION_TYPE\n  title     String\n  message   String\n  metadata  Json?\n  isRead    Boolean                  @default(false)\n  createdAt DateTime                 @default(now())\n  updatedAt DateTime\n  Client    Client                   @relation(fields: [clientId], references: [id], onDelete: Cascade)\n\n  @@index([clientId])\n  @@index([createdAt])\n  @@index([isRead])\n  @@index([type])\n  @@schema(\"public\")\n}\n\nmodel ContactForm {\n  id                  String               @id\n  name                String\n  email               String\n  phone               String\n  companyName         String?\n  communicationMethod COMMUNICATION_METHOD\n  city                String?\n  createdAt           DateTime             @default(now())\n  updatedAt           DateTime\n\n  @@index([city])\n  @@index([communicationMethod])\n  @@index([createdAt])\n  @@index([email])\n  @@schema(\"public\")\n}\n\nmodel public_Customer {\n  id              String            @id\n  fullName        String\n  email           String            @unique\n  phoneNumber     String            @unique\n  password        String\n  status          CustomerStatus    @default(ACTIVE)\n  createdAt       DateTime          @default(now())\n  updatedAt       DateTime\n  clientId        String?\n  image           String?\n  isActive        Boolean           @default(true)\n  Client          Client?           @relation(fields: [clientId], references: [id])\n  CustomerRequest CustomerRequest[]\n\n  @@index([clientId])\n  @@index([email])\n  @@index([isActive])\n  @@index([phoneNumber])\n  @@index([status])\n  @@map(\"Customer\")\n  @@schema(\"public\")\n}\n\nmodel CustomerRequest {\n  id          String          @id\n  status      REQUEST_STATUS  @default(PENDING)\n  createdAt   DateTime        @default(now())\n  updatedAt   DateTime\n  customerId  String\n  notes       String?\n  requestType String\n  vehicleId   String\n  Customer    public_Customer @relation(fields: [customerId], references: [id])\n  Vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])\n\n  @@index([createdAt])\n  @@index([customerId])\n  @@index([requestType])\n  @@index([status])\n  @@index([vehicleId])\n  @@schema(\"public\")\n}\n\nmodel Document {\n  id                   String              @id\n  aadharNumber         String\n  aadharFrontImage     String?\n  aadharBackImage      String?\n  voterIdNumber        String\n  voterIdImage         String\n  panCardNumber        String\n  panCardImage         String\n  drivingLicenseNumber String\n  drivingLicenseImage  String\n  localAddressProof    String\n  createdAt            DateTime            @default(now())\n  updatedAt            DateTime\n  userId               String\n  BankAccountDetails   BankAccountDetails?\n  User                 public_User         @relation(fields: [userId], references: [id])\n\n  @@index([createdAt])\n  @@index([userId])\n  @@schema(\"public\")\n}\n\nmodel HelpSupport {\n  id        String              @id\n  subject   String\n  message   String\n  userId    String?\n  status    HELP_SUPPORT_STATUS @default(PENDING)\n  createdAt DateTime            @default(now())\n  updatedAt DateTime\n\n  @@index([createdAt])\n  @@index([status])\n  @@index([subject])\n  @@index([userId])\n  @@schema(\"public\")\n}\n\nmodel Invoice {\n  id            String         @id\n  invoiceNumber String         @unique\n  clientId      String\n  status        INVOICE_STATUS @default(PENDING)\n  issueDate     DateTime\n  dueDate       DateTime\n  subtotal      Float\n  taxAmount     Float\n  totalAmount   Float\n  notes         String?\n  pdfUrl        String?\n  createdAt     DateTime       @default(now())\n  updatedAt     DateTime\n  Client        Client         @relation(fields: [clientId], references: [id])\n  InvoiceItem   InvoiceItem[]\n  Payment       Payment[]\n\n  @@index([clientId])\n  @@index([dueDate])\n  @@index([invoiceNumber])\n  @@index([issueDate])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel InvoiceItem {\n  id          String  @id\n  invoiceId   String\n  name        String\n  description String?\n  quantity    Int\n  unitPrice   Float\n  amount      Float\n  Invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)\n\n  @@index([invoiceId])\n  @@schema(\"public\")\n}\n\nmodel LeaveRequest {\n  id                                   String       @id\n  userId                               String\n  startDate                            DateTime\n  endDate                              DateTime\n  reason                               String?\n  status                               LEAVE_STATUS @default(PENDING)\n  approvedById                         String?\n  createdAt                            DateTime     @default(now())\n  updatedAt                            DateTime\n  leaveType                            LEAVE_TYPE\n  adminNote                            String?\n  User_LeaveRequest_approvedByIdToUser public_User? @relation(\"LeaveRequest_approvedByIdToUser\", fields: [approvedById], references: [id])\n  User_LeaveRequest_userIdToUser       public_User  @relation(\"LeaveRequest_userIdToUser\", fields: [userId], references: [id])\n\n  @@index([createdAt])\n  @@index([status])\n  @@index([userId])\n  @@schema(\"public\")\n}\n\nmodel OperatorClientAssignment {\n  id         String      @id\n  userId     String\n  clientId   String\n  assignedAt DateTime    @default(now())\n  Client     Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)\n  User       public_User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([userId, clientId])\n  @@index([clientId])\n  @@index([userId])\n  @@schema(\"public\")\n}\n\nmodel ParkingSlot {\n  id        String     @id\n  clientId  String\n  status    SlotStatus @default(AVAILABLE)\n  slotLabel String?\n  createdAt DateTime   @default(now())\n  updatedAt DateTime   @default(now())\n  Client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)\n\n  @@index([clientId])\n  @@index([clientId, status])\n  @@schema(\"public\")\n}\n\nmodel Payment {\n  id                 String               @id\n  clientId           String\n  invoiceId          String?\n  amount             Float\n  currency           String               @default(\"INR\")\n  status             PaymentStatus        @default(PENDING)\n  paymentType        PaymentType\n  paymentMethod      PaymentMethodType?\n  gateway            PaymentGateway\n  subscriptionId     String?\n  receiptUrl         String?\n  notes              String?\n  createdAt          DateTime             @default(now())\n  updatedAt          DateTime\n  Client             Client               @relation(fields: [clientId], references: [id])\n  Invoice            Invoice?             @relation(fields: [invoiceId], references: [id])\n  PaymentAuditLog    PaymentAuditLog[]\n  PaymentTransaction PaymentTransaction[]\n  Refund             Refund[]\n\n  @@index([clientId])\n  @@index([clientId, status])\n  @@index([createdAt])\n  @@index([createdAt, status])\n  @@index([gateway])\n  @@index([invoiceId])\n  @@index([paymentMethod])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel PaymentAuditLog {\n  id        String   @id\n  paymentId String\n  action    String\n  actorType String\n  actorId   String?\n  oldValue  Json?\n  newValue  Json?\n  metadata  Json?\n  createdAt DateTime @default(now())\n  Payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)\n\n  @@index([actorType, actorId])\n  @@index([createdAt])\n  @@index([paymentId])\n  @@schema(\"public\")\n}\n\nmodel PaymentTransaction {\n  id            String             @id\n  paymentId     String\n  amount        Float\n  currency      String             @default(\"INR\")\n  status        PaymentStatus      @default(PENDING)\n  gateway       PaymentGateway\n  gatewayTxId   String?\n  paymentMethod PaymentMethodType?\n  failureCode   String?\n  failureReason String?\n  paidAt        DateTime?\n  createdAt     DateTime           @default(now())\n  updatedAt     DateTime\n  Payment       Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)\n  RazorpayOrder RazorpayOrder?\n  Refund        Refund[]\n\n  @@index([createdAt])\n  @@index([gatewayTxId])\n  @@index([gateway])\n  @@index([paymentId])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel Pickup {\n  id                                        String        @id\n  vehicleId                                 String\n  valetId                                   String\n  siteId                                    String?\n  clientId                                  String?\n  status                                    PICKUP_STATUS @default(PICKED_UP)\n  notes                                     String?\n  pickupFrom                                String?\n  parkAt                                    String?\n  meterPhotoUrl                             String?\n  vehiclePhotoUrl                           String?\n  vehicleVideoUrl                           String?\n  pickupTime                                DateTime      @default(now())\n  createdAt                                 DateTime      @default(now())\n  updatedAt                                 DateTime\n  dropLocation                              String?\n  dropTime                                  DateTime?\n  droppedByValetId                          String?\n  pendingDropLocation                       String?\n  pendingDropTime                           DateTime?\n  pendingDroppedByValetId                   String?\n  pendingDropNotes                          String?\n  Client                                    Client?       @relation(fields: [clientId], references: [id])\n  User_Pickup_droppedByValetIdToUser        public_User?  @relation(\"Pickup_droppedByValetIdToUser\", fields: [droppedByValetId], references: [id])\n  User_Pickup_pendingDroppedByValetIdToUser public_User?  @relation(\"Pickup_pendingDroppedByValetIdToUser\", fields: [pendingDroppedByValetId], references: [id])\n  Site                                      Site?         @relation(fields: [siteId], references: [id])\n  User_Pickup_valetIdToUser                 public_User   @relation(\"Pickup_valetIdToUser\", fields: [valetId], references: [id])\n  Vehicle                                   Vehicle       @relation(fields: [vehicleId], references: [id])\n\n  @@index([clientId])\n  @@index([createdAt])\n  @@index([dropTime])\n  @@index([droppedByValetId])\n  @@index([status, createdAt])\n  @@index([status])\n  @@index([updatedAt])\n  @@index([valetId])\n  @@index([valetId, status])\n  @@index([valetId, vehicleId])\n  @@index([vehicleId])\n  @@schema(\"public\")\n}\n\nmodel RazorpayOrder {\n  id                   String             @id\n  paymentTransactionId String             @unique\n  razorpayOrderId      String             @unique\n  razorpayPaymentId    String?            @unique\n  razorpaySignature    String?\n  amountPaise          Int\n  currency             String             @default(\"INR\")\n  createdAt            DateTime           @default(now())\n  updatedAt            DateTime\n  PaymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id], onDelete: Cascade)\n\n  @@schema(\"public\")\n}\n\nmodel RazorpayWebhookLog {\n  id          String    @id\n  event       String\n  payload     Json\n  signature   String?\n  processed   Boolean   @default(false)\n  processedAt DateTime?\n  error       String?\n  createdAt   DateTime  @default(now())\n\n  @@index([createdAt])\n  @@index([event])\n  @@index([processed])\n  @@schema(\"public\")\n}\n\nmodel Refund {\n  id                   String             @id\n  paymentId            String\n  paymentTransactionId String\n  amount               Float\n  currency             String             @default(\"INR\")\n  status               RefundStatus       @default(PENDING)\n  gatewayRefundId      String?\n  reason               String?\n  processedAt          DateTime?\n  createdAt            DateTime           @default(now())\n  updatedAt            DateTime\n  Payment              Payment            @relation(fields: [paymentId], references: [id])\n  PaymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id])\n\n  @@index([createdAt])\n  @@index([paymentId])\n  @@index([paymentTransactionId])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel SelfParking {\n  id                  String       @id\n  vehicleNumber       String\n  vehiclePhoto        String\n  entryTime           DateTime     @default(now())\n  exitTime            DateTime?\n  valetId             String?\n  siteId              String?\n  createdAt           DateTime     @default(now())\n  updatedAt           DateTime\n  clientId            String?\n  contactNumber       String?\n  isRegistered        Boolean      @default(false)\n  ownerName           String?\n  vehicleColor        String?\n  vehicleManufacturer String?\n  Client              Client?      @relation(fields: [clientId], references: [id])\n  Site                Site?        @relation(fields: [siteId], references: [id])\n  User                public_User? @relation(fields: [valetId], references: [id])\n\n  @@index([clientId])\n  @@index([createdAt])\n  @@index([entryTime])\n  @@index([exitTime])\n  @@index([isRegistered])\n  @@index([siteId, clientId])\n  @@index([siteId])\n  @@index([valetId])\n  @@index([vehicleNumber])\n  @@schema(\"public\")\n}\n\nmodel ShiftAttendance {\n  id             String       @id\n  userId         String\n  startTime      DateTime     @default(now())\n  startPhotoUrl  String\n  startLatitude  Float?\n  startLongitude Float?\n  startAddress   String\n  endTime        DateTime?\n  endPhotoUrl    String?\n  endLatitude    Float?\n  endLongitude   Float?\n  endAddress     String?\n  totalMinutes   Int?\n  createdAt      DateTime     @default(now())\n  updatedAt      DateTime\n  status         SHIFT_STATUS @default(ACTIVE)\n  User           public_User  @relation(fields: [userId], references: [id])\n\n  @@index([userId, status])\n  @@schema(\"public\")\n}\n\nmodel Site {\n  id                  String              @id\n  siteName            String\n  siteOwnerName       String\n  ownerPhoneNumber    String\n  ownerEmail          String?\n  pincode             String\n  city                String\n  state               String\n  siteAddress         String\n  bankAccName         String\n  accountNumber       String\n  ifsc                String\n  startDate           DateTime\n  endDate             DateTime\n  noticePeriod        Int\n  lockInPeriod        Int\n  depositAmount       Float\n  monthlyRental       Float\n  sitePaymentMethod   SITE_PAYMENT_METHOD\n  latitude            String\n  longitude           String\n  sitePictures        String[]\n  status              SITE_STATUS         @default(ACTIVE)\n  valetCount          Int                 @default(0)\n  supervisorCount     Int                 @default(0)\n  depositDate         DateTime?\n  siteDocuments       Json                @default(\"[]\")\n  fourWheelerCapacity Int                 @default(0)\n  twoWheelerCapacity  Int                 @default(0)\n  siteLength          String\n  siteWidth           String\n  operatorEmail       String\n  operatorName        String\n  operatorPhone       String\n  createdAt           DateTime            @default(now())\n  updatedAt           DateTime\n  Client              Client[]\n  Pickup              Pickup[]\n  SelfParking         SelfParking[]\n  SiteAssigned        SiteAssigned[]\n  Vehicle             Vehicle[]\n\n  @@index([city])\n  @@index([createdAt])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel SiteAssigned {\n  id         String      @id\n  userId     String\n  siteId     String\n  role       VALET_ROLE\n  assignedAt DateTime    @default(now())\n  isActive   Boolean     @default(true)\n  createdAt  DateTime    @default(now())\n  updatedAt  DateTime\n  clientId   String?\n  Site       Site        @relation(fields: [siteId], references: [id])\n  User       public_User @relation(fields: [userId], references: [id])\n\n  @@unique([userId, siteId])\n  @@index([clientId])\n  @@index([isActive])\n  @@index([siteId])\n  @@index([userId])\n  @@index([userId, isActive])\n  @@schema(\"public\")\n}\n\nmodel Ticket {\n  id            String          @id\n  ticketId      String          @unique\n  clientId      String\n  subject       String\n  category      TICKET_CATEGORY\n  description   String\n  priority      TICKET_PRIORITY\n  status        TICKET_STATUS   @default(OPEN)\n  attachments   String[]\n  assignedTo    String?\n  createdAt     DateTime        @default(now())\n  updatedAt     DateTime\n  admins        admins?         @relation(fields: [assignedTo], references: [id])\n  Client        Client          @relation(fields: [clientId], references: [id])\n  TicketComment TicketComment[]\n\n  @@index([assignedTo])\n  @@index([category])\n  @@index([clientId])\n  @@index([priority])\n  @@index([status])\n  @@index([ticketId])\n  @@schema(\"public\")\n}\n\nmodel TicketComment {\n  id            String   @id\n  ticketId      String\n  senderId      String\n  message       String\n  attachmentUrl String?\n  isAdmin       Boolean  @default(false)\n  createdAt     DateTime @default(now())\n  Ticket        Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)\n\n  @@index([createdAt])\n  @@index([senderId])\n  @@index([ticketId])\n  @@schema(\"public\")\n}\n\nmodel public_User {\n  id                                           String                     @id\n  fullName                                     String\n  email                                        String                     @unique\n  phoneNumber                                  String                     @unique\n  city                                         String\n  state                                        String\n  pinCode                                      String\n  applyingFor                                  VALET_ROLE\n  password                                     String\n  profilePic                                   String\n  createdAt                                    DateTime                   @default(now())\n  updatedAt                                    DateTime\n  employeeNumber                               Int                        @default(autoincrement())\n  employeeId                                   String?                    @unique\n  status                                       UserStatus                 @default(IN_ACTIVE)\n  permanentAddress                             String                     @default(\"\")\n  clientId                                     String?\n  dateOfBirth                                  DateTime\n  gender                                       Gender\n  maritalStatus                                MaritalStatus\n  alternatePhoneNumber                         String\n  currentAddress                               String\n  fatherName                                   String\n  fatherContactNumber                          String\n  dateOfJoining                                DateTime\n  workingLocation                              String\n  workingSiteName                              String\n  shiftTiming                                  ShiftTiming\n  tShirtSize                                   TShirtSize\n  pantSize                                     PantSize\n  Document                                     Document[]\n  LeaveRequest_LeaveRequest_approvedByIdToUser LeaveRequest[]             @relation(\"LeaveRequest_approvedByIdToUser\")\n  LeaveRequest_LeaveRequest_userIdToUser       LeaveRequest[]             @relation(\"LeaveRequest_userIdToUser\")\n  OperatorClientAssignment                     OperatorClientAssignment[]\n  Pickup_Pickup_droppedByValetIdToUser         Pickup[]                   @relation(\"Pickup_droppedByValetIdToUser\")\n  Pickup_Pickup_pendingDroppedByValetIdToUser  Pickup[]                   @relation(\"Pickup_pendingDroppedByValetIdToUser\")\n  Pickup_Pickup_valetIdToUser                  Pickup[]                   @relation(\"Pickup_valetIdToUser\")\n  SelfParking                                  SelfParking[]\n  ShiftAttendance                              ShiftAttendance[]\n  SiteAssigned                                 SiteAssigned[]\n  Client                                       Client?                    @relation(fields: [clientId], references: [id])\n\n  @@index([applyingFor])\n  @@index([clientId])\n  @@index([createdAt])\n  @@index([status])\n  @@map(\"User\")\n  @@schema(\"public\")\n}\n\nmodel Vehicle {\n  id              String            @id\n  vehicleNumber   String            @unique\n  vehicleType     VEHICLE_TYPE\n  vehicleModel    String\n  vehicleBrand    String\n  vehicleColor    String\n  ownerName       String\n  ownerPhone      String\n  isPhoneVerified Boolean           @default(false)\n  createdAt       DateTime          @default(now())\n  updatedAt       DateTime\n  siteId          String?\n  ownerEmail      String?\n  status          VehicleStatus     @default(PARKED)\n  CustomerRequest CustomerRequest[]\n  Pickup          Pickup[]\n  Site            Site?             @relation(fields: [siteId], references: [id])\n\n  @@index([ownerEmail])\n  @@index([ownerPhone])\n  @@index([status])\n  @@index([vehicleNumber])\n  @@schema(\"public\")\n}\n\nmodel admin_email_verifications {\n  id        String   @id\n  adminId   String\n  email     String\n  otp       String\n  expiresAt DateTime\n  isUsed    Boolean  @default(false)\n  createdAt DateTime @default(now())\n  admins    admins   @relation(fields: [adminId], references: [id], onDelete: Cascade)\n\n  @@index([email])\n  @@index([expiresAt])\n  @@index([isUsed])\n  @@index([otp])\n  @@schema(\"public\")\n}\n\nmodel admin_password_resets {\n  id        String   @id\n  adminId   String\n  email     String\n  token     String   @unique\n  expiresAt DateTime\n  isUsed    Boolean  @default(false)\n  createdAt DateTime @default(now())\n  admins    admins   @relation(fields: [adminId], references: [id], onDelete: Cascade)\n\n  @@index([adminId])\n  @@index([email])\n  @@index([expiresAt])\n  @@index([isUsed])\n  @@index([token])\n  @@schema(\"public\")\n}\n\nmodel admins {\n  id                        String                      @id\n  fullName                  String\n  email                     String                      @unique\n  phoneNumber               String?                     @unique\n  password                  String\n  profilePic                String?\n  bio                       String?\n  role                      String                      @default(\"admin\")\n  isEmailVerified           Boolean                     @default(false)\n  emailVerifiedAt           DateTime?\n  lastLoginAt               DateTime?\n  socialLinks               Json?\n  address                   Json?\n  departmentId              String?\n  roleId                    String?\n  status                    AdminStatus                 @default(PENDING)\n  createdAt                 DateTime                    @default(now())\n  updatedAt                 DateTime\n  Ticket                    Ticket[]\n  admin_email_verifications admin_email_verifications[]\n  admin_password_resets     admin_password_resets[]\n  departments               departments?                @relation(fields: [departmentId], references: [id])\n  roles                     roles?                      @relation(fields: [roleId], references: [id])\n  approval_logs             approval_logs[]\n\n  @@index([departmentId])\n  @@index([email])\n  @@index([isEmailVerified])\n  @@index([roleId])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel approval_logs {\n  id         String         @id\n  adminId    String\n  approvedBy String?\n  action     ApprovalAction\n  status     ApprovalStatus\n  comments   String?\n  createdAt  DateTime       @default(now())\n  updatedAt  DateTime\n  admins     admins         @relation(fields: [adminId], references: [id], onDelete: Cascade)\n\n  @@index([action])\n  @@index([adminId])\n  @@index([status])\n  @@schema(\"public\")\n}\n\nmodel client_email_verifications {\n  id        String   @id\n  clientId  String\n  email     String\n  otp       String\n  expiresAt DateTime\n  isUsed    Boolean  @default(false)\n  createdAt DateTime @default(now())\n  Client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)\n\n  @@index([email])\n  @@index([expiresAt])\n  @@index([isUsed])\n  @@index([otp])\n  @@schema(\"public\")\n}\n\nmodel client_password_resets {\n  id        String   @id\n  clientId  String\n  email     String\n  token     String   @unique\n  expiresAt DateTime\n  isUsed    Boolean  @default(false)\n  createdAt DateTime @default(now())\n  Client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)\n\n  @@index([clientId])\n  @@index([email])\n  @@index([expiresAt])\n  @@index([isUsed])\n  @@index([token])\n  @@schema(\"public\")\n}\n\nmodel customer_fcm_tokens {\n  id          Int      @id @default(autoincrement())\n  customerId  String\n  token       String\n  device_info Json?\n  is_active   Boolean  @default(true)\n  last_seen   DateTime @default(now())\n  created_at  DateTime @default(now())\n  updated_at  DateTime\n\n  @@unique([customerId, token], map: \"customer_fcm_tokens_customer_id_token_key\")\n  @@index([customerId])\n  @@index([is_active])\n  @@index([last_seen])\n  @@schema(\"public\")\n}\n\nmodel departments {\n  id          String   @id\n  name        String   @unique\n  description String?\n  isActive    Boolean  @default(true)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime\n  admins      admins[]\n  roles       roles[]\n\n  @@index([isActive])\n  @@index([name])\n  @@schema(\"public\")\n}\n\nmodel fcm_tokens {\n  id          Int      @id @default(autoincrement())\n  userId      String\n  token       String\n  device_info Json?\n  is_active   Boolean  @default(true)\n  last_seen   DateTime @default(now())\n  created_at  DateTime @default(now())\n  updated_at  DateTime\n\n  @@unique([userId, token], map: \"fcm_tokens_user_id_token_key\")\n  @@index([is_active])\n  @@index([last_seen])\n  @@index([userId])\n  @@schema(\"public\")\n}\n\nmodel permissions {\n  id               String             @id\n  name             String             @unique\n  module           String\n  description      String?\n  isActive         Boolean            @default(true)\n  createdAt        DateTime           @default(now())\n  updatedAt        DateTime\n  role_permissions role_permissions[]\n\n  @@index([isActive])\n  @@index([module])\n  @@index([name])\n  @@schema(\"public\")\n}\n\nmodel role_permissions {\n  id           String      @id\n  roleId       String\n  permissionId String\n  createdAt    DateTime    @default(now())\n  permissions  permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade)\n  roles        roles       @relation(fields: [roleId], references: [id], onDelete: Cascade)\n\n  @@unique([roleId, permissionId])\n  @@index([permissionId])\n  @@index([roleId])\n  @@schema(\"public\")\n}\n\nmodel roles {\n  id               String             @id\n  name             String\n  departmentId     String?\n  description      String?\n  isActive         Boolean            @default(true)\n  createdAt        DateTime           @default(now())\n  updatedAt        DateTime\n  isSuperAdmin     Boolean            @default(false)\n  permissionKeys   Json?\n  permissionsMask  BigInt             @default(0)\n  admins           admins[]\n  role_permissions role_permissions[]\n  departments      departments?       @relation(fields: [departmentId], references: [id])\n\n  @@unique([name, departmentId])\n  @@index([departmentId])\n  @@index([isActive])\n  @@index([isSuperAdmin])\n  @@schema(\"public\")\n}\n\nenum DocumentType {\n  RC\n  INSURANCE\n  PUC\n  FASTAG\n  DL\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum VerificationStatus {\n  PENDING\n  VERIFIED\n  REJECTED\n\n  @@schema(\"customer\")\n}\n\nenum DocumentSource {\n  UPLOAD\n  DIGILOCKER\n  PARIVAHAN\n\n  @@schema(\"customer\")\n}\n\nenum DigiLockerStatus {\n  CONNECTED\n  DISCONNECTED\n  EXPIRED\n  REVOKED\n\n  @@schema(\"customer\")\n}\n\nenum AccessRole {\n  OWNER\n  EDITOR\n  VIEWER\n  DRIVER\n\n  @@schema(\"customer\")\n}\n\nenum ExpenseCategory {\n  FUEL\n  TOLL\n  PARKING\n  SERVICE\n  INSURANCE\n  CHALLAN\n  EMI\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum ExpenseSource {\n  MANUAL\n  SMS\n  NOTIFICATION\n  VOICE\n  RECEIPT\n\n  @@schema(\"customer\")\n}\n\nenum ServicePartType {\n  ENGINE_OIL\n  OIL_FILTER\n  AIR_FILTER\n  BRAKE_PADS\n  BRAKE_DISCS\n  BATTERY\n  TYRES_FRONT\n  TYRES_REAR\n  CLUTCH_PLATE\n  SPARK_PLUGS\n  COOLANT\n  TIMING_BELT\n  AC_FILTER\n  WIPER_BLADES\n  HEADLIGHT_BULB\n  OTHER_PART\n\n  @@schema(\"customer\")\n}\n\nenum SOSStatus {\n  ACTIVE\n  RESOLVED\n  CANCELLED\n\n  @@schema(\"customer\")\n}\n\nenum SOSType {\n  MEDICAL\n  POLICE\n  MECHANICAL\n  ACCIDENT\n  OTHER\n\n  @@schema(\"customer\")\n}\n\nenum TicketStatus {\n  OPEN\n  IN_PROGRESS\n  RESOLVED\n  CLOSED\n\n  @@schema(\"customer\")\n}\n\nenum TicketPriority {\n  LOW\n  MEDIUM\n  HIGH\n  URGENT\n\n  @@schema(\"customer\")\n}\n\nenum TicketCategory {\n  GENERAL\n  TECHNICAL\n  BILLING\n  VEHICLE\n  APP_ISSUE\n  OTHER\n  DOCUMENTS\n  VALET\n  AI_ASSISTANT\n  ACCOUNT\n\n  @@schema(\"customer\")\n}\n\nenum AdminStatus {\n  PENDING\n  ACTIVE\n  REJECTED\n  INACTIVE\n\n  @@schema(\"public\")\n}\n\nenum ApprovalAction {\n  SIGNUP_REQUEST\n  ROLE_CHANGE\n  DEPARTMENT_CHANGE\n  ACTIVATION\n  DEACTIVATION\n\n  @@schema(\"public\")\n}\n\nenum ApprovalStatus {\n  PENDING\n  APPROVED\n  REJECTED\n\n  @@schema(\"public\")\n}\n\nenum CLIENT_NOTIFICATION_TYPE {\n  TICKET_UPDATE\n  INVOICE_SENT\n  VALET_ASSIGNED\n  SUPERVISOR_ASSIGNED\n\n  @@schema(\"public\")\n}\n\nenum CLIENT_TYPE {\n  Business\n  Individual\n\n  @@schema(\"public\")\n}\n\nenum COMMUNICATION_METHOD {\n  EMAIL\n  GOOGLE_MEET\n  WHATSAPP\n  TEXT\n  CALL\n\n  @@schema(\"public\")\n}\n\nenum ClientStatus {\n  ACTIVE\n  IN_ACTIVE\n\n  @@schema(\"public\")\n}\n\nenum ClientTenantRole {\n  SUPER_CLIENT_ADMIN\n  CLIENT_ADMIN\n\n  @@schema(\"public\")\n}\n\nenum CustomerStatus {\n  ACTIVE\n  INACTIVE\n  SUSPENDED\n\n  @@schema(\"public\")\n}\n\nenum Gender {\n  M\n  F\n  OTHER\n\n  @@schema(\"public\")\n}\n\nenum HELP_SUPPORT_STATUS {\n  PENDING\n  IN_PROGRESS\n  RESOLVED\n  CLOSED\n\n  @@schema(\"public\")\n}\n\nenum INVOICE_STATUS {\n  PENDING\n  PAID\n  OVERDUE\n  CANCELLED\n\n  @@schema(\"public\")\n}\n\nenum KEY_BOX_TYPE {\n  VTP\n  KYD\n\n  @@schema(\"public\")\n}\n\nenum LEAVE_STATUS {\n  PENDING\n  APPROVED\n  REJECTED\n  CANCELED\n\n  @@schema(\"public\")\n}\n\nenum LEAVE_TYPE {\n  SICK\n  CASUAL\n  PAID\n  EMERGENCY\n\n  @@schema(\"public\")\n}\n\nenum MaritalStatus {\n  SINGLE\n  MARRIED\n  DIVORCED\n  WIDOWED\n\n  @@schema(\"public\")\n}\n\nenum PAYMENT_MODE {\n  Cheque\n  Online\n  UPI\n  Manual\n\n  @@schema(\"public\")\n}\n\nenum PICKUP_STATUS {\n  PICKED_UP\n  IN_PROGRESS\n  COMPLETED\n  CANCELLED\n\n  @@schema(\"public\")\n}\n\nenum PantSize {\n  S\n  M\n  L\n  XL\n  XXL\n  XXXL\n\n  @@schema(\"public\")\n}\n\nenum PaymentGateway {\n  RAZORPAY\n  STRIPE\n  PAYU\n  MANUAL\n\n  @@schema(\"public\")\n}\n\nenum PaymentMethodType {\n  UPI\n  CARD\n  NETBANKING\n  WALLET\n  EMI\n  OTHER\n\n  @@schema(\"public\")\n}\n\nenum PaymentStatus {\n  PENDING\n  SUCCESS\n  FAILED\n  REFUNDED\n  CANCELLED\n\n  @@schema(\"public\")\n}\n\nenum PaymentType {\n  INVOICE\n  SUBSCRIPTION\n  SERVICE_CHARGE\n  ADHOC\n\n  @@schema(\"public\")\n}\n\nenum REQUEST_STATUS {\n  PENDING\n  ACCEPTED\n  REJECTED\n  IN_PROGRESS\n  COMPLETED\n  CANCELLED\n\n  @@schema(\"public\")\n}\n\nenum RefundStatus {\n  PENDING\n  PROCESSED\n  FAILED\n  CANCELLED\n\n  @@schema(\"public\")\n}\n\nenum SHIFT_FINAL_STATUS {\n  PENDING\n  PRESENT\n  ABSENT\n\n  @@schema(\"public\")\n}\n\nenum SHIFT_STATUS {\n  ACTIVE\n  COMPLETED\n  PENDING\n\n  @@schema(\"public\")\n}\n\nenum SITE_PAYMENT_METHOD {\n  PREPAID\n  POSTPAID\n\n  @@schema(\"public\")\n}\n\nenum SITE_STATUS {\n  ACTIVE\n  INACTIVE\n  SUSPENDED\n\n  @@schema(\"public\")\n}\n\nenum ShiftTiming {\n  NINE_TO_SEVEN\n  TEN_TO_EIGHT\n\n  @@schema(\"public\")\n}\n\nenum SlotStatus {\n  AVAILABLE\n  BOOKED\n\n  @@schema(\"public\")\n}\n\nenum TICKET_CATEGORY {\n  TECHNICAL\n  BILLING\n  GENERAL\n  OTHER\n\n  @@schema(\"public\")\n}\n\nenum TICKET_PRIORITY {\n  LOW\n  MEDIUM\n  HIGH\n  URGENT\n\n  @@schema(\"public\")\n}\n\nenum TICKET_STATUS {\n  OPEN\n  IN_PROGRESS\n  RESOLVED\n  CLOSED\n  REOPENED\n\n  @@schema(\"public\")\n}\n\nenum TShirtSize {\n  S\n  M\n  L\n  XL\n  XXL\n\n  @@schema(\"public\")\n}\n\nenum UserStatus {\n  ACTIVE\n  IN_ACTIVE\n\n  @@schema(\"public\")\n}\n\nenum VALET_ROLE {\n  VALET\n  SUPERVISOR\n  GUPTIO_SUPERVISOR\n  OPERATOR\n\n  @@schema(\"public\")\n}\n\nenum VEHICLE_TYPE {\n  CAR\n  MOTORCYCLE\n\n  @@schema(\"public\")\n}\n\nenum VehicleStatus {\n  PARKED\n  PICKED_UP\n  IN_TRANSIT\n  RETURNED\n\n  @@schema(\"public\")\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Customer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"profilePic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"googleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"chats\",\"kind\":\"object\",\"type\":\"ChatSession\",\"relationName\":\"ChatSessionToCustomer\"},{\"name\":\"devices\",\"kind\":\"object\",\"type\":\"CustomerDevice\",\"relationName\":\"CustomerToCustomerDevice\"},{\"name\":\"documents\",\"kind\":\"object\",\"type\":\"CustomerDocument\",\"relationName\":\"CustomerToCustomerDocument\"},{\"name\":\"vehicles\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerToCustomerVehicle\"},{\"name\":\"digilocker\",\"kind\":\"object\",\"type\":\"DigiLockerConnection\",\"relationName\":\"CustomerToDigiLockerConnection\"},{\"name\":\"emergencyContacts\",\"kind\":\"object\",\"type\":\"EmergencyContact\",\"relationName\":\"CustomerToEmergencyContact\"},{\"name\":\"expenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"CustomerToExpense\"},{\"name\":\"budgets\",\"kind\":\"object\",\"type\":\"ExpenseBudget\",\"relationName\":\"CustomerToExpenseBudget\"},{\"name\":\"notifications\",\"kind\":\"object\",\"type\":\"InAppNotification\",\"relationName\":\"CustomerToInAppNotification\"},{\"name\":\"sosRequests\",\"kind\":\"object\",\"type\":\"SOSRequest\",\"relationName\":\"CustomerToSOSRequest\"},{\"name\":\"sharedVehicles\",\"kind\":\"object\",\"type\":\"VehicleAccess\",\"relationName\":\"CustomerToVehicleAccess\"},{\"name\":\"supportTickets\",\"kind\":\"object\",\"type\":\"SupportTicket\",\"relationName\":\"CustomerToSupportTicket\"},{\"name\":\"driverExpenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"DriverExpenses\"}],\"dbName\":null},\"CustomerDevice\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"platform\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceInfo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastActiveAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerDevice\"}],\"dbName\":null},\"CustomerDocument\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"DocumentType\"},{\"name\":\"documentNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"issueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"expiryDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"issuerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"thumbnailUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileSize\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ocrData\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"extractedFields\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"verificationStatus\",\"kind\":\"enum\",\"type\":\"VerificationStatus\"},{\"name\":\"verifiedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"verifiedBy\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"enum\",\"type\":\"DocumentSource\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerDocument\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerDocumentToCustomerVehicle\"}],\"dbName\":null},\"DigiLockerConnection\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"accessToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"refreshToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"scope\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"consentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"consentDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"DigiLockerStatus\"},{\"name\":\"lastSyncAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"connectedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToDigiLockerConnection\"}],\"dbName\":null},\"CustomerVehicle\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"registrationNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"make\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"model\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"variant\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"year\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"fuelType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"currentOdometer\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"registrationDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"rcVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"isPrimary\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"chassisNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"engineNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"imageUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"challans\",\"kind\":\"object\",\"type\":\"Challan\",\"relationName\":\"ChallanToCustomerVehicle\"},{\"name\":\"documents\",\"kind\":\"object\",\"type\":\"CustomerDocument\",\"relationName\":\"CustomerDocumentToCustomerVehicle\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerVehicle\"},{\"name\":\"drivingTrips\",\"kind\":\"object\",\"type\":\"DrivingTrip\",\"relationName\":\"CustomerVehicleToDrivingTrip\"},{\"name\":\"expenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"CustomerVehicleToExpense\"},{\"name\":\"odometerLogs\",\"kind\":\"object\",\"type\":\"OdometerLog\",\"relationName\":\"CustomerVehicleToOdometerLog\"},{\"name\":\"serviceRecords\",\"kind\":\"object\",\"type\":\"ServiceRecord\",\"relationName\":\"CustomerVehicleToServiceRecord\"},{\"name\":\"telematicsDevice\",\"kind\":\"object\",\"type\":\"TelematicsDevice\",\"relationName\":\"CustomerVehicleToTelematicsDevice\"},{\"name\":\"accessList\",\"kind\":\"object\",\"type\":\"VehicleAccess\",\"relationName\":\"CustomerVehicleToVehicleAccess\"},{\"name\":\"healthScore\",\"kind\":\"object\",\"type\":\"VehicleHealthScore\",\"relationName\":\"CustomerVehicleToVehicleHealthScore\"}],\"dbName\":null},\"OdometerLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"reading\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToOdometerLog\"}],\"dbName\":null},\"Challan\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"challanNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"violationType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"location\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastCheckedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"ChallanToCustomerVehicle\"}],\"dbName\":null},\"VehicleAccess\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"AccessRole\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToVehicleAccess\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToVehicleAccess\"}],\"dbName\":null},\"VehicleHealthScore\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"overallScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"ageScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mileageScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"maintenanceScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"drivingScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"explanations\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"recommendations\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"lastCalculated\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextDueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToVehicleHealthScore\"}],\"dbName\":null},\"InAppNotification\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"body\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"link\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"isRead\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"readAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToInAppNotification\"}],\"dbName\":null},\"ChatSession\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"summary\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"ChatMessage\",\"relationName\":\"ChatMessageToChatSession\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"ChatSessionToCustomer\"}],\"dbName\":null},\"ChatMessage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"ChatSession\",\"relationName\":\"ChatMessageToChatSession\"}],\"dbName\":null},\"DocumentEmbedding\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entityId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entityType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"ChatAnalytics\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"toolName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"intent\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"responseTimeMs\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"messageCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"hadToolCall\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"hadImage\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"wasStreaming\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"feedback\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Expense\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"driverId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"currency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"ExpenseCategory\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"merchantName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"location\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeLat\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"placeLng\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"enum\",\"type\":\"ExpenseSource\"},{\"name\":\"receiptUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rawText\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isAutomated\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToExpense\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToExpense\"},{\"name\":\"driver\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"DriverExpenses\"}],\"dbName\":null},\"ExpenseBudget\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"ExpenseCategory\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"period\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"notifyThreshold\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToExpenseBudget\"}],\"dbName\":null},\"FuelPriceCache\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fuelType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"source\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"DiscoveryContent\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"ServiceRecord\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expenseId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"serviceType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"garageName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"odometerAtService\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"serviceDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextServiceDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextServiceKm\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"parts\",\"kind\":\"object\",\"type\":\"ServicePart\",\"relationName\":\"ServicePartToServiceRecord\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToServiceRecord\"}],\"dbName\":null},\"ServicePart\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"serviceRecordId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"partType\",\"kind\":\"enum\",\"type\":\"ServicePartType\"},{\"name\":\"partName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cost\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"warrantyMonths\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"warrantyKm\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"warrantyExpiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"lastReplacedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextReplacementDue\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"serviceRecord\",\"kind\":\"object\",\"type\":\"ServiceRecord\",\"relationName\":\"ServicePartToServiceRecord\"}],\"dbName\":null},\"PartReplacementInterval\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"make\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"model\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"yearMin\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"yearMax\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"partType\",\"kind\":\"enum\",\"type\":\"ServicePartType\"},{\"name\":\"intervalMonths\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"intervalKm\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"defaultWarrantyMonths\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"source\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"TelematicsDevice\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"instanceId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"platform\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"lastSyncAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToTelematicsDevice\"}],\"dbName\":null},\"DrivingTrip\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tripId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"distanceKm\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"durationMin\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"maxSpeed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"avgSpeed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"fuelConsumed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"safetyScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"startLocation\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"endLocation\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"events\",\"kind\":\"object\",\"type\":\"DrivingEvent\",\"relationName\":\"DrivingEventToDrivingTrip\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToDrivingTrip\"}],\"dbName\":null},\"DrivingEvent\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tripId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"eventType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"timestamp\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"severity\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"speed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"trip\",\"kind\":\"object\",\"type\":\"DrivingTrip\",\"relationName\":\"DrivingEventToDrivingTrip\"}],\"dbName\":null},\"SOSRequest\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SOSStatus\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"SOSType\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"resolvedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToSOSRequest\"}],\"dbName\":null},\"EmergencyContact\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"relation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"priority\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToEmergencyContact\"}],\"dbName\":null},\"SupportTicket\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"subject\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"TicketStatus\"},{\"name\":\"priority\",\"kind\":\"enum\",\"type\":\"TicketPriority\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"TicketCategory\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToSupportTicket\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"TicketMessage\",\"relationName\":\"SupportTicketToTicketMessage\"}],\"dbName\":null},\"TicketMessage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ticketId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"senderId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"senderRole\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"ticket\",\"kind\":\"object\",\"type\":\"SupportTicket\",\"relationName\":\"SupportTicketToTicketMessage\"}],\"dbName\":null},\"FAQ\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"question\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"answer\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"order\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Customer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"profilePic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"googleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"chats\",\"kind\":\"object\",\"type\":\"ChatSession\",\"relationName\":\"ChatSessionToCustomer\"},{\"name\":\"devices\",\"kind\":\"object\",\"type\":\"CustomerDevice\",\"relationName\":\"CustomerToCustomerDevice\"},{\"name\":\"documents\",\"kind\":\"object\",\"type\":\"CustomerDocument\",\"relationName\":\"CustomerToCustomerDocument\"},{\"name\":\"vehicles\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerToCustomerVehicle\"},{\"name\":\"digilocker\",\"kind\":\"object\",\"type\":\"DigiLockerConnection\",\"relationName\":\"CustomerToDigiLockerConnection\"},{\"name\":\"emergencyContacts\",\"kind\":\"object\",\"type\":\"EmergencyContact\",\"relationName\":\"CustomerToEmergencyContact\"},{\"name\":\"expenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"CustomerToExpense\"},{\"name\":\"driverExpenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"DriverExpenses\"},{\"name\":\"budgets\",\"kind\":\"object\",\"type\":\"ExpenseBudget\",\"relationName\":\"CustomerToExpenseBudget\"},{\"name\":\"notifications\",\"kind\":\"object\",\"type\":\"InAppNotification\",\"relationName\":\"CustomerToInAppNotification\"},{\"name\":\"sosRequests\",\"kind\":\"object\",\"type\":\"SOSRequest\",\"relationName\":\"CustomerToSOSRequest\"},{\"name\":\"supportTickets\",\"kind\":\"object\",\"type\":\"SupportTicket\",\"relationName\":\"CustomerToSupportTicket\"},{\"name\":\"sharedVehicles\",\"kind\":\"object\",\"type\":\"VehicleAccess\",\"relationName\":\"CustomerToVehicleAccess\"}],\"dbName\":null},\"CustomerDevice\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"platform\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceInfo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastActiveAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerDevice\"}],\"dbName\":null},\"CustomerDocument\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"DocumentType\"},{\"name\":\"documentNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"issueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"expiryDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"issuerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"thumbnailUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileSize\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ocrData\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"extractedFields\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"verificationStatus\",\"kind\":\"enum\",\"type\":\"VerificationStatus\"},{\"name\":\"verifiedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"verifiedBy\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"enum\",\"type\":\"DocumentSource\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerDocument\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerDocumentToCustomerVehicle\"}],\"dbName\":null},\"DigiLockerConnection\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"accessToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"refreshToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"scope\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"consentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"consentDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"DigiLockerStatus\"},{\"name\":\"lastSyncAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"connectedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToDigiLockerConnection\"}],\"dbName\":null},\"CustomerVehicle\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"registrationNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"make\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"model\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"variant\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"year\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"fuelType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"currentOdometer\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"registrationDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"rcVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"isPrimary\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"chassisNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"engineNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"imageUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rto\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleClass\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fuelNorms\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"transmission\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"priceRange\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rating\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rcStatus\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"unloadedWeight\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fitnessUpto\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"insuranceUpto\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pollutionUpto\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mileage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"seatingCapacity\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cylinderCount\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cubicCapacity\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"grossWeight\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bodyType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"challans\",\"kind\":\"object\",\"type\":\"Challan\",\"relationName\":\"ChallanToCustomerVehicle\"},{\"name\":\"documents\",\"kind\":\"object\",\"type\":\"CustomerDocument\",\"relationName\":\"CustomerDocumentToCustomerVehicle\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToCustomerVehicle\"},{\"name\":\"drivingTrips\",\"kind\":\"object\",\"type\":\"DrivingTrip\",\"relationName\":\"CustomerVehicleToDrivingTrip\"},{\"name\":\"expenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"CustomerVehicleToExpense\"},{\"name\":\"odometerLogs\",\"kind\":\"object\",\"type\":\"OdometerLog\",\"relationName\":\"CustomerVehicleToOdometerLog\"},{\"name\":\"serviceRecords\",\"kind\":\"object\",\"type\":\"ServiceRecord\",\"relationName\":\"CustomerVehicleToServiceRecord\"},{\"name\":\"telematicsDevice\",\"kind\":\"object\",\"type\":\"TelematicsDevice\",\"relationName\":\"CustomerVehicleToTelematicsDevice\"},{\"name\":\"accessList\",\"kind\":\"object\",\"type\":\"VehicleAccess\",\"relationName\":\"CustomerVehicleToVehicleAccess\"},{\"name\":\"healthScore\",\"kind\":\"object\",\"type\":\"VehicleHealthScore\",\"relationName\":\"CustomerVehicleToVehicleHealthScore\"}],\"dbName\":null},\"OdometerLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"reading\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToOdometerLog\"}],\"dbName\":null},\"Challan\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"challanNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"violationType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"location\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastCheckedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"ChallanToCustomerVehicle\"}],\"dbName\":null},\"VehicleAccess\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"AccessRole\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToVehicleAccess\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToVehicleAccess\"}],\"dbName\":null},\"VehicleHealthScore\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"overallScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"ageScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mileageScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"maintenanceScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"drivingScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"explanations\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"recommendations\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"lastCalculated\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextDueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToVehicleHealthScore\"}],\"dbName\":null},\"InAppNotification\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"body\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"link\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"isRead\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"readAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToInAppNotification\"}],\"dbName\":null},\"ChatSession\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"summary\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"ChatMessage\",\"relationName\":\"ChatMessageToChatSession\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"ChatSessionToCustomer\"}],\"dbName\":null},\"ChatMessage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"ChatSession\",\"relationName\":\"ChatMessageToChatSession\"}],\"dbName\":null},\"DocumentEmbedding\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entityId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entityType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"ChatAnalytics\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"toolName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"intent\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"responseTimeMs\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"messageCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"hadToolCall\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"hadImage\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"wasStreaming\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"feedback\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Expense\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"currency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"ExpenseCategory\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"merchantName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"location\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"source\",\"kind\":\"enum\",\"type\":\"ExpenseSource\"},{\"name\":\"receiptUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rawText\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isAutomated\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"driverId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"placeLat\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"placeLng\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"placeName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToExpense\"},{\"name\":\"driver\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"DriverExpenses\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToExpense\"}],\"dbName\":null},\"ExpenseBudget\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"ExpenseCategory\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"period\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"notifyThreshold\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToExpenseBudget\"}],\"dbName\":null},\"FuelPriceCache\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fuelType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"source\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"DiscoveryContent\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"ServiceRecord\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expenseId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"serviceType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"garageName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"odometerAtService\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"serviceDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextServiceDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextServiceKm\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"parts\",\"kind\":\"object\",\"type\":\"ServicePart\",\"relationName\":\"ServicePartToServiceRecord\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToServiceRecord\"}],\"dbName\":null},\"ServicePart\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"serviceRecordId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"partType\",\"kind\":\"enum\",\"type\":\"ServicePartType\"},{\"name\":\"partName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cost\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"warrantyMonths\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"warrantyKm\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"warrantyExpiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"lastReplacedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nextReplacementDue\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"serviceRecord\",\"kind\":\"object\",\"type\":\"ServiceRecord\",\"relationName\":\"ServicePartToServiceRecord\"}],\"dbName\":null},\"PartReplacementInterval\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"make\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"model\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"yearMin\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"yearMax\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"partType\",\"kind\":\"enum\",\"type\":\"ServicePartType\"},{\"name\":\"intervalMonths\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"intervalKm\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"defaultWarrantyMonths\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"source\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"TelematicsDevice\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"instanceId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"deviceToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"platform\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"lastSyncAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToTelematicsDevice\"}],\"dbName\":null},\"DrivingTrip\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tripId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"distanceKm\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"durationMin\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"maxSpeed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"avgSpeed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"fuelConsumed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"safetyScore\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"startLocation\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"endLocation\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"events\",\"kind\":\"object\",\"type\":\"DrivingEvent\",\"relationName\":\"DrivingEventToDrivingTrip\"},{\"name\":\"vehicle\",\"kind\":\"object\",\"type\":\"CustomerVehicle\",\"relationName\":\"CustomerVehicleToDrivingTrip\"}],\"dbName\":null},\"DrivingEvent\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tripId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"eventType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"timestamp\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"severity\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"speed\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"trip\",\"kind\":\"object\",\"type\":\"DrivingTrip\",\"relationName\":\"DrivingEventToDrivingTrip\"}],\"dbName\":null},\"SOSRequest\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SOSStatus\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"SOSType\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"resolvedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToSOSRequest\"}],\"dbName\":null},\"EmergencyContact\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"relation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"priority\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToEmergencyContact\"}],\"dbName\":null},\"SupportTicket\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"subject\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"TicketStatus\"},{\"name\":\"priority\",\"kind\":\"enum\",\"type\":\"TicketPriority\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"TicketCategory\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToSupportTicket\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"TicketMessage\",\"relationName\":\"SupportTicketToTicketMessage\"}],\"dbName\":null},\"TicketMessage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ticketId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"senderId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"senderRole\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"ticket\",\"kind\":\"object\",\"type\":\"SupportTicket\",\"relationName\":\"SupportTicketToTicketMessage\"}],\"dbName\":null},\"FAQ\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"question\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"answer\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"order\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"BankAccountDetails\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bankAccountNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ifscCode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bankAccountHolderName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bankDocuments\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"documentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"Document\",\"kind\":\"object\",\"type\":\"Document\",\"relationName\":\"BankAccountDetailsToDocument\"}],\"dbName\":null},\"Client\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientType\",\"kind\":\"enum\",\"type\":\"CLIENT_TYPE\"},{\"name\":\"clientName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"contactNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pincode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin1Name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin1Email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin1Phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin2Name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin2Email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin2Phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"financeName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"financeEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"financePhone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"gstNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"panNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentTerms\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentMode\",\"kind\":\"enum\",\"type\":\"PAYMENT_MODE\"},{\"name\":\"ifsc\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bankAccHolderName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"accountNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"depositAmount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"depositDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"companyLogo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"documents\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"siteId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"enum\",\"type\":\"ClientStatus\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"serviceStartTime\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"serviceEndTime\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isQrVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"servicesProvided\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"allottedParkingSlots\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"googleFormId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"googleFormUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"parentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tenantRole\",\"kind\":\"enum\",\"type\":\"ClientTenantRole\"},{\"name\":\"parkingMode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dropRequestEnabled\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToClient\"},{\"name\":\"other_Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToClient\"},{\"name\":\"Site\",\"kind\":\"object\",\"type\":\"Site\",\"relationName\":\"ClientToSite\"},{\"name\":\"ClientNotification\",\"kind\":\"object\",\"type\":\"ClientNotification\",\"relationName\":\"ClientToClientNotification\"},{\"name\":\"Customer\",\"kind\":\"object\",\"type\":\"public_Customer\",\"relationName\":\"ClientTopublic_Customer\"},{\"name\":\"Invoice\",\"kind\":\"object\",\"type\":\"Invoice\",\"relationName\":\"ClientToInvoice\"},{\"name\":\"OperatorClientAssignment\",\"kind\":\"object\",\"type\":\"OperatorClientAssignment\",\"relationName\":\"ClientToOperatorClientAssignment\"},{\"name\":\"ParkingSlot\",\"kind\":\"object\",\"type\":\"ParkingSlot\",\"relationName\":\"ClientToParkingSlot\"},{\"name\":\"Payment\",\"kind\":\"object\",\"type\":\"Payment\",\"relationName\":\"ClientToPayment\"},{\"name\":\"Pickup\",\"kind\":\"object\",\"type\":\"Pickup\",\"relationName\":\"ClientToPickup\"},{\"name\":\"SelfParking\",\"kind\":\"object\",\"type\":\"SelfParking\",\"relationName\":\"ClientToSelfParking\"},{\"name\":\"Ticket\",\"kind\":\"object\",\"type\":\"Ticket\",\"relationName\":\"ClientToTicket\"},{\"name\":\"User\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"ClientTopublic_User\"},{\"name\":\"client_email_verifications\",\"kind\":\"object\",\"type\":\"client_email_verifications\",\"relationName\":\"ClientToclient_email_verifications\"},{\"name\":\"client_password_resets\",\"kind\":\"object\",\"type\":\"client_password_resets\",\"relationName\":\"ClientToclient_password_resets\"}],\"dbName\":null},\"ClientNotification\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"CLIENT_NOTIFICATION_TYPE\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"isRead\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToClientNotification\"}],\"dbName\":null},\"ContactForm\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"companyName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"communicationMethod\",\"kind\":\"enum\",\"type\":\"COMMUNICATION_METHOD\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"public_Customer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"CustomerStatus\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"image\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientTopublic_Customer\"},{\"name\":\"CustomerRequest\",\"kind\":\"object\",\"type\":\"CustomerRequest\",\"relationName\":\"CustomerRequestTopublic_Customer\"}],\"dbName\":\"Customer\"},\"CustomerRequest\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"REQUEST_STATUS\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"requestType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"Customer\",\"kind\":\"object\",\"type\":\"public_Customer\",\"relationName\":\"CustomerRequestTopublic_Customer\"},{\"name\":\"Vehicle\",\"kind\":\"object\",\"type\":\"Vehicle\",\"relationName\":\"CustomerRequestToVehicle\"}],\"dbName\":null},\"Document\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"aadharNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"aadharFrontImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"aadharBackImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"voterIdNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"voterIdImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"panCardNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"panCardImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"drivingLicenseNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"drivingLicenseImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"localAddressProof\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"BankAccountDetails\",\"kind\":\"object\",\"type\":\"BankAccountDetails\",\"relationName\":\"BankAccountDetailsToDocument\"},{\"name\":\"User\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"DocumentTopublic_User\"}],\"dbName\":null},\"HelpSupport\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"subject\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"HELP_SUPPORT_STATUS\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Invoice\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"invoiceNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"INVOICE_STATUS\"},{\"name\":\"issueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"dueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"subtotal\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"taxAmount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"totalAmount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pdfUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToInvoice\"},{\"name\":\"InvoiceItem\",\"kind\":\"object\",\"type\":\"InvoiceItem\",\"relationName\":\"InvoiceToInvoiceItem\"},{\"name\":\"Payment\",\"kind\":\"object\",\"type\":\"Payment\",\"relationName\":\"InvoiceToPayment\"}],\"dbName\":null},\"InvoiceItem\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"invoiceId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"quantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"unitPrice\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"Invoice\",\"kind\":\"object\",\"type\":\"Invoice\",\"relationName\":\"InvoiceToInvoiceItem\"}],\"dbName\":null},\"LeaveRequest\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"reason\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"LEAVE_STATUS\"},{\"name\":\"approvedById\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"leaveType\",\"kind\":\"enum\",\"type\":\"LEAVE_TYPE\"},{\"name\":\"adminNote\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"User_LeaveRequest_approvedByIdToUser\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"LeaveRequest_approvedByIdToUser\"},{\"name\":\"User_LeaveRequest_userIdToUser\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"LeaveRequest_userIdToUser\"}],\"dbName\":null},\"OperatorClientAssignment\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"assignedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToOperatorClientAssignment\"},{\"name\":\"User\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"OperatorClientAssignmentTopublic_User\"}],\"dbName\":null},\"ParkingSlot\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SlotStatus\"},{\"name\":\"slotLabel\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToParkingSlot\"}],\"dbName\":null},\"Payment\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"invoiceId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"currency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"PaymentStatus\"},{\"name\":\"paymentType\",\"kind\":\"enum\",\"type\":\"PaymentType\"},{\"name\":\"paymentMethod\",\"kind\":\"enum\",\"type\":\"PaymentMethodType\"},{\"name\":\"gateway\",\"kind\":\"enum\",\"type\":\"PaymentGateway\"},{\"name\":\"subscriptionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"receiptUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToPayment\"},{\"name\":\"Invoice\",\"kind\":\"object\",\"type\":\"Invoice\",\"relationName\":\"InvoiceToPayment\"},{\"name\":\"PaymentAuditLog\",\"kind\":\"object\",\"type\":\"PaymentAuditLog\",\"relationName\":\"PaymentToPaymentAuditLog\"},{\"name\":\"PaymentTransaction\",\"kind\":\"object\",\"type\":\"PaymentTransaction\",\"relationName\":\"PaymentToPaymentTransaction\"},{\"name\":\"Refund\",\"kind\":\"object\",\"type\":\"Refund\",\"relationName\":\"PaymentToRefund\"}],\"dbName\":null},\"PaymentAuditLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"action\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"actorType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"actorId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"oldValue\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"newValue\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Payment\",\"kind\":\"object\",\"type\":\"Payment\",\"relationName\":\"PaymentToPaymentAuditLog\"}],\"dbName\":null},\"PaymentTransaction\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"currency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"PaymentStatus\"},{\"name\":\"gateway\",\"kind\":\"enum\",\"type\":\"PaymentGateway\"},{\"name\":\"gatewayTxId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentMethod\",\"kind\":\"enum\",\"type\":\"PaymentMethodType\"},{\"name\":\"failureCode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"failureReason\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paidAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Payment\",\"kind\":\"object\",\"type\":\"Payment\",\"relationName\":\"PaymentToPaymentTransaction\"},{\"name\":\"RazorpayOrder\",\"kind\":\"object\",\"type\":\"RazorpayOrder\",\"relationName\":\"PaymentTransactionToRazorpayOrder\"},{\"name\":\"Refund\",\"kind\":\"object\",\"type\":\"Refund\",\"relationName\":\"PaymentTransactionToRefund\"}],\"dbName\":null},\"Pickup\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"valetId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"PICKUP_STATUS\"},{\"name\":\"notes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pickupFrom\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"parkAt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"meterPhotoUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehiclePhotoUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleVideoUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pickupTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"dropLocation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dropTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"droppedByValetId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pendingDropLocation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pendingDropTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"pendingDroppedByValetId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pendingDropNotes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToPickup\"},{\"name\":\"User_Pickup_droppedByValetIdToUser\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"Pickup_droppedByValetIdToUser\"},{\"name\":\"User_Pickup_pendingDroppedByValetIdToUser\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"Pickup_pendingDroppedByValetIdToUser\"},{\"name\":\"Site\",\"kind\":\"object\",\"type\":\"Site\",\"relationName\":\"PickupToSite\"},{\"name\":\"User_Pickup_valetIdToUser\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"Pickup_valetIdToUser\"},{\"name\":\"Vehicle\",\"kind\":\"object\",\"type\":\"Vehicle\",\"relationName\":\"PickupToVehicle\"}],\"dbName\":null},\"RazorpayOrder\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentTransactionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpayOrderId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpayPaymentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpaySignature\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amountPaise\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"currency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"PaymentTransaction\",\"kind\":\"object\",\"type\":\"PaymentTransaction\",\"relationName\":\"PaymentTransactionToRazorpayOrder\"}],\"dbName\":null},\"RazorpayWebhookLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"event\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"payload\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"signature\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"processed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"processedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"error\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Refund\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paymentTransactionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"currency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"RefundStatus\"},{\"name\":\"gatewayRefundId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"reason\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"processedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Payment\",\"kind\":\"object\",\"type\":\"Payment\",\"relationName\":\"PaymentToRefund\"},{\"name\":\"PaymentTransaction\",\"kind\":\"object\",\"type\":\"PaymentTransaction\",\"relationName\":\"PaymentTransactionToRefund\"}],\"dbName\":null},\"SelfParking\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehiclePhoto\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entryTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"exitTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"valetId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"contactNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isRegistered\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"ownerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleColor\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleManufacturer\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToSelfParking\"},{\"name\":\"Site\",\"kind\":\"object\",\"type\":\"Site\",\"relationName\":\"SelfParkingToSite\"},{\"name\":\"User\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"SelfParkingTopublic_User\"}],\"dbName\":null},\"ShiftAttendance\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"startPhotoUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startLatitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"startLongitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"startAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"endTime\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endPhotoUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"endLatitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"endLongitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"endAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"totalMinutes\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SHIFT_STATUS\"},{\"name\":\"User\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"ShiftAttendanceTopublic_User\"}],\"dbName\":null},\"Site\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteOwnerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerPhoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pincode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bankAccName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"accountNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ifsc\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"noticePeriod\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"lockInPeriod\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"depositAmount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"monthlyRental\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"sitePaymentMethod\",\"kind\":\"enum\",\"type\":\"SITE_PAYMENT_METHOD\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sitePictures\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SITE_STATUS\"},{\"name\":\"valetCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"supervisorCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"depositDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"siteDocuments\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"fourWheelerCapacity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"twoWheelerCapacity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"siteLength\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteWidth\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"operatorEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"operatorName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"operatorPhone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToSite\"},{\"name\":\"Pickup\",\"kind\":\"object\",\"type\":\"Pickup\",\"relationName\":\"PickupToSite\"},{\"name\":\"SelfParking\",\"kind\":\"object\",\"type\":\"SelfParking\",\"relationName\":\"SelfParkingToSite\"},{\"name\":\"SiteAssigned\",\"kind\":\"object\",\"type\":\"SiteAssigned\",\"relationName\":\"SiteToSiteAssigned\"},{\"name\":\"Vehicle\",\"kind\":\"object\",\"type\":\"Vehicle\",\"relationName\":\"SiteToVehicle\"}],\"dbName\":null},\"SiteAssigned\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"siteId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"VALET_ROLE\"},{\"name\":\"assignedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"Site\",\"kind\":\"object\",\"type\":\"Site\",\"relationName\":\"SiteToSiteAssigned\"},{\"name\":\"User\",\"kind\":\"object\",\"type\":\"public_User\",\"relationName\":\"SiteAssignedTopublic_User\"}],\"dbName\":null},\"Ticket\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ticketId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"subject\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"enum\",\"type\":\"TICKET_CATEGORY\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"priority\",\"kind\":\"enum\",\"type\":\"TICKET_PRIORITY\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"TICKET_STATUS\"},{\"name\":\"attachments\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"assignedTo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"admins\",\"kind\":\"object\",\"type\":\"admins\",\"relationName\":\"TicketToadmins\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToTicket\"},{\"name\":\"TicketComment\",\"kind\":\"object\",\"type\":\"TicketComment\",\"relationName\":\"TicketToTicketComment\"}],\"dbName\":null},\"TicketComment\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ticketId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"senderId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"attachmentUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isAdmin\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Ticket\",\"kind\":\"object\",\"type\":\"Ticket\",\"relationName\":\"TicketToTicketComment\"}],\"dbName\":null},\"public_User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pinCode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"applyingFor\",\"kind\":\"enum\",\"type\":\"VALET_ROLE\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"profilePic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"employeeNumber\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"employeeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"UserStatus\"},{\"name\":\"permanentAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dateOfBirth\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"gender\",\"kind\":\"enum\",\"type\":\"Gender\"},{\"name\":\"maritalStatus\",\"kind\":\"enum\",\"type\":\"MaritalStatus\"},{\"name\":\"alternatePhoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"currentAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fatherName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fatherContactNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dateOfJoining\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"workingLocation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"workingSiteName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shiftTiming\",\"kind\":\"enum\",\"type\":\"ShiftTiming\"},{\"name\":\"tShirtSize\",\"kind\":\"enum\",\"type\":\"TShirtSize\"},{\"name\":\"pantSize\",\"kind\":\"enum\",\"type\":\"PantSize\"},{\"name\":\"Document\",\"kind\":\"object\",\"type\":\"Document\",\"relationName\":\"DocumentTopublic_User\"},{\"name\":\"LeaveRequest_LeaveRequest_approvedByIdToUser\",\"kind\":\"object\",\"type\":\"LeaveRequest\",\"relationName\":\"LeaveRequest_approvedByIdToUser\"},{\"name\":\"LeaveRequest_LeaveRequest_userIdToUser\",\"kind\":\"object\",\"type\":\"LeaveRequest\",\"relationName\":\"LeaveRequest_userIdToUser\"},{\"name\":\"OperatorClientAssignment\",\"kind\":\"object\",\"type\":\"OperatorClientAssignment\",\"relationName\":\"OperatorClientAssignmentTopublic_User\"},{\"name\":\"Pickup_Pickup_droppedByValetIdToUser\",\"kind\":\"object\",\"type\":\"Pickup\",\"relationName\":\"Pickup_droppedByValetIdToUser\"},{\"name\":\"Pickup_Pickup_pendingDroppedByValetIdToUser\",\"kind\":\"object\",\"type\":\"Pickup\",\"relationName\":\"Pickup_pendingDroppedByValetIdToUser\"},{\"name\":\"Pickup_Pickup_valetIdToUser\",\"kind\":\"object\",\"type\":\"Pickup\",\"relationName\":\"Pickup_valetIdToUser\"},{\"name\":\"SelfParking\",\"kind\":\"object\",\"type\":\"SelfParking\",\"relationName\":\"SelfParkingTopublic_User\"},{\"name\":\"ShiftAttendance\",\"kind\":\"object\",\"type\":\"ShiftAttendance\",\"relationName\":\"ShiftAttendanceTopublic_User\"},{\"name\":\"SiteAssigned\",\"kind\":\"object\",\"type\":\"SiteAssigned\",\"relationName\":\"SiteAssignedTopublic_User\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientTopublic_User\"}],\"dbName\":\"User\"},\"Vehicle\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleType\",\"kind\":\"enum\",\"type\":\"VEHICLE_TYPE\"},{\"name\":\"vehicleModel\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleBrand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vehicleColor\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerPhone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isPhoneVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"siteId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"VehicleStatus\"},{\"name\":\"CustomerRequest\",\"kind\":\"object\",\"type\":\"CustomerRequest\",\"relationName\":\"CustomerRequestToVehicle\"},{\"name\":\"Pickup\",\"kind\":\"object\",\"type\":\"Pickup\",\"relationName\":\"PickupToVehicle\"},{\"name\":\"Site\",\"kind\":\"object\",\"type\":\"Site\",\"relationName\":\"SiteToVehicle\"}],\"dbName\":null},\"admin_email_verifications\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"adminId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"otp\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isUsed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"admins\",\"kind\":\"object\",\"type\":\"admins\",\"relationName\":\"admin_email_verificationsToadmins\"}],\"dbName\":null},\"admin_password_resets\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"adminId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isUsed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"admins\",\"kind\":\"object\",\"type\":\"admins\",\"relationName\":\"admin_password_resetsToadmins\"}],\"dbName\":null},\"admins\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"profilePic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bio\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isEmailVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"emailVerifiedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"lastLoginAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"socialLinks\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"address\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"departmentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"roleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"AdminStatus\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Ticket\",\"kind\":\"object\",\"type\":\"Ticket\",\"relationName\":\"TicketToadmins\"},{\"name\":\"admin_email_verifications\",\"kind\":\"object\",\"type\":\"admin_email_verifications\",\"relationName\":\"admin_email_verificationsToadmins\"},{\"name\":\"admin_password_resets\",\"kind\":\"object\",\"type\":\"admin_password_resets\",\"relationName\":\"admin_password_resetsToadmins\"},{\"name\":\"departments\",\"kind\":\"object\",\"type\":\"departments\",\"relationName\":\"adminsTodepartments\"},{\"name\":\"roles\",\"kind\":\"object\",\"type\":\"roles\",\"relationName\":\"adminsToroles\"},{\"name\":\"approval_logs\",\"kind\":\"object\",\"type\":\"approval_logs\",\"relationName\":\"adminsToapproval_logs\"}],\"dbName\":null},\"approval_logs\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"adminId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"approvedBy\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"action\",\"kind\":\"enum\",\"type\":\"ApprovalAction\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"ApprovalStatus\"},{\"name\":\"comments\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"admins\",\"kind\":\"object\",\"type\":\"admins\",\"relationName\":\"adminsToapproval_logs\"}],\"dbName\":null},\"client_email_verifications\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"otp\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isUsed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToclient_email_verifications\"}],\"dbName\":null},\"client_password_resets\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clientId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isUsed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Client\",\"kind\":\"object\",\"type\":\"Client\",\"relationName\":\"ClientToclient_password_resets\"}],\"dbName\":null},\"customer_fcm_tokens\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"device_info\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"is_active\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"last_seen\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"departments\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"admins\",\"kind\":\"object\",\"type\":\"admins\",\"relationName\":\"adminsTodepartments\"},{\"name\":\"roles\",\"kind\":\"object\",\"type\":\"roles\",\"relationName\":\"departmentsToroles\"}],\"dbName\":null},\"fcm_tokens\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"device_info\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"is_active\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"last_seen\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"permissions\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"module\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"role_permissions\",\"kind\":\"object\",\"type\":\"role_permissions\",\"relationName\":\"permissionsTorole_permissions\"}],\"dbName\":null},\"role_permissions\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"roleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"permissionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"permissions\",\"kind\":\"object\",\"type\":\"permissions\",\"relationName\":\"permissionsTorole_permissions\"},{\"name\":\"roles\",\"kind\":\"object\",\"type\":\"roles\",\"relationName\":\"role_permissionsToroles\"}],\"dbName\":null},\"roles\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"departmentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isSuperAdmin\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"permissionKeys\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"permissionsMask\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"admins\",\"kind\":\"object\",\"type\":\"admins\",\"relationName\":\"adminsToroles\"},{\"name\":\"role_permissions\",\"kind\":\"object\",\"type\":\"role_permissions\",\"relationName\":\"role_permissionsToroles\"},{\"name\":\"departments\",\"kind\":\"object\",\"type\":\"departments\",\"relationName\":\"departmentsToroles\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
   getRuntime: async () => require('./query_compiler_fast_bg.js'),

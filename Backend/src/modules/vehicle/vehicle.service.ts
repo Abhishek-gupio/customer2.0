@@ -9,6 +9,7 @@ import { logger } from "../../config/logger";
 import { predictionService } from "../../services/prediction.service";
 import { ocrService } from "../../services/ocr.service";
 import { fetchAndSaveIntervalsForVehicle } from "../../services/oem-scraper.service";
+import { rcVerificationService } from "../../services/rc-verification.service";
 
 // ─── Vehicle Images (Curated Static list) ───────────────────────────────────
 const CAR_IMAGES = [
@@ -52,6 +53,8 @@ export const vehicleService = {
     } else {
       imageUrl = CAR_IMAGES[Math.floor(Math.random() * CAR_IMAGES.length)];
     }
+
+    console.log('Adding Vehicle to DB. Input Data:', JSON.stringify(input, null, 2));
 
     // Create vehicle with imageUrl
     const [vehicle] = await dbInstances.$transaction([
@@ -330,8 +333,60 @@ export const vehicleService = {
 
   async generateVehicleImage(type: string): Promise<string> {
     if (type.toLowerCase().includes("bike")) {
-      return BIKE_IMAGES[Math.floor(Math.random() * BIKE_IMAGES.length)];
+      return BIKE_IMAGES[Math.round(Math.random() * (BIKE_IMAGES.length - 1))];
     }
-    return CAR_IMAGES[Math.floor(Math.random() * CAR_IMAGES.length)];
+    return CAR_IMAGES[Math.round(Math.random() * (CAR_IMAGES.length - 1))];
+  },
+
+  async verifyVehicle(regNo: string) {
+    const normalizedRegNo = regNo.toUpperCase().replace(/\s/g, "");
+    logger.info({ normalizedRegNo }, "Starting vehicle verification");
+
+    // 1. Check if vehicle already exists in any customer's account
+    const existingVehicle = await (dbInstances as any).customerVehicle.findUnique({
+      where: { registrationNumber: normalizedRegNo },
+    });
+
+    if (existingVehicle) {
+      logger.info({ normalizedRegNo }, "Returning vehicle data from existing customer_vehicle record");
+      return {
+        registrationNumber: existingVehicle.registrationNumber,
+        ownerName: existingVehicle.ownerName,
+        rto: existingVehicle.rto,
+        make: existingVehicle.make,
+        brand: existingVehicle.brand,
+        model: existingVehicle.model,
+        vehicleClass: existingVehicle.vehicleClass,
+        engineNumber: existingVehicle.engineNumber,
+        chassisNumber: existingVehicle.chassisNumber,
+        fuelType: existingVehicle.fuelType,
+        fuelNorms: existingVehicle.fuelNorms,
+        rcStatus: existingVehicle.rcStatus,
+        unloadedWeight: existingVehicle.unloadedWeight,
+        registrationDate: existingVehicle.registrationDate?.toISOString().split('T')[0],
+        fitnessUpto: existingVehicle.fitnessUpto,
+        insuranceUpto: existingVehicle.insuranceUpto,
+        pollutionUpto: existingVehicle.pollutionUpto,
+        color: existingVehicle.color,
+        seatingCapacity: existingVehicle.seatingCapacity,
+        cylinderCount: existingVehicle.cylinderCount,
+        cubicCapacity: existingVehicle.cubicCapacity,
+        grossWeight: existingVehicle.grossWeight,
+        bodyType: existingVehicle.bodyType,
+        ownerAddress: existingVehicle.ownerAddress,
+        vehicleType: existingVehicle.vehicleType || 'CAR'
+      };
+    }
+
+    // 2. Not in DB, call external API
+    const rcData = await rcVerificationService.verifyRC(normalizedRegNo);
+
+    if (!rcData) {
+      throw AppError.badRequest("RC details not found for this vehicle number");
+    }
+
+    // 3. Return data (don't store yet, user saves it when they add vehicle)
+    logger.info({ normalizedRegNo }, "Vehicle details fetched from RC API");
+    return rcData;
   },
 };

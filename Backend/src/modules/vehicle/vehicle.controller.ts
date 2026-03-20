@@ -31,6 +31,7 @@ export const vehicleController = {
   add: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
     const body = parseBody(req, addVehicleSchema);
+    console.log('Incoming Vehicle Addition Data:', JSON.stringify(body, null, 2));
     const vehicle = await vehicleService.addVehicle(req.customer.id, body);
     success(res, vehicle, 201);
   }),
@@ -121,6 +122,14 @@ export const vehicleController = {
     if (!plate) throw AppError.badRequest("plate is required");
 
     const data = await vehicleService.lookupRTO(plate.toUpperCase(), model);
+    success(res, data);
+  }),
+
+  verify: asyncHandler(async (req: Request, res: Response) => {
+    const { reg_no } = req.body;
+    if (!reg_no) throw AppError.badRequest("reg_no is required");
+
+    const data = await vehicleService.verifyVehicle(reg_no);
     success(res, data);
   }),
 };

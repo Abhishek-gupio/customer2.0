@@ -72,6 +72,10 @@ const envSchema = z.object({
 
   // Google Sign-In (OAuth 2.0 Web client ID for server-side ID token verification)
   GOOGLE_CLIENT_ID: z.string().optional(),
+  // Vehicle Verification API
+  API_ID: z.string().optional(),
+  API_KEY: z.string().optional(),
+  TOKEN_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
