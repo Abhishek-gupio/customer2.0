@@ -1,6 +1,9 @@
+import axios from "axios";
 import { dbInstances } from "@repo/db-customer";
 import { logger } from "../config/logger";
 import { notificationService } from "./notification.service";
+import { env } from "../config/env";
+import { AppError } from "../utils/AppError";
 
 export const challanService = {
   /**
@@ -13,50 +16,117 @@ export const challanService = {
       include: { customer: true },
     });
 
-    if (!vehicle) return;
+    if (!vehicle) throw AppError.notFound("Vehicle not found");
 
     logger.info(
       { vehicleId, regNo: vehicle.registrationNumber },
-      "Checking for new traffic challans...",
+      "Checking for real-time traffic challans from idspay.in...",
     );
 
-    // Simulate API check
-    // For demonstration, let's say we found a new challan if the last 4 digits are "1234"
-    if (vehicle.registrationNumber.endsWith("1234")) {
-      const challanNo = `GUP-${Math.floor(Math.random() * 900000) + 100000}`;
+    const payload = {
+      api_id: env.API_ID,
+      api_key: env.API_KEY,
+      token_id: env.TOKEN_ID,
+      reg_no: vehicle.registrationNumber,
+    };
 
-      // Check if already exists
-      const existing = await (dbInstances as any).challan.findUnique({
-        where: { challanNumber: challanNo },
-      });
+    try {
+      const response = await axios.post(
+        "https://javabackend.idspay.in/api/v1/prod/srv2/validation/echallan",
+        payload
+      );
 
-      if (!existing) {
-        const newChallan = await (dbInstances as any).challan.create({
-          data: {
-            vehicleId,
-            challanNumber: challanNo,
-            amount: 500,
-            status: "UNPAID",
-            date: new Date(),
-            violationType: "Speeding / Invalid Parking",
-            location: "Main Street, Mumbai",
-            source: "E-CHALLAN MOCK",
-          },
-        });
+      const resData = response.data;
+      console.log('--- RAW CHALLAN API DATA ---');
+      console.log(JSON.stringify(resData, null, 2));
+      console.log('-----------------------------');
 
-        // Proactive Notification
-        await notificationService.notifyCustomer(vehicle.customerId, {
-          title: "⚠️ New Traffic Challan Found",
-          body: `A new challan (${challanNo}) of ₹500 for ${vehicle.make} ${vehicle.model} has been detected. Pay soon to avoid penalties.`,
-          type: "ERROR",
-          sendSMS: true,
-          phoneNumber: vehicle.customer.phoneNumber || undefined,
-          link: `/vehicles/${vehicleId}/challans`,
-          metadata: { challanId: newChallan.id, vehicleId },
-        });
+      const resStatus = resData.status;
+      const isSuccess = typeof resStatus === 'string' 
+        ? resStatus === 'success' 
+        : resStatus?.type === 'success';
 
-        logger.info({ challanNo }, "New challan detected and user notified");
+      if (!isSuccess || !resData.data) {
+        logger.error({ response: resData }, "Challan API returned error or empty status");
+        return this.getChallans(vehicleId);
       }
+
+      const externalChallans = Array.isArray(resData.data.data) ? resData.data.data : [];
+      logger.info({ count: externalChallans.length }, "Discovered challans from external API");
+      
+      const syncedChallans = [];
+      // Use owner/RTO from the first challan if available
+      const first = externalChallans[0];
+      const ownerName = first?.owner_name || resData.data.owner_name || vehicle.ownerName;
+      const rtoName = first?.RTO_name || resData.data.rto_name || vehicle.rto;
+
+      for (const ec of externalChallans) {
+        // Handle nested violation details
+        let violationDescription = "Traffic Violation";
+        if (Array.isArray(ec.violation_details)) {
+            violationDescription = ec.violation_details
+                .map((v: any) => v.offence)
+                .join(" | ");
+        } else {
+            violationDescription = ec.offence_description || ec.offence || ec.reason || ec.violation || "Traffic Violation";
+        }
+
+        // Map external challan to our DB structure
+        const challanData = {
+          vehicleId,
+          challanNumber: ec.challan_no || ec.challan_number || ec.challanNo || `CHL-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          amount: parseFloat(ec.challan_amount || ec.amount || ec.fine_amount || ec.fine || "0"),
+          status: (ec.status || ec.challan_status || "UNPAID").toUpperCase() === "PAID" ? "PAID" : "UNPAID",
+          date: ec.challan_date || ec.date || ec.violation_date ? new Date(ec.challan_date || ec.date || ec.violation_date) : new Date(),
+          violationType: violationDescription,
+          location: ec.challan_location || ec.location || ec.place || "Unknown",
+          source: "IDSPAY E-CHALLAN",
+          metadata: {
+            ownerName: ec.owner_name || ownerName,
+            rtoName: ec.RTO_name || rtoName,
+            externalSource: "IDSPAY"
+          }
+        };
+
+        const existing = await (dbInstances as any).challan.findUnique({
+          where: { challanNumber: challanData.challanNumber },
+        });
+
+        if (existing) {
+          const updated = await (dbInstances as any).challan.update({
+            where: { id: existing.id },
+            data: {
+              status: challanData.status,
+              amount: challanData.amount,
+              updatedAt: new Date(),
+              metadata: challanData.metadata
+            },
+          });
+          syncedChallans.push(updated);
+        } else {
+          const created = await (dbInstances as any).challan.create({
+            data: challanData,
+          });
+          syncedChallans.push(created);
+
+          // Notify only for new UNPAID challans
+          if (challanData.status === "UNPAID") {
+            await notificationService.notifyCustomer(vehicle.customerId, {
+              title: "⚠️ New Traffic Challan Found",
+              body: `A new challan (${challanData.challanNumber}) of ₹${challanData.amount} for ${vehicle.make} ${vehicle.model} has been detected.`,
+              type: "ERROR",
+              sendSMS: false,
+              link: `/vehicles/${vehicleId}/challans`,
+            }).catch(err => logger.error({ err }, "Failed to send challan notification"));
+          }
+        }
+      }
+
+      return syncedChallans;
+    } catch (error: any) {
+      logger.error({ error: error.message, vehicleId }, "Challan API call failed");
+      // If API fails, return current local challans
+      return this.getChallans(vehicleId);
     }
   },
 

@@ -527,6 +527,7 @@ export const DetailsScreen = ({
                                     icon={FileText}
                                     label="challans"
                                     value="CHECK NOW"
+                                    onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
                                 <StatusCard
                                     icon={ShieldCheck}

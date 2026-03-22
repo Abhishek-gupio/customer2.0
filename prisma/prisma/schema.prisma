@@ -189,6 +189,7 @@ model Challan {
   violationType String
   location      String?
   source        String
+  metadata      Json?
   lastCheckedAt DateTime        @default(now())
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt

@@ -43,8 +43,8 @@ export const InfoCard = ({ icon: Icon, label, value, style }: { icon: any, label
     </View>
 );
 
-export const StatusCard = ({ icon: Icon, label, value, style }: { icon: any, label: string, value: string, style?: any }) => (
-    <View style={[styles.statusCard, style]}>
+export const StatusCard = ({ icon: Icon, label, value, onPress, style }: { icon: any, label: string, value: string, onPress?: () => void, style?: any }) => (
+    <TouchableOpacity onPress={onPress} disabled={!onPress} style={[styles.statusCard, style]} activeOpacity={0.7}>
         <View style={styles.statusIconBox}>
             {Icon && <Icon size={24} color={COLORS.primary} />}
         </View>
@@ -52,7 +52,7 @@ export const StatusCard = ({ icon: Icon, label, value, style }: { icon: any, lab
             <Text style={styles.statusLabel}>{label}</Text>
             <Text style={styles.statusValue}>{value}</Text>
         </View>
-    </View>
+    </TouchableOpacity>
 );
 
 export const GloveboxItem = ({ label, icon: Icon, onPress }: { label: string, icon: any, onPress: () => void }) => (

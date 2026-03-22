@@ -17878,6 +17878,7 @@ export namespace Prisma {
     violationType: number
     location: number
     source: number
+    metadata: number
     lastCheckedAt: number
     createdAt: number
     updatedAt: number
@@ -17933,6 +17934,7 @@ export namespace Prisma {
     violationType?: true
     location?: true
     source?: true
+    metadata?: true
     lastCheckedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -18035,6 +18037,7 @@ export namespace Prisma {
     violationType: string
     location: string | null
     source: string
+    metadata: JsonValue | null
     lastCheckedAt: Date
     createdAt: Date
     updatedAt: Date
@@ -18069,6 +18072,7 @@ export namespace Prisma {
     violationType?: boolean
     location?: boolean
     source?: boolean
+    metadata?: boolean
     lastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -18085,6 +18089,7 @@ export namespace Prisma {
     violationType?: boolean
     location?: boolean
     source?: boolean
+    metadata?: boolean
     lastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -18101,6 +18106,7 @@ export namespace Prisma {
     violationType?: boolean
     location?: boolean
     source?: boolean
+    metadata?: boolean
     lastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -18117,12 +18123,13 @@ export namespace Prisma {
     violationType?: boolean
     location?: boolean
     source?: boolean
+    metadata?: boolean
     lastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ChallanOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "challanNumber" | "amount" | "status" | "date" | "violationType" | "location" | "source" | "lastCheckedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["challan"]>
+  export type ChallanOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "challanNumber" | "amount" | "status" | "date" | "violationType" | "location" | "source" | "metadata" | "lastCheckedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["challan"]>
   export type ChallanInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
   }
@@ -18148,6 +18155,7 @@ export namespace Prisma {
       violationType: string
       location: string | null
       source: string
+      metadata: Prisma.JsonValue | null
       lastCheckedAt: Date
       createdAt: Date
       updatedAt: Date
@@ -18584,6 +18592,7 @@ export namespace Prisma {
     readonly violationType: FieldRef<"Challan", 'String'>
     readonly location: FieldRef<"Challan", 'String'>
     readonly source: FieldRef<"Challan", 'String'>
+    readonly metadata: FieldRef<"Challan", 'Json'>
     readonly lastCheckedAt: FieldRef<"Challan", 'DateTime'>
     readonly createdAt: FieldRef<"Challan", 'DateTime'>
     readonly updatedAt: FieldRef<"Challan", 'DateTime'>
@@ -91944,6 +91953,7 @@ export namespace Prisma {
     violationType: 'violationType',
     location: 'location',
     source: 'source',
+    metadata: 'metadata',
     lastCheckedAt: 'lastCheckedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -94648,6 +94658,7 @@ export namespace Prisma {
     violationType?: StringFilter<"Challan"> | string
     location?: StringNullableFilter<"Challan"> | string | null
     source?: StringFilter<"Challan"> | string
+    metadata?: JsonNullableFilter<"Challan">
     lastCheckedAt?: DateTimeFilter<"Challan"> | Date | string
     createdAt?: DateTimeFilter<"Challan"> | Date | string
     updatedAt?: DateTimeFilter<"Challan"> | Date | string
@@ -94664,6 +94675,7 @@ export namespace Prisma {
     violationType?: SortOrder
     location?: SortOrderInput | SortOrder
     source?: SortOrder
+    metadata?: SortOrderInput | SortOrder
     lastCheckedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -94683,6 +94695,7 @@ export namespace Prisma {
     violationType?: StringFilter<"Challan"> | string
     location?: StringNullableFilter<"Challan"> | string | null
     source?: StringFilter<"Challan"> | string
+    metadata?: JsonNullableFilter<"Challan">
     lastCheckedAt?: DateTimeFilter<"Challan"> | Date | string
     createdAt?: DateTimeFilter<"Challan"> | Date | string
     updatedAt?: DateTimeFilter<"Challan"> | Date | string
@@ -94699,6 +94712,7 @@ export namespace Prisma {
     violationType?: SortOrder
     location?: SortOrderInput | SortOrder
     source?: SortOrder
+    metadata?: SortOrderInput | SortOrder
     lastCheckedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -94722,6 +94736,7 @@ export namespace Prisma {
     violationType?: StringWithAggregatesFilter<"Challan"> | string
     location?: StringNullableWithAggregatesFilter<"Challan"> | string | null
     source?: StringWithAggregatesFilter<"Challan"> | string
+    metadata?: JsonNullableWithAggregatesFilter<"Challan">
     lastCheckedAt?: DateTimeWithAggregatesFilter<"Challan"> | Date | string
     createdAt?: DateTimeWithAggregatesFilter<"Challan"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Challan"> | Date | string
@@ -101207,6 +101222,7 @@ export namespace Prisma {
     violationType: string
     location?: string | null
     source: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -101223,6 +101239,7 @@ export namespace Prisma {
     violationType: string
     location?: string | null
     source: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -101237,6 +101254,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -101253,6 +101271,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -101268,6 +101287,7 @@ export namespace Prisma {
     violationType: string
     location?: string | null
     source: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -101282,6 +101302,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -101297,6 +101318,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -108449,6 +108471,7 @@ export namespace Prisma {
     violationType?: SortOrder
     location?: SortOrder
     source?: SortOrder
+    metadata?: SortOrder
     lastCheckedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -120021,6 +120044,7 @@ export namespace Prisma {
     violationType: string
     location?: string | null
     source: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -120035,6 +120059,7 @@ export namespace Prisma {
     violationType: string
     location?: string | null
     source: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -120438,6 +120463,7 @@ export namespace Prisma {
     violationType?: StringFilter<"Challan"> | string
     location?: StringNullableFilter<"Challan"> | string | null
     source?: StringFilter<"Challan"> | string
+    metadata?: JsonNullableFilter<"Challan">
     lastCheckedAt?: DateTimeFilter<"Challan"> | Date | string
     createdAt?: DateTimeFilter<"Challan"> | Date | string
     updatedAt?: DateTimeFilter<"Challan"> | Date | string
@@ -136207,6 +136233,7 @@ export namespace Prisma {
     violationType: string
     location?: string | null
     source: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -136314,6 +136341,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -136328,6 +136356,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -136342,6 +136371,7 @@ export namespace Prisma {
     violationType?: StringFieldUpdateOperationsInput | string
     location?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
     lastCheckedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

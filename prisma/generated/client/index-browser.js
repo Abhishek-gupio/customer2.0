@@ -250,6 +250,7 @@ exports.Prisma.ChallanScalarFieldEnum = {
   violationType: 'violationType',
   location: 'location',
   source: 'source',
+  metadata: 'metadata',
   lastCheckedAt: 'lastCheckedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
