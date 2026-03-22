@@ -227,7 +227,9 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   cylinderCount: 'cylinderCount',
   cubicCapacity: 'cubicCapacity',
   grossWeight: 'grossWeight',
-  bodyType: 'bodyType'
+  bodyType: 'bodyType',
+  ownerAddress: 'ownerAddress',
+  permanentAddress: 'permanentAddress'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {

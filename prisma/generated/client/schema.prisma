@@ -148,6 +148,8 @@ model CustomerVehicle {
   cubicCapacity      String?
   grossWeight        String?
   bodyType           String?
+  ownerAddress       String?
+  permanentAddress   String?
   challans           Challan[]
   documents          CustomerDocument[]
   customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)

@@ -249,7 +249,7 @@ export default function Home() {
   const fetchUserLocation = async () => {
     try {
       setLocationLoading(true);
-      
+
       // try GPS
       if (Geolocation) {
         const permitted = await requestLocationPermission();
@@ -435,7 +435,7 @@ export default function Home() {
                       <View style={styles.headerRight}>
                         <Image
                           source={(
-                            vehicle?.vehicleType === 'BIKE' 
+                            vehicle?.vehicleType === 'BIKE'
                               ? require('../../assets/images/bike.png')
                               : require('../../assets/images/car_vehicle_demo.png')
                           ) as any}
@@ -629,7 +629,7 @@ export default function Home() {
             <View style={styles.bannerContent}>
               <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
               <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.payNowButton}
                 onPress={() => navigation.navigate('Services' as any, { screen: 'CheckChallan' })}
               >

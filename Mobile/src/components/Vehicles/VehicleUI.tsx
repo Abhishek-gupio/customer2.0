@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window');
 
@@ -67,36 +68,36 @@ const styles = StyleSheet.create({
     plate: {
         flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 8,
         alignSelf: 'center', borderWidth: 1, borderColor: '#EEE', overflow: 'hidden',
-        height: 44, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+        height: hp('5.5%'), elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1, shadowRadius: 2
     },
-    indStrip: { backgroundColor: '#003399', width: 28, alignItems: 'center', justifyContent: 'center' },
+    indStrip: { backgroundColor: '#003399', width: wp('7%'), alignItems: 'center', justifyContent: 'center' },
     dot: { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 4 },
-    indText: { color: '#FFF', fontSize: 8, fontWeight: '900' },
+    indText: { color: '#FFF', fontSize: hp('1%'), fontWeight: '900' },
     plateNo: { 
-        paddingHorizontal: 16, justifyContent: 'center', color: '#000', 
-        fontSize: 20, fontWeight: '800', letterSpacing: 1, textAlignVertical: 'center',
-        paddingVertical: Platform.OS === 'ios' ? 8 : 0
+        paddingHorizontal: wp('4%'), justifyContent: 'center', color: '#000', 
+        fontSize: hp('2.5%'), fontWeight: '800', letterSpacing: 1, textAlignVertical: 'center',
+        paddingVertical: Platform.OS === 'ios' ? hp('1%') : 0
     },
     card: {
-        backgroundColor: COLORS.surface, padding: 20, borderRadius: 24,
+        backgroundColor: COLORS.surface, padding: wp('5%'), borderRadius: 24,
         borderWidth: 1, borderColor: COLORS.border, flexDirection: 'row',
-        alignItems: 'center', gap: 16
+        alignItems: 'center', gap: wp('4%')
     },
     iconBox: {
-        width: 44, height: 44, backgroundColor: '#000', borderRadius: 14,
+        width: wp('11%'), height: wp('11%'), backgroundColor: '#000', borderRadius: 14,
         alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333'
     },
     label: {
-        color: COLORS.textMuted, fontSize: 10, fontWeight: '900',
-        letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4
+        color: COLORS.textMuted, fontSize: hp('1.2%'), fontWeight: '900',
+        letterSpacing: 1, textTransform: 'uppercase', marginBottom: hp('0.5%')
     },
     value: {
-        color: '#FFF', fontSize: 15, fontWeight: '900',
+        color: '#FFF', fontSize: hp('1.8%'), fontWeight: '900',
         textTransform: 'uppercase'
     },
     gloveboxItem: {
-        width: (width - 84) / 4, alignItems: 'center', gap: 8
+        width: (wp('100%') - wp('21%')) / 4, alignItems: 'center', gap: hp('1%')
     },
     gloveboxIconBox: {
         width: '100%', aspectRatio: 1, backgroundColor: COLORS.lightBg, 
@@ -104,23 +105,23 @@ const styles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333'
     },
     gloveboxLabel: {
-        color: '#AAA', fontSize: 10, fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit'
+        color: '#AAA', fontSize: hp('1.3%'), fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit'
     },
     statusCard: {
-        flex: 1, backgroundColor: COLORS.lightBlack, paddingHorizontal: 20, paddingVertical: 24, borderRadius: 24,
-        flexDirection: 'row', alignItems: 'center', gap: 16, borderWidth: 1, borderColor: '#333'
+        flex: 1, backgroundColor: COLORS.lightBlack, paddingHorizontal: wp('5%'), paddingVertical: hp('3%'), borderRadius: 24,
+        flexDirection: 'row', alignItems: 'center', gap: wp('4%'), borderWidth: 1, borderColor: '#333'
     },
     statusIconBox: {
-        width: 44, height: 44, backgroundColor: '#000', borderRadius: 22,
+        width: wp('11%'), height: wp('11%'), backgroundColor: '#000', borderRadius: wp('5.5%'),
         alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333'
     },
     statusContent: {
-        flex: 1, gap: 2
+        flex: 1, gap: hp('0.2%')
     },
     statusLabel: {
-        color: '#FFF', fontSize: 14, fontFamily: 'Outfit-Bold', textTransform: 'lowercase'
+        color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Bold', textTransform: 'lowercase'
     },
     statusValue: {
-        color: COLORS.textMuted, fontSize: 10, fontFamily: 'Outfit-Bold', textTransform: 'uppercase'
+        color: COLORS.textMuted, fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', textTransform: 'uppercase'
     }
 });

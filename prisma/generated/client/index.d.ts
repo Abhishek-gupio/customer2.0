@@ -14980,6 +14980,8 @@ export namespace Prisma {
     cubicCapacity: string | null
     grossWeight: string | null
     bodyType: string | null
+    ownerAddress: string | null
+    permanentAddress: string | null
   }
 
   export type CustomerVehicleMaxAggregateOutputType = {
@@ -15022,6 +15024,8 @@ export namespace Prisma {
     cubicCapacity: string | null
     grossWeight: string | null
     bodyType: string | null
+    ownerAddress: string | null
+    permanentAddress: string | null
   }
 
   export type CustomerVehicleCountAggregateOutputType = {
@@ -15064,6 +15068,8 @@ export namespace Prisma {
     cubicCapacity: number
     grossWeight: number
     bodyType: number
+    ownerAddress: number
+    permanentAddress: number
     _all: number
   }
 
@@ -15118,6 +15124,8 @@ export namespace Prisma {
     cubicCapacity?: true
     grossWeight?: true
     bodyType?: true
+    ownerAddress?: true
+    permanentAddress?: true
   }
 
   export type CustomerVehicleMaxAggregateInputType = {
@@ -15160,6 +15168,8 @@ export namespace Prisma {
     cubicCapacity?: true
     grossWeight?: true
     bodyType?: true
+    ownerAddress?: true
+    permanentAddress?: true
   }
 
   export type CustomerVehicleCountAggregateInputType = {
@@ -15202,6 +15212,8 @@ export namespace Prisma {
     cubicCapacity?: true
     grossWeight?: true
     bodyType?: true
+    ownerAddress?: true
+    permanentAddress?: true
     _all?: true
   }
 
@@ -15331,6 +15343,8 @@ export namespace Prisma {
     cubicCapacity: string | null
     grossWeight: string | null
     bodyType: string | null
+    ownerAddress: string | null
+    permanentAddress: string | null
     _count: CustomerVehicleCountAggregateOutputType | null
     _avg: CustomerVehicleAvgAggregateOutputType | null
     _sum: CustomerVehicleSumAggregateOutputType | null
@@ -15392,6 +15406,8 @@ export namespace Prisma {
     cubicCapacity?: boolean
     grossWeight?: boolean
     bodyType?: boolean
+    ownerAddress?: boolean
+    permanentAddress?: boolean
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -15445,6 +15461,8 @@ export namespace Prisma {
     cubicCapacity?: boolean
     grossWeight?: boolean
     bodyType?: boolean
+    ownerAddress?: boolean
+    permanentAddress?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -15488,6 +15506,8 @@ export namespace Prisma {
     cubicCapacity?: boolean
     grossWeight?: boolean
     bodyType?: boolean
+    ownerAddress?: boolean
+    permanentAddress?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -15531,9 +15551,11 @@ export namespace Prisma {
     cubicCapacity?: boolean
     grossWeight?: boolean
     bodyType?: boolean
+    ownerAddress?: boolean
+    permanentAddress?: boolean
   }
 
-  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber" | "imageUrl" | "ownerName" | "rto" | "vehicleClass" | "fuelNorms" | "transmission" | "priceRange" | "rating" | "rcStatus" | "unloadedWeight" | "fitnessUpto" | "insuranceUpto" | "pollutionUpto" | "mileage" | "brand" | "color" | "seatingCapacity" | "cylinderCount" | "cubicCapacity" | "grossWeight" | "bodyType", ExtArgs["result"]["customerVehicle"]>
+  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber" | "imageUrl" | "ownerName" | "rto" | "vehicleClass" | "fuelNorms" | "transmission" | "priceRange" | "rating" | "rcStatus" | "unloadedWeight" | "fitnessUpto" | "insuranceUpto" | "pollutionUpto" | "mileage" | "brand" | "color" | "seatingCapacity" | "cylinderCount" | "cubicCapacity" | "grossWeight" | "bodyType" | "ownerAddress" | "permanentAddress", ExtArgs["result"]["customerVehicle"]>
   export type CustomerVehicleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
@@ -15608,6 +15630,8 @@ export namespace Prisma {
       cubicCapacity: string | null
       grossWeight: string | null
       bodyType: string | null
+      ownerAddress: string | null
+      permanentAddress: string | null
     }, ExtArgs["result"]["customerVehicle"]>
     composites: {}
   }
@@ -16080,6 +16104,8 @@ export namespace Prisma {
     readonly cubicCapacity: FieldRef<"CustomerVehicle", 'String'>
     readonly grossWeight: FieldRef<"CustomerVehicle", 'String'>
     readonly bodyType: FieldRef<"CustomerVehicle", 'String'>
+    readonly ownerAddress: FieldRef<"CustomerVehicle", 'String'>
+    readonly permanentAddress: FieldRef<"CustomerVehicle", 'String'>
   }
     
 
@@ -91889,7 +91915,9 @@ export namespace Prisma {
     cylinderCount: 'cylinderCount',
     cubicCapacity: 'cubicCapacity',
     grossWeight: 'grossWeight',
-    bodyType: 'bodyType'
+    bodyType: 'bodyType',
+    ownerAddress: 'ownerAddress',
+    permanentAddress: 'permanentAddress'
   };
 
   export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
@@ -94329,6 +94357,8 @@ export namespace Prisma {
     cubicCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
     grossWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
     bodyType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    ownerAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
+    permanentAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
     documents?: CustomerDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -94381,6 +94411,8 @@ export namespace Prisma {
     cubicCapacity?: SortOrderInput | SortOrder
     grossWeight?: SortOrderInput | SortOrder
     bodyType?: SortOrderInput | SortOrder
+    ownerAddress?: SortOrderInput | SortOrder
+    permanentAddress?: SortOrderInput | SortOrder
     challans?: ChallanOrderByRelationAggregateInput
     documents?: CustomerDocumentOrderByRelationAggregateInput
     customer?: CustomerOrderByWithRelationInput
@@ -94436,6 +94468,8 @@ export namespace Prisma {
     cubicCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
     grossWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
     bodyType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    ownerAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
+    permanentAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
     documents?: CustomerDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -94488,6 +94522,8 @@ export namespace Prisma {
     cubicCapacity?: SortOrderInput | SortOrder
     grossWeight?: SortOrderInput | SortOrder
     bodyType?: SortOrderInput | SortOrder
+    ownerAddress?: SortOrderInput | SortOrder
+    permanentAddress?: SortOrderInput | SortOrder
     _count?: CustomerVehicleCountOrderByAggregateInput
     _avg?: CustomerVehicleAvgOrderByAggregateInput
     _max?: CustomerVehicleMaxOrderByAggregateInput
@@ -94538,6 +94574,8 @@ export namespace Prisma {
     cubicCapacity?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     grossWeight?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     bodyType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    ownerAddress?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    permanentAddress?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
   }
 
   export type OdometerLogWhereInput = {
@@ -100801,6 +100839,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -100853,6 +100893,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -100903,6 +100945,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -100955,6 +100999,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -101006,6 +101052,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
   }
 
   export type CustomerVehicleUpdateManyMutationInput = {
@@ -101047,6 +101095,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CustomerVehicleUncheckedUpdateManyInput = {
@@ -101089,6 +101139,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type OdometerLogCreateInput = {
@@ -108213,6 +108265,8 @@ export namespace Prisma {
     cubicCapacity?: SortOrder
     grossWeight?: SortOrder
     bodyType?: SortOrder
+    ownerAddress?: SortOrder
+    permanentAddress?: SortOrder
   }
 
   export type CustomerVehicleAvgOrderByAggregateInput = {
@@ -108260,6 +108314,8 @@ export namespace Prisma {
     cubicCapacity?: SortOrder
     grossWeight?: SortOrder
     bodyType?: SortOrder
+    ownerAddress?: SortOrder
+    permanentAddress?: SortOrder
   }
 
   export type CustomerVehicleMinOrderByAggregateInput = {
@@ -108302,6 +108358,8 @@ export namespace Prisma {
     cubicCapacity?: SortOrder
     grossWeight?: SortOrder
     bodyType?: SortOrder
+    ownerAddress?: SortOrder
+    permanentAddress?: SortOrder
   }
 
   export type CustomerVehicleSumOrderByAggregateInput = {
@@ -118534,6 +118592,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -118584,6 +118644,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -119112,6 +119174,8 @@ export namespace Prisma {
     cubicCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
     grossWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
     bodyType?: StringNullableFilter<"CustomerVehicle"> | string | null
+    ownerAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
+    permanentAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
   }
 
   export type DigiLockerConnectionUpsertWithoutCustomerInput = {
@@ -119598,6 +119662,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -119649,6 +119715,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -119771,6 +119839,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -119822,6 +119892,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -120683,6 +120755,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -120734,6 +120808,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -120799,6 +120875,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -120850,6 +120928,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -120899,6 +120979,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -120950,6 +121032,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -121015,6 +121099,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -121066,6 +121152,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -121166,6 +121254,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -121217,6 +121307,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -121339,6 +121431,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -121390,6 +121484,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -121439,6 +121535,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -121490,6 +121588,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -121555,6 +121655,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -121606,6 +121708,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -122083,6 +122187,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -122134,6 +122240,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -122313,6 +122421,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -122364,6 +122474,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -122561,6 +122673,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -122612,6 +122726,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -122712,6 +122828,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -122763,6 +122881,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -122888,6 +123008,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -122939,6 +123061,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
@@ -123004,6 +123128,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -123055,6 +123181,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -123136,6 +123264,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
@@ -123187,6 +123317,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -123283,6 +123415,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
@@ -123334,6 +123468,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -135320,6 +135456,8 @@ export namespace Prisma {
     cubicCapacity?: string | null
     grossWeight?: string | null
     bodyType?: string | null
+    ownerAddress?: string | null
+    permanentAddress?: string | null
   }
 
   export type EmergencyContactCreateManyCustomerInput = {
@@ -135602,6 +135740,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -135652,6 +135792,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
@@ -135702,6 +135844,8 @@ export namespace Prisma {
     cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
     grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUpdateWithoutCustomerInput = {
