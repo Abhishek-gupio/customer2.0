@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid, Animated, Easing, Vibration, Share } from 'react-native'
+import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid, Animated, Easing, Vibration, Share, KeyboardAvoidingView } from 'react-native'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../theme/colors'
@@ -427,9 +427,11 @@ const SOSButton = () => {
         Alert.alert('Location required', 'Enable GPS to trigger SOS.');
         return;
       }
-      const resp = await sosService.createSOS({
-        latitude: coords.lat,
-        longitude: coords.lon,
+      const resp = await sosService.triggerSOS({
+        location: {
+          latitude: coords.lat,
+          longitude: coords.lon,
+        },
         type: sosType,
         metadata: {
           source: 'MOBILE_SOS_SCREEN',
@@ -447,7 +449,7 @@ const SOSButton = () => {
       
       // Navigate to ActiveSOS on success
       navigation.replace('ActiveSOS', {
-        sosId: resp.id,
+        sosId: resp.sosAlertId,
         type: sosType,
         lat: coords.lat,
         lon: coords.lon
@@ -478,6 +480,10 @@ const SOSButton = () => {
   }, []);
 
   return (
+    <KeyboardAvoidingView 
+      style={{ flex: 1, backgroundColor: '#000' }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.profileRow}>
@@ -502,7 +508,11 @@ const SOSButton = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
             <Animated.View style={[styles.heroBadge, gpsOff && styles.heroBadgeWarning, { opacity: badgeOpacity }]}>
@@ -795,6 +805,7 @@ const SOSButton = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </KeyboardAvoidingView>
   )
 }
 

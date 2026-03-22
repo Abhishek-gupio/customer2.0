@@ -628,6 +628,7 @@ exports.SOSStatus = exports.$Enums.SOSStatus = {
 exports.SOSType = exports.$Enums.SOSType = {
   MEDICAL: 'MEDICAL',
   POLICE: 'POLICE',
+  FIRE: 'FIRE',
   MECHANICAL: 'MECHANICAL',
   ACCIDENT: 'ACCIDENT',
   OTHER: 'OTHER'

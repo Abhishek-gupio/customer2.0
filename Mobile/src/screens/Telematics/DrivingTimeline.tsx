@@ -70,7 +70,7 @@ export default function DrivingTimeline({ navigation }: Props) {
             ? tripsRes.data
             : [];
 
-        const mapped: DrivingTrip[] = tripsArray.map((t: any) => ({
+        const mapped: DrivingTrip[] = tripsArray.map((t: any): DrivingTrip => ({
           id: t.id ?? t.tripId ?? String(t.TripID ?? t.Id ?? Math.random()),
           startTime: t.startTime ?? t.startTimeUtc ?? t.StartDate ?? t.start_time,
           endTime: t.endTime ?? t.endTimeUtc ?? t.EndDate ?? t.end_time,
@@ -79,7 +79,7 @@ export default function DrivingTimeline({ navigation }: Props) {
           safetyScore: t.safetyScore ?? t.Score_Overall ?? t.score ?? null,
         }))
           // Filter out malformed rows without timestamps
-          .filter(trip => !!trip.startTime && !!trip.endTime);
+          .filter((trip: DrivingTrip) => !!trip.startTime && !!trip.endTime);
 
         setAllTrips(mapped);
       } catch (e: any) {

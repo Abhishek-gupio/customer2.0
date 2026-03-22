@@ -656,6 +656,7 @@ enum SOSStatus {
 enum SOSType {
   MEDICAL
   POLICE
+  FIRE
   MECHANICAL
   ACCIDENT
   OTHER

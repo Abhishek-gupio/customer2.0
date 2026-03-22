@@ -56,11 +56,21 @@ class SOSService {
         });
     }
 
-    async createSOS(data: { latitude: number; longitude: number; type: SOSType; metadata: any }): Promise<any> {
-        const response = await axios.post(`${API_URL}`, data, {
-            headers: authHeaders(),
-        });
-        return response.data;
+    async triggerSOS(data: { location: { latitude: number; longitude: number; accuracy?: number }; message?: string; type: SOSType; metadata?: any }): Promise<{ success: boolean; sosAlertId: string }> {
+        const payload = {
+            latitude: data.location.latitude,
+            longitude: data.location.longitude,
+            type: data.type,
+            metadata: { message: data.message, ...data.metadata }
+        };
+        try {
+            const response = await axios.post(`${API_URL}`, payload, {
+                headers: authHeaders(),
+            });
+            return { success: true, sosAlertId: response.data.id };
+        } catch (error: any) {
+             throw new Error(error.response?.data?.message || 'Failed to trigger SOS');
+        }
     }
 
     async getActiveSOS(): Promise<any> {

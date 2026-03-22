@@ -277,6 +277,7 @@ export type SOSStatus = (typeof SOSStatus)[keyof typeof SOSStatus]
 export const SOSType: {
   MEDICAL: 'MEDICAL',
   POLICE: 'POLICE',
+  FIRE: 'FIRE',
   MECHANICAL: 'MECHANICAL',
   ACCIDENT: 'ACCIDENT',
   OTHER: 'OTHER'

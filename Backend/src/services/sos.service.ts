@@ -134,28 +134,49 @@ export const sosService = {
     ]);
 
     const senderName = customer?.fullName || "A user";
-    console.log(`\n🔔 ALERTED CONTACTS FOR SOS (${type}) from ${senderName}:`, contacts.map(c => `${c.name} (${c.phoneNumber})`).join(", ") || "No contacts found");
+    console.log(`\n🔔 ALERTED CONTACTS FOR SOS (${type}) from ${senderName}:`, contacts.map(c => `${c.name} (Phone: ${c.phoneNumber}, Email: ${c.email || 'None'})`).join(" | ") || "No contacts found");
 
     const mapUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
     const locationInfo = finalAddress ? `${finalAddress} (${mapUrl})` : mapUrl;
-    // 5. Alert contacts via configured SMS/Email service
-    const message = `🚨 SOS ALERT from ${senderName}! They have reported a ${type} emergency at ${locationInfo}. Please help immediately!`;
+    
+    // 4. Construct Alert Message
+    const userMessage = metadata?.message ? `\n\nMessage: "${metadata.message}"` : '';
+    const alertMessage = `🚨 SOS ALERT from ${senderName}! They have reported a ${type} emergency at ${locationInfo}.${userMessage}\n\nPlease help immediately!`;
+
+    // Import the dedicated sendEmail helper if not already available in this scope, but we use sms.service.ts exports
+    const { sendEmail } = require("./sms.service");
 
     for (const contact of contacts) {
-      // Always try SMS for phone number
-      await smsService.sendSMS(contact.phoneNumber, message);
+      // 1. Send SMS via configured SMS Service (Flash49, Twilio, Mock, etc.)
+      const isSmtpService = process.env.SMS_SERVICE === 'SMTP' || process.env.SMS_SERVICE === 'GMAIL';
       
-      // If contact has email, send email via SMTP/Gmail
+      if (!isSmtpService) {
+        // Only try to send an SMS to a phone number if the service is an actual SMS provider, to prevent Nodemailer from throwing "No recipients defined"
+        try {
+          await smsService.sendSMS(contact.phoneNumber, alertMessage);
+        } catch (e) {
+          console.error(`Failed to send SMS to ${contact.phoneNumber}:`, e);
+        }
+      }
+      
+      // 2. Send dedicated Email via Nodemailer explicitly
       if (contact.email) {
-        // Assuming smsService.sendSMS can also handle email addresses if configured
-        // In a real app, this would likely be smsService.sendEmail(contact.email, subject, message);
-        await smsService.sendSMS(contact.email, message);
+        try {
+          await sendEmail({
+            to: contact.email,
+            subject: `URGENT: SOS EMERGENCY ALERT - ${type}`,
+            text: alertMessage,
+          });
+          console.log(`📧 Successfully sent SOS email to emergency contact: ${contact.email}`);
+        } catch (e) {
+          console.error(`Failed to send SOS Email to ${contact.email}:`, e);
+        }
       }
 
       if (smsService.sendVoice) {
         await smsService.sendVoice(
           contact.phoneNumber,
-          `This is an emergency alert. Your contact has reported a ${type} emergency. Please check your SMS for location.`,
+          `This is an emergency alert. Your contact has reported a ${type} emergency. Please check your messages for location.`
         );
       }
     }
@@ -163,9 +184,15 @@ export const sosService = {
     // Always send a backup email to the sender's own email if available
     if (customer?.email) {
         console.log(`📧 Sending backup SOS email to user: ${customer.email}`);
-        // Assuming smsService.sendSMS can also handle email addresses if configured
-        // In a real app, this would likely be smsService.sendEmail(customer.email, "SOS ALERT CONFIRMATION", `SOS ALERT CONFIRMATION: ${message}`);
-        await smsService.sendSMS(customer.email, `SOS ALERT CONFIRMATION: ${message}`);
+        try {
+           await sendEmail({
+             to: customer.email,
+             subject: `CONFIRMATION: Your SOS ALERT was triggered`,
+             text: `SOS ALERT CONFIRMATION:\n\n${alertMessage}`
+           });
+        } catch (e) {
+             console.error(`Failed to send backup SOS Email to ${customer.email}:`, e);
+        }
     }
 
     return sos;
@@ -257,6 +284,7 @@ export const sosService = {
     data: {
       name: string;
       phoneNumber: string;
+      email?: string;
       relation?: string;
       priority?: number;
     },

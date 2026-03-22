@@ -71,7 +71,7 @@ export const addContact = async (req: Request, res: Response) => {
   try {
     if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
     const customerId = req.customer.id;
-    const { name, phoneNumber, relation, priority } = req.body;
+    const { name, phoneNumber, email, relation, priority } = req.body;
 
     if (!name || !phoneNumber) {
       return res
@@ -82,6 +82,7 @@ export const addContact = async (req: Request, res: Response) => {
     const contact = await sosService.addContact(customerId, {
       name,
       phoneNumber,
+      email,
       relation,
       priority,
     });
