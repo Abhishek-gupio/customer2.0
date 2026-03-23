@@ -14,6 +14,9 @@ const upload = multer({
 
 router.use(authMiddleware);
 
+// Pre-upload quality check (documents + receipts)
+router.post("/check-image-quality", upload.single("file"), documentController.checkImageQuality);
+
 // Local Documents
 router.post("/", upload.single("file"), documentController.upload);
 router.get("/expiring", documentController.getExpiring);

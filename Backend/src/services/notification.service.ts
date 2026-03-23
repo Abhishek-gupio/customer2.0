@@ -3,57 +3,18 @@ import { getSMSService } from "./sms.service";
 import { logger } from "../config/logger";
 import cron from "node-cron";
 import { challanService } from "./challan.service";
+import { telematicsService } from "./telematics.service";
+import * as OneSignal from '@onesignal/node-onesignal';
+
+// Initialize OneSignal with API keys from environment
+const configuration = OneSignal.createConfiguration({
+  restApiKey: process.env.ONESIGNAL_REST_API_KEY || '',
+});
+const onesignalClient = new OneSignal.DefaultApi(configuration);
 
 export const notificationService = {
   /**
-   * Sends a push notification via FCM (Placeholder)
-   */
-  async sendPushNotification(
-    customerId: string,
-    title: string,
-    body: string,
-    metadata?: any,
-  ) {
-    const devices = await dbInstances.customerDevice.findMany({
-      where: { customerId, deviceToken: { not: null } },
-    });
-
-    for (const device of devices) {
-      logger.info(
-        { customerId, token: device.deviceToken, title },
-        "📱 [PUSH NOTIFICATION MOCK] Sent to device",
-      );
-      // Integration: admin.messaging().send(...) would go here
-    }
-  },
-
-  /**
-   * Creates an in-app notification
-   */
-  async createInAppNotification(
-    customerId: string,
-    input: {
-      title: string;
-      body: string;
-      type: string;
-      link?: string;
-      metadata?: any;
-    },
-  ) {
-    return (dbInstances as any).inAppNotification.create({
-      data: {
-        customerId,
-        title: input.title,
-        body: input.body,
-        type: input.type,
-        link: input.link,
-        metadata: input.metadata || {},
-      },
-    });
-  },
-
-  /**
-   * Send notification across all channels (Push + InApp + optionally SMS)
+   * Send notification across all channels (Custom In-App, OneSignal Push, SMS Fallback)
    */
   async notifyCustomer(
     customerId: string,
@@ -67,21 +28,54 @@ export const notificationService = {
       phoneNumber?: string;
     },
   ) {
-    // 1. In-App
-    await this.createInAppNotification(customerId, payload);
+    try {
+      // 1. In-App Notification (Stored in Postgres)
+      const inApp = await (dbInstances as any).inAppNotification.create({
+        data: {
+          customerId,
+          title: payload.title,
+          body: payload.body,
+          type: payload.type,
+          link: payload.link,
+          metadata: payload.metadata || {},
+        },
+      });
 
-    // 2. Push
-    await this.sendPushNotification(
-      customerId,
-      payload.title,
-      payload.body,
-      payload.metadata,
-    );
+      // Emit WebSocket event to the connected mobile app
+      try {
+        const { getIO } = require("../socket");
+        getIO().to(customerId).emit("new_notification", inApp);
+      } catch (wsError) {
+        logger.error({ wsError, customerId }, "Failed to emit WebSocket notification");
+      }
 
-    // 3. SMS (Optional)
-    if (payload.sendSMS && payload.phoneNumber) {
-      const smsService = getSMSService();
-      await smsService.sendSMS(payload.phoneNumber, payload.body);
+      // 2. OneSignal Push Notification
+      if (process.env.ONESIGNAL_APP_ID && process.env.ONESIGNAL_REST_API_KEY) {
+        const notification = new OneSignal.Notification();
+        notification.app_id = process.env.ONESIGNAL_APP_ID;
+        notification.include_aliases = { external_id: [customerId] }; // Send to specific customer via OneSignal external ID
+        notification.target_channel = "push";
+        notification.headings = { en: payload.title };
+        notification.contents = { en: payload.body };
+        notification.data = { type: payload.type, link: payload.link, ...payload.metadata };
+
+        try {
+          await onesignalClient.createNotification(notification);
+          logger.info({ customerId, title: payload.title }, "Triggered OneSignal push notification.");
+        } catch (pushErr) {
+          logger.error({ err: pushErr, customerId }, "Failed to send OneSignal push");
+        }
+      } else {
+        logger.warn("OneSignal API Keys not provided. Skipping Push Notification.");
+      }
+
+      // 3. SMS Fallback
+      if (payload.sendSMS && payload.phoneNumber) {
+        const smsService = getSMSService();
+        await smsService.sendSMS(payload.phoneNumber, payload.body);
+      }
+    } catch (error) {
+      logger.error({ error, customerId }, "Failed to complete notification delivery flow");
     }
   },
 
@@ -148,6 +142,53 @@ export const notificationService = {
     }
   },
 
+  /**
+   * Daily reminder: create one in-app (and push) notification per customer to update odometer.
+   * Only one reminder per customer per calendar day.
+   */
+  async sendDailyOdometerReminders() {
+    logger.info("Starting daily odometer update reminder...");
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const customersWithVehicles = await (dbInstances as any).customerVehicle.findMany({
+      where: { isActive: true },
+      select: { customerId: true },
+      distinct: ["customerId"],
+    });
+    const customerIds: string[] = [
+      ...new Set(
+        (customersWithVehicles as { customerId: string }[]).map((v) => v.customerId)
+      ),
+    ];
+
+    for (const customerId of customerIds) {
+      try {
+        const alreadySentToday = await (dbInstances as any).inAppNotification.findFirst({
+          where: {
+            customerId,
+            type: "odometer",
+            createdAt: { gte: todayStart },
+          },
+        });
+        if (alreadySentToday) continue;
+
+        await this.notifyCustomer(customerId, {
+          title: "Update Odometer",
+          body: "Log your current odometer reading for accurate service and warranty tracking.",
+          type: "odometer",
+          link: "/odometer",
+          metadata: { source: "daily_reminder" },
+        });
+        logger.info({ customerId }, "Daily odometer reminder sent");
+      } catch (err) {
+        logger.error({ err, customerId }, "Failed to send daily odometer reminder");
+      }
+    }
+    logger.info({ count: customerIds.length }, "Daily odometer reminders completed");
+  },
+
   async getNotifications(customerId: string) {
     return (dbInstances as any).inAppNotification.findMany({
       where: { customerId },
@@ -167,14 +208,35 @@ export const notificationService = {
    * Initialize the background cron jobs
    */
   initCronJobs() {
-    // Run daily at 10:00 AM
+    // Run daily at 9:00 AM – odometer update reminder (one per customer per day)
+    cron.schedule("0 9 * * *", async () => {
+      await this.sendDailyOdometerReminders();
+    });
+
+    // Run daily at 10:00 AM – document expiry + challan sync
     cron.schedule("0 10 * * *", async () => {
       await this.checkExpiringDocuments();
       await challanService.syncAllVehicles();
     });
 
+    // Run every 5 minutes – Telematics Sync (Pull method)
+    // Keep this OFF by default so Damoov sync only happens when explicitly triggered
+    // (e.g. when you open the Driving Behavior screen or call /telematics/sync).
+    if (String(process.env.TELEMATICS_SYNC_CRON_ENABLED).toLowerCase() === "true") {
+      cron.schedule("*/5 * * * *", async () => {
+        try {
+          await telematicsService.syncTripsForAllDevices();
+        } catch (err) {
+          logger.error({ err }, "Periodic Telematics Sync failed");
+        }
+      });
+      logger.info("Telematics periodic cron enabled (*/5 * * * *)");
+    } else {
+      logger.info("Telematics periodic cron disabled by default");
+    }
+
     logger.info(
-      "Background cron jobs initialized (Docs & Challans Check at 10:00 AM)",
+      "Background cron jobs initialized (Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",
     );
   },
 };

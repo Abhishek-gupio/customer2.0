@@ -40,13 +40,34 @@ export const createExpenseSchema = z.object({
   ]),
   date: z.string().datetime().optional(),
   merchantName: z.string().optional(),
+  // Free-text location fallback (e.g. "Indiranagar, Bangalore")
   location: z.string().optional(),
+  // Structured Google Places payload (driver spends → owner audit)
+  placeId: z.string().optional(),
+  placeName: z.string().optional(),
+  placeAddress: z.string().optional(),
+  placeLat: z.number().optional(),
+  placeLng: z.number().optional(),
   notes: z.string().optional(),
   source: z
     .enum(["MANUAL", "SMS", "NOTIFICATION", "VOICE", "RECEIPT", "UPI"])
     .optional()
     .default("MANUAL"),
   odometerReading: z.number().optional(),
+  receiptUrl: z.string().optional(),
+  mimeType: z.string().optional(),
+  parts: z
+    .array(
+      z.object({
+        partType: z.string().min(1),
+        partName: z.string().optional(),
+        brand: z.string().optional(),
+        cost: z.number().optional(),
+        warrantyMonths: z.number().optional(),
+        warrantyKm: z.number().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const updateExpenseSchema = z.object({
@@ -72,6 +93,7 @@ export const updateExpenseSchema = z.object({
 
 export const parseExpenseSchema = z.object({
   text: z.string().min(1, "Text is required"),
+  vehicleId: z.string().optional(),
   source: z
     .enum(["MANUAL", "SMS", "NOTIFICATION", "VOICE", "RECEIPT", "UPI"])
     .optional()

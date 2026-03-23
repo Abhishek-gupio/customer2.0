@@ -128,6 +128,17 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AdminUserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  name: 'name',
+  role: 'role',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CustomerScalarFieldEnum = {
   id: 'id',
   phoneNumber: 'phoneNumber',
@@ -135,7 +146,8 @@ exports.Prisma.CustomerScalarFieldEnum = {
   fullName: 'fullName',
   profilePic: 'profilePic',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  googleId: 'googleId'
 };
 
 exports.Prisma.CustomerDeviceScalarFieldEnum = {
@@ -197,15 +209,38 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   year: 'year',
   fuelType: 'fuelType',
   vehicleType: 'vehicleType',
-  engineNumber: 'engineNumber',
-  chassisNumber: 'chassisNumber',
   currentOdometer: 'currentOdometer',
   registrationDate: 'registrationDate',
   rcVerified: 'rcVerified',
   isActive: 'isActive',
   isPrimary: 'isPrimary',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  chassisNumber: 'chassisNumber',
+  engineNumber: 'engineNumber',
+  imageUrl: 'imageUrl',
+  ownerName: 'ownerName',
+  rto: 'rto',
+  vehicleClass: 'vehicleClass',
+  fuelNorms: 'fuelNorms',
+  transmission: 'transmission',
+  priceRange: 'priceRange',
+  rating: 'rating',
+  rcStatus: 'rcStatus',
+  unloadedWeight: 'unloadedWeight',
+  fitnessUpto: 'fitnessUpto',
+  insuranceUpto: 'insuranceUpto',
+  pollutionUpto: 'pollutionUpto',
+  mileage: 'mileage',
+  brand: 'brand',
+  color: 'color',
+  seatingCapacity: 'seatingCapacity',
+  cylinderCount: 'cylinderCount',
+  cubicCapacity: 'cubicCapacity',
+  grossWeight: 'grossWeight',
+  bodyType: 'bodyType',
+  ownerAddress: 'ownerAddress',
+  permanentAddress: 'permanentAddress'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {
@@ -226,6 +261,7 @@ exports.Prisma.ChallanScalarFieldEnum = {
   violationType: 'violationType',
   location: 'location',
   source: 'source',
+  metadata: 'metadata',
   lastCheckedAt: 'lastCheckedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -274,7 +310,8 @@ exports.Prisma.ChatSessionScalarFieldEnum = {
   title: 'title',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  summary: 'summary'
 };
 
 exports.Prisma.ChatMessageScalarFieldEnum = {
@@ -295,6 +332,21 @@ exports.Prisma.DocumentEmbeddingScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ChatAnalyticsScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  sessionId: 'sessionId',
+  toolName: 'toolName',
+  intent: 'intent',
+  responseTimeMs: 'responseTimeMs',
+  messageCount: 'messageCount',
+  hadToolCall: 'hadToolCall',
+  hadImage: 'hadImage',
+  wasStreaming: 'wasStreaming',
+  feedback: 'feedback',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ExpenseScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
@@ -312,7 +364,13 @@ exports.Prisma.ExpenseScalarFieldEnum = {
   rawText: 'rawText',
   isAutomated: 'isAutomated',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  driverId: 'driverId',
+  placeAddress: 'placeAddress',
+  placeId: 'placeId',
+  placeLat: 'placeLat',
+  placeLng: 'placeLng',
+  placeName: 'placeName'
 };
 
 exports.Prisma.ExpenseBudgetScalarFieldEnum = {
@@ -335,6 +393,15 @@ exports.Prisma.FuelPriceCacheScalarFieldEnum = {
   price: 'price',
   date: 'date',
   source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DiscoveryContentScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  content: 'content',
+  date: 'date',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -370,6 +437,21 @@ exports.Prisma.ServicePartScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
+  id: 'id',
+  make: 'make',
+  model: 'model',
+  yearMin: 'yearMin',
+  yearMax: 'yearMax',
+  partType: 'partType',
+  intervalMonths: 'intervalMonths',
+  intervalKm: 'intervalKm',
+  defaultWarrantyMonths: 'defaultWarrantyMonths',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.TelematicsDeviceScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -378,7 +460,8 @@ exports.Prisma.TelematicsDeviceScalarFieldEnum = {
   platform: 'platform',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastSyncAt: 'lastSyncAt'
 };
 
 exports.Prisma.DrivingTripScalarFieldEnum = {
@@ -429,10 +512,635 @@ exports.Prisma.EmergencyContactScalarFieldEnum = {
   customerId: 'customerId',
   name: 'name',
   phoneNumber: 'phoneNumber',
+  email: 'email',
   relation: 'relation',
   priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SupportTicketScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  subject: 'subject',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  category: 'category',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TicketMessageScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  senderId: 'senderId',
+  senderRole: 'senderRole',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FAQScalarFieldEnum = {
+  id: 'id',
+  question: 'question',
+  answer: 'answer',
+  category: 'category',
+  order: 'order',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BankAccountDetailsScalarFieldEnum = {
+  id: 'id',
+  bankAccountNumber: 'bankAccountNumber',
+  ifscCode: 'ifscCode',
+  bankAccountHolderName: 'bankAccountHolderName',
+  bankDocuments: 'bankDocuments',
+  documentId: 'documentId'
+};
+
+exports.Prisma.ClientScalarFieldEnum = {
+  id: 'id',
+  clientType: 'clientType',
+  clientName: 'clientName',
+  clientAddress: 'clientAddress',
+  clientEmail: 'clientEmail',
+  contactNumber: 'contactNumber',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  admin1Name: 'admin1Name',
+  admin1Email: 'admin1Email',
+  admin1Phone: 'admin1Phone',
+  admin2Name: 'admin2Name',
+  admin2Email: 'admin2Email',
+  admin2Phone: 'admin2Phone',
+  financeName: 'financeName',
+  financeEmail: 'financeEmail',
+  financePhone: 'financePhone',
+  gstNumber: 'gstNumber',
+  panNumber: 'panNumber',
+  paymentTerms: 'paymentTerms',
+  paymentMode: 'paymentMode',
+  ifsc: 'ifsc',
+  bankAccHolderName: 'bankAccHolderName',
+  accountNumber: 'accountNumber',
+  depositAmount: 'depositAmount',
+  depositDate: 'depositDate',
+  companyLogo: 'companyLogo',
+  documents: 'documents',
+  siteId: 'siteId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  password: 'password',
+  serviceStartTime: 'serviceStartTime',
+  serviceEndTime: 'serviceEndTime',
+  isQrVerified: 'isQrVerified',
+  servicesProvided: 'servicesProvided',
+  allottedParkingSlots: 'allottedParkingSlots',
+  googleFormId: 'googleFormId',
+  googleFormUrl: 'googleFormUrl',
+  parentId: 'parentId',
+  tenantRole: 'tenantRole',
+  parkingMode: 'parkingMode',
+  dropRequestEnabled: 'dropRequestEnabled'
+};
+
+exports.Prisma.ClientNotificationScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  type: 'type',
+  title: 'title',
+  message: 'message',
+  metadata: 'metadata',
+  isRead: 'isRead',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ContactFormScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  companyName: 'companyName',
+  communicationMethod: 'communicationMethod',
+  city: 'city',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Public_CustomerScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  password: 'password',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId',
+  image: 'image',
+  isActive: 'isActive'
+};
+
+exports.Prisma.CustomerRequestScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  customerId: 'customerId',
+  notes: 'notes',
+  requestType: 'requestType',
+  vehicleId: 'vehicleId'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  aadharNumber: 'aadharNumber',
+  aadharFrontImage: 'aadharFrontImage',
+  aadharBackImage: 'aadharBackImage',
+  voterIdNumber: 'voterIdNumber',
+  voterIdImage: 'voterIdImage',
+  panCardNumber: 'panCardNumber',
+  panCardImage: 'panCardImage',
+  drivingLicenseNumber: 'drivingLicenseNumber',
+  drivingLicenseImage: 'drivingLicenseImage',
+  localAddressProof: 'localAddressProof',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  userId: 'userId'
+};
+
+exports.Prisma.HelpSupportScalarFieldEnum = {
+  id: 'id',
+  subject: 'subject',
+  message: 'message',
+  userId: 'userId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceScalarFieldEnum = {
+  id: 'id',
+  invoiceNumber: 'invoiceNumber',
+  clientId: 'clientId',
+  status: 'status',
+  issueDate: 'issueDate',
+  dueDate: 'dueDate',
+  subtotal: 'subtotal',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  pdfUrl: 'pdfUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceItemScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  name: 'name',
+  description: 'description',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  amount: 'amount'
+};
+
+exports.Prisma.LeaveRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  reason: 'reason',
+  status: 'status',
+  approvedById: 'approvedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  leaveType: 'leaveType',
+  adminNote: 'adminNote'
+};
+
+exports.Prisma.OperatorClientAssignmentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  clientId: 'clientId',
+  assignedAt: 'assignedAt'
+};
+
+exports.Prisma.ParkingSlotScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  status: 'status',
+  slotLabel: 'slotLabel',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  invoiceId: 'invoiceId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  paymentType: 'paymentType',
+  paymentMethod: 'paymentMethod',
+  gateway: 'gateway',
+  subscriptionId: 'subscriptionId',
+  receiptUrl: 'receiptUrl',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentAuditLogScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  action: 'action',
+  actorType: 'actorType',
+  actorId: 'actorId',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PaymentTransactionScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  gateway: 'gateway',
+  gatewayTxId: 'gatewayTxId',
+  paymentMethod: 'paymentMethod',
+  failureCode: 'failureCode',
+  failureReason: 'failureReason',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PickupScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  valetId: 'valetId',
+  siteId: 'siteId',
+  clientId: 'clientId',
+  status: 'status',
+  notes: 'notes',
+  pickupFrom: 'pickupFrom',
+  parkAt: 'parkAt',
+  meterPhotoUrl: 'meterPhotoUrl',
+  vehiclePhotoUrl: 'vehiclePhotoUrl',
+  vehicleVideoUrl: 'vehicleVideoUrl',
+  pickupTime: 'pickupTime',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  dropLocation: 'dropLocation',
+  dropTime: 'dropTime',
+  droppedByValetId: 'droppedByValetId',
+  pendingDropLocation: 'pendingDropLocation',
+  pendingDropTime: 'pendingDropTime',
+  pendingDroppedByValetId: 'pendingDroppedByValetId',
+  pendingDropNotes: 'pendingDropNotes'
+};
+
+exports.Prisma.RazorpayOrderScalarFieldEnum = {
+  id: 'id',
+  paymentTransactionId: 'paymentTransactionId',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
+  amountPaise: 'amountPaise',
+  currency: 'currency',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RazorpayWebhookLogScalarFieldEnum = {
+  id: 'id',
+  event: 'event',
+  payload: 'payload',
+  signature: 'signature',
+  processed: 'processed',
+  processedAt: 'processedAt',
+  error: 'error',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RefundScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  paymentTransactionId: 'paymentTransactionId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  gatewayRefundId: 'gatewayRefundId',
+  reason: 'reason',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SelfParkingScalarFieldEnum = {
+  id: 'id',
+  vehicleNumber: 'vehicleNumber',
+  vehiclePhoto: 'vehiclePhoto',
+  entryTime: 'entryTime',
+  exitTime: 'exitTime',
+  valetId: 'valetId',
+  siteId: 'siteId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId',
+  contactNumber: 'contactNumber',
+  isRegistered: 'isRegistered',
+  ownerName: 'ownerName',
+  vehicleColor: 'vehicleColor',
+  vehicleManufacturer: 'vehicleManufacturer'
+};
+
+exports.Prisma.ShiftAttendanceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startTime: 'startTime',
+  startPhotoUrl: 'startPhotoUrl',
+  startLatitude: 'startLatitude',
+  startLongitude: 'startLongitude',
+  startAddress: 'startAddress',
+  endTime: 'endTime',
+  endPhotoUrl: 'endPhotoUrl',
+  endLatitude: 'endLatitude',
+  endLongitude: 'endLongitude',
+  endAddress: 'endAddress',
+  totalMinutes: 'totalMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  status: 'status'
+};
+
+exports.Prisma.SiteScalarFieldEnum = {
+  id: 'id',
+  siteName: 'siteName',
+  siteOwnerName: 'siteOwnerName',
+  ownerPhoneNumber: 'ownerPhoneNumber',
+  ownerEmail: 'ownerEmail',
+  pincode: 'pincode',
+  city: 'city',
+  state: 'state',
+  siteAddress: 'siteAddress',
+  bankAccName: 'bankAccName',
+  accountNumber: 'accountNumber',
+  ifsc: 'ifsc',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  noticePeriod: 'noticePeriod',
+  lockInPeriod: 'lockInPeriod',
+  depositAmount: 'depositAmount',
+  monthlyRental: 'monthlyRental',
+  sitePaymentMethod: 'sitePaymentMethod',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  sitePictures: 'sitePictures',
+  status: 'status',
+  valetCount: 'valetCount',
+  supervisorCount: 'supervisorCount',
+  depositDate: 'depositDate',
+  siteDocuments: 'siteDocuments',
+  fourWheelerCapacity: 'fourWheelerCapacity',
+  twoWheelerCapacity: 'twoWheelerCapacity',
+  siteLength: 'siteLength',
+  siteWidth: 'siteWidth',
+  operatorEmail: 'operatorEmail',
+  operatorName: 'operatorName',
+  operatorPhone: 'operatorPhone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SiteAssignedScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  siteId: 'siteId',
+  role: 'role',
+  assignedAt: 'assignedAt',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId'
+};
+
+exports.Prisma.TicketScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  clientId: 'clientId',
+  subject: 'subject',
+  category: 'category',
+  description: 'description',
+  priority: 'priority',
+  status: 'status',
+  attachments: 'attachments',
+  assignedTo: 'assignedTo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TicketCommentScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  senderId: 'senderId',
+  message: 'message',
+  attachmentUrl: 'attachmentUrl',
+  isAdmin: 'isAdmin',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Public_UserScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  city: 'city',
+  state: 'state',
+  pinCode: 'pinCode',
+  applyingFor: 'applyingFor',
+  password: 'password',
+  profilePic: 'profilePic',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  employeeNumber: 'employeeNumber',
+  employeeId: 'employeeId',
+  status: 'status',
+  permanentAddress: 'permanentAddress',
+  clientId: 'clientId',
+  dateOfBirth: 'dateOfBirth',
+  gender: 'gender',
+  maritalStatus: 'maritalStatus',
+  alternatePhoneNumber: 'alternatePhoneNumber',
+  currentAddress: 'currentAddress',
+  fatherName: 'fatherName',
+  fatherContactNumber: 'fatherContactNumber',
+  dateOfJoining: 'dateOfJoining',
+  workingLocation: 'workingLocation',
+  workingSiteName: 'workingSiteName',
+  shiftTiming: 'shiftTiming',
+  tShirtSize: 'tShirtSize',
+  pantSize: 'pantSize'
+};
+
+exports.Prisma.VehicleScalarFieldEnum = {
+  id: 'id',
+  vehicleNumber: 'vehicleNumber',
+  vehicleType: 'vehicleType',
+  vehicleModel: 'vehicleModel',
+  vehicleBrand: 'vehicleBrand',
+  vehicleColor: 'vehicleColor',
+  ownerName: 'ownerName',
+  ownerPhone: 'ownerPhone',
+  isPhoneVerified: 'isPhoneVerified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  siteId: 'siteId',
+  ownerEmail: 'ownerEmail',
+  status: 'status'
+};
+
+exports.Prisma.Admin_email_verificationsScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  email: 'email',
+  otp: 'otp',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Admin_password_resetsScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  email: 'email',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AdminsScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  password: 'password',
+  profilePic: 'profilePic',
+  bio: 'bio',
+  role: 'role',
+  isEmailVerified: 'isEmailVerified',
+  emailVerifiedAt: 'emailVerifiedAt',
+  lastLoginAt: 'lastLoginAt',
+  socialLinks: 'socialLinks',
+  address: 'address',
+  departmentId: 'departmentId',
+  roleId: 'roleId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Approval_logsScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  approvedBy: 'approvedBy',
+  action: 'action',
+  status: 'status',
+  comments: 'comments',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Client_email_verificationsScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  email: 'email',
+  otp: 'otp',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Client_password_resetsScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  email: 'email',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  isUsed: 'isUsed',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Customer_fcm_tokensScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  token: 'token',
+  device_info: 'device_info',
+  is_active: 'is_active',
+  last_seen: 'last_seen',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.DepartmentsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Fcm_tokensScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  token: 'token',
+  device_info: 'device_info',
+  is_active: 'is_active',
+  last_seen: 'last_seen',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.PermissionsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  module: 'module',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Role_permissionsScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  permissionId: 'permissionId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RolesScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  departmentId: 'departmentId',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isSuperAdmin: 'isSuperAdmin',
+  permissionKeys: 'permissionKeys',
+  permissionsMask: 'permissionsMask'
 };
 
 exports.Prisma.SortOrder = {
@@ -442,6 +1150,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -460,6 +1172,12 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.AdminRole = exports.$Enums.AdminRole = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
+  SUPPORT: 'SUPPORT'
+};
+
 exports.DocumentType = exports.$Enums.DocumentType = {
   RC: 'RC',
   INSURANCE: 'INSURANCE',
@@ -491,7 +1209,8 @@ exports.DigiLockerStatus = exports.$Enums.DigiLockerStatus = {
 exports.AccessRole = exports.$Enums.AccessRole = {
   OWNER: 'OWNER',
   EDITOR: 'EDITOR',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
+  DRIVER: 'DRIVER'
 };
 
 exports.ExpenseCategory = exports.$Enums.ExpenseCategory = {
@@ -541,13 +1260,291 @@ exports.SOSStatus = exports.$Enums.SOSStatus = {
 exports.SOSType = exports.$Enums.SOSType = {
   MEDICAL: 'MEDICAL',
   POLICE: 'POLICE',
+  FIRE: 'FIRE',
   MECHANICAL: 'MECHANICAL',
   ACCIDENT: 'ACCIDENT',
   OTHER: 'OTHER'
 };
 
+exports.TicketStatus = exports.$Enums.TicketStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.TicketPriority = exports.$Enums.TicketPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
+};
+
+exports.TicketCategory = exports.$Enums.TicketCategory = {
+  GENERAL: 'GENERAL',
+  TECHNICAL: 'TECHNICAL',
+  BILLING: 'BILLING',
+  VEHICLE: 'VEHICLE',
+  APP_ISSUE: 'APP_ISSUE',
+  OTHER: 'OTHER',
+  DOCUMENTS: 'DOCUMENTS',
+  VALET: 'VALET',
+  AI_ASSISTANT: 'AI_ASSISTANT',
+  ACCOUNT: 'ACCOUNT'
+};
+
+exports.CLIENT_TYPE = exports.$Enums.CLIENT_TYPE = {
+  Business: 'Business',
+  Individual: 'Individual'
+};
+
+exports.PAYMENT_MODE = exports.$Enums.PAYMENT_MODE = {
+  Cheque: 'Cheque',
+  Online: 'Online',
+  UPI: 'UPI',
+  Manual: 'Manual'
+};
+
+exports.ClientStatus = exports.$Enums.ClientStatus = {
+  ACTIVE: 'ACTIVE',
+  IN_ACTIVE: 'IN_ACTIVE'
+};
+
+exports.ClientTenantRole = exports.$Enums.ClientTenantRole = {
+  SUPER_CLIENT_ADMIN: 'SUPER_CLIENT_ADMIN',
+  CLIENT_ADMIN: 'CLIENT_ADMIN'
+};
+
+exports.CLIENT_NOTIFICATION_TYPE = exports.$Enums.CLIENT_NOTIFICATION_TYPE = {
+  TICKET_UPDATE: 'TICKET_UPDATE',
+  INVOICE_SENT: 'INVOICE_SENT',
+  VALET_ASSIGNED: 'VALET_ASSIGNED',
+  SUPERVISOR_ASSIGNED: 'SUPERVISOR_ASSIGNED'
+};
+
+exports.COMMUNICATION_METHOD = exports.$Enums.COMMUNICATION_METHOD = {
+  EMAIL: 'EMAIL',
+  GOOGLE_MEET: 'GOOGLE_MEET',
+  WHATSAPP: 'WHATSAPP',
+  TEXT: 'TEXT',
+  CALL: 'CALL'
+};
+
+exports.CustomerStatus = exports.$Enums.CustomerStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.REQUEST_STATUS = exports.$Enums.REQUEST_STATUS = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.HELP_SUPPORT_STATUS = exports.$Enums.HELP_SUPPORT_STATUS = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.INVOICE_STATUS = exports.$Enums.INVOICE_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  OVERDUE: 'OVERDUE',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.LEAVE_STATUS = exports.$Enums.LEAVE_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELED: 'CANCELED'
+};
+
+exports.LEAVE_TYPE = exports.$Enums.LEAVE_TYPE = {
+  SICK: 'SICK',
+  CASUAL: 'CASUAL',
+  PAID: 'PAID',
+  EMERGENCY: 'EMERGENCY'
+};
+
+exports.SlotStatus = exports.$Enums.SlotStatus = {
+  AVAILABLE: 'AVAILABLE',
+  BOOKED: 'BOOKED'
+};
+
+exports.PaymentStatus = exports.$Enums.PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.PaymentType = exports.$Enums.PaymentType = {
+  INVOICE: 'INVOICE',
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  SERVICE_CHARGE: 'SERVICE_CHARGE',
+  ADHOC: 'ADHOC'
+};
+
+exports.PaymentMethodType = exports.$Enums.PaymentMethodType = {
+  UPI: 'UPI',
+  CARD: 'CARD',
+  NETBANKING: 'NETBANKING',
+  WALLET: 'WALLET',
+  EMI: 'EMI',
+  OTHER: 'OTHER'
+};
+
+exports.PaymentGateway = exports.$Enums.PaymentGateway = {
+  RAZORPAY: 'RAZORPAY',
+  STRIPE: 'STRIPE',
+  PAYU: 'PAYU',
+  MANUAL: 'MANUAL'
+};
+
+exports.PICKUP_STATUS = exports.$Enums.PICKUP_STATUS = {
+  PICKED_UP: 'PICKED_UP',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.RefundStatus = exports.$Enums.RefundStatus = {
+  PENDING: 'PENDING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.SHIFT_STATUS = exports.$Enums.SHIFT_STATUS = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  PENDING: 'PENDING'
+};
+
+exports.SITE_PAYMENT_METHOD = exports.$Enums.SITE_PAYMENT_METHOD = {
+  PREPAID: 'PREPAID',
+  POSTPAID: 'POSTPAID'
+};
+
+exports.SITE_STATUS = exports.$Enums.SITE_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.VALET_ROLE = exports.$Enums.VALET_ROLE = {
+  VALET: 'VALET',
+  SUPERVISOR: 'SUPERVISOR',
+  GUPTIO_SUPERVISOR: 'GUPTIO_SUPERVISOR',
+  OPERATOR: 'OPERATOR'
+};
+
+exports.TICKET_CATEGORY = exports.$Enums.TICKET_CATEGORY = {
+  TECHNICAL: 'TECHNICAL',
+  BILLING: 'BILLING',
+  GENERAL: 'GENERAL',
+  OTHER: 'OTHER'
+};
+
+exports.TICKET_PRIORITY = exports.$Enums.TICKET_PRIORITY = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
+};
+
+exports.TICKET_STATUS = exports.$Enums.TICKET_STATUS = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
+  REOPENED: 'REOPENED'
+};
+
+exports.UserStatus = exports.$Enums.UserStatus = {
+  ACTIVE: 'ACTIVE',
+  IN_ACTIVE: 'IN_ACTIVE'
+};
+
+exports.Gender = exports.$Enums.Gender = {
+  M: 'M',
+  F: 'F',
+  OTHER: 'OTHER'
+};
+
+exports.MaritalStatus = exports.$Enums.MaritalStatus = {
+  SINGLE: 'SINGLE',
+  MARRIED: 'MARRIED',
+  DIVORCED: 'DIVORCED',
+  WIDOWED: 'WIDOWED'
+};
+
+exports.ShiftTiming = exports.$Enums.ShiftTiming = {
+  NINE_TO_SEVEN: 'NINE_TO_SEVEN',
+  TEN_TO_EIGHT: 'TEN_TO_EIGHT'
+};
+
+exports.TShirtSize = exports.$Enums.TShirtSize = {
+  S: 'S',
+  M: 'M',
+  L: 'L',
+  XL: 'XL',
+  XXL: 'XXL'
+};
+
+exports.PantSize = exports.$Enums.PantSize = {
+  S: 'S',
+  M: 'M',
+  L: 'L',
+  XL: 'XL',
+  XXL: 'XXL',
+  XXXL: 'XXXL'
+};
+
+exports.VEHICLE_TYPE = exports.$Enums.VEHICLE_TYPE = {
+  CAR: 'CAR',
+  MOTORCYCLE: 'MOTORCYCLE'
+};
+
+exports.VehicleStatus = exports.$Enums.VehicleStatus = {
+  PARKED: 'PARKED',
+  PICKED_UP: 'PICKED_UP',
+  IN_TRANSIT: 'IN_TRANSIT',
+  RETURNED: 'RETURNED'
+};
+
+exports.AdminStatus = exports.$Enums.AdminStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REJECTED: 'REJECTED',
+  INACTIVE: 'INACTIVE'
+};
+
+exports.ApprovalAction = exports.$Enums.ApprovalAction = {
+  SIGNUP_REQUEST: 'SIGNUP_REQUEST',
+  ROLE_CHANGE: 'ROLE_CHANGE',
+  DEPARTMENT_CHANGE: 'DEPARTMENT_CHANGE',
+  ACTIVATION: 'ACTIVATION',
+  DEACTIVATION: 'DEACTIVATION'
+};
+
+exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
+  AdminUser: 'AdminUser',
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
   CustomerDocument: 'CustomerDocument',
@@ -561,16 +1558,62 @@ exports.Prisma.ModelName = {
   ChatSession: 'ChatSession',
   ChatMessage: 'ChatMessage',
   DocumentEmbedding: 'DocumentEmbedding',
+  ChatAnalytics: 'ChatAnalytics',
   Expense: 'Expense',
   ExpenseBudget: 'ExpenseBudget',
   FuelPriceCache: 'FuelPriceCache',
+  DiscoveryContent: 'DiscoveryContent',
   ServiceRecord: 'ServiceRecord',
   ServicePart: 'ServicePart',
+  PartReplacementInterval: 'PartReplacementInterval',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
   DrivingEvent: 'DrivingEvent',
   SOSRequest: 'SOSRequest',
-  EmergencyContact: 'EmergencyContact'
+  EmergencyContact: 'EmergencyContact',
+  SupportTicket: 'SupportTicket',
+  TicketMessage: 'TicketMessage',
+  FAQ: 'FAQ',
+  BankAccountDetails: 'BankAccountDetails',
+  Client: 'Client',
+  ClientNotification: 'ClientNotification',
+  ContactForm: 'ContactForm',
+  public_Customer: 'public_Customer',
+  CustomerRequest: 'CustomerRequest',
+  Document: 'Document',
+  HelpSupport: 'HelpSupport',
+  Invoice: 'Invoice',
+  InvoiceItem: 'InvoiceItem',
+  LeaveRequest: 'LeaveRequest',
+  OperatorClientAssignment: 'OperatorClientAssignment',
+  ParkingSlot: 'ParkingSlot',
+  Payment: 'Payment',
+  PaymentAuditLog: 'PaymentAuditLog',
+  PaymentTransaction: 'PaymentTransaction',
+  Pickup: 'Pickup',
+  RazorpayOrder: 'RazorpayOrder',
+  RazorpayWebhookLog: 'RazorpayWebhookLog',
+  Refund: 'Refund',
+  SelfParking: 'SelfParking',
+  ShiftAttendance: 'ShiftAttendance',
+  Site: 'Site',
+  SiteAssigned: 'SiteAssigned',
+  Ticket: 'Ticket',
+  TicketComment: 'TicketComment',
+  public_User: 'public_User',
+  Vehicle: 'Vehicle',
+  admin_email_verifications: 'admin_email_verifications',
+  admin_password_resets: 'admin_password_resets',
+  admins: 'admins',
+  approval_logs: 'approval_logs',
+  client_email_verifications: 'client_email_verifications',
+  client_password_resets: 'client_password_resets',
+  customer_fcm_tokens: 'customer_fcm_tokens',
+  departments: 'departments',
+  fcm_tokens: 'fcm_tokens',
+  permissions: 'permissions',
+  role_permissions: 'role_permissions',
+  roles: 'roles'
 };
 
 /**

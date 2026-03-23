@@ -114,6 +114,7 @@ export class Flash49SMSService implements SMSService {
       };
       const url = "https://api.flash49.com/fe/api/v1/send";
       const { data } = await axios.get(url, { params });
+      console.log(`📡 Flash49 Response for ${to}:`, JSON.stringify(data));
       return Flash49SMSService.isAccepted(data);
     } catch (error: any) {
       console.error(
@@ -167,6 +168,41 @@ export class TwilioSMSService implements SMSService {
       return !!result.sid;
     } catch (error: any) {
       console.error("Twilio Voice Error:", error.message);
+      return false;
+    }
+  }
+}
+
+export class SMTPSMSService implements SMSService {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+
+  async sendOTP(to: string, otp: string): Promise<boolean> {
+    return this.sendSMS(to, `Your OTP is ${otp} to Login GUPIO.`);
+  }
+
+  async sendSMS(to: string, message: string): Promise<boolean> {
+    try {
+      const info = await this.transporter.sendMail({
+        from: `"${process.env.SMTP_FROM_NAME || "GUPIO SOS"}" <${process.env.SMTP_USER}>`,
+        to, // Can be email or email-to-sms gateway address
+        subject: "SOS EMERGENCY ALERT",
+        text: message,
+      });
+      return !!info.messageId;
+    } catch (error: any) {
+      console.error("SMTP Error:", error.message);
       return false;
     }
   }
@@ -520,7 +556,8 @@ class MockSMSService implements SMSService {
 
 export function getSMSService(): SMSService {
   const svc = process.env.SMS_SERVICE;
-  if (process.env.NODE_ENV === "development" || svc === "MOCK") {
+  
+  if (svc === "MOCK" || (!svc && process.env.NODE_ENV === "development")) {
     console.log("📱 Using Mock SMS Service for development/testing");
     return new MockSMSService();
   }
@@ -531,6 +568,10 @@ export function getSMSService(): SMSService {
   if (svc === "GUPIO") {
     console.log("📱 Using Flash49 SMS Service");
     return new Flash49SMSService();
+  }
+  if (svc === "SMTP") {
+    console.log("📧 Using Generic SMTP SMS Service");
+    return new SMTPSMSService();
   }
   if (svc === "TWILIO") {
     console.log("📱 Using Twilio SMS Service");

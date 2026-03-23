@@ -52,6 +52,34 @@
 
 /**
  * @swagger
+ * /api/v1/customer/profile/picture:
+ *   post:
+ *     summary: Upload profile picture
+ *     description: Uploads image to storage (S3 or local per STORAGE_DRIVER). Returns updated profile with profilePic URL.
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image file (e.g. JPEG/PNG, max 5MB)
+ *     responses:
+ *       200:
+ *         description: Profile picture uploaded; returns profile with profilePic URL
+ *       400:
+ *         description: No file uploaded
+ */
+
+/**
+ * @swagger
  * /api/v1/customer/device:
  *   post:
  *     summary: Register a device for push notifications

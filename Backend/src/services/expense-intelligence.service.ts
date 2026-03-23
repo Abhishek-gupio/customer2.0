@@ -523,6 +523,7 @@ export const expenseIntelligenceService = {
       where: { vehicleId, customerId },
       _sum: { amount: true },
     });
+    console.log(vehicleId, customerId, categoryGroup)
 
     const totalExpenses = categoryGroup.reduce(
       (sum: number, g: any) => sum + (g._sum.amount || 0),

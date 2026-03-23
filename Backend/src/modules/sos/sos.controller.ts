@@ -2,15 +2,12 @@ import { Request, Response } from "express";
 import { sosService } from "../../services/sos.service";
 import { SOSType } from "@repo/db-customer";
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    customerId: string;
-  };
-}
 
-export const createSOS = async (req: AuthenticatedRequest, res: Response) => {
+
+export const createSOS = async (req: Request, res: Response) => {
   try {
-    const { customerId } = req.user!;
+    if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
+    const customerId = req.customer.id;
     const { latitude, longitude, type, address, metadata } = req.body;
 
     if (!latitude || !longitude || !type) {
@@ -34,7 +31,7 @@ export const createSOS = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-export const resolveSOS = async (req: AuthenticatedRequest, res: Response) => {
+export const resolveSOS = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const sos = await sosService.resolveSOS(id as string);
@@ -46,7 +43,7 @@ export const resolveSOS = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const getNearbyHelp = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
 ) => {
   try {
@@ -70,10 +67,11 @@ export const getNearbyHelp = async (
   }
 };
 
-export const addContact = async (req: AuthenticatedRequest, res: Response) => {
+export const addContact = async (req: Request, res: Response) => {
   try {
-    const { customerId } = req.user!;
-    const { name, phoneNumber, relation, priority } = req.body;
+    if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
+    const customerId = req.customer.id;
+    const { name, phoneNumber, email, relation, priority } = req.body;
 
     if (!name || !phoneNumber) {
       return res
@@ -84,6 +82,7 @@ export const addContact = async (req: AuthenticatedRequest, res: Response) => {
     const contact = await sosService.addContact(customerId, {
       name,
       phoneNumber,
+      email,
       relation,
       priority,
     });
@@ -94,9 +93,10 @@ export const addContact = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-export const getContacts = async (req: AuthenticatedRequest, res: Response) => {
+export const getContacts = async (req: Request, res: Response) => {
   try {
-    const { customerId } = req.user!;
+    if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
+    const customerId = req.customer.id;
     const contacts = await sosService.getContacts(customerId);
     res.status(200).json(contacts);
   } catch (error) {
@@ -106,16 +106,29 @@ export const getContacts = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const deleteContact = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
 ) => {
   try {
-    const { customerId } = req.user!;
+    if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
+    const customerId = req.customer.id;
     const { id } = req.params;
     await sosService.deleteContact(customerId, String(id));
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting contact:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getActiveSOS = async (req: Request, res: Response) => {
+  try {
+    if (!req.customer?.id) return res.status(401).json({ message: "Unauthorized" });
+    const customerId = req.customer.id;
+    const sos = await sosService.getActiveSOS(customerId);
+    res.status(200).json(sos || null);
+  } catch (error) {
+    console.error("Error fetching active SOS:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

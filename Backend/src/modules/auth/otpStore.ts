@@ -11,7 +11,9 @@ const memoryStore = new Map<string, { otp: string; expiresAt: number }>();
 const memoryRateStore = new Map<string, number>();
 
 function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, "").slice(-10);
+  const digits = phone.replace(/\D/g, "");
+  // Always use last 10 digits for consistency (Indian phone format)
+  return digits.slice(-10);
 }
 
 function useMemorySet(key: string, otp: string): void {

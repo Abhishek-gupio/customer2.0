@@ -1,4 +1,4 @@
-import { queues } from "../config/queue";
+import { isQueueEnabled, queues } from "../config/queue";
 import { logger } from "../config/logger";
 import { initWorkers } from "../jobs/workers";
 
@@ -8,6 +8,10 @@ export const schedulerService = {
    * This replaces the old node-cron setup.
    */
   async init() {
+    if (!isQueueEnabled || !queues) {
+      logger.info("BullMQ scheduler disabled (REDIS_URL not set)");
+      return;
+    }
     logger.info("Initializing BullMQ Scheduler Service...");
 
     // 1. Start Workers
@@ -27,6 +31,50 @@ export const schedulerService = {
       },
     );
     logger.info("Scheduled: Daily Maintenance (0 9 * * *)");
+
+    const enableBullmqTelematicsSync =
+      String(process.env.TELEMATICS_SYNC_BULLMQ_ENABLED).toLowerCase() === "true";
+
+    if (!enableBullmqTelematicsSync) {
+      // Ensure any previously scheduled repeatable job is removed so it doesn't keep firing.
+      const repeatable = await queues.maintenance.getRepeatableJobs();
+      for (const job of repeatable) {
+        if (job.name === "sync-telematics") {
+          await queues.maintenance.removeRepeatableByKey(job.key);
+          logger.info({ key: job.key }, "Removed sync-telematics repeatable job (bullmq disabled)");
+        }
+      }
+      logger.info("Telematics BullMQ periodic sync disabled by default");
+    } else {
+      // A2. Telematics Sync (Every 60 min — single job; duplicates removed to avoid double login / rate limit)
+      const repeatable = await queues.maintenance.getRepeatableJobs();
+      for (const job of repeatable) {
+        if (job.name === "sync-telematics") {
+          await queues.maintenance.removeRepeatableByKey(job.key);
+          logger.info({ key: job.key }, "Removed duplicate sync-telematics repeatable job");
+        }
+      }
+      await queues.maintenance.add(
+        "sync-telematics",
+        {},
+        {
+          repeat: { pattern: "0 * * * *" },
+          jobId: "sync-telematics-job",
+        },
+      );
+      logger.info("Scheduled: Telematics Sync (0 * * * * — hourly)");
+    }
+
+    // A3. Daily Scraper (Fuel, News, Content at 6:30 AM)
+    await queues.maintenance.add(
+      "daily-scraping",
+      {},
+      {
+        repeat: { pattern: "30 6 * * *" },
+        jobId: "daily-scraping-job",
+      },
+    );
+    logger.info("Scheduled: Daily Scraping (30 6 * * *)");
 
     // B. Weekly Expense Digest (Every Monday at 10:00 AM)
     await queues.notifications.add(
@@ -50,6 +98,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Weekly Health Score Update (0 2 * * 1)");
 
+    // D. Proactive AI Chat Check (Every day at 8:00 AM)
+    await queues.maintenance.add(
+      "proactive-ai-check",
+      {},
+      {
+        repeat: { pattern: "0 8 * * *" },
+        jobId: "proactive-ai-check-job",
+      },
+    );
+    logger.info("Scheduled: Proactive AI Check (0 8 * * *)");
+
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },
 
@@ -57,11 +116,13 @@ export const schedulerService = {
    * Ad-hoc Job Scheduling Helpers
    */
   async scheduleHealthCheck(vehicleId: string) {
+    if (!queues) return;
     // Add a one-off job
     await queues.healthScore.add("update-health-scores-single", { vehicleId });
   },
 
   async scheduleNotification(customerId: string, type: string, payload: any) {
+    if (!queues) return;
     await queues.notifications.add("send-notification", {
       customerId,
       type,

@@ -1,29 +1,81 @@
 import { z } from "zod";
 
+/** JSON clients often send `null`; Zod's `.optional()` only allows `undefined`. */
+const jsonOptionalString = z.preprocess(
+  (v) => (v === null ? undefined : v),
+  z.string().optional(),
+);
+
 export const addVehicleSchema = z.object({
   registrationNumber: z
     .string()
     .min(4)
     .max(20)
     .transform((v) => v.toUpperCase().replace(/\s/g, "")),
-  make: z.string().optional(),
-  model: z.string().optional(),
-  variant: z.string().optional(),
-  year: z.coerce
-    .number()
-    .min(1900)
-    .max(new Date().getFullYear() + 1)
-    .optional(),
-  fuelType: z
-    .enum(["PETROL", "DIESEL", "CNG", "EV", "HYBRID", "OTHER"])
-    .optional(),
-  vehicleType: z
-    .enum(["LUV", "SUV", "SEDAN", "BIKE", "HATCHBACK", "TRUCK"])
-    .optional(),
-  engineNumber: z.string().optional(),
-  chassisNumber: z.string().optional(),
-  registrationDate: z.coerce.date().optional(),
-  currentOdometer: z.coerce.number().min(0).optional(),
+  make: jsonOptionalString,
+  model: jsonOptionalString,
+  variant: jsonOptionalString,
+  year: z.preprocess(
+    (v) => (v === null ? undefined : v),
+    z.coerce
+      .number()
+      .min(1900)
+      .max(new Date().getFullYear() + 1)
+      .optional(),
+  ),
+  fuelType: z.preprocess(
+    (val) => {
+      if (val === null || val === undefined) return undefined;
+      return typeof val === "string" ? val.toUpperCase() : val;
+    },
+    z.enum(["PETROL", "DIESEL", "CNG", "EV", "HYBRID", "OTHER"]).optional(),
+  ),
+  vehicleType: z.preprocess(
+    (val) => {
+      if (val === null || val === undefined) return undefined;
+      return typeof val === "string" ? val.toUpperCase() : val;
+    },
+    z
+      .enum([
+        "LUV",
+        "SUV",
+        "SEDAN",
+        "BIKE",
+        "HATCHBACK",
+        "TRUCK",
+        "CAR",
+        "MOTORCYCLE",
+      ])
+      .optional(),
+  ),
+  engineNumber: jsonOptionalString,
+  chassisNumber: jsonOptionalString,
+  registrationDate: z.preprocess(
+    (v) => (v === null ? undefined : v),
+    z.coerce.date().optional(),
+  ),
+  currentOdometer: z.preprocess(
+    (v) => (v === null ? undefined : v),
+    z.coerce.number().min(0).optional(),
+  ),
+  ownerName: jsonOptionalString,
+  rto: jsonOptionalString,
+  vehicleClass: jsonOptionalString,
+  fuelNorms: jsonOptionalString,
+  rcStatus: jsonOptionalString,
+  unloadedWeight: jsonOptionalString,
+  fitnessUpto: jsonOptionalString,
+  insuranceUpto: jsonOptionalString,
+  pollutionUpto: jsonOptionalString,
+  mileage: jsonOptionalString,
+  brand: jsonOptionalString,
+  color: jsonOptionalString,
+  seatingCapacity: jsonOptionalString,
+  cylinderCount: jsonOptionalString,
+  cubicCapacity: jsonOptionalString,
+  grossWeight: jsonOptionalString,
+  bodyType: jsonOptionalString,
+  ownerAddress: jsonOptionalString,
 });
 
 export const updateVehicleSchema = addVehicleSchema.partial();

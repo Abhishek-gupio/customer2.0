@@ -8,6 +8,7 @@ const router = Router();
 router.use(authMiddleware);
 
 router.post("/", sosController.createSOS);
+router.get("/active", sosController.getActiveSOS);
 router.post("/:id/resolve", sosController.resolveSOS);
 router.get("/nearby-help", sosController.getNearbyHelp);
 router.post("/contacts", sosController.addContact);

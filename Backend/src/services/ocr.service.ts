@@ -2,6 +2,8 @@ import { createWorker } from "tesseract.js";
 import { GoogleGenerativeAI, Part } from "@google/generative-ai";
 import { logger } from "../config/logger";
 import { env } from "../config/env";
+import { AppError } from "../utils/AppError";
+import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
 
 // Initialize Gemini if API key is present
 const genAI = env.GEMINI_API_KEY
@@ -115,20 +117,24 @@ export const ocrService = {
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const prompt = `
-                Analyze this receipt/bill image and extract expense details.
-                
-                Return a JSON object with:
-                - amount: (Number - total amount paid. Look for Total, Grand Total, or largest amount. Ignore tax breakdown.)
-                - merchantName: (Name of the shop, petrol pump, or service center)
-                - date: (YYYY-MM-DD format)
-                - category: (One of: FUEL, TOLL, PARKING, SERVICE, INSURANCE, CHALLAN, OTHER)
-                - vehicleNumber: (Vehicle registration number if visible, e.g., "DL01AB1234")
-                - notes: (Any relevant details like fuel quantity, items purchased)
-                - rawText: (Full text visible on the receipt for indexing)
-                
-                Rules:
-                1. Return valid JSON only.
-                2. Be precise with the Amount.
+First, decide if this image is a RECEIPT, BILL, or INVOICE (a document showing a purchase, transaction, or payment — e.g. fuel slip, service bill, restaurant bill, parking slip, toll slip). 
+- If it is NOT a receipt/bill/invoice (e.g. random photo, ID card, screenshot of chat, menu only, advertisement), return exactly: {"isReceipt": false, "error": "Please scan a receipt or bill. This image does not look like a receipt."}
+- If it IS a receipt/bill/invoice, set "isReceipt": true and extract the details below.
+
+When isReceipt is true, return a JSON object with:
+- isReceipt: true
+- amount: (Number - total amount paid. Look for Total, Grand Total, or largest amount. Ignore tax breakdown.)
+- merchantName: (Name of the shop, petrol pump, or service center)
+- date: (YYYY-MM-DD format)
+- category: (One of: FUEL, TOLL, PARKING, SERVICE, INSURANCE, CHALLAN, OTHER)
+- vehicleNumber: (Vehicle registration number if visible, e.g., "DL01AB1234")
+- notes: (Any relevant details like fuel quantity, items purchased)
+- rawText: (Full text visible on the receipt for indexing)
+
+Rules:
+1. Return valid JSON only. No markdown.
+2. Be precise with the Amount.
+3. If the image is not a receipt/bill/invoice, you MUST return isReceipt: false and the error message above.
             `;
 
       const imagePart: Part = {
@@ -144,6 +150,10 @@ export const ocrService = {
 
       const jsonStr = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(jsonStr);
+
+      if (parsed.isReceipt === false && parsed.error) {
+        return { error: parsed.error, rawText: "", isReceipt: false };
+      }
 
       return parsed;
     } catch (error) {
@@ -219,32 +229,26 @@ export const ocrService = {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const voiceModel = env.GEMINI_VOICE_MODEL || "gemini-1.5-flash";
+      const model = genAI.getGenerativeModel({
+        model: voiceModel,
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1024,
+          topP: 0.95,
+          topK: 40,
+        },
+      });
+      const today = new Date().toISOString().split("T")[0];
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
 
       const prompt = `
-                You are an intelligent Indian vehicle expense assistant.
-                Listen to this audio recording. The user is describing a vehicle-related expense they made.
-                
-                Your job:
-                1. Transcribe what the user said.
-                2. Extract expense details from the transcription.
-                
-                Return a JSON object with these fields:
-                - transcription: (The full text of what the user said)
-                - amount: (Number - the expense amount in INR. If user says "paanch sau" return 500, "do hazaar" return 2000, etc.)
-                - category: (One of: FUEL, TOLL, PARKING, SERVICE, INSURANCE, CHALLAN, EMI, OTHER)
-                - merchantName: (Name of the shop/pump/garage if mentioned, else null)
-                - date: (Date in YYYY-MM-DD format. If user says "kal" or "yesterday", calculate from today ${new Date().toISOString().split("T")[0]}. If "aaj" or "today", use today. If not mentioned, use today.)
-                - parts: (Optional. If category is SERVICE/REPAIR and user mentions specific items, return an array of { partName, amount }. E.g., "changed oil for 1200 and filter for 400" -> [{ "partName": "Engine Oil", "amount": 1200 }, { "partName": "Oil Filter", "amount": 400 }])
-                - notes: (Any extra detail the user mentioned, like "full tank", "front tyre", etc.)
-                - confidence: (HIGH, MEDIUM, or LOW based on how clear the audio was)
-                
-                Rules:
-                1. Only return valid JSON. No markdown backticks or extra text.
-                2. Handle Hindi, Hinglish, and English inputs.
-                3. If a field cannot be determined, use null.
-                4. Amount is REQUIRED. If you cannot determine the amount, set confidence to LOW.
-                5. If parts are mentioned, their amounts should sum up close to the total amount.
+Listen to this audio. The user is describing a vehicle expense in any language (Hindi, Tamil, English, etc.).
+1. Transcribe what they said.
+2. Extract: amount (number, INR), category (FUEL, TOLL, PARKING, SERVICE, INSURANCE, CHALLAN, EMI, OTHER), merchantName if any, date (YYYY-MM-DD: use "${today}" for today/aaj/unspecified, "${yesterdayStr}" for yesterday/kal).
+Return ONLY a JSON object with: transcription, amount, category, merchantName, date, parts (or null), notes (or null), confidence (HIGH/MEDIUM/LOW). No markdown. Amount is required; if unclear use 0 and LOW confidence.
             `;
 
       const audioPart: Part = {
@@ -257,14 +261,137 @@ export const ocrService = {
       const result = await model.generateContent([prompt, audioPart]);
       const response = await result.response;
       const text = response.text();
-
-      const jsonStr = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(jsonStr);
-
+      const parsed = this.parseJsonFromVoiceResponse(text, "");
       return parsed;
     } catch (error) {
+      if (isGeminiRateLimitError(error)) {
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
       logger.error({ error }, "Gemini Voice Expense parsing failed");
       return { error: "Voice parsing failed", rawText: "" };
+    }
+  },
+
+  /**
+   * Same as parseVoiceExpense but for already-transcribed text (e.g. from device speech-to-text).
+   * Uses Gemini to extract expense details from the transcription. Uses few-shot examples and
+   * structured rules for higher accuracy; model is configurable via GEMINI_VOICE_MODEL.
+   */
+  async parseVoiceExpenseFromText(transcription: string): Promise<Record<string, any>> {
+    if (!genAI) {
+      logger.warn("Gemini API key missing, cannot parse voice text");
+      return { error: "AI not configured", rawText: transcription };
+    }
+    if (!transcription?.trim()) {
+      return { error: "No text provided", rawText: "" };
+    }
+
+    try {
+      const voiceModel = env.GEMINI_VOICE_MODEL || "gemini-1.5-flash";
+      const model = genAI.getGenerativeModel({
+        model: voiceModel,
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1024,
+          topP: 0.95,
+          topK: 40,
+        },
+      });
+      const now = new Date();
+      const today = now.toISOString().split("T")[0];
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
+      const currentYear = now.getFullYear();
+
+      const prompt = `You are an expert Indian vehicle expense extractor. The user spoke in their language (Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, English, Hinglish, etc.). Transcribed text is below. Extract ONLY the requested fields. Return nothing but a single JSON object.
+
+REFERENCE DATES (use exactly these strings):
+- TODAY = "${today}" (use for: aaj, today, இன்று, ఈరోజు, आज, or when no date given)
+- YESTERDAY = "${yesterdayStr}" (use for: kal, yesterday, நேற்று, నిన్న, कल)
+- Year must be ${currentYear} unless user says another year explicitly.
+
+CATEGORIES (exactly one): FUEL, TOLL, PARKING, SERVICE, INSURANCE, CHALLAN, EMI, OTHER.
+- FUEL: petrol, diesel, gas, எரிபொருள், పెట్రోల్, पेट्रोल
+- TOLL: toll, FASTag, டோல், टोल
+- PARKING: parking, பார்க்கிங்
+- SERVICE: service, repair, garage, சர்வீஸ்
+- CHALLAN: challan, fine, traffic, ஜன்மதி
+- INSURANCE: insurance, policy
+- EMI: EMI, loan
+- OTHER: anything else
+
+EXAMPLES (follow this format exactly):
+
+Input: "500 rupees fuel today"
+Output: {"transcription":"500 rupees fuel today","amount":500,"category":"FUEL","merchantName":null,"date":"${today}","parts":null,"notes":null,"confidence":"HIGH"}
+
+Input: "aaj kal 200 toll"
+Output: {"transcription":"aaj kal 200 toll","amount":200,"category":"TOLL","merchantName":null,"date":"${today}","parts":null,"notes":null,"confidence":"MEDIUM"}
+
+Input: "நேற்று ஐநூறு எரிபொருள்"
+Output: {"transcription":"நேற்று ஐநூறு எரிபொருள்","amount":500,"category":"FUEL","merchantName":null,"date":"${yesterdayStr}","parts":null,"notes":null,"confidence":"HIGH"}
+
+Input: "I spent two thousand on parking yesterday"
+Output: {"transcription":"I spent two thousand on parking yesterday","amount":2000,"category":"PARKING","merchantName":null,"date":"${yesterdayStr}","parts":null,"notes":null,"confidence":"HIGH"}
+
+Input: "service 3500 at ram garage"
+Output: {"transcription":"service 3500 at ram garage","amount":3500,"category":"SERVICE","merchantName":"ram garage","date":"${today}","parts":null,"notes":null,"confidence":"HIGH"}
+
+RULES:
+1. amount: MUST be a number. Parse digits (500, 1,200) or words (paanch sau, two thousand, ஐநூறு) to a single number. If unclear, use 0 and confidence LOW.
+2. category: MUST be one of the 8 categories above. Map any language to that exact word.
+3. date: MUST be exactly "${today}" or "${yesterdayStr}" (year ${currentYear}).
+4. Only return the JSON object. No markdown, no backticks, no explanation.
+
+User said: "${transcription}"
+
+JSON:`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      const parsed = this.parseJsonFromVoiceResponse(text, transcription);
+      return parsed;
+    } catch (error) {
+      if (isGeminiRateLimitError(error)) {
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
+      logger.error({ error }, "Gemini Voice Text parsing failed");
+      return { error: "Voice text parsing failed", rawText: transcription };
+    }
+  },
+
+  /** Extract and parse JSON from model output; tolerates markdown and extra text. */
+  parseJsonFromVoiceResponse(rawText: string, fallbackTranscription: string): Record<string, any> {
+    let jsonStr = rawText.replace(/```json\s*|```\s*/gi, "").trim();
+    const firstBrace = jsonStr.indexOf("{");
+    if (firstBrace !== -1) {
+      const lastBrace = jsonStr.lastIndexOf("}");
+      if (lastBrace > firstBrace) {
+        jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+      }
+    }
+    try {
+      const parsed = JSON.parse(jsonStr);
+      parsed.transcription = parsed.transcription ?? fallbackTranscription;
+      if (typeof parsed.amount === "string") parsed.amount = Number(parsed.amount) || 0;
+      return parsed;
+    } catch {
+      try {
+        const repaired = jsonStr.replace(/(\w+):/g, '"$1":').replace(/'/g, '"');
+        const parsed = JSON.parse(repaired);
+        parsed.transcription = parsed.transcription ?? fallbackTranscription;
+        return parsed;
+      } catch {
+        return { error: "Could not parse AI response", rawText: rawText.slice(0, 200) };
+      }
     }
   },
 

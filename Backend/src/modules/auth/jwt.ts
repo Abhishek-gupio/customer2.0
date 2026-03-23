@@ -52,7 +52,7 @@ export async function blacklistRefreshToken(token: string): Promise<void> {
       await redis.setex(`${REFRESH_PREFIX}${token}`, ttl, "1");
     }
   } catch {
-    // ignore
+    // Redis unavailable or other error; ignore (token will expire naturally)
   }
 }
 
@@ -60,6 +60,11 @@ export async function blacklistRefreshToken(token: string): Promise<void> {
 export async function isRefreshBlacklisted(token: string): Promise<boolean> {
   const redis = getRedis();
   if (!redis) return false;
-  const v = await redis.get(`${REFRESH_PREFIX}${token}`);
-  return v === "1";
+  try {
+    const v = await redis.get(`${REFRESH_PREFIX}${token}`);
+    return v === "1";
+  } catch {
+    // Redis temporarily unavailable (e.g. reconnecting); allow refresh
+    return false;
+  }
 }

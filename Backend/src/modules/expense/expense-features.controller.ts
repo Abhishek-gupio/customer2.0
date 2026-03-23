@@ -7,8 +7,12 @@ import {
   warrantyService,
   CreateServiceRecordInput,
 } from "../../services/warranty.service";
+import { fetchAndSaveIntervalsForVehicle } from "../../services/oem-scraper.service";
+import { dbInstances } from "@repo/db-customer";
 import { expenseIntelligenceService } from "../../services/expense-intelligence.service";
 import { z } from "zod";
+
+const db = dbInstances as any;
 
 // ============================================================
 // FUEL PRICE CONTROLLER
@@ -157,6 +161,27 @@ export const warrantyController = {
     );
     success(res, providers);
   }),
+
+  // POST /warranty/primary/refresh-oem — Fetch OEM manual intervals for primary vehicle (for Parts & Warranty)
+  refreshOemForPrimary: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+
+    const primary = await db.customerVehicle.findFirst({
+      where: { customerId: req.customer.id, isPrimary: true, isActive: true },
+      select: { id: true, make: true, model: true },
+    });
+    if (!primary) {
+      throw AppError.badRequest("No primary vehicle set. Set a vehicle as primary first.");
+    }
+
+    const result = await fetchAndSaveIntervalsForVehicle(primary.id);
+    success(res, {
+      vehicleId: primary.id,
+      make: primary.make,
+      model: primary.model,
+      ...result,
+    });
+  }),
 };
 
 // ============================================================
@@ -190,6 +215,8 @@ export const expenseAnalysisController = {
       req.customer.id,
     );
     success(res, result);
+    console.log(result);
+    console.log(vehicleId)
   }),
 
   // POST /expenses/anomalies/check — Manual anomaly check (e.g. before adding expense)

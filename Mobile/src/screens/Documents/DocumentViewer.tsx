@@ -1,0 +1,2 @@
+// Gupio plan - placeholder
+export {};

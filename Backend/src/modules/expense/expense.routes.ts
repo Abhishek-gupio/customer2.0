@@ -36,6 +36,7 @@ router.post(
   upload.single("audio"),
   expenseController.parseVoice,
 ); // Voice Command (Audio → AI)
+router.post("/parse/voice/text", expenseController.parseVoiceText); // Voice Command (transcribed text → AI)
 
 // ============================================================
 // 3. ANALYTICS & BUDGETS
@@ -57,6 +58,7 @@ router.post(
 // ============================================================
 // 5. WARRANTY & PARTS TRACKER
 // ============================================================
+router.post("/warranty/primary/refresh-oem", warrantyController.refreshOemForPrimary); // Refresh OEM intervals for primary vehicle
 router.get("/warranty/providers", warrantyController.getServiceProviders); // Provider Database (Garages)
 router.post(
   "/warranty/service-records",

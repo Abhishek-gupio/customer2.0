@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Premium admin theme – Linear / Stripe style: deep neutral + indigo accent (no yellow) */
+:root {
+  --bg: #09090b;
+  --panel: #18181b;
+  --panel-2: #141416;
+  --primary: #fafafa;
+  --muted: #a1a1aa;
+  --border: rgba(255, 255, 255, 0.06);
+  --accent: #6366f1;
+  --accent-2: #818cf8;
+  --accent-dim: rgba(99, 102, 241, 0.14);
+  --success: #22c55e;
+  --error: #ef4444;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg) !important;
+  color: var(--primary) !important;
+}
+
+/* Premium scrollbar */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }

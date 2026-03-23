@@ -1,0 +1,286 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+interface Props {
+  monthlyData?: number[];
+  labels?: string[];
+  totalDistance?: number;
+  avgMonthly?: number;
+  avgCost?: number;
+  period?: string;
+}
+
+const screenWidth = Dimensions.get('window').width - 40;
+
+const CostPerKmCard: React.FC<Props> = ({
+  monthlyData,
+  labels,
+  totalDistance,
+  avgMonthly,
+  avgCost,
+  period,
+}) => {
+  // State to track the selected point for the tooltip
+  const [tooltip, setTooltip] = useState({
+    x: 0,
+    y: 0,
+    visible: false,
+    value: 0,
+    label: "",
+  });
+
+  const handlePointClick = (data: any) => {
+    // If user clicks the same point, hide it; otherwise, show it
+    const isSamePoint = tooltip.x === data.x && tooltip.y === data.y;
+    setTooltip({
+      x: data.x,
+      y: data.y,
+      value: data.value,
+      label: (labels && labels[data.index]) || "",
+      visible: !isSamePoint || !tooltip.visible,
+    });
+  };
+
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const fallbackLabels = Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
+  const fallbackData = new Array(daysInMonth).fill(0);
+
+  const hasInput =
+    Array.isArray(monthlyData) &&
+    monthlyData.length > 0 &&
+    Array.isArray(labels) &&
+    labels.length > 0;
+  const rawLabels = hasInput ? (labels as string[]) : fallbackLabels;
+  const rawData = hasInput ? (monthlyData as number[]) : fallbackData;
+  const usableLength = Math.min(rawLabels.length, rawData.length);
+  const chartLabels = rawLabels.slice(0, usableLength);
+  const chartData = rawData
+    .slice(0, usableLength)
+    .map((value) => (Number.isFinite(value) ? value : 0));
+  const safeAvgCost = Number.isFinite(avgCost ?? NaN) ? (avgCost as number) : 0;
+  const lineChartWidth = Math.max(screenWidth - 4, chartLabels.length * wp(7.5));
+
+  return (
+    <View style={styles.card}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Cost per Kilometer</Text>
+        <View style={styles.avgContainer}>
+          <Text style={styles.avgText}>Avg: ₹{safeAvgCost.toFixed(2)}/km</Text>
+        </View>
+      </View>
+
+
+      <View style={styles.chartWrapper}>
+        {chartLabels.length && chartData.length ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chartScrollContent}
+          >
+            <LineChart
+              data={{
+                labels: chartLabels,
+                datasets: [
+                  {
+                    data: chartData,
+                    color: () => '#4e73df',
+                    strokeWidth: 3,
+                  },
+                ],
+              }}
+              width={lineChartWidth}
+              height={220}
+              chartConfig={{
+                backgroundGradientFrom: '#121212',
+                backgroundGradientTo: '#121212',
+                decimalPlaces: 1,
+                color: (opacity = 1) => `rgba(78, 115, 223, ${opacity})`,
+                labelColor: () => '#ffffff',
+                propsForDots: {
+                  r: '5',
+                  strokeWidth: '2',
+                  stroke: '#4e73df',
+                },
+                propsForBackgroundLines: {
+                  stroke: '#333',
+                },
+              }}
+              style={styles.chartStyle}
+              bezier
+              fromZero
+              onDataPointClick={handlePointClick}
+              decorator={() => {
+                return tooltip.visible ? (
+                  <View
+                    style={[
+                      styles.tooltip,
+                      {
+                        top: tooltip.y + hp(5),
+                        left: tooltip.x - 30,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.tooltipValue}>₹{tooltip.value}</Text>
+                    <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
+                  </View>
+                ) : null;
+              }}
+            />
+          </ScrollView>
+        ) : (
+          <View style={styles.noTrend}>
+            <Text style={styles.noTrendText}>No trend data available</Text>
+          </View>
+        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <MaterialCommunityIcons
+            name="tune-variant"
+            size={18}
+            color="#9ca3af"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={{ color: '#9ca3af', fontSize: 14 }}>
+            Cost per KM{period ? ` • ${period}` : ''}
+          </Text>
+        </View>      
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.stat}>
+          <Text style={styles.statLabel}>Total Distance (Year)</Text>
+          <Text style={styles.statValue}>
+            {Number.isFinite(totalDistance ?? NaN) ? `${(totalDistance as number).toLocaleString()} km` : '—'}
+          </Text>
+        </View>
+        <View style={styles.stat}>
+          <Text style={styles.statLabel}>Avg Monthly</Text>
+          <Text style={styles.statValue}>
+            {Number.isFinite(avgMonthly ?? NaN) ? `${(avgMonthly as number).toLocaleString()} km` : '—'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#151515",
+    borderRadius: wp(6),
+    padding: wp(5),
+    margin: wp(4),
+    overflow: 'visible',
+    borderWidth: wp(0.1),
+    borderColor: '#999',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(1.2),
+  },
+  title: {
+    color: '#fff',
+    fontSize: hp(2.2),
+    fontWeight: 'bold',
+  },
+  avgContainer: {
+    // backgroundColor: '#1e1e1e',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.6),
+    // borderRadius: wp(2),
+    borderWidth: wp(0.4),
+    borderColor: '#636060',
+    borderRadius: wp(6),
+    backgroundColor: 'rgb(31, 31, 36)',
+  },
+  avgText: {
+    color: '#aaa',
+    fontWeight: '600',
+    fontSize: hp(1.6),
+  },
+  chartWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  chartStyle: {
+    marginVertical: hp(1.2),
+    borderRadius: wp(3),
+    overflow: 'hidden',
+    padding: wp(2),
+    // marginLeft: -wp(5),
+  },
+  chartScrollContent: {
+    paddingRight: wp(3),
+  },
+  noTrend: {
+    height: 220,
+    width: screenWidth - 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#121212',
+    borderRadius: wp(3),
+    marginVertical: hp(1.2),
+  },
+  noTrendText: {
+    color: '#777',
+    fontSize: hp(1.6),
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: hp(2),
+    marginBottom: hp(1.2),
+    padding: wp(5),
+    borderWidth: wp(0.4),
+    borderColor: '#636060',
+    borderRadius: wp(6),
+    backgroundColor: 'rgb(31, 31, 36)',
+  },
+  stat: {
+    // alignItems: 'center',
+  },
+  statLabel: {
+    color: '#aaa',
+    fontSize: hp(1.4),
+  },
+  statValue: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: hp(2),
+  },
+  tooltip: {
+    position: 'absolute',
+    backgroundColor: '#4e73df',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+    borderRadius: wp(2),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: wp(15),
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+  },
+  tooltipValue: {
+    color: '#fff',
+    fontSize: hp(1.5),
+    fontWeight: 'bold',
+  },
+  tooltipLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: hp(1.2),
+  },
+});
+
+export default CostPerKmCard;

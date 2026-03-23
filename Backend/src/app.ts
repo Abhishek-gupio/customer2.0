@@ -3,11 +3,28 @@ import cors from "cors";
 import express, { type Request, type Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import jwt from "jsonwebtoken";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { apiRoutes } from "./routes";
 import { setupSwagger } from "./swagger";
+
+/** Rate limit key: per user when JWT present, else per IP. Decode only (no verify) for key partitioning. */
+function rateLimitKey(req: Request): string {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.slice(7);
+      const payload = jwt.decode(token) as { id?: string } | null;
+      if (payload?.id) return `user:${payload.id}`;
+    } catch {
+      // malformed token; fall back to IP
+    }
+  }
+  const ip = req.ip ?? req.socket?.remoteAddress ?? "unknown";
+  return `ip:${ip}`;
+}
 
 const app = express();
 
@@ -15,9 +32,11 @@ app.use(helmet());
 
 const corsOptions: cors.CorsOptions = {
   origin:
-    env.CORS_ORIGIN === "*"
+    env.NODE_ENV === "development"
       ? "*"
-      : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
+      : env.CORS_ORIGIN === "*"
+        ? "*"
+        : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -34,6 +53,15 @@ const limiter = rateLimit({
   max: env.RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: rateLimitKey,
+  skip: (req) => {
+    // Don't count health checks so load balancers don't burn the limit
+    if (req.path === "/health" || req.path === "/health/detailed") return true;
+    // Don't count API docs (Swagger UI + spec). Browsing /api-docs and "Try it out"
+    // would otherwise burn the limit and then all API calls get 429.
+    if (req.path.startsWith("/api-docs")) return true;
+    return false;
+  },
 });
 app.use(limiter);
 
@@ -53,16 +81,40 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 app.get("/health/detailed", async (_req: Request, res: Response) => {
-  const db = env.DATABASE_URL ? "ok" : "not_configured";
-  const redis = (await import("./config/redis").then((m) => m.getRedis()))
-    ? "ok"
-    : "not_configured";
-  res.json({
-    ok: true,
-    timestamp: new Date().toISOString(),
-    env: env.NODE_ENV,
-    services: { database: db, redis },
-  });
+  try {
+    const db = env.DATABASE_URL ? "ok" : "not_configured";
+    const redisModule = await import("./config/redis");
+    const redis = (await redisModule.getRedis()) ? "ok" : "not_configured";
+    
+    // Test actual DB query
+    const { dbInstances } = await import("@repo/db-customer");
+    const customerCount = await dbInstances.customer.count();
+    const vehicleCount = await dbInstances.customerVehicle.count();
+
+    res.json({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      env: env.NODE_ENV,
+      services: { 
+        database: db, 
+        redis,
+        metrics: {
+          customers: customerCount,
+          vehicles: vehicleCount
+        }
+      },
+      connection: {
+        host: _req.get('host'),
+        remoteAddress: _req.socket.remoteAddress
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+      stack: env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  }
 });
 
 // Swagger setup

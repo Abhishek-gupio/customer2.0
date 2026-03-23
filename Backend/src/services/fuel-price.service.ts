@@ -6,46 +6,10 @@ const db = dbInstances as any;
 /**
  * FUEL PRICE INTELLIGENCE SERVICE
  * =================================
- * - Fetches daily fuel prices by city (from public APIs / hardcoded fallback)
- * - Auto-calculates liters filled when user adds fuel expense
- * - Compares prices between nearby cities
- * - Alerts user if cheaper fuel is available nearby
+ * - Fetches daily fuel prices by city/state from the database cache
+ * - Database cache is populated by ContentScraperService from sources like GoodReturns
+ * - Compares prices between cities in the same state
  */
-
-// Default fuel prices (fallback when API is unavailable)
-// Updated periodically. These are approximate Jan 2026 prices.
-const DEFAULT_PRICES: Record<string, Record<string, number>> = {
-  Delhi: { PETROL: 94.72, DIESEL: 87.62, CNG: 75.61 },
-  Mumbai: { PETROL: 103.44, DIESEL: 89.97, CNG: 78.0 },
-  Bangalore: { PETROL: 101.94, DIESEL: 87.89, CNG: 72.0 },
-  Chennai: { PETROL: 100.75, DIESEL: 92.34, CNG: 0 },
-  Kolkata: { PETROL: 104.95, DIESEL: 91.76, CNG: 73.5 },
-  Hyderabad: { PETROL: 107.41, DIESEL: 95.65, CNG: 70.0 },
-  Pune: { PETROL: 104.36, DIESEL: 90.23, CNG: 76.5 },
-  Ahmedabad: { PETROL: 94.32, DIESEL: 89.15, CNG: 72.0 },
-  Jaipur: { PETROL: 104.88, DIESEL: 90.36, CNG: 0 },
-  Lucknow: { PETROL: 94.65, DIESEL: 87.71, CNG: 75.0 },
-  Noida: { PETROL: 94.72, DIESEL: 87.62, CNG: 75.61 },
-  Gurgaon: { PETROL: 94.72, DIESEL: 87.62, CNG: 75.61 },
-  Chandigarh: { PETROL: 96.2, DIESEL: 84.26, CNG: 73.0 },
-  Indore: { PETROL: 107.96, DIESEL: 93.0, CNG: 0 },
-  Bhopal: { PETROL: 108.65, DIESEL: 93.22, CNG: 0 },
-  Patna: { PETROL: 107.24, DIESEL: 93.84, CNG: 0 },
-  Nagpur: { PETROL: 105.79, DIESEL: 91.49, CNG: 74.0 },
-};
-
-// Nearby city groups for price comparison
-const NEARBY_CITIES: Record<string, string[]> = {
-  Delhi: ["Noida", "Gurgaon", "Ghaziabad"],
-  Noida: ["Delhi", "Ghaziabad", "Greater Noida"],
-  Gurgaon: ["Delhi", "Noida"],
-  Mumbai: ["Thane", "Navi Mumbai", "Pune"],
-  Pune: ["Mumbai", "Nashik"],
-  Bangalore: ["Mysore", "Tumkur"],
-  Hyderabad: ["Secunderabad"],
-  Chennai: ["Kanchipuram", "Vellore"],
-  Kolkata: ["Howrah", "Salt Lake"],
-};
 
 export const fuelPriceService = {
   /**
@@ -55,12 +19,12 @@ export const fuelPriceService = {
     const normalizedCity = this.normalizeCity(city);
     const normalizedFuel = fuelType.toUpperCase();
 
-    // 1. Try database cache first (today's price)
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const cached = await db.fuelPriceCache.findFirst({
+      // 1. Try today's price first
+      const todayPrice = await db.fuelPriceCache.findFirst({
         where: {
           city: normalizedCity,
           fuelType: normalizedFuel,
@@ -69,24 +33,93 @@ export const fuelPriceService = {
         orderBy: { date: "desc" },
       });
 
-      if (cached) return cached.price;
+      if (todayPrice) {
+        return todayPrice.price;
+      }
+
+      // 2. Fallback to most recent available price for this city
+      const recentPrice = await db.fuelPriceCache.findFirst({
+        where: {
+          city: normalizedCity,
+          fuelType: normalizedFuel,
+        },
+        orderBy: { date: "desc" },
+      });
+
+      if (recentPrice) {
+        return recentPrice.price;
+      }
     } catch (err) {
-      logger.debug({ err }, "FuelPrice cache lookup failed, using defaults");
+      logger.error({ err, city: normalizedCity }, "FuelPrice cache lookup failed");
     }
 
-    // 2. Fallback to defaults
-    const cityPrices = DEFAULT_PRICES[normalizedCity];
-    if (cityPrices && cityPrices[normalizedFuel]) {
-      return cityPrices[normalizedFuel];
-    }
-
-    // 3. Generic fallback
+    // 3. Absolute fallback if no data exists
     const genericPrices: Record<string, number> = {
-      PETROL: 100,
-      DIESEL: 90,
-      CNG: 75,
+      PETROL: 94.77,
+      DIESEL: 87.67,
+      CNG: 75.09,
     };
     return genericPrices[normalizedFuel] || null;
+  },
+
+  /**
+   * Get fuel prices for a specific state
+   */
+  async getByState(stateName: string) {
+    if (!stateName) return null;
+
+    const normalizedName = this.normalizeState(stateName);
+    if (!normalizedName) return null;
+
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Search cache for any city in this state
+      const prices = await db.fuelPriceCache.findMany({
+        where: {
+          OR: [
+            { state: { contains: normalizedName, mode: 'insensitive' } },
+            { city: { contains: normalizedName, mode: 'insensitive' } }
+          ],
+          date: { gte: today }
+        },
+        distinct: ['fuelType']
+      });
+
+      if (prices.length > 0) {
+        const result: any = { PETROL: null, DIESEL: null, CNG: null };
+        prices.forEach((p: any) => {
+          result[p.fuelType] = p.price;
+        });
+        return result;
+      }
+
+      // Fallback to most recent available data
+      const recent = await db.fuelPriceCache.findMany({
+        where: {
+          OR: [
+            { state: { contains: normalizedName, mode: 'insensitive' } },
+            { city: { contains: normalizedName, mode: 'insensitive' } }
+          ]
+        },
+        orderBy: { date: 'desc' },
+        distinct: ['fuelType'],
+        take: 5
+      });
+
+      if (recent.length > 0) {
+        const result: any = { PETROL: null, DIESEL: null, CNG: null };
+        recent.forEach((p: any) => {
+          result[p.fuelType] = p.price;
+        });
+        return result;
+      }
+    } catch (err) {
+      logger.error({ err, stateName: normalizedName }, "Failed to fetch state fuel prices");
+    }
+
+    return { PETROL: 94.77, DIESEL: 87.67, CNG: 75.09 };
   },
 
   /**
@@ -107,14 +140,14 @@ export const fuelPriceService = {
     }
 
     return {
-      liters: Math.round((amount / price) * 100) / 100, // Round to 2 decimal
+      liters: Math.round((amount / price) * 100) / 100,
       pricePerLiter: price,
       city: this.normalizeCity(city),
     };
   },
 
   /**
-   * Compare fuel prices with nearby cities
+   * Compare fuel prices with other cities in the same state
    */
   async comparePrices(
     city: string,
@@ -137,30 +170,43 @@ export const fuelPriceService = {
       };
     }
 
-    // Get nearby cities
-    const nearbyCities = NEARBY_CITIES[normalizedCity] || [];
     const nearbyPrices: { city: string; price: number; saving: number }[] = [];
 
-    for (const nearbyCity of nearbyCities) {
-      const price = await this.getPrice(nearbyCity, fuelType);
-      if (price) {
-        nearbyPrices.push({
-          city: nearbyCity,
-          price,
-          saving: Math.round((currentPrice - price) * 100) / 100,
+    try {
+      const cityInfo = await db.fuelPriceCache.findFirst({
+        where: { city: normalizedCity }
+      });
+
+      if (cityInfo?.state) {
+        const others = await db.fuelPriceCache.findMany({
+          where: {
+            state: cityInfo.state,
+            city: { not: normalizedCity },
+            fuelType: fuelType.toUpperCase()
+          },
+          distinct: ['city'],
+          orderBy: { date: 'desc' },
+          take: 5
         });
+
+        for (const other of others) {
+          nearbyPrices.push({
+            city: other.city,
+            price: other.price,
+            saving: Math.round((currentPrice - other.price) * 100) / 100,
+          });
+        }
       }
+    } catch (err) {
+      logger.error({ err }, "Nearby price comparison failed");
     }
 
-    // Sort by saving (most savings first)
     nearbyPrices.sort((a, b) => b.saving - a.saving);
-
-    // Generate alert if significant saving
     const cheapest = nearbyPrices.find((p) => p.saving > 0) || null;
     let alert: string | null = null;
 
     if (cheapest && cheapest.saving >= 1) {
-      alert = `${fuelType} is ₹${cheapest.saving} cheaper in ${cheapest.city} (₹${cheapest.price}/L vs ₹${currentPrice}/L in ${normalizedCity}). Fill there if possible!`;
+      alert = `${fuelType} is ₹${cheapest.saving} cheaper in ${cheapest.city} (₹${cheapest.price}/L vs ₹${currentPrice}/L).`;
     }
 
     return {
@@ -172,21 +218,29 @@ export const fuelPriceService = {
   },
 
   /**
-   * Get fuel prices for all major cities
+   * Get fuel prices for all regions available in cache
    */
   async getAllPrices(
     fuelType: string = "PETROL",
   ): Promise<{ city: string; price: number }[]> {
-    const results: { city: string; price: number }[] = [];
-    for (const city of Object.keys(DEFAULT_PRICES)) {
-      const price = await this.getPrice(city, fuelType);
-      if (price) results.push({ city, price });
+    try {
+      const allCached = await db.fuelPriceCache.findMany({
+        where: { fuelType: fuelType.toUpperCase() },
+        distinct: ['city'],
+        orderBy: { date: 'desc' }
+      });
+
+      return allCached
+        .map((c: any) => ({ city: c.city, price: c.price }))
+        .sort((a: any, b: any) => a.price - b.price);
+    } catch (err) {
+      logger.error({ err }, "Failed to fetch all prices");
+      return [];
     }
-    return results.sort((a, b) => a.price - b.price);
   },
 
   /**
-   * Cache fuel prices (called by cron job or manual trigger)
+   * Cache fuel prices
    */
   async cachePrices(
     prices: { city: string; state: string; fuelType: string; price: number }[],
@@ -220,8 +274,6 @@ export const fuelPriceService = {
         logger.error({ err, city: p.city }, "Failed to cache fuel price");
       }
     }
-
-    logger.info(`Cached ${count} fuel prices`);
     return count;
   },
 
@@ -229,7 +281,7 @@ export const fuelPriceService = {
    * Utility: Normalize city name
    */
   normalizeCity(city: string): string {
-    if (!city) return "Delhi"; // Default fallback
+    if (!city) return "Delhi";
     const mapping: Record<string, string> = {
       "new delhi": "Delhi",
       nct: "Delhi",
@@ -247,8 +299,15 @@ export const fuelPriceService = {
   },
 
   /**
+   * Normalize state name
+   */
+  normalizeState(state?: string): string | null {
+    if (!state) return null;
+    return state.trim();
+  },
+
+  /**
    * Enhance fuel expense with price intelligence
-   * Called after a FUEL expense is created
    */
   async enrichFuelExpense(
     amount: number,
@@ -262,17 +321,16 @@ export const fuelPriceService = {
       alert: string | null;
     };
   }> {
-    const { liters, pricePerLiter } = await this.calculateLiters(
-      amount,
-      city,
-      fuelType,
-    );
-    const { cheapest, alert } = await this.comparePrices(city, fuelType);
+    const { liters, pricePerLiter } = await this.calculateLiters(amount, city, fuelType);
+    const comparison = await this.comparePrices(city, fuelType);
 
     return {
       liters,
       pricePerLiter,
-      comparison: { cheapest, alert },
+      comparison: {
+        cheapest: comparison.cheapest,
+        alert: comparison.alert
+      },
     };
   },
 };

@@ -35,6 +35,7 @@ export interface CustomerPayload {
 export interface AuthSuccessResponse {
   message: string;
   requiresOtpVerification?: boolean;
+  otpExpiresIn?: number; // seconds
   accessToken?: string;
   refreshToken?: string;
   expiresIn?: number;

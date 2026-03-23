@@ -13,14 +13,16 @@
     "scripts": {
         "prisma:generate": "prisma generate",
         "prisma:migrate:dev": "prisma migrate dev",
+        "prisma:migrate:deploy": "prisma migrate deploy",
         "prisma:studio": "prisma studio",
         "db:up:local": "bash ../scripts/db-start.sh",
         "db:migrate": "prisma migrate dev",
-        "build": "tsc -p tsconfig.json && mkdir -p dist/generated && cp -r generated/client dist/generated/",
+        "build": "tsc -p tsconfig.json && node -e \"require('fs').cpSync('generated', 'dist/generated', {recursive: true})\"",
         "prepare": "pnpm prisma:generate"
     },
     "devDependencies": {
         "@prisma/client": "^7.3.0",
+        "@prisma/client-runtime-utils": "^7.4.0",
         "@types/node": "^24.7.1",
         "@types/pg": "^8.16.0",
         "prisma": "^7.3.0",
@@ -28,7 +30,6 @@
     },
     "dependencies": {
         "@prisma/adapter-pg": "^7.3.0",
-        "@prisma/client-runtime-utils": "^7.4.0",
         "dotenv": "^17.2.4",
         "pg": "^8.18.0"
     }

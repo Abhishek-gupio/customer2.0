@@ -12,6 +12,11 @@ import { telematicsRoutes } from "./modules/telematics/telematics.routes";
 import { aiRoutes } from "./modules/ai/ai.routes";
 
 import { sosRoutes } from "./modules/sos/sos.routes";
+import { placesRoutes } from "./modules/places/places.routes";
+import { fuelRoutes } from "./modules/fuel/fuel.routes";
+import { discoveryRoutes } from "./modules/discovery/discovery.routes";
+import { supportRoutes } from "./modules/support/support.routes";
+import { adminRoutes } from "./modules/admin/admin.routes";
 
 const router = Router();
 
@@ -26,5 +31,10 @@ router.use("/v1/chat", chatRoutes);
 router.use("/v1/telematics", telematicsRoutes);
 router.use("/v1/ai", aiRoutes);
 router.use("/v1/sos", sosRoutes);
+router.use("/v1/places", placesRoutes);
+router.use("/v1/fuel", fuelRoutes);
+router.use("/v1/discovery", discoveryRoutes);
+router.use("/v1/support", supportRoutes);
+router.use("/v1/admin", adminRoutes);
 
 export const apiRoutes = router;

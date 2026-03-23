@@ -29,7 +29,12 @@ export const loginSchema = z.object({
   phoneNumber: phoneSchema,
 });
 
+export const googleSignInSchema = z.object({
+  idToken: z.string().min(1, "Google ID token is required"),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleSignInInput = z.infer<typeof googleSignInSchema>;

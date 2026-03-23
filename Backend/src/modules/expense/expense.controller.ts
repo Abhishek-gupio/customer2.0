@@ -46,12 +46,13 @@ export const expenseController = {
     success(res, expense, 201);
   }),
 
-  // 2. Parse Text (SMS/Voice/Notif)
+  // 2. Parse Text (SMS/Voice/Notif). dryRun=true returns preview only.
   parse: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
     const body = parseBody<ParseExpenseInput>(req, parseExpenseSchema);
 
-    const result = await expenseService.parseExpenseText(req.customer.id, body);
+    const dryRun = req.query.dryRun === 'true';
+    const result = await expenseService.parseExpenseText(req.customer.id, body, { dryRun });
     success(res, result);
   }),
 
@@ -60,9 +61,11 @@ export const expenseController = {
     if (!req.customer?.id) throw AppError.unauthorized();
     if (!req.file) throw AppError.badRequest("No receipt image uploaded");
 
+    const dryRun = req.query.dryRun === 'true';
     const result = await expenseService.parseReceiptImage(
       req.customer.id,
       req.file,
+      dryRun
     );
     success(res, result);
   }),
@@ -104,14 +107,44 @@ export const expenseController = {
     success(res, budget);
   }),
 
-  // 7. Voice Command (Audio → Gemini → Expense)
+  // 7. Voice Command (Audio → Gemini → transcribe + extract). dryRun=true returns preview only (auto language).
   parseVoice: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
     if (!req.file) throw AppError.badRequest("No audio file uploaded");
 
+    const dryRun = req.query.dryRun === "true" || req.body?.dryRun === true;
+    if (dryRun) {
+      const result = await expenseService.previewExpenseFromVoiceAudio(
+        req.customer.id,
+        req.file,
+      );
+      return success(res, result, 200);
+    }
+
     const result = await expenseService.createExpenseFromVoice(
       req.customer.id,
       req.file,
+    );
+    success(res, result, 201);
+  }),
+
+  // 8. Voice Command from transcribed text (device speech-to-text → Gemini extract → Expense)
+  parseVoiceText: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const text =
+      typeof req.body?.text === "string" ? req.body.text.trim() : "";
+    if (!text) throw AppError.badRequest("No text provided");
+
+    const dryRun = req.query.dryRun === "true" || req.body.dryRun === true;
+
+    if (dryRun) {
+      const result = await expenseService.previewExpenseFromVoiceText(text);
+      return success(res, result, 200);
+    }
+
+    const result = await expenseService.createExpenseFromVoiceText(
+      req.customer.id,
+      text,
     );
     success(res, result, 201);
   }),

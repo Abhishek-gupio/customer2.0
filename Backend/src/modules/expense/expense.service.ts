@@ -7,6 +7,7 @@ import {
   ExpenseSource,
 } from "./expense.validators";
 import { AppError } from "../../utils/AppError";
+import { isGeminiRateLimitError } from "../../utils/geminiRateLimit";
 import { logger } from "../../config/logger";
 import { storageService } from "../../services/storage.service";
 import { vehicleService } from "../vehicle/vehicle.service";
@@ -16,12 +17,22 @@ import { fuelPriceService } from "../../services/fuel-price.service";
 import { expenseIntelligenceService } from "../../services/expense-intelligence.service";
 import { warrantyService } from "../../services/warranty.service";
 
-interface UploadedFile extends Express.Multer.File {}
+interface UploadedFile extends Express.Multer.File { }
 
 // Cast for new models until TS picks up regenerated Prisma types
 const db = dbInstances as any;
 
 import { ingestionService } from "../../services/ingestion.service";
+
+const ALLOWED_NOTIFICATION_CATEGORIES: ExpenseCategory[] = [
+  "FUEL",
+  "SERVICE",
+  "TOLL",
+  "INSURANCE",
+  "PARKING",
+  "CHALLAN",
+];
+const MAX_RECEIPT_IMAGES_PER_CUSTOMER = 15;
 
 export const expenseService = {
   /**
@@ -33,8 +44,8 @@ export const expenseService = {
     file?: UploadedFile,
   ) {
     // Handle receipt upload if present
-    let receiptUrl = null;
-    let mimeType = null;
+    let receiptUrl = input.receiptUrl || null;
+    let mimeType = input.mimeType || null;
     if (file) {
       const uploaded = await storageService.uploadFile(
         file,
@@ -44,24 +55,104 @@ export const expenseService = {
       mimeType = file.mimetype;
     }
 
+    // Always resolve to a vehicle owned by this customer (or where they have access):
+    // prefer primary, never leave unlinked when customer has vehicles
+    let targetVehicleId = (input.vehicleId && String(input.vehicleId).trim()) || null;
+    if (targetVehicleId) {
+      const owned = await dbInstances.customerVehicle.findFirst({
+        where: { id: targetVehicleId, customerId, isActive: true },
+        select: { id: true },
+      });
+      if (!owned) targetVehicleId = null; // invalid or wrong customer – resolve to primary below
+    }
+    if (!targetVehicleId) {
+      const primaryVehicle = await dbInstances.customerVehicle.findFirst({
+        where: { customerId, isPrimary: true, isActive: true },
+        select: { id: true },
+      });
+      if (primaryVehicle) {
+        targetVehicleId = primaryVehicle.id;
+      } else {
+        const firstVehicle = await dbInstances.customerVehicle.findFirst({
+          where: { customerId, isActive: true },
+          select: { id: true },
+        });
+        if (firstVehicle) targetVehicleId = firstVehicle.id;
+      }
+    }
+
+    // If expense is linked to a vehicle, enforce role-based permissions:
+    // - OWNER / EDITOR / DRIVER can write
+    // - VIEWER can only read and must not create expenses against that vehicle
+    if (targetVehicleId) {
+      const vehicle = await dbInstances.customerVehicle.findUnique({
+        where: { id: targetVehicleId },
+        include: {
+          accessList: {
+            where: { customerId },
+          },
+        },
+      });
+
+      if (!vehicle) {
+        throw AppError.notFound("Vehicle not found for expense");
+      }
+
+      const isOwner = vehicle.customerId === customerId;
+      const hasWriteAccess =
+        vehicle.accessList?.some(
+          (a: any) => a.role === "EDITOR" || a.role === "DRIVER",
+        ) ?? false;
+
+      if (!isOwner && !hasWriteAccess) {
+        throw AppError.forbidden(
+          "You have view-only access to this vehicle and cannot add expenses to it",
+        );
+      }
+    }
+
     // Logic: If user provided 'odometerReading' and 'vehicleId', update vehicle log
-    if (input.vehicleId && input.odometerReading) {
-      await vehicleService.addOdometerLog(customerId, input.vehicleId, {
+    if (targetVehicleId && input.odometerReading) {
+      await vehicleService.addOdometerLog(customerId, targetVehicleId, {
         reading: input.odometerReading,
         date: new Date(),
       });
+    }
+
+    // If this user is acting as a DRIVER on the selected vehicle, capture it
+    let driverId: string | null = null;
+    if (targetVehicleId) {
+      const access = await dbInstances.vehicleAccess.findFirst({
+        where: {
+          vehicleId: targetVehicleId,
+          customerId,
+          // Cast because the published enum type in @repo/db-customer
+          // may not yet include DRIVER even though the DB enum does.
+          role: "DRIVER" as any,
+        },
+        select: { id: true },
+      });
+      if (access) {
+        driverId = customerId;
+      }
     }
 
     // Create DB Record
     const expense = await db.expense.create({
       data: {
         customerId,
-        vehicleId: input.vehicleId || null,
+        vehicleId: targetVehicleId,
+        driverId,
         amount: input.amount,
         category: input.category, // e.g. FUEL
         date: input.date ? new Date(input.date) : new Date(),
         merchantName: input.merchantName,
         location: input.location,
+        placeId: input.placeId,
+        placeName: input.placeName,
+        placeAddress: input.placeAddress,
+        placeLat: input.placeLat,
+        placeLng: input.placeLng,
         notes: input.notes,
         source: input.source || "MANUAL",
         receiptUrl,
@@ -97,14 +188,94 @@ export const expenseService = {
       .ingestExpense(expense.id)
       .catch((err) => logger.error({ err }, "Expense ingestion failed"));
 
+    // Warranty Integration: If it's a SERVICE/OTHER and has parts (or we can detect them), create a ServiceRecord
+    const isPartRelatored = expense.category === "SERVICE" || expense.category === "OTHER";
+
+    if (isPartRelatored && targetVehicleId) {
+      if (input.parts && input.parts.length > 0) {
+        try {
+          // Fallback: if no odometer provided in input, use current vehicle odo
+          const finalOdo = input.odometerReading ??
+            (await dbInstances.customerVehicle.findUnique({
+              where: { id: targetVehicleId },
+              select: { currentOdometer: true }
+            }))?.currentOdometer;
+
+          await warrantyService.createServiceRecord({
+            vehicleId: targetVehicleId,
+            expenseId: expense.id,
+            serviceType: "REGULAR_SERVICE",
+            garageName: expense.merchantName || undefined,
+            serviceDate: expense.date.toISOString(),
+            odometerAtService: (finalOdo !== null && finalOdo !== undefined) ? Number(finalOdo) : undefined,
+            notes: expense.notes || undefined,
+            parts: input.parts as any,
+          });
+
+          // Recalculate health score to reflect new part health on home screen
+          void vehicleService.calculateHealthScore(targetVehicleId).catch(e =>
+            logger.error({ e, vehicleId: targetVehicleId }, "Targeted health recalculation failed")
+          );
+        } catch (err) {
+          logger.error({ err, expenseId: expense.id }, "Failed to create service record for manual expense");
+        }
+      } else if (expense.notes && expense.notes.length > 3) {
+        // AI detection from notes if no parts provided but category is relevant
+        this.autoCreateServiceRecord(
+          expense.id,
+          targetVehicleId,
+          expense.notes,
+          expense.amount,
+          expense.merchantName,
+          customerId
+        ).catch(err => logger.error({ err }, "Background part detection failed"));
+      }
+    }
+
+    if (expense.receiptUrl) {
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+    }
+
     return { expense, fuelIntelligence };
   },
   /**
    * SMART EXPENSE PARSER
    * Priority: Dedup Check → Gemini AI (primary) → UPI Regex (fallback) → Basic Regex (last resort)
    */
-  async parseExpenseText(customerId: string, input: ParseExpenseInput) {
+  async parseExpenseText(
+    customerId: string,
+    input: ParseExpenseInput,
+    opts?: { returnOnNoAmount?: boolean; dryRun?: boolean },
+  ) {
     const text = input.text;
+    const targetVehicleId = await (async () => {
+      let vehicleId = (input.vehicleId && String(input.vehicleId).trim()) || null;
+      if (vehicleId) {
+        const owned = await dbInstances.customerVehicle.findFirst({
+          where: { id: vehicleId, customerId, isActive: true },
+          select: { id: true },
+        });
+        if (!owned) vehicleId = null;
+      }
+      if (!vehicleId) {
+        const primaryVehicle = await dbInstances.customerVehicle.findFirst({
+          where: { customerId, isPrimary: true, isActive: true },
+          select: { id: true },
+        });
+        if (primaryVehicle) {
+          vehicleId = primaryVehicle.id;
+        } else {
+          const firstVehicle = await dbInstances.customerVehicle.findFirst({
+            where: { customerId, isActive: true },
+            select: { id: true },
+          });
+          if (firstVehicle) vehicleId = firstVehicle.id;
+        }
+      }
+      return vehicleId;
+    })();
 
     // ===== STEP 0: DEDUPLICATION CHECK =====
     if (await expenseIntelligenceService.isRawTextDuplicate(customerId, text)) {
@@ -120,6 +291,22 @@ export const expenseService = {
       const aiResult = await ocrService.parseExpenseNotification(text);
 
       if (aiResult.amount > 0 && !aiResult.error) {
+        // DRY RUN: return preview without creating expense
+        if (opts?.dryRun) {
+          return {
+            success: true,
+            dryRun: true,
+            expense: {
+              amount: aiResult.amount,
+              category: aiResult.category,
+              merchantName: aiResult.merchantName || null,
+              date: aiResult.date ? new Date(aiResult.date) : new Date(),
+              notes: aiResult.notes || null,
+            },
+            parserMeta: { method: 'GEMINI_AI', confidence: aiResult.confidence },
+          };
+        }
+
         // AI succeeded — dedup check on amount+category
         const dupCheck = await expenseIntelligenceService.isDuplicate(
           customerId,
@@ -136,6 +323,21 @@ export const expenseService = {
           };
         }
 
+        // Filter Notification sources
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     aiResult.category as ExpenseCategory,
+        //   )
+        // ) 
+        // {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${aiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
+
         // Skip credit/refund transactions
         if (aiResult.notes?.includes("CREDIT_TXN")) {
           return {
@@ -148,6 +350,7 @@ export const expenseService = {
         const expense = await db.expense.create({
           data: {
             customerId,
+            vehicleId: targetVehicleId,
             amount: aiResult.amount,
             category: aiResult.category as ExpenseCategory,
             merchantName: aiResult.merchantName || null,
@@ -231,6 +434,22 @@ export const expenseService = {
     if (upiParserService.isTransactionNotification(text)) {
       const upiResult = upiParserService.parse(text);
       if (upiResult && upiResult.amount > 0) {
+        // DRY RUN: return preview without creating expense
+        if (opts?.dryRun) {
+          return {
+            success: true,
+            dryRun: true,
+            expense: {
+              amount: upiResult.amount,
+              category: upiResult.category,
+              merchantName: upiResult.merchantName || 'Unknown Merchant',
+              date: upiResult.date,
+              notes: null,
+            },
+            parserMeta: { method: 'UPI_REGEX_FALLBACK', confidence: upiResult.confidence },
+          };
+        }
+
         const dupCheck = await expenseIntelligenceService.isDuplicate(
           customerId,
           upiResult.amount,
@@ -246,9 +465,25 @@ export const expenseService = {
           };
         }
 
+        // Filter Notification sources
+        // if (
+        //   input.source === "NOTIFICATION" &&
+        //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(
+        //     upiResult.category as ExpenseCategory,
+        //   )
+        // )
+        //  {
+        //   return {
+        //     success: false,
+        //     skipped: true,
+        //     reason: `Category '${upiResult.category}' is not allowed for auto-notification parsing.`,
+        //   };
+        // }
+
         const expense = await db.expense.create({
           data: {
             customerId,
+            vehicleId: targetVehicleId,
             amount: upiResult.amount,
             category: upiResult.category as ExpenseCategory,
             merchantName: upiResult.merchantName || "Unknown Merchant",
@@ -274,7 +509,7 @@ export const expenseService = {
               "Delhi",
               "PETROL",
             );
-          } catch (_) {}
+          } catch (_) { }
         }
 
         return {
@@ -311,6 +546,9 @@ export const expenseService = {
     }
 
     if (!amount) {
+      if (opts?.returnOnNoAmount) {
+        return { success: false, parseFailed: true };
+      }
       throw AppError.badRequest(
         "Could not detect expense amount in text. Try voice command instead.",
       );
@@ -367,9 +605,38 @@ export const expenseService = {
     const mMatch = text.match(/(?:at|to|via)\s+([a-zA-Z0-9\s]+)/i);
     if (mMatch && mMatch[1]) merchantName = mMatch[1].trim().substring(0, 30);
 
+    // Filter Notification sources
+    // if (
+    //   input.source === "NOTIFICATION" &&
+    //   !ALLOWED_NOTIFICATION_CATEGORIES.includes(category)
+    // ) {
+    //   return {
+    //     success: false,
+    //     skipped: true,
+    //     reason: `Category '${category}' is not allowed for auto-notification parsing.`,
+    //   };
+    // }
+
+    // DRY RUN: return preview without creating expense
+    if (opts?.dryRun) {
+      return {
+        success: true,
+        dryRun: true,
+        expense: {
+          amount,
+          category,
+          merchantName,
+          date: input.timestamp ? new Date(input.timestamp) : new Date(),
+          notes: null,
+        },
+        parserMeta: { method: 'BASIC_REGEX_LAST_RESORT', confidence },
+      };
+    }
+
     const expense = await db.expense.create({
       data: {
         customerId,
+        vehicleId: targetVehicleId,
         amount,
         category,
         merchantName,
@@ -391,7 +658,7 @@ export const expenseService = {
           "Delhi",
           "PETROL",
         );
-      } catch (_) {}
+      } catch (_) { }
     }
 
     return {
@@ -445,12 +712,19 @@ export const expenseService = {
         merchantName,
       );
 
+      // Fetch current odometer for fallback
+      const vehicle = await dbInstances.customerVehicle.findUnique({
+        where: { id: vehicleId! },
+        select: { currentOdometer: true },
+      });
+
       // Auto-create the service record
       await warrantyService.createServiceRecord({
         vehicleId: vehicleId!,
         expenseId,
         serviceType: serviceDetails.serviceType as any,
         garageName: merchantName || undefined,
+        odometerAtService: vehicle?.currentOdometer || undefined,
         nextServiceKm: serviceDetails.nextServiceKm,
         notes: `🤖 Auto-created from expense. AI Confidence: ${serviceDetails.confidence}. ${serviceDetails.notes || ""}`,
         parts: serviceDetails.predictedParts.map((p) => ({
@@ -460,6 +734,11 @@ export const expenseService = {
           warrantyMonths: p.warrantyMonths,
         })),
       });
+
+      // Recalculate health score for AI detection
+      void vehicleService.calculateHealthScore(vehicleId!).catch(e =>
+        logger.error({ e, vehicleId }, "Background health recalculation failed")
+      );
 
       // Notify user about auto-created service record
       await db.inAppNotification.create({
@@ -572,11 +851,22 @@ export const expenseService = {
       },
     };
 
-    const result = await model.generateContent([prompt, imagePart]);
-    const response = await result.response;
-    const responseText = response.text();
-    const jsonStr = responseText.replace(/```json|```/g, "").trim();
-    const billData = JSON.parse(jsonStr);
+    let billData: any;
+    try {
+      const result = await model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const responseText = response.text();
+      const jsonStr = responseText.replace(/```json|```/g, "").trim();
+      billData = JSON.parse(jsonStr);
+    } catch (err) {
+      if (isGeminiRateLimitError(err)) {
+        throw AppError.tooManyRequests(
+          "AI is busy. Please try again in a moment.",
+          "GEMINI_RATE_LIMIT"
+        );
+      }
+      throw err;
+    }
 
     // 4. Update expense with bill image
     await db.expense.update({
@@ -647,12 +937,22 @@ export const expenseService = {
       });
     }
 
+    // Fallback odometer from vehicle if bill parsing missed it
+    let odometerAtService = billData.odometerReading;
+    if (odometerAtService === null || odometerAtService === undefined) {
+      const vehicle = await dbInstances.customerVehicle.findUnique({
+        where: { id: vehicleId },
+        select: { currentOdometer: true },
+      });
+      odometerAtService = vehicle?.currentOdometer || undefined;
+    }
+
     const serviceRecord = await warrantyService.createServiceRecord({
       vehicleId,
       expenseId,
       serviceType: "REGULAR_SERVICE",
       garageName: billData.garageName || undefined,
-      odometerAtService: billData.odometerReading || undefined,
+      odometerAtService: (odometerAtService !== null && odometerAtService !== undefined) ? Number(odometerAtService) : undefined,
       serviceDate: billData.serviceDate || undefined,
       nextServiceKm: billData.nextServiceKm || undefined,
       notes: `📸 Extracted from uploaded bill. ${billData.notes || ""}`,
@@ -706,7 +1006,11 @@ export const expenseService = {
   /**
    * OCR Method for Files (if user uploads a bill)
    */
-  async parseReceiptImage(customerId: string, file: UploadedFile) {
+  async parseReceiptImage(
+    customerId: string,
+    file: UploadedFile,
+    dryRun = false,
+  ) {
     // 1. Upload
     const uploaded = await storageService.uploadFile(
       file,
@@ -722,8 +1026,32 @@ export const expenseService = {
       aiResult = { rawText: await ocrService.extractText(file.buffer) };
     }
 
+    // 2b. Reject if the image is not a receipt/bill/invoice
+    if (aiResult.isReceipt === false && aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Please scan a receipt or bill. This image does not look like a receipt.",
+      );
+    }
+
     // 3. If AI found structured data (amount is key), use it directly
     if (aiResult.amount) {
+      // DRY RUN: Return data without creating expense
+      if (dryRun) {
+        return {
+          success: true,
+          dryRun: true,
+          expense: {
+            amount: aiResult.amount,
+            category: aiResult.category || "OTHER",
+            merchantName: aiResult.merchantName || "Unknown Merchant",
+            date: aiResult.date ? new Date(aiResult.date) : new Date(),
+            notes: aiResult.notes,
+            receiptUrl: uploaded.url,
+            mimeType: file.mimetype,
+          },
+        };
+      }
+
       // Deduplication Check
       const dupCheck = await expenseIntelligenceService.isDuplicate(
         customerId,
@@ -791,15 +1119,52 @@ export const expenseService = {
           notes: aiResult.notes,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
+
       return { success: true, expense };
     }
 
     // 4. Fallback: Feed raw text into Parser if AI failed structured parse
-    const parsed = await this.parseExpenseText(customerId, {
-      text: aiResult.rawText || "",
-      source: "RECEIPT",
-      timestamp: new Date().toISOString(),
-    });
+    let parsed: Awaited<ReturnType<typeof this.parseExpenseText>>;
+    try {
+      parsed = await this.parseExpenseText(
+        customerId,
+        {
+          text: aiResult.rawText || "",
+          source: "RECEIPT",
+          timestamp: new Date().toISOString(),
+        },
+        { returnOnNoAmount: true },
+      );
+    } catch {
+      // parseExpenseText threw (e.g. old code path) — return receipt URL so user can enter manually
+      return {
+        success: false,
+        receiptUrl: uploaded.url,
+        mimeType: file.mimetype,
+        error: {
+          message:
+            "Could not detect expense amount in text. You can enter it manually.",
+          code: "PARSE_FAILED",
+        },
+      };
+    }
+
+    if (parsed.parseFailed) {
+      return {
+        success: false,
+        receiptUrl: uploaded.url,
+        mimeType: file.mimetype,
+        error: {
+          message:
+            "Could not detect expense amount in text. You can enter it manually.",
+          code: "PARSE_FAILED",
+        },
+      };
+    }
 
     // Update the receipt URL on the created expense
     if (parsed.expense) {
@@ -810,6 +1175,10 @@ export const expenseService = {
           mimeType: file.mimetype,
         },
       });
+
+      this.pruneOldReceiptImages(customerId).catch((err) =>
+        logger.error({ err, customerId }, "Failed to prune old receipt images"),
+      );
     }
 
     return parsed;
@@ -830,7 +1199,7 @@ export const expenseService = {
     if (aiResult.error || !aiResult.amount) {
       throw AppError.badRequest(
         aiResult.error ||
-          "Could not understand the voice command. Please try again clearly.",
+        "Could not understand the voice command. Please try again clearly.",
       );
     }
 
@@ -912,11 +1281,18 @@ export const expenseService = {
             };
           });
 
+          // Fetch current odometer for fallback
+          const vehicle = await dbInstances.customerVehicle.findUnique({
+            where: { id: vehicleId! },
+            select: { currentOdometer: true },
+          });
+
           serviceRecord = await warrantyService.createServiceRecord({
             vehicleId: vehicleId!,
             expenseId: expense.id,
             serviceType: "REGULAR_SERVICE",
             garageName: aiResult.merchantName || undefined,
+            odometerAtService: vehicle?.currentOdometer || undefined,
             serviceDate: aiResult.date
               ? new Date(aiResult.date).toISOString()
               : new Date().toISOString(),
@@ -960,6 +1336,273 @@ export const expenseService = {
   },
 
   /**
+   * Preview only: parse voice text and return extracted expense data without creating.
+   * Used to show confirmation screen before saving.
+   */
+  async previewExpenseFromVoiceText(text: string) {
+    const aiResult = await ocrService.parseVoiceExpenseFromText(text);
+
+    if (aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Could not understand the voice command. Please try again clearly.",
+      );
+    }
+
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) {
+      throw AppError.badRequest(
+        "Could not detect expense amount. Please say the amount clearly (e.g. 500 rupees on fuel).",
+      );
+    }
+
+    const validCategories = [
+      "FUEL",
+      "TOLL",
+      "PARKING",
+      "SERVICE",
+      "INSURANCE",
+      "CHALLAN",
+      "EMI",
+      "OTHER",
+    ];
+    const category = validCategories.includes(aiResult.category)
+      ? aiResult.category
+      : "OTHER";
+
+    let expenseDate = new Date();
+    if (aiResult.date) {
+      const parsed = new Date(aiResult.date);
+      const now = new Date();
+      if (parsed.getFullYear() < now.getFullYear()) {
+        parsed.setFullYear(now.getFullYear());
+      }
+      expenseDate = parsed;
+    }
+
+    return {
+      success: true,
+      dryRun: true,
+      expense: {
+        amount,
+        category,
+        merchantName: aiResult.merchantName || null,
+        date: expenseDate.toISOString().split("T")[0],
+        notes: aiResult.notes || `Voice: "${aiResult.transcription || text}"`,
+        transcription: aiResult.transcription || text,
+      },
+    };
+  },
+
+  /**
+   * Preview only: parse voice audio (Gemini transcribes + extracts; auto language).
+   * Used when app uploads recording for language-auto flow.
+   */
+  async previewExpenseFromVoiceAudio(customerId: string, file: UploadedFile) {
+    const aiResult = await ocrService.parseVoiceExpense(
+      file.buffer,
+      file.mimetype,
+    );
+
+    if (aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Could not understand the voice. Please try again clearly.",
+      );
+    }
+
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) {
+      throw AppError.badRequest(
+        "Could not detect expense amount. Please say the amount clearly.",
+      );
+    }
+
+    const validCategories = [
+      "FUEL",
+      "TOLL",
+      "PARKING",
+      "SERVICE",
+      "INSURANCE",
+      "CHALLAN",
+      "EMI",
+      "OTHER",
+    ];
+    const category = validCategories.includes(aiResult.category)
+      ? aiResult.category
+      : "OTHER";
+
+    let expenseDate = new Date();
+    if (aiResult.date) {
+      const parsed = new Date(aiResult.date);
+      const now = new Date();
+      if (parsed.getFullYear() < now.getFullYear()) {
+        parsed.setFullYear(now.getFullYear());
+      }
+      expenseDate = parsed;
+    }
+
+    return {
+      success: true,
+      dryRun: true,
+      expense: {
+        amount,
+        category,
+        merchantName: aiResult.merchantName || null,
+        date: expenseDate.toISOString().split("T")[0],
+        notes: aiResult.notes || `Voice: "${aiResult.transcription || ""}"`,
+        transcription: aiResult.transcription || "",
+      },
+    };
+  },
+
+  /**
+   * Voice command from already-transcribed text (e.g. device speech-to-text).
+   * Same flow as createExpenseFromVoice but uses parseVoiceExpenseFromText.
+   */
+  async createExpenseFromVoiceText(customerId: string, text: string) {
+    const aiResult = await ocrService.parseVoiceExpenseFromText(text);
+
+    if (aiResult.error) {
+      throw AppError.badRequest(
+        aiResult.error || "Could not understand the voice command. Please try again clearly.",
+      );
+    }
+
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) {
+      throw AppError.badRequest(
+        "Could not detect expense amount. Please say the amount clearly (e.g. 500 rupees on fuel).",
+      );
+    }
+
+    const validCategories = [
+      "FUEL",
+      "TOLL",
+      "PARKING",
+      "SERVICE",
+      "INSURANCE",
+      "CHALLAN",
+      "EMI",
+      "OTHER",
+    ];
+    const category = validCategories.includes(aiResult.category)
+      ? aiResult.category
+      : "OTHER";
+
+    // Normalize date: if AI returned a past year (e.g. 2024), use current year so "yesterday" is correct
+    let expenseDate = new Date();
+    if (aiResult.date) {
+      const parsed = new Date(aiResult.date);
+      const now = new Date();
+      if (parsed.getFullYear() < now.getFullYear()) {
+        parsed.setFullYear(now.getFullYear());
+      }
+      expenseDate = parsed;
+    }
+
+    // Logic: Try to find the primary vehicle for this customer
+    const primaryVehicle = await (dbInstances as any).customerVehicle.findFirst({
+      where: { customerId, isPrimary: true, isActive: true },
+      select: { id: true },
+    });
+
+    const expense = await db.expense.create({
+      data: {
+        customerId,
+        vehicleId: primaryVehicle?.id || null,
+        amount,
+        category,
+        merchantName: aiResult.merchantName || null,
+        date: expenseDate,
+        source: "VOICE",
+        rawText: aiResult.transcription || text,
+        isAutomated: true,
+        notes: aiResult.notes || `Voice: "${aiResult.transcription || text}"`,
+      },
+    });
+
+    this.checkBudget(customerId, category, amount).catch(console.error);
+
+    let serviceRecord = null;
+    if (
+      (category === "SERVICE" || category === "REPAIR") &&
+      aiResult.parts &&
+      Array.isArray(aiResult.parts) &&
+      aiResult.parts.length > 0
+    ) {
+      try {
+        const vehicles = await dbInstances.customerVehicle.findMany({
+          where: { customerId },
+          select: { id: true },
+          take: 1,
+        });
+        if (vehicles.length > 0) {
+          const vehicleId = vehicles[0].id;
+          const partsToCreate = aiResult.parts.map((p: any) => {
+            let type = "OTHER";
+            const name = (p.partName || "").toUpperCase();
+            if (name.includes("OIL") && name.includes("ENGINE")) type = "ENGINE_OIL";
+            else if (name.includes("FILTER") && name.includes("OIL")) type = "OIL_FILTER";
+            else if (name.includes("FILTER") && name.includes("AIR")) type = "AIR_FILTER";
+            else if (name.includes("BRAKE") && name.includes("PAD")) type = "BRAKE_PADS";
+            else if (name.includes("BATTERY")) type = "BATTERY";
+            else if (name.includes("TYRE")) type = "TYRES";
+            else if (name.includes("COOLANT")) type = "COOLANT";
+            else if (name.includes("PLUG")) type = "SPARK_PLUGS";
+            return {
+              partType: type,
+              partName: p.partName,
+              cost: p.amount,
+              warrantyMonths: this.getDefaultWarranty(type),
+            };
+          });
+          // Fetch current odometer for fallback
+          const vehicle = await dbInstances.customerVehicle.findUnique({
+            where: { id: vehicleId! },
+            select: { currentOdometer: true },
+          });
+
+          serviceRecord = await warrantyService.createServiceRecord({
+            vehicleId: vehicleId!,
+            expenseId: expense.id,
+            serviceType: "REGULAR_SERVICE",
+            garageName: aiResult.merchantName || undefined,
+            odometerAtService: vehicle?.currentOdometer || undefined,
+            serviceDate: aiResult.date ? new Date(aiResult.date).toISOString() : new Date().toISOString(),
+            notes: `🎤 Created from voice: "${aiResult.transcription || text}"`,
+            parts: partsToCreate,
+          });
+          await db.inAppNotification.create({
+            data: {
+              customerId,
+              title: "✅ Service Details Captured via Voice",
+              body: `Captured ${partsToCreate.length} items from your voice command.`,
+              type: "SUCCESS",
+              link: "/expenses/warranty",
+              metadata: { expenseId: expense.id, partsCount: partsToCreate.length },
+            },
+          });
+        }
+      } catch (err) {
+        logger.error({ err }, "Failed to create service record from voice text");
+      }
+    }
+
+    return {
+      success: true,
+      expense,
+      serviceRecord,
+      voiceMeta: {
+        transcription: aiResult.transcription ?? text,
+        confidence: aiResult.confidence || "MEDIUM",
+        detectedAmount: amount,
+        detectedCategory: category,
+        detectedMerchant: aiResult.merchantName,
+        partsExtracted: aiResult.parts ? aiResult.parts.length : 0,
+      },
+    };
+  },
+
+  /**
    * Listing with Filters
    */
   async listExpenses(customerId: string, query: any) {
@@ -987,6 +1630,39 @@ export const expenseService = {
     });
 
     return { expenses, totalAmount: total._sum.amount || 0 };
+  },
+
+  /**
+   * Keep only the latest receipt images per customer and remove older files.
+   */
+  async pruneOldReceiptImages(customerId: string, keep = MAX_RECEIPT_IMAGES_PER_CUSTOMER) {
+    const oldReceipts = await db.expense.findMany({
+      where: {
+        customerId,
+        receiptUrl: { not: null },
+      },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      skip: keep,
+      select: { id: true, receiptUrl: true },
+    });
+
+    if (!oldReceipts.length) return;
+
+    await Promise.all(
+      oldReceipts.map(async (row: { id: string; receiptUrl: string | null }) => {
+        if (!row.receiptUrl) return;
+        try {
+          await storageService.deleteFile(row.receiptUrl);
+        } catch (err) {
+          logger.warn({ err, customerId, expenseId: row.id }, "Could not delete old receipt file");
+        }
+      }),
+    );
+
+    await db.expense.updateMany({
+      where: { id: { in: oldReceipts.map((row: { id: string }) => row.id) } },
+      data: { receiptUrl: null, mimeType: null },
+    });
   },
 
   /**

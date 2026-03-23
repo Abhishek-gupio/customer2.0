@@ -1,0 +1,166 @@
+export type ExpenseType = 'Fuel' | 'Service' | 'Tolls' | 'Insurance';
+
+export interface Expense {
+  id: string;
+  title: string;
+  type: ExpenseType;
+  amount: number;
+  date: string;
+  source: string;
+  icon: string;
+  color: string;
+}
+
+export interface TimePeriods{
+  fuelPercent: number;
+  maintainancePercent: number;
+  otherPercent: number;
+  id: string;
+}
+
+export const expenses: Expense[] = [
+  {
+    id: '1',
+    title: 'Fuel',
+    type: 'Fuel',
+    amount: 2200,
+    date: 'Yesterday',
+    source: 'SMS',
+    icon: 'gas-pump',
+    color: '#4caf50',
+  },
+  {
+    id: '2',
+    title: 'Fuel',
+    type: 'Fuel',
+    amount: 1800,
+    date: 'Today',
+    source: 'Manual',
+    icon: 'gas-pump',
+    color: '#4caf50',
+  },
+  {
+    id: '3',
+    title: 'Fuel',
+    type: 'Fuel',
+    amount: 3200,
+    date: '2 days ago',
+    source: 'SMS',
+    icon: 'gas-pump',
+    color: '#4caf50',
+  },
+  {
+    id: '4',
+    title: 'Service',
+    type: 'Service',
+    amount: 4500,
+    date: 'Today',
+    source: 'Manual',
+    icon: 'tools',
+    color: '#ff9800',
+  },
+  {
+    id: '5',
+    title: 'Service',
+    type: 'Service',
+    amount: 2500,
+    date: '1 week ago',
+    source: 'Garage',
+    icon: 'tools',
+    color: '#ff9800',
+  },
+  {
+    id: '6',
+    title: 'Tolls',
+    type: 'Tolls',
+    amount: 300,
+    date: 'Yesterday',
+    source: 'FASTag',
+    icon: 'road',
+    color: '#2196f3',
+  },
+  {
+    id: '7',
+    title: 'Tolls',
+    type: 'Tolls',
+    amount: 450,
+    date: '3 days ago',
+    source: 'FASTag',
+    icon: 'road',
+    color: '#2196f3',
+  },
+  {
+    id: '8',
+    title: 'Insurance',
+    type: 'Insurance',
+    amount: 12000,
+    date: '1 month ago',
+    source: 'Policy',
+    icon: 'shield-alt',
+    color: '#9c27b0',
+  },
+  {
+    id: '9',
+    title: 'Insurance',
+    type: 'Insurance',
+    amount: 6000,
+    date: '6 months ago',
+    source: 'Policy',
+    icon: 'shield-alt',
+    color: '#9c27b0',
+  },
+  {
+    id: '10',
+    title: 'Fuel',
+    type: 'Fuel',
+    amount: 2100,
+    date: '3 days ago',
+    source: 'SMS',
+    icon: 'gas-pump',
+    color: '#4caf50',
+  },
+];
+
+export const timePeriods: TimePeriods[]=[
+  {
+  id: '1',
+  fuelPercent: 50,
+  maintainancePercent: 30,
+  otherPercent: 20,
+  },
+  {
+    id: '2',
+    fuelPercent: 40,
+    maintainancePercent: 30,
+    otherPercent: 30,
+  },
+  {
+    id: '3',
+    fuelPercent: 60,
+    maintainancePercent: 20,
+    otherPercent: 20,
+  }
+
+]
+
+import { Bill } from "../../navigation/types";
+
+export const billsData: Bill[] = [
+  {
+    id: "1",
+    title: "Engine oil",
+    amount: 1200,
+    status: "verified",
+    uploadedAt: "2 days ago",
+    warrantyMonths: 6,
+    image: "https://picsum.photos/400/300",
+  },
+  {
+    id: "2",
+    title: "Car Service",
+    amount: 4500,
+    status: "pending",
+    uploadedAt: "Today",
+    image: null,
+  },
+];

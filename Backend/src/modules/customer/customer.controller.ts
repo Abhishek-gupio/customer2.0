@@ -36,6 +36,15 @@ export const customerController = {
     success(res, data);
   }),
 
+  getProfileStats: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) {
+      throw AppError.unauthorized();
+    }
+    const data = await customerService.getProfileStats(customerId);
+    success(res, data);
+  }),
+
   updateProfile: asyncHandler(async (req: Request, res: Response) => {
     const customerId = req.customer?.id;
     if (!customerId) {
@@ -43,6 +52,18 @@ export const customerController = {
     }
     const body = parseBody(req, updateProfileSchema);
     const data = await customerService.updateProfile(customerId, body);
+    success(res, data);
+  }),
+
+  uploadProfilePicture: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) {
+      throw AppError.unauthorized();
+    }
+    if (!req.file) {
+      throw AppError.badRequest("No image file uploaded");
+    }
+    const data = await customerService.uploadProfilePicture(customerId, req.file);
     success(res, data);
   }),
 
