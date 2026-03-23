@@ -116,9 +116,11 @@ export default function OTP() {
     if (!/^\d*$/.test(value)) return;
     if (value.length > 1) {
       const digits = value.slice(0, OTP_LENGTH).split('');
-      const next = Array(OTP_LENGTH).fill('');
-      digits.forEach((d, i) => { next[i] = d; });
-      setOtp(next);
+      setOtp((prev) => {
+        const next = Array(OTP_LENGTH).fill('');
+        digits.forEach((d, i) => { next[i] = d; });
+        return next;
+      });
       if (digits.length === OTP_LENGTH) {
         inputRefs.current[OTP_LENGTH - 1]?.blur();
         Keyboard.dismiss();
@@ -127,9 +129,13 @@ export default function OTP() {
       }
       return;
     }
-    const next = [...otp];
-    next[index] = value.slice(-1);
-    setOtp(next);
+
+    setOtp((prev) => {
+      const next = [...prev];
+      next[index] = value.slice(-1);
+      return next;
+    });
+
     if (value) {
       if (index < OTP_LENGTH - 1) {
         inputRefs.current[index + 1]?.focus();
@@ -221,7 +227,7 @@ export default function OTP() {
               onChangeText={(v) => handleChange(v, i)}
               onKeyPress={(e) => handleKeyPress(e, i)}
               keyboardType="number-pad"
-              maxLength={1}
+              maxLength={OTP_LENGTH}
               selectTextOnFocus
               placeholder=""
               textContentType={i === 0 ? 'oneTimeCode' : 'none'}

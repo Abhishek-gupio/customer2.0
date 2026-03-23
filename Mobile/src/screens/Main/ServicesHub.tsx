@@ -16,7 +16,6 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
-import BackButton from '../../components/BackButton';
 
 type ServiceId =
   | 'PartsWarranty'
@@ -55,10 +54,10 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
 ];
 
-const CATEGORIES: { title: string; itemIds: ServiceId[] }[] = [
-  { title: 'Vehicle & Warranty', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'] },
-  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'Insurance', 'Towing'] },
-  { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'] },
+const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
+  { title: 'Vehicle & Warranty', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
+  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'Insurance', 'Towing'], color: '#FFBF00' }, // Yellow
+  { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
 ];
 
 const ADS_DATA = [
@@ -152,8 +151,13 @@ export default function ServicesHub() {
       
       {/* Header */}
       <View style={styles.header}>
-        <BackButton onPress={() => navigation.goBack()} />
-        <Text style={styles.headerTitle}>Our Services</Text>
+        <View>
+          <Text style={styles.headerTitle}>Services Hub</Text>
+          <Text style={styles.headerSubtitle}>Explore automotive care & utilities</Text>
+        </View>
+        <TouchableOpacity style={styles.headerIcon}>
+          <IconMC name="magnify" size={wp(5.5)} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -212,7 +216,7 @@ export default function ServicesHub() {
         <View style={styles.content}>
           {CATEGORIES.map((cat) => (
             <View key={cat.title} style={styles.categoryWrap}>
-              <Text style={styles.categoryTitle}>{cat.title}</Text>
+              <Text style={[styles.categoryTitle, { borderLeftColor: cat.color }]}>{cat.title}</Text>
               <View style={styles.row}>
                 {cat.itemIds.map((id) => {
                   const item = getItemById(id);
@@ -255,16 +259,32 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(2),
+    paddingHorizontal: wp(6),
+    paddingTop: hp(4),
+    paddingBottom: hp(2),
   },
   headerTitle: {
-    flex: 1,
-    fontSize: wp(5.5),
-    fontWeight: '700',
+    fontSize: wp(6.5),
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
-    marginLeft: wp(3),
+  },
+  headerSubtitle: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 2,
+  },
+  headerIcon: {
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(5.5),
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   scrollContent: {
     paddingBottom: hp(4),
@@ -344,8 +364,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   content: {
-    paddingHorizontal: wp(6),
-    paddingTop: hp(2),
+    paddingHorizontal: wp(4),
+    paddingTop: hp(1),
   },
   categoryWrap: {
     marginBottom: hp(3),
@@ -353,30 +373,37 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(4.2),
-    color: '#aaa',
+    color: '#fff',
     marginBottom: hp(2),
-    paddingLeft: 2,
+    paddingLeft: wp(3),
+    borderLeftWidth: 3,
   },
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: wp(4.5),
+    justifyContent: 'flex-start',
+    gap: wp(2.5),
   },
   button: {
-    width: (wp(100) - wp(12) - wp(13.5)) / 4,
+    width: wp(20),
     alignItems: 'center',
-    marginBottom: hp(1),
+    marginBottom: hp(2),
   },
   iconBox: {
-    width: wp(14),
-    height: wp(14),
-    borderRadius: wp(4),
-    backgroundColor: '#1a1a1a',
+    width: wp(14.5),
+    height: wp(14.5),
+    borderRadius: wp(4.5),
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(1),
+    marginBottom: hp(0.8),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   label: {
     fontSize: wp(3),

@@ -15,7 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, Bill } from '../../navigation/types';
 import BackButton from '../../components/BackButton';
@@ -30,6 +30,7 @@ import { colors }from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { vehicleService } from '../../services/vehicleService';
+import { setPrimaryVehicleId } from '../../services/storage';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -96,9 +97,11 @@ const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(
 
 const ExpenseFeed = () => {
   const navigation = useNavigation<DocListNavProp>();
+  const route = useRoute();
 
 
   const serviceTypes = ['All', 'Fuel', 'Service', 'Toll', 'Insurance', 'Parking', 'Other'];
+
 
   const [selectedType, setSelectedType] = React.useState('All');
   const [timelineFilter, setTimelineFilter] = React.useState('Monthly');
@@ -246,6 +249,44 @@ const ExpenseFeed = () => {
     fetchExpenses();
   }, [vehicleId, fetchExpenses]);
 
+  React.useEffect(() => {
+    const params = route.params as { expense?: any } | undefined;
+    
+    // Only process if we have an expense object, a primary vehicleId, and it hasn't been processed yet.
+    if (params?.expense && vehicleId && !params.expense._processed) {
+
+      const saveAndRefresh = async (expenseData: any) => {
+        try {
+          // 1. Add primary vehicle ID if missing
+          const payload = {
+            ...expenseData,
+            vehicleId: expenseData.vehicleId || vehicleId,
+            source: expenseData.source || 'NOTIFICATION', // Good to have a source
+          };
+
+          // 2. Save the new expense
+          await api.post('/v1/expenses', payload);
+
+          // 3. Mark params as processed to avoid re-saving on re-renders
+          // By creating a new object for the params, we ensure a re-render
+          // that the useEffect will catch, but the `_processed` flag will stop it.
+          navigation.setParams({ 
+            expense: { ...expenseData, _processed: true } 
+          });
+
+          // 4. Refresh the expense list to show the new item
+          fetchExpenses();
+
+        } catch (error) {
+          console.error('Failed to auto-save expense from params:', error);
+          // Optionally, alert the user
+        }
+      };
+
+      saveAndRefresh(params.expense);
+    }
+  }, [route.params, vehicleId, navigation, fetchExpenses]);
+
   useFocusEffect(
     React.useCallback(() => {
       // Check if refresh was requested and apply appropriate delay
@@ -338,13 +379,35 @@ const ExpenseFeed = () => {
       if (selectedFromDate) return sameDay(d, selectedFromDate);
       return d >= filterStart;
     });
-    const total = filtered.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
-    console.log("Calculated totalFiltered:", total, "for timelineFilter:", timelineFilter, "selectedFromDate:", selectedFromDate, "selectedToDate:", selectedToDate);
+
+    // Keep totals in sync with the same category filter used for the list chips.
+    const filteredByType =
+      selectedType === 'All'
+        ? filtered
+        : filtered.filter((e: any) => {
+            const category = String(e.category || 'OTHER').toUpperCase();
+            const typeLabel = category.charAt(0) + category.slice(1).toLowerCase();
+            return typeLabel.toUpperCase() === selectedType.toUpperCase();
+          });
+
+    const total = filteredByType.reduce((sum: number, e: any) => sum + toNumber(e.amount), 0);
+    console.log(
+      "Calculated totalFiltered:",
+      total,
+      "for timelineFilter:",
+      timelineFilter,
+      "selectedType:",
+      selectedType,
+      "selectedFromDate:",
+      selectedFromDate,
+      "selectedToDate:",
+      selectedToDate
+    );
     setTotalFiltered(total);
 
     // Category breakdown
     const catMap: Record<string, number> = {};
-    filtered.forEach((e: any) => {
+    filteredByType.forEach((e: any) => {
       const cat = e.category || 'OTHER';
       catMap[cat] = (catMap[cat] || 0) + toNumber(e.amount);
     });
@@ -360,7 +423,7 @@ const ExpenseFeed = () => {
       .sort((a, b) => b.amount - a.amount);
 
     setCategoryBreakdown(breakdown);
-  }, [rawExpenses, timelineFilter, selectedFromDate, selectedToDate]);
+  }, [rawExpenses, timelineFilter, selectedFromDate, selectedToDate, selectedType]);
 
   const dateFilteredExpenses = React.useMemo(() => {
     if (!selectedFromDate && !selectedToDate) return expensesList;

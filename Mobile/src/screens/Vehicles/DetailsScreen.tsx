@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
     StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid
 } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window');
 
@@ -14,7 +16,7 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown
+    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
@@ -44,7 +46,7 @@ type DetailsScreenProps = {
 };
 
 type MainTab = 'Alerts' | 'Details';
-type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Specs' | 'Dates' | 'More';
+type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'More';
 
 export const DetailsScreen = ({
     vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
@@ -118,7 +120,7 @@ export const DetailsScreen = ({
 
     // rtoDetails comes from the Gemini lookup, merged into the vehicle object
     // by AddVehicleScreen → onDone → GupioGarageApp state.
-    const rto = activeVehicle.rtoDetails;
+    const rto = activeVehicle.rtoDetails || activeVehicle;
 
     // Hero image source
     const heroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
@@ -193,11 +195,34 @@ export const DetailsScreen = ({
     // ── Document Actions ──
     const createPDFFromImage = async (doc: any) => {
         try {
+            let base64Data = '';
+            
+            // Check if it's a remote URL or local path
+            if (doc.imageUri.startsWith('http')) {
+                const response = await fetch(doc.imageUri);
+                const blob = await response.blob();
+                base64Data = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+            } else {
+                // For local files, use RNFS
+                const path = doc.imageUri.replace('file://', '');
+                const content = await RNFS.readFile(path, 'base64');
+                const extension = path.split('.').pop()?.toLowerCase() || 'jpg';
+                base64Data = `data:image/${extension === 'png' ? 'png' : 'jpeg'};base64,${content}`;
+            }
+
             const options = {
                 html: `
           <html>
-            <body style="margin:0;padding:0;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
-              <img src="${doc.imageUri}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            <body style="margin:0;padding:20;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
+              <div style="width:100%; text-align:center;">
+                <h1 style="font-family: Arial; font-size: 24px;">${doc.type.toUpperCase()}</h1>
+                <p style="font-family: Arial; font-size: 16px; color: #666;">Vehicle: ${activeVehicle?.registrationNumber}</p>
+                <img src="${base64Data}" style="max-width:90%; max-height:800px; object-fit:contain; border: 1px solid #ccc; padding: 10px;" />
+              </div>
             </body>
           </html>
         `,
@@ -208,7 +233,7 @@ export const DetailsScreen = ({
             return file.filePath;
         } catch (error) {
             console.error('PDF Generation Error:', error);
-            throw new Error('Failed to generate PDF');
+            throw new Error('Failed to generate PDF. Make sure the document is fully loaded.');
         }
     };
 
@@ -217,19 +242,46 @@ export const DetailsScreen = ({
         try {
             setIsProcessing(true);
             const pdfPath = await createPDFFromImage(doc);
+            
+            // Generate a clean temp path in cache with .pdf extension
+            const cleanFileName = `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+            const tempPath = `${RNFS.CachesDirectoryPath}/${cleanFileName}`;
+            
+            // Copy to the clean path to ensure extension and accessibility
+            await RNFS.copyFile(pdfPath, tempPath);
+            
+            const shareOptions: any = {
+                title: `Share ${doc.type}`,
+                failOnCancel: false,
+                type: 'application/pdf',
+                filename: cleanFileName,
+            };
+
+            if (Platform.OS === 'android') {
+                // Ensure file:// prefix and use the raw path
+                shareOptions.url = `file://${tempPath}`;
+            } else {
+                // Use base64 for iOS
+                const base64Data = await RNFS.readFile(tempPath, 'base64');
+                shareOptions.url = `data:application/pdf;base64,${base64Data}`;
+            }
+
+            // Small delay to ensure file system has flushed
+            await new Promise(r => setTimeout(r, 600));
             setIsProcessing(false);
 
-            await RNShareCustom.open({
-                url: `file://${pdfPath}`,
-                type: 'application/pdf',
-                title: `Share ${doc.type}`,
-                message: `Sending ${doc.type} for vehicle ${activeVehicle?.registrationNumber}`,
-            });
+            await RNShareCustom.open(shareOptions);
+            
+            // Clean up temp file
+            setTimeout(() => RNFS.unlink(tempPath).catch(() => {}), 5000);
         } catch (error: any) {
             setIsProcessing(false);
-            if (error?.message !== 'User did not share') {
-                Alert.alert('Error', 'Could not share document as PDF');
+            const msg = error?.message || '';
+            if (msg.includes('User did not share') || msg.toLowerCase().includes('cancel') || msg.includes('dismissed')) {
+                return;
             }
+            Alert.alert('Error', 'Could not share document as PDF. Please try again.');
+            console.error('Share Error:', error);
         }
     };
 
@@ -346,10 +398,10 @@ export const DetailsScreen = ({
                 <View style={styles.gloveboxIconBox}>
                     {doc ? (
                         <Image 
-                            key={`preview_${doc.id}_${doc.imageUri}`}
                             source={{ uri: doc.imageUri }} 
                             style={styles.gloveboxPreview} 
                             resizeMode="cover" 
+                            blurRadius={25}
                         />
                     ) : (
                         Icon && <Icon size={20} color="#666" />
@@ -361,7 +413,7 @@ export const DetailsScreen = ({
     };
 
     return (
-        <View style={styles.screen}>
+        <SafeAreaView style={styles.screen} edges={['top']}>
             {/* ── Header ── */}
             <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
                 <BackButton onPress={onBack} />
@@ -378,7 +430,7 @@ export const DetailsScreen = ({
                     ))}
                 </View>
 
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flexDirection: 'row', gap: wp('2%') }}>
                     {currentCustomerId && activeVehicle.customerId === currentCustomerId && (
                         <TouchableOpacity onPress={openShare} style={styles.topRoundBtn}>
                             <User size={18} color={COLORS.primary} />
@@ -390,7 +442,7 @@ export const DetailsScreen = ({
                 </View>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingBottom: hp('12%') }} showsVerticalScrollIndicator={false}>
                 {/* ── Hero section as per mockup ── */}
                 <View style={styles.heroSection}>
                     <Image
@@ -475,6 +527,7 @@ export const DetailsScreen = ({
                                     icon={FileText}
                                     label="challans"
                                     value="CHECK NOW"
+                                    onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
                                 <StatusCard
                                     icon={ShieldCheck}
@@ -483,9 +536,11 @@ export const DetailsScreen = ({
                                 />
                             </View>
 
-                            {/* ── Your Glovebox ── */}
-                            <View style={{ marginTop: 32 }}>
-                                <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
+
+
+                            {/* ── Your GloverBox ── */}
+                            <View style={{ marginTop: hp('4%') }}>
+                                <Text style={styles.sectionHeading}>YOUR GLOVERBOX</Text>
                                 <View style={styles.gloveboxGrid}>
                                     <GloveboxImageItem label="reg certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
                                     <GloveboxImageItem label="driver's licence" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
@@ -504,25 +559,23 @@ export const DetailsScreen = ({
                     ) : (
                         /* ── Details Tab (Sub-Tab Navigation) ── */
                         <View>
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.subTabNav}
-                            >
-                                {(['Health', 'Owner', 'Vehicle', 'Specs', 'Dates', 'More'] as SubTab[]).map(st => (
-                                    <TouchableOpacity
-                                        key={st}
-                                        onPress={() => setSubTab(st)}
-                                        style={[styles.subTabItem, subTab === st && styles.subTabItemActive]}
-                                    >
-                                        <Text style={[styles.subTabText, subTab === st && styles.subTabTextActive]}>
-                                            {st}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
+                            <View style={{ alignItems: 'center' }}>
+                                <View style={styles.subTabNav}>
+                                     {(['Health', 'Owner', 'Vehicle', 'More'] as SubTab[]).map(st => (
+                                        <TouchableOpacity
+                                            key={st}
+                                            onPress={() => setSubTab(st)}
+                                            style={[styles.subTabItem, subTab === st && styles.subTabItemActive]}
+                                        >
+                                            <Text style={[styles.subTabText, subTab === st && styles.subTabTextActive]}>
+                                                {st}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
 
-                            <View style={{ gap: 16 }}>
+                            <View style={{ gap: hp('2%') }}>
                                 {subTab === 'Health' && (
                                     <>
                                         <View style={styles.healthScoreCard}>
@@ -607,44 +660,29 @@ export const DetailsScreen = ({
                                         )}
                                     </>
                                 )}
+
                                 {subTab === 'Owner' && (
                                     <>
                                         <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Unknown'} />
-                                        <InfoCard icon={Building} label="RTO Office" value={rto?.rto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
+                                        <InfoCard icon={Building} label="RTO" value={rto?.rto || 'N/A'} />
                                     </>
                                 )}
                                 {subTab === 'Vehicle' && (
                                     <>
-                                        <InfoCard icon={Tag} label="Brand" value={activeVehicle.make || 'Unknown'} />
-                                        <InfoCard icon={Star} label="Model" value={activeVehicle.model || 'Unknown'} />
-                                        <InfoCard icon={Type} label="Variant" value={activeVehicle.variant || 'N/A'} />
-                                        <InfoCard icon={Droplets} label="Fuel Type" value={activeVehicle.fuelType || 'Petrol'} />
-                                        <InfoCard icon={Gauge} label="Fuel Norms" value={rto?.fuelNorms || 'BS VI'} />
-                                    </>
-                                )}
-                                {subTab === 'Specs' && (
-                                    <>
-                                        <InfoCard icon={Cpu} label="Engine No." value={rto?.engineNo || 'N/A'} />
-                                        <InfoCard icon={Activity} label="Chassis No." value={activeVehicle.chassisNumber || 'N/A'} />
-                                        <InfoCard icon={Weight} label="Unloaded Weight" value={rto?.unloadedWeight || 'N/A'} />
-                                        <InfoCard icon={Type} label="Transmission" value={rto?.transmission || 'N/A'} />
-                                    </>
-                                )}
-                                {subTab === 'Dates' && (
-                                    <>
-                                        <InfoCard icon={Calendar} label="Reg. Date" value={rto?.regDate || 'N/A'} />
-                                        <InfoCard icon={Clock} label="Reg. Year" value={activeVehicle.year?.toString() || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Pollution Upto" value={rto?.pollutionUpto || 'N/A'} />
-                                        <InfoCard icon={Calendar} label="Fitness Upto" value={rto?.fitnessUpto || 'N/A'} />
+                                        <InfoCard icon={Tag} label="Make" value={rto?.make || activeVehicle.make || 'Unknown'} />
+                                        <InfoCard icon={Star} label="Model" value={rto?.model || activeVehicle.model || 'Unknown'} />
+                                        <InfoCard icon={Type} label="Class" value={rto?.vehicleClass || activeVehicle.vehicleType || 'Unknown'} />
+                                        <InfoCard icon={Hash} label="Engine Number" value={rto?.engineNumber || rto?.engineNo || 'N/A'} />
+                                        <InfoCard icon={Hash} label="Chassis Number" value={rto?.chassisNumber || rto?.chassisNo || activeVehicle.chassisNumber || 'N/A'} />
+                                        <InfoCard icon={Droplets} label="Fuel Type" value={rto?.fuelType || activeVehicle.fuelType || 'Petrol'} />
                                     </>
                                 )}
                                 {subTab === 'More' && (
                                     <>
-                                        <InfoCard icon={Gauge} label="Mileage" value={rto?.mileage || 'N/A'} />
-                                        <InfoCard icon={Tag} label="Price Range" value={rto?.priceRange || 'N/A'} />
-                                        <InfoCard icon={User} label="Registration Authority" value={rto?.rto || 'N/A'} />
+                                        <InfoCard icon={Tag} label="Registration Number" value={rto?.registrationNumber || activeVehicle.registrationNumber || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
+                                        <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
+                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
                                     </>
                                 )}
                             </View>
@@ -688,7 +726,7 @@ export const DetailsScreen = ({
                                 <Trash2 size={22} color="#FF453A" />
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.viewerHeaderIcon, { marginLeft: 16 }]}
+                                style={[styles.viewerHeaderIcon, { marginLeft: wp('4%') }]}
                                 onPress={() => setShowViewerModal(false)}
                             >
                                 <X size={24} color="#FFF" />
@@ -700,6 +738,9 @@ export const DetailsScreen = ({
                         contentContainerStyle={styles.viewerContent}
                         centerContent={true}
                         showsVerticalScrollIndicator={false}
+                        maximumZoomScale={5}
+                        minimumZoomScale={1}
+                        bouncesZoom={true}
                     >
                         {viewingDoc?.imageUri ? (
                             <Image
@@ -733,14 +774,14 @@ export const DetailsScreen = ({
                     <ActivityIndicator size="large" color={COLORS.primary} />
                 </View>
             )}
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: '#000000' },
-    header: { paddingHorizontal: 20, paddingTop: 48, paddingBottom: 20, minHeight: 80 },
-    topRoundBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
+    header: { paddingHorizontal: wp('5%'), paddingVertical: hp('1%'), minHeight: hp('8%') },
+    topRoundBtn: { width: wp('11%'), height: wp('11%'), borderRadius: wp('5.5%'), backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
     tabPillContainer: {
         flexDirection: 'row',
         backgroundColor: COLORS.surface,
@@ -748,37 +789,37 @@ const styles = StyleSheet.create({
         padding: 4,
         borderWidth: 1,
         borderColor: COLORS.border,
-        width: 180,
-        marginHorizontal: 16
+        width: wp('45%'),
+        marginHorizontal: wp('4%')
     },
-    tabPill: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 30 },
+    tabPill: { flex: 1, paddingVertical: hp('1%'), alignItems: 'center', borderRadius: 30 },
     tabPillActive: { backgroundColor: COLORS.primary },
-    tabPillText: { fontSize: 12, fontFamily: 'Outfit-Black', color: '#888' },
+    tabPillText: { fontSize: hp('1.5%'), fontFamily: 'Outfit-Black', color: '#888' },
 
     // Hero Section
-    heroSection: { alignItems: 'center', paddingBottom: 16 },
-    heroImage: { width: width * 0.8, height: 160, marginBottom: -10 },
-    brandName: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase' },
-    modelName: { fontSize: 32, fontWeight: '900', color: '#FFF', marginTop: -5 },
-    heroPlateBox: { marginTop: 12 },
+    heroSection: { alignItems: 'center', paddingBottom: hp('2%') },
+    heroImage: { width: wp('80%'), height: hp('20%'), marginBottom: hp('-1%') },
+    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase' },
+    modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
+    heroPlateBox: { marginTop: hp('1.5%') },
 
     // Switcher Row
-    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 40, paddingHorizontal: 24 },
-    addCircleBtn: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)' },
-    miniCircleWrap: { alignItems: 'center', gap: 4 },
-    miniCircleInner: { width: 64, height: 64, borderRadius: 32, padding: 4, borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
+    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%') },
+    addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)' },
+    miniCircleWrap: { alignItems: 'center', gap: hp('0.5%') },
+    miniCircleInner: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), padding: wp('1%'), borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
     miniCircleActive: { transform: [{ scale: 1.1 }] },
-    miniModelOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 32 },
-    miniModelText: { color: '#FFF', fontSize: 10, fontFamily: 'Outfit-Black', textAlign: 'center', paddingHorizontal: 4 },
-    activeMiniLabel: { fontSize: 8, fontFamily: 'Outfit-Bold', color: '#888', position: 'absolute', bottom: -18, textAlign: 'center', width: 80 },
+    miniModelOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: wp('8%') },
+    miniModelText: { color: '#FFF', fontSize: hp('1.2%'), fontFamily: 'Outfit-Black', textAlign: 'center', paddingHorizontal: wp('1%') },
+    activeMiniLabel: { fontSize: hp('1%'), fontFamily: 'Outfit-Bold', color: '#888', position: 'absolute', bottom: hp('-2.5%'), textAlign: 'center', width: wp('20%') },
     miniPrimaryIndicator: {
         position: 'absolute',
-        top: 4,
-        right: 4,
+        top: wp('1%'),
+        right: wp('1%'),
         backgroundColor: COLORS.primary,
-        width: 18,
-        height: 18,
-        borderRadius: 9,
+        width: wp('4.5%'),
+        height: wp('4.5%'),
+        borderRadius: wp('2.25%'),
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
@@ -788,62 +829,60 @@ const styles = StyleSheet.create({
     primaryBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
+        gap: wp('1.5%'),
         backgroundColor: COLORS.primary,
-        paddingHorizontal: 16,
-        paddingVertical: 6,
+        paddingHorizontal: wp('4%'),
+        paddingVertical: hp('0.8%'),
         borderRadius: 20,
-        marginTop: 16
+        marginTop: hp('2%')
     },
     primaryBadgeText: {
         color: '#000',
-        fontSize: 11,
+        fontSize: hp('1.4%'),
         fontFamily: 'Outfit-Black',
         letterSpacing: 0.5
     },
     setPrimaryBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
+        gap: wp('1.5%'),
         borderWidth: 1,
         borderColor: COLORS.primary,
-        paddingHorizontal: 16,
-        paddingVertical: 6,
+        paddingHorizontal: wp('4%'),
+        paddingVertical: hp('0.8%'),
         borderRadius: 20,
-        marginTop: 16
+        marginTop: hp('2%')
     },
     setPrimaryBtnText: {
         color: COLORS.primary,
-        fontSize: 11,
+        fontSize: hp('1.4%'),
         fontFamily: 'Outfit-Bold'
     },
 
-    sectionPad: { paddingHorizontal: 24, paddingTop: 20 },
-    sectionHeading: { fontSize: 10, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: 16 },
+    sectionPad: { paddingHorizontal: wp('6%'), paddingTop: hp('2.5%') },
+    sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: hp('2%') },
 
     // Status Boxes
-    statusGrid: { flexDirection: 'row', gap: 12 },
+    statusGrid: { flexDirection: 'row', gap: wp('3%') },
     statusBox: {
-        flex: 1, backgroundColor: '#0A0A0A', padding: 24, borderRadius: 24,
-        flexDirection: 'column', alignItems: 'center', gap: 16,
+        flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: 24,
+        flexDirection: 'column', alignItems: 'center', gap: hp('2%'),
         borderWidth: 1, borderColor: '#1F1F1F'
     },
 
-
-
     // Glovebox
-    gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-    gloveboxItem: { width: (width - 84) / 4, alignItems: 'center', gap: 8 },
+    gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: wp('3%') },
+    gloveboxItem: { width: (wp('100%') - wp('21%')) / 4, alignItems: 'center', gap: hp('1%') },
     gloveboxIconBox: { width: '100%', aspectRatio: 1, backgroundColor: '#1A1A1A', borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
-    gloveboxLabel: { color: '#AAA', fontSize: 10, fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit' },
+    gloveboxLabel: { color: '#AAA', fontSize: hp('1.3%'), fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit' },
     gloveboxPreview: { width: '100%', height: '100%', borderRadius: 16 },
-    viewAllDocsBtn: { marginTop: 24, borderWidth: 1, borderColor: '#333', borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: '#1A1A1A' },
-    viewAllDocsText: { color: COLORS.primary, fontSize: 13, fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: 1.5 },
+    viewAllDocsBtn: { marginTop: hp('3%'), borderWidth: 1, borderColor: '#333', borderRadius: 12, paddingVertical: hp('1.8%'), alignItems: 'center', backgroundColor: '#1A1A1A' },
+    viewAllDocsText: { color: COLORS.primary, fontSize: hp('1.6%'), fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: 1.5 },
 
     // Health Score Styles
     healthScoreCard: {
         backgroundColor: '#111',
-        padding: 24,
+        padding: wp('6%'),
         borderRadius: 24,
         alignItems: 'center',
         borderWidth: 1,
@@ -851,67 +890,67 @@ const styles = StyleSheet.create({
     },
     healthScoreValue: {
         color: COLORS.primary,
-        fontSize: 48,
+        fontSize: hp('6%'),
         fontFamily: 'Outfit-Black'
     },
     healthScoreLabel: {
         color: '#8E8E93',
-        fontSize: 14,
+        fontSize: hp('1.8%'),
         fontFamily: 'Outfit-Bold',
-        marginTop: -5
+        marginTop: hp('-0.6%')
     },
     healthBasedOnCard: {
         backgroundColor: '#0A0A0A',
-        padding: 20,
+        padding: wp('5%'),
         borderRadius: 20,
         borderWidth: 1,
         borderColor: '#1A1A1A'
     },
     healthBasedOnTitle: {
         color: '#FFF',
-        fontSize: 14,
+        fontSize: hp('1.8%'),
         fontFamily: 'Outfit-Bold',
-        marginBottom: 12
+        marginBottom: hp('1.5%')
     },
     healthBasedOnItem: {
         color: '#8E8E93',
-        fontSize: 12,
+        fontSize: hp('1.5%'),
         fontFamily: 'Outfit-Medium',
-        marginBottom: 6
+        marginBottom: hp('0.8%')
     },
     healthComponentsRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12
+        gap: wp('3%')
     },
     healthComponentBox: {
         flex: 1,
-        minWidth: '30%',
+        minWidth: wp('28%'),
         backgroundColor: '#111',
-        padding: 16,
+        padding: wp('4%'),
         borderRadius: 16,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#222'
     },
     healthComponentLabel: {
-        color: '#8E8E93',
-        fontSize: 10,
+        color: '#8E8E8E',
+        fontSize: hp('1.2%'),
         fontFamily: 'Outfit-Bold',
         textTransform: 'uppercase',
-        marginBottom: 4
+        marginBottom: hp('0.5%')
     },
     healthComponentValue: {
         color: '#FFF',
-        fontSize: 16,
+        fontSize: hp('2.1%'),
         fontFamily: 'Outfit-Black'
     },
     whyScoreRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: wp('3%'),
         backgroundColor: '#111',
-        padding: 16,
+        padding: wp('4%'),
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#222'
@@ -919,62 +958,69 @@ const styles = StyleSheet.create({
     whyScoreLabel: {
         flex: 1,
         color: '#FFF',
-        fontSize: 14,
+        fontSize: hp('1.8%'),
         fontFamily: 'Outfit-Medium'
     },
     whyScoreBody: {
         backgroundColor: '#0A0A0A',
-        padding: 16,
+        padding: wp('4%'),
         borderRadius: 16,
-        marginTop: -8,
+        marginTop: hp('-1%'),
         borderWidth: 1,
         borderColor: '#1A1A1A',
-        gap: 8
+        gap: hp('1%')
     },
     whyScoreText: {
         color: '#FFF',
-        fontSize: 13,
+        fontSize: hp('1.6%'),
         fontFamily: 'Outfit-Medium',
-        lineHeight: 20
+        lineHeight: hp('2.5%')
     },
     explanationItem: {
         color: '#8E8E93',
-        fontSize: 12,
+        fontSize: hp('1.5%'),
         fontFamily: 'Outfit-Regular',
-        lineHeight: 18
+        lineHeight: hp('2.3%')
     },
     nextActionsBody: {
-        gap: 12,
-        marginTop: -8
+        gap: hp('1.5%'),
+        marginTop: hp('-1%')
     },
     nextActionItem: {
         backgroundColor: '#0A0A0A',
-        padding: 16,
+        padding: wp('4%'),
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#1A1A1A'
     },
     nextActionText: {
         color: '#FFF',
-        fontSize: 13,
+        fontSize: hp('1.6%'),
         fontFamily: 'Outfit-Medium'
     },
     healthLoadingHint: {
         color: '#666',
-        fontSize: 12,
+        fontSize: hp('1.5%'),
         fontFamily: 'Outfit-Medium',
         textAlign: 'center',
-        marginTop: 20
+        marginTop: hp('2.5%')
     },
 
     // Details Sub-Tabs
-    subTabNav: { paddingBottom: 16, gap: 12 },
-    subTabItem: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
+    subTabNav: { flexDirection: 'row', paddingBottom: hp('2.5%'), gap: wp('2.4%'), justifyContent: 'center' },
+    subTabItem: { paddingHorizontal: wp('3.5%'), paddingVertical: hp('1%'), borderRadius: 20, backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
     subTabItemActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    subTabText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#888' },
+    subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#888' },
     subTabTextActive: { color: '#000' },
 
-    detailsSpecsContainer: { gap: 16, marginTop: 10 },
+    // RC Details section
+    rcInfoSection: { marginTop: hp('3%'), paddingHorizontal: wp('1%') },
+    rcGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp('3%'), marginTop: hp('2%') },
+    rcItem: { width: wp('45.5%'), flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', padding: wp('3%'), borderRadius: 12, borderWidth: 1, borderColor: '#222' },
+    rcItemLabel: { fontSize: hp('1.2%'), color: '#666', fontFamily: 'Outfit-Medium' },
+    rcItemValue: { fontSize: hp('1.7%'), color: '#FFF', fontFamily: 'Outfit-Bold', marginTop: 1 },
+
+    detailsSpecsContainer: { gap: hp('2%'), marginTop: hp('1.2%') },
 
     // Viewer Styles (Ported)
     viewerContainer: { flex: 1, backgroundColor: '#000' },
@@ -982,26 +1028,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 16,
+        paddingHorizontal: wp('6%'),
+        paddingVertical: hp('2%'),
         borderBottomWidth: 1,
         borderBottomColor: '#1A1A1A'
     },
     viewerHeaderLeft: { flex: 1 },
     viewerHeaderRight: { flexDirection: 'row', alignItems: 'center' },
-    viewerTitle: { color: '#FFF', fontSize: 20, fontFamily: 'Outfit-Bold', textTransform: 'lowercase' },
-    viewerSubtitle: { color: '#8E8E93', fontSize: 12, fontFamily: 'Outfit-Medium', marginTop: 2, textTransform: 'uppercase' },
-    viewerHeaderIcon: { padding: 4 },
-    viewerContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+    viewerTitle: { color: '#FFF', fontSize: hp('2.5%'), fontFamily: 'Outfit-Bold', textTransform: 'lowercase' },
+    viewerSubtitle: { color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', marginTop: 2, textTransform: 'uppercase' },
+    viewerHeaderIcon: { padding: wp('1%') },
+    viewerContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: wp('6%') },
     fullImage: { width: '100%', height: '100%' },
     viewerPlaceholder: { alignItems: 'center' },
-    placeholderText: { color: '#444', marginTop: 16, fontFamily: 'Outfit-Medium' },
+    placeholderText: { color: '#444', marginTop: hp('2%'), fontFamily: 'Outfit-Medium' },
     viewerFooter: {
         flexDirection: 'row',
-        gap: 12,
-        paddingHorizontal: 24,
-        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-        paddingTop: 16,
+        gap: wp('3%'),
+        paddingHorizontal: wp('6%'),
+        paddingBottom: Platform.OS === 'ios' ? hp('5%') : hp('3%'),
+        paddingTop: hp('2%'),
         borderTopWidth: 1,
         borderTopColor: '#1A1A1A',
         backgroundColor: '#000'
@@ -1011,9 +1057,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
+        gap: wp('2.5%'),
         backgroundColor: '#1A1A1A',
-        paddingVertical: 16,
+        paddingVertical: hp('2%'),
         borderRadius: 14,
         borderWidth: 1,
         borderColor: '#333'
@@ -1022,7 +1068,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
         borderColor: '#333'
     },
-    viewerActionText: { color: '#FFF', fontSize: 13, fontFamily: 'Outfit-Bold' },
+    viewerActionText: { color: '#FFF', fontSize: hp('1.6%'), fontFamily: 'Outfit-Bold' },
     loaderOverlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.7)',

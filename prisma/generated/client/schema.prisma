@@ -47,9 +47,9 @@ model Customer {
   email             String?
   fullName          String?
   profilePic        String?
-  googleId          String?               @unique
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
+  googleId          String?               @unique
   chats             ChatSession[]
   devices           CustomerDevice[]
   documents         CustomerDocument[]
@@ -57,12 +57,12 @@ model Customer {
   digilocker        DigiLockerConnection?
   emergencyContacts EmergencyContact[]
   expenses          Expense[]
+  driverExpenses    Expense[]             @relation("DriverExpenses")
   budgets           ExpenseBudget[]
   notifications     InAppNotification[]
   sosRequests       SOSRequest[]
-  sharedVehicles    VehicleAccess[]
   supportTickets    SupportTicket[]
-  driverExpenses    Expense[]             @relation("DriverExpenses")
+  sharedVehicles    VehicleAccess[]
 
   @@schema("customer")
 }
@@ -148,7 +148,29 @@ model CustomerVehicle {
   updatedAt          DateTime            @updatedAt
   chassisNumber      String?
   engineNumber       String?
-  imageUrl           String? // AI-generated Unsplash URL, saved at vehicle creation
+  imageUrl           String?
+  ownerName          String?
+  rto                String?
+  vehicleClass       String?
+  fuelNorms          String?
+  transmission       String?
+  priceRange         String?
+  rating             String?
+  rcStatus           String?
+  unloadedWeight     String?
+  fitnessUpto        String?
+  insuranceUpto      String?
+  pollutionUpto      String?
+  mileage            String?
+  brand              String?
+  color              String?
+  seatingCapacity    String?
+  cylinderCount      String?
+  cubicCapacity      String?
+  grossWeight        String?
+  bodyType           String?
+  ownerAddress       String?
+  permanentAddress   String?
   challans           Challan[]
   documents          CustomerDocument[]
   customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -186,6 +208,7 @@ model Challan {
   violationType String
   location      String?
   source        String
+  metadata      Json?
   lastCheckedAt DateTime        @default(now())
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -248,10 +271,10 @@ model ChatSession {
   id         String        @id @default(cuid())
   customerId String
   title      String?
-  summary    String? // AI-generated summary of older messages
   isActive   Boolean       @default(true)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
+  summary    String?
   messages   ChatMessage[]
   customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
@@ -273,12 +296,13 @@ model ChatMessage {
 }
 
 model DocumentEmbedding {
-  id         String   @id @default(cuid())
+  id         String                 @id @default(cuid())
   customerId String
   entityId   String
   entityType String
   content    String
-  createdAt  DateTime @default(now())
+  createdAt  DateTime               @default(now())
+  vector     Unsupported("vector")?
 
   @@index([customerId])
   @@index([entityId])
@@ -296,7 +320,7 @@ model ChatAnalytics {
   hadToolCall    Boolean  @default(false)
   hadImage       Boolean  @default(false)
   wasStreaming   Boolean  @default(false)
-  feedback       Int? // -1 = thumbs down, 1 = thumbs up
+  feedback       Int?
   createdAt      DateTime @default(now())
 
   @@index([customerId])
@@ -309,18 +333,12 @@ model Expense {
   id           String           @id @default(cuid())
   customerId   String
   vehicleId    String?
-  driverId     String?
   amount       Float
   currency     String           @default("INR")
   category     ExpenseCategory
   date         DateTime         @default(now())
   merchantName String?
   location     String?
-  placeId      String?
-  placeName    String?
-  placeAddress String?
-  placeLat     Float?
-  placeLng     Float?
   notes        String?
   source       ExpenseSource    @default(MANUAL)
   receiptUrl   String?
@@ -329,9 +347,15 @@ model Expense {
   isAutomated  Boolean          @default(false)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+  driverId     String?
+  placeAddress String?
+  placeId      String?
+  placeLat     Float?
+  placeLng     Float?
+  placeName    String?
   customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])
   driver       Customer?        @relation("DriverExpenses", fields: [driverId], references: [id])
+  vehicle      CustomerVehicle? @relation(fields: [vehicleId], references: [id])
 
   @@index([customerId])
   @@index([vehicleId])
@@ -373,8 +397,8 @@ model FuelPriceCache {
 
 model DiscoveryContent {
   id        String   @id @default(cuid())
-  type      String // 'NEWS' or 'VIDEO'
-  content   Json // Stored list of news/videos
+  type      String
+  content   Json
   date      DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -447,13 +471,13 @@ model PartReplacementInterval {
 model TelematicsDevice {
   id          String          @id @default(cuid())
   vehicleId   String          @unique
-  instanceId  String          @unique // Damoov Instance ID
-  deviceToken String? // Damoov Device Token
-  platform    String? // iOS/Android
+  instanceId  String          @unique
+  deviceToken String?
+  platform    String?
   isActive    Boolean         @default(true)
-  lastSyncAt  DateTime?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  lastSyncAt  DateTime?
   vehicle     CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@schema("customer")
@@ -526,6 +550,7 @@ model EmergencyContact {
   priority    Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  email       String?
   customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
@@ -553,8 +578,8 @@ model SupportTicket {
 model TicketMessage {
   id         String        @id @default(cuid())
   ticketId   String
-  senderId   String // customerId or supportAgentId
-  senderRole String // 'CUSTOMER' or 'AGENT'
+  senderId   String
+  senderRole String
   content    String
   createdAt  DateTime      @default(now())
   ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
@@ -574,6 +599,938 @@ model FAQ {
   updatedAt DateTime @updatedAt
 
   @@schema("customer")
+}
+
+model BankAccountDetails {
+  id                    String   @id
+  bankAccountNumber     String
+  ifscCode              String
+  bankAccountHolderName String
+  bankDocuments         String
+  documentId            String   @unique
+  Document              Document @relation(fields: [documentId], references: [id])
+
+  @@schema("public")
+}
+
+model Client {
+  id                         String                       @id
+  clientType                 CLIENT_TYPE
+  clientName                 String
+  clientAddress              String
+  clientEmail                String                       @unique
+  contactNumber              String                       @unique
+  city                       String
+  state                      String
+  pincode                    String
+  admin1Name                 String
+  admin1Email                String
+  admin1Phone                String
+  admin2Name                 String
+  admin2Email                String
+  admin2Phone                String
+  financeName                String
+  financeEmail               String
+  financePhone               String
+  gstNumber                  String?
+  panNumber                  String
+  paymentTerms               String
+  paymentMode                PAYMENT_MODE
+  ifsc                       String
+  bankAccHolderName          String
+  accountNumber              String
+  depositAmount              Float                        @default(0)
+  depositDate                DateTime?
+  companyLogo                String?
+  documents                  Json                         @default("[]")
+  siteId                     String
+  isActive                   ClientStatus                 @default(ACTIVE)
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime
+  password                   String
+  serviceStartTime           String
+  serviceEndTime             String
+  isQrVerified               Boolean                      @default(false)
+  servicesProvided           String?
+  allottedParkingSlots       Int                          @default(0)
+  googleFormId               String?
+  googleFormUrl              String?
+  parentId                   String?
+  tenantRole                 ClientTenantRole?
+  parkingMode                String?                      @default("NORMAL")
+  dropRequestEnabled         Boolean                      @default(true)
+  Client                     Client?                      @relation("ClientToClient", fields: [parentId], references: [id], onDelete: Restrict)
+  other_Client               Client[]                     @relation("ClientToClient")
+  Site                       Site                         @relation(fields: [siteId], references: [id])
+  ClientNotification         ClientNotification[]
+  Customer                   public_Customer[]
+  Invoice                    Invoice[]
+  OperatorClientAssignment   OperatorClientAssignment[]
+  ParkingSlot                ParkingSlot[]
+  Payment                    Payment[]
+  Pickup                     Pickup[]
+  SelfParking                SelfParking[]
+  Ticket                     Ticket[]
+  User                       public_User[]
+  client_email_verifications client_email_verifications[]
+  client_password_resets     client_password_resets[]
+
+  @@index([clientEmail])
+  @@index([createdAt])
+  @@index([isActive])
+  @@index([parentId])
+  @@index([parentId, tenantRole])
+  @@index([siteId])
+  @@schema("public")
+}
+
+model ClientNotification {
+  id        String                   @id
+  clientId  String
+  type      CLIENT_NOTIFICATION_TYPE
+  title     String
+  message   String
+  metadata  Json?
+  isRead    Boolean                  @default(false)
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime
+  Client    Client                   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([type])
+  @@schema("public")
+}
+
+model ContactForm {
+  id                  String               @id
+  name                String
+  email               String
+  phone               String
+  companyName         String?
+  communicationMethod COMMUNICATION_METHOD
+  city                String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime
+
+  @@index([city])
+  @@index([communicationMethod])
+  @@index([createdAt])
+  @@index([email])
+  @@schema("public")
+}
+
+model public_Customer {
+  id              String            @id
+  fullName        String
+  email           String            @unique
+  phoneNumber     String            @unique
+  password        String
+  status          CustomerStatus    @default(ACTIVE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  clientId        String?
+  image           String?
+  isActive        Boolean           @default(true)
+  Client          Client?           @relation(fields: [clientId], references: [id])
+  CustomerRequest CustomerRequest[]
+
+  @@index([clientId])
+  @@index([email])
+  @@index([isActive])
+  @@index([phoneNumber])
+  @@index([status])
+  @@map("Customer")
+  @@schema("public")
+}
+
+model CustomerRequest {
+  id          String          @id
+  status      REQUEST_STATUS  @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime
+  customerId  String
+  notes       String?
+  requestType String
+  vehicleId   String
+  Customer    public_Customer @relation(fields: [customerId], references: [id])
+  Vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])
+
+  @@index([createdAt])
+  @@index([customerId])
+  @@index([requestType])
+  @@index([status])
+  @@index([vehicleId])
+  @@schema("public")
+}
+
+model Document {
+  id                   String              @id
+  aadharNumber         String
+  aadharFrontImage     String?
+  aadharBackImage      String?
+  voterIdNumber        String
+  voterIdImage         String
+  panCardNumber        String
+  panCardImage         String
+  drivingLicenseNumber String
+  drivingLicenseImage  String
+  localAddressProof    String
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime
+  userId               String
+  BankAccountDetails   BankAccountDetails?
+  User                 public_User         @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([userId])
+  @@schema("public")
+}
+
+model HelpSupport {
+  id        String              @id
+  subject   String
+  message   String
+  userId    String?
+  status    HELP_SUPPORT_STATUS @default(PENDING)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([subject])
+  @@index([userId])
+  @@schema("public")
+}
+
+model Invoice {
+  id            String         @id
+  invoiceNumber String         @unique
+  clientId      String
+  status        INVOICE_STATUS @default(PENDING)
+  issueDate     DateTime
+  dueDate       DateTime
+  subtotal      Float
+  taxAmount     Float
+  totalAmount   Float
+  notes         String?
+  pdfUrl        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime
+  Client        Client         @relation(fields: [clientId], references: [id])
+  InvoiceItem   InvoiceItem[]
+  Payment       Payment[]
+
+  @@index([clientId])
+  @@index([dueDate])
+  @@index([invoiceNumber])
+  @@index([issueDate])
+  @@index([status])
+  @@schema("public")
+}
+
+model InvoiceItem {
+  id          String  @id
+  invoiceId   String
+  name        String
+  description String?
+  quantity    Int
+  unitPrice   Float
+  amount      Float
+  Invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@schema("public")
+}
+
+model LeaveRequest {
+  id                                   String       @id
+  userId                               String
+  startDate                            DateTime
+  endDate                              DateTime
+  reason                               String?
+  status                               LEAVE_STATUS @default(PENDING)
+  approvedById                         String?
+  createdAt                            DateTime     @default(now())
+  updatedAt                            DateTime
+  leaveType                            LEAVE_TYPE
+  adminNote                            String?
+  User_LeaveRequest_approvedByIdToUser public_User? @relation("LeaveRequest_approvedByIdToUser", fields: [approvedById], references: [id])
+  User_LeaveRequest_userIdToUser       public_User  @relation("LeaveRequest_userIdToUser", fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([userId])
+  @@schema("public")
+}
+
+model OperatorClientAssignment {
+  id         String      @id
+  userId     String
+  clientId   String
+  assignedAt DateTime    @default(now())
+  Client     Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  User       public_User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientId])
+  @@index([clientId])
+  @@index([userId])
+  @@schema("public")
+}
+
+model ParkingSlot {
+  id        String     @id
+  clientId  String
+  status    SlotStatus @default(AVAILABLE)
+  slotLabel String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  Client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([clientId, status])
+  @@schema("public")
+}
+
+model Payment {
+  id                 String               @id
+  clientId           String
+  invoiceId          String?
+  amount             Float
+  currency           String               @default("INR")
+  status             PaymentStatus        @default(PENDING)
+  paymentType        PaymentType
+  paymentMethod      PaymentMethodType?
+  gateway            PaymentGateway
+  subscriptionId     String?
+  receiptUrl         String?
+  notes              String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  Client             Client               @relation(fields: [clientId], references: [id])
+  Invoice            Invoice?             @relation(fields: [invoiceId], references: [id])
+  PaymentAuditLog    PaymentAuditLog[]
+  PaymentTransaction PaymentTransaction[]
+  Refund             Refund[]
+
+  @@index([clientId])
+  @@index([clientId, status])
+  @@index([createdAt])
+  @@index([createdAt, status])
+  @@index([gateway])
+  @@index([invoiceId])
+  @@index([paymentMethod])
+  @@index([status])
+  @@schema("public")
+}
+
+model PaymentAuditLog {
+  id        String   @id
+  paymentId String
+  action    String
+  actorType String
+  actorId   String?
+  oldValue  Json?
+  newValue  Json?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  Payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([actorType, actorId])
+  @@index([createdAt])
+  @@index([paymentId])
+  @@schema("public")
+}
+
+model PaymentTransaction {
+  id            String             @id
+  paymentId     String
+  amount        Float
+  currency      String             @default("INR")
+  status        PaymentStatus      @default(PENDING)
+  gateway       PaymentGateway
+  gatewayTxId   String?
+  paymentMethod PaymentMethodType?
+  failureCode   String?
+  failureReason String?
+  paidAt        DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime
+  Payment       Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  RazorpayOrder RazorpayOrder?
+  Refund        Refund[]
+
+  @@index([createdAt])
+  @@index([gatewayTxId])
+  @@index([gateway])
+  @@index([paymentId])
+  @@index([status])
+  @@schema("public")
+}
+
+model Pickup {
+  id                                        String        @id
+  vehicleId                                 String
+  valetId                                   String
+  siteId                                    String?
+  clientId                                  String?
+  status                                    PICKUP_STATUS @default(PICKED_UP)
+  notes                                     String?
+  pickupFrom                                String?
+  parkAt                                    String?
+  meterPhotoUrl                             String?
+  vehiclePhotoUrl                           String?
+  vehicleVideoUrl                           String?
+  pickupTime                                DateTime      @default(now())
+  createdAt                                 DateTime      @default(now())
+  updatedAt                                 DateTime
+  dropLocation                              String?
+  dropTime                                  DateTime?
+  droppedByValetId                          String?
+  pendingDropLocation                       String?
+  pendingDropTime                           DateTime?
+  pendingDroppedByValetId                   String?
+  pendingDropNotes                          String?
+  Client                                    Client?       @relation(fields: [clientId], references: [id])
+  User_Pickup_droppedByValetIdToUser        public_User?  @relation("Pickup_droppedByValetIdToUser", fields: [droppedByValetId], references: [id])
+  User_Pickup_pendingDroppedByValetIdToUser public_User?  @relation("Pickup_pendingDroppedByValetIdToUser", fields: [pendingDroppedByValetId], references: [id])
+  Site                                      Site?         @relation(fields: [siteId], references: [id])
+  User_Pickup_valetIdToUser                 public_User   @relation("Pickup_valetIdToUser", fields: [valetId], references: [id])
+  Vehicle                                   Vehicle       @relation(fields: [vehicleId], references: [id])
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([dropTime])
+  @@index([droppedByValetId])
+  @@index([status, createdAt])
+  @@index([status])
+  @@index([updatedAt])
+  @@index([valetId])
+  @@index([valetId, status])
+  @@index([valetId, vehicleId])
+  @@index([vehicleId])
+  @@schema("public")
+}
+
+model RazorpayOrder {
+  id                   String             @id
+  paymentTransactionId String             @unique
+  razorpayOrderId      String             @unique
+  razorpayPaymentId    String?            @unique
+  razorpaySignature    String?
+  amountPaise          Int
+  currency             String             @default("INR")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime
+  PaymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+model RazorpayWebhookLog {
+  id          String    @id
+  event       String
+  payload     Json
+  signature   String?
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([event])
+  @@index([processed])
+  @@schema("public")
+}
+
+model Refund {
+  id                   String             @id
+  paymentId            String
+  paymentTransactionId String
+  amount               Float
+  currency             String             @default("INR")
+  status               RefundStatus       @default(PENDING)
+  gatewayRefundId      String?
+  reason               String?
+  processedAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime
+  Payment              Payment            @relation(fields: [paymentId], references: [id])
+  PaymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id])
+
+  @@index([createdAt])
+  @@index([paymentId])
+  @@index([paymentTransactionId])
+  @@index([status])
+  @@schema("public")
+}
+
+model SelfParking {
+  id                  String       @id
+  vehicleNumber       String
+  vehiclePhoto        String
+  entryTime           DateTime     @default(now())
+  exitTime            DateTime?
+  valetId             String?
+  siteId              String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime
+  clientId            String?
+  contactNumber       String?
+  isRegistered        Boolean      @default(false)
+  ownerName           String?
+  vehicleColor        String?
+  vehicleManufacturer String?
+  Client              Client?      @relation(fields: [clientId], references: [id])
+  Site                Site?        @relation(fields: [siteId], references: [id])
+  User                public_User? @relation(fields: [valetId], references: [id])
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([entryTime])
+  @@index([exitTime])
+  @@index([isRegistered])
+  @@index([siteId, clientId])
+  @@index([siteId])
+  @@index([valetId])
+  @@index([vehicleNumber])
+  @@schema("public")
+}
+
+model ShiftAttendance {
+  id             String       @id
+  userId         String
+  startTime      DateTime     @default(now())
+  startPhotoUrl  String
+  startLatitude  Float?
+  startLongitude Float?
+  startAddress   String
+  endTime        DateTime?
+  endPhotoUrl    String?
+  endLatitude    Float?
+  endLongitude   Float?
+  endAddress     String?
+  totalMinutes   Int?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  status         SHIFT_STATUS @default(ACTIVE)
+  User           public_User  @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@schema("public")
+}
+
+model Site {
+  id                  String              @id
+  siteName            String
+  siteOwnerName       String
+  ownerPhoneNumber    String
+  ownerEmail          String?
+  pincode             String
+  city                String
+  state               String
+  siteAddress         String
+  bankAccName         String
+  accountNumber       String
+  ifsc                String
+  startDate           DateTime
+  endDate             DateTime
+  noticePeriod        Int
+  lockInPeriod        Int
+  depositAmount       Float
+  monthlyRental       Float
+  sitePaymentMethod   SITE_PAYMENT_METHOD
+  latitude            String
+  longitude           String
+  sitePictures        String[]
+  status              SITE_STATUS         @default(ACTIVE)
+  valetCount          Int                 @default(0)
+  supervisorCount     Int                 @default(0)
+  depositDate         DateTime?
+  siteDocuments       Json                @default("[]")
+  fourWheelerCapacity Int                 @default(0)
+  twoWheelerCapacity  Int                 @default(0)
+  siteLength          String
+  siteWidth           String
+  operatorEmail       String
+  operatorName        String
+  operatorPhone       String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime
+  Client              Client[]
+  Pickup              Pickup[]
+  SelfParking         SelfParking[]
+  SiteAssigned        SiteAssigned[]
+  Vehicle             Vehicle[]
+
+  @@index([city])
+  @@index([createdAt])
+  @@index([status])
+  @@schema("public")
+}
+
+model SiteAssigned {
+  id         String      @id
+  userId     String
+  siteId     String
+  role       VALET_ROLE
+  assignedAt DateTime    @default(now())
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime
+  clientId   String?
+  Site       Site        @relation(fields: [siteId], references: [id])
+  User       public_User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, siteId])
+  @@index([clientId])
+  @@index([isActive])
+  @@index([siteId])
+  @@index([userId])
+  @@index([userId, isActive])
+  @@schema("public")
+}
+
+model Ticket {
+  id            String          @id
+  ticketId      String          @unique
+  clientId      String
+  subject       String
+  category      TICKET_CATEGORY
+  description   String
+  priority      TICKET_PRIORITY
+  status        TICKET_STATUS   @default(OPEN)
+  attachments   String[]
+  assignedTo    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  admins        admins?         @relation(fields: [assignedTo], references: [id])
+  Client        Client          @relation(fields: [clientId], references: [id])
+  TicketComment TicketComment[]
+
+  @@index([assignedTo])
+  @@index([category])
+  @@index([clientId])
+  @@index([priority])
+  @@index([status])
+  @@index([ticketId])
+  @@schema("public")
+}
+
+model TicketComment {
+  id            String   @id
+  ticketId      String
+  senderId      String
+  message       String
+  attachmentUrl String?
+  isAdmin       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  Ticket        Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([senderId])
+  @@index([ticketId])
+  @@schema("public")
+}
+
+model public_User {
+  id                                           String                     @id
+  fullName                                     String
+  email                                        String                     @unique
+  phoneNumber                                  String                     @unique
+  city                                         String
+  state                                        String
+  pinCode                                      String
+  applyingFor                                  VALET_ROLE
+  password                                     String
+  profilePic                                   String
+  createdAt                                    DateTime                   @default(now())
+  updatedAt                                    DateTime
+  employeeNumber                               Int                        @default(autoincrement())
+  employeeId                                   String?                    @unique
+  status                                       UserStatus                 @default(IN_ACTIVE)
+  permanentAddress                             String                     @default("")
+  clientId                                     String?
+  dateOfBirth                                  DateTime
+  gender                                       Gender
+  maritalStatus                                MaritalStatus
+  alternatePhoneNumber                         String
+  currentAddress                               String
+  fatherName                                   String
+  fatherContactNumber                          String
+  dateOfJoining                                DateTime
+  workingLocation                              String
+  workingSiteName                              String
+  shiftTiming                                  ShiftTiming
+  tShirtSize                                   TShirtSize
+  pantSize                                     PantSize
+  Document                                     Document[]
+  LeaveRequest_LeaveRequest_approvedByIdToUser LeaveRequest[]             @relation("LeaveRequest_approvedByIdToUser")
+  LeaveRequest_LeaveRequest_userIdToUser       LeaveRequest[]             @relation("LeaveRequest_userIdToUser")
+  OperatorClientAssignment                     OperatorClientAssignment[]
+  Pickup_Pickup_droppedByValetIdToUser         Pickup[]                   @relation("Pickup_droppedByValetIdToUser")
+  Pickup_Pickup_pendingDroppedByValetIdToUser  Pickup[]                   @relation("Pickup_pendingDroppedByValetIdToUser")
+  Pickup_Pickup_valetIdToUser                  Pickup[]                   @relation("Pickup_valetIdToUser")
+  SelfParking                                  SelfParking[]
+  ShiftAttendance                              ShiftAttendance[]
+  SiteAssigned                                 SiteAssigned[]
+  Client                                       Client?                    @relation(fields: [clientId], references: [id])
+
+  @@index([applyingFor])
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("User")
+  @@schema("public")
+}
+
+model Vehicle {
+  id              String            @id
+  vehicleNumber   String            @unique
+  vehicleType     VEHICLE_TYPE
+  vehicleModel    String
+  vehicleBrand    String
+  vehicleColor    String
+  ownerName       String
+  ownerPhone      String
+  isPhoneVerified Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  siteId          String?
+  ownerEmail      String?
+  status          VehicleStatus     @default(PARKED)
+  CustomerRequest CustomerRequest[]
+  Pickup          Pickup[]
+  Site            Site?             @relation(fields: [siteId], references: [id])
+
+  @@index([ownerEmail])
+  @@index([ownerPhone])
+  @@index([status])
+  @@index([vehicleNumber])
+  @@schema("public")
+}
+
+model admin_email_verifications {
+  id        String   @id
+  adminId   String
+  email     String
+  otp       String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  admins    admins   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([isUsed])
+  @@index([otp])
+  @@schema("public")
+}
+
+model admin_password_resets {
+  id        String   @id
+  adminId   String
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  admins    admins   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([email])
+  @@index([expiresAt])
+  @@index([isUsed])
+  @@index([token])
+  @@schema("public")
+}
+
+model admins {
+  id                        String                      @id
+  fullName                  String
+  email                     String                      @unique
+  phoneNumber               String?                     @unique
+  password                  String
+  profilePic                String?
+  bio                       String?
+  role                      String                      @default("admin")
+  isEmailVerified           Boolean                     @default(false)
+  emailVerifiedAt           DateTime?
+  lastLoginAt               DateTime?
+  socialLinks               Json?
+  address                   Json?
+  departmentId              String?
+  roleId                    String?
+  status                    AdminStatus                 @default(PENDING)
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime
+  Ticket                    Ticket[]
+  admin_email_verifications admin_email_verifications[]
+  admin_password_resets     admin_password_resets[]
+  departments               departments?                @relation(fields: [departmentId], references: [id])
+  roles                     roles?                      @relation(fields: [roleId], references: [id])
+  approval_logs             approval_logs[]
+
+  @@index([departmentId])
+  @@index([email])
+  @@index([isEmailVerified])
+  @@index([roleId])
+  @@index([status])
+  @@schema("public")
+}
+
+model approval_logs {
+  id         String         @id
+  adminId    String
+  approvedBy String?
+  action     ApprovalAction
+  status     ApprovalStatus
+  comments   String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime
+  admins     admins         @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([adminId])
+  @@index([status])
+  @@schema("public")
+}
+
+model client_email_verifications {
+  id        String   @id
+  clientId  String
+  email     String
+  otp       String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  Client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([isUsed])
+  @@index([otp])
+  @@schema("public")
+}
+
+model client_password_resets {
+  id        String   @id
+  clientId  String
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  Client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([email])
+  @@index([expiresAt])
+  @@index([isUsed])
+  @@index([token])
+  @@schema("public")
+}
+
+model customer_fcm_tokens {
+  id          Int      @id @default(autoincrement())
+  customerId  String
+  token       String
+  device_info Json?
+  is_active   Boolean  @default(true)
+  last_seen   DateTime @default(now())
+  created_at  DateTime @default(now())
+  updated_at  DateTime
+
+  @@unique([customerId, token], map: "customer_fcm_tokens_customer_id_token_key")
+  @@index([customerId])
+  @@index([is_active])
+  @@index([last_seen])
+  @@schema("public")
+}
+
+model departments {
+  id          String   @id
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  admins      admins[]
+  roles       roles[]
+
+  @@index([isActive])
+  @@index([name])
+  @@schema("public")
+}
+
+model fcm_tokens {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  token       String
+  device_info Json?
+  is_active   Boolean  @default(true)
+  last_seen   DateTime @default(now())
+  created_at  DateTime @default(now())
+  updated_at  DateTime
+
+  @@unique([userId, token], map: "fcm_tokens_user_id_token_key")
+  @@index([is_active])
+  @@index([last_seen])
+  @@index([userId])
+  @@schema("public")
+}
+
+model permissions {
+  id               String             @id
+  name             String             @unique
+  module           String
+  description      String?
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime
+  role_permissions role_permissions[]
+
+  @@index([isActive])
+  @@index([module])
+  @@index([name])
+  @@schema("public")
+}
+
+model role_permissions {
+  id           String      @id
+  roleId       String
+  permissionId String
+  createdAt    DateTime    @default(now())
+  permissions  permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  roles        roles       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@index([roleId])
+  @@schema("public")
+}
+
+model roles {
+  id               String             @id
+  name             String
+  departmentId     String?
+  description      String?
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime
+  isSuperAdmin     Boolean            @default(false)
+  permissionKeys   Json?
+  permissionsMask  BigInt             @default(0)
+  admins           admins[]
+  role_permissions role_permissions[]
+  departments      departments?       @relation(fields: [departmentId], references: [id])
+
+  @@unique([name, departmentId])
+  @@index([departmentId])
+  @@index([isActive])
+  @@index([isSuperAdmin])
+  @@schema("public")
 }
 
 enum DocumentType {
@@ -703,15 +1660,353 @@ enum TicketPriority {
 
 enum TicketCategory {
   GENERAL
+  TECHNICAL
+  BILLING
   VEHICLE
+  APP_ISSUE
+  OTHER
   DOCUMENTS
   VALET
   AI_ASSISTANT
-  BILLING
   ACCOUNT
-  TECHNICAL
-  APP_ISSUE
-  OTHER
 
   @@schema("customer")
+}
+
+enum AdminStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  INACTIVE
+
+  @@schema("public")
+}
+
+enum ApprovalAction {
+  SIGNUP_REQUEST
+  ROLE_CHANGE
+  DEPARTMENT_CHANGE
+  ACTIVATION
+  DEACTIVATION
+
+  @@schema("public")
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@schema("public")
+}
+
+enum CLIENT_NOTIFICATION_TYPE {
+  TICKET_UPDATE
+  INVOICE_SENT
+  VALET_ASSIGNED
+  SUPERVISOR_ASSIGNED
+
+  @@schema("public")
+}
+
+enum CLIENT_TYPE {
+  Business
+  Individual
+
+  @@schema("public")
+}
+
+enum COMMUNICATION_METHOD {
+  EMAIL
+  GOOGLE_MEET
+  WHATSAPP
+  TEXT
+  CALL
+
+  @@schema("public")
+}
+
+enum ClientStatus {
+  ACTIVE
+  IN_ACTIVE
+
+  @@schema("public")
+}
+
+enum ClientTenantRole {
+  SUPER_CLIENT_ADMIN
+  CLIENT_ADMIN
+
+  @@schema("public")
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+
+  @@schema("public")
+}
+
+enum Gender {
+  M
+  F
+  OTHER
+
+  @@schema("public")
+}
+
+enum HELP_SUPPORT_STATUS {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+
+  @@schema("public")
+}
+
+enum INVOICE_STATUS {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum KEY_BOX_TYPE {
+  VTP
+  KYD
+
+  @@schema("public")
+}
+
+enum LEAVE_STATUS {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+
+  @@schema("public")
+}
+
+enum LEAVE_TYPE {
+  SICK
+  CASUAL
+  PAID
+  EMERGENCY
+
+  @@schema("public")
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+
+  @@schema("public")
+}
+
+enum PAYMENT_MODE {
+  Cheque
+  Online
+  UPI
+  Manual
+
+  @@schema("public")
+}
+
+enum PICKUP_STATUS {
+  PICKED_UP
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum PantSize {
+  S
+  M
+  L
+  XL
+  XXL
+  XXXL
+
+  @@schema("public")
+}
+
+enum PaymentGateway {
+  RAZORPAY
+  STRIPE
+  PAYU
+  MANUAL
+
+  @@schema("public")
+}
+
+enum PaymentMethodType {
+  UPI
+  CARD
+  NETBANKING
+  WALLET
+  EMI
+  OTHER
+
+  @@schema("public")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum PaymentType {
+  INVOICE
+  SUBSCRIPTION
+  SERVICE_CHARGE
+  ADHOC
+
+  @@schema("public")
+}
+
+enum REQUEST_STATUS {
+  PENDING
+  ACCEPTED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum SHIFT_FINAL_STATUS {
+  PENDING
+  PRESENT
+  ABSENT
+
+  @@schema("public")
+}
+
+enum SHIFT_STATUS {
+  ACTIVE
+  COMPLETED
+  PENDING
+
+  @@schema("public")
+}
+
+enum SITE_PAYMENT_METHOD {
+  PREPAID
+  POSTPAID
+
+  @@schema("public")
+}
+
+enum SITE_STATUS {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+
+  @@schema("public")
+}
+
+enum ShiftTiming {
+  NINE_TO_SEVEN
+  TEN_TO_EIGHT
+
+  @@schema("public")
+}
+
+enum SlotStatus {
+  AVAILABLE
+  BOOKED
+
+  @@schema("public")
+}
+
+enum TICKET_CATEGORY {
+  TECHNICAL
+  BILLING
+  GENERAL
+  OTHER
+
+  @@schema("public")
+}
+
+enum TICKET_PRIORITY {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@schema("public")
+}
+
+enum TICKET_STATUS {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  REOPENED
+
+  @@schema("public")
+}
+
+enum TShirtSize {
+  S
+  M
+  L
+  XL
+  XXL
+
+  @@schema("public")
+}
+
+enum UserStatus {
+  ACTIVE
+  IN_ACTIVE
+
+  @@schema("public")
+}
+
+enum VALET_ROLE {
+  VALET
+  SUPERVISOR
+  GUPTIO_SUPERVISOR
+  OPERATOR
+
+  @@schema("public")
+}
+
+enum VEHICLE_TYPE {
+  CAR
+  MOTORCYCLE
+
+  @@schema("public")
+}
+
+enum VehicleStatus {
+  PARKED
+  PICKED_UP
+  IN_TRANSIT
+  RETURNED
+
+  @@schema("public")
 }

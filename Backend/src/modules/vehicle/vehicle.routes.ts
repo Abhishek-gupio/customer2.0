@@ -10,6 +10,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.use(authMiddleware);
 
 router.post("/", vehicleController.add);
+router.post("/verify", vehicleController.verify);
 router.get("/", vehicleController.list);
 router.get("/:id", vehicleController.getById);
 router.put("/:id", vehicleController.update);

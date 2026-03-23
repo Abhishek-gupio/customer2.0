@@ -31,23 +31,39 @@ export interface Vehicle {
 export interface RTODetails {
     ownerName?: string;
     rto?: string;
-    chassisNo?: string;
+    make?: string;
+    model?: string;
+    vehicleClass?: string;
     engineNo?: string;
+    chassisNo?: string;
     fuelType?: string;
     fuelNorms?: string;
-    priceRange?: string;
-    rating?: number;
     transmission?: string;
-    mileage?: string;
+    priceRange?: string;
+    rating?: string;
+    rcStatus?: string;
+    unloadedWeight?: string;
+    vehicleType?: string;
     regDate?: string;
     fitnessUpto?: string;
     insuranceUpto?: string;
     pollutionUpto?: string;
-    unloadedWeight?: string;
-    rcStatus?: string;
+    mileage?: string;
     brand?: string;
-    // AI-generated image URL — client-side only, not saved to DB
     imageUrl?: string;
+    engineNumber?: string;
+    chassisNumber?: string;
+    registrationDate?: string;
+    color?: string;
+    seatingCapacity?: string;
+    cylinderCount?: string;
+    cubicCapacity?: string;
+    grossWeight?: string;
+    bodyType?: string;
+    registrationNumber?: string;
+    ownerAddress?: string;
+    present_address?: string;
+    year?: number;
 }
 
 export interface VehicleHealthScore {
@@ -72,6 +88,24 @@ export interface AddVehicleInput {
     chassisNumber?: string;
     registrationDate?: string | Date;
     currentOdometer?: number;
+    ownerName?: string;
+    rto?: string;
+    vehicleClass?: string;
+    fuelNorms?: string;
+    rcStatus?: string;
+    unloadedWeight?: string;
+    fitnessUpto?: string;
+    insuranceUpto?: string;
+    pollutionUpto?: string;
+    mileage?: string;
+    brand?: string;
+    color?: string;
+    seatingCapacity?: string;
+    cylinderCount?: string;
+    cubicCapacity?: string;
+    grossWeight?: string;
+    bodyType?: string;
+    ownerAddress?: string;
 }
 
 export type UpdateVehicleInput = Partial<AddVehicleInput>;
@@ -185,6 +219,35 @@ export const vehicleService = {
     markChallanAsPaid: async (challanId: string): Promise<Challan> => {
         const response = await api.patch<{ success: boolean; data: Challan }>(`/v1/vehicles/challans/${challanId}/pay`);
         return response.data;
+    },
+
+    verifyVehicle: async (regNo: string): Promise<RTODetails> => {
+        const response = await api.post<{ success: boolean; data: any }>('/v1/vehicles/verify', { reg_no: regNo });
+        // Map backend fields (VerifiedVehicle) to RTODetails
+        const raw = response.data;
+        return {
+            ownerName: raw.ownerName,
+            rto: raw.rto,
+            make: raw.make,
+            model: raw.model,
+            vehicleClass: raw.vehicleClass,
+            engineNo: raw.engineNumber || raw.engineNo,
+            chassisNo: raw.chassisNumber || raw.chassisNo,
+            fuelType: raw.fuelType,
+            fuelNorms: raw.fuelNorms,
+            transmission: raw.transmission,
+            priceRange: raw.priceRange,
+            rating: raw.rating,
+            rcStatus: raw.rcStatus,
+            unloadedWeight: raw.unloadedWeight,
+            vehicleType: raw.vehicleType,
+            regDate: raw.registrationDate || raw.regDate,
+            fitnessUpto: raw.fitnessUpto,
+            insuranceUpto: raw.insuranceUpto,
+            pollutionUpto: raw.pollutionUpto,
+            mileage: raw.mileage,
+            brand: raw.make,
+        };
     },
 };
 

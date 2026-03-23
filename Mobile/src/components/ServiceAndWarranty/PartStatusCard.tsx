@@ -31,6 +31,7 @@ interface PartStatusCardProps {
     overdueByKm?: number;
     /** OEM_WEBSITE = from OEM manual; else not from OEM, may be incorrect */
     intervalSource?: string;
+    onReplace?: () => void;
 }
 
 export const PartStatusCard = ({
@@ -53,6 +54,7 @@ export const PartStatusCard = ({
     currentOdo,
     overdueByKm,
     intervalSource,
+    onReplace,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
     const isCritical = urgency === 'OVERDUE';
@@ -113,12 +115,17 @@ export const PartStatusCard = ({
                 ) : (
                     <Text style={styles.predictionText}>Status: {statusText}</Text>
                 )}
-                {isCritical && (
+                {isCritical ? (
                     <View style={styles.criticalNotice}>
                         <Icon name="alert-circle" size={wp(3.5)} color="#EF4444" />
                         <Text style={styles.criticalText}>REPLACE</Text>
                     </View>
-                )}
+                ) : percentage < 50 ? (
+                    <View style={[styles.criticalNotice, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
+                        <Icon name="clock-outline" size={wp(3.5)} color="#F59E0B" />
+                        <Text style={[styles.criticalText, { color: '#F59E0B' }]}>DUE SOON</Text>
+                    </View>
+                ) : null}
                 <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
             </View>
 
@@ -172,11 +179,15 @@ export const PartStatusCard = ({
                         </View>
                     </View>
 
-                    {isCritical && (
+                    {isCritical && !title.toUpperCase().includes('ENGINE OIL') ? (
                         <TouchableOpacity style={styles.bookButton}>
                             <Text style={styles.bookButtonText}>Book Service Now</Text>
                         </TouchableOpacity>
-                    )}
+                    ) : (percentage < 50 || (isCritical && title.toUpperCase().includes('ENGINE OIL'))) ? (
+                        <TouchableOpacity style={[styles.bookButton, { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#FFBF00' }]} onPress={onReplace}>
+                            <Text style={[styles.bookButtonText, { color: '#FFBF00' }]}>Mark as Replaced</Text>
+                        </TouchableOpacity>
+                    ) : null}
                 </View>
             )}
         </TouchableOpacity>

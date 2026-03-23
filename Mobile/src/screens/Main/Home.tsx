@@ -21,6 +21,7 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import QuickServicesGrid from '../../components/QuickServicesGrid';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
@@ -28,6 +29,17 @@ import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
+import { GEO } from '../../config';
+import { PermissionsAndroid } from 'react-native';
+
+// GPS-based location
+let Geolocation: any = null;
+try {
+  const geoModule = require('@react-native-community/geolocation') as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 
@@ -36,9 +48,11 @@ export default function Home() {
   const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
   const [selectedState, setSelectedState] = useState('Kerala');
+  const [userLocationDisplay, setUserLocationDisplay] = useState('Detecting...');
   const [showStateModal, setShowStateModal] = useState(false);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [fuelLoading, setFuelLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [vehicleLoading, setVehicleLoading] = useState(true);
   const [serviceDueText, setServiceDueText] = useState('Checking...');
@@ -52,10 +66,15 @@ export default function Home() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // Fetch all home data
+  // Initial load
+  useEffect(() => {
+    fetchDiscoveryContent();
+    fetchUserLocation();
+  }, []);
+
+  // Fetch fuel prices when state changes
   useEffect(() => {
     fetchFuelPrices();
-    fetchDiscoveryContent();
   }, [selectedState]);
 
   useFocusEffect(
@@ -179,12 +198,128 @@ export default function Home() {
     }
   };
 
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+      try {
+        const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+        const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+        const fineHas = await PermissionsAndroid.check(fine);
+        const coarseHas = await PermissionsAndroid.check(coarse);
+        if (fineHas || coarseHas) return true;
+        const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+        return results[fine] === PermissionsAndroid.RESULTS.GRANTED || results[coarse] === PermissionsAndroid.RESULTS.GRANTED;
+      } catch {
+        return false;
+      }
+    }
+    if (Platform.OS === 'ios' && Geolocation?.requestAuthorization) {
+      try {
+        const status = await Geolocation.requestAuthorization('whenInUse');
+        return status === 'granted' || status === 'authorized' || status === 'authorizedWhenInUse';
+      } catch {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const reverseGeocode = async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
+    try {
+      const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
+      const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': GEO.userAgent },
+      });
+      const data = await res.json();
+      const addr = data?.address;
+      if (!addr) return null;
+
+      const primary = addr.suburb || addr.neighbourhood || addr.locality || addr.village || addr.town || addr.city || addr.state_district;
+      const townOrCity = addr.town || addr.city;
+      const stateOrCountry = addr.state || addr.region || addr.country;
+      const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
+      const display = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || 'Unknown Location';
+
+      return { display, state: addr.state || '' };
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchUserLocation = async () => {
+    try {
+      setLocationLoading(true);
+
+      // try GPS
+      if (Geolocation) {
+        const permitted = await requestLocationPermission();
+        if (permitted) {
+          const coords = await new Promise<{ lat: number; lon: number } | null>((resolve) => {
+            Geolocation.getCurrentPosition(
+              (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+              () => resolve(null),
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+            );
+          });
+          if (coords) {
+            const geo = await reverseGeocode(coords.lat, coords.lon);
+            if (geo) {
+              setUserLocationDisplay(geo.display);
+              if (geo.state && STATES.includes(geo.state)) {
+                setSelectedState(geo.state);
+              }
+              return;
+            }
+          }
+        }
+      }
+
+      // fallback to IP
+      let geo: any = null;
+      for (const ipUrl of GEO.ipProviders) {
+        try {
+          const res = await fetch(ipUrl, { headers: { 'User-Agent': GEO.userAgent } });
+          const data = await res.json();
+          if (data?.city && data?.region) {
+            geo = data;
+            break;
+          }
+        } catch { /* ignore */ }
+      }
+
+      if (geo) {
+        setUserLocationDisplay(`${geo.city}, ${geo.region}`);
+        if (geo.region && STATES.includes(geo.region)) {
+          setSelectedState(geo.region);
+        } else if (geo.region_name && STATES.includes(geo.region_name)) {
+          setSelectedState(geo.region_name);
+        }
+      } else {
+        setUserLocationDisplay('Location not available');
+      }
+    } catch (error) {
+      console.error('Location detection failed:', error);
+      setUserLocationDisplay('Location not available');
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
   const handleProfilePress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
       rootNav.navigate('MyProfile');
     } else {
       navigation.navigate('MyProfile');
+    }
+  };
+
+  const handleSOSPress = () => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('SOSButton');
+    } else {
+      navigation.navigate('SOSButton');
     }
   };
 
@@ -300,7 +435,7 @@ export default function Home() {
                       <View style={styles.headerRight}>
                         <Image
                           source={(
-                            vehicle?.vehicleType === 'BIKE' 
+                            vehicle?.vehicleType === 'BIKE'
                               ? require('../../assets/images/bike.png')
                               : require('../../assets/images/car_vehicle_demo.png')
                           ) as any}
@@ -430,10 +565,10 @@ export default function Home() {
           {/* Top Overlays - Fixed on top of carousel */}
           <View style={styles.headerOverlay}>
             <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
-              <Icon name="user-circle" size={wp(6.5)} color="#fff" />
+              <Icon name="user" size={wp(5.2)} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleHelpPress} style={styles.overlayIconButton}>
-              <Icon name="question-circle" size={wp(6.5)} color="#fff" />
+            <TouchableOpacity onPress={handleSOSPress} style={styles.overlayIconButton}>
+              <Ionicons name="alert-circle" size={wp(6.5)} color="#ff4d4d" />
             </TouchableOpacity>
           </View>
         </View>
@@ -442,6 +577,7 @@ export default function Home() {
         <View style={styles.numberPlateSection}>
           <View style={styles.numberPlateContainer}>
             <View style={styles.indContainer}>
+              <View style={styles.greenDot} />
               <Text style={styles.indText}>IND</Text>
             </View>
             <TextInput
@@ -464,7 +600,7 @@ export default function Home() {
           onServicePress={label => {
             if (label === 'Document') {
               navigateToRootScreen('DocumentList');
-            } else if (label === 'My Vehicle') {
+            } else if (label === 'My Garage') {
               navigateToRootScreen('VehicleList');
             } else if (label === 'Expense') {
               navigateToRootScreen('Expenses');
@@ -474,6 +610,10 @@ export default function Home() {
               navigation.navigate('Services' as any, { screen: 'ServicesHome' });
             } else if (label === 'Driving') {
               navigateToRootScreen('DrivingSummary');
+            } else if (label === 'Near By') {
+              navigation.navigate('Services' as any, { screen: 'NearbyPlaces' });
+            } else if (label === 'Support') {
+              handleHelpPress();
             }
           }}
         />
@@ -489,7 +629,10 @@ export default function Home() {
             <View style={styles.bannerContent}>
               <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
               <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
-              <TouchableOpacity style={styles.payNowButton}>
+              <TouchableOpacity
+                style={styles.payNowButton}
+                onPress={() => navigation.navigate('Services' as any, { screen: 'CheckChallan' })}
+              >
                 <Text style={styles.payNowText}>Check Now</Text>
               </TouchableOpacity>
             </View>
@@ -530,10 +673,17 @@ export default function Home() {
           />
         </View>
 
-        {/* FUEL PRICES SECTION */}
         <View style={styles.fuelSection}>
           <View style={styles.fuelHeaderBanner}>
-            <Text style={styles.fuelHeaderTitle}>Current Fuel Prices in</Text>
+            <View style={styles.fuelHeaderLeft}>
+              <Text style={styles.fuelHeaderTitle}>Current Fuel Prices in</Text>
+              <View style={styles.locationTrackRow}>
+                <Ionicons name="location" size={wp(3)} color="#333" />
+                <Text style={styles.locationTrackText} numberOfLines={1}>
+                  {locationLoading ? 'Detecting...' : userLocationDisplay}
+                </Text>
+              </View>
+            </View>
             <TouchableOpacity
               style={styles.stateButton}
               onPress={() => setShowStateModal(true)}
@@ -854,9 +1004,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   overlayIconButton: {
-    padding: wp(2.5),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(5.5),
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
@@ -985,6 +1138,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(2.5),
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: hp(0.5),
+  },
+  greenDot: {
+    width: wp(1.5),
+    height: wp(1.5),
+    borderRadius: wp(0.75),
+    backgroundColor: '#4ade80',
+    marginBottom: hp(0.3),
   },
   indText: {
     fontFamily: 'Outfit-Bold',
@@ -992,11 +1153,12 @@ const styles = StyleSheet.create({
     fontSize: wp(2.6),
   },
   numberPlateInput: {
-    fontFamily: 'Outfit-SemiBold',
+    fontFamily: 'Outfit-Bold',
     flex: 1,
     color: '#fff',
-    fontSize: wp(3.8),
+    fontSize: wp(4.5),
     paddingHorizontal: wp(2),
+    letterSpacing: 1.5,
   },
   searchButton: {
     paddingHorizontal: wp(2),
@@ -1228,8 +1390,23 @@ const styles = StyleSheet.create({
   },
   fuelHeaderTitle: {
     color: '#333',
-    fontSize: wp(3.8),
-    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
+  },
+  fuelHeaderLeft: {
+    flex: 1,
+    gap: hp(0.2),
+  },
+  locationTrackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  locationTrackText: {
+    color: '#333',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
+    flex: 1,
   },
   stateButton: {
     backgroundColor: '#fff',
@@ -1247,14 +1424,14 @@ const styles = StyleSheet.create({
   },
   fuelContentCard: {
     backgroundColor: '#111111',
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(2),
     paddingVertical: hp(2.5),
     gap: hp(1.5),
   },
   fuelInlineContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(2),
+    gap: wp(1.5),
   },
   fuelInlineItem: {
     flexDirection: 'row',

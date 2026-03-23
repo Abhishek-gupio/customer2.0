@@ -1,654 +1,379 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  StatusBar,
-  RefreshControl,
-  Alert,
+    View, Text, StyleSheet, TouchableOpacity, ScrollView,
+    StatusBar, ActivityIndicator, RefreshControl, Alert, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { 
+    AlertTriangle, CheckCircle, RefreshCcw, 
+    Calendar, MapPin, Receipt, ExternalLink, ShieldAlert
+} from 'lucide-react-native';
+import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
+import { api } from '../../services/api';
+import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
-import { vehicleService } from '../../services/vehicleService';
 
-export interface Challan {
-  id: string;
-  type: string;
-  icon: string;
-  amount: number;
-  status: 'UNPAID' | 'PAID' | 'PENDING';
-  date: string;
-  location: string;
-  dueDate?: string;
-  offeneAmount?: number;
-}
+const ChallansScreen = () => {
+    const navigation = useNavigation();
+    const route = useRoute<any>();
+    const { vehicle } = route.params;
 
-export interface Vehicle {
-  vehicleNumber: string;
-  model: string;
-  brand?: string;
-}
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [challans, setChallans] = useState<any[]>([]);
+    const [stats, setStats] = useState({ total: 0, unpaid: 0, amount: 0 });
 
-interface ChallansScreenProps {
-  vehicle: Vehicle;
-  onSync?: () => Promise<void>;
-  onMarkAsPaid?: (challanId: string) => Promise<void>;
-  initialChallans?: Challan[];
-}
-
-const Challans: React.FC<any> = ({ navigation, route }: any) => {
-  const vehicleData = route.params?.vehicle;
-
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [challanList, setChallanList] = useState<Challan[]>([]);
-
-  const fetchChallans = useCallback(async () => {
-    if (!vehicleData?.id) return;
-    try {
-      const data = await vehicleService.getChallans(vehicleData.id);
-      // Map backend fields to frontend UI expectations seamlessly
-      const mapped = data.map((c: any) => ({
-        id: c.id,
-        type: c.violationNumber || 'Traffic Violation',
-        icon: 'receipt', // fallback icon
-        amount: c.amount,
-        status: c.status,
-        date: new Date(c.violationDate).toLocaleDateString(),
-        location: c.location || 'Unknown',
-        dueDate: c.dueDate,
-        offeneAmount: c.offeneAmount,
-      }));
-      setChallanList(mapped);
-    } catch (err) {
-      console.error('Fetch challans error:', err);
-    }
-  }, [vehicleData?.id]);
-
-  React.useEffect(() => {
-    fetchChallans();
-  }, [fetchChallans]);
-
-  const handleSync = useCallback(async () => {
-    if (!vehicleData?.id) return;
-    setIsSyncing(true);
-    try {
-      await vehicleService.syncChallans(vehicleData.id);
-      Alert.alert('Success', 'Challans synced successfully!');
-      fetchChallans(); // refresh list
-    } catch (error: any) {
-      Alert.alert('Error', error?.message || 'Failed to sync challans');
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [vehicleData?.id, fetchChallans]);
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchChallans();
-    setRefreshing(false);
-  }, [fetchChallans]);
-
-  const handleMarkAsPaid = (challanId: string) => {
-    Alert.alert(
-      'Mark as Paid',
-      'Are you sure you want to mark this challan as paid?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            try {
-              await vehicleService.markChallanAsPaid(challanId);
-              setChallanList(prev =>
-                prev.map(item =>
-                  item.id === challanId
-                    ? { ...item, status: 'PAID' as const }
-                    : item,
-                ),
-              );
-              Alert.alert('Success', 'Challan marked as paid!');
-            } catch (error: any) {
-              Alert.alert('Error', error?.message || 'Failed to update status');
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'UNPAID':
-        return '#ef4444';
-      case 'PAID':
-        return '#22c55e';
-      case 'PENDING':
-        return '#f59e0b';
-      default:
-        return '#888';
-    }
-  };
-
-  const getStatusBg = (status: string) => {
-    switch (status) {
-      case 'UNPAID':
-        return 'rgba(239,68,68,0.15)';
-      case 'PAID':
-        return 'rgba(34,197,94,0.15)';
-      case 'PENDING':
-        return 'rgba(245,158,11,0.15)';
-      default:
-        return 'rgba(136,136,136,0.15)';
-    }
-  };
-
-  const getIconBg = (type: string) => {
-    if (type.includes('Speed')) return 'rgba(239,68,68,0.15)';
-    if (type.includes('Signal')) return 'rgba(245,158,11,0.15)';
-    if (type.includes('Parking')) return 'rgba(59,130,246,0.15)';
-    return 'rgba(136,136,136,0.15)';
-  };
-
-  const getIconColor = (type: string) => {
-    if (type.includes('Speed')) return '#ef4444';
-    if (type.includes('Signal')) return '#f59e0b';
-    if (type.includes('Parking')) return '#3b82f6';
-    return '#888';
-  };
-
-  const unpaidChallans = challanList.filter(c => c.status === 'UNPAID');
-  const paidChallans = challanList.filter(c => c.status === 'PAID');
-  const totalUnpaidAmount = unpaidChallans.reduce(
-    (sum, c) => sum + c.amount,
-    0,
-  );
-
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
-
-      <BackButton onPress={() => navigation.goBack()} />
-      <View style={styles.header}>
-        <View style={[styles.headerCenter, { marginLeft: 0 }]}>
-          <Text style={styles.headerTitle}>Challans</Text>
-          <Text style={styles.headerSubtitle}>
-            {vehicleData?.plate ||
-              vehicleData?.vehicleNumber ||
-              'DL 01 AB 1234'}{' '}
-            - {vehicleData?.model || 'Swift'}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.syncIconBtn}
-          onPress={handleSync}
-          activeOpacity={0.7}
-        >
-          <FontAwesome5
-            name="sync-alt"
-            size={wp(4)}
-            color={isSyncing ? '#666' : '#FFBF00'}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#FFBF00"
-            colors={['#FFBF00']}
-          />
+    const fetchChallans = useCallback(async (isSync = false) => {
+        if (!isSync) setLoading(true);
+        try {
+            const endpoint = isSync 
+                ? `/v1/vehicles/${vehicle.id}/challans/sync` 
+                : `/v1/vehicles/${vehicle.id}/challans`;
+            
+            const response = await api[isSync ? 'post' : 'get'](endpoint);
+            const data = (response as any).data || response;
+            
+            const list = Array.isArray(data) ? data : [];
+            setChallans(list);
+            
+            const unpaid = list.filter((c: any) => c.status !== 'PAID');
+            const totalAmount = unpaid.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
+            
+            setStats({
+                total: list.length,
+                unpaid: unpaid.length,
+                amount: totalAmount
+            });
+        } catch (error) {
+            console.error('Error fetching challans:', error);
+            Alert.alert('Error', 'Failed to fetch challans. Please try again.');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
-      >
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Total Challans</Text>
-              <Text style={styles.summaryValue}>{challanList.length}</Text>
-            </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Unpaid</Text>
-              <Text style={[styles.summaryValue, { color: '#ef4444' }]}>
-                {unpaidChallans.length}
-              </Text>
-            </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Amount Due</Text>
-              <Text style={[styles.summaryValue, { color: '#ef4444' }]}>
-                ₹{totalUnpaidAmount.toLocaleString()}
-              </Text>
-            </View>
-          </View>
-        </View>
+    }, [vehicle.id]);
 
-        {unpaidChallans.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionLabel}>Unpaid Challans</Text>
-              <View style={styles.sectionLine} />
-            </View>
+    useEffect(() => {
+        fetchChallans(true);
+    }, [fetchChallans]);
 
-            {unpaidChallans.map(item => (
-              <View key={item.id} style={styles.challanCard}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.typeContainer}>
-                    <View
-                      style={[
-                        styles.iconBg,
-                        { backgroundColor: getIconBg(item.type) },
-                      ]}
-                    >
-                      <FontAwesome5
-                        name={item.icon as any}
-                        size={wp(4)}
-                        color={getIconColor(item.type)}
-                      />
-                    </View>
-                    <View>
-                      <Text style={styles.typeName}>{item.type}</Text>
-                      <Text style={styles.challanId}>
-                        #CHN{item.id.padStart(5, '0')}
-                      </Text>
-                    </View>
-                  </View>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusBg(item.status) },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        { color: getStatusColor(item.status) },
-                      ]}
-                    >
-                      {item.status}
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchChallans(true);
+    };
+
+    const handlePayChallan = (challan: any) => {
+        Alert.alert(
+            'Payment Notice',
+            'Redirecting to government portal to pay this challan.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Proceed', onPress: () => {
+                    // In a real app, open browser with payment URL
+                }}
+            ]
+        );
+    };
+
+const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void }) => {
+    const [expanded, setExpanded] = useState(false);
+    const offences = (item.violationType || '').split(' | ');
+    const hasMore = offences.length > 1;
+
+    return (
+        <View style={styles.challanCard}>
+            <View style={styles.cardHeader}>
+                <View style={[styles.statusBadge, { backgroundColor: item.status === 'PAID' ? '#1B3921' : '#3D1C1C' }]}>
+                    <Text style={[styles.statusText, { color: item.status === 'PAID' ? '#32D74B' : '#FF453A' }]}>
+                        {item.status === 'PAID' ? 'PAID' : 'UNPAID'}
                     </Text>
-                  </View>
                 </View>
-
-                <View style={styles.cardBody}>
-                  <View style={styles.amountRow}>
-                    <View>
-                      <Text style={styles.amountLabel}>Challan Amount</Text>
-                      <Text style={styles.amountText}>
-                        ₹{item.amount.toLocaleString()}
-                      </Text>
-                    </View>
-                    {item.offeneAmount && item.offeneAmount > 0 && (
-                      <View style={styles.offeneContainer}>
-                        <Text style={styles.offeneLabel}>After Due Date</Text>
-                        <Text style={styles.offeneAmount}>
-                          ₹{(item.amount + item.offeneAmount).toLocaleString()}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailsContainer}>
-                    <View style={styles.detailRow}>
-                      <FontAwesome5
-                        name="calendar-alt"
-                        size={wp(3)}
-                        color="#555"
-                      />
-                      <Text style={styles.detailText}>{item.date}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <FontAwesome5
-                        name="map-marker-alt"
-                        size={wp(3)}
-                        color="#555"
-                      />
-                      <Text style={styles.detailText}>{item.location}</Text>
-                    </View>
-                    {item.dueDate && (
-                      <View style={[styles.detailRow, { marginTop: hp(0.5) }]}>
-                        <FontAwesome5
-                          name="clock"
-                          size={wp(3)}
-                          color="#f59e0b"
-                        />
-                        <Text style={[styles.detailText, { color: '#f59e0b' }]}>
-                          Due: {item.dueDate}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.payBtn}
-                    onPress={() => handleMarkAsPaid(item.id)}
-                    activeOpacity={0.8}
-                  >
-                    <FontAwesome5
-                      name="credit-card"
-                      size={wp(4)}
-                      color="#000"
-                    />
-                    <Text style={styles.payBtnText}>Pay Now</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {paidChallans.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionLabel}>Paid Challans</Text>
-              <View style={styles.sectionLine} />
+                <Text style={styles.challanNumber}>#{item.challanNumber}</Text>
             </View>
 
-            {paidChallans.map(item => (
-              <View key={item.id} style={[styles.challanCard, styles.paidCard]}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.typeContainer}>
-                    <View
-                      style={[
-                        styles.iconBg,
-                        { backgroundColor: 'rgba(34,197,94,0.15)' },
-                      ]}
-                    >
-                      <FontAwesome5
-                        name={item.icon as any}
-                        size={wp(4)}
-                        color="#22c55e"
-                      />
+            <View style={styles.cardBody}>
+                {/* Vertical Metadata */}
+                <View style={styles.mainInfoList}>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Owner:</Text>
+                        <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.ownerName || 'N/A'}</Text>
                     </View>
-                    <View>
-                      <Text style={styles.typeName}>{item.type}</Text>
-                      <Text style={styles.challanId}>
-                        #CHN{item.id.padStart(5, '0')}
-                      </Text>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Date:</Text>
+                        <Text style={styles.infoValue}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
                     </View>
-                  </View>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusBg(item.status) },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        { color: getStatusColor(item.status) },
-                      ]}
-                    >
-                      {item.status}
-                    </Text>
-                  </View>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Location:</Text>
+                        <Text style={styles.infoValue} numberOfLines={1}>{item.location || 'N/A'}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>RTO:</Text>
+                        <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.rtoName || 'N/A'}</Text>
+                    </View>
                 </View>
 
-                <View style={styles.cardBody}>
-                  <View style={styles.amountRow}>
-                    <View>
-                      <Text style={styles.amountLabel}>Paid Amount</Text>
-                      <Text style={styles.amountText}>
-                        ₹{item.amount.toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
+                <View style={styles.divider} />
 
-                  <View style={styles.detailsContainer}>
-                    <View style={styles.detailRow}>
-                      <FontAwesome5
-                        name="calendar-check"
-                        size={wp(3)}
-                        color="#22c55e"
-                      />
-                      <Text style={[styles.detailText, { color: '#22c55e' }]}>
-                        {item.date}
-                      </Text>
+                {/* Offence & Amount */}
+                <View style={styles.offenceSection}>
+                    <Text style={styles.offenceTitle}>{offences[0]}</Text>
+                    {expanded && offences.slice(1).map((off: string, idx: number) => (
+                        <Text key={idx} style={[styles.offenceTitle, { marginTop: 8, color: COLORS.primary }]}>
+                            {off}
+                        </Text>
+                    ))}
+                    
+                    <View style={styles.amountContainer}>
+                        <Text style={styles.amountLabel}>Total Fine:</Text>
+                        <Text style={styles.amountValue}>₹{item.amount}</Text>
                     </View>
-                    <View style={styles.detailRow}>
-                      <FontAwesome5
-                        name="map-marker-alt"
-                        size={wp(3)}
-                        color="#555"
-                      />
-                      <Text style={styles.detailText}>{item.location}</Text>
+
+                    <View style={styles.actionRow}>
+                        {hasMore && (
+                            <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.detailsToggle}>
+                                <Text style={styles.detailsToggleText}>
+                                    {expanded ? 'Hide Details' : 'View Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                        {item.status !== 'PAID' && (
+                            <TouchableOpacity style={styles.payButton} onPress={() => onPay(item)}>
+                                <Text style={styles.payButtonText}>PAY NOW</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
-                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {challanList.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconBg}>
-              <FontAwesome5 name="check-double" size={wp(12)} color="#22c55e" />
             </View>
-            <Text style={styles.emptyTitle}>All Clear!</Text>
-            <Text style={styles.emptySubtext}>
-              No challans found for this vehicle. Drive safe!
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.footerInfo}>
-          <FontAwesome5 name="info-circle" size={14} color="#555" />
-          <Text style={styles.footerText}>
-            Challan data is synced from the Parivahan portal. Last updated just
-            now.
-          </Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+    );
+};
+
+    return (
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" />
+            
+            {/* Header */}
+            <View style={styles.header}>
+                <BackButton onPress={() => navigation.goBack()} />
+                <View style={styles.titleContainer}>
+                    <Text style={styles.headerTitle}>Traffic Challans</Text>
+                </View>
+                <TouchableOpacity onPress={() => fetchChallans(true)} style={styles.syncBtn}>
+                    <RefreshCcw size={20} color={COLORS.primary} />
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+                }
+            >
+                {/* Vehicle Mini Info */}
+                <View style={styles.vehicleInfo}>
+                    <INDPlate number={vehicle.registrationNumber} />
+                    <Text style={styles.vehicleModel}>{vehicle.make} {vehicle.model}</Text>
+                </View>
+
+                {/* Stats Row */}
+                <View style={styles.statsGrid}>
+                    <View style={styles.statBox}>
+                        <Text style={styles.statLabel}>Total</Text>
+                        <Text style={styles.statValue}>{stats.total}</Text>
+                    </View>
+                    <View style={styles.statBox}>
+                        <Text style={[styles.statLabel, { color: '#FF453A' }]}>Unpaid</Text>
+                        <Text style={[styles.statValue, { color: '#FF453A' }]}>{stats.unpaid}</Text>
+                    </View>
+                    <View style={[styles.statBox, { flex: 1.5 }]}>
+                        <Text style={styles.statLabel}>Amount Due</Text>
+                        <Text style={styles.statValue}>₹{stats.amount}</Text>
+                    </View>
+                </View>
+
+                {loading && !refreshing ? (
+                    <View style={styles.loaderBox}>
+                        <ActivityIndicator size="large" color={COLORS.primary} />
+                        <Text style={styles.loaderText}>Checking Parivahan Portal...</Text>
+                    </View>
+                ) : challans.length === 0 ? (
+                    <View style={styles.emptyBox}>
+                        <View style={styles.successIconBox}>
+                            <CheckCircle size={48} color={COLORS.success} />
+                        </View>
+                        <Text style={styles.emptyTitle}>All Clear!</Text>
+                        <Text style={styles.emptySubtitle}>No traffic violations found for this vehicle. Keep driving safe!</Text>
+                    </View>
+                ) : (
+                    <View style={styles.listContainer}>
+                        {challans.map(item => (
+                            <ChallanCard 
+                                key={item.id} 
+                                item={item} 
+                                onPay={handlePayChallan} 
+                            />
+                        ))}
+                    </View>
+                )}
+
+                {/* Footer Tip */}
+                <View style={styles.tipBox}>
+                    <ShieldAlert size={18} color={COLORS.primary} />
+                    <Text style={styles.tipText}>
+                        Always verify challans on the official Parivahan website. Late payments may attract additional penalties.
+                    </Text>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    backgroundColor: '#0a0a0a',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#121212',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  headerCenter: { flex: 1, marginLeft: wp(3) },
-  headerTitle: { color: '#fff', fontSize: wp(5.5), fontWeight: 'bold' },
-  headerSubtitle: { color: '#666', fontSize: wp(3.2), marginTop: 2 },
-  syncIconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#121212',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
-  },
-
-  scrollContent: { paddingHorizontal: wp(4), paddingBottom: hp(5) },
-  summaryCard: {
-    backgroundColor: '#121212',
-    borderRadius: 20,
-    padding: wp(4),
-    marginTop: hp(2),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  summaryRow: { flexDirection: 'row', alignItems: 'center' },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  summaryLabel: { color: '#666', fontSize: wp(2.8), fontWeight: '600' },
-  summaryValue: {
-    color: '#fff',
-    fontSize: wp(5),
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-
-  section: { marginTop: hp(3) },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  sectionLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  sectionLabel: {
-    color: '#555',
-    fontSize: wp(2.8),
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: wp(3),
-  },
-
-  challanCard: {
-    backgroundColor: '#121212',
-    borderRadius: 20,
-    padding: wp(4),
-    marginBottom: hp(2),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  paidCard: { opacity: 0.8 },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  typeContainer: { flexDirection: 'row', alignItems: 'center', gap: wp(3) },
-  iconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  typeName: { color: '#fff', fontSize: wp(4), fontWeight: 'bold' },
-  challanId: { color: '#444', fontSize: wp(2.5), marginTop: 2 },
-  statusBadge: {
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.5),
-    borderRadius: 8,
-  },
-  statusText: { fontSize: wp(2.5), fontWeight: 'bold' },
-
-  cardBody: { marginTop: hp(1) },
-  amountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  amountLabel: { color: '#666', fontSize: wp(2.8) },
-  amountText: {
-    color: '#fff',
-    fontSize: wp(6),
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-  offeneContainer: { alignItems: 'flex-end' },
-  offeneLabel: { color: '#f59e0b', fontSize: wp(2.5) },
-  offeneAmount: {
-    color: '#f59e0b',
-    fontSize: wp(4),
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-
-  detailsContainer: { marginTop: hp(2) },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(2),
-    marginBottom: hp(0.5),
-  },
-  detailText: { color: '#666', fontSize: wp(3), flex: 1 },
-
-  payBtn: {
-    backgroundColor: '#FFBF00',
-    borderRadius: 14,
-    paddingVertical: hp(1.8),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: wp(2),
-    marginTop: hp(2.5),
-    shadowColor: '#FFBF00',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  payBtnText: { color: '#000', fontSize: wp(4), fontWeight: 'bold' },
-
-  emptyContainer: { alignItems: 'center', marginTop: hp(8) },
-  emptyIconBg: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(34,197,94,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    color: '#fff',
-    fontSize: wp(5),
-    fontWeight: 'bold',
-    marginTop: hp(2),
-  },
-  emptySubtext: {
-    color: '#666',
-    fontSize: wp(3.2),
-    marginTop: hp(1),
-    textAlign: 'center',
-  },
-
-  footerInfo: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: wp(2),
-    marginTop: hp(3),
-    padding: wp(3),
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    borderRadius: 12,
-  },
-  footerText: { color: '#444', fontSize: wp(2.8), flex: 1, lineHeight: wp(4) },
+    container: { flex: 1, backgroundColor: '#000000' },
+    header: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingHorizontal: wp('5%'), paddingVertical: hp('2%')
+    },
+    titleContainer: {
+        flexDirection: 'row', alignItems: 'center', gap: wp('2%')
+    },
+    unpaidBadge: {
+        backgroundColor: '#FF453A', borderRadius: 10, width: 20, height: 20,
+        alignItems: 'center', justifyContent: 'center'
+    },
+    unpaidBadgeText: {
+        color: '#FFF', fontSize: 10, fontFamily: 'Outfit-Bold'
+    },
+    syncBtn: {
+        width: wp('11%'), height: wp('11%'), borderRadius: wp('5.5%'),
+        backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center',
+        borderWidth: 1, borderColor: '#333'
+    },
+    headerTitle: {
+        color: '#FFF', fontSize: hp('2.2%'), fontFamily: 'Outfit-Bold'
+    },
+    scrollContent: { paddingHorizontal: wp('5%'), paddingBottom: hp('5%') },
+    vehicleInfo: {
+        alignItems: 'center', marginVertical: hp('3%'), gap: hp('1%')
+    },
+    vehicleModel: {
+        color: '#8E8E93', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium', textTransform: 'uppercase', letterSpacing: 2
+    },
+    ownerInfoRow: {
+        flexDirection: 'row', gap: wp('2%'), marginTop: hp('1.5%'), justifyContent: 'center'
+    },
+    infoPill: {
+        backgroundColor: '#111', paddingHorizontal: wp('3%'), paddingVertical: hp('0.8%'),
+        borderRadius: 12, borderWidth: 1, borderColor: '#222', flexDirection: 'row', gap: wp('2%'), alignItems: 'center'
+    },
+    pillLabel: {
+        color: '#666', fontSize: hp('1%'), fontFamily: 'Outfit-Bold', letterSpacing: 0.5
+    },
+    pillValue: {
+        color: '#FFF', fontSize: hp('1.2%'), fontFamily: 'Outfit-Medium'
+    },
+    statsGrid: {
+        flexDirection: 'row', gap: wp('3%'), marginBottom: hp('3%')
+    },
+    statBox: {
+        flex: 1, backgroundColor: '#111', padding: wp('4%'), borderRadius: 20,
+        borderWidth: 1, borderColor: '#222', alignItems: 'center'
+    },
+    statLabel: {
+        color: '#8E8E93', fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', textTransform: 'uppercase', marginBottom: 4
+    },
+    statValue: {
+        color: '#FFF', fontSize: hp('2.4%'), fontFamily: 'Outfit-Black'
+    },
+    loaderBox: {
+        paddingVertical: hp('10%'), alignItems: 'center', gap: hp('2%')
+    },
+    loaderText: {
+        color: '#8E8E93', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium'
+    },
+    emptyBox: {
+        backgroundColor: '#111', borderRadius: 32, padding: wp('10%'),
+        alignItems: 'center', borderWidth: 1, borderColor: '#222', marginTop: hp('2%')
+    },
+    successIconBox: {
+        width: wp('20%'), height: wp('20%'), borderRadius: wp('10%'),
+        backgroundColor: 'rgba(50, 215, 75, 0.1)', alignItems: 'center', justifyContent: 'center',
+        marginBottom: hp('2%')
+    },
+    emptyTitle: {
+        color: '#FFF', fontSize: hp('2.6%'), fontFamily: 'Outfit-Bold', marginBottom: hp('1%')
+    },
+    emptySubtitle: {
+        color: '#8E8E93', fontSize: hp('1.6%'), fontFamily: 'Outfit-Regular', textAlign: 'center', lineHeight: hp('2.2%')
+    },
+    listContainer: { gap: hp('2%') },
+    challanCard: {
+        backgroundColor: '#1A1A1A', borderRadius: 24, padding: wp('5%'),
+        borderWidth: 1, borderColor: '#333'
+    },
+    cardHeader: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: hp('2%')
+    },
+    statusBadge: {
+        paddingHorizontal: wp('3%'), paddingVertical: hp('0.5%'), borderRadius: 8
+    },
+    statusText: {
+        fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold'
+    },
+    challanNumber: {
+        color: '#8E8E93', fontSize: hp('1.4%'), fontFamily: 'Outfit-Medium'
+    },
+    cardBody: { gap: hp('1.5%') },
+    mainInfoList: { gap: hp('0.5%') },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    infoLabel: { color: '#666', fontSize: hp('1.4%'), fontFamily: 'Outfit-Medium' },
+    infoValue: { color: '#FFF', fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', flex: 1, textAlign: 'right', marginLeft: wp('4%') },
+    offenceSection: { gap: hp('1%') },
+    offenceTitle: { color: COLORS.primary, fontSize: hp('1.7%'), fontFamily: 'Outfit-Bold', lineHeight: hp('2.2%') },
+    amountContainer: { 
+        flexDirection: 'row', alignItems: 'center', gap: wp('2%'), 
+        marginTop: hp('0.5%'), backgroundColor: '#222', padding: wp('3%'), borderRadius: 12 
+    },
+    actionRow: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp('1%')
+    },
+    detailsToggle: { paddingVertical: hp('1%') },
+    detailsToggleText: { color: '#8E8E93', fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', textDecorationLine: 'underline' },
+    violationType: {
+        color: '#FFF', fontSize: hp('2%'), fontFamily: 'Outfit-Bold', marginBottom: hp('0.5%')
+    },
+    detailRow: {
+        flexDirection: 'row', alignItems: 'center', gap: wp('2%')
+    },
+    detailText: {
+        color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Regular'
+    },
+    divider: {
+        height: 1, backgroundColor: '#333', marginVertical: hp('1.5%')
+    },
+    priceRow: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
+    },
+    amountLabel: {
+        color: '#8E8E93', fontSize: hp('1.4%'), fontFamily: 'Outfit-Medium'
+    },
+    amountValue: {
+        color: '#FFF', fontSize: hp('2.6%'), fontFamily: 'Outfit-Black'
+    },
+    payButton: {
+        backgroundColor: COLORS.primary, paddingHorizontal: wp('6%'), paddingVertical: hp('1.5%'), borderRadius: 12
+    },
+    payButtonText: {
+        color: '#000', fontSize: hp('1.4%'), fontFamily: 'Outfit-Black'
+    },
+    tipBox: {
+        flexDirection: 'row', backgroundColor: '#111', padding: wp('4%'), borderRadius: 16,
+        marginTop: hp('4%'), gap: wp('3%'), alignItems: 'center', borderWidth: 1, borderColor: '#222'
+    },
+    tipText: {
+        flex: 1, color: '#666', fontSize: hp('1.3%'), fontFamily: 'Outfit-Regular', lineHeight: hp('1.8%')
+    }
 });
 
-export default Challans;
+export default ChallansScreen;

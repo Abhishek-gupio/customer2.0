@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
     header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: hp(2),
+    paddingVertical: hp(4),
     paddingHorizontal: wp(5),
   },
   shader:{

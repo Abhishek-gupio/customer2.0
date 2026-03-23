@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS "customer";
+
 -- CreateEnum
 CREATE TYPE "customer"."SOSStatus" AS ENUM ('ACTIVE', 'RESOLVED', 'CANCELLED');
 

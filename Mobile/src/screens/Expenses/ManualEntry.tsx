@@ -27,6 +27,7 @@ interface ManualEntryData {
   date?: string;
   receiptUrl?: string;
   mimeType?: string;
+  partType?: string;
 }
 
 interface ManualEntryOverlayProps {
@@ -121,6 +122,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       if (initialData.date) setDate(initialData.date);
       if (initialData.receiptUrl) setReceiptUrl(initialData.receiptUrl);
       if (initialData.mimeType) setMimeType(initialData.mimeType);
+      if (initialData.partType) setSelectedPartType(initialData.partType);
     }
   }, [visible, initialData]);
 

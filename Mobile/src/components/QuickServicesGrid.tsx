@@ -8,10 +8,10 @@ import QuickServiceButton from './QuickServiceButton';
 
 const SERVICES = [
   { icon: 'wrench', label: 'Service' },
-  { icon: 'calendar-check', label: 'Booking' },
+  { icon: 'map-marker-alt', label: 'Near By' },
   { icon: 'tachometer-alt', label: 'Driving' },
   { icon: 'comments', label: 'Support' },
-  { icon: 'car', label: 'My Vehicle' },
+  { icon: 'car', label: 'My Garage' },
   { icon: 'file-alt', label: 'Document' },
   { icon: 'wallet', label: 'Expense' },
   { icon: 'parking', label: 'Valet' },
