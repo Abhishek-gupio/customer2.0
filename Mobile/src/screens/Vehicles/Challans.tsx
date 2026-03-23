@@ -169,9 +169,7 @@ const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void })
                 <View style={styles.titleContainer}>
                     <Text style={styles.headerTitle}>Traffic Challans</Text>
                 </View>
-                <TouchableOpacity onPress={() => fetchChallans(true)} style={styles.syncBtn}>
-                    <RefreshCcw size={20} color={COLORS.primary} />
-                </TouchableOpacity>
+                <View style={{ width: 44 }} />
             </View>
 
             <ScrollView 
