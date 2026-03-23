@@ -31,6 +31,7 @@ export type RootStackParamList = {
   DrivingSummary: undefined;
   DrivingTimeline: undefined;
   TripDetail: { tripId: string };
+  Alerts: undefined;
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
 };

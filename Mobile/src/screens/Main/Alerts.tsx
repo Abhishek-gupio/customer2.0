@@ -158,7 +158,7 @@ export default function Alerts() {
     const descLower = item.description.toLowerCase();
 
     if (item.type === 'odometer' || titleLower.includes('odometer')) {
-      navigation.navigate('Odometer');
+      navigation.navigate('Main', { screen: 'Odometer' });
     } else if (item.type === 'maintenance' || item.type === 'service' || descLower.includes('overdue')) {
       navigation.navigate('WarrantyStatus');
     } else if (item.type === 'expense' || titleLower.includes('spending') || titleLower.includes('expense')) {

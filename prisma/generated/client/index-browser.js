@@ -516,8 +516,7 @@ exports.Prisma.EmergencyContactScalarFieldEnum = {
   relation: 'relation',
   priority: 'priority',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  email: 'email'
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SupportTicketScalarFieldEnum = {
