@@ -31,10 +31,8 @@ export type RootStackParamList = {
   DrivingSummary: undefined;
   DrivingTimeline: undefined;
   TripDetail: { tripId: string };
-  SOSButton: undefined;
-  Alerts: undefined;
-  Odometer: undefined;
-  // AiBotChat: undefined;
+  SOS: undefined;
+  ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
 };
 
 export type MainTabParamList = {

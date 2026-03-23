@@ -36,13 +36,11 @@ import DrivingSummary from '../screens/Telematics/DrivingSummary';
 import DrivingTimeline from '../screens/Telematics/DrivingTimeline';
 import TripDetail from '../screens/Telematics/TripDetail';
 import SOSButton from '../components/SOSButton';
+import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function MainScreen() {
-  return <MainBottomTabs />;
-}
 
 export function RootNavigator() {
   return (
@@ -70,7 +68,7 @@ export function RootNavigator() {
       <Stack.Screen name="VehicleDetails" component={GupioGarageApp} />
       <Stack.Screen name="AddVehicle" component={GupioGarageApp} />
       <Stack.Screen name="Challans" component={Challans} />
-      <Stack.Screen name="Main" component={MainScreen} />
+      <Stack.Screen name="Main" component={MainBottomTabs} />
       <Stack.Screen name="Expenses" component={ExpensesList} />
       <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
@@ -89,9 +87,9 @@ export function RootNavigator() {
 
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
       <Stack.Screen name="DrivingTimeline" component={DrivingTimeline} />
-      <Stack.Screen name="TripDetail" component={TripDetail} />
-      <Stack.Screen name="SOSButton" component={SOSButton} />
-      <Stack.Screen name="Alerts" component={Alerts} />
+      {/* <Stack.Screen name="TripDetail" component={TripDetail} /> */}
+      <Stack.Screen name="SOS" component={SOSButton} />
+      <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
     </Stack.Navigator>
   );
 }

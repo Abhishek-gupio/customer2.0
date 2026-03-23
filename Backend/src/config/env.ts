@@ -26,7 +26,7 @@ const envSchema = z.object({
 
   // SMS Service
   SMS_SERVICE: z
-    .enum(["MOCK", "GMAIL", "GUPIO", "TWILIO"])
+    .enum(["MOCK", "GMAIL", "GUPIO", "TWILIO", "SMTP"])
     .default("MOCK"),
   FLASH49_USERNAME: z.string().optional(),
   FLASH49_PASSWORD: z.string().optional(),
@@ -34,9 +34,20 @@ const envSchema = z.object({
   FLASH49_DLT_CONTENT_ID: z.string().optional(),
   GMAIL_USER: z.string().optional(),
   GMAIL_APP_PASSWORD: z.string().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_SECURE: z.string().optional().transform(v => v === 'true'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM_NAME: z.string().optional(),
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_PHONE_NUMBER: z.string().optional(),
+
+  // OpenRouter
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_MODEL: z.string().optional(),
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
 
   // Storage
   AWS_S3_BUCKET: z.string().optional(),

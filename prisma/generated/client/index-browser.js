@@ -512,6 +512,7 @@ exports.Prisma.EmergencyContactScalarFieldEnum = {
   customerId: 'customerId',
   name: 'name',
   phoneNumber: 'phoneNumber',
+  email: 'email',
   relation: 'relation',
   priority: 'priority',
   createdAt: 'createdAt',
@@ -1260,6 +1261,7 @@ exports.SOSStatus = exports.$Enums.SOSStatus = {
 exports.SOSType = exports.$Enums.SOSType = {
   MEDICAL: 'MEDICAL',
   POLICE: 'POLICE',
+  FIRE: 'FIRE',
   MECHANICAL: 'MECHANICAL',
   ACCIDENT: 'ACCIDENT',
   OTHER: 'OTHER'

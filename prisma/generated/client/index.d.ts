@@ -491,6 +491,7 @@ export type SOSStatus = (typeof SOSStatus)[keyof typeof SOSStatus]
 export const SOSType: {
   MEDICAL: 'MEDICAL',
   POLICE: 'POLICE',
+  FIRE: 'FIRE',
   MECHANICAL: 'MECHANICAL',
   ACCIDENT: 'ACCIDENT',
   OTHER: 'OTHER'
@@ -2471,7 +2472,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -40744,11 +40745,11 @@ export namespace Prisma {
     customerId: string | null
     name: string | null
     phoneNumber: string | null
+    email: string | null
     relation: string | null
     priority: number | null
     createdAt: Date | null
     updatedAt: Date | null
-    email: string | null
   }
 
   export type EmergencyContactMaxAggregateOutputType = {
@@ -40756,11 +40757,11 @@ export namespace Prisma {
     customerId: string | null
     name: string | null
     phoneNumber: string | null
+    email: string | null
     relation: string | null
     priority: number | null
     createdAt: Date | null
     updatedAt: Date | null
-    email: string | null
   }
 
   export type EmergencyContactCountAggregateOutputType = {
@@ -40768,11 +40769,11 @@ export namespace Prisma {
     customerId: number
     name: number
     phoneNumber: number
+    email: number
     relation: number
     priority: number
     createdAt: number
     updatedAt: number
-    email: number
     _all: number
   }
 
@@ -40790,11 +40791,11 @@ export namespace Prisma {
     customerId?: true
     name?: true
     phoneNumber?: true
+    email?: true
     relation?: true
     priority?: true
     createdAt?: true
     updatedAt?: true
-    email?: true
   }
 
   export type EmergencyContactMaxAggregateInputType = {
@@ -40802,11 +40803,11 @@ export namespace Prisma {
     customerId?: true
     name?: true
     phoneNumber?: true
+    email?: true
     relation?: true
     priority?: true
     createdAt?: true
     updatedAt?: true
-    email?: true
   }
 
   export type EmergencyContactCountAggregateInputType = {
@@ -40814,11 +40815,11 @@ export namespace Prisma {
     customerId?: true
     name?: true
     phoneNumber?: true
+    email?: true
     relation?: true
     priority?: true
     createdAt?: true
     updatedAt?: true
-    email?: true
     _all?: true
   }
 
@@ -40913,11 +40914,11 @@ export namespace Prisma {
     customerId: string
     name: string
     phoneNumber: string
+    email: string | null
     relation: string | null
     priority: number
     createdAt: Date
     updatedAt: Date
-    email: string | null
     _count: EmergencyContactCountAggregateOutputType | null
     _avg: EmergencyContactAvgAggregateOutputType | null
     _sum: EmergencyContactSumAggregateOutputType | null
@@ -40944,11 +40945,11 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    email?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["emergencyContact"]>
 
@@ -40957,11 +40958,11 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    email?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["emergencyContact"]>
 
@@ -40970,11 +40971,11 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    email?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["emergencyContact"]>
 
@@ -40983,14 +40984,14 @@ export namespace Prisma {
     customerId?: boolean
     name?: boolean
     phoneNumber?: boolean
+    email?: boolean
     relation?: boolean
     priority?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    email?: boolean
   }
 
-  export type EmergencyContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "name" | "phoneNumber" | "relation" | "priority" | "createdAt" | "updatedAt" | "email", ExtArgs["result"]["emergencyContact"]>
+  export type EmergencyContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "name" | "phoneNumber" | "email" | "relation" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["emergencyContact"]>
   export type EmergencyContactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }
@@ -41011,11 +41012,11 @@ export namespace Prisma {
       customerId: string
       name: string
       phoneNumber: string
+      email: string | null
       relation: string | null
       priority: number
       createdAt: Date
       updatedAt: Date
-      email: string | null
     }, ExtArgs["result"]["emergencyContact"]>
     composites: {}
   }
@@ -41444,11 +41445,11 @@ export namespace Prisma {
     readonly customerId: FieldRef<"EmergencyContact", 'String'>
     readonly name: FieldRef<"EmergencyContact", 'String'>
     readonly phoneNumber: FieldRef<"EmergencyContact", 'String'>
+    readonly email: FieldRef<"EmergencyContact", 'String'>
     readonly relation: FieldRef<"EmergencyContact", 'String'>
     readonly priority: FieldRef<"EmergencyContact", 'Int'>
     readonly createdAt: FieldRef<"EmergencyContact", 'DateTime'>
     readonly updatedAt: FieldRef<"EmergencyContact", 'DateTime'>
-    readonly email: FieldRef<"EmergencyContact", 'String'>
   }
     
 
@@ -93413,11 +93414,11 @@ export namespace Prisma {
     customerId: 'customerId',
     name: 'name',
     phoneNumber: 'phoneNumber',
+    email: 'email',
     relation: 'relation',
     priority: 'priority',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt',
-    email: 'email'
+    updatedAt: 'updatedAt'
   };
 
   export type EmergencyContactScalarFieldEnum = (typeof EmergencyContactScalarFieldEnum)[keyof typeof EmergencyContactScalarFieldEnum]
@@ -97482,11 +97483,11 @@ export namespace Prisma {
     customerId?: StringFilter<"EmergencyContact"> | string
     name?: StringFilter<"EmergencyContact"> | string
     phoneNumber?: StringFilter<"EmergencyContact"> | string
+    email?: StringNullableFilter<"EmergencyContact"> | string | null
     relation?: StringNullableFilter<"EmergencyContact"> | string | null
     priority?: IntFilter<"EmergencyContact"> | number
     createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
     updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
-    email?: StringNullableFilter<"EmergencyContact"> | string | null
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
   }
 
@@ -97495,11 +97496,11 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
     relation?: SortOrderInput | SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    email?: SortOrderInput | SortOrder
     customer?: CustomerOrderByWithRelationInput
   }
 
@@ -97511,11 +97512,11 @@ export namespace Prisma {
     customerId?: StringFilter<"EmergencyContact"> | string
     name?: StringFilter<"EmergencyContact"> | string
     phoneNumber?: StringFilter<"EmergencyContact"> | string
+    email?: StringNullableFilter<"EmergencyContact"> | string | null
     relation?: StringNullableFilter<"EmergencyContact"> | string | null
     priority?: IntFilter<"EmergencyContact"> | number
     createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
     updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
-    email?: StringNullableFilter<"EmergencyContact"> | string | null
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
   }, "id">
 
@@ -97524,11 +97525,11 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
     relation?: SortOrderInput | SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    email?: SortOrderInput | SortOrder
     _count?: EmergencyContactCountOrderByAggregateInput
     _avg?: EmergencyContactAvgOrderByAggregateInput
     _max?: EmergencyContactMaxOrderByAggregateInput
@@ -97544,11 +97545,11 @@ export namespace Prisma {
     customerId?: StringWithAggregatesFilter<"EmergencyContact"> | string
     name?: StringWithAggregatesFilter<"EmergencyContact"> | string
     phoneNumber?: StringWithAggregatesFilter<"EmergencyContact"> | string
+    email?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
     relation?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
     priority?: IntWithAggregatesFilter<"EmergencyContact"> | number
     createdAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EmergencyContact"> | Date | string
-    email?: StringNullableWithAggregatesFilter<"EmergencyContact"> | string | null
   }
 
   export type SupportTicketWhereInput = {
@@ -104314,11 +104315,11 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    email?: string | null
     customer: CustomerCreateNestedOneWithoutEmergencyContactsInput
   }
 
@@ -104327,22 +104328,22 @@ export namespace Prisma {
     customerId: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    email?: string | null
   }
 
   export type EmergencyContactUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
     customer?: CustomerUpdateOneRequiredWithoutEmergencyContactsNestedInput
   }
 
@@ -104351,11 +104352,11 @@ export namespace Prisma {
     customerId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactCreateManyInput = {
@@ -104363,22 +104364,22 @@ export namespace Prisma {
     customerId: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    email?: string | null
   }
 
   export type EmergencyContactUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUncheckedUpdateManyInput = {
@@ -104386,11 +104387,11 @@ export namespace Prisma {
     customerId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type SupportTicketCreateInput = {
@@ -111001,11 +111002,11 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrder
     relation?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    email?: SortOrder
   }
 
   export type EmergencyContactAvgOrderByAggregateInput = {
@@ -111017,11 +111018,11 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrder
     relation?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    email?: SortOrder
   }
 
   export type EmergencyContactMinOrderByAggregateInput = {
@@ -111029,11 +111030,11 @@ export namespace Prisma {
     customerId?: SortOrder
     name?: SortOrder
     phoneNumber?: SortOrder
+    email?: SortOrder
     relation?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    email?: SortOrder
   }
 
   export type EmergencyContactSumOrderByAggregateInput = {
@@ -120108,22 +120109,22 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    email?: string | null
   }
 
   export type EmergencyContactUncheckedCreateWithoutCustomerInput = {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    email?: string | null
   }
 
   export type EmergencyContactCreateOrConnectWithoutCustomerInput = {
@@ -120645,11 +120646,11 @@ export namespace Prisma {
     customerId?: StringFilter<"EmergencyContact"> | string
     name?: StringFilter<"EmergencyContact"> | string
     phoneNumber?: StringFilter<"EmergencyContact"> | string
+    email?: StringNullableFilter<"EmergencyContact"> | string | null
     relation?: StringNullableFilter<"EmergencyContact"> | string | null
     priority?: IntFilter<"EmergencyContact"> | number
     createdAt?: DateTimeFilter<"EmergencyContact"> | Date | string
     updatedAt?: DateTimeFilter<"EmergencyContact"> | Date | string
-    email?: StringNullableFilter<"EmergencyContact"> | string | null
   }
 
   export type ExpenseUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -136871,11 +136872,11 @@ export namespace Prisma {
     id?: string
     name: string
     phoneNumber: string
+    email?: string | null
     relation?: string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    email?: string | null
   }
 
   export type ExpenseCreateManyCustomerInput = {
@@ -137259,33 +137260,33 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUncheckedUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUncheckedUpdateManyWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     relation?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ExpenseUpdateWithoutCustomerInput = {

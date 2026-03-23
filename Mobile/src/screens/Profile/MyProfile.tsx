@@ -943,7 +943,7 @@ export default function MyProfile() {
             <MenuRow
               icon="phone-alt"
               label="SOS Emergency"
-              onPress={() => handleMenuPress('SOSButton')}
+              onPress={() => handleMenuPress('SOS')}
               color="#FFD700"
               bgColor="rgba(255, 215, 0, 0.1)"
             />
