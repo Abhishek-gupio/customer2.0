@@ -8,6 +8,7 @@ export type RootStackParamList = {
   OTP: { phone?: string; otp?: string; otpExpiresIn?: number };
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
+  Valet: undefined;
   DocumentList: undefined;
   VehicleList: undefined;
   VehicleDetails: { vehicleId: string };

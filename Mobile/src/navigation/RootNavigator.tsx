@@ -38,6 +38,7 @@ import TripDetail from '../screens/Telematics/TripDetail';
 import SOSButton from '../components/SOSButton';
 import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
+import ValetService from '../screens/Main/ValetService';
 import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -70,6 +71,7 @@ export function RootNavigator() {
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
       <Stack.Screen name="DocumentList" component={DocumentList} />
+      <Stack.Screen name="Valet" component={ValetService} />
 
       {/* All vehicle screens are handled internally by GupioGarageApp */}
       <Stack.Screen name="VehicleList" component={GupioGarageApp} />

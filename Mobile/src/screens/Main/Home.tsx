@@ -605,7 +605,7 @@ export default function Home() {
             } else if (label === 'Expense') {
               navigateToRootScreen('Expenses');
             } else if (label === 'Valet') {
-              navigateToRootScreen('VehicleList');
+              navigateToRootScreen('Valet');
             } else if (label === 'Service') {
               navigation.navigate('Services' as any, { screen: 'ServicesHome' });
             } else if (label === 'Driving') {
