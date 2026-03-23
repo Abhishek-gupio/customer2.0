@@ -1,2 +1,0 @@
-// Constants - Gupio plan
-export {};

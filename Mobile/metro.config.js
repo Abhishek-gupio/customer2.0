@@ -14,6 +14,10 @@ const config = {
   projectRoot,
   watchFolders: [monorepoRoot],
   resolver: {
+    nodeModulesPaths: [
+      path.resolve(projectRoot, 'node_modules'),
+      path.resolve(monorepoRoot, 'node_modules'),
+    ],
     unstable_enableSymlinks: true,
     unstable_enablePackageExports: true,
   },
