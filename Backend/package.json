@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "tsc --noEmit",
+    "vehicle:image:ingest": "ts-node scripts/vehicle-image-ingest.ts",
+    "vehicle:catalog:image:ingest": "ts-node scripts/vehicle-catalog-image-ingest.ts",
     "demo:damoov": "node scripts/demo-damoov-100km.js",
     "test:telematics-full-flow": "ts-node scripts/test-telematics-full-flow.ts"
   },

@@ -187,6 +187,53 @@ model CustomerVehicle {
 }
 
 
+enum VehicleAssetType {
+  HERO
+  ANGLE
+
+  @@schema("customer")
+}
+
+model VehicleCatalog {
+  id             String   @id @default(cuid())
+  vehicleType   String
+  make           String
+  model          String
+  variant        String?
+  normalizedKey String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assets VehicleAsset[]
+
+  @@index([vehicleType])
+  @@index([make])
+  @@index([model])
+  @@schema("customer")
+}
+
+model VehicleAsset {
+  id         String           @id @default(cuid())
+  catalogId  String
+  type       VehicleAssetType
+  assetIndex Int             @default(0) // HERO => 0, ANGLE => 0..11
+  assetUrl   String
+  assetHash  String?
+  mimeType   String?
+  s3Key      String?
+  source     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  catalog VehicleCatalog @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+
+  @@unique([catalogId, type, assetIndex])
+  @@index([catalogId, type])
+  @@schema("customer")
+}
+
 
 model OdometerLog {
   id        String          @id @default(cuid())

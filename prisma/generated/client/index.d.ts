@@ -49,6 +49,16 @@ export type DigiLockerConnection = $Result.DefaultSelection<Prisma.$DigiLockerCo
  */
 export type CustomerVehicle = $Result.DefaultSelection<Prisma.$CustomerVehiclePayload>
 /**
+ * Model VehicleCatalog
+ * 
+ */
+export type VehicleCatalog = $Result.DefaultSelection<Prisma.$VehicleCatalogPayload>
+/**
+ * Model VehicleAsset
+ * 
+ */
+export type VehicleAsset = $Result.DefaultSelection<Prisma.$VehicleAssetPayload>
+/**
  * Model OdometerLog
  * 
  */
@@ -380,6 +390,14 @@ export namespace $Enums {
 };
 
 export type AdminRole = (typeof AdminRole)[keyof typeof AdminRole]
+
+
+export const VehicleAssetType: {
+  HERO: 'HERO',
+  ANGLE: 'ANGLE'
+};
+
+export type VehicleAssetType = (typeof VehicleAssetType)[keyof typeof VehicleAssetType]
 
 
 export const DocumentType: {
@@ -918,6 +936,10 @@ export type AdminRole = $Enums.AdminRole
 
 export const AdminRole: typeof $Enums.AdminRole
 
+export type VehicleAssetType = $Enums.VehicleAssetType
+
+export const VehicleAssetType: typeof $Enums.VehicleAssetType
+
 export type DocumentType = $Enums.DocumentType
 
 export const DocumentType: typeof $Enums.DocumentType
@@ -1312,6 +1334,26 @@ export class PrismaClient<
     * ```
     */
   get customerVehicle(): Prisma.CustomerVehicleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.vehicleCatalog`: Exposes CRUD operations for the **VehicleCatalog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VehicleCatalogs
+    * const vehicleCatalogs = await prisma.vehicleCatalog.findMany()
+    * ```
+    */
+  get vehicleCatalog(): Prisma.VehicleCatalogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.vehicleAsset`: Exposes CRUD operations for the **VehicleAsset** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VehicleAssets
+    * const vehicleAssets = await prisma.vehicleAsset.findMany()
+    * ```
+    */
+  get vehicleAsset(): Prisma.VehicleAssetDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.odometerLog`: Exposes CRUD operations for the **OdometerLog** model.
@@ -2393,6 +2435,8 @@ export namespace Prisma {
     CustomerDocument: 'CustomerDocument',
     DigiLockerConnection: 'DigiLockerConnection',
     CustomerVehicle: 'CustomerVehicle',
+    VehicleCatalog: 'VehicleCatalog',
+    VehicleAsset: 'VehicleAsset',
     OdometerLog: 'OdometerLog',
     Challan: 'Challan',
     VehicleAccess: 'VehicleAccess',
@@ -2472,7 +2516,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2991,6 +3035,154 @@ export namespace Prisma {
           count: {
             args: Prisma.CustomerVehicleCountArgs<ExtArgs>
             result: $Utils.Optional<CustomerVehicleCountAggregateOutputType> | number
+          }
+        }
+      }
+      VehicleCatalog: {
+        payload: Prisma.$VehicleCatalogPayload<ExtArgs>
+        fields: Prisma.VehicleCatalogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VehicleCatalogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VehicleCatalogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>
+          }
+          findFirst: {
+            args: Prisma.VehicleCatalogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VehicleCatalogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>
+          }
+          findMany: {
+            args: Prisma.VehicleCatalogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>[]
+          }
+          create: {
+            args: Prisma.VehicleCatalogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>
+          }
+          createMany: {
+            args: Prisma.VehicleCatalogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VehicleCatalogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>[]
+          }
+          delete: {
+            args: Prisma.VehicleCatalogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>
+          }
+          update: {
+            args: Prisma.VehicleCatalogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>
+          }
+          deleteMany: {
+            args: Prisma.VehicleCatalogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VehicleCatalogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VehicleCatalogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>[]
+          }
+          upsert: {
+            args: Prisma.VehicleCatalogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleCatalogPayload>
+          }
+          aggregate: {
+            args: Prisma.VehicleCatalogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVehicleCatalog>
+          }
+          groupBy: {
+            args: Prisma.VehicleCatalogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VehicleCatalogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VehicleCatalogCountArgs<ExtArgs>
+            result: $Utils.Optional<VehicleCatalogCountAggregateOutputType> | number
+          }
+        }
+      }
+      VehicleAsset: {
+        payload: Prisma.$VehicleAssetPayload<ExtArgs>
+        fields: Prisma.VehicleAssetFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VehicleAssetFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VehicleAssetFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>
+          }
+          findFirst: {
+            args: Prisma.VehicleAssetFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VehicleAssetFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>
+          }
+          findMany: {
+            args: Prisma.VehicleAssetFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>[]
+          }
+          create: {
+            args: Prisma.VehicleAssetCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>
+          }
+          createMany: {
+            args: Prisma.VehicleAssetCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VehicleAssetCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>[]
+          }
+          delete: {
+            args: Prisma.VehicleAssetDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>
+          }
+          update: {
+            args: Prisma.VehicleAssetUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>
+          }
+          deleteMany: {
+            args: Prisma.VehicleAssetDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VehicleAssetUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VehicleAssetUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>[]
+          }
+          upsert: {
+            args: Prisma.VehicleAssetUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleAssetPayload>
+          }
+          aggregate: {
+            args: Prisma.VehicleAssetAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVehicleAsset>
+          }
+          groupBy: {
+            args: Prisma.VehicleAssetGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VehicleAssetGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VehicleAssetCountArgs<ExtArgs>
+            result: $Utils.Optional<VehicleAssetCountAggregateOutputType> | number
           }
         }
       }
@@ -7845,6 +8037,8 @@ export namespace Prisma {
     customerDocument?: CustomerDocumentOmit
     digiLockerConnection?: DigiLockerConnectionOmit
     customerVehicle?: CustomerVehicleOmit
+    vehicleCatalog?: VehicleCatalogOmit
+    vehicleAsset?: VehicleAssetOmit
     odometerLog?: OdometerLogOmit
     challan?: ChallanOmit
     vehicleAccess?: VehicleAccessOmit
@@ -8196,6 +8390,37 @@ export namespace Prisma {
    */
   export type CustomerVehicleCountOutputTypeCountAccessListArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VehicleAccessWhereInput
+  }
+
+
+  /**
+   * Count Type VehicleCatalogCountOutputType
+   */
+
+  export type VehicleCatalogCountOutputType = {
+    assets: number
+  }
+
+  export type VehicleCatalogCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    assets?: boolean | VehicleCatalogCountOutputTypeCountAssetsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * VehicleCatalogCountOutputType without action
+   */
+  export type VehicleCatalogCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalogCountOutputType
+     */
+    select?: VehicleCatalogCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * VehicleCatalogCountOutputType without action
+   */
+  export type VehicleCatalogCountOutputTypeCountAssetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VehicleAssetWhereInput
   }
 
 
@@ -17862,6 +18087,2285 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CustomerVehicleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model VehicleCatalog
+   */
+
+  export type AggregateVehicleCatalog = {
+    _count: VehicleCatalogCountAggregateOutputType | null
+    _min: VehicleCatalogMinAggregateOutputType | null
+    _max: VehicleCatalogMaxAggregateOutputType | null
+  }
+
+  export type VehicleCatalogMinAggregateOutputType = {
+    id: string | null
+    vehicleType: string | null
+    make: string | null
+    model: string | null
+    variant: string | null
+    normalizedKey: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VehicleCatalogMaxAggregateOutputType = {
+    id: string | null
+    vehicleType: string | null
+    make: string | null
+    model: string | null
+    variant: string | null
+    normalizedKey: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VehicleCatalogCountAggregateOutputType = {
+    id: number
+    vehicleType: number
+    make: number
+    model: number
+    variant: number
+    normalizedKey: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VehicleCatalogMinAggregateInputType = {
+    id?: true
+    vehicleType?: true
+    make?: true
+    model?: true
+    variant?: true
+    normalizedKey?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VehicleCatalogMaxAggregateInputType = {
+    id?: true
+    vehicleType?: true
+    make?: true
+    model?: true
+    variant?: true
+    normalizedKey?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VehicleCatalogCountAggregateInputType = {
+    id?: true
+    vehicleType?: true
+    make?: true
+    model?: true
+    variant?: true
+    normalizedKey?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VehicleCatalogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VehicleCatalog to aggregate.
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleCatalogs to fetch.
+     */
+    orderBy?: VehicleCatalogOrderByWithRelationInput | VehicleCatalogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VehicleCatalogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleCatalogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleCatalogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VehicleCatalogs
+    **/
+    _count?: true | VehicleCatalogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VehicleCatalogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VehicleCatalogMaxAggregateInputType
+  }
+
+  export type GetVehicleCatalogAggregateType<T extends VehicleCatalogAggregateArgs> = {
+        [P in keyof T & keyof AggregateVehicleCatalog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVehicleCatalog[P]>
+      : GetScalarType<T[P], AggregateVehicleCatalog[P]>
+  }
+
+
+
+
+  export type VehicleCatalogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VehicleCatalogWhereInput
+    orderBy?: VehicleCatalogOrderByWithAggregationInput | VehicleCatalogOrderByWithAggregationInput[]
+    by: VehicleCatalogScalarFieldEnum[] | VehicleCatalogScalarFieldEnum
+    having?: VehicleCatalogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VehicleCatalogCountAggregateInputType | true
+    _min?: VehicleCatalogMinAggregateInputType
+    _max?: VehicleCatalogMaxAggregateInputType
+  }
+
+  export type VehicleCatalogGroupByOutputType = {
+    id: string
+    vehicleType: string
+    make: string
+    model: string
+    variant: string | null
+    normalizedKey: string
+    createdAt: Date
+    updatedAt: Date
+    _count: VehicleCatalogCountAggregateOutputType | null
+    _min: VehicleCatalogMinAggregateOutputType | null
+    _max: VehicleCatalogMaxAggregateOutputType | null
+  }
+
+  type GetVehicleCatalogGroupByPayload<T extends VehicleCatalogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VehicleCatalogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VehicleCatalogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VehicleCatalogGroupByOutputType[P]>
+            : GetScalarType<T[P], VehicleCatalogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VehicleCatalogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleType?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    normalizedKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    assets?: boolean | VehicleCatalog$assetsArgs<ExtArgs>
+    _count?: boolean | VehicleCatalogCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleCatalog"]>
+
+  export type VehicleCatalogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleType?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    normalizedKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["vehicleCatalog"]>
+
+  export type VehicleCatalogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleType?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    normalizedKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["vehicleCatalog"]>
+
+  export type VehicleCatalogSelectScalar = {
+    id?: boolean
+    vehicleType?: boolean
+    make?: boolean
+    model?: boolean
+    variant?: boolean
+    normalizedKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type VehicleCatalogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleType" | "make" | "model" | "variant" | "normalizedKey" | "createdAt" | "updatedAt", ExtArgs["result"]["vehicleCatalog"]>
+  export type VehicleCatalogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    assets?: boolean | VehicleCatalog$assetsArgs<ExtArgs>
+    _count?: boolean | VehicleCatalogCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type VehicleCatalogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type VehicleCatalogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $VehicleCatalogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VehicleCatalog"
+    objects: {
+      assets: Prisma.$VehicleAssetPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      vehicleType: string
+      make: string
+      model: string
+      variant: string | null
+      normalizedKey: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["vehicleCatalog"]>
+    composites: {}
+  }
+
+  type VehicleCatalogGetPayload<S extends boolean | null | undefined | VehicleCatalogDefaultArgs> = $Result.GetResult<Prisma.$VehicleCatalogPayload, S>
+
+  type VehicleCatalogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VehicleCatalogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VehicleCatalogCountAggregateInputType | true
+    }
+
+  export interface VehicleCatalogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VehicleCatalog'], meta: { name: 'VehicleCatalog' } }
+    /**
+     * Find zero or one VehicleCatalog that matches the filter.
+     * @param {VehicleCatalogFindUniqueArgs} args - Arguments to find a VehicleCatalog
+     * @example
+     * // Get one VehicleCatalog
+     * const vehicleCatalog = await prisma.vehicleCatalog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VehicleCatalogFindUniqueArgs>(args: SelectSubset<T, VehicleCatalogFindUniqueArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VehicleCatalog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VehicleCatalogFindUniqueOrThrowArgs} args - Arguments to find a VehicleCatalog
+     * @example
+     * // Get one VehicleCatalog
+     * const vehicleCatalog = await prisma.vehicleCatalog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VehicleCatalogFindUniqueOrThrowArgs>(args: SelectSubset<T, VehicleCatalogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VehicleCatalog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogFindFirstArgs} args - Arguments to find a VehicleCatalog
+     * @example
+     * // Get one VehicleCatalog
+     * const vehicleCatalog = await prisma.vehicleCatalog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VehicleCatalogFindFirstArgs>(args?: SelectSubset<T, VehicleCatalogFindFirstArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VehicleCatalog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogFindFirstOrThrowArgs} args - Arguments to find a VehicleCatalog
+     * @example
+     * // Get one VehicleCatalog
+     * const vehicleCatalog = await prisma.vehicleCatalog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VehicleCatalogFindFirstOrThrowArgs>(args?: SelectSubset<T, VehicleCatalogFindFirstOrThrowArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VehicleCatalogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VehicleCatalogs
+     * const vehicleCatalogs = await prisma.vehicleCatalog.findMany()
+     * 
+     * // Get first 10 VehicleCatalogs
+     * const vehicleCatalogs = await prisma.vehicleCatalog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const vehicleCatalogWithIdOnly = await prisma.vehicleCatalog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VehicleCatalogFindManyArgs>(args?: SelectSubset<T, VehicleCatalogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VehicleCatalog.
+     * @param {VehicleCatalogCreateArgs} args - Arguments to create a VehicleCatalog.
+     * @example
+     * // Create one VehicleCatalog
+     * const VehicleCatalog = await prisma.vehicleCatalog.create({
+     *   data: {
+     *     // ... data to create a VehicleCatalog
+     *   }
+     * })
+     * 
+     */
+    create<T extends VehicleCatalogCreateArgs>(args: SelectSubset<T, VehicleCatalogCreateArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VehicleCatalogs.
+     * @param {VehicleCatalogCreateManyArgs} args - Arguments to create many VehicleCatalogs.
+     * @example
+     * // Create many VehicleCatalogs
+     * const vehicleCatalog = await prisma.vehicleCatalog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VehicleCatalogCreateManyArgs>(args?: SelectSubset<T, VehicleCatalogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VehicleCatalogs and returns the data saved in the database.
+     * @param {VehicleCatalogCreateManyAndReturnArgs} args - Arguments to create many VehicleCatalogs.
+     * @example
+     * // Create many VehicleCatalogs
+     * const vehicleCatalog = await prisma.vehicleCatalog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VehicleCatalogs and only return the `id`
+     * const vehicleCatalogWithIdOnly = await prisma.vehicleCatalog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VehicleCatalogCreateManyAndReturnArgs>(args?: SelectSubset<T, VehicleCatalogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VehicleCatalog.
+     * @param {VehicleCatalogDeleteArgs} args - Arguments to delete one VehicleCatalog.
+     * @example
+     * // Delete one VehicleCatalog
+     * const VehicleCatalog = await prisma.vehicleCatalog.delete({
+     *   where: {
+     *     // ... filter to delete one VehicleCatalog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VehicleCatalogDeleteArgs>(args: SelectSubset<T, VehicleCatalogDeleteArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VehicleCatalog.
+     * @param {VehicleCatalogUpdateArgs} args - Arguments to update one VehicleCatalog.
+     * @example
+     * // Update one VehicleCatalog
+     * const vehicleCatalog = await prisma.vehicleCatalog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VehicleCatalogUpdateArgs>(args: SelectSubset<T, VehicleCatalogUpdateArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VehicleCatalogs.
+     * @param {VehicleCatalogDeleteManyArgs} args - Arguments to filter VehicleCatalogs to delete.
+     * @example
+     * // Delete a few VehicleCatalogs
+     * const { count } = await prisma.vehicleCatalog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VehicleCatalogDeleteManyArgs>(args?: SelectSubset<T, VehicleCatalogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VehicleCatalogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VehicleCatalogs
+     * const vehicleCatalog = await prisma.vehicleCatalog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VehicleCatalogUpdateManyArgs>(args: SelectSubset<T, VehicleCatalogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VehicleCatalogs and returns the data updated in the database.
+     * @param {VehicleCatalogUpdateManyAndReturnArgs} args - Arguments to update many VehicleCatalogs.
+     * @example
+     * // Update many VehicleCatalogs
+     * const vehicleCatalog = await prisma.vehicleCatalog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VehicleCatalogs and only return the `id`
+     * const vehicleCatalogWithIdOnly = await prisma.vehicleCatalog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VehicleCatalogUpdateManyAndReturnArgs>(args: SelectSubset<T, VehicleCatalogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VehicleCatalog.
+     * @param {VehicleCatalogUpsertArgs} args - Arguments to update or create a VehicleCatalog.
+     * @example
+     * // Update or create a VehicleCatalog
+     * const vehicleCatalog = await prisma.vehicleCatalog.upsert({
+     *   create: {
+     *     // ... data to create a VehicleCatalog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VehicleCatalog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VehicleCatalogUpsertArgs>(args: SelectSubset<T, VehicleCatalogUpsertArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VehicleCatalogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogCountArgs} args - Arguments to filter VehicleCatalogs to count.
+     * @example
+     * // Count the number of VehicleCatalogs
+     * const count = await prisma.vehicleCatalog.count({
+     *   where: {
+     *     // ... the filter for the VehicleCatalogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends VehicleCatalogCountArgs>(
+      args?: Subset<T, VehicleCatalogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VehicleCatalogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VehicleCatalog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VehicleCatalogAggregateArgs>(args: Subset<T, VehicleCatalogAggregateArgs>): Prisma.PrismaPromise<GetVehicleCatalogAggregateType<T>>
+
+    /**
+     * Group by VehicleCatalog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleCatalogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VehicleCatalogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VehicleCatalogGroupByArgs['orderBy'] }
+        : { orderBy?: VehicleCatalogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VehicleCatalogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVehicleCatalogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VehicleCatalog model
+   */
+  readonly fields: VehicleCatalogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VehicleCatalog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VehicleCatalogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    assets<T extends VehicleCatalog$assetsArgs<ExtArgs> = {}>(args?: Subset<T, VehicleCatalog$assetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VehicleCatalog model
+   */
+  interface VehicleCatalogFieldRefs {
+    readonly id: FieldRef<"VehicleCatalog", 'String'>
+    readonly vehicleType: FieldRef<"VehicleCatalog", 'String'>
+    readonly make: FieldRef<"VehicleCatalog", 'String'>
+    readonly model: FieldRef<"VehicleCatalog", 'String'>
+    readonly variant: FieldRef<"VehicleCatalog", 'String'>
+    readonly normalizedKey: FieldRef<"VehicleCatalog", 'String'>
+    readonly createdAt: FieldRef<"VehicleCatalog", 'DateTime'>
+    readonly updatedAt: FieldRef<"VehicleCatalog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VehicleCatalog findUnique
+   */
+  export type VehicleCatalogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleCatalog to fetch.
+     */
+    where: VehicleCatalogWhereUniqueInput
+  }
+
+  /**
+   * VehicleCatalog findUniqueOrThrow
+   */
+  export type VehicleCatalogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleCatalog to fetch.
+     */
+    where: VehicleCatalogWhereUniqueInput
+  }
+
+  /**
+   * VehicleCatalog findFirst
+   */
+  export type VehicleCatalogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleCatalog to fetch.
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleCatalogs to fetch.
+     */
+    orderBy?: VehicleCatalogOrderByWithRelationInput | VehicleCatalogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VehicleCatalogs.
+     */
+    cursor?: VehicleCatalogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleCatalogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleCatalogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleCatalogs.
+     */
+    distinct?: VehicleCatalogScalarFieldEnum | VehicleCatalogScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleCatalog findFirstOrThrow
+   */
+  export type VehicleCatalogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleCatalog to fetch.
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleCatalogs to fetch.
+     */
+    orderBy?: VehicleCatalogOrderByWithRelationInput | VehicleCatalogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VehicleCatalogs.
+     */
+    cursor?: VehicleCatalogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleCatalogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleCatalogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleCatalogs.
+     */
+    distinct?: VehicleCatalogScalarFieldEnum | VehicleCatalogScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleCatalog findMany
+   */
+  export type VehicleCatalogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleCatalogs to fetch.
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleCatalogs to fetch.
+     */
+    orderBy?: VehicleCatalogOrderByWithRelationInput | VehicleCatalogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VehicleCatalogs.
+     */
+    cursor?: VehicleCatalogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleCatalogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleCatalogs.
+     */
+    skip?: number
+    distinct?: VehicleCatalogScalarFieldEnum | VehicleCatalogScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleCatalog create
+   */
+  export type VehicleCatalogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VehicleCatalog.
+     */
+    data: XOR<VehicleCatalogCreateInput, VehicleCatalogUncheckedCreateInput>
+  }
+
+  /**
+   * VehicleCatalog createMany
+   */
+  export type VehicleCatalogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VehicleCatalogs.
+     */
+    data: VehicleCatalogCreateManyInput | VehicleCatalogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VehicleCatalog createManyAndReturn
+   */
+  export type VehicleCatalogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * The data used to create many VehicleCatalogs.
+     */
+    data: VehicleCatalogCreateManyInput | VehicleCatalogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VehicleCatalog update
+   */
+  export type VehicleCatalogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VehicleCatalog.
+     */
+    data: XOR<VehicleCatalogUpdateInput, VehicleCatalogUncheckedUpdateInput>
+    /**
+     * Choose, which VehicleCatalog to update.
+     */
+    where: VehicleCatalogWhereUniqueInput
+  }
+
+  /**
+   * VehicleCatalog updateMany
+   */
+  export type VehicleCatalogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VehicleCatalogs.
+     */
+    data: XOR<VehicleCatalogUpdateManyMutationInput, VehicleCatalogUncheckedUpdateManyInput>
+    /**
+     * Filter which VehicleCatalogs to update
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * Limit how many VehicleCatalogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleCatalog updateManyAndReturn
+   */
+  export type VehicleCatalogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * The data used to update VehicleCatalogs.
+     */
+    data: XOR<VehicleCatalogUpdateManyMutationInput, VehicleCatalogUncheckedUpdateManyInput>
+    /**
+     * Filter which VehicleCatalogs to update
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * Limit how many VehicleCatalogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleCatalog upsert
+   */
+  export type VehicleCatalogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VehicleCatalog to update in case it exists.
+     */
+    where: VehicleCatalogWhereUniqueInput
+    /**
+     * In case the VehicleCatalog found by the `where` argument doesn't exist, create a new VehicleCatalog with this data.
+     */
+    create: XOR<VehicleCatalogCreateInput, VehicleCatalogUncheckedCreateInput>
+    /**
+     * In case the VehicleCatalog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VehicleCatalogUpdateInput, VehicleCatalogUncheckedUpdateInput>
+  }
+
+  /**
+   * VehicleCatalog delete
+   */
+  export type VehicleCatalogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+    /**
+     * Filter which VehicleCatalog to delete.
+     */
+    where: VehicleCatalogWhereUniqueInput
+  }
+
+  /**
+   * VehicleCatalog deleteMany
+   */
+  export type VehicleCatalogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VehicleCatalogs to delete
+     */
+    where?: VehicleCatalogWhereInput
+    /**
+     * Limit how many VehicleCatalogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleCatalog.assets
+   */
+  export type VehicleCatalog$assetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    where?: VehicleAssetWhereInput
+    orderBy?: VehicleAssetOrderByWithRelationInput | VehicleAssetOrderByWithRelationInput[]
+    cursor?: VehicleAssetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VehicleAssetScalarFieldEnum | VehicleAssetScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleCatalog without action
+   */
+  export type VehicleCatalogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleCatalog
+     */
+    select?: VehicleCatalogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleCatalog
+     */
+    omit?: VehicleCatalogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleCatalogInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model VehicleAsset
+   */
+
+  export type AggregateVehicleAsset = {
+    _count: VehicleAssetCountAggregateOutputType | null
+    _avg: VehicleAssetAvgAggregateOutputType | null
+    _sum: VehicleAssetSumAggregateOutputType | null
+    _min: VehicleAssetMinAggregateOutputType | null
+    _max: VehicleAssetMaxAggregateOutputType | null
+  }
+
+  export type VehicleAssetAvgAggregateOutputType = {
+    assetIndex: number | null
+  }
+
+  export type VehicleAssetSumAggregateOutputType = {
+    assetIndex: number | null
+  }
+
+  export type VehicleAssetMinAggregateOutputType = {
+    id: string | null
+    catalogId: string | null
+    type: $Enums.VehicleAssetType | null
+    assetIndex: number | null
+    assetUrl: string | null
+    assetHash: string | null
+    mimeType: string | null
+    s3Key: string | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VehicleAssetMaxAggregateOutputType = {
+    id: string | null
+    catalogId: string | null
+    type: $Enums.VehicleAssetType | null
+    assetIndex: number | null
+    assetUrl: string | null
+    assetHash: string | null
+    mimeType: string | null
+    s3Key: string | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VehicleAssetCountAggregateOutputType = {
+    id: number
+    catalogId: number
+    type: number
+    assetIndex: number
+    assetUrl: number
+    assetHash: number
+    mimeType: number
+    s3Key: number
+    source: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VehicleAssetAvgAggregateInputType = {
+    assetIndex?: true
+  }
+
+  export type VehicleAssetSumAggregateInputType = {
+    assetIndex?: true
+  }
+
+  export type VehicleAssetMinAggregateInputType = {
+    id?: true
+    catalogId?: true
+    type?: true
+    assetIndex?: true
+    assetUrl?: true
+    assetHash?: true
+    mimeType?: true
+    s3Key?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VehicleAssetMaxAggregateInputType = {
+    id?: true
+    catalogId?: true
+    type?: true
+    assetIndex?: true
+    assetUrl?: true
+    assetHash?: true
+    mimeType?: true
+    s3Key?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VehicleAssetCountAggregateInputType = {
+    id?: true
+    catalogId?: true
+    type?: true
+    assetIndex?: true
+    assetUrl?: true
+    assetHash?: true
+    mimeType?: true
+    s3Key?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VehicleAssetAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VehicleAsset to aggregate.
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleAssets to fetch.
+     */
+    orderBy?: VehicleAssetOrderByWithRelationInput | VehicleAssetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VehicleAssetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleAssets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleAssets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VehicleAssets
+    **/
+    _count?: true | VehicleAssetCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: VehicleAssetAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: VehicleAssetSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VehicleAssetMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VehicleAssetMaxAggregateInputType
+  }
+
+  export type GetVehicleAssetAggregateType<T extends VehicleAssetAggregateArgs> = {
+        [P in keyof T & keyof AggregateVehicleAsset]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVehicleAsset[P]>
+      : GetScalarType<T[P], AggregateVehicleAsset[P]>
+  }
+
+
+
+
+  export type VehicleAssetGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VehicleAssetWhereInput
+    orderBy?: VehicleAssetOrderByWithAggregationInput | VehicleAssetOrderByWithAggregationInput[]
+    by: VehicleAssetScalarFieldEnum[] | VehicleAssetScalarFieldEnum
+    having?: VehicleAssetScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VehicleAssetCountAggregateInputType | true
+    _avg?: VehicleAssetAvgAggregateInputType
+    _sum?: VehicleAssetSumAggregateInputType
+    _min?: VehicleAssetMinAggregateInputType
+    _max?: VehicleAssetMaxAggregateInputType
+  }
+
+  export type VehicleAssetGroupByOutputType = {
+    id: string
+    catalogId: string
+    type: $Enums.VehicleAssetType
+    assetIndex: number
+    assetUrl: string
+    assetHash: string | null
+    mimeType: string | null
+    s3Key: string | null
+    source: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: VehicleAssetCountAggregateOutputType | null
+    _avg: VehicleAssetAvgAggregateOutputType | null
+    _sum: VehicleAssetSumAggregateOutputType | null
+    _min: VehicleAssetMinAggregateOutputType | null
+    _max: VehicleAssetMaxAggregateOutputType | null
+  }
+
+  type GetVehicleAssetGroupByPayload<T extends VehicleAssetGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VehicleAssetGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VehicleAssetGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VehicleAssetGroupByOutputType[P]>
+            : GetScalarType<T[P], VehicleAssetGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VehicleAssetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    catalogId?: boolean
+    type?: boolean
+    assetIndex?: boolean
+    assetUrl?: boolean
+    assetHash?: boolean
+    mimeType?: boolean
+    s3Key?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    catalog?: boolean | VehicleCatalogDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleAsset"]>
+
+  export type VehicleAssetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    catalogId?: boolean
+    type?: boolean
+    assetIndex?: boolean
+    assetUrl?: boolean
+    assetHash?: boolean
+    mimeType?: boolean
+    s3Key?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    catalog?: boolean | VehicleCatalogDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleAsset"]>
+
+  export type VehicleAssetSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    catalogId?: boolean
+    type?: boolean
+    assetIndex?: boolean
+    assetUrl?: boolean
+    assetHash?: boolean
+    mimeType?: boolean
+    s3Key?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    catalog?: boolean | VehicleCatalogDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleAsset"]>
+
+  export type VehicleAssetSelectScalar = {
+    id?: boolean
+    catalogId?: boolean
+    type?: boolean
+    assetIndex?: boolean
+    assetUrl?: boolean
+    assetHash?: boolean
+    mimeType?: boolean
+    s3Key?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type VehicleAssetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "catalogId" | "type" | "assetIndex" | "assetUrl" | "assetHash" | "mimeType" | "s3Key" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["vehicleAsset"]>
+  export type VehicleAssetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    catalog?: boolean | VehicleCatalogDefaultArgs<ExtArgs>
+  }
+  export type VehicleAssetIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    catalog?: boolean | VehicleCatalogDefaultArgs<ExtArgs>
+  }
+  export type VehicleAssetIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    catalog?: boolean | VehicleCatalogDefaultArgs<ExtArgs>
+  }
+
+  export type $VehicleAssetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VehicleAsset"
+    objects: {
+      catalog: Prisma.$VehicleCatalogPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      catalogId: string
+      type: $Enums.VehicleAssetType
+      assetIndex: number
+      assetUrl: string
+      assetHash: string | null
+      mimeType: string | null
+      s3Key: string | null
+      source: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["vehicleAsset"]>
+    composites: {}
+  }
+
+  type VehicleAssetGetPayload<S extends boolean | null | undefined | VehicleAssetDefaultArgs> = $Result.GetResult<Prisma.$VehicleAssetPayload, S>
+
+  type VehicleAssetCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VehicleAssetFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VehicleAssetCountAggregateInputType | true
+    }
+
+  export interface VehicleAssetDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VehicleAsset'], meta: { name: 'VehicleAsset' } }
+    /**
+     * Find zero or one VehicleAsset that matches the filter.
+     * @param {VehicleAssetFindUniqueArgs} args - Arguments to find a VehicleAsset
+     * @example
+     * // Get one VehicleAsset
+     * const vehicleAsset = await prisma.vehicleAsset.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VehicleAssetFindUniqueArgs>(args: SelectSubset<T, VehicleAssetFindUniqueArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VehicleAsset that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VehicleAssetFindUniqueOrThrowArgs} args - Arguments to find a VehicleAsset
+     * @example
+     * // Get one VehicleAsset
+     * const vehicleAsset = await prisma.vehicleAsset.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VehicleAssetFindUniqueOrThrowArgs>(args: SelectSubset<T, VehicleAssetFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VehicleAsset that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetFindFirstArgs} args - Arguments to find a VehicleAsset
+     * @example
+     * // Get one VehicleAsset
+     * const vehicleAsset = await prisma.vehicleAsset.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VehicleAssetFindFirstArgs>(args?: SelectSubset<T, VehicleAssetFindFirstArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VehicleAsset that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetFindFirstOrThrowArgs} args - Arguments to find a VehicleAsset
+     * @example
+     * // Get one VehicleAsset
+     * const vehicleAsset = await prisma.vehicleAsset.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VehicleAssetFindFirstOrThrowArgs>(args?: SelectSubset<T, VehicleAssetFindFirstOrThrowArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VehicleAssets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VehicleAssets
+     * const vehicleAssets = await prisma.vehicleAsset.findMany()
+     * 
+     * // Get first 10 VehicleAssets
+     * const vehicleAssets = await prisma.vehicleAsset.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const vehicleAssetWithIdOnly = await prisma.vehicleAsset.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VehicleAssetFindManyArgs>(args?: SelectSubset<T, VehicleAssetFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VehicleAsset.
+     * @param {VehicleAssetCreateArgs} args - Arguments to create a VehicleAsset.
+     * @example
+     * // Create one VehicleAsset
+     * const VehicleAsset = await prisma.vehicleAsset.create({
+     *   data: {
+     *     // ... data to create a VehicleAsset
+     *   }
+     * })
+     * 
+     */
+    create<T extends VehicleAssetCreateArgs>(args: SelectSubset<T, VehicleAssetCreateArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VehicleAssets.
+     * @param {VehicleAssetCreateManyArgs} args - Arguments to create many VehicleAssets.
+     * @example
+     * // Create many VehicleAssets
+     * const vehicleAsset = await prisma.vehicleAsset.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VehicleAssetCreateManyArgs>(args?: SelectSubset<T, VehicleAssetCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VehicleAssets and returns the data saved in the database.
+     * @param {VehicleAssetCreateManyAndReturnArgs} args - Arguments to create many VehicleAssets.
+     * @example
+     * // Create many VehicleAssets
+     * const vehicleAsset = await prisma.vehicleAsset.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VehicleAssets and only return the `id`
+     * const vehicleAssetWithIdOnly = await prisma.vehicleAsset.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VehicleAssetCreateManyAndReturnArgs>(args?: SelectSubset<T, VehicleAssetCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VehicleAsset.
+     * @param {VehicleAssetDeleteArgs} args - Arguments to delete one VehicleAsset.
+     * @example
+     * // Delete one VehicleAsset
+     * const VehicleAsset = await prisma.vehicleAsset.delete({
+     *   where: {
+     *     // ... filter to delete one VehicleAsset
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VehicleAssetDeleteArgs>(args: SelectSubset<T, VehicleAssetDeleteArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VehicleAsset.
+     * @param {VehicleAssetUpdateArgs} args - Arguments to update one VehicleAsset.
+     * @example
+     * // Update one VehicleAsset
+     * const vehicleAsset = await prisma.vehicleAsset.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VehicleAssetUpdateArgs>(args: SelectSubset<T, VehicleAssetUpdateArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VehicleAssets.
+     * @param {VehicleAssetDeleteManyArgs} args - Arguments to filter VehicleAssets to delete.
+     * @example
+     * // Delete a few VehicleAssets
+     * const { count } = await prisma.vehicleAsset.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VehicleAssetDeleteManyArgs>(args?: SelectSubset<T, VehicleAssetDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VehicleAssets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VehicleAssets
+     * const vehicleAsset = await prisma.vehicleAsset.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VehicleAssetUpdateManyArgs>(args: SelectSubset<T, VehicleAssetUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VehicleAssets and returns the data updated in the database.
+     * @param {VehicleAssetUpdateManyAndReturnArgs} args - Arguments to update many VehicleAssets.
+     * @example
+     * // Update many VehicleAssets
+     * const vehicleAsset = await prisma.vehicleAsset.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VehicleAssets and only return the `id`
+     * const vehicleAssetWithIdOnly = await prisma.vehicleAsset.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VehicleAssetUpdateManyAndReturnArgs>(args: SelectSubset<T, VehicleAssetUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VehicleAsset.
+     * @param {VehicleAssetUpsertArgs} args - Arguments to update or create a VehicleAsset.
+     * @example
+     * // Update or create a VehicleAsset
+     * const vehicleAsset = await prisma.vehicleAsset.upsert({
+     *   create: {
+     *     // ... data to create a VehicleAsset
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VehicleAsset we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VehicleAssetUpsertArgs>(args: SelectSubset<T, VehicleAssetUpsertArgs<ExtArgs>>): Prisma__VehicleAssetClient<$Result.GetResult<Prisma.$VehicleAssetPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VehicleAssets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetCountArgs} args - Arguments to filter VehicleAssets to count.
+     * @example
+     * // Count the number of VehicleAssets
+     * const count = await prisma.vehicleAsset.count({
+     *   where: {
+     *     // ... the filter for the VehicleAssets we want to count
+     *   }
+     * })
+    **/
+    count<T extends VehicleAssetCountArgs>(
+      args?: Subset<T, VehicleAssetCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VehicleAssetCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VehicleAsset.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VehicleAssetAggregateArgs>(args: Subset<T, VehicleAssetAggregateArgs>): Prisma.PrismaPromise<GetVehicleAssetAggregateType<T>>
+
+    /**
+     * Group by VehicleAsset.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleAssetGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VehicleAssetGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VehicleAssetGroupByArgs['orderBy'] }
+        : { orderBy?: VehicleAssetGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VehicleAssetGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVehicleAssetGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VehicleAsset model
+   */
+  readonly fields: VehicleAssetFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VehicleAsset.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VehicleAssetClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    catalog<T extends VehicleCatalogDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VehicleCatalogDefaultArgs<ExtArgs>>): Prisma__VehicleCatalogClient<$Result.GetResult<Prisma.$VehicleCatalogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VehicleAsset model
+   */
+  interface VehicleAssetFieldRefs {
+    readonly id: FieldRef<"VehicleAsset", 'String'>
+    readonly catalogId: FieldRef<"VehicleAsset", 'String'>
+    readonly type: FieldRef<"VehicleAsset", 'VehicleAssetType'>
+    readonly assetIndex: FieldRef<"VehicleAsset", 'Int'>
+    readonly assetUrl: FieldRef<"VehicleAsset", 'String'>
+    readonly assetHash: FieldRef<"VehicleAsset", 'String'>
+    readonly mimeType: FieldRef<"VehicleAsset", 'String'>
+    readonly s3Key: FieldRef<"VehicleAsset", 'String'>
+    readonly source: FieldRef<"VehicleAsset", 'String'>
+    readonly createdAt: FieldRef<"VehicleAsset", 'DateTime'>
+    readonly updatedAt: FieldRef<"VehicleAsset", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VehicleAsset findUnique
+   */
+  export type VehicleAssetFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleAsset to fetch.
+     */
+    where: VehicleAssetWhereUniqueInput
+  }
+
+  /**
+   * VehicleAsset findUniqueOrThrow
+   */
+  export type VehicleAssetFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleAsset to fetch.
+     */
+    where: VehicleAssetWhereUniqueInput
+  }
+
+  /**
+   * VehicleAsset findFirst
+   */
+  export type VehicleAssetFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleAsset to fetch.
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleAssets to fetch.
+     */
+    orderBy?: VehicleAssetOrderByWithRelationInput | VehicleAssetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VehicleAssets.
+     */
+    cursor?: VehicleAssetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleAssets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleAssets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleAssets.
+     */
+    distinct?: VehicleAssetScalarFieldEnum | VehicleAssetScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleAsset findFirstOrThrow
+   */
+  export type VehicleAssetFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleAsset to fetch.
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleAssets to fetch.
+     */
+    orderBy?: VehicleAssetOrderByWithRelationInput | VehicleAssetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VehicleAssets.
+     */
+    cursor?: VehicleAssetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleAssets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleAssets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleAssets.
+     */
+    distinct?: VehicleAssetScalarFieldEnum | VehicleAssetScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleAsset findMany
+   */
+  export type VehicleAssetFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleAssets to fetch.
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleAssets to fetch.
+     */
+    orderBy?: VehicleAssetOrderByWithRelationInput | VehicleAssetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VehicleAssets.
+     */
+    cursor?: VehicleAssetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleAssets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleAssets.
+     */
+    skip?: number
+    distinct?: VehicleAssetScalarFieldEnum | VehicleAssetScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleAsset create
+   */
+  export type VehicleAssetCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VehicleAsset.
+     */
+    data: XOR<VehicleAssetCreateInput, VehicleAssetUncheckedCreateInput>
+  }
+
+  /**
+   * VehicleAsset createMany
+   */
+  export type VehicleAssetCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VehicleAssets.
+     */
+    data: VehicleAssetCreateManyInput | VehicleAssetCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VehicleAsset createManyAndReturn
+   */
+  export type VehicleAssetCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * The data used to create many VehicleAssets.
+     */
+    data: VehicleAssetCreateManyInput | VehicleAssetCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VehicleAsset update
+   */
+  export type VehicleAssetUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VehicleAsset.
+     */
+    data: XOR<VehicleAssetUpdateInput, VehicleAssetUncheckedUpdateInput>
+    /**
+     * Choose, which VehicleAsset to update.
+     */
+    where: VehicleAssetWhereUniqueInput
+  }
+
+  /**
+   * VehicleAsset updateMany
+   */
+  export type VehicleAssetUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VehicleAssets.
+     */
+    data: XOR<VehicleAssetUpdateManyMutationInput, VehicleAssetUncheckedUpdateManyInput>
+    /**
+     * Filter which VehicleAssets to update
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * Limit how many VehicleAssets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleAsset updateManyAndReturn
+   */
+  export type VehicleAssetUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * The data used to update VehicleAssets.
+     */
+    data: XOR<VehicleAssetUpdateManyMutationInput, VehicleAssetUncheckedUpdateManyInput>
+    /**
+     * Filter which VehicleAssets to update
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * Limit how many VehicleAssets to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VehicleAsset upsert
+   */
+  export type VehicleAssetUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VehicleAsset to update in case it exists.
+     */
+    where: VehicleAssetWhereUniqueInput
+    /**
+     * In case the VehicleAsset found by the `where` argument doesn't exist, create a new VehicleAsset with this data.
+     */
+    create: XOR<VehicleAssetCreateInput, VehicleAssetUncheckedCreateInput>
+    /**
+     * In case the VehicleAsset was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VehicleAssetUpdateInput, VehicleAssetUncheckedUpdateInput>
+  }
+
+  /**
+   * VehicleAsset delete
+   */
+  export type VehicleAssetDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
+    /**
+     * Filter which VehicleAsset to delete.
+     */
+    where: VehicleAssetWhereUniqueInput
+  }
+
+  /**
+   * VehicleAsset deleteMany
+   */
+  export type VehicleAssetDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VehicleAssets to delete
+     */
+    where?: VehicleAssetWhereInput
+    /**
+     * Limit how many VehicleAssets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleAsset without action
+   */
+  export type VehicleAssetDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleAsset
+     */
+    select?: VehicleAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleAsset
+     */
+    omit?: VehicleAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleAssetInclude<ExtArgs> | null
   }
 
 
@@ -93085,6 +95589,37 @@ export namespace Prisma {
   export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
 
 
+  export const VehicleCatalogScalarFieldEnum: {
+    id: 'id',
+    vehicleType: 'vehicleType',
+    make: 'make',
+    model: 'model',
+    variant: 'variant',
+    normalizedKey: 'normalizedKey',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VehicleCatalogScalarFieldEnum = (typeof VehicleCatalogScalarFieldEnum)[keyof typeof VehicleCatalogScalarFieldEnum]
+
+
+  export const VehicleAssetScalarFieldEnum: {
+    id: 'id',
+    catalogId: 'catalogId',
+    type: 'type',
+    assetIndex: 'assetIndex',
+    assetUrl: 'assetUrl',
+    assetHash: 'assetHash',
+    mimeType: 'mimeType',
+    s3Key: 's3Key',
+    source: 'source',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VehicleAssetScalarFieldEnum = (typeof VehicleAssetScalarFieldEnum)[keyof typeof VehicleAssetScalarFieldEnum]
+
+
   export const OdometerLogScalarFieldEnum: {
     id: 'id',
     vehicleId: 'vehicleId',
@@ -94360,6 +96895,20 @@ export namespace Prisma {
    * Reference to a field of type 'DigiLockerStatus[]'
    */
   export type ListEnumDigiLockerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigiLockerStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'VehicleAssetType'
+   */
+  export type EnumVehicleAssetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VehicleAssetType'>
+    
+
+
+  /**
+   * Reference to a field of type 'VehicleAssetType[]'
+   */
+  export type ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VehicleAssetType[]'>
     
 
 
@@ -95820,6 +98369,164 @@ export namespace Prisma {
     bodyType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     ownerAddress?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     permanentAddress?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+  }
+
+  export type VehicleCatalogWhereInput = {
+    AND?: VehicleCatalogWhereInput | VehicleCatalogWhereInput[]
+    OR?: VehicleCatalogWhereInput[]
+    NOT?: VehicleCatalogWhereInput | VehicleCatalogWhereInput[]
+    id?: StringFilter<"VehicleCatalog"> | string
+    vehicleType?: StringFilter<"VehicleCatalog"> | string
+    make?: StringFilter<"VehicleCatalog"> | string
+    model?: StringFilter<"VehicleCatalog"> | string
+    variant?: StringNullableFilter<"VehicleCatalog"> | string | null
+    normalizedKey?: StringFilter<"VehicleCatalog"> | string
+    createdAt?: DateTimeFilter<"VehicleCatalog"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleCatalog"> | Date | string
+    assets?: VehicleAssetListRelationFilter
+  }
+
+  export type VehicleCatalogOrderByWithRelationInput = {
+    id?: SortOrder
+    vehicleType?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrderInput | SortOrder
+    normalizedKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    assets?: VehicleAssetOrderByRelationAggregateInput
+  }
+
+  export type VehicleCatalogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    normalizedKey?: string
+    AND?: VehicleCatalogWhereInput | VehicleCatalogWhereInput[]
+    OR?: VehicleCatalogWhereInput[]
+    NOT?: VehicleCatalogWhereInput | VehicleCatalogWhereInput[]
+    vehicleType?: StringFilter<"VehicleCatalog"> | string
+    make?: StringFilter<"VehicleCatalog"> | string
+    model?: StringFilter<"VehicleCatalog"> | string
+    variant?: StringNullableFilter<"VehicleCatalog"> | string | null
+    createdAt?: DateTimeFilter<"VehicleCatalog"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleCatalog"> | Date | string
+    assets?: VehicleAssetListRelationFilter
+  }, "id" | "normalizedKey">
+
+  export type VehicleCatalogOrderByWithAggregationInput = {
+    id?: SortOrder
+    vehicleType?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrderInput | SortOrder
+    normalizedKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VehicleCatalogCountOrderByAggregateInput
+    _max?: VehicleCatalogMaxOrderByAggregateInput
+    _min?: VehicleCatalogMinOrderByAggregateInput
+  }
+
+  export type VehicleCatalogScalarWhereWithAggregatesInput = {
+    AND?: VehicleCatalogScalarWhereWithAggregatesInput | VehicleCatalogScalarWhereWithAggregatesInput[]
+    OR?: VehicleCatalogScalarWhereWithAggregatesInput[]
+    NOT?: VehicleCatalogScalarWhereWithAggregatesInput | VehicleCatalogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VehicleCatalog"> | string
+    vehicleType?: StringWithAggregatesFilter<"VehicleCatalog"> | string
+    make?: StringWithAggregatesFilter<"VehicleCatalog"> | string
+    model?: StringWithAggregatesFilter<"VehicleCatalog"> | string
+    variant?: StringNullableWithAggregatesFilter<"VehicleCatalog"> | string | null
+    normalizedKey?: StringWithAggregatesFilter<"VehicleCatalog"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"VehicleCatalog"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VehicleCatalog"> | Date | string
+  }
+
+  export type VehicleAssetWhereInput = {
+    AND?: VehicleAssetWhereInput | VehicleAssetWhereInput[]
+    OR?: VehicleAssetWhereInput[]
+    NOT?: VehicleAssetWhereInput | VehicleAssetWhereInput[]
+    id?: StringFilter<"VehicleAsset"> | string
+    catalogId?: StringFilter<"VehicleAsset"> | string
+    type?: EnumVehicleAssetTypeFilter<"VehicleAsset"> | $Enums.VehicleAssetType
+    assetIndex?: IntFilter<"VehicleAsset"> | number
+    assetUrl?: StringFilter<"VehicleAsset"> | string
+    assetHash?: StringNullableFilter<"VehicleAsset"> | string | null
+    mimeType?: StringNullableFilter<"VehicleAsset"> | string | null
+    s3Key?: StringNullableFilter<"VehicleAsset"> | string | null
+    source?: StringNullableFilter<"VehicleAsset"> | string | null
+    createdAt?: DateTimeFilter<"VehicleAsset"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleAsset"> | Date | string
+    catalog?: XOR<VehicleCatalogScalarRelationFilter, VehicleCatalogWhereInput>
+  }
+
+  export type VehicleAssetOrderByWithRelationInput = {
+    id?: SortOrder
+    catalogId?: SortOrder
+    type?: SortOrder
+    assetIndex?: SortOrder
+    assetUrl?: SortOrder
+    assetHash?: SortOrderInput | SortOrder
+    mimeType?: SortOrderInput | SortOrder
+    s3Key?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    catalog?: VehicleCatalogOrderByWithRelationInput
+  }
+
+  export type VehicleAssetWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    catalogId_type_assetIndex?: VehicleAssetCatalogIdTypeAssetIndexCompoundUniqueInput
+    AND?: VehicleAssetWhereInput | VehicleAssetWhereInput[]
+    OR?: VehicleAssetWhereInput[]
+    NOT?: VehicleAssetWhereInput | VehicleAssetWhereInput[]
+    catalogId?: StringFilter<"VehicleAsset"> | string
+    type?: EnumVehicleAssetTypeFilter<"VehicleAsset"> | $Enums.VehicleAssetType
+    assetIndex?: IntFilter<"VehicleAsset"> | number
+    assetUrl?: StringFilter<"VehicleAsset"> | string
+    assetHash?: StringNullableFilter<"VehicleAsset"> | string | null
+    mimeType?: StringNullableFilter<"VehicleAsset"> | string | null
+    s3Key?: StringNullableFilter<"VehicleAsset"> | string | null
+    source?: StringNullableFilter<"VehicleAsset"> | string | null
+    createdAt?: DateTimeFilter<"VehicleAsset"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleAsset"> | Date | string
+    catalog?: XOR<VehicleCatalogScalarRelationFilter, VehicleCatalogWhereInput>
+  }, "id" | "catalogId_type_assetIndex">
+
+  export type VehicleAssetOrderByWithAggregationInput = {
+    id?: SortOrder
+    catalogId?: SortOrder
+    type?: SortOrder
+    assetIndex?: SortOrder
+    assetUrl?: SortOrder
+    assetHash?: SortOrderInput | SortOrder
+    mimeType?: SortOrderInput | SortOrder
+    s3Key?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VehicleAssetCountOrderByAggregateInput
+    _avg?: VehicleAssetAvgOrderByAggregateInput
+    _max?: VehicleAssetMaxOrderByAggregateInput
+    _min?: VehicleAssetMinOrderByAggregateInput
+    _sum?: VehicleAssetSumOrderByAggregateInput
+  }
+
+  export type VehicleAssetScalarWhereWithAggregatesInput = {
+    AND?: VehicleAssetScalarWhereWithAggregatesInput | VehicleAssetScalarWhereWithAggregatesInput[]
+    OR?: VehicleAssetScalarWhereWithAggregatesInput[]
+    NOT?: VehicleAssetScalarWhereWithAggregatesInput | VehicleAssetScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VehicleAsset"> | string
+    catalogId?: StringWithAggregatesFilter<"VehicleAsset"> | string
+    type?: EnumVehicleAssetTypeWithAggregatesFilter<"VehicleAsset"> | $Enums.VehicleAssetType
+    assetIndex?: IntWithAggregatesFilter<"VehicleAsset"> | number
+    assetUrl?: StringWithAggregatesFilter<"VehicleAsset"> | string
+    assetHash?: StringNullableWithAggregatesFilter<"VehicleAsset"> | string | null
+    mimeType?: StringNullableWithAggregatesFilter<"VehicleAsset"> | string | null
+    s3Key?: StringNullableWithAggregatesFilter<"VehicleAsset"> | string | null
+    source?: StringNullableWithAggregatesFilter<"VehicleAsset"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"VehicleAsset"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VehicleAsset"> | Date | string
   }
 
   export type OdometerLogWhereInput = {
@@ -102467,6 +105174,184 @@ export namespace Prisma {
     bodyType?: NullableStringFieldUpdateOperationsInput | string | null
     ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
     permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type VehicleCatalogCreateInput = {
+    id?: string
+    vehicleType: string
+    make: string
+    model: string
+    variant?: string | null
+    normalizedKey: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assets?: VehicleAssetCreateNestedManyWithoutCatalogInput
+  }
+
+  export type VehicleCatalogUncheckedCreateInput = {
+    id?: string
+    vehicleType: string
+    make: string
+    model: string
+    variant?: string | null
+    normalizedKey: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assets?: VehicleAssetUncheckedCreateNestedManyWithoutCatalogInput
+  }
+
+  export type VehicleCatalogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    normalizedKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assets?: VehicleAssetUpdateManyWithoutCatalogNestedInput
+  }
+
+  export type VehicleCatalogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    normalizedKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assets?: VehicleAssetUncheckedUpdateManyWithoutCatalogNestedInput
+  }
+
+  export type VehicleCatalogCreateManyInput = {
+    id?: string
+    vehicleType: string
+    make: string
+    model: string
+    variant?: string | null
+    normalizedKey: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleCatalogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    normalizedKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleCatalogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    normalizedKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleAssetCreateInput = {
+    id?: string
+    type: $Enums.VehicleAssetType
+    assetIndex?: number
+    assetUrl: string
+    assetHash?: string | null
+    mimeType?: string | null
+    s3Key?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    catalog: VehicleCatalogCreateNestedOneWithoutAssetsInput
+  }
+
+  export type VehicleAssetUncheckedCreateInput = {
+    id?: string
+    catalogId: string
+    type: $Enums.VehicleAssetType
+    assetIndex?: number
+    assetUrl: string
+    assetHash?: string | null
+    mimeType?: string | null
+    s3Key?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleAssetUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    catalog?: VehicleCatalogUpdateOneRequiredWithoutAssetsNestedInput
+  }
+
+  export type VehicleAssetUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    catalogId?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleAssetCreateManyInput = {
+    id?: string
+    catalogId: string
+    type: $Enums.VehicleAssetType
+    assetIndex?: number
+    assetUrl: string
+    assetHash?: string | null
+    mimeType?: string | null
+    s3Key?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleAssetUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleAssetUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    catalogId?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OdometerLogCreateInput = {
@@ -109758,6 +112643,56 @@ export namespace Prisma {
     currentOdometer?: SortOrder
   }
 
+  export type VehicleAssetListRelationFilter = {
+    every?: VehicleAssetWhereInput
+    some?: VehicleAssetWhereInput
+    none?: VehicleAssetWhereInput
+  }
+
+  export type VehicleAssetOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type VehicleCatalogCountOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleType?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrder
+    normalizedKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VehicleCatalogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleType?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrder
+    normalizedKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VehicleCatalogMinOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleType?: SortOrder
+    make?: SortOrder
+    model?: SortOrder
+    variant?: SortOrder
+    normalizedKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumVehicleAssetTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.VehicleAssetType | EnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumVehicleAssetTypeFilter<$PrismaModel> | $Enums.VehicleAssetType
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -109767,6 +112702,93 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type VehicleCatalogScalarRelationFilter = {
+    is?: VehicleCatalogWhereInput
+    isNot?: VehicleCatalogWhereInput
+  }
+
+  export type VehicleAssetCatalogIdTypeAssetIndexCompoundUniqueInput = {
+    catalogId: string
+    type: $Enums.VehicleAssetType
+    assetIndex: number
+  }
+
+  export type VehicleAssetCountOrderByAggregateInput = {
+    id?: SortOrder
+    catalogId?: SortOrder
+    type?: SortOrder
+    assetIndex?: SortOrder
+    assetUrl?: SortOrder
+    assetHash?: SortOrder
+    mimeType?: SortOrder
+    s3Key?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VehicleAssetAvgOrderByAggregateInput = {
+    assetIndex?: SortOrder
+  }
+
+  export type VehicleAssetMaxOrderByAggregateInput = {
+    id?: SortOrder
+    catalogId?: SortOrder
+    type?: SortOrder
+    assetIndex?: SortOrder
+    assetUrl?: SortOrder
+    assetHash?: SortOrder
+    mimeType?: SortOrder
+    s3Key?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VehicleAssetMinOrderByAggregateInput = {
+    id?: SortOrder
+    catalogId?: SortOrder
+    type?: SortOrder
+    assetIndex?: SortOrder
+    assetUrl?: SortOrder
+    assetHash?: SortOrder
+    mimeType?: SortOrder
+    s3Key?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VehicleAssetSumOrderByAggregateInput = {
+    assetIndex?: SortOrder
+  }
+
+  export type EnumVehicleAssetTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VehicleAssetType | EnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumVehicleAssetTypeWithAggregatesFilter<$PrismaModel> | $Enums.VehicleAssetType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVehicleAssetTypeFilter<$PrismaModel>
+    _max?: NestedEnumVehicleAssetTypeFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type CustomerVehicleScalarRelationFilter = {
@@ -109804,22 +112826,6 @@ export namespace Prisma {
 
   export type OdometerLogSumOrderByAggregateInput = {
     reading?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type ChallanCountOrderByAggregateInput = {
@@ -115213,10 +118219,56 @@ export namespace Prisma {
     update?: XOR<XOR<VehicleHealthScoreUpdateToOneWithWhereWithoutVehicleInput, VehicleHealthScoreUpdateWithoutVehicleInput>, VehicleHealthScoreUncheckedUpdateWithoutVehicleInput>
   }
 
-  export type CustomerVehicleCreateNestedOneWithoutOdometerLogsInput = {
-    create?: XOR<CustomerVehicleCreateWithoutOdometerLogsInput, CustomerVehicleUncheckedCreateWithoutOdometerLogsInput>
-    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutOdometerLogsInput
-    connect?: CustomerVehicleWhereUniqueInput
+  export type VehicleAssetCreateNestedManyWithoutCatalogInput = {
+    create?: XOR<VehicleAssetCreateWithoutCatalogInput, VehicleAssetUncheckedCreateWithoutCatalogInput> | VehicleAssetCreateWithoutCatalogInput[] | VehicleAssetUncheckedCreateWithoutCatalogInput[]
+    connectOrCreate?: VehicleAssetCreateOrConnectWithoutCatalogInput | VehicleAssetCreateOrConnectWithoutCatalogInput[]
+    createMany?: VehicleAssetCreateManyCatalogInputEnvelope
+    connect?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+  }
+
+  export type VehicleAssetUncheckedCreateNestedManyWithoutCatalogInput = {
+    create?: XOR<VehicleAssetCreateWithoutCatalogInput, VehicleAssetUncheckedCreateWithoutCatalogInput> | VehicleAssetCreateWithoutCatalogInput[] | VehicleAssetUncheckedCreateWithoutCatalogInput[]
+    connectOrCreate?: VehicleAssetCreateOrConnectWithoutCatalogInput | VehicleAssetCreateOrConnectWithoutCatalogInput[]
+    createMany?: VehicleAssetCreateManyCatalogInputEnvelope
+    connect?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+  }
+
+  export type VehicleAssetUpdateManyWithoutCatalogNestedInput = {
+    create?: XOR<VehicleAssetCreateWithoutCatalogInput, VehicleAssetUncheckedCreateWithoutCatalogInput> | VehicleAssetCreateWithoutCatalogInput[] | VehicleAssetUncheckedCreateWithoutCatalogInput[]
+    connectOrCreate?: VehicleAssetCreateOrConnectWithoutCatalogInput | VehicleAssetCreateOrConnectWithoutCatalogInput[]
+    upsert?: VehicleAssetUpsertWithWhereUniqueWithoutCatalogInput | VehicleAssetUpsertWithWhereUniqueWithoutCatalogInput[]
+    createMany?: VehicleAssetCreateManyCatalogInputEnvelope
+    set?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    disconnect?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    delete?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    connect?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    update?: VehicleAssetUpdateWithWhereUniqueWithoutCatalogInput | VehicleAssetUpdateWithWhereUniqueWithoutCatalogInput[]
+    updateMany?: VehicleAssetUpdateManyWithWhereWithoutCatalogInput | VehicleAssetUpdateManyWithWhereWithoutCatalogInput[]
+    deleteMany?: VehicleAssetScalarWhereInput | VehicleAssetScalarWhereInput[]
+  }
+
+  export type VehicleAssetUncheckedUpdateManyWithoutCatalogNestedInput = {
+    create?: XOR<VehicleAssetCreateWithoutCatalogInput, VehicleAssetUncheckedCreateWithoutCatalogInput> | VehicleAssetCreateWithoutCatalogInput[] | VehicleAssetUncheckedCreateWithoutCatalogInput[]
+    connectOrCreate?: VehicleAssetCreateOrConnectWithoutCatalogInput | VehicleAssetCreateOrConnectWithoutCatalogInput[]
+    upsert?: VehicleAssetUpsertWithWhereUniqueWithoutCatalogInput | VehicleAssetUpsertWithWhereUniqueWithoutCatalogInput[]
+    createMany?: VehicleAssetCreateManyCatalogInputEnvelope
+    set?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    disconnect?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    delete?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    connect?: VehicleAssetWhereUniqueInput | VehicleAssetWhereUniqueInput[]
+    update?: VehicleAssetUpdateWithWhereUniqueWithoutCatalogInput | VehicleAssetUpdateWithWhereUniqueWithoutCatalogInput[]
+    updateMany?: VehicleAssetUpdateManyWithWhereWithoutCatalogInput | VehicleAssetUpdateManyWithWhereWithoutCatalogInput[]
+    deleteMany?: VehicleAssetScalarWhereInput | VehicleAssetScalarWhereInput[]
+  }
+
+  export type VehicleCatalogCreateNestedOneWithoutAssetsInput = {
+    create?: XOR<VehicleCatalogCreateWithoutAssetsInput, VehicleCatalogUncheckedCreateWithoutAssetsInput>
+    connectOrCreate?: VehicleCatalogCreateOrConnectWithoutAssetsInput
+    connect?: VehicleCatalogWhereUniqueInput
+  }
+
+  export type EnumVehicleAssetTypeFieldUpdateOperationsInput = {
+    set?: $Enums.VehicleAssetType
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -115225,6 +118277,20 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type VehicleCatalogUpdateOneRequiredWithoutAssetsNestedInput = {
+    create?: XOR<VehicleCatalogCreateWithoutAssetsInput, VehicleCatalogUncheckedCreateWithoutAssetsInput>
+    connectOrCreate?: VehicleCatalogCreateOrConnectWithoutAssetsInput
+    upsert?: VehicleCatalogUpsertWithoutAssetsInput
+    connect?: VehicleCatalogWhereUniqueInput
+    update?: XOR<XOR<VehicleCatalogUpdateToOneWithWhereWithoutAssetsInput, VehicleCatalogUpdateWithoutAssetsInput>, VehicleCatalogUncheckedUpdateWithoutAssetsInput>
+  }
+
+  export type CustomerVehicleCreateNestedOneWithoutOdometerLogsInput = {
+    create?: XOR<CustomerVehicleCreateWithoutOdometerLogsInput, CustomerVehicleUncheckedCreateWithoutOdometerLogsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutOdometerLogsInput
+    connect?: CustomerVehicleWhereUniqueInput
   }
 
   export type CustomerVehicleUpdateOneRequiredWithoutOdometerLogsNestedInput = {
@@ -118953,6 +122019,23 @@ export namespace Prisma {
     _max?: NestedEnumDigiLockerStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumVehicleAssetTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.VehicleAssetType | EnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumVehicleAssetTypeFilter<$PrismaModel> | $Enums.VehicleAssetType
+  }
+
+  export type NestedEnumVehicleAssetTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VehicleAssetType | EnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VehicleAssetType[] | ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumVehicleAssetTypeWithAggregatesFilter<$PrismaModel> | $Enums.VehicleAssetType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVehicleAssetTypeFilter<$PrismaModel>
+    _max?: NestedEnumVehicleAssetTypeFilter<$PrismaModel>
+  }
+
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -122122,6 +125205,135 @@ export namespace Prisma {
     recommendations?: NullableJsonNullValueInput | InputJsonValue
     lastCalculated?: DateTimeFieldUpdateOperationsInput | Date | string
     nextDueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type VehicleAssetCreateWithoutCatalogInput = {
+    id?: string
+    type: $Enums.VehicleAssetType
+    assetIndex?: number
+    assetUrl: string
+    assetHash?: string | null
+    mimeType?: string | null
+    s3Key?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleAssetUncheckedCreateWithoutCatalogInput = {
+    id?: string
+    type: $Enums.VehicleAssetType
+    assetIndex?: number
+    assetUrl: string
+    assetHash?: string | null
+    mimeType?: string | null
+    s3Key?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleAssetCreateOrConnectWithoutCatalogInput = {
+    where: VehicleAssetWhereUniqueInput
+    create: XOR<VehicleAssetCreateWithoutCatalogInput, VehicleAssetUncheckedCreateWithoutCatalogInput>
+  }
+
+  export type VehicleAssetCreateManyCatalogInputEnvelope = {
+    data: VehicleAssetCreateManyCatalogInput | VehicleAssetCreateManyCatalogInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type VehicleAssetUpsertWithWhereUniqueWithoutCatalogInput = {
+    where: VehicleAssetWhereUniqueInput
+    update: XOR<VehicleAssetUpdateWithoutCatalogInput, VehicleAssetUncheckedUpdateWithoutCatalogInput>
+    create: XOR<VehicleAssetCreateWithoutCatalogInput, VehicleAssetUncheckedCreateWithoutCatalogInput>
+  }
+
+  export type VehicleAssetUpdateWithWhereUniqueWithoutCatalogInput = {
+    where: VehicleAssetWhereUniqueInput
+    data: XOR<VehicleAssetUpdateWithoutCatalogInput, VehicleAssetUncheckedUpdateWithoutCatalogInput>
+  }
+
+  export type VehicleAssetUpdateManyWithWhereWithoutCatalogInput = {
+    where: VehicleAssetScalarWhereInput
+    data: XOR<VehicleAssetUpdateManyMutationInput, VehicleAssetUncheckedUpdateManyWithoutCatalogInput>
+  }
+
+  export type VehicleAssetScalarWhereInput = {
+    AND?: VehicleAssetScalarWhereInput | VehicleAssetScalarWhereInput[]
+    OR?: VehicleAssetScalarWhereInput[]
+    NOT?: VehicleAssetScalarWhereInput | VehicleAssetScalarWhereInput[]
+    id?: StringFilter<"VehicleAsset"> | string
+    catalogId?: StringFilter<"VehicleAsset"> | string
+    type?: EnumVehicleAssetTypeFilter<"VehicleAsset"> | $Enums.VehicleAssetType
+    assetIndex?: IntFilter<"VehicleAsset"> | number
+    assetUrl?: StringFilter<"VehicleAsset"> | string
+    assetHash?: StringNullableFilter<"VehicleAsset"> | string | null
+    mimeType?: StringNullableFilter<"VehicleAsset"> | string | null
+    s3Key?: StringNullableFilter<"VehicleAsset"> | string | null
+    source?: StringNullableFilter<"VehicleAsset"> | string | null
+    createdAt?: DateTimeFilter<"VehicleAsset"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleAsset"> | Date | string
+  }
+
+  export type VehicleCatalogCreateWithoutAssetsInput = {
+    id?: string
+    vehicleType: string
+    make: string
+    model: string
+    variant?: string | null
+    normalizedKey: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleCatalogUncheckedCreateWithoutAssetsInput = {
+    id?: string
+    vehicleType: string
+    make: string
+    model: string
+    variant?: string | null
+    normalizedKey: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleCatalogCreateOrConnectWithoutAssetsInput = {
+    where: VehicleCatalogWhereUniqueInput
+    create: XOR<VehicleCatalogCreateWithoutAssetsInput, VehicleCatalogUncheckedCreateWithoutAssetsInput>
+  }
+
+  export type VehicleCatalogUpsertWithoutAssetsInput = {
+    update: XOR<VehicleCatalogUpdateWithoutAssetsInput, VehicleCatalogUncheckedUpdateWithoutAssetsInput>
+    create: XOR<VehicleCatalogCreateWithoutAssetsInput, VehicleCatalogUncheckedCreateWithoutAssetsInput>
+    where?: VehicleCatalogWhereInput
+  }
+
+  export type VehicleCatalogUpdateToOneWithWhereWithoutAssetsInput = {
+    where?: VehicleCatalogWhereInput
+    data: XOR<VehicleCatalogUpdateWithoutAssetsInput, VehicleCatalogUncheckedUpdateWithoutAssetsInput>
+  }
+
+  export type VehicleCatalogUpdateWithoutAssetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    normalizedKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleCatalogUncheckedUpdateWithoutAssetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: StringFieldUpdateOperationsInput | string
+    make?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    variant?: NullableStringFieldUpdateOperationsInput | string | null
+    normalizedKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CustomerVehicleCreateWithoutOdometerLogsInput = {
@@ -138038,6 +141250,58 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     role?: EnumAccessRoleFieldUpdateOperationsInput | $Enums.AccessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleAssetCreateManyCatalogInput = {
+    id?: string
+    type: $Enums.VehicleAssetType
+    assetIndex?: number
+    assetUrl: string
+    assetHash?: string | null
+    mimeType?: string | null
+    s3Key?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VehicleAssetUpdateWithoutCatalogInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleAssetUncheckedUpdateWithoutCatalogInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleAssetUncheckedUpdateManyWithoutCatalogInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumVehicleAssetTypeFieldUpdateOperationsInput | $Enums.VehicleAssetType
+    assetIndex?: IntFieldUpdateOperationsInput | number
+    assetUrl?: StringFieldUpdateOperationsInput | string
+    assetHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

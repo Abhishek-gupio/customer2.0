@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
     StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid
@@ -115,6 +115,9 @@ export const DetailsScreen = ({
 
     // Hero image error state must be defined BEFORE any early returns
     const [heroError, setHeroError] = useState(false);
+    useEffect(() => {
+        setHeroError(false);
+    }, [activeVehicle?.id, activeVehicle?.imageUrl]);
 
     if (!activeVehicle) return null;
 
@@ -123,7 +126,8 @@ export const DetailsScreen = ({
     const rto = activeVehicle.rtoDetails || activeVehicle;
 
     // Hero image source
-    const heroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    const fallbackHeroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    const heroImageSource = !heroError && activeVehicle.imageUrl ? { uri: activeVehicle.imageUrl } : fallbackHeroSrc;
 
     const handleFeedbackSubmit = () => {
         if (!rating) return;
@@ -445,12 +449,14 @@ export const DetailsScreen = ({
             <ScrollView contentContainerStyle={{ paddingBottom: hp('12%') }} showsVerticalScrollIndicator={false}>
                 {/* ── Hero section as per mockup ── */}
                 <View style={styles.heroSection}>
-                    <Image
-                        source={heroSrc}
-                        style={styles.heroImage}
-                        resizeMode="contain"
-                        onError={() => setHeroError(true)}
-                    />
+                    <View style={styles.heroImageFrame}>
+                        <Image
+                            source={heroImageSource}
+                            style={styles.heroImage}
+                            resizeMode="cover"
+                            onError={() => setHeroError(true)}
+                        />
+                    </View>
 
                     <Text style={styles.brandName}>{activeVehicle.make?.toUpperCase() || 'VEHICLE'}</Text>
                     <Text style={styles.modelName}>{activeVehicle.model?.toUpperCase() || 'MODEL'}</Text>
@@ -492,7 +498,7 @@ export const DetailsScreen = ({
                                 >
                                     <View style={[styles.miniCircleInner, activeVehicle.id === v.id && { borderColor: COLORS.primary }]}>
                                         <Image
-                                            source={v.vehicleType === 'BIKE' ? BikeImage : CarImage}
+                                            source={v.imageUrl ? { uri: v.imageUrl } : (v.vehicleType === 'BIKE' ? BikeImage : CarImage)}
                                             style={StyleSheet.absoluteFill}
                                             resizeMode="cover"
                                             blurRadius={activeVehicle.id === v.id ? 2 : 0}
@@ -798,7 +804,8 @@ const styles = StyleSheet.create({
 
     // Hero Section
     heroSection: { alignItems: 'center', paddingBottom: hp('2%') },
-    heroImage: { width: wp('80%'), height: hp('20%'), marginBottom: hp('-1%') },
+    heroImageFrame: { width: wp('80%'), height: hp('28%'), marginBottom: hp('-1%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroImage: { width: '100%', height: '100%' },
     brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase' },
     modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
     heroPlateBox: { marginTop: hp('1.5%') },

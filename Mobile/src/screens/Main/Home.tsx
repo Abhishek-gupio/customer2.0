@@ -408,8 +408,19 @@ export default function Home() {
               if (item === 0) {
                 return (
                   <View style={styles.slideFull}>
-                    <View style={styles.headerContent}>
-                      <View style={styles.headerLeft}>
+                    <View style={styles.primaryImageWrap}>
+                      <Image
+                        source={
+                          vehicle?.imageUrl
+                            ? { uri: vehicle.imageUrl }
+                            : (vehicle?.vehicleType === 'BIKE'
+                              ? require('../../assets/images/bike.png')
+                              : require('../../assets/images/car_vehicle_demo.png'))
+                        }
+                        style={styles.primaryImageFull}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.primaryImageOverlay}>
                         {vehicleLoading ? (
                           <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
                         ) : vehicle ? (
@@ -431,27 +442,17 @@ export default function Home() {
                             <Text style={styles.headerCarModel}>Tap to get started</Text>
                           </TouchableOpacity>
                         )}
-                      </View>
-                      <View style={styles.headerRight}>
-                        <Image
-                          source={(
-                            vehicle?.vehicleType === 'BIKE'
-                              ? require('../../assets/images/bike.png')
-                              : require('../../assets/images/car_vehicle_demo.png')
-                          ) as any}
-                          style={styles.headerCarImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                    <View style={styles.headerFooter}>
-                      <View style={styles.footerItem}>
-                        <Text style={styles.footerLabel}>Service due in</Text>
-                        <Text style={styles.footerValue}>{serviceDueText}</Text>
-                      </View>
-                      <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
-                        <Text style={styles.footerLabel}>FASTag</Text>
-                        <Text style={styles.footerValue}>₹ ---</Text>
+
+                        <View style={styles.headerFooterOverlay}>
+                          <View style={styles.footerItem}>
+                            <Text style={styles.footerLabel}>Service due in</Text>
+                            <Text style={styles.footerValue}>{serviceDueText}</Text>
+                          </View>
+                          <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
+                            <Text style={styles.footerLabel}>FASTag</Text>
+                            <Text style={styles.footerValue}>₹ ---</Text>
+                          </View>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -906,9 +907,33 @@ const styles = StyleSheet.create({
   /* PREMIUM VEHICLE HEADER */
   headerWrapper: {
     width: '100%',
-    height: hp(32),
+    height: hp(40),
     backgroundColor: '#0d0f14',
     paddingTop: 0,
+  },
+  primaryImageWrap: {
+    marginTop: hp(5),
+    marginHorizontal: wp(4.5),
+    height: hp(28),
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#111',
+  },
+  primaryImageFull: {
+    width: '100%',
+    height: '100%',
+  },
+  primaryImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    paddingHorizontal: wp(4.5),
+    paddingVertical: hp(2),
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0,0,0,0.22)',
+  },
+  headerFooterOverlay: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerContent: {
     flex: 1,
@@ -934,11 +959,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   headerCarModel: {
-    fontFamily: 'Outfit-Medium',
-    color: '#aaa',
-    fontSize: wp(3.5),
-    fontWeight: '500',
+    fontFamily: 'Outfit-SemiBold',
+    color: '#f4f4f4',
+    fontSize: wp(3.7),
+    fontWeight: '700',
     marginTop: hp(0.2),
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   healthSection: {
     marginTop: hp(1.5),
@@ -979,14 +1007,20 @@ const styles = StyleSheet.create({
   },
   footerLabel: {
     fontFamily: 'Outfit-Medium',
-    color: '#999',
-    fontSize: wp(3),
+    color: '#f1f1f1',
+    fontSize: wp(3.1),
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   footerValue: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Black',
+    color: '#ffffff',
+    fontSize: wp(4),
     marginTop: hp(0.2),
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   headerCarImage: {
     width: wp(40),

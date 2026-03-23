@@ -76,6 +76,11 @@ export interface VehicleHealthScore {
     [key: string]: any;
 }
 
+export interface VehicleAssets {
+    heroUrl: string | null;
+    angles: string[]; // expected order: assetIndex 0..11
+}
+
 export interface AddVehicleInput {
     registrationNumber: string;
     make?: string;
@@ -124,6 +129,10 @@ export interface OdometerLog {
     updatedAt: string;
 }
 
+export interface OdometerExtraction {
+    reading: number;
+}
+
 export interface Challan {
     id: string;
     vehicleId: string;
@@ -170,6 +179,14 @@ export const vehicleService = {
         return raw?.data ?? (response as unknown as Vehicle);
     },
 
+    getVehicleAssets: async (vehicleId: string): Promise<VehicleAssets> => {
+        const response = await api.get<{ success: boolean; data: VehicleAssets }>(
+            `/v1/vehicles/${vehicleId}/assets`,
+        );
+        const raw = response as unknown as { data?: VehicleAssets; success?: boolean };
+        return raw?.data ?? (response as unknown as VehicleAssets);
+    },
+
     updateVehicle: async (id: string, data: UpdateVehicleInput): Promise<Vehicle> => {
         const response = await api.put<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`, data);
         return response.data;
@@ -201,6 +218,14 @@ export const vehicleService = {
 
     addOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerLog> => {
         const response = await api.upload<{ success: boolean; data: OdometerLog }>(`/v1/vehicles/${id}/odometer-ai`, photo);
+        return response.data;
+    },
+
+    extractOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerExtraction> => {
+        const response = await api.upload<{ success: boolean; data: OdometerExtraction }>(
+            `/v1/vehicles/${id}/odometer-ai/extract`,
+            photo,
+        );
         return response.data;
     },
 
@@ -252,4 +277,4 @@ export const vehicleService = {
 };
 
 export const FALLBACK_CAR_IMAGE =
-    'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';
+    'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';

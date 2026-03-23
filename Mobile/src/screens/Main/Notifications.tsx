@@ -31,12 +31,21 @@ export const NotificationsScreen = () => {
 
         // 2. Connect to custom WebSocket for real-time Postgres inserts
         const socket: Socket = io(SOCKET_URL, {
-            transports: ['websocket']
+            // Allow fallback to long-polling if websocket transport fails.
+            // This avoids "reconnecting..." loops caused by websocket-only connectivity issues.
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 10,
+            reconnectionDelay: 2000,
+            timeout: 20000,
         });
 
         socket.on('connect', () => {
             console.log("Connected to Real-time Notifications Socket");
             socket.emit('join', user.id);
+        });
+
+        socket.on('connect_error', (err: any) => {
+            console.warn("Notifications socket connect_error:", err?.message || err);
         });
 
         socket.on('new_notification', (newNotif: AppNotification) => {

@@ -243,6 +243,31 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   permanentAddress: 'permanentAddress'
 };
 
+exports.Prisma.VehicleCatalogScalarFieldEnum = {
+  id: 'id',
+  vehicleType: 'vehicleType',
+  make: 'make',
+  model: 'model',
+  variant: 'variant',
+  normalizedKey: 'normalizedKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VehicleAssetScalarFieldEnum = {
+  id: 'id',
+  catalogId: 'catalogId',
+  type: 'type',
+  assetIndex: 'assetIndex',
+  assetUrl: 'assetUrl',
+  assetHash: 'assetHash',
+  mimeType: 'mimeType',
+  s3Key: 's3Key',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.OdometerLogScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -1206,6 +1231,11 @@ exports.DigiLockerStatus = exports.$Enums.DigiLockerStatus = {
   REVOKED: 'REVOKED'
 };
 
+exports.VehicleAssetType = exports.$Enums.VehicleAssetType = {
+  HERO: 'HERO',
+  ANGLE: 'ANGLE'
+};
+
 exports.AccessRole = exports.$Enums.AccessRole = {
   OWNER: 'OWNER',
   EDITOR: 'EDITOR',
@@ -1550,6 +1580,8 @@ exports.Prisma.ModelName = {
   CustomerDocument: 'CustomerDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
+  VehicleCatalog: 'VehicleCatalog',
+  VehicleAsset: 'VehicleAsset',
   OdometerLog: 'OdometerLog',
   Challan: 'Challan',
   VehicleAccess: 'VehicleAccess',

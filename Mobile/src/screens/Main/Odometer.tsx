@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  PermissionsAndroid,
   KeyboardAvoidingView,
   ScrollView,
 } from 'react-native';
@@ -18,6 +19,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { launchCamera } from 'react-native-image-picker';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { setWarrantyStatusNeedsRefresh } from '../../utils/refreshManager';
 
@@ -67,7 +69,6 @@ export default function Odometer() {
       await vehicleService.addOdometer(vehicle.id, { reading: value });
       setWarrantyStatusNeedsRefresh();
       await fetchPrimary();
-      Alert.alert('Success', 'Odometer updated. Parts & warranty predictions will use this reading.');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update odometer');
     } finally {
@@ -81,11 +82,32 @@ export default function Odometer() {
       return;
     }
     try {
-      const { launchCamera } = await import('react-native-image-picker');
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'Camera access is required to scan odometer reading.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+            buttonNeutral: 'Ask Me Later',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission denied', 'Camera permission is required to continue.');
+          return;
+        }
+      }
+
       const result: any = await launchCamera({
         mediaType: 'photo',
         quality: 0.8,
       });
+      if (result?.didCancel) return;
+      if (result?.errorCode) {
+        Alert.alert('Camera error', result?.errorMessage || 'Could not open camera.');
+        return;
+      }
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         const fd = new FormData();
@@ -96,10 +118,8 @@ export default function Odometer() {
         } as any);
         setPhotoSubmitting(true);
         try {
-          await vehicleService.addOdometerViaAI(vehicle.id, fd);
-          setWarrantyStatusNeedsRefresh();
-          await fetchPrimary();
-          Alert.alert('Success', 'Odometer updated from photo.');
+          const extracted = await vehicleService.extractOdometerViaAI(vehicle.id, fd);
+          setReading(String(extracted.reading ?? ''));
         } catch (err: any) {
           Alert.alert('Error', err?.message || 'Could not read odometer from photo. Try manual entry.');
         } finally {
