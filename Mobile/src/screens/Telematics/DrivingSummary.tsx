@@ -152,13 +152,13 @@ export default function DrivingSummary({ navigation }: any) {
                 return;
             }
             locationWatchId.current = Geolocation.watchPosition(
-                (position) => {
+                (position: any) => {
                     const speedInMps = position.coords.speed || 0;
                     const speedInKmph = Math.max(0, speedInMps * 3.6);
                     setCurrentSpeed(Math.round(speedInKmph));
                     setCurrentLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
                 },
-                (error) => console.log('Geolocation error:', error),
+                (error: any) => console.log('Geolocation error:', error),
                 { enableHighAccuracy: true, distanceFilter: 5, interval: 2000, fastestInterval: 1000 }
             );
         } else {
