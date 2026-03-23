@@ -23,52 +23,48 @@ let storage: StorageImpl;
 let storageBackend: 'mmkv' | 'async-auth' = 'async-auth';
 let mmkvLoadError: unknown = null;
 
-/** In-memory cache for auth when using AsyncStorage (MMKV unavailable). */
 const authAsyncCache: Record<string, string> = {};
-/** Non-auth keys when MMKV is unavailable (not persisted — auth is the priority). */
 const miscMem: Record<string, string> = {};
 
+// Defensive initialization
 try {
-  const MMKV = (require('react-native-mmkv') as { MMKV: new () => StorageImpl }).MMKV;
-  storage = new MMKV();
-  storageBackend = 'mmkv';
+  const MMKVModule = require('react-native-mmkv') as any;
+  if (MMKVModule && MMKVModule.MMKV) {
+    storage = new MMKVModule.MMKV();
+    storageBackend = 'mmkv';
+  } else {
+    throw new Error('MMKV module found but class is missing');
+  }
 } catch (e) {
   mmkvLoadError = e;
   storageBackend = 'async-auth';
   storage = {
-    set(k: string, v: string) {
+    set(k, v) {
       if (AUTH_KEYS.has(k)) {
         if (v === '') {
           delete authAsyncCache[k];
-          void AsyncStorage.removeItem(k);
+          AsyncStorage?.removeItem?.(k).catch(() => {});
         } else {
           authAsyncCache[k] = v;
-          void AsyncStorage.setItem(k, v);
+          AsyncStorage?.setItem?.(k, v).catch(() => {});
         }
       } else {
         miscMem[k] = v;
       }
     },
-    getString(k: string) {
+    getString(k) {
       if (AUTH_KEYS.has(k)) return authAsyncCache[k];
       return miscMem[k];
     },
-    remove(k: string) {
+    remove(k) {
       if (AUTH_KEYS.has(k)) {
         delete authAsyncCache[k];
-        void AsyncStorage.removeItem(k);
+        AsyncStorage?.removeItem?.(k).catch(() => {});
       } else {
         delete miscMem[k];
       }
     },
   };
-  if (__DEV__) {
-    const msg =
-      mmkvLoadError instanceof Error
-        ? `${mmkvLoadError.name}: ${mmkvLoadError.message}`
-        : String(mmkvLoadError);
-    console.warn(`[storage] MMKV unavailable — using AsyncStorage for auth. ${msg}`);
-  }
 }
 
 if (__DEV__ && storageBackend === 'mmkv') {

@@ -59,7 +59,12 @@ function App() {
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
+    if (typeof hydrateAuthFromPersistedStorage === 'function') {
+      hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
+    } else {
+      console.warn('[App] hydrateAuthFromPersistedStorage is undefined, skipping...');
+      setStorageReady(true);
+    }
   }, []);
 
   if (!storageReady) {
