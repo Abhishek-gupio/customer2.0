@@ -5,6 +5,7 @@ import {
   setAccessToken,
   setRefreshToken,
   clearAuthStorage,
+  awaitAuthStoragePersisted,
 } from './storage';
 
 const base = `${API_BASE_URL}/api`;
@@ -29,6 +30,7 @@ async function doRefresh(): Promise<boolean> {
       if (res.ok && payload?.accessToken) {
         setAccessToken(payload.accessToken);
         if (payload.refreshToken) setRefreshToken(payload.refreshToken);
+        await awaitAuthStoragePersisted();
         return true;
       }
       // Only clear local auth if refresh token is actually invalid/revoked.

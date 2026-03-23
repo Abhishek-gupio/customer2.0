@@ -13,6 +13,19 @@ const AUTH_KEYS = new Set([
   AUTH_PERSISTED_AT_KEY,
 ]);
 
+/** Serialize auth AsyncStorage I/O (async-auth only) so login/refresh can await durability. */
+let authAsyncDiskTail: Promise<void> = Promise.resolve();
+
+function enqueueAuthAsyncDisk(op: () => Promise<void>): void {
+  authAsyncDiskTail = authAsyncDiskTail.then(op).catch(() => {});
+}
+
+/** Await after writing auth keys when using AsyncStorage fallback (no-op for MMKV). */
+export function awaitAuthStoragePersisted(): Promise<void> {
+  if (storageBackend !== 'async-auth') return Promise.resolve();
+  return authAsyncDiskTail;
+}
+
 type StorageImpl = {
   set: (k: string, v: string) => void;
   getString: (k: string) => string | undefined;
@@ -40,10 +53,10 @@ try {
       if (AUTH_KEYS.has(k)) {
         if (v === '') {
           delete authAsyncCache[k];
-          void AsyncStorage.removeItem(k);
+          enqueueAuthAsyncDisk(() => AsyncStorage.removeItem(k));
         } else {
           authAsyncCache[k] = v;
-          void AsyncStorage.setItem(k, v);
+          enqueueAuthAsyncDisk(() => AsyncStorage.setItem(k, v));
         }
       } else {
         miscMem[k] = v;
@@ -56,7 +69,7 @@ try {
     remove(k: string) {
       if (AUTH_KEYS.has(k)) {
         delete authAsyncCache[k];
-        void AsyncStorage.removeItem(k);
+        enqueueAuthAsyncDisk(() => AsyncStorage.removeItem(k));
       } else {
         delete miscMem[k];
       }

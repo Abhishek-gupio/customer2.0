@@ -38,6 +38,7 @@ import TripDetail from '../screens/Telematics/TripDetail';
 import SOSButton from '../components/SOSButton';
 import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
+import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -51,7 +52,14 @@ export function RootNavigator() {
       <Stack.Screen name="Splash">
         {({ navigation }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
           <SplashScreen
-            onComplete={() => navigation.replace('SigninFirst')}
+            onComplete={() => {
+              const { isAuthenticated } = store.getState().auth;
+              if (isAuthenticated) {
+                navigation.replace('Main', { screen: 'Home' });
+              } else {
+                navigation.replace('SigninFirst');
+              }
+            }}
           />
         )}
       </Stack.Screen>

@@ -16,16 +16,24 @@ import {
 } from 'react-native-responsive-screen';
 import type { NativeStackScreenProps } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { useAppSelector } from '../../store/hooks';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SigninFirst'>;
 
 const { width } = Dimensions.get('window');
 
 export default function SigninFirst({ navigation }: Props) {
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const [carTranslateX] = useState(
     () => new Animated.Value(width * 0.8),
   );
   const [buttonScale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigation.replace('Main', { screen: 'Home' });
+    }
+  }, [isAuthenticated, navigation]);
 
   useEffect(() => {
     Animated.timing(carTranslateX, {
