@@ -1,7 +1,7 @@
 import compression from "compression";
 import cors from "cors";
 import express, { type Request, type Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { env } from "./config/env";
@@ -22,8 +22,7 @@ function rateLimitKey(req: Request): string {
       // malformed token; fall back to IP
     }
   }
-  const ip = req.ip ?? req.socket?.remoteAddress ?? "unknown";
-  return `ip:${ip}`;
+  return `ip:${ipKeyGenerator(req.ip ?? req.socket?.remoteAddress ?? "unknown")}`;
 }
 
 const app = express();

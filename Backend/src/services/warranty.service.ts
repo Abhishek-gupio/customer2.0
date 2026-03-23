@@ -58,6 +58,44 @@ export interface CreateServicePartInput {
   warrantyKm?: number;
 }
 
+export interface FailedServicePart {
+  partType: string;
+  reason: string;
+}
+
+function normalizeServiceParts(parts: CreateServicePartInput[]): CreateServicePartInput[] {
+  const normalized: CreateServicePartInput[] = [];
+  const seen = new Set<string>();
+
+  for (const part of parts) {
+    const baseType = String(part.partType || "").trim().toUpperCase();
+    const expandedTypes =
+      baseType === "TYRES"
+        ? ["TYRES_FRONT", "TYRES_REAR"]
+        : [baseType && PART_LIFECYCLE_FALLBACK[baseType] ? baseType : "OTHER_PART"];
+
+    for (const partType of expandedTypes) {
+      const key = [
+        partType,
+        part.partName ?? "",
+        part.brand ?? "",
+        part.cost ?? "",
+        part.warrantyMonths ?? "",
+        part.warrantyKm ?? "",
+      ].join("|");
+
+      if (seen.has(key)) continue;
+      seen.add(key);
+      normalized.push({
+        ...part,
+        partType,
+      });
+    }
+  }
+
+  return normalized;
+}
+
 /** Lifecycle for one part type (months, km, warranty). */
 export type PartLifecycle = {
   months: number;
@@ -146,6 +184,20 @@ async function getLifecycleForVehiclePart(
   }
 }
 
+function pickLatestSavedPart(existing: any, candidate: any) {
+  if (!existing) return candidate;
+
+  const existingCreatedAt = new Date(existing.createdAt || 0).getTime();
+  const candidateCreatedAt = new Date(candidate.createdAt || 0).getTime();
+  if (candidateCreatedAt !== existingCreatedAt) {
+    return candidateCreatedAt > existingCreatedAt ? candidate : existing;
+  }
+
+  const existingReplacedAt = new Date(existing.lastReplacedAt || 0).getTime();
+  const candidateReplacedAt = new Date(candidate.lastReplacedAt || 0).getTime();
+  return candidateReplacedAt > existingReplacedAt ? candidate : existing;
+}
+
 export const warrantyService = {
   /**
    * Create a full service record with parts
@@ -154,6 +206,11 @@ export const warrantyService = {
     const serviceDate = input.serviceDate
       ? new Date(input.serviceDate)
       : new Date();
+    const normalizedParts = normalizeServiceParts(input.parts);
+
+    if (normalizedParts.length === 0) {
+      throw new Error("No valid parts provided for service record");
+    }
 
     // 1. Create the Service Record
     const record = await db.serviceRecord.create({
@@ -171,49 +228,72 @@ export const warrantyService = {
 
     // 2. Add Parts (use vehicle-specific interval when available)
     const partsCreated = [];
-    for (const part of input.parts) {
-      const lifecycle = await getLifecycleForVehiclePart(
-        input.vehicleId,
-        part.partType,
-      );
-      const warrantyMonths =
-        part.warrantyMonths ?? lifecycle.defaultWarrantyMonths;
+    const failedParts: FailedServicePart[] = [];
+    for (const part of normalizedParts) {
+      try {
+        const lifecycle = await getLifecycleForVehiclePart(
+          input.vehicleId,
+          part.partType,
+        );
+        const warrantyMonths =
+          part.warrantyMonths ?? lifecycle.defaultWarrantyMonths;
 
-      // Calculate warranty expiry
-      let warrantyExpiresAt: Date | null = null;
-      if (warrantyMonths > 0) {
-        warrantyExpiresAt = new Date(serviceDate);
-        warrantyExpiresAt.setMonth(
-          warrantyExpiresAt.getMonth() + warrantyMonths,
+        let warrantyExpiresAt: Date | null = null;
+        if (warrantyMonths > 0) {
+          warrantyExpiresAt = new Date(serviceDate);
+          warrantyExpiresAt.setMonth(
+            warrantyExpiresAt.getMonth() + warrantyMonths,
+          );
+        }
+
+        const nextReplacementDue = new Date(serviceDate);
+        nextReplacementDue.setMonth(
+          nextReplacementDue.getMonth() + lifecycle.months,
+        );
+
+        const createdPart = await db.servicePart.create({
+          data: {
+            serviceRecordId: record.id,
+            partType: part.partType,
+            partName: part.partName || null,
+            brand: part.brand || null,
+            cost: part.cost || null,
+            warrantyMonths,
+            warrantyKm: part.warrantyKm ?? lifecycle.km,
+            warrantyExpiresAt,
+            lastReplacedAt: serviceDate,
+            nextReplacementDue,
+          },
+        });
+        partsCreated.push(createdPart);
+      } catch (err) {
+        failedParts.push({
+          partType: part.partType,
+          reason: err instanceof Error ? err.message : "Unknown error",
+        });
+        logger.warn(
+          { err, vehicleId: input.vehicleId, partType: part.partType, expenseId: input.expenseId },
+          "Skipping invalid service part while creating service record",
         );
       }
+    }
 
-      // Calculate next replacement due (based on lifecycle)
-      const nextReplacementDue = new Date(serviceDate);
-      nextReplacementDue.setMonth(
-        nextReplacementDue.getMonth() + lifecycle.months,
-      );
-
-      const createdPart = await db.servicePart.create({
-        data: {
-          serviceRecordId: record.id,
-          partType: part.partType,
-          partName: part.partName || null,
-          brand: part.brand || null,
-          cost: part.cost || null,
-          warrantyMonths,
-          warrantyKm: part.warrantyKm ?? lifecycle.km,
-          warrantyExpiresAt,
-          lastReplacedAt: serviceDate,
-          nextReplacementDue,
-        },
+    if (partsCreated.length === 0) {
+      await db.serviceRecord.delete({
+        where: { id: record.id },
+      }).catch((err: unknown) => {
+        logger.warn(
+          { err, serviceRecordId: record.id, vehicleId: input.vehicleId },
+          "Failed to clean up empty service record after part creation failure",
+        );
       });
-      partsCreated.push(createdPart);
+      throw new Error("Failed to create any service parts for this record");
     }
 
     return {
       ...record,
       parts: partsCreated,
+      failedParts,
     };
   },
 
@@ -250,15 +330,16 @@ export const warrantyService = {
           select: { vehicleId: true, serviceDate: true, garageName: true },
         },
       },
-      orderBy: { lastReplacedAt: "desc" },
+      orderBy: [{ lastReplacedAt: "desc" }, { createdAt: "desc" }],
     });
 
     // Deduplicate — only keep latest entry per partType
     const latestParts = new Map<string, any>();
     for (const part of allParts) {
-      if (!latestParts.has(part.partType)) {
-        latestParts.set(part.partType, part);
-      }
+      latestParts.set(
+        part.partType,
+        pickLatestSavedPart(latestParts.get(part.partType), part),
+      );
     }
 
     const active: any[] = [];
@@ -335,31 +416,35 @@ export const warrantyService = {
           },
         },
       },
-      orderBy: { lastReplacedAt: "desc" },
+      orderBy: [{ lastReplacedAt: "desc" }, { createdAt: "desc" }],
     });
 
     // Deduplicate
     const latestParts = new Map<string, any>();
     for (const part of allParts) {
-      if (!latestParts.has(part.partType)) {
-        latestParts.set(part.partType, part);
-      }
+      latestParts.set(
+        part.partType,
+        pickLatestSavedPart(latestParts.get(part.partType), part),
+      );
     }
 
+    const latestTyresAggregate = [latestParts.get("TYRES_FRONT"), latestParts.get("TYRES_REAR")]
+      .filter(Boolean)
+      .sort((a: any, b: any) => {
+        const createdDiff =
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (createdDiff !== 0) return createdDiff;
+        return new Date(b.lastReplacedAt).getTime() - new Date(a.lastReplacedAt).getTime();
+      })[0];
+
     const due: any[] = [];
-    const trackedPartTypes = [
-      "ENGINE_OIL",
-      "BATTERY",
-      "TYRES",
-      "TYRES_FRONT",
-      "TYRES_REAR",
-      "BRAKE_PADS",
-      "AIR_FILTER",
-      "COOLANT",
-    ];
+    const trackedPartTypes = Object.keys(PART_LIFECYCLE_FALLBACK);
 
     for (const partType of trackedPartTypes) {
-      let part = latestParts.get(partType);
+      let part =
+        partType === "TYRES"
+          ? latestTyresAggregate ?? latestParts.get(partType)
+          : latestParts.get(partType);
       const lifecycle = await getLifecycleForVehiclePart(vehicleId, partType);
 
       let replacedAt: Date;

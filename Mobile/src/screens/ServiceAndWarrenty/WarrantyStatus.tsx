@@ -34,6 +34,7 @@ import {
 import BackButton from '../../components/BackButton';
 import type { RootStackParamList } from '../../navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { getPartTypeLabel } from '../../constants/partTypes';
 
 interface PartData {
   id: string;
@@ -135,7 +136,7 @@ export const WarrantyStatus = () => {
 
         return {
           id: item.partType,
-          title: item.partType.replace(/_/g, ' '),
+          title: getPartTypeLabel(item.partType),
           subtitle: item.message,
           percentage: Math.max(0, Math.min(100, percentage)),
           statusText: getUrgencyLabel(item.urgency),

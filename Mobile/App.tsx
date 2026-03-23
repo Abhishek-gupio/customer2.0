@@ -7,13 +7,7 @@ import { Provider } from './src/lib/react-redux';
 import { store } from './src/store';
 import { setUser } from './src/store/slices/authSlice';
 import { getStoredAccessToken } from './src/services/authService';
-import {
-  clearAuthStorage,
-  getAuthPersistedAt,
-  getUserId,
-  hydrateAuthFromPersistedStorage,
-  setUserId,
-} from './src/services/storage';
+import * as storage from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 
@@ -35,17 +29,17 @@ function tryDecodeUserIdFromJwt(token: string): string | undefined {
 
 function AuthRestore() {
   useEffect(() => {
-    const persistedAt = getAuthPersistedAt();
+    const persistedAt = storage.getAuthPersistedAt();
     const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
     if (persistedAt && Date.now() - persistedAt > THIRTY_DAYS_MS) {
-      clearAuthStorage();
+      storage.clearAuthStorage();
       return;
     }
     const token = getStoredAccessToken();
-    let id = getUserId();
+    let id = storage.getUserId();
     if (token && !id) {
       id = tryDecodeUserIdFromJwt(token);
-      if (id) setUserId(id);
+      if (id) storage.setUserId(id);
     }
     if (token && id) {
       store.dispatch(setUser({ id, email: undefined }));
@@ -59,7 +53,7 @@ function App() {
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
+    storage.hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
   }, []);
 
   if (!storageReady) {

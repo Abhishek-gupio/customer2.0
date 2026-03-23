@@ -55,10 +55,17 @@ export const challanService = {
       logger.info({ count: externalChallans.length }, "Discovered challans from external API");
       
       const syncedChallans = [];
+      const vehicleDetails = vehicle as typeof vehicle & {
+        ownerName?: string | null;
+        rto?: string | null;
+      };
+
       // Use owner/RTO from the first challan if available
       const first = externalChallans[0];
-      const ownerName = first?.owner_name || resData.data.owner_name || vehicle.ownerName;
-      const rtoName = first?.RTO_name || resData.data.rto_name || vehicle.rto;
+      const ownerName =
+        first?.owner_name || resData.data.owner_name || vehicleDetails.ownerName;
+      const rtoName =
+        first?.RTO_name || resData.data.rto_name || vehicleDetails.rto;
 
       for (const ec of externalChallans) {
         // Handle nested violation details

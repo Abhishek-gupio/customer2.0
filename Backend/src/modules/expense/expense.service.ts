@@ -160,11 +160,6 @@ export const expenseService = {
       },
     });
 
-    // Trigger Budget Check (Async, don't block response)
-    this.checkBudget(customerId, expense.category, expense.amount).catch(
-      (err) => logger.error({ err }, "Budget check failed"),
-    );
-
     // Fuel Price Intelligence: If it's a FUEL expense, enrich with liters + price comparison
     let fuelIntelligence = null;
     if (expense.category === "FUEL") {
@@ -183,13 +178,11 @@ export const expenseService = {
       }
     }
 
-    // Ingest into AI Memory
-    ingestionService
-      .ingestExpense(expense.id)
-      .catch((err) => logger.error({ err }, "Expense ingestion failed"));
-
     // Warranty Integration: If it's a SERVICE/OTHER and has parts (or we can detect them), create a ServiceRecord
     const isPartRelatored = expense.category === "SERVICE" || expense.category === "OTHER";
+    let serviceRecord: any = null;
+    let failedParts: Array<{ partType: string; reason: string }> = [];
+    let warrantySyncError: string | null = null;
 
     if (isPartRelatored && targetVehicleId) {
       if (input.parts && input.parts.length > 0) {
@@ -201,7 +194,7 @@ export const expenseService = {
               select: { currentOdometer: true }
             }))?.currentOdometer;
 
-          await warrantyService.createServiceRecord({
+          serviceRecord = await warrantyService.createServiceRecord({
             vehicleId: targetVehicleId,
             expenseId: expense.id,
             serviceType: "REGULAR_SERVICE",
@@ -211,13 +204,28 @@ export const expenseService = {
             notes: expense.notes || undefined,
             parts: input.parts as any,
           });
+          failedParts = Array.isArray(serviceRecord?.failedParts) ? serviceRecord.failedParts : [];
 
           // Recalculate health score to reflect new part health on home screen
           void vehicleService.calculateHealthScore(targetVehicleId).catch(e =>
             logger.error({ e, vehicleId: targetVehicleId }, "Targeted health recalculation failed")
           );
         } catch (err) {
+          warrantySyncError =
+            err instanceof Error ? err.message : "Failed to sync expense parts to warranty status";
+          await db.expense.delete({
+            where: { id: expense.id },
+          }).catch((deleteErr: unknown) => {
+            logger.error(
+              { err: deleteErr, expenseId: expense.id },
+              "Failed to roll back expense after warranty sync failure",
+            );
+          });
           logger.error({ err, expenseId: expense.id }, "Failed to create service record for manual expense");
+          throw AppError.badRequest(
+            `Failed to update warranty status for selected parts: ${warrantySyncError}`,
+            "WARRANTY_SYNC_FAILED",
+          );
         }
       } else if (expense.notes && expense.notes.length > 3) {
         // AI detection from notes if no parts provided but category is relevant
@@ -238,7 +246,17 @@ export const expenseService = {
       );
     }
 
-    return { expense, fuelIntelligence };
+    // Trigger Budget Check (Async, don't block response)
+    this.checkBudget(customerId, expense.category, expense.amount).catch(
+      (err) => logger.error({ err }, "Budget check failed"),
+    );
+
+    // Ingest into AI Memory
+    ingestionService
+      .ingestExpense(expense.id)
+      .catch((err) => logger.error({ err }, "Expense ingestion failed"));
+
+    return { expense, fuelIntelligence, serviceRecord, failedParts, warrantySyncError };
   },
   /**
    * SMART EXPENSE PARSER
