@@ -315,11 +315,12 @@ export default function Home() {
   };
 
   const handleSOSPress = () => {
+    // Force navigation to the SOS route in the Root Navigator
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
-      rootNav.navigate('SOSButton');
+      rootNav.navigate('SOS');
     } else {
-      navigation.navigate('SOSButton');
+      (navigation as any).navigate('SOS');
     }
   };
 
@@ -567,8 +568,9 @@ export default function Home() {
             <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
               <Icon name="user" size={wp(5.2)} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSOSPress} style={styles.overlayIconButton}>
-              <Ionicons name="alert-circle" size={wp(6.5)} color="#ff4d4d" />
+            <TouchableOpacity onPress={handleSOSPress} style={styles.sosOverlayButton}>
+              <Icon name="shield-alt" size={wp(4)} color="#fff" />
+              <Text style={styles.sosOverlayText}>SOS</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1012,6 +1014,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+  },
+  sosOverlayButton: {
+    height: hp(4),
+    paddingHorizontal: wp(3.5),
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 77, 77, 0.18)',
+    borderWidth: 1.5,
+    borderColor: '#ff4d4d',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: wp(3),
+    // Premium glow effect
+    shadowColor: '#ff4d4d',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  sosOverlayText: {
+    color: '#fff',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
+    marginLeft: wp(1.2),
   },
 
   /* CAROUSEL SLIDE STYLES */

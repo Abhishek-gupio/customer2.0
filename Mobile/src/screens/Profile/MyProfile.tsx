@@ -941,11 +941,11 @@ export default function MyProfile() {
 
           <View style={styles.integratedGroupCard}>
             <MenuRow
-              icon="phone-alt"
-              label="SOS Emergency"
+              icon="shield-alt"
+              label="Emergency Contacts"
               onPress={() => handleMenuPress('SOS')}
-              color="#FFD700"
-              bgColor="rgba(255, 215, 0, 0.1)"
+              color="#FF4D4D"
+              bgColor="rgba(255, 77, 77, 0.1)"
             />
             <MenuRow
               icon="bell"

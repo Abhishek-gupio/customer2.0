@@ -15,7 +15,7 @@ export const contextService = {
      */
     async buildUserContext(customerId: string): Promise<string> {
         try {
-            const [customer, vehicles, budgets, recentExpenses, notifications] =
+            const [customer, vehicles, budgets, recentExpenses, notifications, tickets, devices] =
                 await Promise.all([
                     // 1. Customer profile
                     db.customer.findUnique({
@@ -65,6 +65,22 @@ export const contextService = {
                         take: 5,
                         select: { title: true, body: true, type: true },
                     }),
+
+                    // 6. Support Tickets (Active)
+                    db.supportTicket.findMany({
+                      where: { customerId, status: { not: 'CLOSED' } },
+                      orderBy: { updatedAt: 'desc' },
+                      take: 5,
+                      select: { id: true, subject: true, status: true, updatedAt: true }
+                    }),
+
+                    // 7. Devices (for app version/OS info)
+                    db.customerDevice.findMany({
+                      where: { customerId },
+                      orderBy: { lastActiveAt: 'desc' },
+                      take: 1,
+                      select: { platform: true, deviceInfo: true }
+                    })
                 ]);
 
             if (!customer) return "No user profile found.";
@@ -135,12 +151,20 @@ export const contextService = {
                 }
             }
 
-            // --- Pending alerts ---
-            if (notifications.length > 0) {
-                lines.push("\n=== PENDING ALERTS ===");
-                for (const n of notifications) {
-                    lines.push(`[${n.type}] ${n.title}: ${n.body}`);
-                }
+            // --- Support Tickets ---
+            if (tickets.length > 0) {
+              lines.push("\n=== ACTIVE SUPPORT TICKETS ===");
+              for (const t of tickets) {
+                lines.push(`[${t.status}] ${t.subject} (ID: ${t.id}, Updated: ${new Date(t.updatedAt).toLocaleDateString("en-IN")})`);
+              }
+            }
+
+            // --- Device info ---
+            if (devices.length > 0) {
+              lines.push("\n=== DEVICE INFO ===");
+              for (const d of devices) {
+                lines.push(`Platform: ${d.platform} | Last Active: ${new Date(d.lastActiveAt).toLocaleString("en-IN")}`);
+              }
             }
 
             return lines.join("\n");

@@ -11,23 +11,17 @@ import {
   Vibration,
   Image,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { sosService, type EmergencyContact, type SOSType } from '../../services/sosService';
+import { googleMapsService } from '../../services/googleMapsService';
 
-let Geolocation: any = null;
-try {
-  const geoModule = require('@react-native-community/geolocation') as any;
-  Geolocation = geoModule?.default ?? geoModule;
-} catch {
-  Geolocation = null;
-}
+// Removed Geolocation logic
 
 const SOSScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -47,18 +41,19 @@ const SOSScreen = () => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  // WebView Ref
-  const webViewRef = useRef<WebView>(null);
+  // Map Ref
+  const mapRef = useRef<MapView>(null);
+  const locationInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize
   useEffect(() => {
     fetchInitialData();
     startPulse();
-    const watchId = startLocationTracking();
+    startLocationTracking();
     
     return () => {
-      if (watchId !== null && Geolocation) {
-        Geolocation.clearWatch(watchId);
+      if (locationInterval.current) {
+        clearInterval(locationInterval.current);
       }
     };
   }, []);
@@ -98,16 +93,23 @@ const SOSScreen = () => {
     if (!location || searchingHelp) return;
     setSearchingHelp(true);
     try {
+      // Hits the backend which now uses Google Maps Places API seamlessly
       const results = await sosService.getNearbyHelp(location.latitude, location.longitude, sosType);
       setNearbyHelp(results);
       
-      // Inject markers into map
-      const markersScript = `
-        if (typeof updateNearbyMarkers === 'function') {
-          updateNearbyMarkers(${JSON.stringify(results)});
-        }
-      `;
-      webViewRef.current?.injectJavaScript(markersScript);
+      // Animate map to show bounds if needed
+      if (mapRef.current && results.length > 0 && location) {
+        const coords = results.filter((r: any) => r.location).map((r: any) => ({
+            latitude: r.location.lat,
+            longitude: r.location.lng,
+        }));
+        coords.push({ latitude: location.latitude, longitude: location.longitude });
+        
+        mapRef.current.fitToCoordinates(coords, {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true,
+        });
+      }
     } catch (error) {
       console.log('Nearby Help Error:', error);
     } finally {
@@ -115,30 +117,34 @@ const SOSScreen = () => {
     }
   };
 
-  const startLocationTracking = () => {
-    if (!Geolocation) return null;
+  const fetchAccurateLocation = async () => {
+    try {
+      const coords = await googleMapsService.getCurrentLocation();
+      setLocation(coords);
+      
+      const addr = await googleMapsService.getAddress(coords.latitude, coords.longitude);
+      setAddress(addr);
+      
+      if (mapRef.current) {
+         mapRef.current.animateToRegion({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+         }, 1000);
+      }
+    } catch (error) {
+      console.log('Location Error:', error);
+    }
+  };
 
-    return Geolocation.watchPosition(
-      (position: any) => {
-        const coords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        };
-        setLocation(coords);
-        setAddress(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
-        
-        // Update Leaflet Map main marker
-        const script = `
-          if (typeof updateMap === 'function') {
-            updateMap(${coords.latitude}, ${coords.longitude});
-          }
-        `;
-        webViewRef.current?.injectJavaScript(script);
-      },
-      (error: any) => console.log('Location Error:', error),
-      { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 }
-    );
+  const startLocationTracking = () => {
+    fetchAccurateLocation();
+    
+    // Auto update every 30 seconds
+    locationInterval.current = setInterval(() => {
+      fetchAccurateLocation();
+    }, 30000);
   };
 
   const startPulse = () => {
@@ -151,8 +157,13 @@ const SOSScreen = () => {
   };
 
   const handleTriggerSOS = async () => {
-    if (triggering) return;
+    console.log('[SOSScreen] SOS Trigger Pressed');
+    if (triggering) {
+      console.log('[SOSScreen] Already triggering, returning early');
+      return;
+    }
     if (!location) {
+      console.warn('[SOSScreen] Location missing, cannot trigger SOS');
       Alert.alert('Location Required', 'Please wait until your location is acquired.');
       return;
     }
@@ -161,12 +172,14 @@ const SOSScreen = () => {
     Vibration.vibrate([0, 500, 200, 500]);
 
     try {
+      console.log(`[SOSScreen] Triggering SOS with type: ${sosType} at Lat: ${location.latitude}, Lon: ${location.longitude}`);
       const response = await sosService.triggerSOS({
         location,
         message,
         type: sosType,
       });
 
+      console.log(`[SOSScreen] SOS Trigger response success:`, response.success);
       if (response.success) {
         navigation.replace('ActiveSOS', {
           sosId: response.sosAlertId,
@@ -176,113 +189,29 @@ const SOSScreen = () => {
         });
       }
     } catch (error: any) {
+      console.error('[SOSScreen] Failed to trigger SOS:', error);
       Alert.alert('SOS Failed', error.message || 'Unable to send SOS. Check your connection.');
     } finally {
       setTriggering(false);
     }
   };
 
-  const leafLetHTML = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-      <style>
-        body { margin: 0; padding: 0; background: #000; }
-        #map { height: 100vh; width: 100vw; }
-        .marker-pulse {
-          width: 24px;
-          height: 24px;
-          background: rgba(255, 215, 0, 0.4);
-          border-radius: 50%;
-          box-shadow: 0 0 0 rgba(255, 215, 0, 0.4);
-          animation: pulse 2s infinite;
-          z-index: 1000;
-        }
-        .marker-dot {
-          width: 10px;
-          height: 10px;
-          background: #FFD700;
-          border-radius: 50%;
-          border: 2px solid white;
-          position: absolute;
-          top: 7px;
-          left: 7px;
-        }
-        .nearby-marker {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          border: 2px solid white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 10px;
-          font-weight: bold;
-          color: white;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-        .bg-hospital { background: #ef4444; }
-        .bg-police { background: #3b82f6; }
-        .bg-fire { background: #f97316; }
-        .bg-other { background: #6b7280; }
+  const handleCallPolice = () => {
+    console.log('[SOSScreen] Quick Action: Calling Police');
+    Linking.openURL('tel:100');
+  };
 
-        @keyframes pulse {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-          70% { transform: scale(1.5); box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-        .leaflet-control-attribution { display: none; }
-      </style>
-    </head>
-    <body>
-      <div id="map"></div>
-      <script>
-        var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([${location?.latitude || 0}, ${location?.longitude || 0}], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19
-        }).addTo(map);
+  const handleCallAmbulance = () => {
+    console.log('[SOSScreen] Quick Action: Calling Ambulance');
+    Linking.openURL('tel:102');
+  };
 
-        var customIcon = L.divIcon({
-          className: 'custom-div-icon',
-          html: "<div class='marker-pulse'><div class='marker-dot'></div></div>",
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
+  const handleCallFire = () => {
+    console.log('[SOSScreen] Quick Action: Calling Fire');
+    Linking.openURL('tel:101');
+  };
 
-        var marker = L.marker([${location?.latitude || 0}, ${location?.longitude || 0}], { icon: customIcon }).addTo(map);
-        var nearbyLayer = L.layerGroup().addTo(map);
-
-        function updateMap(lat, lon) {
-          var newLatLng = new L.LatLng(lat, lon);
-          marker.setLatLng(newLatLng);
-          // map.panTo(newLatLng); // Don't pan automatically if user is browsing markers
-        }
-
-        function updateNearbyMarkers(items) {
-          nearbyLayer.clearLayers();
-          items.forEach(function(item) {
-            var colorClass = 'bg-other';
-            if (item.type === 'hospital') colorClass = 'bg-hospital';
-            if (item.type === 'police') colorClass = 'bg-police';
-            if (item.type === 'fire_station') colorClass = 'bg-fire';
-
-            var icon = L.divIcon({
-                className: 'nearby-div-icon',
-                html: "<div class='nearby-marker " + colorClass + "'>" + item.name.substring(0,1) + "</div>",
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-            L.marker([item.location.lat, item.location.lng], { icon: icon }).bindPopup("<b>" + item.name + "</b><br>" + item.type).addTo(nearbyLayer);
-          });
-        }
-      </script>
-    </body>
-    </html>
-  `;
+  // Map UI logic removed since using react-native-maps directly
 
   if (loading) {
     return (
@@ -314,13 +243,43 @@ const SOSScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Map Section */}
         <View style={styles.mapContainer}>
-          <WebView
-            ref={webViewRef}
-            originWhitelist={['*']}
-            source={{ html: leafLetHTML }}
-            style={styles.map}
-            scrollEnabled={false}
-          />
+          {location ? (
+             <MapView
+               ref={mapRef}
+               provider={PROVIDER_GOOGLE}
+               style={styles.map}
+               initialRegion={{
+                 latitude: location?.latitude || 0,
+                 longitude: location?.longitude || 0,
+                 latitudeDelta: 0.01,
+                 longitudeDelta: 0.01,
+               }}
+               showsUserLocation={true}
+               showsMyLocationButton={false}
+               showsCompass={false}
+             >
+               <Marker 
+                 coordinate={{ latitude: location.latitude, longitude: location.longitude }}
+                 title="Your Current Location" 
+                 pinColor="#FFD700" 
+               />
+               
+               {nearbyHelp.map((item, index) => item.location && (
+                  <Marker
+                    key={index}
+                    coordinate={{ latitude: item.location.lat, longitude: item.location.lng }}
+                    title={item.name}
+                    description={item.type?.toUpperCase()}
+                    pinColor={getNearbyColor(item.type)}
+                  />
+               ))}
+             </MapView>
+          ) : (
+             <View style={{flex:1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111'}}>
+                 <ActivityIndicator size="small" color="#FFD700" />
+                 <Text style={{color: '#fff', marginTop: 10}}>Getting accurate location...</Text>
+             </View>
+          )}
           <View style={styles.heroBadge}>
             <Ionicons name="location" size={14} color="#fff" />
             <Text style={styles.heroBadgeText}>{address}</Text>
@@ -346,8 +305,7 @@ const SOSScreen = () => {
             <View style={styles.sosOuter}>
                <TouchableOpacity
                 style={[styles.sosButton, triggering && styles.sosButtonDisabled]}
-                onLongPress={handleTriggerSOS}
-                delayLongPress={1500}
+                onPress={handleTriggerSOS}
                 activeOpacity={0.8}
               >
                 <Text style={styles.sosText}>{triggering ? '...' : 'SOS'}</Text>
@@ -355,7 +313,32 @@ const SOSScreen = () => {
             </View>
           </View>
 
-          <Text style={styles.hint}>{triggering ? 'Contacting Emergency Services' : 'Hold for 1.5 seconds to trigger'}</Text>
+          <Text style={styles.hint}>{triggering ? 'Contacting Emergency Services' : 'Tap to trigger emergency support'}</Text>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Quick Call Actions</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+            <TouchableOpacity style={styles.quickActionButton} onPress={handleCallPolice}>
+              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+                <Ionicons name="shield" size={24} color="#3b82f6" />
+              </View>
+              <Text style={styles.quickActionText}>Police</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickActionButton} onPress={handleCallAmbulance}>
+              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
+                <Ionicons name="medkit" size={24} color="#ef4444" />
+              </View>
+              <Text style={styles.quickActionText}>Ambulance</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickActionButton} onPress={handleCallFire}>
+              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(249, 115, 22, 0.2)' }]}>
+                <Ionicons name="flame" size={24} color="#f97316" />
+              </View>
+              <Text style={styles.quickActionText}>Fire</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Message Input */}
@@ -802,6 +785,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: 'Outfit-Regular',
     paddingVertical: hp(2),
+  },
+  quickActionButton: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickActionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionText: {
+    color: '#fff',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3),
   },
 });
 
