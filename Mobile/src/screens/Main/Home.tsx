@@ -62,6 +62,7 @@ export default function Home() {
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const carouselRef = useRef<FlatList>(null);
+  const autoScrollStoppedRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -89,6 +90,7 @@ export default function Home() {
   const carouselIndexRef = useRef(0);
   useEffect(() => {
     const timer = setInterval(() => {
+      if (autoScrollStoppedRef.current) return;
       const nextIndex = (carouselIndexRef.current + 1) % 4;
       carouselIndexRef.current = nextIndex;
       setCarouselIndex(nextIndex);
@@ -100,9 +102,9 @@ export default function Home() {
       } catch (_) {
         // guard against layout-not-ready race
       }
-    }, 5000);
+    }, 9000);
     return () => clearInterval(timer);
-  }, []); // ← empty deps: interval is created once, uses ref internally
+  }, []);
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
@@ -398,8 +400,12 @@ export default function Home() {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
+            onTouchStart={() => {
+              autoScrollStoppedRef.current = true;
+            }}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
+              carouselIndexRef.current = index;
               setCarouselIndex(index);
             }}
             data={[0, 1, 2, 3]} // 4 slides
@@ -912,10 +918,10 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   primaryImageWrap: {
-    marginTop: hp(5),
-    marginHorizontal: wp(4.5),
-    height: hp(28),
-    borderRadius: 14,
+    marginTop: 0,
+    marginHorizontal: 0,
+    height: '100%',
+    borderRadius: 0,
     overflow: 'hidden',
     backgroundColor: '#111',
   },
@@ -925,8 +931,9 @@ const styles = StyleSheet.create({
   },
   primaryImageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    paddingHorizontal: wp(4.5),
-    paddingVertical: hp(2),
+    paddingHorizontal: wp(6),
+    paddingTop: hp(6),
+    paddingBottom: hp(6),
     justifyContent: 'space-between',
     backgroundColor: 'rgba(0,0,0,0.22)',
   },
