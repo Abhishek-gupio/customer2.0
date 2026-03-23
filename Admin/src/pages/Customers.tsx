@@ -1,26 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   type ColumnDef,
-  type VisibilityState,
   getCoreRowModel,
   getSortedRowModel,
   type SortingState,
   useReactTable,
   flexRender,
 } from '@tanstack/react-table';
-import { Search, Users, ChevronUp, ChevronDown, Columns } from 'lucide-react';
-import * as Dropdown from '@radix-ui/react-dropdown-menu';
+import { Search, Users, ChevronUp, ChevronDown, UserCircle } from 'lucide-react';
 import { adminApi, type CustomerListItem } from '../api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Skeleton, TableRowSkeleton } from '../components/ui/Skeleton';
+import { TableRowSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { cn } from '../lib/cn';
 
 const PAGE_SIZE = 20;
 
 export default function Customers() {
+  const navigate = useNavigate();
   const [data, setData] = useState<{
     data: CustomerListItem[];
     pagination: { page: number; limit: number; total: number; totalPages: number };
@@ -30,7 +29,6 @@ export default function Customers() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const debouncedSearch = useDebouncedValue(search, 250);
 
@@ -55,50 +53,72 @@ export default function Customers() {
       {
         id: 'customer',
         header: 'Customer',
-        accessorFn: (r) => r.fullName || r.email || r.phoneNumber || r.id,
+        accessorFn: (r) => r.fullName || r.phoneNumber,
         cell: ({ row }) => {
           const c = row.original;
           return (
-            <Link to={`/customers/${c.id}`} className="block hover:underline">
-              <div className="font-semibold">{c.fullName || c.email || c.phoneNumber || c.id}</div>
-              <div className="mt-1 text-sm text-white/55">
-                {c.phoneNumber}
-                {c.email ? ` · ${c.email}` : ''}
-              </div>
-            </Link>
+            <div className="flex items-center gap-3 group">
+               <div className="h-9 w-9 overflow-hidden rounded-full bg-white/[0.03] ring-1 ring-white/10 group-hover:ring-[var(--accent)]/50 transition-all">
+                  {c.profilePic ? (
+                    <img src={c.profilePic} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-white/20">
+                      <UserCircle className="h-5 w-5" />
+                    </div>
+                  )}
+               </div>
+               <div>
+                  <div className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">{c.fullName || 'Unnamed User'}</div>
+                  <div className="text-[10px] text-white/40 tracking-tight">{c.phoneNumber}</div>
+               </div>
+            </div>
           );
         },
+      },
+      {
+         id: 'contact',
+         header: 'Contact Info',
+         accessorFn: (r) => r.email,
+         cell: ({ row }) => (
+            <span className="text-xs text-white/60">{row.original.email || '—'}</span>
+         )
       },
       {
         id: 'vehicles',
         header: 'Vehicles',
         accessorFn: (r) => r._count.vehicles,
-        cell: ({ row }) => row.original._count.vehicles,
+        cell: ({ row }) => {
+           const count = row.original._count.vehicles;
+           return (
+              <div className="flex items-center gap-2">
+                 <div className="text-xs font-bold text-white/80">{count}</div>
+                 <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Vehicles</div>
+              </div>
+           );
+        }
       },
       {
         id: 'expenses',
         header: 'Expenses',
         accessorFn: (r) => r._count.expenses,
-        cell: ({ row }) => row.original._count.expenses,
+        cell: ({ row }) => {
+          const count = row.original._count.expenses;
+          return (
+             <div className="flex items-center gap-2">
+                <div className="text-xs font-bold text-white/80">{count}</div>
+                <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Expenses</div>
+             </div>
+          );
+        },
       },
       {
-        id: 'documents',
-        header: 'Documents',
-        accessorFn: (r) => r._count.documents,
-        cell: ({ row }) => row.original._count.documents,
-      },
-      {
-        id: 'tickets',
-        header: 'Tickets',
-        accessorFn: (r) => r._count.supportTickets,
-        cell: ({ row }) => row.original._count.supportTickets,
-      },
-      {
-        id: 'createdAt',
-        header: 'Created',
+        id: 'joined',
+        header: 'Joined',
         accessorFn: (r) => new Date(r.createdAt).getTime(),
         cell: ({ row }) => (
-          <span className="text-white/60">{new Date(row.original.createdAt).toLocaleDateString()}</span>
+          <span className="text-[11px] text-white/40">
+            {new Date(row.original.createdAt).toLocaleDateString()}
+          </span>
         ),
       },
     ],
@@ -108,19 +128,18 @@ export default function Customers() {
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting, columnVisibility },
+    state: { sorting },
     onSortingChange: setSorting,
-    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Customers</h1>
-          <p className="text-sm text-white/60">Search and inspect every customer’s app data</p>
+          <h1 className="text-2xl font-extrabold tracking-tight">Customer Directory</h1>
+          <p className="text-sm text-white/60">Search and manage user profiles and their associated activity</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-full max-w-[420px]">
@@ -136,30 +155,6 @@ export default function Customers() {
               className="h-11 w-full rounded-2xl border border-white/[0.07] bg-white/[0.04] pl-9 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
             />
           </div>
-          <Dropdown.Root>
-            <Dropdown.Trigger asChild>
-              <Button variant="secondary" size="icon" aria-label="Toggle columns">
-                <Columns className="h-4 w-4" />
-              </Button>
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content
-                className="min-w-[180px] rounded-xl border border-white/[0.07] bg-[var(--panel)] p-2 shadow-xl"
-                sideOffset={8}
-              >
-                {table.getAllLeafColumns().map((col) => (
-                  <Dropdown.CheckboxItem
-                    key={col.id}
-                    checked={col.getIsVisible()}
-                    onCheckedChange={(v) => col.toggleVisibility(!!v)}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-white outline-none hover:bg-white/10 data-[highlighted]:bg-white/10"
-                  >
-                    {col.columnDef.header as string}
-                  </Dropdown.CheckboxItem>
-                ))}
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
         </div>
       </div>
 
@@ -174,24 +169,22 @@ export default function Customers() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-4 w-4 text-[var(--accent)]" />
-            Customer directory
+            Active Users
           </CardTitle>
           <CardDescription>
-            {data ? `${data.pagination.total} total` : '—'} · Showing {rows.length} results
-            {sorting.length > 0 && ` · Sorted by ${sorting[0].id}`}
+            {data ? `${data.pagination.total} total members` : '—'} · Showing {rows.length} results
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
+          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10 bg-[#0c0c0e]">
                 {table.getHeaderGroups().map((hg) => (
-                  <tr key={hg.id} className="border-b border-white/[0.07] bg-white/[0.03] text-left text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <tr key={hg.id} className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/50 bg-[#111]">
                     {hg.headers.map((h) => (
                       <th
                         key={h.id}
-                        className="px-5 py-3"
-                        style={{ width: h.getSize() !== 150 ? h.getSize() : undefined }}
+                        className="px-5 py-4"
                       >
                         <div
                           className={cn(
@@ -221,7 +214,7 @@ export default function Customers() {
               <tbody>
                 {loading && (
                   <>
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {Array.from({ length: 10 }).map((_, i) => (
                       <TableRowSkeleton key={i} cols={table.getAllLeafColumns().length} />
                     ))}
                   </>
@@ -234,26 +227,23 @@ export default function Customers() {
                         title="No customers found"
                         description={
                           debouncedSearch
-                            ? 'Try a different search or clear the filter.'
-                            : 'Customers from your app will appear here.'
+                            ? 'Adjust your search terms to find what you are looking for.'
+                            : 'Users registered in your app will appear here.'
                         }
-                        action={
-                          debouncedSearch ? (
-                            <Button variant="secondary" onClick={() => setSearch('')}>
-                              Clear search
-                            </Button>
-                          ) : null
-                        }
-                        className="rounded-none border-0 bg-transparent py-12"
+                        className="rounded-none border-0 bg-transparent py-16"
                       />
                     </td>
                   </tr>
                 )}
                 {!loading &&
                   table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="border-b border-white/[0.07] hover:bg-white/[0.04]">
+                    <tr 
+                      key={row.id} 
+                      className="border-b border-white/[0.07] transition-colors hover:bg-white/[0.04] cursor-pointer"
+                      onClick={() => navigate(`/customers/${row.original.id}`)}
+                    >
                       {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="px-5 py-4">
+                        <td key={cell.id} className="px-5 py-5">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}
@@ -265,25 +255,15 @@ export default function Customers() {
 
           {data && data.pagination.totalPages > 1 && (
             <div className="flex items-center justify-between gap-4 border-t border-white/[0.07] px-5 py-4">
-              <div className="text-sm text-white/60">
-                Page <span className="text-white">{page}</span> of{' '}
-                <span className="text-white">{data.pagination.totalPages}</span>
+              <div className="text-sm text-white/50">
+                Page <span className="text-white font-medium">{page}</span> of{' '}
+                <span className="text-white font-medium">{data.pagination.totalPages}</span>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
+                <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
                   Previous
                 </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page >= data.pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
+                <Button variant="secondary" size="sm" disabled={page >= data.pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
                   Next
                 </Button>
               </div>
@@ -303,3 +283,4 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
   }, [value, delayMs]);
   return debounced;
 }
+
