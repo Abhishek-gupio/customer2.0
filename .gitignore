@@ -63,7 +63,5 @@ expo-env.d.ts
 .turbo/
 
 # Android Secrets & Caches
-Mobile/android/local.properties
-Mobile/android/keystore.properties
 Mobile/android/.gradle/
 Mobile/android/app/.cxx/
