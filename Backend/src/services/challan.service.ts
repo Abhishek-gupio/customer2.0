@@ -18,6 +18,12 @@ export const challanService = {
 
     if (!vehicle) throw AppError.notFound("Vehicle not found");
 
+    // Prisma schema includes ownerName/rto; cast if workspace client types lag behind schema.
+    const vehicleRow = vehicle as typeof vehicle & {
+      ownerName?: string | null;
+      rto?: string | null;
+    };
+
     logger.info(
       { vehicleId, regNo: vehicle.registrationNumber },
       "Checking for real-time traffic challans from idspay.in...",
@@ -57,8 +63,14 @@ export const challanService = {
       const syncedChallans = [];
       // Use owner/RTO from the first challan if available
       const first = externalChallans[0];
-      const ownerName = first?.owner_name || resData.data.owner_name || vehicle.ownerName;
-      const rtoName = first?.RTO_name || resData.data.rto_name || vehicle.rto;
+      const ownerName =
+        first?.owner_name ||
+        resData.data?.owner_name ||
+        vehicleRow.ownerName ||
+        vehicle.customer?.fullName ||
+        null;
+      const rtoName =
+        first?.RTO_name || resData.data?.rto_name || vehicleRow.rto || null;
 
       for (const ec of externalChallans) {
         // Handle nested violation details
