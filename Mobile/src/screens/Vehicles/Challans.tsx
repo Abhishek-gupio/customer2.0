@@ -27,11 +27,21 @@ const ChallansScreen = () => {
     const fetchChallans = useCallback(async (isSync = false) => {
         if (!isSync) setLoading(true);
         try {
-            const endpoint = isSync 
-                ? `/v1/vehicles/${vehicle.id}/challans/sync` 
-                : `/v1/vehicles/${vehicle.id}/challans`;
+            let endpoint = '';
+            let method: 'get' | 'post' = isSync ? 'post' : 'get';
+
+            if (vehicle.id) {
+                endpoint = isSync 
+                    ? `/v1/vehicles/${vehicle.id}/challans/sync` 
+                    : `/v1/vehicles/${vehicle.id}/challans`;
+            } else if (vehicle.registrationNumber) {
+                endpoint = `/v1/vehicles/plate/${vehicle.registrationNumber}/challans`;
+                method = 'get'; // Plate endpoint is always GET for now
+            } else {
+                throw new Error('No vehicle identifier provided');
+            }
             
-            const response = await api[isSync ? 'post' : 'get'](endpoint);
+            const response = await api[method](endpoint);
             const data = (response as any).data || response;
             
             const list = Array.isArray(data) ? data : [];
@@ -52,7 +62,7 @@ const ChallansScreen = () => {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [vehicle.id]);
+    }, [vehicle.id, vehicle.registrationNumber]);
 
     useEffect(() => {
         fetchChallans(true);

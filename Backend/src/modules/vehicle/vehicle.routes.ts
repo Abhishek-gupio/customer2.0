@@ -27,6 +27,7 @@ router.post(
 
 // Challan Routes
 router.get("/:vehicleId/challans", challanController.listByVehicle);
+router.get("/plate/:regNo/challans", challanController.listByPlate);
 router.post("/:vehicleId/challans/sync", challanController.sync);
 router.patch("/challans/:id/pay", challanController.markAsPaid);
 

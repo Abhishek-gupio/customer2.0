@@ -76,25 +76,11 @@ export const rcVerificationService = {
         })(),
         fitnessUpto: data.rc_expiry_date || data.fitness_upto,
         insuranceUpto: data.vehicle_insurance_upto || data.insurance_upto,
-        pollutionUpto: data.pucc_upto || data.pollution_upto,
+        mileage: data.mileage || 'N/A',
         color: data.vehicle_colour,
-        seatingCapacity: data.vehicle_seat_capacity,
-        cylinderCount: data.vehicle_cylinders_no,
-        cubicCapacity: data.vehicle_cubic_capacity,
-        grossWeight: data.gross_vehicle_weight,
-        bodyType: data.body_type,
-        ownerAddress: data.present_address,
-        permanentAddress: data.permanent_address,
+        manufacturingMonthYear: data.vehicle_manufacturing_month_year,
         vehicleType: data.vehicle_type || 'CAR'
       };
-
-      // Extract year from "09/2019"
-      if (data.vehicle_manufacturing_month_year) {
-        const parts = data.vehicle_manufacturing_month_year.split('/');
-        if (parts.length === 2) {
-          mappedData.year = parseInt(parts[1], 10);
-        }
-      }
 
       // Inference for vehicleType if not provided
       if (!data.vehicle_type) {

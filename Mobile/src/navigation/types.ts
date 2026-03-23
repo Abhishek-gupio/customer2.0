@@ -10,8 +10,9 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
   DocumentList: undefined;
   VehicleList: undefined;
-  VehicleDetails: { vehicleId: string };
-  AddVehicle: undefined;
+  VehicleDetails: { vehicleId: string; initialTab?: 'Alerts' | 'Details' };
+  AddVehicle: { registrationNumber?: string };
+  VehicleSearch: undefined;
   Challans: { vehicle: any };
   Expenses: undefined;
   addExpense: undefined;

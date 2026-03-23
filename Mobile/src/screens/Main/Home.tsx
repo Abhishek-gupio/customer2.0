@@ -29,8 +29,10 @@ import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
+import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
 import { PermissionsAndroid } from 'react-native';
+import { getLastOdometerUpdate } from '../../services/storage';
 
 // GPS-based location
 let Geolocation: any = null;
@@ -61,6 +63,7 @@ export default function Home() {
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [showOdometerSlide, setShowOdometerSlide] = useState(false);
   const carouselRef = useRef<FlatList>(null);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
@@ -88,8 +91,9 @@ export default function Home() {
   // which caused IllegalStateException from conflicting Animated frame timestamps.
   const carouselIndexRef = useRef(0);
   useEffect(() => {
+    const totalSlides = showOdometerSlide ? 5 : 4;
     const timer = setInterval(() => {
-      const nextIndex = (carouselIndexRef.current + 1) % 4;
+      const nextIndex = (carouselIndexRef.current + 1) % totalSlides;
       carouselIndexRef.current = nextIndex;
       setCarouselIndex(nextIndex);
       try {
@@ -102,7 +106,7 @@ export default function Home() {
       }
     }, 5000);
     return () => clearInterval(timer);
-  }, []); // ← empty deps: interval is created once, uses ref internally
+  }, [showOdometerSlide]); // ← dependency added to update interval when slides change
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
@@ -149,6 +153,16 @@ export default function Home() {
 
       if (primary) {
         setVehicle(primary);
+        // Show odometer reminder slider ONLY if not updated in the last 24 hours
+        const lastUpdate = getLastOdometerUpdate(primary.id);
+        const now = Date.now();
+        const DayMs = 24 * 60 * 60 * 1000;
+        if (!lastUpdate || (now - lastUpdate) > DayMs) {
+          setShowOdometerSlide(true);
+        } else {
+          setShowOdometerSlide(false);
+        }
+
         // Also fetch upcoming service to show in header footer
         try {
           const upcoming = await api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
@@ -317,9 +331,9 @@ export default function Home() {
   const handleSOSPress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
-      rootNav.navigate('SOSButton');
+      rootNav.navigate('SOS');
     } else {
-      navigation.navigate('SOSButton');
+      navigation.navigate('SOS');
     }
   };
 
@@ -402,12 +416,22 @@ export default function Home() {
               const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
               setCarouselIndex(index);
             }}
-            data={[0, 1, 2, 3]} // 4 slides
+            data={showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]}
             keyExtractor={(item) => item.toString()}
             renderItem={({ item }) => {
               if (item === 0) {
                 return (
-                  <View style={styles.slideFull}>
+                  <TouchableOpacity 
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => {
+                        if (vehicle) {
+                            navigateToRootScreen('VehicleDetails', { vehicleId: vehicle.id });
+                        } else {
+                            navigateToRootScreen('AddVehicle');
+                        }
+                    }}
+                  >
                     <View style={styles.headerContent}>
                       <View style={styles.headerLeft}>
                         {vehicleLoading ? (
@@ -426,10 +450,10 @@ export default function Home() {
                             </View>
                           </>
                         ) : (
-                          <TouchableOpacity onPress={() => navigateToRootScreen('AddVehicle')}>
+                          <View>
                             <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
                             <Text style={styles.headerCarModel}>Tap to get started</Text>
-                          </TouchableOpacity>
+                          </View>
                         )}
                       </View>
                       <View style={styles.headerRight}>
@@ -454,7 +478,7 @@ export default function Home() {
                         <Text style={styles.footerValue}>₹ ---</Text>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               }
               if (item === 1) {
@@ -513,45 +537,108 @@ export default function Home() {
                   </TouchableOpacity>
                 );
               }
-              return (
-                <View style={styles.slideFull}>
-                  <View style={styles.promoSlide}>
-                    <View style={styles.promoLeft}>
-                      <Text style={styles.promoSubtitle}>Stay Connected</Text>
-                      <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
-                      <View style={styles.promoButtons}>
-                        <TouchableOpacity
-                          style={styles.promoBtn}
-                          onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
-                        >
-                          <Icon name="instagram" size={14} color="#000" />
-                          <Text style={styles.promoBtnText}>Instagram</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.promoBtn, { backgroundColor: '#333' }]}
-                          onPress={() => Linking.openURL('https://gupio.in/')}
-                        >
-                          <MaterialIcon name="earth" size={14} color="#fff" />
-                          <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
-                        </TouchableOpacity>
+              if (item === 3) {
+                return (
+                  <View style={styles.slideFull}>
+                    <View style={styles.promoSlide}>
+                      <View style={styles.promoLeft}>
+                        <Text style={styles.promoSubtitle}>Stay Connected</Text>
+                        <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
+                        <View style={styles.promoButtons}>
+                          <TouchableOpacity
+                            style={styles.promoBtn}
+                            onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
+                          >
+                            <Icon name="instagram" size={14} color="#000" />
+                            <Text style={styles.promoBtnText}>Instagram</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.promoBtn, { backgroundColor: '#333' }]}
+                            onPress={() => Linking.openURL('https://gupio.in/')}
+                          >
+                            <MaterialIcon name="earth" size={14} color="#fff" />
+                            <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      <View style={styles.promoRight}>
+                        <Image
+                          source={require('../../assets/images/insta&website_AD.png') as any}
+                          style={styles.adImage}
+                          resizeMode="contain"
+                        />
                       </View>
                     </View>
-                    <View style={styles.promoRight}>
-                      <Image
-                        source={require('../../assets/images/insta&website_AD.png') as any}
-                        style={styles.adImage}
-                        resizeMode="contain"
-                      />
+                  </View>
+                );
+              }
+            const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
+            const now = Date.now();
+            const weekMs = 7 * 24 * 60 * 60 * 1000;
+            const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
+            const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
+
+            return (
+              <TouchableOpacity
+                style={styles.slideFull}
+                activeOpacity={0.9}
+                onPress={() => (navigation as any).navigate('Odometer')}
+              >
+                <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
+                  <View style={styles.promoLeft}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
+                      {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
+                      <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                        {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
+                      </Text>
+                    </View>
+                    
+                    {lastUpdate ? (
+                      <View>
+                        <View style={styles.odometerInfoRow}>
+                          <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
+                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                            {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          </Text>
+                          <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
+                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                            {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </Text>
+                        </View>
+                        
+                        <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
+                          <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
+                            {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <Text style={styles.promoDesc}>
+                        Start tracking your vehicle health by updating odometer.
+                      </Text>
+                    )}
+                    
+                    <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
+                      <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
+                      <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
                     </View>
                   </View>
+                  <View style={styles.promoRight}>
+                    <Image
+                      source={require('../../assets/images/odometer.png') as any}
+                      style={styles.adImage}
+                      resizeMode="contain"
+                    />
+                  </View>
                 </View>
-              );
-            }}
-          />
+              </TouchableOpacity>
+            );
+          }}
+        />
 
           {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
-            {[0, 1, 2, 3].map((i) => (
+            {(showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]).map((i) => (
               <View
                 key={i}
                 style={[
@@ -573,26 +660,26 @@ export default function Home() {
           </View>
         </View>
 
-        {/* NUMBER PLATE INPUT */}
+        {/* NUMBER PLATE SECTION */}
         <View style={styles.numberPlateSection}>
-          <View style={styles.numberPlateContainer}>
+          <TouchableOpacity 
+            style={styles.numberPlateContainer}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('VehicleSearch')}
+          >
             <View style={styles.indContainer}>
               <View style={styles.greenDot} />
               <Text style={styles.indText}>IND</Text>
             </View>
-            <TextInput
-              style={styles.numberPlateInput}
-              placeholder={animatedPlaceholder}
-              placeholderTextColor="#fff"
-              value={numberPlate}
-              onChangeText={setNumberPlate}
-              autoCapitalize="characters"
-              maxLength={15}
-            />
-            <TouchableOpacity style={styles.searchButton}>
-              <MaterialIcon name="magnify" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
+            <View style={styles.numberPlatePlaceholderContainer}>
+              <Text style={styles.numberPlatePlaceholderText}>
+                {animatedPlaceholder || 'MH01CH4322'}
+              </Text>
+            </View>
+            <View style={styles.searchButton}>
+              <MaterialIcon name="magnify" size={22} color="#fff" />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* QUICK SERVICES GRID */}
@@ -1092,6 +1179,91 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     fontWeight: '700',
   },
+  odometerSlide: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: wp(10),
+  },
+  odometerImage: {
+    width: wp(40),
+    height: hp(14),
+    marginBottom: hp(1.5),
+  },
+  odometerTitle: {
+    color: '#fff',
+    fontSize: wp(5.5),
+    fontFamily: 'Outfit-Black',
+    textAlign: 'center',
+    marginBottom: hp(0.5),
+  },
+  odometerSubtitle: {
+    color: COLORS.primary,
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: hp(1.5),
+  },
+  odometerDesc: {
+    color: '#888',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Medium',
+    textAlign: 'center',
+    marginTop: hp(0.5),
+  },
+  odometerWarning: {
+    color: '#ff4d4d',
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    marginTop: hp(1),
+  },
+
+  odometerInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    marginTop: hp(0.5),
+  },
+  odometerInfoText: {
+    color: '#8E8E93',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+  },
+  odometerBadge: {
+    backgroundColor: 'rgba(255,215,0,0.1)',
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,215,0,0.2)',
+    marginTop: hp(1.2),
+    alignSelf: 'flex-start',
+  },
+  odometerBadgeText: {
+    color: COLORS.primary,
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    textTransform: 'uppercase',
+  },
+  odometerWarningBadge: {
+    backgroundColor: 'rgba(255,77,77,0.1)',
+    borderColor: 'rgba(255,77,77,0.2)',
+  },
+  odometerWarningBadgeText: {
+    color: '#ff4d4d',
+  },
+
+  odometerAlertSlide: {
+    backgroundColor: '#0D0D0D',
+    borderWidth: hp('0.2%'),
+    borderColor: 'rgba(255, 77, 77, 0.4)',
+    marginHorizontal: wp(2),
+    marginVertical: hp(1),
+    borderRadius: 20,
+  },
+
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -1152,12 +1324,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: wp(2.6),
   },
-  numberPlateInput: {
-    fontFamily: 'Outfit-Bold',
+  numberPlatePlaceholderContainer: {
     flex: 1,
+    paddingHorizontal: wp(2),
+    justifyContent: 'center',
+  },
+  numberPlatePlaceholderText: {
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
     fontSize: wp(4.5),
-    paddingHorizontal: wp(2),
     letterSpacing: 1.5,
   },
   searchButton: {

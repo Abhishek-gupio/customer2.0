@@ -227,3 +227,14 @@ export function setTelematicsLinked(vehicleId: string | null | undefined, linked
   if (!vehicleId) return;
   storage.set(`telematics_linked_${vehicleId}`, linked ? 'true' : 'false');
 }
+
+export function getLastOdometerUpdate(vehicleId: string): number | undefined {
+  const s = storage.getString(`last_odometer_update_${vehicleId}`);
+  if (s == null || s === '') return undefined;
+  const n = parseInt(s, 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+export function setLastOdometerUpdate(vehicleId: string, msSinceEpoch: number): void {
+  storage.set(`last_odometer_update_${vehicleId}`, String(Math.floor(msSinceEpoch)));
+}

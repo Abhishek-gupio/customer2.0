@@ -48,7 +48,7 @@ export const ingestionService = {
    */
   async ingestDocument(documentId: string) {
     try {
-      const doc = await db.customerDocument.findUnique({
+      const doc = await db.vehicleDocument.findUnique({
         where: { id: documentId },
         include: { vehicle: true },
       });
@@ -63,14 +63,7 @@ export const ingestionService = {
       const expiryStr = doc.expiryDate
         ? `Expires on ${doc.expiryDate.toISOString().split("T")[0]}`
         : "No expiry date";
-      let details = "";
-
-      // If OCR data exists, append it
-      if (doc.extractedFields) {
-        details = JSON.stringify(doc.extractedFields);
-      }
-
-      const content = `Document Record: ${typeStr} ${vehicleStr}. ${expiryStr}. Document Number: ${doc.documentNumber || "Unknown"}. Details: ${details}`;
+      const content = `Document Record: ${typeStr} ${vehicleStr}. ${expiryStr}. Document Number: ${doc.documentNumber || "Unknown"}.`;
 
       await vectorService.storeEmbedding({
         customerId: doc.customerId,
@@ -96,7 +89,7 @@ export const ingestionService = {
 
       if (!vehicle) return;
 
-      const content = `Vehicle Profile: ${vehicle.make} ${vehicle.model} ${vehicle.variant || ""} (${vehicle.year}). Registration: ${vehicle.registrationNumber}. Fuel: ${vehicle.fuelType}. Current Odometer: ${vehicle.currentOdometer} km.`;
+      const content = `Vehicle Profile: ${vehicle.make} ${vehicle.model} (${vehicle.manufacturingMonthYear || "N/A"}). Registration: ${vehicle.registrationNumber}. Fuel: ${vehicle.fuelType}. Current Odometer: ${vehicle.currentOdometer} km.`;
 
       await vectorService.storeEmbedding({
         customerId: vehicle.customerId,

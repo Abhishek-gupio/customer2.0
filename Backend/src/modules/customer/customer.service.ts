@@ -105,7 +105,7 @@ export const customerService = {
       (db.expense?.count?.({ where: { customerId } }) ?? Promise.resolve(0)).catch(() => 0);
 
     const countDocuments = () =>
-      dbInstances.customerDocument.count({ where: { customerId } }).catch(() => 0);
+      dbInstances.vehicleDocument.count({ where: { customerId } }).catch(() => 0);
 
     const [vehicles, expenses, documents] = await Promise.all([
       countVehicles(),

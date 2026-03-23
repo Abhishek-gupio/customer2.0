@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { setWarrantyStatusNeedsRefresh } from '../../utils/refreshManager';
+import { setLastOdometerUpdate } from '../../services/storage';
 
 export default function Odometer() {
   const [loading, setLoading] = useState(true);
@@ -65,6 +66,7 @@ export default function Odometer() {
     setSubmitting(true);
     try {
       await vehicleService.addOdometer(vehicle.id, { reading: value });
+      setLastOdometerUpdate(vehicle.id, Date.now());
       setWarrantyStatusNeedsRefresh();
       await fetchPrimary();
       Alert.alert('Success', 'Odometer updated. Parts & warranty predictions will use this reading.');
@@ -97,6 +99,7 @@ export default function Odometer() {
         setPhotoSubmitting(true);
         try {
           await vehicleService.addOdometerViaAI(vehicle.id, fd);
+          setLastOdometerUpdate(vehicle.id, Date.now());
           setWarrantyStatusNeedsRefresh();
           await fetchPrimary();
           Alert.alert('Success', 'Odometer updated from photo.');

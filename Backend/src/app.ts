@@ -54,6 +54,7 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: rateLimitKey,
+  validate: { default: false },
   skip: (req) => {
     // Don't count health checks so load balancers don't burn the limit
     if (req.path === "/health" || req.path === "/health/detailed") return true;

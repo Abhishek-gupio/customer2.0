@@ -8,8 +8,6 @@ export interface Vehicle {
     registrationNumber: string;
     make?: string;
     model?: string;
-    variant?: string;
-    year?: number;
     fuelType?: string;
     vehicleType?: string;
     engineNumber?: string;
@@ -20,6 +18,9 @@ export interface Vehicle {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    color?: string;
+    unloadedWeight?: string;
+    manufacturingMonthYear?: string;
     healthScore?: VehicleHealthScore;
     // AI-enriched data from Gemini RTO lookup (stored client-side, not in DB)
     rtoDetails?: RTODetails;
@@ -55,15 +56,9 @@ export interface RTODetails {
     chassisNumber?: string;
     registrationDate?: string;
     color?: string;
-    seatingCapacity?: string;
-    cylinderCount?: string;
-    cubicCapacity?: string;
-    grossWeight?: string;
-    bodyType?: string;
     registrationNumber?: string;
-    ownerAddress?: string;
+    manufacturingMonthYear?: string;
     present_address?: string;
-    year?: number;
 }
 
 export interface VehicleHealthScore {
@@ -80,8 +75,6 @@ export interface AddVehicleInput {
     registrationNumber: string;
     make?: string;
     model?: string;
-    variant?: string;
-    year?: number;
     fuelType?: 'PETROL' | 'DIESEL' | 'CNG' | 'EV' | 'HYBRID' | 'OTHER';
     vehicleType?: 'LUV' | 'SUV' | 'SEDAN' | 'BIKE' | 'HATCHBACK' | 'TRUCK';
     engineNumber?: string;
@@ -100,12 +93,7 @@ export interface AddVehicleInput {
     mileage?: string;
     brand?: string;
     color?: string;
-    seatingCapacity?: string;
-    cylinderCount?: string;
-    cubicCapacity?: string;
-    grossWeight?: string;
-    bodyType?: string;
-    ownerAddress?: string;
+    manufacturingMonthYear?: string;
 }
 
 export type UpdateVehicleInput = Partial<AddVehicleInput>;
@@ -247,6 +235,8 @@ export const vehicleService = {
             pollutionUpto: raw.pollutionUpto,
             mileage: raw.mileage,
             brand: raw.make,
+            color: raw.color,
+            manufacturingMonthYear: raw.manufacturingMonthYear,
         };
     },
 };

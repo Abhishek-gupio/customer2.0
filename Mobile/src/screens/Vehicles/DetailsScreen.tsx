@@ -24,6 +24,7 @@ import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate, GloveboxItem, StatusCard } from '../../components/Vehicles/VehicleUI';
+import { getAbsoluteUrl } from '../../config';
 import { Vehicle, vehicleService } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import ShareScreen from './Share';
@@ -43,17 +44,22 @@ type DetailsScreenProps = {
     onAddNew: () => void;
     onDelete: (id: string) => void;
     onSetPrimary: (id: string) => void;
+    initialTab?: MainTab;
 };
 
 type MainTab = 'Alerts' | 'Details';
 type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'More';
 
 export const DetailsScreen = ({
-    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
+    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, initialTab
 }: DetailsScreenProps) => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const [mainTab, setMainTab] = useState<MainTab>('Alerts');
+    const [mainTab, setMainTab] = useState<MainTab>(initialTab || 'Alerts');
     const [subTab, setSubTab] = useState<SubTab>('Health');
+
+    useEffect(() => {
+        if (initialTab) setMainTab(initialTab);
+    }, [initialTab]);
     const [healthScoreDetail, setHealthScoreDetail] = useState<{
         overallScore?: number;
         scoreChangeReason?: string;
@@ -122,8 +128,14 @@ export const DetailsScreen = ({
     // by AddVehicleScreen → onDone → GupioGarageApp state.
     const rto = activeVehicle.rtoDetails || activeVehicle;
 
-    // Hero image source
-    const heroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    // Hero image source: use activeVehicle.imageUrl if available, fallback to local assets
+    const heroUri = activeVehicle.imageUrl ? getAbsoluteUrl(activeVehicle.imageUrl) : null;
+    const heroSrc = heroUri 
+        ? { uri: heroUri } 
+        : (activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage);
+
+    // If hero error occurred, fallback to local
+    const displayHeroSrc = heroError ? (activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) : heroSrc;
 
     const handleFeedbackSubmit = () => {
         if (!rating) return;
@@ -446,7 +458,7 @@ export const DetailsScreen = ({
                 {/* ── Hero section as per mockup ── */}
                 <View style={styles.heroSection}>
                     <Image
-                        source={heroSrc}
+                        source={displayHeroSrc}
                         style={styles.heroImage}
                         resizeMode="contain"
                         onError={() => setHeroError(true)}
@@ -492,7 +504,7 @@ export const DetailsScreen = ({
                                 >
                                     <View style={[styles.miniCircleInner, activeVehicle.id === v.id && { borderColor: COLORS.primary }]}>
                                         <Image
-                                            source={v.vehicleType === 'BIKE' ? BikeImage : CarImage}
+                                            source={v.imageUrl ? { uri: getAbsoluteUrl(v.imageUrl) } : (v.vehicleType === 'BIKE' ? BikeImage : CarImage)}
                                             style={StyleSheet.absoluteFill}
                                             resizeMode="cover"
                                             blurRadius={activeVehicle.id === v.id ? 2 : 0}
@@ -529,18 +541,21 @@ export const DetailsScreen = ({
                                     value="CHECK NOW"
                                     onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
-                                <StatusCard
-                                    icon={ShieldCheck}
-                                    label="PUCC"
-                                    value="ACTIVE"
-                                />
+                                {activeVehicle.isPrimary && (
+                                    <StatusCard
+                                        icon={ShieldCheck}
+                                        label="warranty"
+                                        value="STATUS"
+                                        onPress={() => navigation.navigate('WarrantyStatus')}
+                                    />
+                                )}
                             </View>
 
 
 
                             {/* ── Your GloverBox ── */}
                             <View style={{ marginTop: hp('4%') }}>
-                                <Text style={styles.sectionHeading}>YOUR GLOVERBOX</Text>
+                                <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
                                 <View style={styles.gloveboxGrid}>
                                     <GloveboxImageItem label="reg certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
                                     <GloveboxImageItem label="driver's licence" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
@@ -675,6 +690,8 @@ export const DetailsScreen = ({
                                         <InfoCard icon={Hash} label="Engine Number" value={rto?.engineNumber || rto?.engineNo || 'N/A'} />
                                         <InfoCard icon={Hash} label="Chassis Number" value={rto?.chassisNumber || rto?.chassisNo || activeVehicle.chassisNumber || 'N/A'} />
                                         <InfoCard icon={Droplets} label="Fuel Type" value={rto?.fuelType || activeVehicle.fuelType || 'Petrol'} />
+                                        <InfoCard icon={Droplets} label="Color" value={rto?.color ?? activeVehicle.color ?? 'N/A'} />
+                                        <InfoCard icon={Weight} label="Unladen Weight" value={rto?.unloadedWeight ?? activeVehicle.unloadedWeight ?? 'N/A'} />
                                     </>
                                 )}
                                 {subTab === 'More' && (
@@ -683,6 +700,7 @@ export const DetailsScreen = ({
                                         <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
                                         <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
                                         <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
+                                        <InfoCard icon={Calendar} label="Manufacturing Date" value={rto?.manufacturingMonthYear || activeVehicle.manufacturingMonthYear || 'N/A'} />
                                     </>
                                 )}
                             </View>

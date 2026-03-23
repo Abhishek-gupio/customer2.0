@@ -34,10 +34,10 @@ export type Customer = $Result.DefaultSelection<Prisma.$CustomerPayload>
  */
 export type CustomerDevice = $Result.DefaultSelection<Prisma.$CustomerDevicePayload>
 /**
- * Model CustomerDocument
+ * Model VehicleDocument
  * 
  */
-export type CustomerDocument = $Result.DefaultSelection<Prisma.$CustomerDocumentPayload>
+export type VehicleDocument = $Result.DefaultSelection<Prisma.$VehicleDocumentPayload>
 /**
  * Model DigiLockerConnection
  * 
@@ -1284,14 +1284,14 @@ export class PrismaClient<
   get customerDevice(): Prisma.CustomerDeviceDelegate<ExtArgs, ClientOptions>;
 
   /**
-   * `prisma.customerDocument`: Exposes CRUD operations for the **CustomerDocument** model.
+   * `prisma.vehicleDocument`: Exposes CRUD operations for the **VehicleDocument** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more CustomerDocuments
-    * const customerDocuments = await prisma.customerDocument.findMany()
+    * // Fetch zero or more VehicleDocuments
+    * const vehicleDocuments = await prisma.vehicleDocument.findMany()
     * ```
     */
-  get customerDocument(): Prisma.CustomerDocumentDelegate<ExtArgs, ClientOptions>;
+  get vehicleDocument(): Prisma.VehicleDocumentDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.digiLockerConnection`: Exposes CRUD operations for the **DigiLockerConnection** model.
@@ -2390,7 +2390,7 @@ export namespace Prisma {
     AdminUser: 'AdminUser',
     Customer: 'Customer',
     CustomerDevice: 'CustomerDevice',
-    CustomerDocument: 'CustomerDocument',
+    VehicleDocument: 'VehicleDocument',
     DigiLockerConnection: 'DigiLockerConnection',
     CustomerVehicle: 'CustomerVehicle',
     OdometerLog: 'OdometerLog',
@@ -2472,7 +2472,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "customerDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "digiLockerConnection" | "customerVehicle" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2772,77 +2772,77 @@ export namespace Prisma {
           }
         }
       }
-      CustomerDocument: {
-        payload: Prisma.$CustomerDocumentPayload<ExtArgs>
-        fields: Prisma.CustomerDocumentFieldRefs
+      VehicleDocument: {
+        payload: Prisma.$VehicleDocumentPayload<ExtArgs>
+        fields: Prisma.VehicleDocumentFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.CustomerDocumentFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload> | null
+            args: Prisma.VehicleDocumentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.CustomerDocumentFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>
+            args: Prisma.VehicleDocumentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>
           }
           findFirst: {
-            args: Prisma.CustomerDocumentFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload> | null
+            args: Prisma.VehicleDocumentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.CustomerDocumentFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>
+            args: Prisma.VehicleDocumentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>
           }
           findMany: {
-            args: Prisma.CustomerDocumentFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>[]
+            args: Prisma.VehicleDocumentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>[]
           }
           create: {
-            args: Prisma.CustomerDocumentCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>
+            args: Prisma.VehicleDocumentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>
           }
           createMany: {
-            args: Prisma.CustomerDocumentCreateManyArgs<ExtArgs>
+            args: Prisma.VehicleDocumentCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
           createManyAndReturn: {
-            args: Prisma.CustomerDocumentCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>[]
+            args: Prisma.VehicleDocumentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>[]
           }
           delete: {
-            args: Prisma.CustomerDocumentDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>
+            args: Prisma.VehicleDocumentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>
           }
           update: {
-            args: Prisma.CustomerDocumentUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>
+            args: Prisma.VehicleDocumentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>
           }
           deleteMany: {
-            args: Prisma.CustomerDocumentDeleteManyArgs<ExtArgs>
+            args: Prisma.VehicleDocumentDeleteManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateMany: {
-            args: Prisma.CustomerDocumentUpdateManyArgs<ExtArgs>
+            args: Prisma.VehicleDocumentUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateManyAndReturn: {
-            args: Prisma.CustomerDocumentUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>[]
+            args: Prisma.VehicleDocumentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>[]
           }
           upsert: {
-            args: Prisma.CustomerDocumentUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CustomerDocumentPayload>
+            args: Prisma.VehicleDocumentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleDocumentPayload>
           }
           aggregate: {
-            args: Prisma.CustomerDocumentAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateCustomerDocument>
+            args: Prisma.VehicleDocumentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVehicleDocument>
           }
           groupBy: {
-            args: Prisma.CustomerDocumentGroupByArgs<ExtArgs>
-            result: $Utils.Optional<CustomerDocumentGroupByOutputType>[]
+            args: Prisma.VehicleDocumentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VehicleDocumentGroupByOutputType>[]
           }
           count: {
-            args: Prisma.CustomerDocumentCountArgs<ExtArgs>
-            result: $Utils.Optional<CustomerDocumentCountAggregateOutputType> | number
+            args: Prisma.VehicleDocumentCountArgs<ExtArgs>
+            result: $Utils.Optional<VehicleDocumentCountAggregateOutputType> | number
           }
         }
       }
@@ -7842,7 +7842,7 @@ export namespace Prisma {
     adminUser?: AdminUserOmit
     customer?: CustomerOmit
     customerDevice?: CustomerDeviceOmit
-    customerDocument?: CustomerDocumentOmit
+    vehicleDocument?: VehicleDocumentOmit
     digiLockerConnection?: DigiLockerConnectionOmit
     customerVehicle?: CustomerVehicleOmit
     odometerLog?: OdometerLogOmit
@@ -8047,7 +8047,7 @@ export namespace Prisma {
    * CustomerCountOutputType without action
    */
   export type CustomerCountOutputTypeCountDocumentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
   }
 
   /**
@@ -8160,7 +8160,7 @@ export namespace Prisma {
    * CustomerVehicleCountOutputType without action
    */
   export type CustomerVehicleCountOutputTypeCountDocumentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
   }
 
   /**
@@ -11327,7 +11327,7 @@ export namespace Prisma {
     objects: {
       chats: Prisma.$ChatSessionPayload<ExtArgs>[]
       devices: Prisma.$CustomerDevicePayload<ExtArgs>[]
-      documents: Prisma.$CustomerDocumentPayload<ExtArgs>[]
+      documents: Prisma.$VehicleDocumentPayload<ExtArgs>[]
       vehicles: Prisma.$CustomerVehiclePayload<ExtArgs>[]
       digilocker: Prisma.$DigiLockerConnectionPayload<ExtArgs> | null
       emergencyContacts: Prisma.$EmergencyContactPayload<ExtArgs>[]
@@ -11744,7 +11744,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     chats<T extends Customer$chatsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$chatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     devices<T extends Customer$devicesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$devicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDevicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    documents<T extends Customer$documentsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    documents<T extends Customer$documentsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     vehicles<T extends Customer$vehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     digilocker<T extends Customer$digilockerArgs<ExtArgs> = {}>(args?: Subset<T, Customer$digilockerArgs<ExtArgs>>): Prisma__DigiLockerConnectionClient<$Result.GetResult<Prisma.$DigiLockerConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     emergencyContacts<T extends Customer$emergencyContactsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$emergencyContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12232,23 +12232,23 @@ export namespace Prisma {
    */
   export type Customer$documentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
-    where?: CustomerDocumentWhereInput
-    orderBy?: CustomerDocumentOrderByWithRelationInput | CustomerDocumentOrderByWithRelationInput[]
-    cursor?: CustomerDocumentWhereUniqueInput
+    include?: VehicleDocumentInclude<ExtArgs> | null
+    where?: VehicleDocumentWhereInput
+    orderBy?: VehicleDocumentOrderByWithRelationInput | VehicleDocumentOrderByWithRelationInput[]
+    cursor?: VehicleDocumentWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: CustomerDocumentScalarFieldEnum | CustomerDocumentScalarFieldEnum[]
+    distinct?: VehicleDocumentScalarFieldEnum | VehicleDocumentScalarFieldEnum[]
   }
 
   /**
@@ -13603,408 +13603,283 @@ export namespace Prisma {
 
 
   /**
-   * Model CustomerDocument
+   * Model VehicleDocument
    */
 
-  export type AggregateCustomerDocument = {
-    _count: CustomerDocumentCountAggregateOutputType | null
-    _avg: CustomerDocumentAvgAggregateOutputType | null
-    _sum: CustomerDocumentSumAggregateOutputType | null
-    _min: CustomerDocumentMinAggregateOutputType | null
-    _max: CustomerDocumentMaxAggregateOutputType | null
+  export type AggregateVehicleDocument = {
+    _count: VehicleDocumentCountAggregateOutputType | null
+    _min: VehicleDocumentMinAggregateOutputType | null
+    _max: VehicleDocumentMaxAggregateOutputType | null
   }
 
-  export type CustomerDocumentAvgAggregateOutputType = {
-    fileSize: number | null
-  }
-
-  export type CustomerDocumentSumAggregateOutputType = {
-    fileSize: number | null
-  }
-
-  export type CustomerDocumentMinAggregateOutputType = {
+  export type VehicleDocumentMinAggregateOutputType = {
     id: string | null
     customerId: string | null
     vehicleId: string | null
     type: $Enums.DocumentType | null
     documentNumber: string | null
-    issueDate: Date | null
     expiryDate: Date | null
-    issuerName: string | null
+    fileContent: Bytes | null
     fileUrl: string | null
-    thumbnailUrl: string | null
-    fileSize: number | null
     mimeType: string | null
-    verificationStatus: $Enums.VerificationStatus | null
-    verifiedAt: Date | null
-    verifiedBy: string | null
-    source: $Enums.DocumentSource | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
-  export type CustomerDocumentMaxAggregateOutputType = {
+  export type VehicleDocumentMaxAggregateOutputType = {
     id: string | null
     customerId: string | null
     vehicleId: string | null
     type: $Enums.DocumentType | null
     documentNumber: string | null
-    issueDate: Date | null
     expiryDate: Date | null
-    issuerName: string | null
+    fileContent: Bytes | null
     fileUrl: string | null
-    thumbnailUrl: string | null
-    fileSize: number | null
     mimeType: string | null
-    verificationStatus: $Enums.VerificationStatus | null
-    verifiedAt: Date | null
-    verifiedBy: string | null
-    source: $Enums.DocumentSource | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
-  export type CustomerDocumentCountAggregateOutputType = {
+  export type VehicleDocumentCountAggregateOutputType = {
     id: number
     customerId: number
     vehicleId: number
     type: number
     documentNumber: number
-    issueDate: number
     expiryDate: number
-    issuerName: number
+    fileContent: number
     fileUrl: number
-    thumbnailUrl: number
-    fileSize: number
     mimeType: number
-    ocrData: number
-    extractedFields: number
-    verificationStatus: number
-    verifiedAt: number
-    verifiedBy: number
-    source: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
 
-  export type CustomerDocumentAvgAggregateInputType = {
-    fileSize?: true
-  }
-
-  export type CustomerDocumentSumAggregateInputType = {
-    fileSize?: true
-  }
-
-  export type CustomerDocumentMinAggregateInputType = {
+  export type VehicleDocumentMinAggregateInputType = {
     id?: true
     customerId?: true
     vehicleId?: true
     type?: true
     documentNumber?: true
-    issueDate?: true
     expiryDate?: true
-    issuerName?: true
+    fileContent?: true
     fileUrl?: true
-    thumbnailUrl?: true
-    fileSize?: true
     mimeType?: true
-    verificationStatus?: true
-    verifiedAt?: true
-    verifiedBy?: true
-    source?: true
     createdAt?: true
     updatedAt?: true
   }
 
-  export type CustomerDocumentMaxAggregateInputType = {
+  export type VehicleDocumentMaxAggregateInputType = {
     id?: true
     customerId?: true
     vehicleId?: true
     type?: true
     documentNumber?: true
-    issueDate?: true
     expiryDate?: true
-    issuerName?: true
+    fileContent?: true
     fileUrl?: true
-    thumbnailUrl?: true
-    fileSize?: true
     mimeType?: true
-    verificationStatus?: true
-    verifiedAt?: true
-    verifiedBy?: true
-    source?: true
     createdAt?: true
     updatedAt?: true
   }
 
-  export type CustomerDocumentCountAggregateInputType = {
+  export type VehicleDocumentCountAggregateInputType = {
     id?: true
     customerId?: true
     vehicleId?: true
     type?: true
     documentNumber?: true
-    issueDate?: true
     expiryDate?: true
-    issuerName?: true
+    fileContent?: true
     fileUrl?: true
-    thumbnailUrl?: true
-    fileSize?: true
     mimeType?: true
-    ocrData?: true
-    extractedFields?: true
-    verificationStatus?: true
-    verifiedAt?: true
-    verifiedBy?: true
-    source?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
   }
 
-  export type CustomerDocumentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which CustomerDocument to aggregate.
+     * Filter which VehicleDocument to aggregate.
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of CustomerDocuments to fetch.
+     * Determine the order of VehicleDocuments to fetch.
      */
-    orderBy?: CustomerDocumentOrderByWithRelationInput | CustomerDocumentOrderByWithRelationInput[]
+    orderBy?: VehicleDocumentOrderByWithRelationInput | VehicleDocumentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
      */
-    cursor?: CustomerDocumentWhereUniqueInput
+    cursor?: VehicleDocumentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` CustomerDocuments from the position of the cursor.
+     * Take `±n` VehicleDocuments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` CustomerDocuments.
+     * Skip the first `n` VehicleDocuments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned CustomerDocuments
+     * Count returned VehicleDocuments
     **/
-    _count?: true | CustomerDocumentCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to average
-    **/
-    _avg?: CustomerDocumentAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: CustomerDocumentSumAggregateInputType
+    _count?: true | VehicleDocumentCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    _min?: CustomerDocumentMinAggregateInputType
+    _min?: VehicleDocumentMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    _max?: CustomerDocumentMaxAggregateInputType
+    _max?: VehicleDocumentMaxAggregateInputType
   }
 
-  export type GetCustomerDocumentAggregateType<T extends CustomerDocumentAggregateArgs> = {
-        [P in keyof T & keyof AggregateCustomerDocument]: P extends '_count' | 'count'
+  export type GetVehicleDocumentAggregateType<T extends VehicleDocumentAggregateArgs> = {
+        [P in keyof T & keyof AggregateVehicleDocument]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateCustomerDocument[P]>
-      : GetScalarType<T[P], AggregateCustomerDocument[P]>
+        : GetScalarType<T[P], AggregateVehicleDocument[P]>
+      : GetScalarType<T[P], AggregateVehicleDocument[P]>
   }
 
 
 
 
-  export type CustomerDocumentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: CustomerDocumentWhereInput
-    orderBy?: CustomerDocumentOrderByWithAggregationInput | CustomerDocumentOrderByWithAggregationInput[]
-    by: CustomerDocumentScalarFieldEnum[] | CustomerDocumentScalarFieldEnum
-    having?: CustomerDocumentScalarWhereWithAggregatesInput
+  export type VehicleDocumentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VehicleDocumentWhereInput
+    orderBy?: VehicleDocumentOrderByWithAggregationInput | VehicleDocumentOrderByWithAggregationInput[]
+    by: VehicleDocumentScalarFieldEnum[] | VehicleDocumentScalarFieldEnum
+    having?: VehicleDocumentScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    _count?: CustomerDocumentCountAggregateInputType | true
-    _avg?: CustomerDocumentAvgAggregateInputType
-    _sum?: CustomerDocumentSumAggregateInputType
-    _min?: CustomerDocumentMinAggregateInputType
-    _max?: CustomerDocumentMaxAggregateInputType
+    _count?: VehicleDocumentCountAggregateInputType | true
+    _min?: VehicleDocumentMinAggregateInputType
+    _max?: VehicleDocumentMaxAggregateInputType
   }
 
-  export type CustomerDocumentGroupByOutputType = {
+  export type VehicleDocumentGroupByOutputType = {
     id: string
     customerId: string
     vehicleId: string | null
     type: $Enums.DocumentType
     documentNumber: string | null
-    issueDate: Date | null
     expiryDate: Date | null
-    issuerName: string | null
-    fileUrl: string
-    thumbnailUrl: string | null
-    fileSize: number | null
+    fileContent: Bytes | null
+    fileUrl: string | null
     mimeType: string | null
-    ocrData: JsonValue | null
-    extractedFields: JsonValue | null
-    verificationStatus: $Enums.VerificationStatus
-    verifiedAt: Date | null
-    verifiedBy: string | null
-    source: $Enums.DocumentSource
     createdAt: Date
     updatedAt: Date
-    _count: CustomerDocumentCountAggregateOutputType | null
-    _avg: CustomerDocumentAvgAggregateOutputType | null
-    _sum: CustomerDocumentSumAggregateOutputType | null
-    _min: CustomerDocumentMinAggregateOutputType | null
-    _max: CustomerDocumentMaxAggregateOutputType | null
+    _count: VehicleDocumentCountAggregateOutputType | null
+    _min: VehicleDocumentMinAggregateOutputType | null
+    _max: VehicleDocumentMaxAggregateOutputType | null
   }
 
-  type GetCustomerDocumentGroupByPayload<T extends CustomerDocumentGroupByArgs> = Prisma.PrismaPromise<
+  type GetVehicleDocumentGroupByPayload<T extends VehicleDocumentGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickEnumerable<CustomerDocumentGroupByOutputType, T['by']> &
+      PickEnumerable<VehicleDocumentGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof CustomerDocumentGroupByOutputType))]: P extends '_count'
+          [P in ((keyof T) & (keyof VehicleDocumentGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
               ? number
-              : GetScalarType<T[P], CustomerDocumentGroupByOutputType[P]>
-            : GetScalarType<T[P], CustomerDocumentGroupByOutputType[P]>
+              : GetScalarType<T[P], VehicleDocumentGroupByOutputType[P]>
+            : GetScalarType<T[P], VehicleDocumentGroupByOutputType[P]>
         }
       >
     >
 
 
-  export type CustomerDocumentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type VehicleDocumentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
     type?: boolean
     documentNumber?: boolean
-    issueDate?: boolean
     expiryDate?: boolean
-    issuerName?: boolean
+    fileContent?: boolean
     fileUrl?: boolean
-    thumbnailUrl?: boolean
-    fileSize?: boolean
     mimeType?: boolean
-    ocrData?: boolean
-    extractedFields?: boolean
-    verificationStatus?: boolean
-    verifiedAt?: boolean
-    verifiedBy?: boolean
-    source?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
-    vehicle?: boolean | CustomerDocument$vehicleArgs<ExtArgs>
-  }, ExtArgs["result"]["customerDocument"]>
+    vehicle?: boolean | VehicleDocument$vehicleArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleDocument"]>
 
-  export type CustomerDocumentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type VehicleDocumentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
     type?: boolean
     documentNumber?: boolean
-    issueDate?: boolean
     expiryDate?: boolean
-    issuerName?: boolean
+    fileContent?: boolean
     fileUrl?: boolean
-    thumbnailUrl?: boolean
-    fileSize?: boolean
     mimeType?: boolean
-    ocrData?: boolean
-    extractedFields?: boolean
-    verificationStatus?: boolean
-    verifiedAt?: boolean
-    verifiedBy?: boolean
-    source?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
-    vehicle?: boolean | CustomerDocument$vehicleArgs<ExtArgs>
-  }, ExtArgs["result"]["customerDocument"]>
+    vehicle?: boolean | VehicleDocument$vehicleArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleDocument"]>
 
-  export type CustomerDocumentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type VehicleDocumentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
     type?: boolean
     documentNumber?: boolean
-    issueDate?: boolean
     expiryDate?: boolean
-    issuerName?: boolean
+    fileContent?: boolean
     fileUrl?: boolean
-    thumbnailUrl?: boolean
-    fileSize?: boolean
     mimeType?: boolean
-    ocrData?: boolean
-    extractedFields?: boolean
-    verificationStatus?: boolean
-    verifiedAt?: boolean
-    verifiedBy?: boolean
-    source?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
-    vehicle?: boolean | CustomerDocument$vehicleArgs<ExtArgs>
-  }, ExtArgs["result"]["customerDocument"]>
+    vehicle?: boolean | VehicleDocument$vehicleArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleDocument"]>
 
-  export type CustomerDocumentSelectScalar = {
+  export type VehicleDocumentSelectScalar = {
     id?: boolean
     customerId?: boolean
     vehicleId?: boolean
     type?: boolean
     documentNumber?: boolean
-    issueDate?: boolean
     expiryDate?: boolean
-    issuerName?: boolean
+    fileContent?: boolean
     fileUrl?: boolean
-    thumbnailUrl?: boolean
-    fileSize?: boolean
     mimeType?: boolean
-    ocrData?: boolean
-    extractedFields?: boolean
-    verificationStatus?: boolean
-    verifiedAt?: boolean
-    verifiedBy?: boolean
-    source?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type CustomerDocumentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "vehicleId" | "type" | "documentNumber" | "issueDate" | "expiryDate" | "issuerName" | "fileUrl" | "thumbnailUrl" | "fileSize" | "mimeType" | "ocrData" | "extractedFields" | "verificationStatus" | "verifiedAt" | "verifiedBy" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["customerDocument"]>
-  export type CustomerDocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "vehicleId" | "type" | "documentNumber" | "expiryDate" | "fileContent" | "fileUrl" | "mimeType" | "createdAt" | "updatedAt", ExtArgs["result"]["vehicleDocument"]>
+  export type VehicleDocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
-    vehicle?: boolean | CustomerDocument$vehicleArgs<ExtArgs>
+    vehicle?: boolean | VehicleDocument$vehicleArgs<ExtArgs>
   }
-  export type CustomerDocumentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
-    vehicle?: boolean | CustomerDocument$vehicleArgs<ExtArgs>
+    vehicle?: boolean | VehicleDocument$vehicleArgs<ExtArgs>
   }
-  export type CustomerDocumentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
-    vehicle?: boolean | CustomerDocument$vehicleArgs<ExtArgs>
+    vehicle?: boolean | VehicleDocument$vehicleArgs<ExtArgs>
   }
 
-  export type $CustomerDocumentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "CustomerDocument"
+  export type $VehicleDocumentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VehicleDocument"
     objects: {
       customer: Prisma.$CustomerPayload<ExtArgs>
       vehicle: Prisma.$CustomerVehiclePayload<ExtArgs> | null
@@ -14015,151 +13890,142 @@ export namespace Prisma {
       vehicleId: string | null
       type: $Enums.DocumentType
       documentNumber: string | null
-      issueDate: Date | null
       expiryDate: Date | null
-      issuerName: string | null
-      fileUrl: string
-      thumbnailUrl: string | null
-      fileSize: number | null
+      fileContent: Prisma.Bytes | null
+      fileUrl: string | null
       mimeType: string | null
-      ocrData: Prisma.JsonValue | null
-      extractedFields: Prisma.JsonValue | null
-      verificationStatus: $Enums.VerificationStatus
-      verifiedAt: Date | null
-      verifiedBy: string | null
-      source: $Enums.DocumentSource
       createdAt: Date
       updatedAt: Date
-    }, ExtArgs["result"]["customerDocument"]>
+    }, ExtArgs["result"]["vehicleDocument"]>
     composites: {}
   }
 
-  type CustomerDocumentGetPayload<S extends boolean | null | undefined | CustomerDocumentDefaultArgs> = $Result.GetResult<Prisma.$CustomerDocumentPayload, S>
+  type VehicleDocumentGetPayload<S extends boolean | null | undefined | VehicleDocumentDefaultArgs> = $Result.GetResult<Prisma.$VehicleDocumentPayload, S>
 
-  type CustomerDocumentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<CustomerDocumentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: CustomerDocumentCountAggregateInputType | true
+  type VehicleDocumentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VehicleDocumentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VehicleDocumentCountAggregateInputType | true
     }
 
-  export interface CustomerDocumentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomerDocument'], meta: { name: 'CustomerDocument' } }
+  export interface VehicleDocumentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VehicleDocument'], meta: { name: 'VehicleDocument' } }
     /**
-     * Find zero or one CustomerDocument that matches the filter.
-     * @param {CustomerDocumentFindUniqueArgs} args - Arguments to find a CustomerDocument
+     * Find zero or one VehicleDocument that matches the filter.
+     * @param {VehicleDocumentFindUniqueArgs} args - Arguments to find a VehicleDocument
      * @example
-     * // Get one CustomerDocument
-     * const customerDocument = await prisma.customerDocument.findUnique({
+     * // Get one VehicleDocument
+     * const vehicleDocument = await prisma.vehicleDocument.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUnique<T extends CustomerDocumentFindUniqueArgs>(args: SelectSubset<T, CustomerDocumentFindUniqueArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends VehicleDocumentFindUniqueArgs>(args: SelectSubset<T, VehicleDocumentFindUniqueArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one CustomerDocument that matches the filter or throw an error with `error.code='P2025'`
+     * Find one VehicleDocument that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
-     * @param {CustomerDocumentFindUniqueOrThrowArgs} args - Arguments to find a CustomerDocument
+     * @param {VehicleDocumentFindUniqueOrThrowArgs} args - Arguments to find a VehicleDocument
      * @example
-     * // Get one CustomerDocument
-     * const customerDocument = await prisma.customerDocument.findUniqueOrThrow({
+     * // Get one VehicleDocument
+     * const vehicleDocument = await prisma.vehicleDocument.findUniqueOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUniqueOrThrow<T extends CustomerDocumentFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomerDocumentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends VehicleDocumentFindUniqueOrThrowArgs>(args: SelectSubset<T, VehicleDocumentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first CustomerDocument that matches the filter.
+     * Find the first VehicleDocument that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentFindFirstArgs} args - Arguments to find a CustomerDocument
+     * @param {VehicleDocumentFindFirstArgs} args - Arguments to find a VehicleDocument
      * @example
-     * // Get one CustomerDocument
-     * const customerDocument = await prisma.customerDocument.findFirst({
+     * // Get one VehicleDocument
+     * const vehicleDocument = await prisma.vehicleDocument.findFirst({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirst<T extends CustomerDocumentFindFirstArgs>(args?: SelectSubset<T, CustomerDocumentFindFirstArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends VehicleDocumentFindFirstArgs>(args?: SelectSubset<T, VehicleDocumentFindFirstArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first CustomerDocument that matches the filter or
+     * Find the first VehicleDocument that matches the filter or
      * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentFindFirstOrThrowArgs} args - Arguments to find a CustomerDocument
+     * @param {VehicleDocumentFindFirstOrThrowArgs} args - Arguments to find a VehicleDocument
      * @example
-     * // Get one CustomerDocument
-     * const customerDocument = await prisma.customerDocument.findFirstOrThrow({
+     * // Get one VehicleDocument
+     * const vehicleDocument = await prisma.vehicleDocument.findFirstOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirstOrThrow<T extends CustomerDocumentFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomerDocumentFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends VehicleDocumentFindFirstOrThrowArgs>(args?: SelectSubset<T, VehicleDocumentFindFirstOrThrowArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find zero or more CustomerDocuments that matches the filter.
+     * Find zero or more VehicleDocuments that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @param {VehicleDocumentFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all CustomerDocuments
-     * const customerDocuments = await prisma.customerDocument.findMany()
+     * // Get all VehicleDocuments
+     * const vehicleDocuments = await prisma.vehicleDocument.findMany()
      * 
-     * // Get first 10 CustomerDocuments
-     * const customerDocuments = await prisma.customerDocument.findMany({ take: 10 })
+     * // Get first 10 VehicleDocuments
+     * const vehicleDocuments = await prisma.vehicleDocument.findMany({ take: 10 })
      * 
      * // Only select the `id`
-     * const customerDocumentWithIdOnly = await prisma.customerDocument.findMany({ select: { id: true } })
+     * const vehicleDocumentWithIdOnly = await prisma.vehicleDocument.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends CustomerDocumentFindManyArgs>(args?: SelectSubset<T, CustomerDocumentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends VehicleDocumentFindManyArgs>(args?: SelectSubset<T, VehicleDocumentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
-     * Create a CustomerDocument.
-     * @param {CustomerDocumentCreateArgs} args - Arguments to create a CustomerDocument.
+     * Create a VehicleDocument.
+     * @param {VehicleDocumentCreateArgs} args - Arguments to create a VehicleDocument.
      * @example
-     * // Create one CustomerDocument
-     * const CustomerDocument = await prisma.customerDocument.create({
+     * // Create one VehicleDocument
+     * const VehicleDocument = await prisma.vehicleDocument.create({
      *   data: {
-     *     // ... data to create a CustomerDocument
+     *     // ... data to create a VehicleDocument
      *   }
      * })
      * 
      */
-    create<T extends CustomerDocumentCreateArgs>(args: SelectSubset<T, CustomerDocumentCreateArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends VehicleDocumentCreateArgs>(args: SelectSubset<T, VehicleDocumentCreateArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Create many CustomerDocuments.
-     * @param {CustomerDocumentCreateManyArgs} args - Arguments to create many CustomerDocuments.
+     * Create many VehicleDocuments.
+     * @param {VehicleDocumentCreateManyArgs} args - Arguments to create many VehicleDocuments.
      * @example
-     * // Create many CustomerDocuments
-     * const customerDocument = await prisma.customerDocument.createMany({
+     * // Create many VehicleDocuments
+     * const vehicleDocument = await prisma.vehicleDocument.createMany({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      *     
      */
-    createMany<T extends CustomerDocumentCreateManyArgs>(args?: SelectSubset<T, CustomerDocumentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    createMany<T extends VehicleDocumentCreateManyArgs>(args?: SelectSubset<T, VehicleDocumentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many CustomerDocuments and returns the data saved in the database.
-     * @param {CustomerDocumentCreateManyAndReturnArgs} args - Arguments to create many CustomerDocuments.
+     * Create many VehicleDocuments and returns the data saved in the database.
+     * @param {VehicleDocumentCreateManyAndReturnArgs} args - Arguments to create many VehicleDocuments.
      * @example
-     * // Create many CustomerDocuments
-     * const customerDocument = await prisma.customerDocument.createManyAndReturn({
+     * // Create many VehicleDocuments
+     * const vehicleDocument = await prisma.vehicleDocument.createManyAndReturn({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      * 
-     * // Create many CustomerDocuments and only return the `id`
-     * const customerDocumentWithIdOnly = await prisma.customerDocument.createManyAndReturn({
+     * // Create many VehicleDocuments and only return the `id`
+     * const vehicleDocumentWithIdOnly = await prisma.vehicleDocument.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -14169,28 +14035,28 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends CustomerDocumentCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomerDocumentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+    createManyAndReturn<T extends VehicleDocumentCreateManyAndReturnArgs>(args?: SelectSubset<T, VehicleDocumentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Delete a CustomerDocument.
-     * @param {CustomerDocumentDeleteArgs} args - Arguments to delete one CustomerDocument.
+     * Delete a VehicleDocument.
+     * @param {VehicleDocumentDeleteArgs} args - Arguments to delete one VehicleDocument.
      * @example
-     * // Delete one CustomerDocument
-     * const CustomerDocument = await prisma.customerDocument.delete({
+     * // Delete one VehicleDocument
+     * const VehicleDocument = await prisma.vehicleDocument.delete({
      *   where: {
-     *     // ... filter to delete one CustomerDocument
+     *     // ... filter to delete one VehicleDocument
      *   }
      * })
      * 
      */
-    delete<T extends CustomerDocumentDeleteArgs>(args: SelectSubset<T, CustomerDocumentDeleteArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends VehicleDocumentDeleteArgs>(args: SelectSubset<T, VehicleDocumentDeleteArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Update one CustomerDocument.
-     * @param {CustomerDocumentUpdateArgs} args - Arguments to update one CustomerDocument.
+     * Update one VehicleDocument.
+     * @param {VehicleDocumentUpdateArgs} args - Arguments to update one VehicleDocument.
      * @example
-     * // Update one CustomerDocument
-     * const customerDocument = await prisma.customerDocument.update({
+     * // Update one VehicleDocument
+     * const vehicleDocument = await prisma.vehicleDocument.update({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -14200,30 +14066,30 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends CustomerDocumentUpdateArgs>(args: SelectSubset<T, CustomerDocumentUpdateArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends VehicleDocumentUpdateArgs>(args: SelectSubset<T, VehicleDocumentUpdateArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Delete zero or more CustomerDocuments.
-     * @param {CustomerDocumentDeleteManyArgs} args - Arguments to filter CustomerDocuments to delete.
+     * Delete zero or more VehicleDocuments.
+     * @param {VehicleDocumentDeleteManyArgs} args - Arguments to filter VehicleDocuments to delete.
      * @example
-     * // Delete a few CustomerDocuments
-     * const { count } = await prisma.customerDocument.deleteMany({
+     * // Delete a few VehicleDocuments
+     * const { count } = await prisma.vehicleDocument.deleteMany({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      * 
      */
-    deleteMany<T extends CustomerDocumentDeleteManyArgs>(args?: SelectSubset<T, CustomerDocumentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    deleteMany<T extends VehicleDocumentDeleteManyArgs>(args?: SelectSubset<T, VehicleDocumentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more CustomerDocuments.
+     * Update zero or more VehicleDocuments.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @param {VehicleDocumentUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many CustomerDocuments
-     * const customerDocument = await prisma.customerDocument.updateMany({
+     * // Update many VehicleDocuments
+     * const vehicleDocument = await prisma.vehicleDocument.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -14233,14 +14099,14 @@ export namespace Prisma {
      * })
      * 
      */
-    updateMany<T extends CustomerDocumentUpdateManyArgs>(args: SelectSubset<T, CustomerDocumentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    updateMany<T extends VehicleDocumentUpdateManyArgs>(args: SelectSubset<T, VehicleDocumentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more CustomerDocuments and returns the data updated in the database.
-     * @param {CustomerDocumentUpdateManyAndReturnArgs} args - Arguments to update many CustomerDocuments.
+     * Update zero or more VehicleDocuments and returns the data updated in the database.
+     * @param {VehicleDocumentUpdateManyAndReturnArgs} args - Arguments to update many VehicleDocuments.
      * @example
-     * // Update many CustomerDocuments
-     * const customerDocument = await prisma.customerDocument.updateManyAndReturn({
+     * // Update many VehicleDocuments
+     * const vehicleDocument = await prisma.vehicleDocument.updateManyAndReturn({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -14249,8 +14115,8 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more CustomerDocuments and only return the `id`
-     * const customerDocumentWithIdOnly = await prisma.customerDocument.updateManyAndReturn({
+     * // Update zero or more VehicleDocuments and only return the `id`
+     * const vehicleDocumentWithIdOnly = await prisma.vehicleDocument.updateManyAndReturn({
      *   select: { id: true },
      *   where: {
      *     // ... provide filter here
@@ -14263,56 +14129,56 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    updateManyAndReturn<T extends CustomerDocumentUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomerDocumentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+    updateManyAndReturn<T extends VehicleDocumentUpdateManyAndReturnArgs>(args: SelectSubset<T, VehicleDocumentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Create or update one CustomerDocument.
-     * @param {CustomerDocumentUpsertArgs} args - Arguments to update or create a CustomerDocument.
+     * Create or update one VehicleDocument.
+     * @param {VehicleDocumentUpsertArgs} args - Arguments to update or create a VehicleDocument.
      * @example
-     * // Update or create a CustomerDocument
-     * const customerDocument = await prisma.customerDocument.upsert({
+     * // Update or create a VehicleDocument
+     * const vehicleDocument = await prisma.vehicleDocument.upsert({
      *   create: {
-     *     // ... data to create a CustomerDocument
+     *     // ... data to create a VehicleDocument
      *   },
      *   update: {
      *     // ... in case it already exists, update
      *   },
      *   where: {
-     *     // ... the filter for the CustomerDocument we want to update
+     *     // ... the filter for the VehicleDocument we want to update
      *   }
      * })
      */
-    upsert<T extends CustomerDocumentUpsertArgs>(args: SelectSubset<T, CustomerDocumentUpsertArgs<ExtArgs>>): Prisma__CustomerDocumentClient<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends VehicleDocumentUpsertArgs>(args: SelectSubset<T, VehicleDocumentUpsertArgs<ExtArgs>>): Prisma__VehicleDocumentClient<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
-     * Count the number of CustomerDocuments.
+     * Count the number of VehicleDocuments.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentCountArgs} args - Arguments to filter CustomerDocuments to count.
+     * @param {VehicleDocumentCountArgs} args - Arguments to filter VehicleDocuments to count.
      * @example
-     * // Count the number of CustomerDocuments
-     * const count = await prisma.customerDocument.count({
+     * // Count the number of VehicleDocuments
+     * const count = await prisma.vehicleDocument.count({
      *   where: {
-     *     // ... the filter for the CustomerDocuments we want to count
+     *     // ... the filter for the VehicleDocuments we want to count
      *   }
      * })
     **/
-    count<T extends CustomerDocumentCountArgs>(
-      args?: Subset<T, CustomerDocumentCountArgs>,
+    count<T extends VehicleDocumentCountArgs>(
+      args?: Subset<T, VehicleDocumentCountArgs>,
     ): Prisma.PrismaPromise<
       T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
-          : GetScalarType<T['select'], CustomerDocumentCountAggregateOutputType>
+          : GetScalarType<T['select'], VehicleDocumentCountAggregateOutputType>
         : number
     >
 
     /**
-     * Allows you to perform aggregations operations on a CustomerDocument.
+     * Allows you to perform aggregations operations on a VehicleDocument.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @param {VehicleDocumentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
      * // Where email contains prisma.io
@@ -14332,13 +14198,13 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends CustomerDocumentAggregateArgs>(args: Subset<T, CustomerDocumentAggregateArgs>): Prisma.PrismaPromise<GetCustomerDocumentAggregateType<T>>
+    aggregate<T extends VehicleDocumentAggregateArgs>(args: Subset<T, VehicleDocumentAggregateArgs>): Prisma.PrismaPromise<GetVehicleDocumentAggregateType<T>>
 
     /**
-     * Group by CustomerDocument.
+     * Group by VehicleDocument.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CustomerDocumentGroupByArgs} args - Group by arguments.
+     * @param {VehicleDocumentGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
      * const result = await prisma.user.groupBy({
@@ -14353,14 +14219,14 @@ export namespace Prisma {
      * 
     **/
     groupBy<
-      T extends CustomerDocumentGroupByArgs,
+      T extends VehicleDocumentGroupByArgs,
       HasSelectOrTake extends Or<
         Extends<'skip', Keys<T>>,
         Extends<'take', Keys<T>>
       >,
       OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: CustomerDocumentGroupByArgs['orderBy'] }
-        : { orderBy?: CustomerDocumentGroupByArgs['orderBy'] },
+        ? { orderBy: VehicleDocumentGroupByArgs['orderBy'] }
+        : { orderBy?: VehicleDocumentGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
@@ -14409,23 +14275,23 @@ export namespace Prisma {
             ? never
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
-    >(args: SubsetIntersection<T, CustomerDocumentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomerDocumentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+    >(args: SubsetIntersection<T, VehicleDocumentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVehicleDocumentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
   /**
-   * Fields of the CustomerDocument model
+   * Fields of the VehicleDocument model
    */
-  readonly fields: CustomerDocumentFieldRefs;
+  readonly fields: VehicleDocumentFieldRefs;
   }
 
   /**
-   * The delegate class that acts as a "Promise-like" for CustomerDocument.
+   * The delegate class that acts as a "Promise-like" for VehicleDocument.
    * Why is this prefixed with `Prisma__`?
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__CustomerDocumentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__VehicleDocumentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    vehicle<T extends CustomerDocument$vehicleArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDocument$vehicleArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    vehicle<T extends VehicleDocument$vehicleArgs<ExtArgs> = {}>(args?: Subset<T, VehicleDocument$vehicleArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14452,428 +14318,419 @@ export namespace Prisma {
 
 
   /**
-   * Fields of the CustomerDocument model
+   * Fields of the VehicleDocument model
    */
-  interface CustomerDocumentFieldRefs {
-    readonly id: FieldRef<"CustomerDocument", 'String'>
-    readonly customerId: FieldRef<"CustomerDocument", 'String'>
-    readonly vehicleId: FieldRef<"CustomerDocument", 'String'>
-    readonly type: FieldRef<"CustomerDocument", 'DocumentType'>
-    readonly documentNumber: FieldRef<"CustomerDocument", 'String'>
-    readonly issueDate: FieldRef<"CustomerDocument", 'DateTime'>
-    readonly expiryDate: FieldRef<"CustomerDocument", 'DateTime'>
-    readonly issuerName: FieldRef<"CustomerDocument", 'String'>
-    readonly fileUrl: FieldRef<"CustomerDocument", 'String'>
-    readonly thumbnailUrl: FieldRef<"CustomerDocument", 'String'>
-    readonly fileSize: FieldRef<"CustomerDocument", 'Int'>
-    readonly mimeType: FieldRef<"CustomerDocument", 'String'>
-    readonly ocrData: FieldRef<"CustomerDocument", 'Json'>
-    readonly extractedFields: FieldRef<"CustomerDocument", 'Json'>
-    readonly verificationStatus: FieldRef<"CustomerDocument", 'VerificationStatus'>
-    readonly verifiedAt: FieldRef<"CustomerDocument", 'DateTime'>
-    readonly verifiedBy: FieldRef<"CustomerDocument", 'String'>
-    readonly source: FieldRef<"CustomerDocument", 'DocumentSource'>
-    readonly createdAt: FieldRef<"CustomerDocument", 'DateTime'>
-    readonly updatedAt: FieldRef<"CustomerDocument", 'DateTime'>
+  interface VehicleDocumentFieldRefs {
+    readonly id: FieldRef<"VehicleDocument", 'String'>
+    readonly customerId: FieldRef<"VehicleDocument", 'String'>
+    readonly vehicleId: FieldRef<"VehicleDocument", 'String'>
+    readonly type: FieldRef<"VehicleDocument", 'DocumentType'>
+    readonly documentNumber: FieldRef<"VehicleDocument", 'String'>
+    readonly expiryDate: FieldRef<"VehicleDocument", 'DateTime'>
+    readonly fileContent: FieldRef<"VehicleDocument", 'Bytes'>
+    readonly fileUrl: FieldRef<"VehicleDocument", 'String'>
+    readonly mimeType: FieldRef<"VehicleDocument", 'String'>
+    readonly createdAt: FieldRef<"VehicleDocument", 'DateTime'>
+    readonly updatedAt: FieldRef<"VehicleDocument", 'DateTime'>
   }
     
 
   // Custom InputTypes
   /**
-   * CustomerDocument findUnique
+   * VehicleDocument findUnique
    */
-  export type CustomerDocumentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * Filter, which CustomerDocument to fetch.
+     * Filter, which VehicleDocument to fetch.
      */
-    where: CustomerDocumentWhereUniqueInput
+    where: VehicleDocumentWhereUniqueInput
   }
 
   /**
-   * CustomerDocument findUniqueOrThrow
+   * VehicleDocument findUniqueOrThrow
    */
-  export type CustomerDocumentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * Filter, which CustomerDocument to fetch.
+     * Filter, which VehicleDocument to fetch.
      */
-    where: CustomerDocumentWhereUniqueInput
+    where: VehicleDocumentWhereUniqueInput
   }
 
   /**
-   * CustomerDocument findFirst
+   * VehicleDocument findFirst
    */
-  export type CustomerDocumentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * Filter, which CustomerDocument to fetch.
+     * Filter, which VehicleDocument to fetch.
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of CustomerDocuments to fetch.
+     * Determine the order of VehicleDocuments to fetch.
      */
-    orderBy?: CustomerDocumentOrderByWithRelationInput | CustomerDocumentOrderByWithRelationInput[]
+    orderBy?: VehicleDocumentOrderByWithRelationInput | VehicleDocumentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for CustomerDocuments.
+     * Sets the position for searching for VehicleDocuments.
      */
-    cursor?: CustomerDocumentWhereUniqueInput
+    cursor?: VehicleDocumentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` CustomerDocuments from the position of the cursor.
+     * Take `±n` VehicleDocuments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` CustomerDocuments.
+     * Skip the first `n` VehicleDocuments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of CustomerDocuments.
+     * Filter by unique combinations of VehicleDocuments.
      */
-    distinct?: CustomerDocumentScalarFieldEnum | CustomerDocumentScalarFieldEnum[]
+    distinct?: VehicleDocumentScalarFieldEnum | VehicleDocumentScalarFieldEnum[]
   }
 
   /**
-   * CustomerDocument findFirstOrThrow
+   * VehicleDocument findFirstOrThrow
    */
-  export type CustomerDocumentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * Filter, which CustomerDocument to fetch.
+     * Filter, which VehicleDocument to fetch.
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of CustomerDocuments to fetch.
+     * Determine the order of VehicleDocuments to fetch.
      */
-    orderBy?: CustomerDocumentOrderByWithRelationInput | CustomerDocumentOrderByWithRelationInput[]
+    orderBy?: VehicleDocumentOrderByWithRelationInput | VehicleDocumentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for CustomerDocuments.
+     * Sets the position for searching for VehicleDocuments.
      */
-    cursor?: CustomerDocumentWhereUniqueInput
+    cursor?: VehicleDocumentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` CustomerDocuments from the position of the cursor.
+     * Take `±n` VehicleDocuments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` CustomerDocuments.
+     * Skip the first `n` VehicleDocuments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of CustomerDocuments.
+     * Filter by unique combinations of VehicleDocuments.
      */
-    distinct?: CustomerDocumentScalarFieldEnum | CustomerDocumentScalarFieldEnum[]
+    distinct?: VehicleDocumentScalarFieldEnum | VehicleDocumentScalarFieldEnum[]
   }
 
   /**
-   * CustomerDocument findMany
+   * VehicleDocument findMany
    */
-  export type CustomerDocumentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * Filter, which CustomerDocuments to fetch.
+     * Filter, which VehicleDocuments to fetch.
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of CustomerDocuments to fetch.
+     * Determine the order of VehicleDocuments to fetch.
      */
-    orderBy?: CustomerDocumentOrderByWithRelationInput | CustomerDocumentOrderByWithRelationInput[]
+    orderBy?: VehicleDocumentOrderByWithRelationInput | VehicleDocumentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for listing CustomerDocuments.
+     * Sets the position for listing VehicleDocuments.
      */
-    cursor?: CustomerDocumentWhereUniqueInput
+    cursor?: VehicleDocumentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` CustomerDocuments from the position of the cursor.
+     * Take `±n` VehicleDocuments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` CustomerDocuments.
+     * Skip the first `n` VehicleDocuments.
      */
     skip?: number
-    distinct?: CustomerDocumentScalarFieldEnum | CustomerDocumentScalarFieldEnum[]
+    distinct?: VehicleDocumentScalarFieldEnum | VehicleDocumentScalarFieldEnum[]
   }
 
   /**
-   * CustomerDocument create
+   * VehicleDocument create
    */
-  export type CustomerDocumentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * The data needed to create a CustomerDocument.
+     * The data needed to create a VehicleDocument.
      */
-    data: XOR<CustomerDocumentCreateInput, CustomerDocumentUncheckedCreateInput>
+    data: XOR<VehicleDocumentCreateInput, VehicleDocumentUncheckedCreateInput>
   }
 
   /**
-   * CustomerDocument createMany
+   * VehicleDocument createMany
    */
-  export type CustomerDocumentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to create many CustomerDocuments.
+     * The data used to create many VehicleDocuments.
      */
-    data: CustomerDocumentCreateManyInput | CustomerDocumentCreateManyInput[]
+    data: VehicleDocumentCreateManyInput | VehicleDocumentCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * CustomerDocument createManyAndReturn
+   * VehicleDocument createManyAndReturn
    */
-  export type CustomerDocumentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelectCreateManyAndReturn<ExtArgs> | null
+    select?: VehicleDocumentSelectCreateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
-     * The data used to create many CustomerDocuments.
+     * The data used to create many VehicleDocuments.
      */
-    data: CustomerDocumentCreateManyInput | CustomerDocumentCreateManyInput[]
+    data: VehicleDocumentCreateManyInput | VehicleDocumentCreateManyInput[]
     skipDuplicates?: boolean
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentIncludeCreateManyAndReturn<ExtArgs> | null
+    include?: VehicleDocumentIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
-   * CustomerDocument update
+   * VehicleDocument update
    */
-  export type CustomerDocumentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * The data needed to update a CustomerDocument.
+     * The data needed to update a VehicleDocument.
      */
-    data: XOR<CustomerDocumentUpdateInput, CustomerDocumentUncheckedUpdateInput>
+    data: XOR<VehicleDocumentUpdateInput, VehicleDocumentUncheckedUpdateInput>
     /**
-     * Choose, which CustomerDocument to update.
+     * Choose, which VehicleDocument to update.
      */
-    where: CustomerDocumentWhereUniqueInput
+    where: VehicleDocumentWhereUniqueInput
   }
 
   /**
-   * CustomerDocument updateMany
+   * VehicleDocument updateMany
    */
-  export type CustomerDocumentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to update CustomerDocuments.
+     * The data used to update VehicleDocuments.
      */
-    data: XOR<CustomerDocumentUpdateManyMutationInput, CustomerDocumentUncheckedUpdateManyInput>
+    data: XOR<VehicleDocumentUpdateManyMutationInput, VehicleDocumentUncheckedUpdateManyInput>
     /**
-     * Filter which CustomerDocuments to update
+     * Filter which VehicleDocuments to update
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
-     * Limit how many CustomerDocuments to update.
+     * Limit how many VehicleDocuments to update.
      */
     limit?: number
   }
 
   /**
-   * CustomerDocument updateManyAndReturn
+   * VehicleDocument updateManyAndReturn
    */
-  export type CustomerDocumentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelectUpdateManyAndReturn<ExtArgs> | null
+    select?: VehicleDocumentSelectUpdateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
-     * The data used to update CustomerDocuments.
+     * The data used to update VehicleDocuments.
      */
-    data: XOR<CustomerDocumentUpdateManyMutationInput, CustomerDocumentUncheckedUpdateManyInput>
+    data: XOR<VehicleDocumentUpdateManyMutationInput, VehicleDocumentUncheckedUpdateManyInput>
     /**
-     * Filter which CustomerDocuments to update
+     * Filter which VehicleDocuments to update
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
-     * Limit how many CustomerDocuments to update.
+     * Limit how many VehicleDocuments to update.
      */
     limit?: number
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentIncludeUpdateManyAndReturn<ExtArgs> | null
+    include?: VehicleDocumentIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
-   * CustomerDocument upsert
+   * VehicleDocument upsert
    */
-  export type CustomerDocumentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * The filter to search for the CustomerDocument to update in case it exists.
+     * The filter to search for the VehicleDocument to update in case it exists.
      */
-    where: CustomerDocumentWhereUniqueInput
+    where: VehicleDocumentWhereUniqueInput
     /**
-     * In case the CustomerDocument found by the `where` argument doesn't exist, create a new CustomerDocument with this data.
+     * In case the VehicleDocument found by the `where` argument doesn't exist, create a new VehicleDocument with this data.
      */
-    create: XOR<CustomerDocumentCreateInput, CustomerDocumentUncheckedCreateInput>
+    create: XOR<VehicleDocumentCreateInput, VehicleDocumentUncheckedCreateInput>
     /**
-     * In case the CustomerDocument was found with the provided `where` argument, update it with this data.
+     * In case the VehicleDocument was found with the provided `where` argument, update it with this data.
      */
-    update: XOR<CustomerDocumentUpdateInput, CustomerDocumentUncheckedUpdateInput>
+    update: XOR<VehicleDocumentUpdateInput, VehicleDocumentUncheckedUpdateInput>
   }
 
   /**
-   * CustomerDocument delete
+   * VehicleDocument delete
    */
-  export type CustomerDocumentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
     /**
-     * Filter which CustomerDocument to delete.
+     * Filter which VehicleDocument to delete.
      */
-    where: CustomerDocumentWhereUniqueInput
+    where: VehicleDocumentWhereUniqueInput
   }
 
   /**
-   * CustomerDocument deleteMany
+   * VehicleDocument deleteMany
    */
-  export type CustomerDocumentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which CustomerDocuments to delete
+     * Filter which VehicleDocuments to delete
      */
-    where?: CustomerDocumentWhereInput
+    where?: VehicleDocumentWhereInput
     /**
-     * Limit how many CustomerDocuments to delete.
+     * Limit how many VehicleDocuments to delete.
      */
     limit?: number
   }
 
   /**
-   * CustomerDocument.vehicle
+   * VehicleDocument.vehicle
    */
-  export type CustomerDocument$vehicleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocument$vehicleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the CustomerVehicle
      */
@@ -14890,21 +14747,21 @@ export namespace Prisma {
   }
 
   /**
-   * CustomerDocument without action
+   * VehicleDocument without action
    */
-  export type CustomerDocumentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type VehicleDocumentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
+    include?: VehicleDocumentInclude<ExtArgs> | null
   }
 
 
@@ -16070,12 +15927,10 @@ export namespace Prisma {
   }
 
   export type CustomerVehicleAvgAggregateOutputType = {
-    year: number | null
     currentOdometer: number | null
   }
 
   export type CustomerVehicleSumAggregateOutputType = {
-    year: number | null
     currentOdometer: number | null
   }
 
@@ -16085,8 +15940,6 @@ export namespace Prisma {
     registrationNumber: string | null
     make: string | null
     model: string | null
-    variant: string | null
-    year: number | null
     fuelType: string | null
     vehicleType: string | null
     currentOdometer: number | null
@@ -16103,9 +15956,6 @@ export namespace Prisma {
     rto: string | null
     vehicleClass: string | null
     fuelNorms: string | null
-    transmission: string | null
-    priceRange: string | null
-    rating: string | null
     rcStatus: string | null
     unloadedWeight: string | null
     fitnessUpto: string | null
@@ -16114,13 +15964,7 @@ export namespace Prisma {
     mileage: string | null
     brand: string | null
     color: string | null
-    seatingCapacity: string | null
-    cylinderCount: string | null
-    cubicCapacity: string | null
-    grossWeight: string | null
-    bodyType: string | null
-    ownerAddress: string | null
-    permanentAddress: string | null
+    manufacturingMonthYear: string | null
   }
 
   export type CustomerVehicleMaxAggregateOutputType = {
@@ -16129,8 +15973,6 @@ export namespace Prisma {
     registrationNumber: string | null
     make: string | null
     model: string | null
-    variant: string | null
-    year: number | null
     fuelType: string | null
     vehicleType: string | null
     currentOdometer: number | null
@@ -16147,9 +15989,6 @@ export namespace Prisma {
     rto: string | null
     vehicleClass: string | null
     fuelNorms: string | null
-    transmission: string | null
-    priceRange: string | null
-    rating: string | null
     rcStatus: string | null
     unloadedWeight: string | null
     fitnessUpto: string | null
@@ -16158,13 +15997,7 @@ export namespace Prisma {
     mileage: string | null
     brand: string | null
     color: string | null
-    seatingCapacity: string | null
-    cylinderCount: string | null
-    cubicCapacity: string | null
-    grossWeight: string | null
-    bodyType: string | null
-    ownerAddress: string | null
-    permanentAddress: string | null
+    manufacturingMonthYear: string | null
   }
 
   export type CustomerVehicleCountAggregateOutputType = {
@@ -16173,8 +16006,6 @@ export namespace Prisma {
     registrationNumber: number
     make: number
     model: number
-    variant: number
-    year: number
     fuelType: number
     vehicleType: number
     currentOdometer: number
@@ -16191,9 +16022,6 @@ export namespace Prisma {
     rto: number
     vehicleClass: number
     fuelNorms: number
-    transmission: number
-    priceRange: number
-    rating: number
     rcStatus: number
     unloadedWeight: number
     fitnessUpto: number
@@ -16202,24 +16030,16 @@ export namespace Prisma {
     mileage: number
     brand: number
     color: number
-    seatingCapacity: number
-    cylinderCount: number
-    cubicCapacity: number
-    grossWeight: number
-    bodyType: number
-    ownerAddress: number
-    permanentAddress: number
+    manufacturingMonthYear: number
     _all: number
   }
 
 
   export type CustomerVehicleAvgAggregateInputType = {
-    year?: true
     currentOdometer?: true
   }
 
   export type CustomerVehicleSumAggregateInputType = {
-    year?: true
     currentOdometer?: true
   }
 
@@ -16229,8 +16049,6 @@ export namespace Prisma {
     registrationNumber?: true
     make?: true
     model?: true
-    variant?: true
-    year?: true
     fuelType?: true
     vehicleType?: true
     currentOdometer?: true
@@ -16247,9 +16065,6 @@ export namespace Prisma {
     rto?: true
     vehicleClass?: true
     fuelNorms?: true
-    transmission?: true
-    priceRange?: true
-    rating?: true
     rcStatus?: true
     unloadedWeight?: true
     fitnessUpto?: true
@@ -16258,13 +16073,7 @@ export namespace Prisma {
     mileage?: true
     brand?: true
     color?: true
-    seatingCapacity?: true
-    cylinderCount?: true
-    cubicCapacity?: true
-    grossWeight?: true
-    bodyType?: true
-    ownerAddress?: true
-    permanentAddress?: true
+    manufacturingMonthYear?: true
   }
 
   export type CustomerVehicleMaxAggregateInputType = {
@@ -16273,8 +16082,6 @@ export namespace Prisma {
     registrationNumber?: true
     make?: true
     model?: true
-    variant?: true
-    year?: true
     fuelType?: true
     vehicleType?: true
     currentOdometer?: true
@@ -16291,9 +16098,6 @@ export namespace Prisma {
     rto?: true
     vehicleClass?: true
     fuelNorms?: true
-    transmission?: true
-    priceRange?: true
-    rating?: true
     rcStatus?: true
     unloadedWeight?: true
     fitnessUpto?: true
@@ -16302,13 +16106,7 @@ export namespace Prisma {
     mileage?: true
     brand?: true
     color?: true
-    seatingCapacity?: true
-    cylinderCount?: true
-    cubicCapacity?: true
-    grossWeight?: true
-    bodyType?: true
-    ownerAddress?: true
-    permanentAddress?: true
+    manufacturingMonthYear?: true
   }
 
   export type CustomerVehicleCountAggregateInputType = {
@@ -16317,8 +16115,6 @@ export namespace Prisma {
     registrationNumber?: true
     make?: true
     model?: true
-    variant?: true
-    year?: true
     fuelType?: true
     vehicleType?: true
     currentOdometer?: true
@@ -16335,9 +16131,6 @@ export namespace Prisma {
     rto?: true
     vehicleClass?: true
     fuelNorms?: true
-    transmission?: true
-    priceRange?: true
-    rating?: true
     rcStatus?: true
     unloadedWeight?: true
     fitnessUpto?: true
@@ -16346,13 +16139,7 @@ export namespace Prisma {
     mileage?: true
     brand?: true
     color?: true
-    seatingCapacity?: true
-    cylinderCount?: true
-    cubicCapacity?: true
-    grossWeight?: true
-    bodyType?: true
-    ownerAddress?: true
-    permanentAddress?: true
+    manufacturingMonthYear?: true
     _all?: true
   }
 
@@ -16448,8 +16235,6 @@ export namespace Prisma {
     registrationNumber: string
     make: string | null
     model: string | null
-    variant: string | null
-    year: number | null
     fuelType: string | null
     vehicleType: string | null
     currentOdometer: number | null
@@ -16466,9 +16251,6 @@ export namespace Prisma {
     rto: string | null
     vehicleClass: string | null
     fuelNorms: string | null
-    transmission: string | null
-    priceRange: string | null
-    rating: string | null
     rcStatus: string | null
     unloadedWeight: string | null
     fitnessUpto: string | null
@@ -16477,13 +16259,7 @@ export namespace Prisma {
     mileage: string | null
     brand: string | null
     color: string | null
-    seatingCapacity: string | null
-    cylinderCount: string | null
-    cubicCapacity: string | null
-    grossWeight: string | null
-    bodyType: string | null
-    ownerAddress: string | null
-    permanentAddress: string | null
+    manufacturingMonthYear: string | null
     _count: CustomerVehicleCountAggregateOutputType | null
     _avg: CustomerVehicleAvgAggregateOutputType | null
     _sum: CustomerVehicleSumAggregateOutputType | null
@@ -16511,8 +16287,6 @@ export namespace Prisma {
     registrationNumber?: boolean
     make?: boolean
     model?: boolean
-    variant?: boolean
-    year?: boolean
     fuelType?: boolean
     vehicleType?: boolean
     currentOdometer?: boolean
@@ -16529,9 +16303,6 @@ export namespace Prisma {
     rto?: boolean
     vehicleClass?: boolean
     fuelNorms?: boolean
-    transmission?: boolean
-    priceRange?: boolean
-    rating?: boolean
     rcStatus?: boolean
     unloadedWeight?: boolean
     fitnessUpto?: boolean
@@ -16540,13 +16311,7 @@ export namespace Prisma {
     mileage?: boolean
     brand?: boolean
     color?: boolean
-    seatingCapacity?: boolean
-    cylinderCount?: boolean
-    cubicCapacity?: boolean
-    grossWeight?: boolean
-    bodyType?: boolean
-    ownerAddress?: boolean
-    permanentAddress?: boolean
+    manufacturingMonthYear?: boolean
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -16566,8 +16331,6 @@ export namespace Prisma {
     registrationNumber?: boolean
     make?: boolean
     model?: boolean
-    variant?: boolean
-    year?: boolean
     fuelType?: boolean
     vehicleType?: boolean
     currentOdometer?: boolean
@@ -16584,9 +16347,6 @@ export namespace Prisma {
     rto?: boolean
     vehicleClass?: boolean
     fuelNorms?: boolean
-    transmission?: boolean
-    priceRange?: boolean
-    rating?: boolean
     rcStatus?: boolean
     unloadedWeight?: boolean
     fitnessUpto?: boolean
@@ -16595,13 +16355,7 @@ export namespace Prisma {
     mileage?: boolean
     brand?: boolean
     color?: boolean
-    seatingCapacity?: boolean
-    cylinderCount?: boolean
-    cubicCapacity?: boolean
-    grossWeight?: boolean
-    bodyType?: boolean
-    ownerAddress?: boolean
-    permanentAddress?: boolean
+    manufacturingMonthYear?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -16611,8 +16365,6 @@ export namespace Prisma {
     registrationNumber?: boolean
     make?: boolean
     model?: boolean
-    variant?: boolean
-    year?: boolean
     fuelType?: boolean
     vehicleType?: boolean
     currentOdometer?: boolean
@@ -16629,9 +16381,6 @@ export namespace Prisma {
     rto?: boolean
     vehicleClass?: boolean
     fuelNorms?: boolean
-    transmission?: boolean
-    priceRange?: boolean
-    rating?: boolean
     rcStatus?: boolean
     unloadedWeight?: boolean
     fitnessUpto?: boolean
@@ -16640,13 +16389,7 @@ export namespace Prisma {
     mileage?: boolean
     brand?: boolean
     color?: boolean
-    seatingCapacity?: boolean
-    cylinderCount?: boolean
-    cubicCapacity?: boolean
-    grossWeight?: boolean
-    bodyType?: boolean
-    ownerAddress?: boolean
-    permanentAddress?: boolean
+    manufacturingMonthYear?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -16656,8 +16399,6 @@ export namespace Prisma {
     registrationNumber?: boolean
     make?: boolean
     model?: boolean
-    variant?: boolean
-    year?: boolean
     fuelType?: boolean
     vehicleType?: boolean
     currentOdometer?: boolean
@@ -16674,9 +16415,6 @@ export namespace Prisma {
     rto?: boolean
     vehicleClass?: boolean
     fuelNorms?: boolean
-    transmission?: boolean
-    priceRange?: boolean
-    rating?: boolean
     rcStatus?: boolean
     unloadedWeight?: boolean
     fitnessUpto?: boolean
@@ -16685,16 +16423,10 @@ export namespace Prisma {
     mileage?: boolean
     brand?: boolean
     color?: boolean
-    seatingCapacity?: boolean
-    cylinderCount?: boolean
-    cubicCapacity?: boolean
-    grossWeight?: boolean
-    bodyType?: boolean
-    ownerAddress?: boolean
-    permanentAddress?: boolean
+    manufacturingMonthYear?: boolean
   }
 
-  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "variant" | "year" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber" | "imageUrl" | "ownerName" | "rto" | "vehicleClass" | "fuelNorms" | "transmission" | "priceRange" | "rating" | "rcStatus" | "unloadedWeight" | "fitnessUpto" | "insuranceUpto" | "pollutionUpto" | "mileage" | "brand" | "color" | "seatingCapacity" | "cylinderCount" | "cubicCapacity" | "grossWeight" | "bodyType" | "ownerAddress" | "permanentAddress", ExtArgs["result"]["customerVehicle"]>
+  export type CustomerVehicleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "registrationNumber" | "make" | "model" | "fuelType" | "vehicleType" | "currentOdometer" | "registrationDate" | "rcVerified" | "isActive" | "isPrimary" | "createdAt" | "updatedAt" | "chassisNumber" | "engineNumber" | "imageUrl" | "ownerName" | "rto" | "vehicleClass" | "fuelNorms" | "rcStatus" | "unloadedWeight" | "fitnessUpto" | "insuranceUpto" | "pollutionUpto" | "mileage" | "brand" | "color" | "manufacturingMonthYear", ExtArgs["result"]["customerVehicle"]>
   export type CustomerVehicleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     challans?: boolean | CustomerVehicle$challansArgs<ExtArgs>
     documents?: boolean | CustomerVehicle$documentsArgs<ExtArgs>
@@ -16719,7 +16451,7 @@ export namespace Prisma {
     name: "CustomerVehicle"
     objects: {
       challans: Prisma.$ChallanPayload<ExtArgs>[]
-      documents: Prisma.$CustomerDocumentPayload<ExtArgs>[]
+      documents: Prisma.$VehicleDocumentPayload<ExtArgs>[]
       customer: Prisma.$CustomerPayload<ExtArgs>
       drivingTrips: Prisma.$DrivingTripPayload<ExtArgs>[]
       expenses: Prisma.$ExpensePayload<ExtArgs>[]
@@ -16735,8 +16467,6 @@ export namespace Prisma {
       registrationNumber: string
       make: string | null
       model: string | null
-      variant: string | null
-      year: number | null
       fuelType: string | null
       vehicleType: string | null
       currentOdometer: number | null
@@ -16753,9 +16483,6 @@ export namespace Prisma {
       rto: string | null
       vehicleClass: string | null
       fuelNorms: string | null
-      transmission: string | null
-      priceRange: string | null
-      rating: string | null
       rcStatus: string | null
       unloadedWeight: string | null
       fitnessUpto: string | null
@@ -16764,13 +16491,7 @@ export namespace Prisma {
       mileage: string | null
       brand: string | null
       color: string | null
-      seatingCapacity: string | null
-      cylinderCount: string | null
-      cubicCapacity: string | null
-      grossWeight: string | null
-      bodyType: string | null
-      ownerAddress: string | null
-      permanentAddress: string | null
+      manufacturingMonthYear: string | null
     }, ExtArgs["result"]["customerVehicle"]>
     composites: {}
   }
@@ -17166,7 +16887,7 @@ export namespace Prisma {
   export interface Prisma__CustomerVehicleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     challans<T extends CustomerVehicle$challansArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$challansArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChallanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    documents<T extends CustomerVehicle$documentsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    documents<T extends CustomerVehicle$documentsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     drivingTrips<T extends CustomerVehicle$drivingTripsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$drivingTripsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DrivingTripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     expenses<T extends CustomerVehicle$expensesArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -17209,8 +16930,6 @@ export namespace Prisma {
     readonly registrationNumber: FieldRef<"CustomerVehicle", 'String'>
     readonly make: FieldRef<"CustomerVehicle", 'String'>
     readonly model: FieldRef<"CustomerVehicle", 'String'>
-    readonly variant: FieldRef<"CustomerVehicle", 'String'>
-    readonly year: FieldRef<"CustomerVehicle", 'Int'>
     readonly fuelType: FieldRef<"CustomerVehicle", 'String'>
     readonly vehicleType: FieldRef<"CustomerVehicle", 'String'>
     readonly currentOdometer: FieldRef<"CustomerVehicle", 'Int'>
@@ -17227,9 +16946,6 @@ export namespace Prisma {
     readonly rto: FieldRef<"CustomerVehicle", 'String'>
     readonly vehicleClass: FieldRef<"CustomerVehicle", 'String'>
     readonly fuelNorms: FieldRef<"CustomerVehicle", 'String'>
-    readonly transmission: FieldRef<"CustomerVehicle", 'String'>
-    readonly priceRange: FieldRef<"CustomerVehicle", 'String'>
-    readonly rating: FieldRef<"CustomerVehicle", 'String'>
     readonly rcStatus: FieldRef<"CustomerVehicle", 'String'>
     readonly unloadedWeight: FieldRef<"CustomerVehicle", 'String'>
     readonly fitnessUpto: FieldRef<"CustomerVehicle", 'String'>
@@ -17238,13 +16954,7 @@ export namespace Prisma {
     readonly mileage: FieldRef<"CustomerVehicle", 'String'>
     readonly brand: FieldRef<"CustomerVehicle", 'String'>
     readonly color: FieldRef<"CustomerVehicle", 'String'>
-    readonly seatingCapacity: FieldRef<"CustomerVehicle", 'String'>
-    readonly cylinderCount: FieldRef<"CustomerVehicle", 'String'>
-    readonly cubicCapacity: FieldRef<"CustomerVehicle", 'String'>
-    readonly grossWeight: FieldRef<"CustomerVehicle", 'String'>
-    readonly bodyType: FieldRef<"CustomerVehicle", 'String'>
-    readonly ownerAddress: FieldRef<"CustomerVehicle", 'String'>
-    readonly permanentAddress: FieldRef<"CustomerVehicle", 'String'>
+    readonly manufacturingMonthYear: FieldRef<"CustomerVehicle", 'String'>
   }
     
 
@@ -17669,23 +17379,23 @@ export namespace Prisma {
    */
   export type CustomerVehicle$documentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the CustomerDocument
+     * Select specific fields to fetch from the VehicleDocument
      */
-    select?: CustomerDocumentSelect<ExtArgs> | null
+    select?: VehicleDocumentSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the CustomerDocument
+     * Omit specific fields from the VehicleDocument
      */
-    omit?: CustomerDocumentOmit<ExtArgs> | null
+    omit?: VehicleDocumentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: CustomerDocumentInclude<ExtArgs> | null
-    where?: CustomerDocumentWhereInput
-    orderBy?: CustomerDocumentOrderByWithRelationInput | CustomerDocumentOrderByWithRelationInput[]
-    cursor?: CustomerDocumentWhereUniqueInput
+    include?: VehicleDocumentInclude<ExtArgs> | null
+    where?: VehicleDocumentWhereInput
+    orderBy?: VehicleDocumentOrderByWithRelationInput | VehicleDocumentOrderByWithRelationInput[]
+    cursor?: VehicleDocumentWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: CustomerDocumentScalarFieldEnum | CustomerDocumentScalarFieldEnum[]
+    distinct?: VehicleDocumentScalarFieldEnum | VehicleDocumentScalarFieldEnum[]
   }
 
   /**
@@ -92994,30 +92704,21 @@ export namespace Prisma {
   export type CustomerDeviceScalarFieldEnum = (typeof CustomerDeviceScalarFieldEnum)[keyof typeof CustomerDeviceScalarFieldEnum]
 
 
-  export const CustomerDocumentScalarFieldEnum: {
+  export const VehicleDocumentScalarFieldEnum: {
     id: 'id',
     customerId: 'customerId',
     vehicleId: 'vehicleId',
     type: 'type',
     documentNumber: 'documentNumber',
-    issueDate: 'issueDate',
     expiryDate: 'expiryDate',
-    issuerName: 'issuerName',
+    fileContent: 'fileContent',
     fileUrl: 'fileUrl',
-    thumbnailUrl: 'thumbnailUrl',
-    fileSize: 'fileSize',
     mimeType: 'mimeType',
-    ocrData: 'ocrData',
-    extractedFields: 'extractedFields',
-    verificationStatus: 'verificationStatus',
-    verifiedAt: 'verifiedAt',
-    verifiedBy: 'verifiedBy',
-    source: 'source',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
-  export type CustomerDocumentScalarFieldEnum = (typeof CustomerDocumentScalarFieldEnum)[keyof typeof CustomerDocumentScalarFieldEnum]
+  export type VehicleDocumentScalarFieldEnum = (typeof VehicleDocumentScalarFieldEnum)[keyof typeof VehicleDocumentScalarFieldEnum]
 
 
   export const DigiLockerConnectionScalarFieldEnum: {
@@ -93044,8 +92745,6 @@ export namespace Prisma {
     registrationNumber: 'registrationNumber',
     make: 'make',
     model: 'model',
-    variant: 'variant',
-    year: 'year',
     fuelType: 'fuelType',
     vehicleType: 'vehicleType',
     currentOdometer: 'currentOdometer',
@@ -93062,9 +92761,6 @@ export namespace Prisma {
     rto: 'rto',
     vehicleClass: 'vehicleClass',
     fuelNorms: 'fuelNorms',
-    transmission: 'transmission',
-    priceRange: 'priceRange',
-    rating: 'rating',
     rcStatus: 'rcStatus',
     unloadedWeight: 'unloadedWeight',
     fitnessUpto: 'fitnessUpto',
@@ -93073,13 +92769,7 @@ export namespace Prisma {
     mileage: 'mileage',
     brand: 'brand',
     color: 'color',
-    seatingCapacity: 'seatingCapacity',
-    cylinderCount: 'cylinderCount',
-    cubicCapacity: 'cubicCapacity',
-    grossWeight: 'grossWeight',
-    bodyType: 'bodyType',
-    ownerAddress: 'ownerAddress',
-    permanentAddress: 'permanentAddress'
+    manufacturingMonthYear: 'manufacturingMonthYear'
   };
 
   export type CustomerVehicleScalarFieldEnum = (typeof CustomerVehicleScalarFieldEnum)[keyof typeof CustomerVehicleScalarFieldEnum]
@@ -94294,6 +93984,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Bytes'
+   */
+  export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+    
+
+
+  /**
+   * Reference to a field of type 'Bytes[]'
+   */
+  export type ListBytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DigiLockerStatus'
+   */
+  export type EnumDigiLockerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigiLockerStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'DigiLockerStatus[]'
+   */
+  export type ListEnumDigiLockerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigiLockerStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -94318,48 +94036,6 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-  /**
-   * Reference to a field of type 'VerificationStatus'
-   */
-  export type EnumVerificationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VerificationStatus'>
-    
-
-
-  /**
-   * Reference to a field of type 'VerificationStatus[]'
-   */
-  export type ListEnumVerificationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VerificationStatus[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'DocumentSource'
-   */
-  export type EnumDocumentSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocumentSource'>
-    
-
-
-  /**
-   * Reference to a field of type 'DocumentSource[]'
-   */
-  export type ListEnumDocumentSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocumentSource[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'DigiLockerStatus'
-   */
-  export type EnumDigiLockerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigiLockerStatus'>
-    
-
-
-  /**
-   * Reference to a field of type 'DigiLockerStatus[]'
-   */
-  export type ListEnumDigiLockerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigiLockerStatus[]'>
     
 
 
@@ -95171,7 +94847,7 @@ export namespace Prisma {
     googleId?: StringNullableFilter<"Customer"> | string | null
     chats?: ChatSessionListRelationFilter
     devices?: CustomerDeviceListRelationFilter
-    documents?: CustomerDocumentListRelationFilter
+    documents?: VehicleDocumentListRelationFilter
     vehicles?: CustomerVehicleListRelationFilter
     digilocker?: XOR<DigiLockerConnectionNullableScalarRelationFilter, DigiLockerConnectionWhereInput> | null
     emergencyContacts?: EmergencyContactListRelationFilter
@@ -95195,7 +94871,7 @@ export namespace Prisma {
     googleId?: SortOrderInput | SortOrder
     chats?: ChatSessionOrderByRelationAggregateInput
     devices?: CustomerDeviceOrderByRelationAggregateInput
-    documents?: CustomerDocumentOrderByRelationAggregateInput
+    documents?: VehicleDocumentOrderByRelationAggregateInput
     vehicles?: CustomerVehicleOrderByRelationAggregateInput
     digilocker?: DigiLockerConnectionOrderByWithRelationInput
     emergencyContacts?: EmergencyContactOrderByRelationAggregateInput
@@ -95222,7 +94898,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
     chats?: ChatSessionListRelationFilter
     devices?: CustomerDeviceListRelationFilter
-    documents?: CustomerDocumentListRelationFilter
+    documents?: VehicleDocumentListRelationFilter
     vehicles?: CustomerVehicleListRelationFilter
     digilocker?: XOR<DigiLockerConnectionNullableScalarRelationFilter, DigiLockerConnectionWhereInput> | null
     emergencyContacts?: EmergencyContactListRelationFilter
@@ -95333,139 +95009,92 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"CustomerDevice"> | Date | string
   }
 
-  export type CustomerDocumentWhereInput = {
-    AND?: CustomerDocumentWhereInput | CustomerDocumentWhereInput[]
-    OR?: CustomerDocumentWhereInput[]
-    NOT?: CustomerDocumentWhereInput | CustomerDocumentWhereInput[]
-    id?: StringFilter<"CustomerDocument"> | string
-    customerId?: StringFilter<"CustomerDocument"> | string
-    vehicleId?: StringNullableFilter<"CustomerDocument"> | string | null
-    type?: EnumDocumentTypeFilter<"CustomerDocument"> | $Enums.DocumentType
-    documentNumber?: StringNullableFilter<"CustomerDocument"> | string | null
-    issueDate?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    expiryDate?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    issuerName?: StringNullableFilter<"CustomerDocument"> | string | null
-    fileUrl?: StringFilter<"CustomerDocument"> | string
-    thumbnailUrl?: StringNullableFilter<"CustomerDocument"> | string | null
-    fileSize?: IntNullableFilter<"CustomerDocument"> | number | null
-    mimeType?: StringNullableFilter<"CustomerDocument"> | string | null
-    ocrData?: JsonNullableFilter<"CustomerDocument">
-    extractedFields?: JsonNullableFilter<"CustomerDocument">
-    verificationStatus?: EnumVerificationStatusFilter<"CustomerDocument"> | $Enums.VerificationStatus
-    verifiedAt?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    verifiedBy?: StringNullableFilter<"CustomerDocument"> | string | null
-    source?: EnumDocumentSourceFilter<"CustomerDocument"> | $Enums.DocumentSource
-    createdAt?: DateTimeFilter<"CustomerDocument"> | Date | string
-    updatedAt?: DateTimeFilter<"CustomerDocument"> | Date | string
+  export type VehicleDocumentWhereInput = {
+    AND?: VehicleDocumentWhereInput | VehicleDocumentWhereInput[]
+    OR?: VehicleDocumentWhereInput[]
+    NOT?: VehicleDocumentWhereInput | VehicleDocumentWhereInput[]
+    id?: StringFilter<"VehicleDocument"> | string
+    customerId?: StringFilter<"VehicleDocument"> | string
+    vehicleId?: StringNullableFilter<"VehicleDocument"> | string | null
+    type?: EnumDocumentTypeFilter<"VehicleDocument"> | $Enums.DocumentType
+    documentNumber?: StringNullableFilter<"VehicleDocument"> | string | null
+    expiryDate?: DateTimeNullableFilter<"VehicleDocument"> | Date | string | null
+    fileContent?: BytesNullableFilter<"VehicleDocument"> | Bytes | null
+    fileUrl?: StringNullableFilter<"VehicleDocument"> | string | null
+    mimeType?: StringNullableFilter<"VehicleDocument"> | string | null
+    createdAt?: DateTimeFilter<"VehicleDocument"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleDocument"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     vehicle?: XOR<CustomerVehicleNullableScalarRelationFilter, CustomerVehicleWhereInput> | null
   }
 
-  export type CustomerDocumentOrderByWithRelationInput = {
+  export type VehicleDocumentOrderByWithRelationInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrderInput | SortOrder
     type?: SortOrder
     documentNumber?: SortOrderInput | SortOrder
-    issueDate?: SortOrderInput | SortOrder
     expiryDate?: SortOrderInput | SortOrder
-    issuerName?: SortOrderInput | SortOrder
-    fileUrl?: SortOrder
-    thumbnailUrl?: SortOrderInput | SortOrder
-    fileSize?: SortOrderInput | SortOrder
+    fileContent?: SortOrderInput | SortOrder
+    fileUrl?: SortOrderInput | SortOrder
     mimeType?: SortOrderInput | SortOrder
-    ocrData?: SortOrderInput | SortOrder
-    extractedFields?: SortOrderInput | SortOrder
-    verificationStatus?: SortOrder
-    verifiedAt?: SortOrderInput | SortOrder
-    verifiedBy?: SortOrderInput | SortOrder
-    source?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     customer?: CustomerOrderByWithRelationInput
     vehicle?: CustomerVehicleOrderByWithRelationInput
   }
 
-  export type CustomerDocumentWhereUniqueInput = Prisma.AtLeast<{
+  export type VehicleDocumentWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    AND?: CustomerDocumentWhereInput | CustomerDocumentWhereInput[]
-    OR?: CustomerDocumentWhereInput[]
-    NOT?: CustomerDocumentWhereInput | CustomerDocumentWhereInput[]
-    customerId?: StringFilter<"CustomerDocument"> | string
-    vehicleId?: StringNullableFilter<"CustomerDocument"> | string | null
-    type?: EnumDocumentTypeFilter<"CustomerDocument"> | $Enums.DocumentType
-    documentNumber?: StringNullableFilter<"CustomerDocument"> | string | null
-    issueDate?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    expiryDate?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    issuerName?: StringNullableFilter<"CustomerDocument"> | string | null
-    fileUrl?: StringFilter<"CustomerDocument"> | string
-    thumbnailUrl?: StringNullableFilter<"CustomerDocument"> | string | null
-    fileSize?: IntNullableFilter<"CustomerDocument"> | number | null
-    mimeType?: StringNullableFilter<"CustomerDocument"> | string | null
-    ocrData?: JsonNullableFilter<"CustomerDocument">
-    extractedFields?: JsonNullableFilter<"CustomerDocument">
-    verificationStatus?: EnumVerificationStatusFilter<"CustomerDocument"> | $Enums.VerificationStatus
-    verifiedAt?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    verifiedBy?: StringNullableFilter<"CustomerDocument"> | string | null
-    source?: EnumDocumentSourceFilter<"CustomerDocument"> | $Enums.DocumentSource
-    createdAt?: DateTimeFilter<"CustomerDocument"> | Date | string
-    updatedAt?: DateTimeFilter<"CustomerDocument"> | Date | string
+    AND?: VehicleDocumentWhereInput | VehicleDocumentWhereInput[]
+    OR?: VehicleDocumentWhereInput[]
+    NOT?: VehicleDocumentWhereInput | VehicleDocumentWhereInput[]
+    customerId?: StringFilter<"VehicleDocument"> | string
+    vehicleId?: StringNullableFilter<"VehicleDocument"> | string | null
+    type?: EnumDocumentTypeFilter<"VehicleDocument"> | $Enums.DocumentType
+    documentNumber?: StringNullableFilter<"VehicleDocument"> | string | null
+    expiryDate?: DateTimeNullableFilter<"VehicleDocument"> | Date | string | null
+    fileContent?: BytesNullableFilter<"VehicleDocument"> | Bytes | null
+    fileUrl?: StringNullableFilter<"VehicleDocument"> | string | null
+    mimeType?: StringNullableFilter<"VehicleDocument"> | string | null
+    createdAt?: DateTimeFilter<"VehicleDocument"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleDocument"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     vehicle?: XOR<CustomerVehicleNullableScalarRelationFilter, CustomerVehicleWhereInput> | null
   }, "id">
 
-  export type CustomerDocumentOrderByWithAggregationInput = {
+  export type VehicleDocumentOrderByWithAggregationInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrderInput | SortOrder
     type?: SortOrder
     documentNumber?: SortOrderInput | SortOrder
-    issueDate?: SortOrderInput | SortOrder
     expiryDate?: SortOrderInput | SortOrder
-    issuerName?: SortOrderInput | SortOrder
-    fileUrl?: SortOrder
-    thumbnailUrl?: SortOrderInput | SortOrder
-    fileSize?: SortOrderInput | SortOrder
+    fileContent?: SortOrderInput | SortOrder
+    fileUrl?: SortOrderInput | SortOrder
     mimeType?: SortOrderInput | SortOrder
-    ocrData?: SortOrderInput | SortOrder
-    extractedFields?: SortOrderInput | SortOrder
-    verificationStatus?: SortOrder
-    verifiedAt?: SortOrderInput | SortOrder
-    verifiedBy?: SortOrderInput | SortOrder
-    source?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    _count?: CustomerDocumentCountOrderByAggregateInput
-    _avg?: CustomerDocumentAvgOrderByAggregateInput
-    _max?: CustomerDocumentMaxOrderByAggregateInput
-    _min?: CustomerDocumentMinOrderByAggregateInput
-    _sum?: CustomerDocumentSumOrderByAggregateInput
+    _count?: VehicleDocumentCountOrderByAggregateInput
+    _max?: VehicleDocumentMaxOrderByAggregateInput
+    _min?: VehicleDocumentMinOrderByAggregateInput
   }
 
-  export type CustomerDocumentScalarWhereWithAggregatesInput = {
-    AND?: CustomerDocumentScalarWhereWithAggregatesInput | CustomerDocumentScalarWhereWithAggregatesInput[]
-    OR?: CustomerDocumentScalarWhereWithAggregatesInput[]
-    NOT?: CustomerDocumentScalarWhereWithAggregatesInput | CustomerDocumentScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"CustomerDocument"> | string
-    customerId?: StringWithAggregatesFilter<"CustomerDocument"> | string
-    vehicleId?: StringNullableWithAggregatesFilter<"CustomerDocument"> | string | null
-    type?: EnumDocumentTypeWithAggregatesFilter<"CustomerDocument"> | $Enums.DocumentType
-    documentNumber?: StringNullableWithAggregatesFilter<"CustomerDocument"> | string | null
-    issueDate?: DateTimeNullableWithAggregatesFilter<"CustomerDocument"> | Date | string | null
-    expiryDate?: DateTimeNullableWithAggregatesFilter<"CustomerDocument"> | Date | string | null
-    issuerName?: StringNullableWithAggregatesFilter<"CustomerDocument"> | string | null
-    fileUrl?: StringWithAggregatesFilter<"CustomerDocument"> | string
-    thumbnailUrl?: StringNullableWithAggregatesFilter<"CustomerDocument"> | string | null
-    fileSize?: IntNullableWithAggregatesFilter<"CustomerDocument"> | number | null
-    mimeType?: StringNullableWithAggregatesFilter<"CustomerDocument"> | string | null
-    ocrData?: JsonNullableWithAggregatesFilter<"CustomerDocument">
-    extractedFields?: JsonNullableWithAggregatesFilter<"CustomerDocument">
-    verificationStatus?: EnumVerificationStatusWithAggregatesFilter<"CustomerDocument"> | $Enums.VerificationStatus
-    verifiedAt?: DateTimeNullableWithAggregatesFilter<"CustomerDocument"> | Date | string | null
-    verifiedBy?: StringNullableWithAggregatesFilter<"CustomerDocument"> | string | null
-    source?: EnumDocumentSourceWithAggregatesFilter<"CustomerDocument"> | $Enums.DocumentSource
-    createdAt?: DateTimeWithAggregatesFilter<"CustomerDocument"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"CustomerDocument"> | Date | string
+  export type VehicleDocumentScalarWhereWithAggregatesInput = {
+    AND?: VehicleDocumentScalarWhereWithAggregatesInput | VehicleDocumentScalarWhereWithAggregatesInput[]
+    OR?: VehicleDocumentScalarWhereWithAggregatesInput[]
+    NOT?: VehicleDocumentScalarWhereWithAggregatesInput | VehicleDocumentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VehicleDocument"> | string
+    customerId?: StringWithAggregatesFilter<"VehicleDocument"> | string
+    vehicleId?: StringNullableWithAggregatesFilter<"VehicleDocument"> | string | null
+    type?: EnumDocumentTypeWithAggregatesFilter<"VehicleDocument"> | $Enums.DocumentType
+    documentNumber?: StringNullableWithAggregatesFilter<"VehicleDocument"> | string | null
+    expiryDate?: DateTimeNullableWithAggregatesFilter<"VehicleDocument"> | Date | string | null
+    fileContent?: BytesNullableWithAggregatesFilter<"VehicleDocument"> | Bytes | null
+    fileUrl?: StringNullableWithAggregatesFilter<"VehicleDocument"> | string | null
+    mimeType?: StringNullableWithAggregatesFilter<"VehicleDocument"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"VehicleDocument"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VehicleDocument"> | Date | string
   }
 
   export type DigiLockerConnectionWhereInput = {
@@ -95567,8 +95196,6 @@ export namespace Prisma {
     registrationNumber?: StringFilter<"CustomerVehicle"> | string
     make?: StringNullableFilter<"CustomerVehicle"> | string | null
     model?: StringNullableFilter<"CustomerVehicle"> | string | null
-    variant?: StringNullableFilter<"CustomerVehicle"> | string | null
-    year?: IntNullableFilter<"CustomerVehicle"> | number | null
     fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null
     vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null
     currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null
@@ -95585,9 +95212,6 @@ export namespace Prisma {
     rto?: StringNullableFilter<"CustomerVehicle"> | string | null
     vehicleClass?: StringNullableFilter<"CustomerVehicle"> | string | null
     fuelNorms?: StringNullableFilter<"CustomerVehicle"> | string | null
-    transmission?: StringNullableFilter<"CustomerVehicle"> | string | null
-    priceRange?: StringNullableFilter<"CustomerVehicle"> | string | null
-    rating?: StringNullableFilter<"CustomerVehicle"> | string | null
     rcStatus?: StringNullableFilter<"CustomerVehicle"> | string | null
     unloadedWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
     fitnessUpto?: StringNullableFilter<"CustomerVehicle"> | string | null
@@ -95596,15 +95220,9 @@ export namespace Prisma {
     mileage?: StringNullableFilter<"CustomerVehicle"> | string | null
     brand?: StringNullableFilter<"CustomerVehicle"> | string | null
     color?: StringNullableFilter<"CustomerVehicle"> | string | null
-    seatingCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
-    cylinderCount?: StringNullableFilter<"CustomerVehicle"> | string | null
-    cubicCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
-    grossWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
-    bodyType?: StringNullableFilter<"CustomerVehicle"> | string | null
-    ownerAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
-    permanentAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
+    manufacturingMonthYear?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
-    documents?: CustomerDocumentListRelationFilter
+    documents?: VehicleDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     drivingTrips?: DrivingTripListRelationFilter
     expenses?: ExpenseListRelationFilter
@@ -95621,8 +95239,6 @@ export namespace Prisma {
     registrationNumber?: SortOrder
     make?: SortOrderInput | SortOrder
     model?: SortOrderInput | SortOrder
-    variant?: SortOrderInput | SortOrder
-    year?: SortOrderInput | SortOrder
     fuelType?: SortOrderInput | SortOrder
     vehicleType?: SortOrderInput | SortOrder
     currentOdometer?: SortOrderInput | SortOrder
@@ -95639,9 +95255,6 @@ export namespace Prisma {
     rto?: SortOrderInput | SortOrder
     vehicleClass?: SortOrderInput | SortOrder
     fuelNorms?: SortOrderInput | SortOrder
-    transmission?: SortOrderInput | SortOrder
-    priceRange?: SortOrderInput | SortOrder
-    rating?: SortOrderInput | SortOrder
     rcStatus?: SortOrderInput | SortOrder
     unloadedWeight?: SortOrderInput | SortOrder
     fitnessUpto?: SortOrderInput | SortOrder
@@ -95650,15 +95263,9 @@ export namespace Prisma {
     mileage?: SortOrderInput | SortOrder
     brand?: SortOrderInput | SortOrder
     color?: SortOrderInput | SortOrder
-    seatingCapacity?: SortOrderInput | SortOrder
-    cylinderCount?: SortOrderInput | SortOrder
-    cubicCapacity?: SortOrderInput | SortOrder
-    grossWeight?: SortOrderInput | SortOrder
-    bodyType?: SortOrderInput | SortOrder
-    ownerAddress?: SortOrderInput | SortOrder
-    permanentAddress?: SortOrderInput | SortOrder
+    manufacturingMonthYear?: SortOrderInput | SortOrder
     challans?: ChallanOrderByRelationAggregateInput
-    documents?: CustomerDocumentOrderByRelationAggregateInput
+    documents?: VehicleDocumentOrderByRelationAggregateInput
     customer?: CustomerOrderByWithRelationInput
     drivingTrips?: DrivingTripOrderByRelationAggregateInput
     expenses?: ExpenseOrderByRelationAggregateInput
@@ -95678,8 +95285,6 @@ export namespace Prisma {
     customerId?: StringFilter<"CustomerVehicle"> | string
     make?: StringNullableFilter<"CustomerVehicle"> | string | null
     model?: StringNullableFilter<"CustomerVehicle"> | string | null
-    variant?: StringNullableFilter<"CustomerVehicle"> | string | null
-    year?: IntNullableFilter<"CustomerVehicle"> | number | null
     fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null
     vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null
     currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null
@@ -95696,9 +95301,6 @@ export namespace Prisma {
     rto?: StringNullableFilter<"CustomerVehicle"> | string | null
     vehicleClass?: StringNullableFilter<"CustomerVehicle"> | string | null
     fuelNorms?: StringNullableFilter<"CustomerVehicle"> | string | null
-    transmission?: StringNullableFilter<"CustomerVehicle"> | string | null
-    priceRange?: StringNullableFilter<"CustomerVehicle"> | string | null
-    rating?: StringNullableFilter<"CustomerVehicle"> | string | null
     rcStatus?: StringNullableFilter<"CustomerVehicle"> | string | null
     unloadedWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
     fitnessUpto?: StringNullableFilter<"CustomerVehicle"> | string | null
@@ -95707,15 +95309,9 @@ export namespace Prisma {
     mileage?: StringNullableFilter<"CustomerVehicle"> | string | null
     brand?: StringNullableFilter<"CustomerVehicle"> | string | null
     color?: StringNullableFilter<"CustomerVehicle"> | string | null
-    seatingCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
-    cylinderCount?: StringNullableFilter<"CustomerVehicle"> | string | null
-    cubicCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
-    grossWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
-    bodyType?: StringNullableFilter<"CustomerVehicle"> | string | null
-    ownerAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
-    permanentAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
+    manufacturingMonthYear?: StringNullableFilter<"CustomerVehicle"> | string | null
     challans?: ChallanListRelationFilter
-    documents?: CustomerDocumentListRelationFilter
+    documents?: VehicleDocumentListRelationFilter
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     drivingTrips?: DrivingTripListRelationFilter
     expenses?: ExpenseListRelationFilter
@@ -95732,8 +95328,6 @@ export namespace Prisma {
     registrationNumber?: SortOrder
     make?: SortOrderInput | SortOrder
     model?: SortOrderInput | SortOrder
-    variant?: SortOrderInput | SortOrder
-    year?: SortOrderInput | SortOrder
     fuelType?: SortOrderInput | SortOrder
     vehicleType?: SortOrderInput | SortOrder
     currentOdometer?: SortOrderInput | SortOrder
@@ -95750,9 +95344,6 @@ export namespace Prisma {
     rto?: SortOrderInput | SortOrder
     vehicleClass?: SortOrderInput | SortOrder
     fuelNorms?: SortOrderInput | SortOrder
-    transmission?: SortOrderInput | SortOrder
-    priceRange?: SortOrderInput | SortOrder
-    rating?: SortOrderInput | SortOrder
     rcStatus?: SortOrderInput | SortOrder
     unloadedWeight?: SortOrderInput | SortOrder
     fitnessUpto?: SortOrderInput | SortOrder
@@ -95761,13 +95352,7 @@ export namespace Prisma {
     mileage?: SortOrderInput | SortOrder
     brand?: SortOrderInput | SortOrder
     color?: SortOrderInput | SortOrder
-    seatingCapacity?: SortOrderInput | SortOrder
-    cylinderCount?: SortOrderInput | SortOrder
-    cubicCapacity?: SortOrderInput | SortOrder
-    grossWeight?: SortOrderInput | SortOrder
-    bodyType?: SortOrderInput | SortOrder
-    ownerAddress?: SortOrderInput | SortOrder
-    permanentAddress?: SortOrderInput | SortOrder
+    manufacturingMonthYear?: SortOrderInput | SortOrder
     _count?: CustomerVehicleCountOrderByAggregateInput
     _avg?: CustomerVehicleAvgOrderByAggregateInput
     _max?: CustomerVehicleMaxOrderByAggregateInput
@@ -95784,8 +95369,6 @@ export namespace Prisma {
     registrationNumber?: StringWithAggregatesFilter<"CustomerVehicle"> | string
     make?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     model?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    variant?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    year?: IntNullableWithAggregatesFilter<"CustomerVehicle"> | number | null
     fuelType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     vehicleType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     currentOdometer?: IntNullableWithAggregatesFilter<"CustomerVehicle"> | number | null
@@ -95802,9 +95385,6 @@ export namespace Prisma {
     rto?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     vehicleClass?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     fuelNorms?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    transmission?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    priceRange?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    rating?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     rcStatus?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     unloadedWeight?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     fitnessUpto?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
@@ -95813,13 +95393,7 @@ export namespace Prisma {
     mileage?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     brand?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
     color?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    seatingCapacity?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    cylinderCount?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    cubicCapacity?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    grossWeight?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    bodyType?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    ownerAddress?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
-    permanentAddress?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
+    manufacturingMonthYear?: StringNullableWithAggregatesFilter<"CustomerVehicle"> | string | null
   }
 
   export type OdometerLogWhereInput = {
@@ -101669,7 +101243,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -101693,7 +101267,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -101717,7 +101291,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -101741,7 +101315,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -101863,161 +101437,98 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentCreateInput = {
+  export type VehicleDocumentCreateInput = {
     id?: string
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutDocumentsInput
     vehicle?: CustomerVehicleCreateNestedOneWithoutDocumentsInput
   }
 
-  export type CustomerDocumentUncheckedCreateInput = {
+  export type VehicleDocumentUncheckedCreateInput = {
     id?: string
     customerId: string
     vehicleId?: string | null
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type CustomerDocumentUpdateInput = {
+  export type VehicleDocumentUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutDocumentsNestedInput
     vehicle?: CustomerVehicleUpdateOneWithoutDocumentsNestedInput
   }
 
-  export type CustomerDocumentUncheckedUpdateInput = {
+  export type VehicleDocumentUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentCreateManyInput = {
+  export type VehicleDocumentCreateManyInput = {
     id?: string
     customerId: string
     vehicleId?: string | null
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type CustomerDocumentUpdateManyMutationInput = {
+  export type VehicleDocumentUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentUncheckedUpdateManyInput = {
+  export type VehicleDocumentUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -102131,8 +101642,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -102149,9 +101658,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -102160,15 +101666,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -102185,8 +101685,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -102203,9 +101701,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -102214,15 +101709,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -102237,8 +101726,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -102255,9 +101742,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102266,15 +101750,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -102291,8 +101769,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -102309,9 +101785,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102320,15 +101793,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -102344,8 +101811,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -102362,9 +101827,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -102373,13 +101835,7 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
   }
 
   export type CustomerVehicleUpdateManyMutationInput = {
@@ -102387,8 +101843,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -102405,9 +101859,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102416,13 +101867,7 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CustomerVehicleUncheckedUpdateManyInput = {
@@ -102431,8 +101876,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -102449,9 +101892,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102460,13 +101900,7 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type OdometerLogCreateInput = {
@@ -109100,10 +108534,10 @@ export namespace Prisma {
     none?: CustomerDeviceWhereInput
   }
 
-  export type CustomerDocumentListRelationFilter = {
-    every?: CustomerDocumentWhereInput
-    some?: CustomerDocumentWhereInput
-    none?: CustomerDocumentWhereInput
+  export type VehicleDocumentListRelationFilter = {
+    every?: VehicleDocumentWhereInput
+    some?: VehicleDocumentWhereInput
+    none?: VehicleDocumentWhereInput
   }
 
   export type CustomerVehicleListRelationFilter = {
@@ -109167,7 +108601,7 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type CustomerDocumentOrderByRelationAggregateInput = {
+  export type VehicleDocumentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -109292,52 +108726,11 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
-
-  export type EnumVerificationStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.VerificationStatus | EnumVerificationStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumVerificationStatusFilter<$PrismaModel> | $Enums.VerificationStatus
-  }
-
-  export type EnumDocumentSourceFilter<$PrismaModel = never> = {
-    equals?: $Enums.DocumentSource | EnumDocumentSourceFieldRefInput<$PrismaModel>
-    in?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    not?: NestedEnumDocumentSourceFilter<$PrismaModel> | $Enums.DocumentSource
+  export type BytesNullableFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel> | null
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableFilter<$PrismaModel> | Bytes | null
   }
 
   export type CustomerVehicleNullableScalarRelationFilter = {
@@ -109345,77 +108738,46 @@ export namespace Prisma {
     isNot?: CustomerVehicleWhereInput | null
   }
 
-  export type CustomerDocumentCountOrderByAggregateInput = {
+  export type VehicleDocumentCountOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrder
     type?: SortOrder
     documentNumber?: SortOrder
-    issueDate?: SortOrder
     expiryDate?: SortOrder
-    issuerName?: SortOrder
+    fileContent?: SortOrder
     fileUrl?: SortOrder
-    thumbnailUrl?: SortOrder
-    fileSize?: SortOrder
     mimeType?: SortOrder
-    ocrData?: SortOrder
-    extractedFields?: SortOrder
-    verificationStatus?: SortOrder
-    verifiedAt?: SortOrder
-    verifiedBy?: SortOrder
-    source?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type CustomerDocumentAvgOrderByAggregateInput = {
-    fileSize?: SortOrder
-  }
-
-  export type CustomerDocumentMaxOrderByAggregateInput = {
+  export type VehicleDocumentMaxOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrder
     type?: SortOrder
     documentNumber?: SortOrder
-    issueDate?: SortOrder
     expiryDate?: SortOrder
-    issuerName?: SortOrder
+    fileContent?: SortOrder
     fileUrl?: SortOrder
-    thumbnailUrl?: SortOrder
-    fileSize?: SortOrder
     mimeType?: SortOrder
-    verificationStatus?: SortOrder
-    verifiedAt?: SortOrder
-    verifiedBy?: SortOrder
-    source?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type CustomerDocumentMinOrderByAggregateInput = {
+  export type VehicleDocumentMinOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
     vehicleId?: SortOrder
     type?: SortOrder
     documentNumber?: SortOrder
-    issueDate?: SortOrder
     expiryDate?: SortOrder
-    issuerName?: SortOrder
+    fileContent?: SortOrder
     fileUrl?: SortOrder
-    thumbnailUrl?: SortOrder
-    fileSize?: SortOrder
     mimeType?: SortOrder
-    verificationStatus?: SortOrder
-    verifiedAt?: SortOrder
-    verifiedBy?: SortOrder
-    source?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type CustomerDocumentSumOrderByAggregateInput = {
-    fileSize?: SortOrder
   }
 
   export type EnumDocumentTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -109442,66 +108804,14 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+  export type BytesNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel> | null
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableWithAggregatesFilter<$PrismaModel> | Bytes | null
     _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
-  }
-
-  export type EnumVerificationStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.VerificationStatus | EnumVerificationStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumVerificationStatusWithAggregatesFilter<$PrismaModel> | $Enums.VerificationStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumVerificationStatusFilter<$PrismaModel>
-    _max?: NestedEnumVerificationStatusFilter<$PrismaModel>
-  }
-
-  export type EnumDocumentSourceWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.DocumentSource | EnumDocumentSourceFieldRefInput<$PrismaModel>
-    in?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    not?: NestedEnumDocumentSourceWithAggregatesFilter<$PrismaModel> | $Enums.DocumentSource
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumDocumentSourceFilter<$PrismaModel>
-    _max?: NestedEnumDocumentSourceFilter<$PrismaModel>
+    _min?: NestedBytesNullableFilter<$PrismaModel>
+    _max?: NestedBytesNullableFilter<$PrismaModel>
   }
 
   export type EnumDigiLockerStatusFilter<$PrismaModel = never> = {
@@ -109566,6 +108876,17 @@ export namespace Prisma {
     _max?: NestedEnumDigiLockerStatusFilter<$PrismaModel>
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type ChallanListRelationFilter = {
     every?: ChallanWhereInput
     some?: ChallanWhereInput
@@ -109622,8 +108943,6 @@ export namespace Prisma {
     registrationNumber?: SortOrder
     make?: SortOrder
     model?: SortOrder
-    variant?: SortOrder
-    year?: SortOrder
     fuelType?: SortOrder
     vehicleType?: SortOrder
     currentOdometer?: SortOrder
@@ -109640,9 +108959,6 @@ export namespace Prisma {
     rto?: SortOrder
     vehicleClass?: SortOrder
     fuelNorms?: SortOrder
-    transmission?: SortOrder
-    priceRange?: SortOrder
-    rating?: SortOrder
     rcStatus?: SortOrder
     unloadedWeight?: SortOrder
     fitnessUpto?: SortOrder
@@ -109651,17 +108967,10 @@ export namespace Prisma {
     mileage?: SortOrder
     brand?: SortOrder
     color?: SortOrder
-    seatingCapacity?: SortOrder
-    cylinderCount?: SortOrder
-    cubicCapacity?: SortOrder
-    grossWeight?: SortOrder
-    bodyType?: SortOrder
-    ownerAddress?: SortOrder
-    permanentAddress?: SortOrder
+    manufacturingMonthYear?: SortOrder
   }
 
   export type CustomerVehicleAvgOrderByAggregateInput = {
-    year?: SortOrder
     currentOdometer?: SortOrder
   }
 
@@ -109671,8 +108980,6 @@ export namespace Prisma {
     registrationNumber?: SortOrder
     make?: SortOrder
     model?: SortOrder
-    variant?: SortOrder
-    year?: SortOrder
     fuelType?: SortOrder
     vehicleType?: SortOrder
     currentOdometer?: SortOrder
@@ -109689,9 +108996,6 @@ export namespace Prisma {
     rto?: SortOrder
     vehicleClass?: SortOrder
     fuelNorms?: SortOrder
-    transmission?: SortOrder
-    priceRange?: SortOrder
-    rating?: SortOrder
     rcStatus?: SortOrder
     unloadedWeight?: SortOrder
     fitnessUpto?: SortOrder
@@ -109700,13 +109004,7 @@ export namespace Prisma {
     mileage?: SortOrder
     brand?: SortOrder
     color?: SortOrder
-    seatingCapacity?: SortOrder
-    cylinderCount?: SortOrder
-    cubicCapacity?: SortOrder
-    grossWeight?: SortOrder
-    bodyType?: SortOrder
-    ownerAddress?: SortOrder
-    permanentAddress?: SortOrder
+    manufacturingMonthYear?: SortOrder
   }
 
   export type CustomerVehicleMinOrderByAggregateInput = {
@@ -109715,8 +109013,6 @@ export namespace Prisma {
     registrationNumber?: SortOrder
     make?: SortOrder
     model?: SortOrder
-    variant?: SortOrder
-    year?: SortOrder
     fuelType?: SortOrder
     vehicleType?: SortOrder
     currentOdometer?: SortOrder
@@ -109733,9 +109029,6 @@ export namespace Prisma {
     rto?: SortOrder
     vehicleClass?: SortOrder
     fuelNorms?: SortOrder
-    transmission?: SortOrder
-    priceRange?: SortOrder
-    rating?: SortOrder
     rcStatus?: SortOrder
     unloadedWeight?: SortOrder
     fitnessUpto?: SortOrder
@@ -109744,18 +109037,27 @@ export namespace Prisma {
     mileage?: SortOrder
     brand?: SortOrder
     color?: SortOrder
-    seatingCapacity?: SortOrder
-    cylinderCount?: SortOrder
-    cubicCapacity?: SortOrder
-    grossWeight?: SortOrder
-    bodyType?: SortOrder
-    ownerAddress?: SortOrder
-    permanentAddress?: SortOrder
+    manufacturingMonthYear?: SortOrder
   }
 
   export type CustomerVehicleSumOrderByAggregateInput = {
-    year?: SortOrder
     currentOdometer?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -109821,6 +109123,29 @@ export namespace Prisma {
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type ChallanCountOrderByAggregateInput = {
     id?: SortOrder
@@ -109874,6 +109199,32 @@ export namespace Prisma {
 
   export type ChallanSumOrderByAggregateInput = {
     amount?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type EnumAccessRoleFilter<$PrismaModel = never> = {
@@ -114233,11 +113584,11 @@ export namespace Prisma {
     connect?: CustomerDeviceWhereUniqueInput | CustomerDeviceWhereUniqueInput[]
   }
 
-  export type CustomerDocumentCreateNestedManyWithoutCustomerInput = {
-    create?: XOR<CustomerDocumentCreateWithoutCustomerInput, CustomerDocumentUncheckedCreateWithoutCustomerInput> | CustomerDocumentCreateWithoutCustomerInput[] | CustomerDocumentUncheckedCreateWithoutCustomerInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutCustomerInput | CustomerDocumentCreateOrConnectWithoutCustomerInput[]
-    createMany?: CustomerDocumentCreateManyCustomerInputEnvelope
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
+  export type VehicleDocumentCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<VehicleDocumentCreateWithoutCustomerInput, VehicleDocumentUncheckedCreateWithoutCustomerInput> | VehicleDocumentCreateWithoutCustomerInput[] | VehicleDocumentUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutCustomerInput | VehicleDocumentCreateOrConnectWithoutCustomerInput[]
+    createMany?: VehicleDocumentCreateManyCustomerInputEnvelope
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
   }
 
   export type CustomerVehicleCreateNestedManyWithoutCustomerInput = {
@@ -114323,11 +113674,11 @@ export namespace Prisma {
     connect?: CustomerDeviceWhereUniqueInput | CustomerDeviceWhereUniqueInput[]
   }
 
-  export type CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput = {
-    create?: XOR<CustomerDocumentCreateWithoutCustomerInput, CustomerDocumentUncheckedCreateWithoutCustomerInput> | CustomerDocumentCreateWithoutCustomerInput[] | CustomerDocumentUncheckedCreateWithoutCustomerInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutCustomerInput | CustomerDocumentCreateOrConnectWithoutCustomerInput[]
-    createMany?: CustomerDocumentCreateManyCustomerInputEnvelope
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
+  export type VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<VehicleDocumentCreateWithoutCustomerInput, VehicleDocumentUncheckedCreateWithoutCustomerInput> | VehicleDocumentCreateWithoutCustomerInput[] | VehicleDocumentUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutCustomerInput | VehicleDocumentCreateOrConnectWithoutCustomerInput[]
+    createMany?: VehicleDocumentCreateManyCustomerInputEnvelope
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
   }
 
   export type CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput = {
@@ -114427,18 +113778,18 @@ export namespace Prisma {
     deleteMany?: CustomerDeviceScalarWhereInput | CustomerDeviceScalarWhereInput[]
   }
 
-  export type CustomerDocumentUpdateManyWithoutCustomerNestedInput = {
-    create?: XOR<CustomerDocumentCreateWithoutCustomerInput, CustomerDocumentUncheckedCreateWithoutCustomerInput> | CustomerDocumentCreateWithoutCustomerInput[] | CustomerDocumentUncheckedCreateWithoutCustomerInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutCustomerInput | CustomerDocumentCreateOrConnectWithoutCustomerInput[]
-    upsert?: CustomerDocumentUpsertWithWhereUniqueWithoutCustomerInput | CustomerDocumentUpsertWithWhereUniqueWithoutCustomerInput[]
-    createMany?: CustomerDocumentCreateManyCustomerInputEnvelope
-    set?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    disconnect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    delete?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    update?: CustomerDocumentUpdateWithWhereUniqueWithoutCustomerInput | CustomerDocumentUpdateWithWhereUniqueWithoutCustomerInput[]
-    updateMany?: CustomerDocumentUpdateManyWithWhereWithoutCustomerInput | CustomerDocumentUpdateManyWithWhereWithoutCustomerInput[]
-    deleteMany?: CustomerDocumentScalarWhereInput | CustomerDocumentScalarWhereInput[]
+  export type VehicleDocumentUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<VehicleDocumentCreateWithoutCustomerInput, VehicleDocumentUncheckedCreateWithoutCustomerInput> | VehicleDocumentCreateWithoutCustomerInput[] | VehicleDocumentUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutCustomerInput | VehicleDocumentCreateOrConnectWithoutCustomerInput[]
+    upsert?: VehicleDocumentUpsertWithWhereUniqueWithoutCustomerInput | VehicleDocumentUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: VehicleDocumentCreateManyCustomerInputEnvelope
+    set?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    disconnect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    delete?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    update?: VehicleDocumentUpdateWithWhereUniqueWithoutCustomerInput | VehicleDocumentUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: VehicleDocumentUpdateManyWithWhereWithoutCustomerInput | VehicleDocumentUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: VehicleDocumentScalarWhereInput | VehicleDocumentScalarWhereInput[]
   }
 
   export type CustomerVehicleUpdateManyWithoutCustomerNestedInput = {
@@ -114605,18 +113956,18 @@ export namespace Prisma {
     deleteMany?: CustomerDeviceScalarWhereInput | CustomerDeviceScalarWhereInput[]
   }
 
-  export type CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput = {
-    create?: XOR<CustomerDocumentCreateWithoutCustomerInput, CustomerDocumentUncheckedCreateWithoutCustomerInput> | CustomerDocumentCreateWithoutCustomerInput[] | CustomerDocumentUncheckedCreateWithoutCustomerInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutCustomerInput | CustomerDocumentCreateOrConnectWithoutCustomerInput[]
-    upsert?: CustomerDocumentUpsertWithWhereUniqueWithoutCustomerInput | CustomerDocumentUpsertWithWhereUniqueWithoutCustomerInput[]
-    createMany?: CustomerDocumentCreateManyCustomerInputEnvelope
-    set?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    disconnect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    delete?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    update?: CustomerDocumentUpdateWithWhereUniqueWithoutCustomerInput | CustomerDocumentUpdateWithWhereUniqueWithoutCustomerInput[]
-    updateMany?: CustomerDocumentUpdateManyWithWhereWithoutCustomerInput | CustomerDocumentUpdateManyWithWhereWithoutCustomerInput[]
-    deleteMany?: CustomerDocumentScalarWhereInput | CustomerDocumentScalarWhereInput[]
+  export type VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<VehicleDocumentCreateWithoutCustomerInput, VehicleDocumentUncheckedCreateWithoutCustomerInput> | VehicleDocumentCreateWithoutCustomerInput[] | VehicleDocumentUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutCustomerInput | VehicleDocumentCreateOrConnectWithoutCustomerInput[]
+    upsert?: VehicleDocumentUpsertWithWhereUniqueWithoutCustomerInput | VehicleDocumentUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: VehicleDocumentCreateManyCustomerInputEnvelope
+    set?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    disconnect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    delete?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    update?: VehicleDocumentUpdateWithWhereUniqueWithoutCustomerInput | VehicleDocumentUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: VehicleDocumentUpdateManyWithWhereWithoutCustomerInput | VehicleDocumentUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: VehicleDocumentScalarWhereInput | VehicleDocumentScalarWhereInput[]
   }
 
   export type CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput = {
@@ -114789,20 +114140,8 @@ export namespace Prisma {
     set?: Date | string | null
   }
 
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
-  export type EnumVerificationStatusFieldUpdateOperationsInput = {
-    set?: $Enums.VerificationStatus
-  }
-
-  export type EnumDocumentSourceFieldUpdateOperationsInput = {
-    set?: $Enums.DocumentSource
+  export type NullableBytesFieldUpdateOperationsInput = {
+    set?: Bytes | null
   }
 
   export type CustomerUpdateOneRequiredWithoutDocumentsNestedInput = {
@@ -114848,11 +114187,11 @@ export namespace Prisma {
     connect?: ChallanWhereUniqueInput | ChallanWhereUniqueInput[]
   }
 
-  export type CustomerDocumentCreateNestedManyWithoutVehicleInput = {
-    create?: XOR<CustomerDocumentCreateWithoutVehicleInput, CustomerDocumentUncheckedCreateWithoutVehicleInput> | CustomerDocumentCreateWithoutVehicleInput[] | CustomerDocumentUncheckedCreateWithoutVehicleInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutVehicleInput | CustomerDocumentCreateOrConnectWithoutVehicleInput[]
-    createMany?: CustomerDocumentCreateManyVehicleInputEnvelope
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
+  export type VehicleDocumentCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<VehicleDocumentCreateWithoutVehicleInput, VehicleDocumentUncheckedCreateWithoutVehicleInput> | VehicleDocumentCreateWithoutVehicleInput[] | VehicleDocumentUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutVehicleInput | VehicleDocumentCreateOrConnectWithoutVehicleInput[]
+    createMany?: VehicleDocumentCreateManyVehicleInputEnvelope
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
   }
 
   export type CustomerCreateNestedOneWithoutVehiclesInput = {
@@ -114915,11 +114254,11 @@ export namespace Prisma {
     connect?: ChallanWhereUniqueInput | ChallanWhereUniqueInput[]
   }
 
-  export type CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput = {
-    create?: XOR<CustomerDocumentCreateWithoutVehicleInput, CustomerDocumentUncheckedCreateWithoutVehicleInput> | CustomerDocumentCreateWithoutVehicleInput[] | CustomerDocumentUncheckedCreateWithoutVehicleInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutVehicleInput | CustomerDocumentCreateOrConnectWithoutVehicleInput[]
-    createMany?: CustomerDocumentCreateManyVehicleInputEnvelope
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
+  export type VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<VehicleDocumentCreateWithoutVehicleInput, VehicleDocumentUncheckedCreateWithoutVehicleInput> | VehicleDocumentCreateWithoutVehicleInput[] | VehicleDocumentUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutVehicleInput | VehicleDocumentCreateOrConnectWithoutVehicleInput[]
+    createMany?: VehicleDocumentCreateManyVehicleInputEnvelope
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
   }
 
   export type DrivingTripUncheckedCreateNestedManyWithoutVehicleInput = {
@@ -114969,6 +114308,14 @@ export namespace Prisma {
     connect?: VehicleHealthScoreWhereUniqueInput
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type ChallanUpdateManyWithoutVehicleNestedInput = {
     create?: XOR<ChallanCreateWithoutVehicleInput, ChallanUncheckedCreateWithoutVehicleInput> | ChallanCreateWithoutVehicleInput[] | ChallanUncheckedCreateWithoutVehicleInput[]
     connectOrCreate?: ChallanCreateOrConnectWithoutVehicleInput | ChallanCreateOrConnectWithoutVehicleInput[]
@@ -114983,18 +114330,18 @@ export namespace Prisma {
     deleteMany?: ChallanScalarWhereInput | ChallanScalarWhereInput[]
   }
 
-  export type CustomerDocumentUpdateManyWithoutVehicleNestedInput = {
-    create?: XOR<CustomerDocumentCreateWithoutVehicleInput, CustomerDocumentUncheckedCreateWithoutVehicleInput> | CustomerDocumentCreateWithoutVehicleInput[] | CustomerDocumentUncheckedCreateWithoutVehicleInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutVehicleInput | CustomerDocumentCreateOrConnectWithoutVehicleInput[]
-    upsert?: CustomerDocumentUpsertWithWhereUniqueWithoutVehicleInput | CustomerDocumentUpsertWithWhereUniqueWithoutVehicleInput[]
-    createMany?: CustomerDocumentCreateManyVehicleInputEnvelope
-    set?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    disconnect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    delete?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    update?: CustomerDocumentUpdateWithWhereUniqueWithoutVehicleInput | CustomerDocumentUpdateWithWhereUniqueWithoutVehicleInput[]
-    updateMany?: CustomerDocumentUpdateManyWithWhereWithoutVehicleInput | CustomerDocumentUpdateManyWithWhereWithoutVehicleInput[]
-    deleteMany?: CustomerDocumentScalarWhereInput | CustomerDocumentScalarWhereInput[]
+  export type VehicleDocumentUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<VehicleDocumentCreateWithoutVehicleInput, VehicleDocumentUncheckedCreateWithoutVehicleInput> | VehicleDocumentCreateWithoutVehicleInput[] | VehicleDocumentUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutVehicleInput | VehicleDocumentCreateOrConnectWithoutVehicleInput[]
+    upsert?: VehicleDocumentUpsertWithWhereUniqueWithoutVehicleInput | VehicleDocumentUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: VehicleDocumentCreateManyVehicleInputEnvelope
+    set?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    disconnect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    delete?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    update?: VehicleDocumentUpdateWithWhereUniqueWithoutVehicleInput | VehicleDocumentUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: VehicleDocumentUpdateManyWithWhereWithoutVehicleInput | VehicleDocumentUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: VehicleDocumentScalarWhereInput | VehicleDocumentScalarWhereInput[]
   }
 
   export type CustomerUpdateOneRequiredWithoutVehiclesNestedInput = {
@@ -115109,18 +114456,18 @@ export namespace Prisma {
     deleteMany?: ChallanScalarWhereInput | ChallanScalarWhereInput[]
   }
 
-  export type CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput = {
-    create?: XOR<CustomerDocumentCreateWithoutVehicleInput, CustomerDocumentUncheckedCreateWithoutVehicleInput> | CustomerDocumentCreateWithoutVehicleInput[] | CustomerDocumentUncheckedCreateWithoutVehicleInput[]
-    connectOrCreate?: CustomerDocumentCreateOrConnectWithoutVehicleInput | CustomerDocumentCreateOrConnectWithoutVehicleInput[]
-    upsert?: CustomerDocumentUpsertWithWhereUniqueWithoutVehicleInput | CustomerDocumentUpsertWithWhereUniqueWithoutVehicleInput[]
-    createMany?: CustomerDocumentCreateManyVehicleInputEnvelope
-    set?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    disconnect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    delete?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    connect?: CustomerDocumentWhereUniqueInput | CustomerDocumentWhereUniqueInput[]
-    update?: CustomerDocumentUpdateWithWhereUniqueWithoutVehicleInput | CustomerDocumentUpdateWithWhereUniqueWithoutVehicleInput[]
-    updateMany?: CustomerDocumentUpdateManyWithWhereWithoutVehicleInput | CustomerDocumentUpdateManyWithWhereWithoutVehicleInput[]
-    deleteMany?: CustomerDocumentScalarWhereInput | CustomerDocumentScalarWhereInput[]
+  export type VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<VehicleDocumentCreateWithoutVehicleInput, VehicleDocumentUncheckedCreateWithoutVehicleInput> | VehicleDocumentCreateWithoutVehicleInput[] | VehicleDocumentUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: VehicleDocumentCreateOrConnectWithoutVehicleInput | VehicleDocumentCreateOrConnectWithoutVehicleInput[]
+    upsert?: VehicleDocumentUpsertWithWhereUniqueWithoutVehicleInput | VehicleDocumentUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: VehicleDocumentCreateManyVehicleInputEnvelope
+    set?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    disconnect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    delete?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    connect?: VehicleDocumentWhereUniqueInput | VehicleDocumentWhereUniqueInput[]
+    update?: VehicleDocumentUpdateWithWhereUniqueWithoutVehicleInput | VehicleDocumentUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: VehicleDocumentUpdateManyWithWhereWithoutVehicleInput | VehicleDocumentUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: VehicleDocumentScalarWhereInput | VehicleDocumentScalarWhereInput[]
   }
 
   export type DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput = {
@@ -118828,18 +118175,11 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
-  export type NestedEnumVerificationStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.VerificationStatus | EnumVerificationStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumVerificationStatusFilter<$PrismaModel> | $Enums.VerificationStatus
-  }
-
-  export type NestedEnumDocumentSourceFilter<$PrismaModel = never> = {
-    equals?: $Enums.DocumentSource | EnumDocumentSourceFieldRefInput<$PrismaModel>
-    in?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    not?: NestedEnumDocumentSourceFilter<$PrismaModel> | $Enums.DocumentSource
+  export type NestedBytesNullableFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel> | null
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableFilter<$PrismaModel> | Bytes | null
   }
 
   export type NestedEnumDocumentTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -118864,6 +118204,33 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedBytesNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel> | null
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableWithAggregatesFilter<$PrismaModel> | Bytes | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBytesNullableFilter<$PrismaModel>
+    _max?: NestedBytesNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDigiLockerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DigiLockerStatus | EnumDigiLockerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDigiLockerStatusFilter<$PrismaModel> | $Enums.DigiLockerStatus
+  }
+
+  export type NestedEnumDigiLockerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DigiLockerStatus | EnumDigiLockerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDigiLockerStatusWithAggregatesFilter<$PrismaModel> | $Enums.DigiLockerStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDigiLockerStatusFilter<$PrismaModel>
+    _max?: NestedEnumDigiLockerStatusFilter<$PrismaModel>
   }
 
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -118892,66 +118259,6 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
-  export type NestedJsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
-
-  export type NestedEnumVerificationStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.VerificationStatus | EnumVerificationStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.VerificationStatus[] | ListEnumVerificationStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumVerificationStatusWithAggregatesFilter<$PrismaModel> | $Enums.VerificationStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumVerificationStatusFilter<$PrismaModel>
-    _max?: NestedEnumVerificationStatusFilter<$PrismaModel>
-  }
-
-  export type NestedEnumDocumentSourceWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.DocumentSource | EnumDocumentSourceFieldRefInput<$PrismaModel>
-    in?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DocumentSource[] | ListEnumDocumentSourceFieldRefInput<$PrismaModel>
-    not?: NestedEnumDocumentSourceWithAggregatesFilter<$PrismaModel> | $Enums.DocumentSource
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumDocumentSourceFilter<$PrismaModel>
-    _max?: NestedEnumDocumentSourceFilter<$PrismaModel>
-  }
-
-  export type NestedEnumDigiLockerStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.DigiLockerStatus | EnumDigiLockerStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumDigiLockerStatusFilter<$PrismaModel> | $Enums.DigiLockerStatus
-  }
-
-  export type NestedEnumDigiLockerStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.DigiLockerStatus | EnumDigiLockerStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DigiLockerStatus[] | ListEnumDigiLockerStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumDigiLockerStatusWithAggregatesFilter<$PrismaModel> | $Enums.DigiLockerStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumDigiLockerStatusFilter<$PrismaModel>
-    _max?: NestedEnumDigiLockerStatusFilter<$PrismaModel>
-  }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
@@ -118978,6 +118285,29 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedEnumAccessRoleFilter<$PrismaModel = never> = {
@@ -119904,57 +119234,39 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type CustomerDocumentCreateWithoutCustomerInput = {
+  export type VehicleDocumentCreateWithoutCustomerInput = {
     id?: string
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
     vehicle?: CustomerVehicleCreateNestedOneWithoutDocumentsInput
   }
 
-  export type CustomerDocumentUncheckedCreateWithoutCustomerInput = {
+  export type VehicleDocumentUncheckedCreateWithoutCustomerInput = {
     id?: string
     vehicleId?: string | null
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type CustomerDocumentCreateOrConnectWithoutCustomerInput = {
-    where: CustomerDocumentWhereUniqueInput
-    create: XOR<CustomerDocumentCreateWithoutCustomerInput, CustomerDocumentUncheckedCreateWithoutCustomerInput>
+  export type VehicleDocumentCreateOrConnectWithoutCustomerInput = {
+    where: VehicleDocumentWhereUniqueInput
+    create: XOR<VehicleDocumentCreateWithoutCustomerInput, VehicleDocumentUncheckedCreateWithoutCustomerInput>
   }
 
-  export type CustomerDocumentCreateManyCustomerInputEnvelope = {
-    data: CustomerDocumentCreateManyCustomerInput | CustomerDocumentCreateManyCustomerInput[]
+  export type VehicleDocumentCreateManyCustomerInputEnvelope = {
+    data: VehicleDocumentCreateManyCustomerInput | VehicleDocumentCreateManyCustomerInput[]
     skipDuplicates?: boolean
   }
 
@@ -119963,8 +119275,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -119981,9 +119291,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -119992,15 +119299,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
@@ -120015,8 +119316,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -120033,9 +119332,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -120044,15 +119340,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -120478,46 +119768,37 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomerDevice"> | Date | string
   }
 
-  export type CustomerDocumentUpsertWithWhereUniqueWithoutCustomerInput = {
-    where: CustomerDocumentWhereUniqueInput
-    update: XOR<CustomerDocumentUpdateWithoutCustomerInput, CustomerDocumentUncheckedUpdateWithoutCustomerInput>
-    create: XOR<CustomerDocumentCreateWithoutCustomerInput, CustomerDocumentUncheckedCreateWithoutCustomerInput>
+  export type VehicleDocumentUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: VehicleDocumentWhereUniqueInput
+    update: XOR<VehicleDocumentUpdateWithoutCustomerInput, VehicleDocumentUncheckedUpdateWithoutCustomerInput>
+    create: XOR<VehicleDocumentCreateWithoutCustomerInput, VehicleDocumentUncheckedCreateWithoutCustomerInput>
   }
 
-  export type CustomerDocumentUpdateWithWhereUniqueWithoutCustomerInput = {
-    where: CustomerDocumentWhereUniqueInput
-    data: XOR<CustomerDocumentUpdateWithoutCustomerInput, CustomerDocumentUncheckedUpdateWithoutCustomerInput>
+  export type VehicleDocumentUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: VehicleDocumentWhereUniqueInput
+    data: XOR<VehicleDocumentUpdateWithoutCustomerInput, VehicleDocumentUncheckedUpdateWithoutCustomerInput>
   }
 
-  export type CustomerDocumentUpdateManyWithWhereWithoutCustomerInput = {
-    where: CustomerDocumentScalarWhereInput
-    data: XOR<CustomerDocumentUpdateManyMutationInput, CustomerDocumentUncheckedUpdateManyWithoutCustomerInput>
+  export type VehicleDocumentUpdateManyWithWhereWithoutCustomerInput = {
+    where: VehicleDocumentScalarWhereInput
+    data: XOR<VehicleDocumentUpdateManyMutationInput, VehicleDocumentUncheckedUpdateManyWithoutCustomerInput>
   }
 
-  export type CustomerDocumentScalarWhereInput = {
-    AND?: CustomerDocumentScalarWhereInput | CustomerDocumentScalarWhereInput[]
-    OR?: CustomerDocumentScalarWhereInput[]
-    NOT?: CustomerDocumentScalarWhereInput | CustomerDocumentScalarWhereInput[]
-    id?: StringFilter<"CustomerDocument"> | string
-    customerId?: StringFilter<"CustomerDocument"> | string
-    vehicleId?: StringNullableFilter<"CustomerDocument"> | string | null
-    type?: EnumDocumentTypeFilter<"CustomerDocument"> | $Enums.DocumentType
-    documentNumber?: StringNullableFilter<"CustomerDocument"> | string | null
-    issueDate?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    expiryDate?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    issuerName?: StringNullableFilter<"CustomerDocument"> | string | null
-    fileUrl?: StringFilter<"CustomerDocument"> | string
-    thumbnailUrl?: StringNullableFilter<"CustomerDocument"> | string | null
-    fileSize?: IntNullableFilter<"CustomerDocument"> | number | null
-    mimeType?: StringNullableFilter<"CustomerDocument"> | string | null
-    ocrData?: JsonNullableFilter<"CustomerDocument">
-    extractedFields?: JsonNullableFilter<"CustomerDocument">
-    verificationStatus?: EnumVerificationStatusFilter<"CustomerDocument"> | $Enums.VerificationStatus
-    verifiedAt?: DateTimeNullableFilter<"CustomerDocument"> | Date | string | null
-    verifiedBy?: StringNullableFilter<"CustomerDocument"> | string | null
-    source?: EnumDocumentSourceFilter<"CustomerDocument"> | $Enums.DocumentSource
-    createdAt?: DateTimeFilter<"CustomerDocument"> | Date | string
-    updatedAt?: DateTimeFilter<"CustomerDocument"> | Date | string
+  export type VehicleDocumentScalarWhereInput = {
+    AND?: VehicleDocumentScalarWhereInput | VehicleDocumentScalarWhereInput[]
+    OR?: VehicleDocumentScalarWhereInput[]
+    NOT?: VehicleDocumentScalarWhereInput | VehicleDocumentScalarWhereInput[]
+    id?: StringFilter<"VehicleDocument"> | string
+    customerId?: StringFilter<"VehicleDocument"> | string
+    vehicleId?: StringNullableFilter<"VehicleDocument"> | string | null
+    type?: EnumDocumentTypeFilter<"VehicleDocument"> | $Enums.DocumentType
+    documentNumber?: StringNullableFilter<"VehicleDocument"> | string | null
+    expiryDate?: DateTimeNullableFilter<"VehicleDocument"> | Date | string | null
+    fileContent?: BytesNullableFilter<"VehicleDocument"> | Bytes | null
+    fileUrl?: StringNullableFilter<"VehicleDocument"> | string | null
+    mimeType?: StringNullableFilter<"VehicleDocument"> | string | null
+    createdAt?: DateTimeFilter<"VehicleDocument"> | Date | string
+    updatedAt?: DateTimeFilter<"VehicleDocument"> | Date | string
   }
 
   export type CustomerVehicleUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -120545,8 +119826,6 @@ export namespace Prisma {
     registrationNumber?: StringFilter<"CustomerVehicle"> | string
     make?: StringNullableFilter<"CustomerVehicle"> | string | null
     model?: StringNullableFilter<"CustomerVehicle"> | string | null
-    variant?: StringNullableFilter<"CustomerVehicle"> | string | null
-    year?: IntNullableFilter<"CustomerVehicle"> | number | null
     fuelType?: StringNullableFilter<"CustomerVehicle"> | string | null
     vehicleType?: StringNullableFilter<"CustomerVehicle"> | string | null
     currentOdometer?: IntNullableFilter<"CustomerVehicle"> | number | null
@@ -120563,9 +119842,6 @@ export namespace Prisma {
     rto?: StringNullableFilter<"CustomerVehicle"> | string | null
     vehicleClass?: StringNullableFilter<"CustomerVehicle"> | string | null
     fuelNorms?: StringNullableFilter<"CustomerVehicle"> | string | null
-    transmission?: StringNullableFilter<"CustomerVehicle"> | string | null
-    priceRange?: StringNullableFilter<"CustomerVehicle"> | string | null
-    rating?: StringNullableFilter<"CustomerVehicle"> | string | null
     rcStatus?: StringNullableFilter<"CustomerVehicle"> | string | null
     unloadedWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
     fitnessUpto?: StringNullableFilter<"CustomerVehicle"> | string | null
@@ -120574,13 +119850,7 @@ export namespace Prisma {
     mileage?: StringNullableFilter<"CustomerVehicle"> | string | null
     brand?: StringNullableFilter<"CustomerVehicle"> | string | null
     color?: StringNullableFilter<"CustomerVehicle"> | string | null
-    seatingCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
-    cylinderCount?: StringNullableFilter<"CustomerVehicle"> | string | null
-    cubicCapacity?: StringNullableFilter<"CustomerVehicle"> | string | null
-    grossWeight?: StringNullableFilter<"CustomerVehicle"> | string | null
-    bodyType?: StringNullableFilter<"CustomerVehicle"> | string | null
-    ownerAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
-    permanentAddress?: StringNullableFilter<"CustomerVehicle"> | string | null
+    manufacturingMonthYear?: StringNullableFilter<"CustomerVehicle"> | string | null
   }
 
   export type DigiLockerConnectionUpsertWithoutCustomerInput = {
@@ -120879,7 +120149,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -120902,7 +120172,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -120941,7 +120211,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -120964,7 +120234,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -121033,8 +120303,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -121051,9 +120319,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -121062,13 +120327,7 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
@@ -121086,8 +120345,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -121104,9 +120361,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -121115,13 +120369,7 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
@@ -121210,8 +120458,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -121228,9 +120474,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -121239,13 +120482,7 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
@@ -121263,8 +120500,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -121281,9 +120516,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -121292,13 +120524,7 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
@@ -121320,7 +120546,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
@@ -121343,7 +120569,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
@@ -121382,7 +120608,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
@@ -121405,7 +120631,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
@@ -121457,57 +120683,39 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type CustomerDocumentCreateWithoutVehicleInput = {
+  export type VehicleDocumentCreateWithoutVehicleInput = {
     id?: string
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutDocumentsInput
   }
 
-  export type CustomerDocumentUncheckedCreateWithoutVehicleInput = {
+  export type VehicleDocumentUncheckedCreateWithoutVehicleInput = {
     id?: string
     customerId: string
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type CustomerDocumentCreateOrConnectWithoutVehicleInput = {
-    where: CustomerDocumentWhereUniqueInput
-    create: XOR<CustomerDocumentCreateWithoutVehicleInput, CustomerDocumentUncheckedCreateWithoutVehicleInput>
+  export type VehicleDocumentCreateOrConnectWithoutVehicleInput = {
+    where: VehicleDocumentWhereUniqueInput
+    create: XOR<VehicleDocumentCreateWithoutVehicleInput, VehicleDocumentUncheckedCreateWithoutVehicleInput>
   }
 
-  export type CustomerDocumentCreateManyVehicleInputEnvelope = {
-    data: CustomerDocumentCreateManyVehicleInput | CustomerDocumentCreateManyVehicleInput[]
+  export type VehicleDocumentCreateManyVehicleInputEnvelope = {
+    data: VehicleDocumentCreateManyVehicleInput | VehicleDocumentCreateManyVehicleInput[]
     skipDuplicates?: boolean
   }
 
@@ -121522,7 +120730,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
@@ -121545,7 +120753,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
@@ -121851,20 +121059,20 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Challan"> | Date | string
   }
 
-  export type CustomerDocumentUpsertWithWhereUniqueWithoutVehicleInput = {
-    where: CustomerDocumentWhereUniqueInput
-    update: XOR<CustomerDocumentUpdateWithoutVehicleInput, CustomerDocumentUncheckedUpdateWithoutVehicleInput>
-    create: XOR<CustomerDocumentCreateWithoutVehicleInput, CustomerDocumentUncheckedCreateWithoutVehicleInput>
+  export type VehicleDocumentUpsertWithWhereUniqueWithoutVehicleInput = {
+    where: VehicleDocumentWhereUniqueInput
+    update: XOR<VehicleDocumentUpdateWithoutVehicleInput, VehicleDocumentUncheckedUpdateWithoutVehicleInput>
+    create: XOR<VehicleDocumentCreateWithoutVehicleInput, VehicleDocumentUncheckedCreateWithoutVehicleInput>
   }
 
-  export type CustomerDocumentUpdateWithWhereUniqueWithoutVehicleInput = {
-    where: CustomerDocumentWhereUniqueInput
-    data: XOR<CustomerDocumentUpdateWithoutVehicleInput, CustomerDocumentUncheckedUpdateWithoutVehicleInput>
+  export type VehicleDocumentUpdateWithWhereUniqueWithoutVehicleInput = {
+    where: VehicleDocumentWhereUniqueInput
+    data: XOR<VehicleDocumentUpdateWithoutVehicleInput, VehicleDocumentUncheckedUpdateWithoutVehicleInput>
   }
 
-  export type CustomerDocumentUpdateManyWithWhereWithoutVehicleInput = {
-    where: CustomerDocumentScalarWhereInput
-    data: XOR<CustomerDocumentUpdateManyMutationInput, CustomerDocumentUncheckedUpdateManyWithoutVehicleInput>
+  export type VehicleDocumentUpdateManyWithWhereWithoutVehicleInput = {
+    where: VehicleDocumentScalarWhereInput
+    data: XOR<VehicleDocumentUpdateManyMutationInput, VehicleDocumentUncheckedUpdateManyWithoutVehicleInput>
   }
 
   export type CustomerUpsertWithoutVehiclesInput = {
@@ -121889,7 +121097,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
@@ -121912,7 +121120,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
@@ -122129,8 +121337,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122147,9 +121353,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122158,15 +121361,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -122182,8 +121379,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122200,9 +121395,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122211,15 +121403,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
@@ -122249,8 +121435,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -122267,9 +121451,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -122278,15 +121459,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -122302,8 +121477,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -122320,9 +121493,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -122331,15 +121501,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
@@ -122353,8 +121517,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122371,9 +121533,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122382,14 +121541,8 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    manufacturingMonthYear?: string | null
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -122406,8 +121559,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122424,9 +121575,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122435,14 +121583,8 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    manufacturingMonthYear?: string | null
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -122473,8 +121615,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -122491,9 +121631,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -122502,14 +121639,8 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -122526,8 +121657,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -122544,9 +121673,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -122555,14 +121681,8 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -122583,7 +121703,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -122606,7 +121726,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -122628,8 +121748,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122646,9 +121764,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122657,15 +121772,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -122681,8 +121790,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122699,9 +121806,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122710,15 +121814,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -122754,7 +121852,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -122777,7 +121875,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -122805,8 +121903,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -122823,9 +121919,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -122834,15 +121927,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -122858,8 +121945,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -122876,9 +121961,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -122887,15 +121969,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -122909,8 +121985,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122927,9 +122001,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122938,15 +122009,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -122962,8 +122027,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -122980,9 +122043,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -122991,15 +122051,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -123029,8 +122083,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -123047,9 +122099,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123058,15 +122107,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -123082,8 +122125,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -123100,9 +122141,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123111,15 +122149,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -123139,7 +122171,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -123162,7 +122194,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -123201,7 +122233,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -123224,7 +122256,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -123272,7 +122304,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     googleId?: string | null
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -123295,7 +122327,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     googleId?: string | null
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -123362,7 +122394,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -123385,7 +122417,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -123465,7 +122497,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -123488,7 +122520,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -123516,7 +122548,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -123539,7 +122571,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -123561,8 +122593,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -123579,9 +122609,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -123590,15 +122617,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
@@ -123614,8 +122635,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -123632,9 +122651,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -123643,15 +122659,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
     serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
@@ -123687,7 +122697,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -123710,7 +122720,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -123744,7 +122754,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -123767,7 +122777,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -123795,8 +122805,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -123813,9 +122821,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123824,15 +122829,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
@@ -123848,8 +122847,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -123866,9 +122863,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123877,15 +122871,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
     serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
@@ -123905,7 +122893,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -123928,7 +122916,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -123967,7 +122955,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -123990,7 +122978,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -124047,8 +123035,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -124065,9 +123051,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -124076,15 +123059,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -124100,8 +123077,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -124118,9 +123093,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -124129,15 +123101,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -124202,8 +123168,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -124220,9 +123184,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124231,15 +123192,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -124255,8 +123210,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -124273,9 +123226,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124284,15 +123234,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -124382,8 +123326,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -124400,9 +123342,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -124411,15 +123350,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
@@ -124435,8 +123368,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -124453,9 +123384,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -124464,15 +123392,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
@@ -124502,8 +123424,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -124520,9 +123440,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124531,15 +123448,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
@@ -124555,8 +123466,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -124573,9 +123482,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124584,15 +123490,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -124638,8 +123538,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -124656,9 +123554,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -124667,15 +123562,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
     customer: CustomerCreateNestedOneWithoutVehiclesInput
     expenses?: ExpenseCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
@@ -124691,8 +123580,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -124709,9 +123596,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -124720,15 +123604,9 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
     challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
     odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
     serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
@@ -124789,8 +123667,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -124807,9 +123683,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124818,15 +123691,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
@@ -124842,8 +123709,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -124860,9 +123725,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124871,15 +123733,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
     serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
@@ -124987,7 +123843,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -125010,7 +123866,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -125049,7 +123905,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -125072,7 +123928,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -125095,7 +123951,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
@@ -125118,7 +123974,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
@@ -125157,7 +124013,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
@@ -125180,7 +124036,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
@@ -125203,7 +124059,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
@@ -125226,7 +124082,7 @@ export namespace Prisma {
     googleId?: string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
-    documents?: CustomerDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
@@ -125291,7 +124147,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
@@ -125314,7 +124170,7 @@ export namespace Prisma {
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
@@ -136803,24 +135659,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type CustomerDocumentCreateManyCustomerInput = {
+  export type VehicleDocumentCreateManyCustomerInput = {
     id?: string
     vehicleId?: string | null
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -136830,8 +135677,6 @@ export namespace Prisma {
     registrationNumber: string
     make?: string | null
     model?: string | null
-    variant?: string | null
-    year?: number | null
     fuelType?: string | null
     vehicleType?: string | null
     currentOdometer?: number | null
@@ -136848,9 +135693,6 @@ export namespace Prisma {
     rto?: string | null
     vehicleClass?: string | null
     fuelNorms?: string | null
-    transmission?: string | null
-    priceRange?: string | null
-    rating?: string | null
     rcStatus?: string | null
     unloadedWeight?: string | null
     fitnessUpto?: string | null
@@ -136859,13 +135701,7 @@ export namespace Prisma {
     mileage?: string | null
     brand?: string | null
     color?: string | null
-    seatingCapacity?: string | null
-    cylinderCount?: string | null
-    cubicCapacity?: string | null
-    grossWeight?: string | null
-    bodyType?: string | null
-    ownerAddress?: string | null
-    permanentAddress?: string | null
+    manufacturingMonthYear?: string | null
   }
 
   export type EmergencyContactCreateManyCustomerInput = {
@@ -137043,68 +135879,41 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentUpdateWithoutCustomerInput = {
+  export type VehicleDocumentUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vehicle?: CustomerVehicleUpdateOneWithoutDocumentsNestedInput
   }
 
-  export type CustomerDocumentUncheckedUpdateWithoutCustomerInput = {
+  export type VehicleDocumentUncheckedUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentUncheckedUpdateManyWithoutCustomerInput = {
+  export type VehicleDocumentUncheckedUpdateManyWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -137114,8 +135923,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -137132,9 +135939,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -137143,15 +135947,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
@@ -137166,8 +135964,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -137184,9 +135980,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -137195,15 +135988,9 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
     challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
-    documents?: CustomerDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
     drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
     odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
@@ -137218,8 +136005,6 @@ export namespace Prisma {
     registrationNumber?: StringFieldUpdateOperationsInput | string
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
-    variant?: NullableStringFieldUpdateOperationsInput | string | null
-    year?: NullableIntFieldUpdateOperationsInput | number | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
@@ -137236,9 +136021,6 @@ export namespace Prisma {
     rto?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
     fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
-    transmission?: NullableStringFieldUpdateOperationsInput | string | null
-    priceRange?: NullableStringFieldUpdateOperationsInput | string | null
-    rating?: NullableStringFieldUpdateOperationsInput | string | null
     rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
     unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
     fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
@@ -137247,13 +136029,7 @@ export namespace Prisma {
     mileage?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    seatingCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    cylinderCount?: NullableStringFieldUpdateOperationsInput | string | null
-    cubicCapacity?: NullableStringFieldUpdateOperationsInput | string | null
-    grossWeight?: NullableStringFieldUpdateOperationsInput | string | null
-    bodyType?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    permanentAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmergencyContactUpdateWithoutCustomerInput = {
@@ -137621,24 +136397,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type CustomerDocumentCreateManyVehicleInput = {
+  export type VehicleDocumentCreateManyVehicleInput = {
     id?: string
     customerId: string
     type: $Enums.DocumentType
     documentNumber?: string | null
-    issueDate?: Date | string | null
     expiryDate?: Date | string | null
-    issuerName?: string | null
-    fileUrl: string
-    thumbnailUrl?: string | null
-    fileSize?: number | null
+    fileContent?: Bytes | null
+    fileUrl?: string | null
     mimeType?: string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: $Enums.VerificationStatus
-    verifiedAt?: Date | string | null
-    verifiedBy?: string | null
-    source?: $Enums.DocumentSource
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -137759,68 +136526,41 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentUpdateWithoutVehicleInput = {
+  export type VehicleDocumentUpdateWithoutVehicleInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutDocumentsNestedInput
   }
 
-  export type CustomerDocumentUncheckedUpdateWithoutVehicleInput = {
+  export type VehicleDocumentUncheckedUpdateWithoutVehicleInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type CustomerDocumentUncheckedUpdateManyWithoutVehicleInput = {
+  export type VehicleDocumentUncheckedUpdateManyWithoutVehicleInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     type?: EnumDocumentTypeFieldUpdateOperationsInput | $Enums.DocumentType
     documentNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    issueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    issuerName?: NullableStringFieldUpdateOperationsInput | string | null
-    fileUrl?: StringFieldUpdateOperationsInput | string
-    thumbnailUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
-    ocrData?: NullableJsonNullValueInput | InputJsonValue
-    extractedFields?: NullableJsonNullValueInput | InputJsonValue
-    verificationStatus?: EnumVerificationStatusFieldUpdateOperationsInput | $Enums.VerificationStatus
-    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    verifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    source?: EnumDocumentSourceFieldUpdateOperationsInput | $Enums.DocumentSource
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
