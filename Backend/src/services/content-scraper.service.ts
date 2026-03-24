@@ -130,7 +130,7 @@ export const contentScraperService = {
 
             const news: any[] = [];
             $("item").each((i, item) => {
-                if (i >= 2) return; // Only 2 news items
+                if (i >= 6) return; // Keep a few items so home feed rotates more often
                 const fullTitle = $(item).find("title").text();
                 const [title, source] = fullTitle.split(" - ");
 
@@ -163,52 +163,71 @@ export const contentScraperService = {
 
     /**
      * Fetches trending automotive videos
-     * Updated to return 5 items as requested.
+     * Dynamically scrapes YouTube search and enriches with oEmbed.
      */
     async fetchCarVideos(): Promise<any[]> {
         logger.info("🎥 Fetching Trending Car Videos...");
-        return [
-            {
-                id: "1",
-                title: "2026 Mercedes CLA review - Electric Luxury Sedan With 792km Range | First Drive",
-                views: "71K",
-                tag: "Autocar India",
-                url: "https://www.youtube.com/watch?v=DaWiczwucSg",
-                thumbnail: "https://img.youtube.com/vi/DaWiczwucSg/hqdefault.jpg"
-            },
-            {
-                id: "2",
-                title: "Venue vs Nexon vs Brezza vs XUV3XO vs Kylaq vs Sonet vs Syros",
-                views: "141K",
-                tag: "Comparison",
-                url: "https://www.youtube.com/watch?v=eHhFbfwYADo",
-                thumbnail: "https://img.youtube.com/vi/eHhFbfwYADo/hqdefault.jpg"
-            },
-            {
-                id: "3",
-                title: "Citroen Basalt vs Mahindra XUV 3XO – Which One Should You Buy?",
-                views: "4.9K",
-                tag: "MotorBeam",
-                url: "https://www.youtube.com/watch?v=8NPXGH3GVXA",
-                thumbnail: "https://img.youtube.com/vi/8NPXGH3GVXA/hqdefault.jpg"
-            },
-            {
-                id: "4",
-                title: "Toyota Urban Cruiser Taisor Drive Impressions | Zigwheels",
-                views: "7.1K",
-                tag: "First Drive",
-                url: "https://www.youtube.com/watch?v=kooveWXO3ys",
-                thumbnail: "https://img.youtube.com/vi/kooveWXO3ys/hqdefault.jpg"
-            },
-            {
-                id: "5",
-                title: "Maruti Brezza VXI CNG Walkaround | Features, Engine & Price",
-                views: "15K",
-                tag: "Trending",
-                url: "https://www.youtube.com/watch?v=E6gVh9nYWos",
-                thumbnail: "https://img.youtube.com/vi/E6gVh9nYWos/hqdefault.jpg"
-            }
+        const queries = [
+            "latest car review india",
+            "new car launch india 2026",
+            "india ev car review",
         ];
+
+        try {
+            // 1) Collect candidate video ids from live YouTube search pages.
+            const idSet = new Set<string>();
+            for (const q of queries) {
+                const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+                const response = await axios.get(searchUrl, { headers: BROWSER_HEADERS, timeout: 15000 });
+                const html = typeof response.data === "string" ? response.data : String(response.data || "");
+                const matches = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/g) || [];
+                for (const m of matches) {
+                    const id = m.replace(/.*"videoId":"([a-zA-Z0-9_-]{11})".*/, "$1");
+                    if (id && !idSet.has(id)) idSet.add(id);
+                    if (idSet.size >= 18) break;
+                }
+                if (idSet.size >= 18) break;
+            }
+
+            const ids = Array.from(idSet).slice(0, 12);
+            if (ids.length === 0) return [];
+
+            // 2) Resolve title/channel dynamically via oEmbed.
+            const resolved = await Promise.all(
+                ids.map(async (videoId, index) => {
+                    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`;
+                    try {
+                        const metaRes = await axios.get(oembedUrl, { headers: BROWSER_HEADERS, timeout: 10000 });
+                        const meta = metaRes.data || {};
+                        const author = typeof meta.author_name === "string" ? meta.author_name : "YouTube";
+                        const title = typeof meta.title === "string" ? meta.title : "Trending automotive video";
+                        return {
+                            id: `${videoId}-${index}`,
+                            title,
+                            views: "Latest",
+                            tag: author,
+                            url: watchUrl,
+                            thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                        };
+                    } catch {
+                        return {
+                            id: `${videoId}-${index}`,
+                            title: "Trending automotive video",
+                            views: "Latest",
+                            tag: "YouTube",
+                            url: watchUrl,
+                            thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                        };
+                    }
+                }),
+            );
+
+            return resolved.slice(0, 8);
+        } catch (err) {
+            logger.error({ err }, "❌ Video feed fetch failed");
+            return [];
+        }
     },
 
 
