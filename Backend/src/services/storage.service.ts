@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "fs/promises";
@@ -6,13 +7,46 @@ import { s3Client } from "../config/aws";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
 
+import sharp from "sharp";
+
 export const storageService = {
   async uploadFile(
     file: Express.Multer.File,
     folder: string,
     isPublic = false,
   ): Promise<{ url: string; key: string }> {
-    const key = `${folder}/${Date.now()}-${file.originalname}`;
+    const ext = path.extname(file.originalname);
+    const filename = `${randomUUID()}${ext}`;
+    const key = `${folder}/${filename}`;
+
+    let buffer = file.buffer;
+
+    // Image Optimization: Resize and compress common image formats
+    const isImage = file.mimetype.startsWith("image/");
+    const isProcessable = ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype);
+    
+    if (isImage && isProcessable) {
+      try {
+        let pipeline = sharp(file.buffer);
+
+        // Strategy 1: Profile Pictures (Make them square and small)
+        if (folder === "profile") {
+          pipeline = pipeline.resize(400, 400, { fit: "cover" }).webp({ quality: 80 });
+        } 
+        // Strategy 2: Receipts/Expenses (Keep detail but reduce size)
+        else if (folder === "expenses") {
+          pipeline = pipeline.resize(1200, undefined, { withoutEnlargement: true }).webp({ quality: 75 });
+        } 
+        // Strategy 3: Default Compression
+        else {
+          pipeline = pipeline.webp({ quality: 80 });
+        }
+
+        buffer = await pipeline.toBuffer();
+      } catch (err) {
+        logger.error({ err, key }, "Sharp image processing failed; uploading original");
+      }
+    }
 
     if (env.STORAGE_DRIVER === "s3") {
       const bucket = env.AWS_S3_BUCKET;
@@ -26,8 +60,8 @@ export const storageService = {
             new PutObjectCommand({
               Bucket: bucket,
               Key: key,
-              Body: file.buffer,
-              ContentType: file.mimetype,
+              Body: buffer,
+              ContentType: isImage ? "image/webp" : file.mimetype,
             }),
           );
           const url = `https://${bucket}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
@@ -43,10 +77,11 @@ export const storageService = {
     const uploadDir = path.join(process.cwd(), env.UPLOAD_DIR, folder);
     await fs.mkdir(uploadDir, { recursive: true });
 
-    const filePath = path.join(uploadDir, `${Date.now()}-${file.originalname}`);
-    await fs.writeFile(filePath, file.buffer);
+    // Ensure local storage also uses randomUUID for security (4.1 fix)
+    const localFilename = isImage ? filename.replace(/\.[^.]+$/, ".webp") : filename;
+    const filePath = path.join(uploadDir, localFilename);
+    await fs.writeFile(filePath, buffer);
 
-    // The key here is the relative path from the upload root
     const relativeKey = path.relative(
       path.join(process.cwd(), env.UPLOAD_DIR),
       filePath,

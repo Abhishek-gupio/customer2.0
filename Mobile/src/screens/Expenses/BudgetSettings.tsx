@@ -25,6 +25,7 @@ const CATEGORIES = [
     { id: 'PARKING', label: 'Parking', icon: 'car-outline' },
     { id: 'CHALLAN', label: 'Challans/Fines', icon: 'document-text-outline' },
     { id: 'EMI', label: 'Vehicle EMI', icon: 'cash-outline' },
+    { id: 'REPAIR', label: 'Repairs', icon: 'hammer-outline' },
     { id: 'OTHER', label: 'Other', icon: 'ellipsis-horizontal-circle-outline' },
 ];
 

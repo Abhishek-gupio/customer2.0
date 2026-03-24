@@ -98,7 +98,7 @@ async function resolveCatalogHeroImageUrl(args: {
 
   const normalizedKey = makeCatalogNormalizedKey(args);
 
-  let catalog: any = await (dbInstances as any).vehicleCatalog.findUnique({
+  let catalog: any = await dbInstances.vehicleCatalog.findUnique({
     where: { normalizedKey },
   });
 
@@ -110,7 +110,7 @@ async function resolveCatalogHeroImageUrl(args: {
       : null;
 
     // Pass 1: include variant when provided.
-    catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+    catalog = await dbInstances.vehicleCatalog.findFirst({
       where: {
         vehicleType: args.vehicleType,
         make: { contains: makeNeedle, mode: "insensitive" },
@@ -125,7 +125,7 @@ async function resolveCatalogHeroImageUrl(args: {
     // Pass 2: relax variant constraint so trim-level mismatch does not
     // push us to random fallback image.
     if (!catalog) {
-      catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+      catalog = await dbInstances.vehicleCatalog.findFirst({
         where: {
           vehicleType: args.vehicleType,
           make: { contains: makeNeedle, mode: "insensitive" },
@@ -138,7 +138,7 @@ async function resolveCatalogHeroImageUrl(args: {
 
   if (!catalog) return null;
 
-  const hero = await (dbInstances as any).vehicleAsset.findFirst({
+  const hero = await dbInstances.vehicleAsset.findFirst({
     where: { catalogId: catalog.id, type: "HERO" },
     orderBy: { assetIndex: "asc" },
   });
@@ -147,6 +147,76 @@ async function resolveCatalogHeroImageUrl(args: {
 }
 
 export const vehicleService = {
+  async resolveVehicleId(customerId: string, preferredId?: string | null): Promise<string | null> {
+    // 1. My owned vehicles
+    const myVehicles = await dbInstances.customerVehicle.findMany({
+      where: { customerId, isActive: true },
+      select: { id: true, isPrimary: true },
+    });
+
+    // 2. Shared vehicles I have access to
+    const sharedVehicles = await dbInstances.customerVehicle.findMany({
+      where: {
+        isActive: true,
+        accessList: {
+          some: { customerId }
+        }
+      },
+      select: { id: true, isPrimary: true },
+    });
+
+    const allVehicles = [...myVehicles, ...sharedVehicles];
+    if (allVehicles.length === 0) return null;
+
+    if (preferredId && preferredId.trim()) {
+      const pid = preferredId.trim();
+      if (allVehicles.some((v) => v.id === pid)) return pid;
+    }
+
+    const primary = allVehicles.find((v) => v.isPrimary);
+    if (primary) return primary.id;
+
+    return allVehicles[0].id;
+  },
+
+  /**
+   * Centralized Access Control: Ensures a user can interact with a vehicle
+   * Logic: Owners always have access. Shared users must have a matching role.
+   */
+  async ensureVehicleAccess(
+    customerId: string,
+    vehicleId: string,
+    requiredRoles: ("OWNER" | "EDITOR" | "DRIVER" | "VIEWER")[] = ["OWNER", "EDITOR", "DRIVER"]
+  ) {
+    const vehicle = await dbInstances.customerVehicle.findUnique({
+      where: { id: vehicleId },
+      include: {
+        accessList: {
+          where: { customerId },
+        },
+      },
+    });
+
+    if (!vehicle) throw AppError.notFound("Vehicle not found");
+
+    const isOwner = vehicle.customerId === customerId;
+    if (isOwner) return { vehicle, role: "OWNER" as const };
+
+    const matchingAccess = vehicle.accessList?.[0];
+    if (!matchingAccess) {
+      throw AppError.forbidden("You do not have access to this vehicle");
+    }
+
+    const role = matchingAccess.role as "EDITOR" | "DRIVER" | "VIEWER";
+    if (!requiredRoles.includes(role)) {
+      throw AppError.forbidden(
+        `Your access role (${role}) is insufficient for this action. Required: ${requiredRoles.join("/")}`
+      );
+    }
+
+    return { vehicle, role };
+  },
+
   async addVehicle(customerId: string, input: AddVehicleInput) {
     logger.info({ customerId, registrationNumber: input.registrationNumber }, "Attempting to add vehicle");
     
@@ -283,7 +353,7 @@ export const vehicleService = {
       );
     }
 
-    const lastLog = await (dbInstances as any).odometerLog.findFirst({
+    const lastLog = await dbInstances.odometerLog.findFirst({
       where: { vehicleId },
       orderBy: { date: "desc" },
     });
@@ -294,7 +364,7 @@ export const vehicleService = {
       );
     }
 
-    const log = await (dbInstances as any).odometerLog.create({
+    const log = await dbInstances.odometerLog.create({
       data: {
         vehicleId,
         reading: input.reading,
@@ -426,7 +496,7 @@ export const vehicleService = {
     });
 
     // 1) Exact normalizedKey lookup (preferred; deterministic)
-    let catalog: any = await (dbInstances as any).vehicleCatalog.findUnique({
+    let catalog: any = await dbInstances.vehicleCatalog.findUnique({
       where: { normalizedKey },
     });
 
@@ -437,7 +507,7 @@ export const vehicleService = {
       const variantNeedle = variant ? normalizeForMatch(cleanModel(variant)) : null;
 
       // Pass 1: variant-aware fuzzy match.
-      catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+      catalog = await dbInstances.vehicleCatalog.findFirst({
         where: {
           vehicleType: bucket,
           make: { contains: makeNeedle, mode: "insensitive" },
@@ -451,7 +521,7 @@ export const vehicleService = {
 
       // Pass 2: ignore variant for broader make+model match.
       if (!catalog) {
-        catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+        catalog = await dbInstances.vehicleCatalog.findFirst({
           where: {
             vehicleType: bucket,
             make: { contains: makeNeedle, mode: "insensitive" },
@@ -466,11 +536,11 @@ export const vehicleService = {
       return { heroUrl: vehicle?.imageUrl ?? null, angles: [] as string[] };
     }
 
-    const hero = await (dbInstances as any).vehicleAsset.findFirst({
+    const hero = await dbInstances.vehicleAsset.findFirst({
       where: { catalogId: catalog.id, type: "HERO", assetIndex: 0 },
     });
 
-    const angleAssets = await (dbInstances as any).vehicleAsset.findMany({
+    const angleAssets = await dbInstances.vehicleAsset.findMany({
       where: { catalogId: catalog.id, type: "ANGLE" },
       orderBy: { assetIndex: "asc" },
       take: 12,
@@ -636,7 +706,7 @@ export const vehicleService = {
     logger.info({ normalizedRegNo }, "Starting vehicle verification");
 
     // 1. Check if vehicle already exists in any customer's account
-    const existingVehicle = await (dbInstances as any).customerVehicle.findUnique({
+    const existingVehicle = await dbInstances.customerVehicle.findUnique({
       where: { registrationNumber: normalizedRegNo },
     });
 

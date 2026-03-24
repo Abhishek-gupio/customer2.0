@@ -523,6 +523,8 @@ model DrivingTrip {
   safetyScore   Int
   startLocation Json?
   endLocation   Json?
+  scores        Json?
+  statistics    Json?
   status        String
   createdAt     DateTime        @default(now())
   events        DrivingEvent[]
@@ -1612,6 +1614,7 @@ enum ExpenseCategory {
   INSURANCE
   CHALLAN
   EMI
+  REPAIR
   OTHER
 
   @@schema("customer")
@@ -1623,6 +1626,7 @@ enum ExpenseSource {
   NOTIFICATION
   VOICE
   RECEIPT
+  UPI
 
   @@schema("customer")
 }

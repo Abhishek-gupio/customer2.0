@@ -9,7 +9,7 @@ const SALT_ROUNDS = 10;
 
 export const adminService = {
   async login(input: AdminLoginInput) {
-    const db = dbInstances as any;
+    const db = dbInstances;
     if (!db.adminUser) {
       logger.error("Prisma client has no adminUser model - run: cd prisma && pnpm run build");
       throw new Error("Admin auth not available: missing adminUser model. Rebuild prisma package.");
@@ -61,7 +61,7 @@ export const adminService = {
     name?: string;
     role?: "SUPER_ADMIN" | "ADMIN" | "SUPPORT";
   }) {
-    const db = dbInstances as any;
+    const db = dbInstances;
     const existing = await db.adminUser?.findUnique({
       where: { email: data.email.toLowerCase() },
     });

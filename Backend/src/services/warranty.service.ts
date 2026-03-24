@@ -1,7 +1,7 @@
-import { dbInstances } from "@repo/db-customer";
+import { dbInstances, ServicePartType } from "@repo/db-customer";
 import { logger } from "../config/logger";
 
-const db = dbInstances as any;
+const db = dbInstances;
 
 /**
  * WARRANTY & PARTS TRACKER SERVICE
@@ -144,7 +144,7 @@ async function getLifecycleForVehiclePart(
 
     // Prisma ServicePartType has TYRES_FRONT/TYRES_REAR but not TYRES; use TYRES_FRONT for DB lookup
     const partTypeForDb =
-      partType === "TYRES" ? "TYRES_FRONT" : (partType as any);
+      partType === "TYRES" ? "TYRES_FRONT" : (partType as ServicePartType);
     const rows = await db.partReplacementInterval.findMany({
       where: { partType: partTypeForDb },
     });
@@ -268,7 +268,7 @@ export const warrantyService = {
         const createdPart = await db.servicePart.create({
           data: {
             serviceRecordId: record.id,
-            partType: part.partType,
+            partType: part.partType as ServicePartType,
             partName: part.partName || null,
             brand: part.brand || null,
             cost: part.cost || null,
@@ -599,7 +599,7 @@ export const warrantyService = {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    const logs = await (dbInstances as any).odometerLog.findMany({
+    const logs = await dbInstances.odometerLog.findMany({
       where: {
         vehicleId,
         date: { gte: ninetyDaysAgo },

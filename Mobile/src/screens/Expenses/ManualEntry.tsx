@@ -302,7 +302,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   }, [visible]);
   const [loading, setLoading] = useState(false);
 
-  const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
+  const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Repair', 'Insurance', 'Challan', 'Emi', 'Other'];
   const isValid = amount.trim().length > 0;
 
   const openDatePicker = () => {
@@ -358,7 +358,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         parsedDate = new Date().toISOString();
       }
 
-      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other';
       const targetVehicleId = isPartCategory
         ? (vehicleId ?? selectedVehicleId ?? undefined)
         : (selectedVehicleId ?? vehicleId ?? undefined);
@@ -501,7 +501,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
 
-              {(category.toLowerCase() === 'service' || category.toLowerCase() === 'other') && (
+              {(category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other') && (
                 <>
                   <Label text="Part Serviced" />
                   <TouchableOpacity onPress={() => setShowPartPicker(true)}>

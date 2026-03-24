@@ -88,7 +88,7 @@ export const adminDashboardService = {
       ];
     }
 
-    const db = dbInstances as any;
+    const db = dbInstances;
     if (!db.supportTicket) return { data: [], pagination: { page, limit, total: 0, totalPages: 0 } };
 
     const [tickets, total] = await Promise.all([
@@ -206,7 +206,7 @@ export const adminDashboardService = {
     }
 
     const withPic = await withReadablePic(customer);
-    const db = dbInstances as any;
+    const db = dbInstances;
 
     // Fetch documents, expenses, and tickets for ALL roles (including SUPPORT)
     const [expensesRaw, documentsRaw, supportTickets] = await Promise.all([
@@ -288,7 +288,7 @@ export const adminDashboardService = {
     if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
       return { ...empty, databaseAvailable: true };
     }
-    const db = dbInstances as any;
+    const db = dbInstances;
     try {
       const expenseFallback = { _sum: { amount: 0 as number }, _count: 0 };
       const [customers, vehicles, expenses, supportTicketsOpen, weeklyTrend] = await Promise.all([
@@ -300,7 +300,7 @@ export const adminDashboardService = {
         db.supportTicket
           ? db.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }).catch(() => 0)
           : Promise.resolve(0),
-        this.getWeeklyTrend(db),
+        this.getWeeklyTrend(),
       ]);
       return {
         customers,
@@ -317,32 +317,55 @@ export const adminDashboardService = {
     }
   },
 
-  /** Last 7 days: new customers and expense amount per day (UTC). */
-  async getWeeklyTrend(db: any): Promise<{ date: string; label: string; customers: number; expenseAmount: number }[]> {
+  /** Last 7 days: new customers and expense amount per day (UTC) using efficient groupBy. */
+  async getWeeklyTrend(): Promise<{ date: string; label: string; customers: number; expenseAmount: number }[]> {
     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const days: { dayStart: Date; dayEnd: Date; dateStr: string; label: string }[] = [];
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6);
+
+    const db = dbInstances;
+
+    // 1. Fetch data in bulk using groupBy (2 queries total vs 14)
+    const [customerCounts, expenseSums] = await Promise.all([
+      dbInstances.customer.groupBy({
+        by: ['createdAt'],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: { id: true },
+      }),
+      db.expense ? db.expense.groupBy({
+        by: ['date'],
+        where: { date: { gte: sevenDaysAgo } },
+        _sum: { amount: true },
+      }) : Promise.resolve([]),
+    ]);
+
+    // 2. Map results into the 7-day window
+    const results = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
-      const dayStart = new Date(d);
-      const dayEnd = new Date(d);
-      dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
-      const dateStr = `${dayStart.getUTCFullYear()}-${String(dayStart.getUTCMonth() + 1).padStart(2, "0")}-${String(dayStart.getUTCDate()).padStart(2, "0")}`;
-      days.push({ dayStart, dayEnd, dateStr, label: dayLabels[dayStart.getUTCDay()] });
+      const dateStr = d.toISOString().split('T')[0];
+      const label = dayLabels[d.getUTCDay()];
+
+      // Simple filter logic for pre-fetched counts
+      const custCount = customerCounts
+        .filter(c => c.createdAt.toISOString().split('T')[0] === dateStr)
+        .reduce((sum, c) => sum + (c._count?.id || 0), 0);
+      
+      const expSum = expenseSums
+        .filter((e: any) => e.date.toISOString().split('T')[0] === dateStr)
+        .reduce((sum: number, e: any) => sum + (e._sum?.amount || 0), 0);
+
+      results.push({
+        date: dateStr,
+        label,
+        customers: custCount,
+        expenseAmount: Math.round(expSum * 100) / 100,
+      });
     }
-    const results = await Promise.all(
-      days.map(async ({ dayStart, dayEnd, dateStr, label }) => {
-        const [custCount, expSum] = await Promise.all([
-          dbInstances.customer.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
-          db.expense
-            ? db.expense.aggregate({ _sum: { amount: true }, where: { date: { gte: dayStart, lt: dayEnd } } }).then((r: { _sum?: { amount?: number } }) => r._sum?.amount ?? 0).catch(() => 0)
-            : Promise.resolve(0),
-        ]);
-        return { date: dateStr, label, customers: custCount, expenseAmount: Math.round((expSum as number) * 100) / 100 };
-      })
-    );
+
     return results;
   },
 };
