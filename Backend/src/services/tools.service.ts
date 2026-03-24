@@ -388,7 +388,7 @@ export const toolRegistry = {
         where: args.vehicleId
           ? { id: args.vehicleId, customerId }
           : { customerId, isActive: true },
-        select: { id: true, make: true, model: true, year: true },
+        select: { id: true, make: true, model: true, manufacturingMonthYear: true },
       });
 
       if (!vehicle)
@@ -396,7 +396,15 @@ export const toolRegistry = {
 
       const make = (vehicle.make ?? "").trim() || "Unknown";
       const model = (vehicle.model ?? "").trim() || "Unknown";
-      const year = vehicle.year ?? null;
+      
+      // Extract year from manufacturingMonthYear (format: "MM/YYYY")
+      let year: number | null = null;
+      if (vehicle?.manufacturingMonthYear) {
+          const parts = vehicle.manufacturingMonthYear.split('/');
+          const yearStr = parts.length > 1 ? parts[1] : parts[0];
+          const parsedYear = parseInt(yearStr);
+          if (!isNaN(parsedYear)) year = parsedYear;
+      }
 
       // Check if we already have vehicle-specific intervals (not just DEFAULT/FALLBACK)
       const existingLifecycle = await warrantyService.getLifecycleForVehiclePart(
@@ -478,11 +486,10 @@ export const toolRegistry = {
       vehicleId: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
-      const docs = await db.customerDocument.findMany({
+      const docs = await db.vehicleDocument.findMany({
         where: {
           customerId,
           vehicleId: args.vehicleId || undefined,
-          verificationStatus: "VERIFIED",
         },
         select: {
           type: true,
@@ -703,7 +710,7 @@ export const toolRegistry = {
           id: true,
           make: true,
           model: true,
-          year: true,
+          manufacturingMonthYear: true,
           registrationNumber: true,
           isPrimary: true,
         },
@@ -713,12 +720,22 @@ export const toolRegistry = {
       }
       return {
         success: true,
-        vehicles: vehicles.map((v: any) => ({
-          id: v.id,
-          name: `${v.make || ""} ${v.model || ""}${v.year ? ` (${v.year})` : ""}`.trim(),
-          registrationNumber: v.registrationNumber,
-          isPrimary: v.isPrimary ?? false,
-        })),
+        vehicles: vehicles.map((v: any) => {
+          let vYear: number | null = null;
+          if (v.manufacturingMonthYear) {
+              const parts = v.manufacturingMonthYear.split('/');
+              const yearStr = parts.length > 1 ? parts[1] : parts[0];
+              const parsedYear = parseInt(yearStr);
+              if (!isNaN(parsedYear)) vYear = parsedYear;
+          }
+
+          return {
+            id: v.id,
+            name: `${v.make || ""} ${v.model || ""}${v.manufacturingMonthYear ? ` (${v.manufacturingMonthYear})` : ""}`.trim(),
+            registrationNumber: v.registrationNumber,
+            isPrimary: v.isPrimary ?? false,
+          };
+        }),
       };
     },
   },
@@ -748,7 +765,6 @@ export const toolRegistry = {
           documents: limited.map((d: any) => ({
             id: d.id,
             type: d.type,
-            verificationStatus: d.verificationStatus,
             expiryDate: d.expiryDate
               ? new Date(d.expiryDate).toLocaleDateString("en-IN")
               : null,

@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../generated/client"
-  previewFeatures = ["driverAdapters", "postgresqlExtensions"]
+  previewFeatures = ["driverAdapters", "postgresqlExtensions", "multiSchema"]
 }
 
 datasource db {
@@ -52,7 +52,7 @@ model Customer {
   googleId          String?               @unique
   chats             ChatSession[]
   devices           CustomerDevice[]
-  documents         CustomerDocument[]
+  documents         VehicleDocument[]
   vehicles          CustomerVehicle[]
   digilocker        DigiLockerConnection?
   emergencyContacts EmergencyContact[]
@@ -81,33 +81,23 @@ model CustomerDevice {
   @@schema("customer")
 }
 
-model CustomerDocument {
-  id                 String             @id @default(cuid())
-  customerId         String
-  vehicleId          String?
-  type               DocumentType
-  documentNumber     String?
-  issueDate          DateTime?
-  expiryDate         DateTime?
-  issuerName         String?
-  fileUrl            String
-  thumbnailUrl       String?
-  fileSize           Int?
-  mimeType           String?
-  ocrData            Json?
-  extractedFields    Json?
-  verificationStatus VerificationStatus @default(PENDING)
-  verifiedAt         DateTime?
-  verifiedBy         String?
-  source             DocumentSource     @default(UPLOAD)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  customer           Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  vehicle            CustomerVehicle?   @relation(fields: [vehicleId], references: [id])
+model VehicleDocument {
+  id             String           @id @default(cuid())
+  customerId     String
+  vehicleId      String?
+  type           DocumentType
+  documentNumber String?
+  expiryDate     DateTime?
+  fileContent    Bytes? // Storing image directamente in DB
+  fileUrl        String?
+  mimeType       String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle        CustomerVehicle? @relation(fields: [vehicleId], references: [id])
 
   @@index([customerId])
   @@index([vehicleId])
-  @@index([type])
   @@schema("customer")
 }
 
@@ -130,57 +120,46 @@ model DigiLockerConnection {
 }
 
 model CustomerVehicle {
-  id                 String              @id @default(cuid())
-  customerId         String
-  registrationNumber String              @unique
-  make               String?
-  model              String?
-  variant            String?
-  year               Int?
-  fuelType           String?
-  vehicleType        String?
-  currentOdometer    Int?                @default(0)
-  registrationDate   DateTime?
-  rcVerified         Boolean             @default(false)
-  isActive           Boolean             @default(true)
-  isPrimary          Boolean             @default(false)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  chassisNumber      String?
-  engineNumber       String?
-  imageUrl           String?
-  ownerName          String?
-  rto                String?
-  vehicleClass       String?
-  fuelNorms          String?
-  transmission       String?
-  priceRange         String?
-  rating             String?
-  rcStatus           String?
-  unloadedWeight     String?
-  fitnessUpto        String?
-  insuranceUpto      String?
-  pollutionUpto      String?
-  mileage            String?
-  brand              String?
-  color              String?
-  seatingCapacity    String?
-  cylinderCount      String?
-  cubicCapacity      String?
-  grossWeight        String?
-  bodyType           String?
-  ownerAddress       String?
-  permanentAddress   String?
-  challans           Challan[]
-  documents          CustomerDocument[]
-  customer           Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  drivingTrips       DrivingTrip[]
-  expenses           Expense[]
-  odometerLogs       OdometerLog[]
-  serviceRecords     ServiceRecord[]
-  telematicsDevice   TelematicsDevice?
-  accessList         VehicleAccess[]
-  healthScore        VehicleHealthScore?
+  id                     String              @id @default(cuid())
+  customerId             String
+  registrationNumber     String              @unique
+  make                   String?
+  model                  String?
+  fuelType               String?
+  vehicleType            String?
+  currentOdometer        Int?                @default(0)
+  registrationDate       DateTime?
+  rcVerified             Boolean             @default(false)
+  isActive               Boolean             @default(true)
+  isPrimary              Boolean             @default(false)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  chassisNumber          String?
+  engineNumber           String?
+  imageUrl               String?
+  ownerName              String?
+  rto                    String?
+  vehicleClass           String?
+  fuelNorms              String?
+  rcStatus               String?
+  unloadedWeight         String?
+  fitnessUpto            String?
+  insuranceUpto          String?
+  pollutionUpto          String?
+  mileage                String?
+  brand                  String?
+  color                  String?
+  manufacturingMonthYear String?
+  challans               Challan[]
+  documents              VehicleDocument[]
+  customer               Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  drivingTrips           DrivingTrip[]
+  expenses               Expense[]
+  odometerLogs           OdometerLog[]
+  serviceRecords         ServiceRecord[]
+  telematicsDevice       TelematicsDevice?
+  accessList             VehicleAccess[]
+  healthScore            VehicleHealthScore?
 
   @@index([customerId])
   @@schema("customer")

@@ -136,7 +136,7 @@ export async function fetchAndSaveIntervalsForVehicle(
 ): Promise<{ saved: number; source: string; errors?: string[] }> {
   const vehicle = await db.customerVehicle.findUnique({
     where: { id: vehicleId },
-    select: { make: true, model: true, year: true },
+    select: { make: true, model: true, manufacturingMonthYear: true },
   });
 
   if (!vehicle) {
@@ -146,7 +146,15 @@ export async function fetchAndSaveIntervalsForVehicle(
 
   const make = (vehicle.make ?? "").trim() || "";
   const model = (vehicle.model ?? "").trim() || "";
-  const year = vehicle.year ?? null;
+
+  // Extract year from manufacturingMonthYear (format: "MM/YYYY")
+  let year: number | null = null;
+  if (vehicle?.manufacturingMonthYear) {
+      const parts = vehicle.manufacturingMonthYear.split('/');
+      const yearStr = parts.length > 1 ? parts[1] : parts[0];
+      const parsedYear = parseInt(yearStr);
+      if (!isNaN(parsedYear)) year = parsedYear;
+  }
   const makeKey = normalizeMake(make);
 
   if (!make) {

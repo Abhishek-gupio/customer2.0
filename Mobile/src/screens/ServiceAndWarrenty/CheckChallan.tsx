@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import {
@@ -21,10 +22,23 @@ import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
+import { api } from '../../services/api';
 
 export default function CheckChallan() {
   const navigation = useNavigation();
   const [regNumber, setRegNumber] = useState('');
+  const [challans, setChallans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleCheckDetails = () => {
+    if (!regNumber.trim()) return;
+    navigation.navigate('Challans' as any, { 
+      vehicle: { 
+        registrationNumber: regNumber.trim().toUpperCase() 
+      } 
+    });
+  };
   
   // Animations
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -176,10 +190,6 @@ export default function CheckChallan() {
     outputRange: [-wp(15), wp(15)],
   });
 
-  const handleCheckDetails = () => {
-    if (!regNumber.trim()) return;
-    // API call logic would go here
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -270,13 +280,17 @@ export default function CheckChallan() {
             <TouchableOpacity
               style={[
                 styles.primaryBtn,
-                !regNumber.trim() && styles.primaryBtnDisabled
+                (!regNumber.trim() || loading) && styles.primaryBtnDisabled
               ]}
               onPress={handleCheckDetails}
               activeOpacity={0.85}
-              disabled={!regNumber.trim()}
+              disabled={!regNumber.trim() || loading}
             >
-              <Text style={styles.primaryBtnText}>CHECK DETAILS</Text>
+              {loading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.primaryBtnText}>CHECK DETAILS</Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -474,9 +488,104 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   trustText: {
-    color: '#444',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
     letterSpacing: 1,
+  },
+  resultsSection: {
+    marginTop: hp(2),
+  },
+  challanCard: {
+    backgroundColor: '#111',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: hp(2),
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  challanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  challanNumber: {
+    color: COLORS.primary,
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.5),
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  paidBadge: {
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+  },
+  unpaidBadge: {
+    backgroundColor: 'rgba(244, 67, 54, 0.15)',
+  },
+  statusText: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  violationTitle: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.2),
+    marginBottom: 16,
+    lineHeight: wp(6),
+  },
+  challanMeta: {
+    flexDirection: 'row',
+    gap: 32,
+    marginBottom: 16,
+  },
+  metaCol: {
+    gap: 4,
+  },
+  metaLabel: {
+    color: '#555',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Bold',
+  },
+  amountText: {
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontFamily: 'Outfit-Black',
+  },
+  dateText: {
+    color: '#eee',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Medium',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#222',
+    paddingTop: 12,
+  },
+  locationText: {
+    color: '#888',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(255, 77, 77, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.5),
+    flex: 1,
   },
 });

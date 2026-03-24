@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchCamera } from 'react-native-image-picker';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { setWarrantyStatusNeedsRefresh } from '../../utils/refreshManager';
+import { setLastOdometerUpdate } from '../../services/storage';
 
 export default function Odometer() {
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ export default function Odometer() {
     setSubmitting(true);
     try {
       await vehicleService.addOdometer(vehicle.id, { reading: value });
+      setLastOdometerUpdate(vehicle.id, Date.now());
       setWarrantyStatusNeedsRefresh();
       await fetchPrimary();
     } catch (err: any) {

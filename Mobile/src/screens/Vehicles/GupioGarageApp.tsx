@@ -106,6 +106,7 @@ export default function GupioGarageApp() {
             return (
                 <AddVehicleScreen
                     isFirst={vehicles.length === 0}
+                    initialRegistrationNumber={(route.params as any)?.registrationNumber}
                     onBack={() => {
                         if (vehicles.length > 0) {
                             setScreen('DETAILS');
@@ -123,6 +124,7 @@ export default function GupioGarageApp() {
                     vehicles={vehicles}
                     activeVehicle={activeVehicle}
                     setActiveVehicle={setActiveVehicle}
+                    initialTab={(route.params as any)?.initialTab}
                     onBack={() => {
                         navigation.goBack();
                     }}

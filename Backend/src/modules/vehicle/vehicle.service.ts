@@ -428,7 +428,7 @@ export const vehicleService = {
       data: input,
     });
 
-    if (input.make !== undefined || input.model !== undefined || input.year !== undefined) {
+    if (input.make !== undefined || input.model !== undefined) {
       fetchAndSaveIntervalsForVehicle(vehicleId).catch((err) =>
         logger.warn({ err, vehicleId }, "OEM interval fetch failed on update (non-blocking)"),
       );
@@ -445,7 +445,7 @@ export const vehicleService = {
     }
 
     return dbInstances.$transaction(async (tx) => {
-      await tx.customerDocument.updateMany({
+      await tx.vehicleDocument.updateMany({
         where: { vehicleId },
         data: { vehicleId: null },
       });
@@ -577,17 +577,12 @@ export const vehicleService = {
         fuelNorms: existingVehicle.fuelNorms,
         rcStatus: existingVehicle.rcStatus,
         unloadedWeight: existingVehicle.unloadedWeight,
-        registrationDate: existingVehicle.registrationDate?.toISOString().split('T')[0],
         fitnessUpto: existingVehicle.fitnessUpto,
         insuranceUpto: existingVehicle.insuranceUpto,
         pollutionUpto: existingVehicle.pollutionUpto,
+        mileage: existingVehicle.mileage,
         color: existingVehicle.color,
-        seatingCapacity: existingVehicle.seatingCapacity,
-        cylinderCount: existingVehicle.cylinderCount,
-        cubicCapacity: existingVehicle.cubicCapacity,
-        grossWeight: existingVehicle.grossWeight,
-        bodyType: existingVehicle.bodyType,
-        ownerAddress: existingVehicle.ownerAddress,
+        manufacturingMonthYear: existingVehicle.manufacturingMonthYear,
         vehicleType: existingVehicle.vehicleType || 'CAR'
       };
     }

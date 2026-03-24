@@ -85,19 +85,17 @@ export const predictionService = {
    * Advanced Health Score: Dynamic and Multi-factor
    */
   async calculateAdvancedHealthScore(vehicleId: string) {
-    const vehicle = await dbInstances.customerVehicle.findUnique({
+    const vehicle = (await dbInstances.customerVehicle.findUnique({
       where: { id: vehicleId },
       include: {
-        documents: {
-          where: { verificationStatus: "VERIFIED" },
-        },
+        documents: true,
         healthScore: true,
         serviceRecords: {
           orderBy: { serviceDate: "desc" },
           take: 1,
         },
       },
-    });
+    })) as any;
 
     if (!vehicle) return;
 
@@ -108,11 +106,11 @@ export const predictionService = {
 
     // 1. Compliance Audit (20% Weight)
     const now = new Date();
-    const activeInsurance = vehicle.documents.find(
-      (d) => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now,
+    const activeInsurance = (vehicle.documents as any[]).find(
+      (d: any) => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now,
     );
-    const activePUC = vehicle.documents.find(
-      (d) => d.type === "PUC" && d.expiryDate && d.expiryDate > now,
+    const activePUC = (vehicle.documents as any[]).find(
+      (d: any) => d.type === "PUC" && d.expiryDate && d.expiryDate > now,
     );
 
     if (!activeInsurance) {

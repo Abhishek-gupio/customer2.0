@@ -307,7 +307,7 @@ export const supportService = {
       const rc = v.documents.find((d: any) => d.type === 'RC');
       return {
         message: rc 
-          ? `Your RC for ${v.registrationNumber} is ${rc.verificationStatus}. ${rc.verificationStatus === 'VERIFIED' ? 'Everything looks good! ✅' : 'It is still being processed. ⏳'}`
+          ? `Your RC for ${v.registrationNumber} was successfully uploaded. Everything looks good! ✅`
           : "No RC document found for this vehicle. Would you like to upload it now?",
         options: [
           { label: "How to Upload", nextFlow: 'sh_upload_doc' },

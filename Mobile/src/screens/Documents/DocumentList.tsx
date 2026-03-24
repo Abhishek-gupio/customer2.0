@@ -183,6 +183,7 @@ export default function DocumentList() {
         fileUri: uri,
         fileName: name,
         mimeType: mime,
+        vehicleId: primaryVehicle?.id,
         documentNumber: primaryVehicle?.registrationNumber,
       });
 
@@ -195,18 +196,55 @@ export default function DocumentList() {
     }
   };
 
-  const createPDFFromImage = async (doc: any) => {
+  const createPDFFromDocuments = async (docs: any[], fileName?: string) => {
     try {
+      const fetchImageAsBase64 = async (uri: string) => {
+        try {
+          // If it's a remote URL, we need to download it or fetch as base64
+          if (uri.startsWith('http')) {
+            const tempPath = `${RNFS.CachesDirectoryPath}/temp_image_${Date.now()}.jpg`;
+            const downloadResult = await RNFS.downloadFile({
+              fromUrl: uri,
+              toFile: tempPath,
+            }).promise;
+            
+            if (downloadResult.statusCode === 200) {
+              const base64 = await RNFS.readFile(tempPath, 'base64');
+              await RNFS.unlink(tempPath);
+              return `data:image/jpeg;base64,${base64}`;
+            }
+          } else if (uri.startsWith('file://')) {
+            const base64 = await RNFS.readFile(uri.replace('file://', ''), 'base64');
+            return `data:image/jpeg;base64,${base64}`;
+          }
+          return uri;
+        } catch (e) {
+          console.error('Error fetching image as base64:', e);
+          return uri;
+        }
+      };
+
+      const pagesHtml = await Promise.all(docs.map(async (doc) => {
+        const base64Uri = await fetchImageAsBase64(doc.imageUri);
+        return `
+          <div style="page-break-after:always; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100vh; padding: 20px; box-sizing: border-box;">
+            <h1 style="font-family: Arial; margin-bottom: 20px;">${doc.type}</h1>
+            <p style="font-family: Arial; color: #666; margin-bottom: 20px;">Vehicle: ${primaryVehicle?.registrationNumber || 'N/A'}</p>
+            <img src="${base64Uri}" style="max-width:100%; max-height:80%; object-fit:contain; border: 1px solid #eee;" />
+          </div>
+        `;
+      }));
+
       const options = {
         html: `
           <html>
-            <body style="margin:0;padding:0;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
-              <img src="${doc.imageUri}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            <body style="margin:0;padding:0;">
+              ${pagesHtml.join('')}
             </body>
           </html>
         `,
-        fileName: `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
-        directory: 'Documents',
+        fileName: fileName || `glovebox_docs_${Date.now()}`,
+        // directory: 'Documents', // Removed to use app-private storage (avoids EACCES on Android 11+)
       };
       const file = await convertToPDF(options);
       return file.filePath;
@@ -216,11 +254,80 @@ export default function DocumentList() {
     }
   };
 
+  const handleShareAll = async () => {
+    if (documents.length === 0) {
+      Alert.alert('No Documents', 'You have no documents to share.');
+      return;
+    }
+    try {
+      setIsUploading(true);
+      const pdfPath = await createPDFFromDocuments(documents, `all_documents_${primaryVehicle?.registrationNumber}`);
+      setIsUploading(false);
+      
+      await RNShareCustom.open({
+        url: `file://${pdfPath}`,
+        type: 'application/pdf',
+        title: 'Share All Documents',
+        message: `Sharing all vehicle documents for ${primaryVehicle?.registrationNumber}`,
+      });
+    } catch (error: any) {
+      setIsUploading(false);
+      if (error?.message !== 'User did not share') {
+        Alert.alert('Error', 'Could not share documents');
+      }
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (documents.length === 0) {
+      Alert.alert('No Documents', 'You have no documents to download.');
+      return;
+    }
+    let localPath = '';
+    try {
+      setIsUploading(true);
+      localPath = await createPDFFromDocuments(documents, `all_documents_${primaryVehicle?.registrationNumber}`);
+      const fileName = localPath.split('/').pop() || `all_docs_${Date.now()}.pdf`;
+
+      if (Platform.OS === 'android') {
+        const downloadDir = `${RNFS.ExternalStorageDirectoryPath}/Download`;
+        const finalPath = `${downloadDir}/${fileName}`;
+        try {
+          const exists = await RNFS.exists(downloadDir);
+          if (!exists) await RNFS.mkdir(downloadDir);
+          await RNFS.copyFile(localPath, finalPath);
+          await RNFS.scanFile(finalPath);
+          setIsUploading(false);
+          Alert.alert('Download Complete', 'All documents saved to your Downloads folder.');
+          return;
+        } catch (copyErr) {
+          console.log('Download All Direct Copy Failed:', copyErr);
+        }
+      }
+
+      setIsUploading(false);
+      await RNShareCustom.open({
+        url: `file://${localPath}`,
+        type: 'application/pdf',
+        title: 'Save All Documents',
+        saveToFiles: true,
+      });
+    } catch (error: any) {
+      setIsUploading(false);
+      if (error?.message === 'User did not share') return;
+      if (localPath) {
+        try {
+          await RNShareCustom.open({ url: `file://${localPath}`, type: 'application/pdf' });
+        } catch {}
+      }
+    }
+  };
+
   const handleShareDoc = async (doc: any) => {
     if (!doc?.imageUri) return;
     try {
-      setIsUploading(true); // Reuse as a general "processing" state or add a new one
-      const pdfPath = await createPDFFromImage(doc);
+      setIsUploading(true);
+      const pdfPath = await createPDFFromDocuments([doc]);
       setIsUploading(false);
       
       await RNShareCustom.open({
@@ -238,51 +345,31 @@ export default function DocumentList() {
   };
 
   const handleDownloadDoc = async (doc: any) => {
-    if (!doc?.imageUri) return;
+    if (!doc?.id) return;
     try {
       setIsUploading(true);
-
-      // Check permissions for Android
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download the PDF',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED && Platform.Version < 33) {
-           // For Android 13+ (API 33), WRITE_EXTERNAL_STORAGE is not used for media/docs
-           // But let's log and proceed or handle based on version if needed.
-        }
+        // Fetch absolute URL for PDF from backend (bypasses EACCES by using system downloader)
+        const pdfUrl = doc.imageUri.replace('/image', '/pdf');
+        const { Linking } = await import('react-native');
+        await Linking.openURL(pdfUrl);
+        setIsUploading(false);
+        return;
       }
 
-      const tempPdfPath = await createPDFFromImage(doc);
-      
-      const fileName = tempPdfPath.split('/').pop();
-      let finalPath = tempPdfPath;
-
-      if (Platform.OS === 'android') {
-        const downloadDir = RNFS.DownloadDirectoryPath;
-        finalPath = `${downloadDir}/${fileName}`;
-        
-        // Use copy instead of move to avoid permission issues with different volumes/mounts
-        await RNFS.copyFile(tempPdfPath, finalPath);
-        // Delete the temp file from library cache
-        await RNFS.unlink(tempPdfPath);
-      } else if (Platform.OS === 'ios') {
-        // iOS handled differently usually via UIDocumentPicker or just internal docs.
-      }
-
+      // iOS fallback
+      const localPath = await createPDFFromDocuments([doc]);
+      await RNShareCustom.open({
+        url: `file://${localPath}`,
+        type: 'application/pdf',
+        title: 'Save Document',
+        saveToFiles: true,
+      });
       setIsUploading(false);
-      Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
     } catch (error: any) {
       setIsUploading(false);
       console.error('Download Error:', error);
-      Alert.alert('Error', error.message || 'Could not download document as PDF');
+      Alert.alert('Download Error', 'Could not initiate download. Please use the Share button.');
     }
   };
 
@@ -448,7 +535,10 @@ export default function DocumentList() {
               </View>
             </View>
             <TouchableOpacity
-              onPress={() => navigation.navigate('VehicleDetails', { vehicleId: primaryVehicle.id })}
+              onPress={() => navigation.navigate('VehicleDetails', { 
+                vehicleId: primaryVehicle.id,
+                initialTab: 'Details'
+              })}
               style={styles.viewDetailsBtn}
             >
               <Text style={styles.viewDetailsText}>View details</Text>
@@ -500,11 +590,17 @@ export default function DocumentList() {
         </View>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={handleDownloadAll}
+          >
             <FileText size={20} color="#FFF" />
             <Text style={styles.actionBtnText}>Download All</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.actionBtnOutline]}>
+          <TouchableOpacity 
+            style={[styles.actionBtn, styles.actionBtnOutline]}
+            onPress={handleShareAll}
+          >
             <ArrowRight size={20} color="#FFF" />
             <Text style={styles.actionBtnText}>Share Documents</Text>
           </TouchableOpacity>

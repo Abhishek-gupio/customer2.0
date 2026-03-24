@@ -75,7 +75,7 @@ export const digilockerService = {
       throw AppError.badRequest("DigiLocker not connected");
     }
 
-    // Logic to fetch documents from DigiLocker API and save to CustomerDocument
+    // Logic to fetch documents from DigiLocker API and save to VehicleDocument
     // This usually involves listing files and then downloading metadata
     try {
       // Mocking the sync for now as we don't have real API access credentials

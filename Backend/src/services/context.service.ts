@@ -91,7 +91,7 @@ export const contextService = {
                         ? ` | Odometer: ${v.currentOdometer} km`
                         : "";
                     lines.push(
-                        `${v.make || ""} ${v.model || ""} ${v.year || ""} (${v.registrationNumber})${health}${odo}`,
+                        `${v.make || ""} ${v.model || ""}${v.manufacturingMonthYear ? ` (${v.manufacturingMonthYear})` : ""} (${v.registrationNumber})${health}${odo}`,
                     );
                     lines.push(
                         `  Records: ${v._count.expenses} expenses, ${v._count.serviceRecords} services`,

@@ -170,6 +170,50 @@ export const challanService = {
     });
   },
 
+  async checkChallansByPlate(regNo: string) {
+    logger.info({ regNo }, "Checking for one-time traffic challans via plate...");
+    const payload = {
+      api_id: env.API_ID,
+      api_key: env.API_KEY,
+      token_id: env.TOKEN_ID,
+      reg_no: regNo,
+    };
+
+    try {
+      const response = await axios.post(
+        "https://javabackend.idspay.in/api/v1/prod/srv2/validation/echallan",
+        payload
+      );
+      const resData = response.data;
+      const resStatus = resData.status;
+      const isSuccess = typeof resStatus === 'string' 
+        ? resStatus === 'success' 
+        : resStatus?.type === 'success';
+
+      if (!isSuccess || !resData.data) return [];
+
+      const externalChallans = Array.isArray(resData.data.data) ? resData.data.data : [];
+      return externalChallans.map((ec: any) => ({
+        id: ec.challan_no || `TMP-${Date.now()}`,
+        challanNumber: ec.challan_no || "N/A",
+        amount: parseFloat(ec.challan_amount || ec.amount || "0"),
+        status: (ec.status || "UNPAID").toUpperCase(),
+        date: ec.challan_date || new Date(),
+        violationType: Array.isArray(ec.violation_details) 
+          ? ec.violation_details.map((v: any) => v.offence).join(" | ")
+          : ec.offence || "Traffic Violation",
+        location: ec.challan_location || "Unknown",
+        metadata: {
+            ownerName: resData.data?.owner_name || "Unknown",
+            rtoName: resData.data?.rto_name || "N/A"
+        }
+      }));
+    } catch (error) {
+      logger.error({ error, regNo }, "CheckChallansByPlate failed");
+      return [];
+    }
+  },
+
   async markAsPaid(challanId: string) {
     return (dbInstances as any).challan.update({
       where: { id: challanId },

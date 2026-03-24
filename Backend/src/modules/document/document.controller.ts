@@ -102,6 +102,41 @@ export const documentController = {
     success(res, result);
   }),
 
+  getImage: asyncHandler(async (req: Request, res: Response) => {
+    const document = await dbInstances.vehicleDocument.findUnique({
+      where: { id: req.params.id as string },
+      select: { fileContent: true, mimeType: true }
+    });
+    if (!document || !document.fileContent) {
+      throw AppError.notFound("Image content not found");
+    }
+    res.setHeader("Content-Type", document.mimeType || "image/jpeg");
+    res.send(document.fileContent);
+  }),
+
+  // Generate and serve a PDF version for direct system download (avoids Android EACCES)
+  getPDF: asyncHandler(async (req: Request, res: Response) => {
+    const document = await dbInstances.vehicleDocument.findUnique({
+      where: { id: req.params.id as string },
+      select: { id: true, fileContent: true, type: true }
+    });
+    
+    if (!document || !document.fileContent) {
+      throw AppError.notFound("Document not found");
+    }
+    
+    const sharp = (await import("sharp")).default;
+    const pdfBuffer = await sharp(document.fileContent as Buffer)
+      .resize(1200) // reasonable resolution
+      .toFormat("pdf")
+      .toBuffer();
+
+    const fileName = `${document.type.toLowerCase()}_${document.id}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.send(pdfBuffer);
+  }),
+
   /** Pre-upload image quality check (blur, glare). Returns { ok, hints }. */
   checkImageQuality: asyncHandler(async (req: Request, res: Response) => {
     if (!req.file) {
