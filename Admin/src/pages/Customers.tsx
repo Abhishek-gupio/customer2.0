@@ -112,6 +112,20 @@ export default function Customers() {
         },
       },
       {
+        id: 'documents',
+        header: 'Documents',
+        accessorFn: (r) => r._count.documents,
+        cell: ({ row }) => {
+          const count = row.original._count.documents;
+          return (
+             <div className="flex items-center gap-2">
+                <div className="text-xs font-bold text-white/80">{count}</div>
+                <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Docs</div>
+             </div>
+          );
+        },
+      },
+      {
         id: 'joined',
         header: 'Joined',
         accessorFn: (r) => new Date(r.createdAt).getTime(),

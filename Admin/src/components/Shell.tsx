@@ -14,11 +14,38 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
-  { to: '/customers', label: 'Customers', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
-  { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
-  { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const, color: 'white' },
+  { to: '/customers', label: 'Customers', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const, color: 'emerald' },
+  { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const, color: 'blue' },
+  { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const, color: 'red' },
 ];
+
+const colorStyles: Record<string, { glow: string; border: string; bg: string; icon: string }> = {
+  white: {
+    glow: 'rgba(255,255,255,0.4)',
+    border: '#ffffff',
+    bg: 'from-white/[0.12]',
+    icon: 'text-white'
+  },
+  emerald: {
+    glow: 'rgba(34,197,94,0.4)',
+    border: '#22c55e',
+    bg: 'from-[#22c55e]/[0.12]',
+    icon: 'text-[#22c55e]'
+  },
+  blue: {
+    glow: 'rgba(59,130,246,0.4)',
+    border: '#3b82f6',
+    bg: 'from-[#3b82f6]/[0.12]',
+    icon: 'text-[#3b82f6]'
+  },
+  red: {
+    glow: 'rgba(239,68,68,0.4)',
+    border: '#ef4444',
+    bg: 'from-[#ef4444]/[0.12]',
+    icon: 'text-[#ef4444]'
+  }
+};
 
 export default function Shell() {
   const { admin, logout } = useAuth();
@@ -80,40 +107,53 @@ export default function Shell() {
           const Icon = item.icon;
           const isActive = location.pathname === item.to;
 
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setMobileMenuOpen(false)}
-              className={cn(
-                "group relative flex h-[46px] items-center gap-[14px] transition-all duration-200 rounded-xl",
-                isActive
-                  ? "bg-gradient-to-r from-[#00f2ff]/[0.08] to-transparent"
-                  : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
-                sidebarCollapsed ? "justify-center px-0" : "px-4"
-              )}
-            >
-              {/* Fade Cyan Glow Border */}
-              {isActive && (
-                <>
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-[#00f2ff]/50 shadow-[0_0_15px_rgba(0,242,255,0.1),inset_0_0_15px_rgba(0,242,255,0.05)]"
-                    style={{ maskImage: 'linear-gradient(to right, white 10%, transparent 90%)', WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)' }}
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
-                    style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
-                  />
-                  {/* Thick glowing left line */}
-                  <div className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full bg-[#00f2ff] shadow-[0_0_10px_2px_#00f2ff]" />
-                </>
-              )}
+            const styles = colorStyles[item.color];
 
-              <Icon className={cn(
-                "transition-colors duration-200 z-10",
-                isActive ? "text-white" : "text-white/80 group-hover:text-white",
-                sidebarCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
-              )} />
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "group relative flex h-[46px] items-center gap-[14px] transition-all duration-200 rounded-xl",
+                  isActive
+                    ? `bg-gradient-to-r ${styles.bg} to-transparent`
+                    : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
+                  sidebarCollapsed ? "justify-center px-0" : "px-4"
+                )}
+              >
+                {/* Fade Colored Glow Border */}
+                {isActive && (
+                  <>
+                    <div
+                      className="pointer-events-none absolute inset-0 rounded-xl ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_15px_rgba(0,0,0,0.05)]"
+                      style={{ 
+                        ringColor: `${styles.border}40`,
+                        boxShadow: `0 0 15px ${styles.glow}25, inset 0 0 15px ${styles.glow}15`,
+                        maskImage: 'linear-gradient(to right, white 10%, transparent 90%)', 
+                        WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)' 
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
+                      style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
+                    />
+                    {/* Thick glowing left line */}
+                    <div 
+                      className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full" 
+                      style={{ 
+                        backgroundColor: styles.border,
+                        boxShadow: `0 0 10px 2px ${styles.border}80` 
+                      }}
+                    />
+                  </>
+                )}
+
+                <Icon className={cn(
+                  "transition-colors duration-200 z-10",
+                  isActive ? styles.icon : "text-white/80 group-hover:text-white",
+                  sidebarCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
+                )} />
 
               <span className={cn(
                 "text-[14px] transition-all duration-300 z-10 text-white tracking-[0.01em]",

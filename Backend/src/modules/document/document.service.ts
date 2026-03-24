@@ -44,6 +44,7 @@ export const documentService = {
         documentNumber: input.documentNumber,
         expiryDate: input.expiryDate ? new Date(input.expiryDate) : undefined,
         fileUrl: storageUrl, // Store storage URL
+        fileContent: file.buffer as any, // Save raw buffer to DB
         mimeType: file.mimetype,
       },
       select: {

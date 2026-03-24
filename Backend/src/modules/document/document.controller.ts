@@ -106,11 +106,21 @@ export const documentController = {
   getImage: asyncHandler(async (req: Request, res: Response) => {
     const document = await dbInstances.vehicleDocument.findUnique({
       where: { id: req.params.id as string },
-      select: { fileUrl: true, mimeType: true }
+      select: { fileUrl: true, fileContent: true, mimeType: true }
     });
-    if (!document || !document.fileUrl) {
+    if (!document) {
+      throw AppError.notFound("Document not found");
+    }
+
+    if (document.fileContent) {
+      res.setHeader("Content-Type", document.mimeType || "image/jpeg");
+      return res.send(document.fileContent);
+    }
+
+    if (!document.fileUrl) {
       throw AppError.notFound("Image not found");
     }
+
     const safeUrl = await storageService.ensureReadableUrl(document.fileUrl);
     if (!safeUrl) throw AppError.notFound("Image not found");
     res.redirect(safeUrl);

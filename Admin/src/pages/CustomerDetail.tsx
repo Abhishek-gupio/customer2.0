@@ -17,9 +17,14 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
+import { cn } from '../lib/cn';
 import { adminApi, type CustomerDetail as CustomerDetailType, type AdminVehicleDetail } from '../api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+
+const handleViewDocument = (docId: string) => {
+  window.open(`/api/v1/documents/${docId}/image`, '_blank');
+};
 
 export default function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +32,7 @@ export default function CustomerDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<'overview' | 'vehicles' | 'expenses' | 'documents' | 'tickets'>('overview');
+  const [expenseFilter, setExpenseFilter] = useState('ALL');
 
   useEffect(() => {
     if (!id) return;
@@ -55,7 +61,12 @@ export default function CustomerDetail() {
   if (!customer) return null;
 
   const vehicles = (customer.vehicles ?? []) as AdminVehicleDetail[];
-  const expenses = (customer.expenses ?? []) as ExpenseRow[];
+  const allExpenses = (customer.expenses ?? []) as ExpenseRow[];
+  const categories = ['ALL', ...new Set(allExpenses.map((e) => e.category))];
+  const expenses = expenseFilter === 'ALL' 
+    ? allExpenses 
+    : allExpenses.filter((e) => e.category === expenseFilter);
+    
   const documents = (customer.documents ?? []) as DocumentRow[];
   const tickets = (customer.supportTickets ?? []) as TicketRow[];
   const displayName = customer.fullName || customer.email || customer.phoneNumber || 'Customer';
@@ -76,11 +87,11 @@ export default function CustomerDetail() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setTab('overview')}>Overview</Button>
-            <Button variant="secondary" size="sm" onClick={() => setTab('vehicles')}>Vehicles</Button>
-            <Button variant="secondary" size="sm" onClick={() => setTab('expenses')}>Expenses</Button>
-            <Button variant="secondary" size="sm" onClick={() => setTab('documents')}>Documents</Button>
-            <Button variant="secondary" size="sm" onClick={() => setTab('tickets')}>Tickets</Button>
+            <Button variant={tab === 'overview' ? 'default' : 'secondary'} size="sm" onClick={() => setTab('overview')}>Overview</Button>
+            <Button variant={tab === 'vehicles' ? 'default' : 'secondary'} size="sm" onClick={() => setTab('vehicles')}>Vehicles</Button>
+            <Button variant={tab === 'expenses' ? 'default' : 'secondary'} size="sm" onClick={() => setTab('expenses')}>Expenses</Button>
+            <Button variant={tab === 'documents' ? 'default' : 'secondary'} size="sm" onClick={() => setTab('documents')}>Documents</Button>
+            <Button variant={tab === 'tickets' ? 'default' : 'secondary'} size="sm" onClick={() => setTab('tickets')}>Tickets</Button>
           </div>
         </div>
       </div>
@@ -157,11 +168,31 @@ export default function CustomerDetail() {
       {tab === 'expenses' && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><ReceiptIndianRupee className="h-4 w-4 text-[var(--accent)]" /> Recent expenses</CardTitle>
-            <CardDescription>{Array.isArray(expenses) ? expenses.length : 0} items (limited)</CardDescription>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2"><ReceiptIndianRupee className="h-4 w-4 text-[var(--accent)]" /> Recent expenses</CardTitle>
+                <CardDescription>{expenses.length} items shown</CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setExpenseFilter(cat)}
+                    className={cn(
+                      "rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all",
+                      expenseFilter === cat
+                        ? "bg-[var(--accent)] text-black"
+                        : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {Array.isArray(expenses) && expenses.length > 0 ? expenses.slice(0, 30).map((e) => (
+            {expenses.length > 0 ? expenses.slice(0, 50).map((e) => (
               <div key={e.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="font-semibold">₹{e.amount}</div>
@@ -169,7 +200,7 @@ export default function CustomerDetail() {
                 </div>
                 <div className="mt-1 text-sm text-white/55">{e.date ? new Date(e.date).toLocaleString() : ''}</div>
               </div>
-            )) : <div className="text-sm text-white/60">No expenses available for this role.</div>}
+            )) : <div className="text-sm text-white/60">No expenses found for this category.</div>}
           </CardContent>
         </Card>
       )}
@@ -182,9 +213,13 @@ export default function CustomerDetail() {
           </CardHeader>
           <CardContent className="space-y-2">
             {Array.isArray(documents) && documents.length > 0 ? documents.map((d) => (
-              <div key={d.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+              <div 
+                key={d.id} 
+                onClick={() => handleViewDocument(d.id)}
+                className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 cursor-pointer hover:bg-white/[0.06] transition-colors group"
+              >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold">{d.type}</div>
+                  <div className="font-semibold group-hover:text-[var(--accent)] transition-colors">{d.type}</div>
                   <span className="text-xs font-semibold text-white/60">{d.verificationStatus}</span>
                 </div>
               </div>
@@ -377,8 +412,12 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
               <div className="text-sm text-white/50">No documents.</div>
             ) : (
               documents.map((d) => (
-                <div key={d.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
-                  <span className="font-medium">{d.type}</span>
+                <div 
+                  key={d.id} 
+                  onClick={() => handleViewDocument(d.id)}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0 cursor-pointer hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors group"
+                >
+                  <span className="font-medium group-hover:text-[var(--accent)]">{d.type}</span>
                   <span className="text-sm text-white/60">
                     {d.verificationStatus ?? '—'} {d.expiryDate ? `· Exp ${new Date(d.expiryDate).toLocaleDateString()}` : ''}
                     {d.documentNumber ? ` · ${d.documentNumber}` : ''}

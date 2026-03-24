@@ -52,6 +52,7 @@ export const adminDashboardService = {
             select: {
               vehicles: true,
               expenses: true,
+              documents: true,
             },
           },
         },
