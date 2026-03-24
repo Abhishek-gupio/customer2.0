@@ -1,7 +1,7 @@
 import compression from "compression";
 import cors from "cors";
 import express, { type Request, type Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { env } from "./config/env";
@@ -10,20 +10,19 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 import { apiRoutes } from "./routes";
 import { setupSwagger } from "./swagger";
 
-/** Rate limit key: per user when JWT present, else per IP. Decode only (no verify) for key partitioning. */
+/** Rate limit key: per user when JWT present, else per IP. */
 function rateLimitKey(req: Request): string {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
     try {
       const token = authHeader.slice(7);
       const payload = jwt.decode(token) as { id?: string } | null;
-      if (payload?.id) return `user:${payload.id}`;
+      if (payload?.id) return payload.id;
     } catch {
       // malformed token; fall back to IP
     }
   }
-  const ip = req.ip ?? req.socket?.remoteAddress ?? "unknown";
-  return `ip:${ip}`;
+  return `ip:${ipKeyGenerator(req.ip ?? req.socket?.remoteAddress ?? "unknown")}`;
 }
 
 const app = express();
@@ -54,6 +53,7 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: rateLimitKey,
+  validate: { default: false },
   skip: (req) => {
     // Don't count health checks so load balancers don't burn the limit
     if (req.path === "/health" || req.path === "/health/detailed") return true;

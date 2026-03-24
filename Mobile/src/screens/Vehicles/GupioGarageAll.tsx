@@ -200,7 +200,7 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
                             onPress={() => onSelect(v)}
                         >
                             <View style={styles.listImgBox}>
-                                <Image source={{ uri: FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                                <Image source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.listTitle}>{v.registrationNumber}</Text>
@@ -281,7 +281,9 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                 <View style={styles.detailHero}>
                     <View style={styles.heroImgBox}>
                         <View style={styles.heroGlow} />
-                        <Image source={{ uri: FALLBACK_IMAGE }} style={styles.heroFallbackImage} resizeMode="cover" />
+                        <View style={styles.heroFallbackFrame}>
+                            <Image source={{ uri: details.imageUrl || details.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={styles.heroFallbackImage} resizeMode="cover" />
+                        </View>
                     </View>
                     <Text style={styles.detailModel}>{details.model || details.make || "Vehicle"}</Text>
                     <View style={{ marginTop: 16 }}><INDPlate number={details.registrationNumber} /></View>
@@ -297,7 +299,7 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                                 style={[styles.miniAvatarWrap, activeVehicle.id === v.id && styles.miniAvatarActive]}
                             >
                                 <View style={styles.miniAvatar}>
-                                    <Image source={{ uri: FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                                    <Image source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
                                 </View>
                             </TouchableOpacity>
                         ))}
@@ -572,8 +574,9 @@ const styles = StyleSheet.create({
     tabPillActive: { backgroundColor: COLORS.primary },
     tabPillText: { fontSize: 12, fontFamily: 'Outfit-Bold', color: '#888' },
     detailHero: { alignItems: 'center', paddingHorizontal: 24, marginTop: 20 },
-    heroImgBox: { width: '100%', height: 200, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    heroFallbackImage: { width: 280, height: 160, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    heroImgBox: { width: '100%', height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    heroFallbackFrame: { width: 280, height: 230, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroFallbackImage: { width: '100%', height: '100%' },
     heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderRadius: 150 },
     detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', fontStyle: 'italic', textAlign: 'center' },
     horizVehicleList: { paddingHorizontal: 24, paddingVertical: 24, gap: 16, alignItems: 'center' },

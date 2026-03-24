@@ -38,6 +38,9 @@ import TripDetail from '../screens/Telematics/TripDetail';
 import SOSButton from '../components/SOSButton';
 import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
+import ValetService from '../screens/Main/ValetService';
+import VehicleSearch from '../screens/Main/VehicleSearch';
+import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -51,7 +54,14 @@ export function RootNavigator() {
       <Stack.Screen name="Splash">
         {({ navigation }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
           <SplashScreen
-            onComplete={() => navigation.replace('SigninFirst')}
+            onComplete={() => {
+              const { isAuthenticated } = store.getState().auth;
+              if (isAuthenticated) {
+                navigation.replace('Main', { screen: 'Home' });
+              } else {
+                navigation.replace('SigninFirst');
+              }
+            }}
           />
         )}
       </Stack.Screen>
@@ -62,6 +72,7 @@ export function RootNavigator() {
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
       <Stack.Screen name="DocumentList" component={DocumentList} />
+      <Stack.Screen name="Valet" component={ValetService} />
 
       {/* All vehicle screens are handled internally by GupioGarageApp */}
       <Stack.Screen name="VehicleList" component={GupioGarageApp} />
@@ -90,6 +101,7 @@ export function RootNavigator() {
       {/* <Stack.Screen name="TripDetail" component={TripDetail} /> */}
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
+      <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
     </Stack.Navigator>
   );
 }

@@ -28,7 +28,7 @@ const PART_TYPE_OPTIONS = [
     { label: 'Air Filter', value: 'AIR_FILTER' },
     { label: 'Brake Pads', value: 'BRAKE_PADS' },
     { label: 'Brake Discs', value: 'BRAKE_DISCS' },
-    { label: 'Tyres (All)', value: 'TYRES' },
+    // { label: 'Tyres (All)', value: 'TYRES' },
     { label: 'Tyres (Front)', value: 'TYRES_FRONT' },
     { label: 'Tyres (Rear)', value: 'TYRES_REAR' },
     { label: 'Clutch Plate', value: 'CLUTCH_PLATE' },

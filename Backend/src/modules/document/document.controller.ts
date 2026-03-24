@@ -7,6 +7,7 @@ import { checkImageQuality } from "../../services/imageQuality.service";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { dbInstances } from "@repo/db-customer";
+import { storageService } from "../../services/storage.service";
 
 const DEV_CUSTOMER_ID = "cmlj50qq00000ohti713c0bwy";
 
@@ -100,6 +101,35 @@ export const documentController = {
       req.params.id as string,
     );
     success(res, result);
+  }),
+
+  getImage: asyncHandler(async (req: Request, res: Response) => {
+    const document = await dbInstances.customerDocument.findUnique({
+      where: { id: req.params.id as string },
+      select: { fileUrl: true, mimeType: true }
+    });
+    if (!document || !document.fileUrl) {
+      throw AppError.notFound("Image not found");
+    }
+    const safeUrl = await storageService.ensureReadableUrl(document.fileUrl);
+    if (!safeUrl) throw AppError.notFound("Image not found");
+    res.redirect(safeUrl);
+  }),
+
+  // Generate and serve a PDF version for direct system download (avoids Android EACCES)
+  getPDF: asyncHandler(async (req: Request, res: Response) => {
+    const document = await dbInstances.customerDocument.findUnique({
+      where: { id: req.params.id as string },
+      select: { id: true, fileUrl: true, type: true }
+    });
+    
+    if (!document || !document.fileUrl) {
+      throw AppError.notFound("Document not found");
+    }
+
+    const safeUrl = await storageService.ensureReadableUrl(document.fileUrl);
+    if (!safeUrl) throw AppError.notFound("Document not found");
+    res.redirect(safeUrl);
   }),
 
   /** Pre-upload image quality check (blur, glare). Returns { ok, hints }. */

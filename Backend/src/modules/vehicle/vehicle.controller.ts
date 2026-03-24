@@ -113,6 +113,18 @@ export const vehicleController = {
     success(res, log, 201);
   }),
 
+  extractOdometerViaAI: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    if (!req.file) throw AppError.badRequest("No image uploaded");
+
+    const reading = await vehicleService.extractOdometerViaAI(
+      req.customer.id,
+      req.params.id as string,
+      req.file,
+    );
+    success(res, { reading });
+  }),
+
   lookupPlate: asyncHandler(async (req: Request, res: Response) => {
     // Auth required so strangers can't rack up your Gemini quota
     if (!req.customer?.id) throw AppError.unauthorized();
@@ -130,6 +142,15 @@ export const vehicleController = {
     if (!reg_no) throw AppError.badRequest("reg_no is required");
 
     const data = await vehicleService.verifyVehicle(reg_no);
+    success(res, data);
+  }),
+
+  getAssets: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const data = await vehicleService.getVehicleAssets(
+      req.customer.id,
+      req.params.id as string,
+    );
     success(res, data);
   }),
 };

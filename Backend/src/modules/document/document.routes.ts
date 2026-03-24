@@ -12,6 +12,10 @@ const upload = multer({
   },
 });
 
+// Public routes for display/download
+router.get("/:id/image", documentController.getImage);
+router.get("/:id/pdf", documentController.getPDF);
+
 router.use(authMiddleware);
 
 // Pre-upload quality check (documents + receipts)

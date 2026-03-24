@@ -88,7 +88,7 @@ export default function Login() {
                   {submitting ? 'Signing in...' : 'Sign in'}
                 </Button>
                 <p className="text-center text-xs text-white/40">
-                  Premium dark theme · Indigo accent
+                  Premium monochrome theme
                 </p>
               </form>
             </CardContent>

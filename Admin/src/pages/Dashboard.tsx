@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, Bar, ComposedChart, Line, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { adminApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
+import { cn } from '../lib/cn';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
@@ -56,13 +57,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="mt-2 h-4 w-72" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 mt-8">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
               <CardContent className="pt-5">
@@ -132,30 +127,45 @@ export default function Dashboard() {
           Database is temporarily unreachable. Stats below may show zeros. Check your network or database configuration.
         </div>
       )}
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-white/60">Production-grade overview of customer app data</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="secondary">
-            <Link to="/customers">
-              <Users className="h-4 w-4" />
-              Customers
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard title="Customers" value={stats?.customers ?? 0} icon={Users} />
-        <KpiCard title="Vehicles" value={stats?.vehicles ?? 0} icon={CarFront} />
-        <KpiCard
-          title="Total expenses (₹)"
-          value={stats?.totalExpenses != null ? Number(stats.totalExpenses).toLocaleString('en-IN') : 0}
-          icon={ReceiptIndianRupee}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 pt-2">
+        <KPICard
+          title="Total Customers"
+          value={stats?.customers ?? 0}
+          icon={Users}
+          trend={calculateTrend(stats?.weeklyTrend || [], 'customers')}
+          color="emerald"
+          sparklineData={calculateSparkline(stats?.weeklyTrend || [], 'customers')}
+          href="/customers"
         />
-        <KpiCard title="Open tickets" value={stats?.supportTicketsOpen ?? 0} icon={Ticket} />
+        <KPICard
+          title="Total Vehicles"
+          value={stats?.vehicles ?? 0}
+          icon={CarFront}
+          trend={calculateTrend(stats?.weeklyTrend || [], 'vehicles')}
+          sparklineData={calculateSparkline(stats?.weeklyTrend || [], 'vehicles')}
+          color="blue"
+          subtext="Registered across platform"
+          href="/vehicles"
+        />
+        <KPICard
+          title="Total Expenses"
+          value={stats?.totalExpenses ?? 0}
+          isCurrency
+          icon={ReceiptIndianRupee}
+          trend={calculateTrend(stats?.weeklyTrend || [], 'expenseAmount')}
+          color="orange"
+          sparklineData={calculateSparkline(stats?.weeklyTrend || [], 'expenseAmount')}
+          href="/customers"
+        />
+        <KPICard
+          title="Open Tickets"
+          value={stats?.supportTicketsOpen ?? 0}
+          icon={Ticket}
+          trend={{ value: 'Active', isPositive: (stats?.supportTicketsOpen ?? 0) < 10 }}
+          color="red"
+          subtext={(stats?.supportTicketsOpen ?? 0) > 0 ? "Requires attention" : "No open issues"}
+          href="/tickets"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -215,7 +225,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              { t: 'Review open tickets', d: 'Prioritize urgent & billing', href: '/customers' },
+              { t: 'Review open tickets', d: 'Prioritize urgent & billing', href: '/tickets' },
               { t: 'Spot abnormal expenses', d: 'Look for outliers', href: '/customers' },
               { t: 'Verify recent documents', d: 'Pending → Verified', href: '/customers' },
             ].map((x) => (
@@ -238,29 +248,201 @@ export default function Dashboard() {
   );
 }
 
-function KpiCard({
+// --- Enhanced KPI Card Component ---
+function KPICard({
   title,
   value,
   icon: Icon,
+  trend,
+  color,
+  isCurrency,
+  sparklineData,
+  subtext,
+  href
 }: {
   title: string;
   value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: any;
+  trend?: { value: string; isPositive: boolean };
+  color: 'emerald' | 'blue' | 'orange' | 'red';
+  isCurrency?: boolean;
+  sparklineData?: any[];
+  subtext?: string;
+  href: string;
 }) {
+  const colorMap = {
+    emerald: {
+      cardBg: 'bg-[#0a0a0a]',
+      glowColor: 'rgba(34,197,94,0.15)',
+      shadowColor: '#22c55e',
+      iconBox: 'border-[#22c55e]/30 text-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.3)]',
+      trendPos: 'text-[#22c55e]',
+      trendNeg: 'text-[#ef4444]',
+    },
+    blue: {
+      cardBg: 'bg-[#0a0a0a]',
+      glowColor: 'rgba(59,130,246,0.15)',
+      shadowColor: '#3b82f6',
+      iconBox: 'border-[#3b82f6]/30 text-[#3b82f6] shadow-[0_0_15px_rgba(59,130,246,0.3)]',
+      trendPos: 'text-[#3b82f6]',
+      trendNeg: 'text-[#ef4444]',
+    },
+    orange: {
+      cardBg: 'bg-[#0a0a0a]',
+      glowColor: 'rgba(245,158,11,0.15)',
+      shadowColor: '#f59e0b',
+      iconBox: 'border-[#f59e0b]/30 text-[#f59e0b] shadow-[0_0_15px_rgba(245,158,11,0.3)]',
+      trendPos: 'text-[#f59e0b]',
+      trendNeg: 'text-[#ef4444]',
+    },
+    red: {
+      cardBg: 'bg-[#0a0a0a]',
+      glowColor: 'rgba(239,68,68,0.15)',
+      shadowColor: '#ef4444',
+      iconBox: 'border-[#ef4444]/30 text-[#ef4444] shadow-[0_0_15px_rgba(239,68,68,0.3)]',
+      trendPos: 'text-[#ef4444]',
+      trendNeg: 'text-[#ef4444]',
+    },
+  };
+
+  const style = colorMap[color];
+  const formattedValue = isCurrency ? formatCurrencyShorthand(Number(value)) : value;
+
+  // Provide empty data points to render the chart if none exist yet.
+  const displayChartData = sparklineData && sparklineData.length > 0
+    ? sparklineData
+    : [{ val: 0 }, { val: 0 }, { val: 0 }, { val: 0 }, { val: 0 }, { val: 0 }, { val: 0 }];
+
   return (
-    <Card className="relative overflow-hidden">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[var(--accent-dim)] blur-2xl" />
-      <CardContent className="pt-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-white/50">{title}</div>
-            <div className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--accent)]">{value}</div>
+    <Link to={href} className="group block focus:outline-none transition-transform duration-300 hover:scale-[1.02]">
+      <div
+        className={cn(
+          "relative flex flex-col justify-between rounded-[20px] border border-white/[0.06] h-[190px] p-5 overflow-hidden",
+          style.cardBg
+        )}
+        style={{
+          boxShadow: `inset 0 15px 35px -20px ${style.glowColor}, 0 10px 30px -15px ${style.glowColor}`
+        }}
+      >
+        <div className="flex gap-4 items-start relative z-10 w-full">
+          <div className={cn(
+            "flex h-[40px] w-[40px] items-center justify-center rounded-[12px] border bg-[#0a0a0a]/40 shrink-0",
+            style.iconBox
+          )}>
+            <Icon className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent-dim)]">
-            <Icon className="h-5 w-5 text-[var(--accent)]" />
+
+          <div className="flex flex-col gap-0.5 justify-center mt-0.5 w-full">
+            <h3 className="text-[13px] font-bold text-white leading-none">
+              {title.replace('Total ', '')}
+            </h3>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-[22px] font-extrabold tracking-tight text-white leading-none">
+                {formattedValue || "0"}
+              </span>
+              {trend && (
+                <span className={cn(
+                  "text-[13px] font-bold leading-none tracking-wide",
+                  trend.isPositive ? style.trendPos : style.trendNeg
+                )}>
+                  +{trend.value}{trend.value !== 'Active' ? '%' : ''}
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] font-medium text-[#71717a] mt-1 leading-none">
+              {subtext || "+0 this week"}
+            </p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        <div className="w-full border-t border-white/[0.06] my-3.5 relative z-10" />
+
+        <div className="flex items-end justify-between relative z-10 flex-1 gap-2 min-h-0">
+          {/* Bottom-left: value + name + subtext */}
+          <div className="flex flex-col gap-0.5 z-20 pointer-events-none pb-0.5 shrink-0">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[17px] font-extrabold text-white leading-none">
+                {formattedValue || "0"}
+              </span>
+              <span className="text-[11px] font-semibold text-white/80 leading-none">
+                {title.replace('Total ', '')}
+              </span>
+            </div>
+            <p className="text-[9.5px] text-[#71717a] font-medium leading-none mt-0.5">
+              {subtext || "Added recently"}
+            </p>
+          </div>
+
+          {/* Bottom-right: sparkline chart — absolutely positioned so it can be as tall as needed */}
+          <div className="absolute right-[-8px] bottom-[-12px] w-[62%] h-[110px] opacity-90 pointer-events-none z-10">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={displayChartData} margin={{ top: 6, right: 8, bottom: 10, left: 4 }}>
+                <YAxis hide domain={[0, 'dataMax + 2']} padding={{ top: 16, bottom: 0 }} />
+                <defs>
+                  <linearGradient id={`fill-${color}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={style.shadowColor} stopOpacity={0.28} />
+                    <stop offset="100%" stopColor={style.shadowColor} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id={`bar-${color}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={style.shadowColor} stopOpacity={0.35} />
+                    <stop offset="100%" stopColor={style.shadowColor} stopOpacity={0.04} />
+                  </linearGradient>
+                </defs>
+                <Bar
+                  dataKey="val"
+                  fill={`url(#bar-${color})`}
+                  barSize={6}
+                  radius={[2, 2, 0, 0]}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="val"
+                  stroke="none"
+                  fill={`url(#fill-${color})`}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="val"
+                  stroke={style.shadowColor}
+                  strokeWidth={2}
+                  dot={{ r: 2.8, fill: '#0a0a0a', stroke: style.shadowColor, strokeWidth: 1.5 }}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
+}
+
+// --- Helper Functions ---
+
+function formatCurrencyShorthand(val: number) {
+  if (isNaN(val)) return '₹0';
+  if (val >= 100000) return `₹${(val / 100000).toFixed(2)}L`;
+  if (val >= 1000) return `₹${(val / 1000).toFixed(1)}k`;
+  return `₹${val.toLocaleString('en-IN')}`;
+}
+
+function calculateTrend(trend: any[], key: string) {
+  if (trend.length < 2) return { value: '0', isPositive: true };
+  const latest = trend[trend.length - 1][key];
+  const previous = trend[trend.length - 2][key];
+  if (previous === 0) return { value: latest > 0 ? '100' : '0', isPositive: true };
+  const diff = ((latest - previous) / previous) * 100;
+  return {
+    value: Math.abs(diff).toFixed(0),
+    isPositive: diff >= 0
+  };
+}
+
+function calculateSparkline(trend: any[], key: string) {
+  return trend.map(d => ({ val: d[key] }));
 }

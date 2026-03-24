@@ -48,6 +48,11 @@ function extractCommand(transcript: string): string {
   return '';
 }
 
+function isEndCommand(transcript: string): boolean {
+  const t = normalize(transcript);
+  return t === 'end' || t === 'stop listening' || t === 'end session';
+}
+
 export default function HeyGupioOverlay() {
   const window = Dimensions.get('window');
   const { heyGupioCanListen } = useContext(VoiceOwnerContext);
@@ -62,6 +67,7 @@ export default function HeyGupioOverlay() {
   const continuousModeRef = useRef(false);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const startListeningRef = useRef<() => void>(() => {});
+  const stopContinuousRef = useRef<() => void>(() => {});
   const canListenRef = useRef(heyGupioCanListen);
   const clampPosition = useCallback(
     (x: number, y: number) => {
@@ -179,7 +185,7 @@ export default function HeyGupioOverlay() {
     restartDelayRef.current = setTimeout(() => {
       restartDelayRef.current = null;
       if (!isMountedRef.current || !continuousModeRef.current || !canListenRef.current) return;
-      setStatus('listening');
+      setStatus('idle');
       Tts.stop();
       const doStart = () => {
         if (!isMountedRef.current || !continuousModeRef.current) return;
@@ -222,6 +228,10 @@ export default function HeyGupioOverlay() {
         else setStatus('idle');
         return;
       }
+      if (isEndCommand(transcript)) {
+        stopContinuousRef.current();
+        return;
+      }
       try {
         await Voice.stop();
       } catch (_) {}
@@ -236,7 +246,6 @@ export default function HeyGupioOverlay() {
         speakWithTts(reply, () => {
           ttsFinishRef.current = null;
           if (continuousModeRef.current) {
-            setStatus('listening');
             scheduleRestartListening();
           } else {
             setStatus('idle');
@@ -248,7 +257,6 @@ export default function HeyGupioOverlay() {
         speakWithTts(msg, () => {
           ttsFinishRef.current = null;
           if (continuousModeRef.current) {
-            setStatus('listening');
             scheduleRestartListening();
           } else {
             setStatus('idle');
@@ -301,7 +309,7 @@ export default function HeyGupioOverlay() {
         .then(() => {
           if (!isMountedRef.current || !canListenRef.current) return;
           attachHandlers();
-          setStatus('listening');
+          setStatus('idle');
           return Voice.start(VOICE_LOCALE);
         })
         .then(() => {
@@ -338,7 +346,12 @@ export default function HeyGupioOverlay() {
         clearTimeout(ttsFallbackRef.current);
         ttsFallbackRef.current = null;
       }
-      if (ttsFinishRef.current) ttsFinishRef.current();
+      if (isMountedRef.current) {
+        setStatus('idle');
+      }
+      const onDone = ttsFinishRef.current;
+      ttsFinishRef.current = null;
+      if (onDone) onDone();
     };
     Tts.addEventListener('tts-finish', onTtsFinish);
 
@@ -418,15 +431,50 @@ export default function HeyGupioOverlay() {
     setStatus('idle');
   }, []);
 
+  stopContinuousRef.current = stopContinuous;
+
+  const startFromTap = useCallback(() => {
+    if (!heyGupioCanListen || !isMountedRef.current) return;
+    continuousModeRef.current = true;
+    if (restartDelayRef.current) {
+      clearTimeout(restartDelayRef.current);
+      restartDelayRef.current = null;
+    }
+    if (listenTimeoutRef.current) {
+      clearTimeout(listenTimeoutRef.current);
+      listenTimeoutRef.current = null;
+    }
+    if (ttsFallbackRef.current) {
+      clearTimeout(ttsFallbackRef.current);
+      ttsFallbackRef.current = null;
+    }
+    ttsFinishRef.current = null;
+    Tts.stop();
+    setStatus('listening');
+
+    const begin = () => {
+      if (!isMountedRef.current || !continuousModeRef.current) return;
+      startListeningRef.current();
+    };
+
+    Promise.resolve()
+      .then(() => Voice.stop().catch(() => {}))
+      .then(() =>
+        typeof (Voice as any).destroy === 'function'
+          ? (Voice as any).destroy().catch(() => {})
+          : Promise.resolve(),
+      )
+      .finally(begin);
+  }, [heyGupioCanListen]);
+
   const onFloatingTap = useCallback(() => {
     if (!heyGupioCanListen) return;
     if (status === 'idle') {
-      continuousModeRef.current = true;
-      startListening();
+      startFromTap();
     } else {
       stopContinuous();
     }
-  }, [heyGupioCanListen, startListening, status, stopContinuous]);
+  }, [heyGupioCanListen, startFromTap, status, stopContinuous]);
 
   if (!ready) return null;
 
@@ -453,7 +501,7 @@ export default function HeyGupioOverlay() {
         </Text>
         {status !== 'idle' && (
           <Text style={styles.fabLabel} numberOfLines={1}>
-            {status === 'listening' && 'Listening… Tap to stop'}
+            {status === 'listening' && 'Listening… Speak now'}
             {status === 'processing' && 'Thinking…'}
             {status === 'speaking' && 'Speaking… Tap to stop'}
           </Text>

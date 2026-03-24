@@ -8,8 +8,6 @@ export interface Vehicle {
     registrationNumber: string;
     make?: string;
     model?: string;
-    variant?: string;
-    year?: number;
     fuelType?: string;
     vehicleType?: string;
     engineNumber?: string;
@@ -20,6 +18,9 @@ export interface Vehicle {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    color?: string;
+    unloadedWeight?: string;
+    manufacturingMonthYear?: string;
     healthScore?: VehicleHealthScore;
     // AI-enriched data from Gemini RTO lookup (stored client-side, not in DB)
     rtoDetails?: RTODetails;
@@ -55,15 +56,9 @@ export interface RTODetails {
     chassisNumber?: string;
     registrationDate?: string;
     color?: string;
-    seatingCapacity?: string;
-    cylinderCount?: string;
-    cubicCapacity?: string;
-    grossWeight?: string;
-    bodyType?: string;
     registrationNumber?: string;
-    ownerAddress?: string;
+    manufacturingMonthYear?: string;
     present_address?: string;
-    year?: number;
 }
 
 export interface VehicleHealthScore {
@@ -76,12 +71,15 @@ export interface VehicleHealthScore {
     [key: string]: any;
 }
 
+export interface VehicleAssets {
+    heroUrl: string | null;
+    angles: string[]; // expected order: assetIndex 0..11
+}
+
 export interface AddVehicleInput {
     registrationNumber: string;
     make?: string;
     model?: string;
-    variant?: string;
-    year?: number;
     fuelType?: 'PETROL' | 'DIESEL' | 'CNG' | 'EV' | 'HYBRID' | 'OTHER';
     vehicleType?: 'LUV' | 'SUV' | 'SEDAN' | 'BIKE' | 'HATCHBACK' | 'TRUCK';
     engineNumber?: string;
@@ -100,12 +98,7 @@ export interface AddVehicleInput {
     mileage?: string;
     brand?: string;
     color?: string;
-    seatingCapacity?: string;
-    cylinderCount?: string;
-    cubicCapacity?: string;
-    grossWeight?: string;
-    bodyType?: string;
-    ownerAddress?: string;
+    manufacturingMonthYear?: string;
 }
 
 export type UpdateVehicleInput = Partial<AddVehicleInput>;
@@ -122,6 +115,10 @@ export interface OdometerLog {
     date: string;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface OdometerExtraction {
+    reading: number;
 }
 
 export interface Challan {
@@ -170,6 +167,14 @@ export const vehicleService = {
         return raw?.data ?? (response as unknown as Vehicle);
     },
 
+    getVehicleAssets: async (vehicleId: string): Promise<VehicleAssets> => {
+        const response = await api.get<{ success: boolean; data: VehicleAssets }>(
+            `/v1/vehicles/${vehicleId}/assets`,
+        );
+        const raw = response as unknown as { data?: VehicleAssets; success?: boolean };
+        return raw?.data ?? (response as unknown as VehicleAssets);
+    },
+
     updateVehicle: async (id: string, data: UpdateVehicleInput): Promise<Vehicle> => {
         const response = await api.put<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`, data);
         return response.data;
@@ -201,6 +206,14 @@ export const vehicleService = {
 
     addOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerLog> => {
         const response = await api.upload<{ success: boolean; data: OdometerLog }>(`/v1/vehicles/${id}/odometer-ai`, photo);
+        return response.data;
+    },
+
+    extractOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerExtraction> => {
+        const response = await api.upload<{ success: boolean; data: OdometerExtraction }>(
+            `/v1/vehicles/${id}/odometer-ai/extract`,
+            photo,
+        );
         return response.data;
     },
 
@@ -247,9 +260,11 @@ export const vehicleService = {
             pollutionUpto: raw.pollutionUpto,
             mileage: raw.mileage,
             brand: raw.make,
+            color: raw.color,
+            manufacturingMonthYear: raw.manufacturingMonthYear,
         };
     },
 };
 
 export const FALLBACK_CAR_IMAGE =
-    'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';
+    'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';

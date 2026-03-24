@@ -17,6 +17,7 @@ type AddVehicleScreenProps = {
     onBack?: () => void;
     onDone: (newVehicle: Vehicle) => void;
     isFirst?: boolean;
+    initialRegistrationNumber?: string;
 };
 
 type Step = 'INPUT' | 'CONFIRM';
@@ -24,7 +25,7 @@ type Step = 'INPUT' | 'CONFIRM';
 const FUEL_TYPES = ['PETROL', 'DIESEL', 'CNG', 'EV', 'HYBRID', 'OTHER'];
 const VEHICLE_TYPES = ['CAR', 'BIKE'];
 
-export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenProps) => {
+export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationNumber }: AddVehicleScreenProps) => {
     const [step, setStep] = useState<Step>('INPUT');
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
@@ -41,6 +42,39 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst }: AddVehicleScreenPr
         currentOdometer: '',
         rtoDetails: null as any,
     });
+
+    React.useEffect(() => {
+        if (initialRegistrationNumber) {
+            updateForm('registrationNumber', initialRegistrationNumber);
+            autoVerify(initialRegistrationNumber);
+        }
+    }, [initialRegistrationNumber]);
+
+    const autoVerify = async (plate: string) => {
+        setLoading(true);
+        try {
+            const rtoData = await vehicleService.verifyVehicle(plate);
+            setForm(prev => ({
+                ...prev,
+                registrationNumber: plate,
+                make: rtoData.make || rtoData.brand || '',
+                model: rtoData.model || '',
+                vehicleType: (rtoData.vehicleType as any) || prev.vehicleType,
+                fuelType: (rtoData.fuelType as any) || prev.fuelType,
+                chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
+                engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
+                registrationDate: rtoData.regDate || rtoData.registrationDate || '',
+                year: rtoData.year ? String(rtoData.year) : prev.year,
+                rtoDetails: rtoData,
+            }));
+            setStep('CONFIRM');
+        } catch (error: any) {
+            console.warn('[AddVehicleScreen] autoVerify failed:', error);
+            // Fallback to manual input stage if auto-verify fails, but pre-fill plate
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const updateForm = (key: string, value: any) => {
         setForm(prev => ({ ...prev, [key]: value }));

@@ -76,6 +76,26 @@ export const adminApi = {
     );
   },
   getCustomer: (id: string) => api<CustomerDetail>(`/v1/admin/customers/${id}`),
+  listTickets: (params?: { page?: number; limit?: number; search?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    const q = sp.toString();
+    return api<{ data: SupportTicketListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/tickets${q ? `?${q}` : ''}`
+    );
+  },
+  listVehicles: (params?: { page?: number; limit?: number; search?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    const q = sp.toString();
+    return api<{ data: AdminVehicleListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/vehicles${q ? `?${q}` : ''}`
+    );
+  },
 };
 
 export interface CustomerListItem {
@@ -219,5 +239,53 @@ export interface CustomerDetail {
   _count: { vehicles: number; expenses: number; documents: number; supportTickets: number; chats: number; sosRequests: number };
   expenses?: unknown[];
   documents?: unknown[];
-  supportTickets?: unknown[];
+  supportTickets?: SupportTicket[];
+}
+
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type TicketCategory = 'GENERAL' | 'TECHNICAL' | 'BILLING' | 'VEHICLE' | 'APP_ISSUE' | 'OTHER' | 'DOCUMENTS' | 'VALET' | 'AI_ASSISTANT' | 'ACCOUNT';
+
+export interface SupportTicketListItem {
+  id: string;
+  customerId: string;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  category: TicketCategory;
+  createdAt: string;
+  updatedAt: string;
+  customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
+  _count: { messages: number };
+}
+
+export interface SupportTicket extends SupportTicketListItem {
+  messages: TicketMessage[];
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderRole: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface AdminVehicleListItem {
+  id: string;
+  registrationNumber: string;
+  make: string | null;
+  model: string | null;
+  variant: string | null;
+  year: number | null;
+  fuelType: string | null;
+  vehicleType: string | null;
+  ownerName: string | null;
+  rcVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
+  _count: { challans: number; documents: number; expenses: number };
 }

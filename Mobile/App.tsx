@@ -8,8 +8,6 @@ import { store } from './src/store';
 import { setUser } from './src/store/slices/authSlice';
 import { getStoredAccessToken } from './src/services/authService';
 import {
-  clearAuthStorage,
-  getAuthPersistedAt,
   getUserId,
   hydrateAuthFromPersistedStorage,
   setUserId,
@@ -33,25 +31,17 @@ function tryDecodeUserIdFromJwt(token: string): string | undefined {
   }
 }
 
-function AuthRestore() {
-  useEffect(() => {
-    const persistedAt = getAuthPersistedAt();
-    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-    if (persistedAt && Date.now() - persistedAt > THIRTY_DAYS_MS) {
-      clearAuthStorage();
-      return;
-    }
-    const token = getStoredAccessToken();
-    let id = getUserId();
-    if (token && !id) {
-      id = tryDecodeUserIdFromJwt(token);
-      if (id) setUserId(id);
-    }
-    if (token && id) {
-      store.dispatch(setUser({ id, email: undefined }));
-    }
-  }, []);
-  return <RootNavigator />;
+/** Run after hydrate so async-auth cache is filled; before navigator mounts so splash routing sees auth. */
+function bootstrapAuthToRedux() {
+  const token = getStoredAccessToken();
+  let id = getUserId();
+  if (token && !id) {
+    id = tryDecodeUserIdFromJwt(token);
+    if (id) setUserId(id);
+  }
+  if (token && id) {
+    store.dispatch(setUser({ id, email: undefined }));
+  }
 }
 
 function App() {
@@ -59,7 +49,14 @@ function App() {
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
+    hydrateAuthFromPersistedStorage()
+      .catch(() => {
+        /* keep going; MMKV path still works */
+      })
+      .finally(() => {
+        bootstrapAuthToRedux();
+        setStorageReady(true);
+      });
   }, []);
 
   if (!storageReady) {
@@ -78,7 +75,7 @@ function App() {
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <NavigationContainer>
               <VoiceOwnerProvider>
-                <AuthRestore />
+                <RootNavigator />
               </VoiceOwnerProvider>
             </NavigationContainer>
           </SafeAreaProvider>

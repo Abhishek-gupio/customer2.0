@@ -7,6 +7,7 @@ import {
   getAccessToken,
   getRefreshToken,
   setAuthPersistedAt,
+  awaitAuthStoragePersisted,
 } from './storage';
 import { damoovTelematics } from '../native/damoovTelematics';
 
@@ -130,6 +131,7 @@ export async function verifyOtp(phoneNumber: string, otp: string): Promise<Verif
   const jwtPayload = decodeJwtPayload(payload.accessToken);
   const id = idFromServer ?? jwtPayload?.id;
   if (id) setUserId(id);
+  await awaitAuthStoragePersisted();
   return { ...payload, userId: id };
 }
 
@@ -159,5 +161,6 @@ export async function loginWithGoogle(idToken: string): Promise<LoginWithGoogleR
   const jwtPayload = decodeJwtPayload(payload.accessToken);
   const id = idFromServer ?? jwtPayload?.id;
   if (id) setUserId(id);
+  await awaitAuthStoragePersisted();
   return { ...payload, userId: id };
 }

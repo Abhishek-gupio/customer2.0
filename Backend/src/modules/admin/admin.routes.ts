@@ -11,6 +11,8 @@ router.use(adminAuthMiddleware);
 router.get("/me", adminController.me);
 router.get("/stats", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.getOverviewStats);
 router.get("/customers", adminController.listCustomers);
+router.get("/tickets", adminController.listTickets);
+router.get("/vehicles", adminController.listVehicles);
 router.get("/customers/:id", adminController.getCustomerDetail);
 
 export const adminRoutes = router;

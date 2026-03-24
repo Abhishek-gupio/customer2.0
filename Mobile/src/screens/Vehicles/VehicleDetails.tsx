@@ -10,6 +10,7 @@ import {
   Easing,
   StatusBar,
   Platform,
+  PermissionsAndroid,
   Alert,
   Modal,
   TextInput,
@@ -167,7 +168,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
       toValue: healthScore,
       duration: 1500,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      // Animated SVG props (strokeDashoffset) must run on JS driver.
+      useNativeDriver: false,
     }).start();
   }, [animatedValue, healthScore]);
 
@@ -211,7 +213,6 @@ const VehicleDetails = ({ navigation, route }: any) => {
     try {
       await vehicleService.addOdometer(vehicle.id, { reading: parseInt(odoInput, 10) });
       await fetchVehicleDetails();
-      Alert.alert('Success', 'Odometer updated successfully!');
       setOdoInput('');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update odometer manually');
@@ -221,12 +222,33 @@ const VehicleDetails = ({ navigation, route }: any) => {
   };
 
   const handleCameraOdometer = async () => {
-    setIsOdoModalVisible(false);
     try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'Camera access is required to scan odometer reading.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+            buttonNeutral: 'Ask Me Later',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission denied', 'Camera permission is required to continue.');
+          return;
+        }
+      }
+
       const result: any = await launchCamera({
         mediaType: 'photo',
         quality: 0.8,
       });
+      if (result?.didCancel) return;
+      if (result?.errorCode) {
+        Alert.alert('Camera error', result?.errorMessage || 'Could not open camera.');
+        return;
+      }
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         const fd = new FormData();
@@ -238,9 +260,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
         setIsRecalculating(true);
         try {
-          await vehicleService.addOdometerViaAI(vehicle.id, fd);
-          await fetchVehicleDetails();
-          Alert.alert('Success', 'Odometer updated successfully via AI!');
+          const extracted = await vehicleService.extractOdometerViaAI(vehicle.id, fd);
+          setOdoInput(String(extracted.reading ?? ''));
         } catch (err: any) {
           Alert.alert('Error', err?.message || 'Failed OCR check. Please try manual entry.');
         } finally {

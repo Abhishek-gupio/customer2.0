@@ -161,25 +161,16 @@ exports.Prisma.CustomerDeviceScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.CustomerDocumentScalarFieldEnum = {
+exports.Prisma.VehicleDocumentScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   vehicleId: 'vehicleId',
   type: 'type',
   documentNumber: 'documentNumber',
-  issueDate: 'issueDate',
   expiryDate: 'expiryDate',
-  issuerName: 'issuerName',
+  fileContent: 'fileContent',
   fileUrl: 'fileUrl',
-  thumbnailUrl: 'thumbnailUrl',
-  fileSize: 'fileSize',
   mimeType: 'mimeType',
-  ocrData: 'ocrData',
-  extractedFields: 'extractedFields',
-  verificationStatus: 'verificationStatus',
-  verifiedAt: 'verifiedAt',
-  verifiedBy: 'verifiedBy',
-  source: 'source',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -205,8 +196,6 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   registrationNumber: 'registrationNumber',
   make: 'make',
   model: 'model',
-  variant: 'variant',
-  year: 'year',
   fuelType: 'fuelType',
   vehicleType: 'vehicleType',
   currentOdometer: 'currentOdometer',
@@ -223,9 +212,6 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   rto: 'rto',
   vehicleClass: 'vehicleClass',
   fuelNorms: 'fuelNorms',
-  transmission: 'transmission',
-  priceRange: 'priceRange',
-  rating: 'rating',
   rcStatus: 'rcStatus',
   unloadedWeight: 'unloadedWeight',
   fitnessUpto: 'fitnessUpto',
@@ -234,13 +220,32 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   mileage: 'mileage',
   brand: 'brand',
   color: 'color',
-  seatingCapacity: 'seatingCapacity',
-  cylinderCount: 'cylinderCount',
-  cubicCapacity: 'cubicCapacity',
-  grossWeight: 'grossWeight',
-  bodyType: 'bodyType',
-  ownerAddress: 'ownerAddress',
-  permanentAddress: 'permanentAddress'
+  manufacturingMonthYear: 'manufacturingMonthYear'
+};
+
+exports.Prisma.VehicleCatalogScalarFieldEnum = {
+  id: 'id',
+  vehicleType: 'vehicleType',
+  make: 'make',
+  model: 'model',
+  variant: 'variant',
+  normalizedKey: 'normalizedKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VehicleAssetScalarFieldEnum = {
+  id: 'id',
+  catalogId: 'catalogId',
+  type: 'type',
+  assetIndex: 'assetIndex',
+  assetUrl: 'assetUrl',
+  assetHash: 'assetHash',
+  mimeType: 'mimeType',
+  s3Key: 's3Key',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {
@@ -1187,23 +1192,16 @@ exports.DocumentType = exports.$Enums.DocumentType = {
   OTHER: 'OTHER'
 };
 
-exports.VerificationStatus = exports.$Enums.VerificationStatus = {
-  PENDING: 'PENDING',
-  VERIFIED: 'VERIFIED',
-  REJECTED: 'REJECTED'
-};
-
-exports.DocumentSource = exports.$Enums.DocumentSource = {
-  UPLOAD: 'UPLOAD',
-  DIGILOCKER: 'DIGILOCKER',
-  PARIVAHAN: 'PARIVAHAN'
-};
-
 exports.DigiLockerStatus = exports.$Enums.DigiLockerStatus = {
   CONNECTED: 'CONNECTED',
   DISCONNECTED: 'DISCONNECTED',
   EXPIRED: 'EXPIRED',
   REVOKED: 'REVOKED'
+};
+
+exports.VehicleAssetType = exports.$Enums.VehicleAssetType = {
+  HERO: 'HERO',
+  ANGLE: 'ANGLE'
 };
 
 exports.AccessRole = exports.$Enums.AccessRole = {
@@ -1547,9 +1545,11 @@ exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
-  CustomerDocument: 'CustomerDocument',
+  VehicleDocument: 'VehicleDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
+  VehicleCatalog: 'VehicleCatalog',
+  VehicleAsset: 'VehicleAsset',
   OdometerLog: 'OdometerLog',
   Challan: 'Challan',
   VehicleAccess: 'VehicleAccess',
