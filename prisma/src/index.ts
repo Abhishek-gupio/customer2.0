@@ -1,4 +1,7 @@
-import 'dotenv/config';
+/// <reference types="node" />
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { config as loadEnvFile } from 'dotenv';
 import { PrismaClient } from '../generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -8,10 +11,36 @@ declare global {
   var pool: Pool | undefined;
 }
 
-let connectionString = process.env.DATABASE_URL ?? '';
-if (!connectionString || connectionString.trim() === '') {
+/** Matches docker-compose.yml (postgres:16, user/db abhishekkumar / valet_db). */
+const LOCAL_DOCKER_DATABASE_URL =
+  'postgresql://abhishekkumar@localhost:5432/valet_db?schema=customer';
+
+// dotenv only loads cwd/.env by default; Backend often runs with no root .env. Merge known paths (later files do not override existing vars).
+const projectCwd = process.cwd?.() ?? '.';
+const envCandidates = [
+  join(projectCwd, '.env'),
+  join(projectCwd, 'Backend', '.env'),
+  // prisma/dist/src -> ../../.env = prisma package .env
+  join(__dirname, '../../.env'),
+  // monorepo Backend/.env
+  join(__dirname, '../../../Backend', '.env'),
+];
+for (const p of envCandidates) {
+  if (existsSync(p)) {
+    loadEnvFile({ path: p });
+  }
+}
+
+let connectionString = (process.env.DATABASE_URL ?? '').trim();
+if (!connectionString && process.env.NODE_ENV !== 'production') {
+  connectionString = LOCAL_DOCKER_DATABASE_URL;
+  console.warn(
+    '[@repo/db-customer] DATABASE_URL not set; using local Docker Compose default. Add DATABASE_URL to Backend/.env (see Backend/.env.example).',
+  );
+}
+if (!connectionString) {
   throw new Error(
-    'DATABASE_URL is not set. For local dev, set it in Backend/.env (e.g. DATABASE_URL=postgresql://abhishekkumar@localhost:5432/valet_db?schema=customer)'
+    'DATABASE_URL is not set. For local dev: copy Backend/.env.example to Backend/.env, run `docker compose up -d`, or set DATABASE_URL (e.g. postgresql://abhishekkumar@localhost:5432/valet_db?schema=customer)',
   );
 }
 

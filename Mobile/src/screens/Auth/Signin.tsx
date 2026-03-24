@@ -203,7 +203,7 @@ export default function Signin() {
           <View style={styles.orLine} />
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           activeOpacity={0.85}
           style={[styles.socialButton, googleLoading && styles.submitButtonDisabled]}
           onPress={handleGoogleSignIn}
@@ -221,18 +221,9 @@ export default function Signin() {
               <Text style={styles.socialText}>Sign in with Google</Text>
             </>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
-        {/* 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.socialButton}
-          onPress={() => { }}
-        >
-          <Icon name="apple" size={wp(5.5)} color="#fff" style={styles.socialIcon} />
-          <Text style={styles.socialText}>Sign in with Apple</Text>
-        </TouchableOpacity>
-        */}
+    
 
         <Text style={styles.footerText}>Don't have an account?</Text>
         <TouchableOpacity

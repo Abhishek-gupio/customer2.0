@@ -363,6 +363,27 @@ export default function NearbyPlaces() {
     navigation.push('NearbyPlaces', { placeType: id });
   };
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredCategories = NEARBY_CATEGORIES
+    .map((cat) => {
+      const filteredItemIds = cat.itemIds.filter((id) => {
+        const item = getPlaceById(id);
+        const label = PLACE_LABELS[id] || item.name;
+        return (
+          !normalizedSearch ||
+          item.name.toLowerCase().includes(normalizedSearch) ||
+          label.toLowerCase().includes(normalizedSearch) ||
+          cat.title.toLowerCase().includes(normalizedSearch)
+        );
+      });
+
+      return {
+        ...cat,
+        itemIds: filteredItemIds,
+      };
+    })
+    .filter((cat) => cat.itemIds.length > 0);
+
   if (!isBrowse) {
     const apiType = placeType ? PLACE_API_TYPE[placeType] : undefined;
     if (placeType && apiType) {
@@ -418,7 +439,7 @@ export default function NearbyPlaces() {
         </View>
 
         <View style={styles.contentSection}>
-          {NEARBY_CATEGORIES.map((cat) => (
+          {filteredCategories.map((cat) => (
             <View key={cat.title} style={styles.categoryWrap}>
               <Text style={styles.categoryTitle}>{cat.title}</Text>
               <View style={styles.row}>
@@ -445,6 +466,15 @@ export default function NearbyPlaces() {
               </View>
             </View>
           ))}
+          {filteredCategories.length === 0 ? (
+            <View style={styles.searchEmptyWrap}>
+              <IconMC name="map-search-outline" size={wp(14)} color="#444" />
+              <Text style={styles.searchEmptyTitle}>No matching places</Text>
+              <Text style={styles.searchEmptyText}>
+                Try another search term like fuel, hospital, parking, or mechanic.
+              </Text>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -722,5 +752,24 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     marginTop: hp(1),
+  },
+  searchEmptyWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(8),
+  },
+  searchEmptyTitle: {
+    fontSize: wp(4.8),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+    marginTop: hp(1.5),
+  },
+  searchEmptyText: {
+    fontSize: wp(3.7),
+    fontFamily: 'Outfit-Medium',
+    color: '#888',
+    textAlign: 'center',
+    marginTop: hp(0.8),
   },
 });

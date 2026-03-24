@@ -37,7 +37,8 @@ import { useDispatch } from 'react-redux';
 import { logoutStorage } from '../../services/authService';
 import { logout } from '../../store/slices/authSlice';
 import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
-import { getAbsoluteUrl, GEO } from '../../config';
+import { getAbsoluteUrl } from '../../config';
+import { googleMapsService } from '../../services/googleMapsService';
 import BackButton from '../../components/BackButton';
 
 // GPS-based location (same pattern as SOSButton)
@@ -217,51 +218,41 @@ export default function MyProfile() {
     return true;
   };
 
-  // Reverse-geocode lat/long to locality/city. Prefer exact area (e.g. Srirampura, Mysore); avoid generic state-capital (e.g. Bengaluru, Karnataka) when display_name is more specific.
-  const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
-    try {
-      const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
-      const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': GEO.userAgent },
-      });
-      const text = await res.text();
-      const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
-      const addr = data?.address;
-      if (!addr) return null;
-      // Prefer most specific place first: suburb/locality then town, not just city (often state capital)
-      const primary =
-        addr.suburb ||
-        addr.neighbourhood ||
-        addr.locality ||
-        addr.village ||
-        addr.county ||
-        addr.town ||
-        addr.city ||
-        addr.state_district;
-      const townOrCity = addr.town || addr.city;
-      const stateOrCountry = addr.state || addr.region || addr.country;
-      const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
-      let result = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || null;
+  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
 
-      // When result is generic (only city + state, e.g. Bengaluru, Karnataka) but display_name has more specific start (e.g. Srirampura, Mysore), use that so location is consistent with exact area
-      const displayName = data?.display_name;
-      if (displayName && typeof displayName === 'string') {
-        const parts = displayName.split(',').map((p: string) => p.trim()).filter(Boolean);
-        if (parts.length >= 2) {
-          const fromDisplay = `${parts[0]}, ${parts[1]}`;
-          const isGenericCityState = result && (primary === addr.city || primary === addr.state) && addr.city && addr.state;
-          if (isGenericCityState && fromDisplay !== result) result = fromDisplay;
-          else if (!result) result = fromDisplay;
-        }
-      }
-      return result || null;
-    } catch {
-      return null;
-    }
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
   };
 
-  // 1) Try GPS (lat/long) + reverse geocode. 2) Fallback to IP-based. Client-only, not stored on server.
   const fetchUserLocation = async () => {
     const applyLocation = (locationStr: string) => {
       setProfile((prev) => (prev ? { ...prev, location: locationStr } : prev));
@@ -269,45 +260,13 @@ export default function MyProfile() {
     };
 
     try {
-      // 1. GPS path (accurate, like big companies)
-      if (Geolocation) {
-        const permitted = await requestLocationPermission();
-        if (permitted) {
-          const coords = await new Promise<{ lat: number; lon: number } | null>((resolve) => {
-            Geolocation.getCurrentPosition(
-              (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-              () => resolve(null),
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-            );
-          });
-          if (coords) {
-            const locationStr = await reverseGeocode(coords.lat, coords.lon);
-            if (locationStr) {
-              applyLocation(locationStr);
-              return;
-            }
-          }
-        }
-      }
-
-      // 2. Fallback: IP-based geo (URLs from config)
-      let geo: any = null;
-      const headers = { 'User-Agent': GEO.userAgent };
-      for (const ipUrl of GEO.ipProviders) {
-        if (geo) break;
-        try {
-          const res = await fetch(ipUrl, { headers });
-          const text = await res.text();
-          const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
-          if (data?.city && data?.region) geo = data;
-        } catch { /* ignore */ }
-      }
-
-      if (geo?.city && geo?.region) {
-        applyLocation(`${geo.city}, ${geo.region}`);
-        return;
-      }
-      applyLocation('Location not available');
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(
+        coords.latitude,
+        coords.longitude,
+      );
+      applyLocation(address);
     } catch (error) {
       console.log('Location detection failed:', error);
       applyLocation('Location not available');

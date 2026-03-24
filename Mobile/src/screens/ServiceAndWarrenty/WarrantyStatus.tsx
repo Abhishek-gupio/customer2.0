@@ -60,6 +60,9 @@ interface PartData {
   intervalSource?: string;
 }
 
+const OEM_WARNING_EXCLUDED_PART_TYPES = new Set(["OTHER_PART"]);
+const OEM_INTERVAL_SOURCES = new Set(["OEM_WEBSITE", "OEM"]);
+
 export const WarrantyStatus = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(true);
@@ -321,7 +324,11 @@ export const WarrantyStatus = () => {
         
       </View>
 
-      {parts.some(p => (p.intervalSource || '').toUpperCase() !== 'OEM_WEBSITE') && (
+      {parts.some(
+        (p) =>
+          !OEM_WARNING_EXCLUDED_PART_TYPES.has((p.id || '').toUpperCase()) &&
+          !OEM_INTERVAL_SOURCES.has((p.intervalSource || '').toUpperCase()),
+      ) && (
         <View style={styles.oemWarningBanner}>
           <Icon name="exclamation-triangle" size={wp(4)} color="#F59E0B" style={styles.oemWarningIcon} />
           <Text style={styles.oemWarningText}>
