@@ -57,4 +57,32 @@ export const adminController = {
     const data = await adminDashboardService.getOverviewStats(req.admin.role);
     success(res, data);
   }),
+
+  listTickets: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const data = await adminDashboardService.listTickets({
+      page,
+      limit,
+      search,
+      role: req.admin.role,
+    });
+    success(res, data);
+  }),
+
+  listVehicles: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const data = await adminDashboardService.listVehicles({
+      page,
+      limit,
+      search,
+      role: req.admin.role,
+    });
+    success(res, data);
+  }),
 };

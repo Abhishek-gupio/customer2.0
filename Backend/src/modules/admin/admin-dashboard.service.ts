@@ -52,8 +52,6 @@ export const adminDashboardService = {
             select: {
               vehicles: true,
               expenses: true,
-              documents: true,
-              supportTickets: true,
             },
           },
         },
@@ -64,6 +62,98 @@ export const adminDashboardService = {
     const withPics = await Promise.all(customers.map((c) => withReadablePic(c)));
     return {
       data: withPics,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  },
+
+  /** List all support tickets with search and pagination. */
+  async listTickets(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role: AdminRole;
+  }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (params.search?.trim()) {
+      const q = `%${params.search.trim()}%`;
+      where.OR = [
+        { subject: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { customer: { fullName: { contains: q, mode: "insensitive" } } },
+        { customer: { phoneNumber: { contains: params.search.trim() } } },
+      ];
+    }
+
+    const db = dbInstances as any;
+    if (!db.supportTicket) return { data: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+
+    const [tickets, total] = await Promise.all([
+      db.supportTicket.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { updatedAt: "desc" },
+        include: {
+          customer: {
+            select: { id: true, fullName: true, phoneNumber: true, email: true },
+          },
+          _count: { select: { messages: true } },
+        },
+      }),
+      db.supportTicket.count({ where }),
+    ]);
+
+    return {
+      data: tickets,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  },
+
+  /** List all vehicles with search and pagination. */
+  async listVehicles(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role: AdminRole;
+  }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (params.search?.trim()) {
+      const q = `%${params.search.trim()}%`;
+      where.OR = [
+        { registrationNumber: { contains: q, mode: "insensitive" } },
+        { make: { contains: q, mode: "insensitive" } },
+        { model: { contains: q, mode: "insensitive" } },
+        { ownerName: { contains: q, mode: "insensitive" } },
+        { customer: { fullName: { contains: q, mode: "insensitive" } } },
+      ];
+    }
+
+    const [vehicles, total] = await Promise.all([
+      dbInstances.customerVehicle.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          customer: {
+            select: { id: true, fullName: true, phoneNumber: true, email: true },
+          },
+          _count: { select: { challans: true, documents: true, expenses: true } },
+        },
+      }),
+      dbInstances.customerVehicle.count({ where }),
+    ]);
+
+    return {
+      data: vehicles,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   },
@@ -116,33 +206,17 @@ export const adminDashboardService = {
     }
 
     const withPic = await withReadablePic(customer);
-
-    if (role === "SUPPORT") {
-      const tickets = await (dbInstances as any).supportTicket?.findMany({
-        where: { customerId },
-        include: { messages: { orderBy: { createdAt: "asc" } } },
-        orderBy: { updatedAt: "desc" },
-      }) ?? [];
-      return {
-        ...withPic,
-        vehicles: [],
-        devices: [],
-        emergencyContacts: withPic.emergencyContacts,
-        digilocker: withPic.digilocker,
-        _count: withPic._count,
-        supportTickets: tickets,
-        expenses: [],
-        documents: [],
-      };
-    }
-
     const db = dbInstances as any;
-    const [expenses, documents, supportTickets] = await Promise.all([
+
+    // Fetch documents, expenses, and tickets for ALL roles (including SUPPORT)
+    const [expensesRaw, documentsRaw, supportTickets] = await Promise.all([
       db.expense?.findMany({
         where: { customerId },
         take: 50,
         orderBy: { date: "desc" },
-        include: { vehicle: { select: { registrationNumber: true, make: true, model: true } } },
+        include: {
+          vehicle: { select: { registrationNumber: true, make: true, model: true } },
+        },
       }) ?? [],
       dbInstances.customerDocument.findMany({
         where: { customerId },
@@ -154,6 +228,43 @@ export const adminDashboardService = {
         orderBy: { updatedAt: "desc" },
       }) ?? [],
     ]);
+
+    console.log(`[admin] getCustomerDetail customerId=${customerId} docs=${documentsRaw.length} expenses=${expensesRaw.length}`);
+
+    // Generate signed/readable URLs for file access
+    const [expenses, documents] = await Promise.all([
+      Promise.all(
+        expensesRaw.map(async (e: any) => ({
+          ...e,
+          receiptUrl: e.receiptUrl
+            ? await storageService.ensureReadableUrl(e.receiptUrl)
+            : null,
+        }))
+      ),
+      Promise.all(
+        documentsRaw.map(async (d: any) => ({
+          ...d,
+          fileUrl: d.fileUrl
+            ? await storageService.ensureReadableUrl(d.fileUrl)
+            : d.fileUrl,
+        }))
+      ),
+    ]);
+
+    // SUPPORT role: hide vehicles and devices but still show docs/expenses/tickets
+    if (role === "SUPPORT") {
+      return {
+        ...withPic,
+        vehicles: [],
+        devices: [],
+        emergencyContacts: withPic.emergencyContacts,
+        digilocker: withPic.digilocker,
+        _count: withPic._count,
+        supportTickets,
+        expenses,
+        documents,
+      };
+    }
 
     return {
       ...withPic,
