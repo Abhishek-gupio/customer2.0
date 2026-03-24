@@ -370,14 +370,20 @@ export default function Home() {
   const fetchDiscoveryContent = async () => {
     try {
       setDiscoveryLoading(true);
-      const res = await api.get<any>('/v1/discovery/trending');
-      const data = (res as any).data || res;
-      if (data) {
-        if (data.news) setTrendingNews(data.news);
-        if (data.videos) setTrendingVideos(data.videos);
-      }
+      const res = await api.get<{
+        success?: boolean;
+        data?: { news?: unknown; videos?: unknown };
+      }>('/v1/discovery/trending');
+      const body = res as { data?: { news?: unknown; videos?: unknown } };
+      const inner = body?.data ?? (res as { news?: unknown; videos?: unknown });
+      const newsRaw = inner?.news;
+      const videosRaw = inner?.videos;
+      setTrendingNews(Array.isArray(newsRaw) ? newsRaw : []);
+      setTrendingVideos(Array.isArray(videosRaw) ? videosRaw : []);
     } catch (error) {
       console.error('Error fetching discovery content:', error);
+      setTrendingNews([]);
+      setTrendingVideos([]);
     } finally {
       setDiscoveryLoading(false);
     }
@@ -729,38 +735,58 @@ export default function Home() {
           </View>
         </View>
 
-        {/* TRENDING CAR VIDEOS */}
+        {/* TRENDING CAR VIDEOS — ScrollView avoids nested VirtualizedList inside ScrollView (FlatList often gets 0 height). */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Trending Videos</Text>
+            {discoveryLoading ? (
+              <ActivityIndicator size="small" color="#FFBF00" />
+            ) : null}
           </View>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={trendingVideos}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.videoListContent}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.videoCard}
-                onPress={() => handleVideoPress(item.url)}
-              >
-                {item.tag && <View style={styles.videoTag}><Text style={styles.tagText}>{item.tag}</Text></View>}
-                <View style={styles.videoThumbnail}>
-                  <Image
-                    source={{ uri: item.thumbnail }}
-                    style={styles.thumbnailImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.playButtonOverlay}>
-                    <MaterialIcon name="play-circle" size={50} color="#fff" />
+          {discoveryLoading && trendingVideos.length === 0 ? (
+            <View style={styles.discoveryPlaceholder}>
+              <Text style={styles.discoveryPlaceholderText}>Loading videos…</Text>
+            </View>
+          ) : trendingVideos.length === 0 ? (
+            <View style={styles.discoveryPlaceholder}>
+              <Text style={styles.discoveryPlaceholderText}>No videos right now. Check back soon.</Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              contentContainerStyle={styles.videoListContent}
+            >
+              {trendingVideos.map((item, index) => (
+                <TouchableOpacity
+                  key={String(item?.id ?? index)}
+                  style={styles.videoCard}
+                  onPress={() => handleVideoPress(item.url)}
+                >
+                  {item.tag ? (
+                    <View style={styles.videoTag}>
+                      <Text style={styles.tagText}>{item.tag}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.videoThumbnail}>
+                    <Image
+                      source={{ uri: item.thumbnail }}
+                      style={styles.thumbnailImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.playButtonOverlay}>
+                      <MaterialIcon name="play-circle" size={50} color="#fff" />
+                    </View>
+                    <Text style={styles.viewCount}>{item.views}</Text>
                   </View>
-                  <Text style={styles.viewCount}>{item.views}</Text>
-                </View>
-                <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
-              </TouchableOpacity>
-            )}
-          />
+                  <Text style={styles.videoTitle} numberOfLines={2}>
+                    {item.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         <View style={styles.fuelSection}>
@@ -821,20 +847,35 @@ export default function Home() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Car News</Text>
+            {discoveryLoading ? (
+              <ActivityIndicator size="small" color="#FFBF00" />
+            ) : null}
           </View>
-          {trendingNews.map((news) => (
-            <TouchableOpacity
-              key={news.id}
-              style={styles.newsCard}
-              onPress={() => handleNewsPress(news.url)}
-            >
-              <View style={styles.newsContent}>
-                <Text style={styles.newsTitle}>{news.title}</Text>
-                <Text style={styles.newsSnippet} numberOfLines={1}>{news.snippet}</Text>
-                <Text style={styles.newsTime}>{news.time}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {discoveryLoading && trendingNews.length === 0 ? (
+            <View style={styles.discoveryPlaceholder}>
+              <Text style={styles.discoveryPlaceholderText}>Loading news…</Text>
+            </View>
+          ) : trendingNews.length === 0 ? (
+            <View style={styles.discoveryPlaceholder}>
+              <Text style={styles.discoveryPlaceholderText}>No news right now. Check back soon.</Text>
+            </View>
+          ) : (
+            trendingNews.map((news, index) => (
+              <TouchableOpacity
+                key={String(news?.id ?? index)}
+                style={styles.newsCard}
+                onPress={() => handleNewsPress(news.url)}
+              >
+                <View style={styles.newsContent}>
+                  <Text style={styles.newsTitle}>{news.title}</Text>
+                  <Text style={styles.newsSnippet} numberOfLines={1}>
+                    {news.snippet}
+                  </Text>
+                  <Text style={styles.newsTime}>{news.time}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* FULL HEIGHT HOME ADVERTISEMENT */}
@@ -979,6 +1020,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     color: '#FFFFFF',
     fontSize: wp(5),
+  },
+  discoveryPlaceholder: {
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(2),
+    backgroundColor: '#111111',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  discoveryPlaceholderText: {
+    color: '#888',
+    fontSize: wp(3.4),
+    fontFamily: 'Outfit-Medium',
   },
   sectionTitleCenter: {
     fontFamily: 'Outfit-Bold',

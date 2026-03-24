@@ -33,19 +33,30 @@ export const discoveryController = {
                 });
             }
 
-            if (cachedNews && cachedVideos) {
+            const newsFromCache =
+                cachedNews && Array.isArray(cachedNews.content) ? cachedNews.content : [];
+            const videosFromCache =
+                cachedVideos && Array.isArray(cachedVideos.content) ? cachedVideos.content : [];
+
+            const needNews = newsFromCache.length === 0;
+            const needVideos = videosFromCache.length === 0;
+
+            if (!needNews && !needVideos) {
                 logger.debug("Discovery content served from 24-hour cache");
                 return success(res, {
-                    news: cachedNews.content,
-                    videos: cachedVideos.content
+                    news: newsFromCache,
+                    videos: videosFromCache,
                 });
             }
 
-            // 2. Fetch fresh content if cache missing or expired
-            logger.info("Discovery cache expired or missing. Fetching fresh content...");
+            // 2. Fetch only missing slices (both rows can exist while one Json array is empty — refetch that side)
+            logger.info(
+                { needNews, needVideos },
+                "Discovery cache partial or empty. Fetching fresh content where needed...",
+            );
             const [news, videos] = await Promise.all([
-                contentScraperService.fetchCarNews(),
-                contentScraperService.fetchCarVideos()
+                needNews ? contentScraperService.fetchCarNews() : Promise.resolve(newsFromCache),
+                needVideos ? contentScraperService.fetchCarVideos() : Promise.resolve(videosFromCache),
             ]);
 
             // 3. Update cache (only if model available)
@@ -81,9 +92,11 @@ export const discoveryController = {
                     where: { type: 'VIDEO' },
                     orderBy: { date: 'desc' }
                 });
+                const n = lastNews?.content;
+                const v = lastVideos?.content;
                 return success(res, {
-                    news: (lastNews?.content as any) || [],
-                    videos: (lastVideos?.content as any) || []
+                    news: Array.isArray(n) ? n : [],
+                    videos: Array.isArray(v) ? v : [],
                 });
             } catch {
                 return success(res, { news: [], videos: [] });
