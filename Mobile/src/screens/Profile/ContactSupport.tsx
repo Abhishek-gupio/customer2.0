@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Modal,
 } from 'react-native';
 import { vehicleService, type Vehicle } from '../../services/vehicleService';
 
@@ -57,6 +58,8 @@ export default function ContactSupport() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [fetchingVehicles, setFetchingVehicles] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({ title: '', message: '', type: 'info' as 'info' | 'success' | 'warning' });
 
   React.useEffect(() => {
     const loadVehicles = async () => {
@@ -86,9 +89,31 @@ export default function ContactSupport() {
     });
   };
 
+  const showCustomAlert = (title: string, message: string, type: 'info' | 'success' | 'warning' = 'info') => {
+    setAlertConfig({ title, message, type });
+    setAlertVisible(true);
+  };
+
+  const handleAlertClose = () => {
+    setAlertVisible(false);
+    if (alertConfig.message === 'Ticket raised successfully!' || alertConfig.title === 'Success') {
+      navigation.goBack();
+    }
+  };
+
   const handleSubmit = async () => {
     if (!subject || !description) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showCustomAlert('Attention', 'Please fill in both the Subject and Description to help us assist you.', 'warning');
+      return;
+    }
+
+    if (subject.trim().length < 5) {
+      showCustomAlert('Wait', 'Your subject is a bit short. Please provide at least 5 characters to help us understand the issue.', 'warning');
+      return;
+    }
+
+    if (description.trim().length < 10) {
+      showCustomAlert('Wait', 'Please provide a bit more detail (at least 10 characters) so our team can investigate properly.', 'warning');
       return;
     }
 
@@ -108,17 +133,14 @@ export default function ContactSupport() {
         }
       } as any);
       if (resp.success) {
-        Alert.alert('Success', 'Ticket raised successfully!', [
-          { text: 'View Tickets', onPress: () => navigation.replace('TicketHistory') },
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        showCustomAlert('Success', 'Ticket raised successfully!', 'success');
       }
     } catch (err: any) {
       const errorObj = err.response?.data?.error;
       const msg = typeof errorObj === 'string' 
         ? errorObj 
-        : (errorObj?.message || 'Failed to submit ticket. Please try again.');
-      Alert.alert('Error', msg);
+        : (errorObj?.message || 'We encountered a small issue submitting your ticket. Please try again.');
+      showCustomAlert('Note', msg, 'info');
     } finally {
       setLoading(false);
     }
@@ -248,7 +270,7 @@ export default function ContactSupport() {
           <View style={styles.infoBox}>
             <Icon name="info-circle" size={wp(4)} color="#888" />
             <Text style={styles.infoBoxText}>
-              Mon–Sun, 9AM–9PM IST. Reply sent to your registered email within 24 hrs.
+              Mon–Sun, 9AM–9PM IST. You will receive an update in the "My Tickets" section within 24 hrs.
             </Text>
           </View>
 
@@ -268,6 +290,34 @@ export default function ContactSupport() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* ── Custom Alert Modal ── */}
+      <Modal
+        visible={alertVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAlertVisible(false)}
+      >
+        <View style={styles.popupOverlay}>
+          <View style={styles.popupCard}>
+            <View style={styles.popupHeader}>
+              <Icon 
+                name={alertConfig.type === 'success' ? 'check-circle' : (alertConfig.type === 'warning' ? 'exclamation-circle' : 'info-circle')} 
+                size={wp(6)} 
+                color={alertConfig.type === 'success' ? '#4CAF50' : (alertConfig.type === 'warning' ? '#FFBF00' : '#2196F3')} 
+              />
+              <Text style={styles.popupTitle}>{alertConfig.title}</Text>
+            </View>
+            <Text style={styles.popupMessage}>{alertConfig.message}</Text>
+            <TouchableOpacity 
+              style={styles.popupBtnMinimal} 
+              onPress={handleAlertClose}
+            >
+              <Text style={styles.popupBtnTextMinimal}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -395,4 +445,57 @@ const styles = StyleSheet.create({
   },
   submitBtnContent: { flexDirection: 'row', alignItems: 'center' },
   submitText: { fontSize: wp(4.5), fontWeight: '800', color: '#000' },
+
+  /* ── Custom Alert Popup ── */
+  popupOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(8),
+  },
+  popupCard: {
+    backgroundColor: '#1c1d21',
+    width: '100%',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  popupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  popupTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+  },
+  popupMessage: {
+    color: '#a0a0a0',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  popupBtnMinimal: {
+    alignSelf: 'flex-end',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,191,0,0.1)',
+  },
+  popupBtnTextMinimal: {
+    fontFamily: 'Outfit-Bold',
+    color: '#FFBF00',
+    fontSize: 15,
+    fontWeight: '700',
+  },
 });

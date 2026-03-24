@@ -346,7 +346,16 @@ export default function NearbyPlaces() {
   const route = useRoute<any>();
   const [searchQuery, setSearchQuery] = useState('');
   
+  const fromHome = route.params?.fromHome;
   const placeType = route.params?.placeType as PlaceType | undefined;
+
+  const handleBack = () => {
+    if (fromHome) {
+      navigation.navigate('Home');
+    } else {
+      navigation.goBack();
+    }
+  };
   const title = placeType ? PLACE_LABELS[placeType] || 'Nearby' : 'Nearby Places';
   const isBrowse = !placeType;
 
@@ -380,7 +389,7 @@ export default function NearbyPlaces() {
     if (placeType && apiType) {
       return (
         <NearbyPlacesListScreen
-          onBack={() => navigation.goBack()}
+          onBack={handleBack}
           title={title}
           placeType={placeType}
           apiType={apiType}
@@ -391,7 +400,7 @@ export default function NearbyPlaces() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <BackButton onPress={() => navigation.goBack()} />
+          <BackButton onPress={handleBack} />
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
         <View style={styles.placeholder}>
@@ -408,7 +417,7 @@ export default function NearbyPlaces() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <BackButton onPress={() => navigation.goBack()} />
+        <BackButton onPress={handleBack} />
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
 

@@ -15,6 +15,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import NotificationCard from '../../components/NotificationItem';
+import BackButton from '../../components/BackButton';
 import { colors, COLORS } from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW } from '../../theme/Fontsize';
 import { api } from '../../services/api';
@@ -223,7 +224,10 @@ export default function Alerts() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.title}>Notifications</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(3) }}>
+            <BackButton onPress={() => navigation.goBack()} />
+            <Text style={styles.title}>Notifications</Text>
+          </View>
           <TouchableOpacity onPress={() => setIsMenuVisible(true)} style={styles.menuButton}>
             <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
           </TouchableOpacity>
