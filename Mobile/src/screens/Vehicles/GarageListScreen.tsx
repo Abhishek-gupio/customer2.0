@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Plus, Trash2, ChevronRight, Car, Clock } from 'lucide-react-native';
-import { COLORS, FALLBACK_IMAGE } from '../../../components/Vehicles/VehicleUI';
-import { Vehicle } from '../../../services/vehicleService';
+import { COLORS, FALLBACK_IMAGE } from '../../components/Vehicles/VehicleUI';
+import { Vehicle } from '../../services/vehicleService';
 
 type GarageListScreenProps = {
     vehicles: Vehicle[];

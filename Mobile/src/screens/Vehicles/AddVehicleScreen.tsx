@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, ScrollView,
-    StyleSheet, Dimensions, ActivityIndicator, Alert,
+    StyleSheet, ActivityIndicator, Alert,
     KeyboardAvoidingView, Platform
 } from 'react-native';
 import {
-    ArrowLeft, ArrowRight, Car, Bike, Check, Calendar, Hash, Type,
-    ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
+    ArrowLeft, Car, Bike, ClipboardCheck, Info
 } from 'lucide-react-native';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
-
-const { width } = Dimensions.get('window');
 
 type AddVehicleScreenProps = {
     onBack?: () => void;
@@ -22,10 +19,7 @@ type AddVehicleScreenProps = {
 
 type Step = 'INPUT' | 'CONFIRM';
 
-const FUEL_TYPES = ['PETROL', 'DIESEL', 'CNG', 'EV', 'HYBRID', 'OTHER'];
-const VEHICLE_TYPES = ['CAR', 'BIKE'];
-
-export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationNumber }: AddVehicleScreenProps) => {
+export const AddVehicleScreen = ({ onBack, onDone, isFirst: _isFirst, initialRegistrationNumber }: AddVehicleScreenProps) => {
     const [step, setStep] = useState<Step>('INPUT');
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
@@ -64,7 +58,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                 chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
                 engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
                 registrationDate: rtoData.regDate || rtoData.registrationDate || '',
-                year: rtoData.year ? String(rtoData.year) : prev.year,
+                year: (rtoData as any).year ? String((rtoData as any).year) : prev.year,
                 rtoDetails: rtoData,
             }));
             setStep('CONFIRM');
@@ -78,14 +72,6 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
 
     const updateForm = (key: string, value: any) => {
         setForm(prev => ({ ...prev, [key]: value }));
-    };
-
-    const handleProceedToConfirm = () => {
-        if (!form.registrationNumber || !form.make || !form.model) {
-            Alert.alert("Required Fields", "Please fill Registration Number, Brand, and Model.");
-            return;
-        }
-        setStep('CONFIRM');
     };
 
     const handleSave = async () => {
@@ -133,7 +119,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                     <TouchableOpacity onPress={handleBackStep} style={styles.backBtn}>
                         <ArrowLeft size={28} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { marginLeft: 8 }]}>
+                    <Text style={[styles.headerTitle, styles.headerTitleMargin]}>
                         {step === 'INPUT' ? 'Add Vehicle' : 'Confirm Details'}
                     </Text>
                 </View>
@@ -141,11 +127,11 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
+                style={styles.flex1}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
                 <ScrollView
-                    style={{ flex: 1 }}
+                    style={styles.flex1}
                     contentContainerStyle={styles.content}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -191,7 +177,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                                     chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
                                                     engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
                                                     registrationDate: rtoData.regDate || rtoData.registrationDate || '',
-                                                    year: rtoData.year ? String(rtoData.year) : prev.year,
+                                                    year: (rtoData as any).year ? String((rtoData as any).year) : prev.year,
                                                     rtoDetails: rtoData,
                                                 }));
                                                 setStep('CONFIRM');
@@ -262,7 +248,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                     <ActivityIndicator color="#000" />
                                 ) : (
                                     <>
-                                        <ClipboardCheck size={20} color="#000" style={{ marginRight: 8 }} />
+                                        <ClipboardCheck size={20} color="#000" style={styles.saveIcon} />
                                         <Text style={styles.saveText}>CONFIRM & SAVE VEHICLE</Text>
                                     </>
                                 )}
@@ -278,7 +264,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                         </>
                     )}
 
-                    <View style={{ height: 40 }} />
+                    <View style={styles.bottomSpacer} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </View>
@@ -286,17 +272,23 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
 };
 
 // ── Helpers ──
-const Divider = () => <View style={{ height: 1, backgroundColor: COLORS.border, marginVertical: 2 }} />;
+const Divider = () => <View style={styles.divider} />;
 
 const ConfirmRow = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
     <View style={styles.confirmRow}>
         <Text style={styles.confirmLabel}>{label}</Text>
-        <Text style={[styles.confirmValue, accent && { color: COLORS.primary, fontSize: 16 }]}>{value}</Text>
+        <Text style={[styles.confirmValue, accent && styles.confirmValueAccent]}>{value}</Text>
     </View>
 );
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
+    flex1: { flex: 1 },
+    headerTitleMargin: { marginLeft: 8 },
+    divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 2 },
+    confirmValueAccent: { color: COLORS.primary, fontSize: 16 },
+    saveIcon: { marginRight: 8 },
+    bottomSpacer: { height: 40 },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
