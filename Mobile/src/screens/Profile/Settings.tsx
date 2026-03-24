@@ -79,8 +79,6 @@ export default function Settings() {
 
   const SETTINGS_ITEMS: MenuItem[] = [
     { icon: 'bell', label: 'Notifications' },
-    { icon: 'shield-alt', label: 'Privacy & Security' },
-    { icon: 'ellipsis-h', label: 'App Settings' },
   ];
 
   const SUPPORT_ITEMS: MenuItem[] = [
