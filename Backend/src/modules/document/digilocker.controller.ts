@@ -6,9 +6,15 @@ import { AppError } from "../../utils/AppError";
 
 export const digilockerController = {
   connect: asyncHandler(async (req: Request, res: Response) => {
-    const state = Math.random().toString(36).substring(7); // Basic CSRF state
-    const url = digilockerService.getAuthUrl(state);
-    success(res, { url });
+    if (!req.customer?.id) throw AppError.unauthorized();
+    
+    // Pass the current host to ensured the mock URL is reachable locally
+    const protocol = req.secure ? 'https' : 'http';
+    const host = req.get('host');
+    const fullBaseUrl = `${protocol}://${host}`;
+    
+    const result = await digilockerService.getAuthUrl(req.customer.id, fullBaseUrl);
+    success(res, result);
   }),
 
   callback: asyncHandler(async (req: Request, res: Response) => {
@@ -26,7 +32,8 @@ export const digilockerController = {
 
   sync: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
-    const result = await digilockerService.syncDocuments(req.customer.id);
+    const { client_id } = req.body || {};
+    const result = await digilockerService.syncDocuments(req.customer.id, client_id);
     success(res, result);
   }),
 };
