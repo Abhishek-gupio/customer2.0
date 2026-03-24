@@ -12,9 +12,10 @@ import {
   ActivityIndicator,
   Modal,
   Linking,
-  Image,
+  Image as RNImage,
   type ImageSourcePropType,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -447,10 +448,10 @@ export default function Home() {
                 return (
                   <View style={styles.slideFull}>
                     <View style={styles.primaryImageWrap}>
-                      <Image
-                        source={heroImageSource}
+                      <FastImage
+                        source={heroImageSource as any}
                         style={styles.primaryImageFull}
-                        resizeMode="cover"
+                        resizeMode={FastImage.resizeMode.cover}
                       />
                       <View style={styles.primaryImageOverlay}>
                         {vehicleLoading ? (
@@ -508,7 +509,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <Image
+                        <RNImage
                           source={require('../../assets/images/expense_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -536,7 +537,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <Image
+                        <RNImage
                           source={require('../../assets/images/vehicle_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -571,7 +572,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <Image
+                        <RNImage
                           source={require('../../assets/images/insta&website_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -633,7 +634,7 @@ export default function Home() {
                     </View>
                   </View>
                   <View style={styles.promoRight}>
-                    <Image
+                    <RNImage
                       source={require('../../assets/images/odometer.png') as any}
                       style={styles.adImage}
                       resizeMode="contain"
@@ -718,7 +719,7 @@ export default function Home() {
         {/* INSURANCE BANNER */}
         <View style={styles.bannerSection}>
           <View style={styles.insuranceBanner}>
-            <Image
+            <RNImage
               source={require('../../assets/images/challan.png') as any}
               style={styles.bannerImage}
               resizeMode="contain"
@@ -771,10 +772,10 @@ export default function Home() {
                     </View>
                   ) : null}
                   <View style={styles.videoThumbnail}>
-                    <Image
-                      source={{ uri: item.thumbnail }}
+                    <FastImage
+                      source={{ uri: item.thumbnail, priority: FastImage.priority.normal }}
                       style={styles.thumbnailImage}
-                      resizeMode="cover"
+                      resizeMode={FastImage.resizeMode.cover}
                     />
                     <View style={styles.playButtonOverlay}>
                       <MaterialIcon name="play-circle" size={50} color="#fff" />
@@ -912,7 +913,7 @@ export default function Home() {
               <Text style={styles.featureTitle}>Emergency</Text>
             </View>
           </View>
-          <Image
+          <RNImage
             source={require('../../assets/images/coming_soon.png') as any}
             style={styles.comingSoonBadge}
             resizeMode="contain"

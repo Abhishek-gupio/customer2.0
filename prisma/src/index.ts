@@ -72,7 +72,7 @@ if (connectionString) {
 const pool = new Pool({
   connectionString,
   ssl,
-  max: Number(process.env.DATABASE_POOL_MAX ?? 5),
+  max: Number(process.env.DATABASE_POOL_MAX ?? (process.env.NODE_ENV === 'production' ? 15 : 5)),
   idleTimeoutMillis: Number(process.env.DATABASE_POOL_IDLE_MS ?? 10000),
   connectionTimeoutMillis: Number(process.env.DATABASE_POOL_CONN_TIMEOUT_MS ?? 10000),
 });
