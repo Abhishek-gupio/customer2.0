@@ -159,9 +159,9 @@ export const initWorkers = () => {
     QUEUE_NAMES.BUDGET_CHECK,
     async (job: Job) => {
       if (job.name === "check-budget") {
-        const { expenseService } = await import("../modules/expense/expense.service");
-        const { customerId, metadata } = job.data;
-        await expenseService.checkBudget(customerId!, metadata.category, metadata.amount);
+        const { expenseBudgetService } = await import("../modules/expense/expense-budget.service");
+        const { customerId, metadata } = job.data as any;
+        await expenseBudgetService.checkBudget(customerId!, metadata.category, metadata.amount);
       }
     },
     defaultWorkerOptions
@@ -175,4 +175,18 @@ export const initWorkers = () => {
 
   workersInitialized = true;
   logger.info("Background Workers Initialized");
+};
+
+export const closeWorkers = async () => {
+  if (!workersInitialized) return;
+  const workers = [
+    maintenanceWorker,
+    notificationWorker,
+    healthScoreWorker,
+    expenseIngestionWorker,
+    budgetCheckWorker,
+  ];
+  logger.info("Closing BullMQ workers...");
+  await Promise.all(workers.filter(Boolean).map((w) => w!.close()));
+  workersInitialized = false;
 };
