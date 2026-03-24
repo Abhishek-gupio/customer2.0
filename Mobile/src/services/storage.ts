@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 const ACCESS_TOKEN_KEY = 'auth_access_token';
 const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
@@ -32,14 +30,31 @@ type StorageImpl = {
   remove?: (k: string) => void;
 };
 
-let storage: StorageImpl;
-let storageBackend: 'mmkv' | 'async-auth' = 'async-auth';
-let mmkvLoadError: unknown = null;
+type AsyncStorageModule = {
+  setItem: (key: string, value: string) => Promise<unknown>;
+  removeItem: (key: string) => Promise<unknown>;
+  multiGet: (keys: readonly string[]) => Promise<Array<[string, string | null]>>;
+};
 
-/** In-memory cache for auth when using AsyncStorage (MMKV unavailable). */
+let storage: StorageImpl;
+let storageBackend: 'mmkv' | 'async-auth' | 'memory' = 'memory';
+let mmkvLoadError: unknown = null;
+let asyncStorageLoadError: unknown = null;
+
 const authAsyncCache: Record<string, string> = {};
-/** Non-auth keys when MMKV is unavailable (not persisted — auth is the priority). */
 const miscMem: Record<string, string> = {};
+
+function getAsyncStorage(): AsyncStorageModule | null {
+  try {
+    const mod = require('@react-native-async-storage/async-storage') as {
+      default: AsyncStorageModule;
+    };
+    return mod.default;
+  } catch (e) {
+    asyncStorageLoadError = e;
+    return null;
+  }
+}
 
 try {
   const MMKV = (require('react-native-mmkv') as { MMKV: new () => StorageImpl }).MMKV;
@@ -47,16 +62,21 @@ try {
   storageBackend = 'mmkv';
 } catch (e) {
   mmkvLoadError = e;
-  storageBackend = 'async-auth';
+  const asyncStorage = getAsyncStorage();
+  storageBackend = asyncStorage ? 'async-auth' : 'memory';
   storage = {
     set(k: string, v: string) {
       if (AUTH_KEYS.has(k)) {
         if (v === '') {
           delete authAsyncCache[k];
-          enqueueAuthAsyncDisk(() => AsyncStorage.removeItem(k));
+          enqueueAuthAsyncDisk(() =>
+            asyncStorage ? asyncStorage.removeItem(k).then(() => {}) : Promise.resolve(),
+          );
         } else {
           authAsyncCache[k] = v;
-          enqueueAuthAsyncDisk(() => AsyncStorage.setItem(k, v));
+          enqueueAuthAsyncDisk(() =>
+            asyncStorage ? asyncStorage.setItem(k, v).then(() => {}) : Promise.resolve(),
+          );
         }
       } else {
         miscMem[k] = v;
@@ -69,18 +89,30 @@ try {
     remove(k: string) {
       if (AUTH_KEYS.has(k)) {
         delete authAsyncCache[k];
-        enqueueAuthAsyncDisk(() => AsyncStorage.removeItem(k));
+        enqueueAuthAsyncDisk(() =>
+          asyncStorage ? asyncStorage.removeItem(k).then(() => {}) : Promise.resolve(),
+        );
       } else {
         delete miscMem[k];
       }
     },
   };
   if (__DEV__) {
-    const msg =
+    const mmkvMsg =
       mmkvLoadError instanceof Error
         ? `${mmkvLoadError.name}: ${mmkvLoadError.message}`
         : String(mmkvLoadError);
-    console.warn(`[storage] MMKV unavailable — using AsyncStorage for auth. ${msg}`);
+    const asyncMsg = asyncStorage
+      ? 'AsyncStorage fallback active for auth persistence.'
+      : asyncStorageLoadError instanceof Error
+        ? `${asyncStorageLoadError.name}: ${asyncStorageLoadError.message}`
+        : String(asyncStorageLoadError);
+    console.warn(`[storage] MMKV unavailable. ${mmkvMsg}`);
+    console.warn(
+      asyncStorage
+        ? `[storage] ${asyncMsg}`
+        : `[storage] AsyncStorage unavailable; using in-memory storage only. ${asyncMsg}`,
+    );
   }
 }
 
@@ -88,12 +120,13 @@ if (__DEV__ && storageBackend === 'mmkv') {
   console.log('[storage] backend=mmkv');
 }
 
-/** Call once on app start before reading auth (required when backend is async-auth). */
 export async function hydrateAuthFromPersistedStorage(): Promise<void> {
   if (storageBackend !== 'async-auth') return;
   try {
+    const asyncStorage = getAsyncStorage();
+    if (!asyncStorage) return;
     const keys = [...AUTH_KEYS];
-    const pairs = await AsyncStorage.multiGet(keys);
+    const pairs = await asyncStorage.multiGet(keys);
     for (const [k, v] of pairs) {
       if (v != null && v !== '') authAsyncCache[k] = v;
     }
@@ -102,7 +135,7 @@ export async function hydrateAuthFromPersistedStorage(): Promise<void> {
   }
 }
 
-export function getStorageBackend(): 'mmkv' | 'async-auth' {
+export function getStorageBackend(): 'mmkv' | 'async-auth' | 'memory' {
   return storageBackend;
 }
 
@@ -187,7 +220,6 @@ export function setVoiceLanguageIndex(index: number): void {
 }
 
 const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
-
 const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
 
 export function getAutoExpenseEnabled(): boolean {
@@ -201,22 +233,21 @@ export function setAutoExpenseEnabled(val: boolean): void {
 
 export function setPrimaryVehicleId(id: string | null | undefined): void {
   if (!id) {
-    if (storage!.remove) {
-      storage!.remove(PRIMARY_VEHICLE_ID_KEY);
+    if (storage.remove) {
+      storage.remove(PRIMARY_VEHICLE_ID_KEY);
     } else {
-      storage!.set(PRIMARY_VEHICLE_ID_KEY, '');
+      storage.set(PRIMARY_VEHICLE_ID_KEY, '');
     }
     return;
   }
-  storage!.set(PRIMARY_VEHICLE_ID_KEY, id);
+  storage.set(PRIMARY_VEHICLE_ID_KEY, id);
 }
 
 export function getPrimaryVehicleId(): string | null {
-  const s = storage!.getString(PRIMARY_VEHICLE_ID_KEY);
+  const s = storage.getString(PRIMARY_VEHICLE_ID_KEY);
   return s && s.length > 0 ? s : null;
 }
 
-// Telematics: per-vehicle link flag
 export function getTelematicsLinked(vehicleId: string | null | undefined): boolean {
   if (!vehicleId) return false;
   const s = storage.getString(`telematics_linked_${vehicleId}`);

@@ -61,6 +61,11 @@ export const challanService = {
       logger.info({ count: externalChallans.length }, "Discovered challans from external API");
       
       const syncedChallans = [];
+      const vehicleDetails = vehicle as typeof vehicle & {
+        ownerName?: string | null;
+        rto?: string | null;
+      };
+
       // Use owner/RTO from the first challan if available
       const first = externalChallans[0];
       const ownerName =

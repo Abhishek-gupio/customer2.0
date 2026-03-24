@@ -85,19 +85,37 @@ export const predictionService = {
    * Advanced Health Score: Dynamic and Multi-factor
    */
   async calculateAdvancedHealthScore(vehicleId: string) {
-    const vehicle = (await dbInstances.customerVehicle.findUnique({
+    const vehicle = await dbInstances.customerVehicle.findUnique({
       where: { id: vehicleId },
-      include: {
-        documents: true,
+      select: {
+        id: true,
+        currentOdometer: true,
+        registrationDate: true,
         healthScore: true,
         serviceRecords: {
           orderBy: { serviceDate: "desc" },
           take: 1,
         },
       },
-    })) as any;
+    });
 
     if (!vehicle) return;
+
+    let documents: Array<{ type: string; expiryDate: Date | null }> = [];
+    try {
+      documents = await (dbInstances as any).customerDocument.findMany({
+        where: {
+          vehicleId,
+          verificationStatus: "VERIFIED",
+        },
+        select: {
+          type: true,
+          expiryDate: true,
+        },
+      });
+    } catch (err) {
+      logger.warn({ err, vehicleId }, "CustomerDocument table unavailable; skipping compliance document check");
+    }
 
     let complianceScore = 100;
     let maintenanceScore = 100;
@@ -106,11 +124,11 @@ export const predictionService = {
 
     // 1. Compliance Audit (20% Weight)
     const now = new Date();
-    const activeInsurance = (vehicle.documents as any[]).find(
-      (d: any) => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now,
+    const activeInsurance = documents.find(
+      (d) => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now,
     );
-    const activePUC = (vehicle.documents as any[]).find(
-      (d: any) => d.type === "PUC" && d.expiryDate && d.expiryDate > now,
+    const activePUC = documents.find(
+      (d) => d.type === "PUC" && d.expiryDate && d.expiryDate > now,
     );
 
     if (!activeInsurance) {

@@ -19,6 +19,7 @@ import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 
 interface ManualEntryData {
   amount?: string;
@@ -28,6 +29,7 @@ interface ManualEntryData {
   receiptUrl?: string;
   mimeType?: string;
   partType?: string;
+  partTypes?: string[];
 }
 
 interface ManualEntryOverlayProps {
@@ -35,6 +37,23 @@ interface ManualEntryOverlayProps {
   onClose: () => void;
   onSuccess?: () => void;
   initialData?: ManualEntryData | null;
+}
+
+interface CreateExpenseResponse {
+  success: boolean;
+  data?: {
+    expense?: {
+      id: string;
+    };
+    serviceRecord?: {
+      id: string;
+    } | null;
+    failedParts?: Array<{
+      partType: string;
+      reason?: string;
+    }>;
+    warrantySyncError?: string | null;
+  };
 }
 
 const parseManualDate = (value: string): Date | null => {
@@ -58,6 +77,25 @@ const sameDay = (a: Date, b: Date) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
+const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
+  const normalized = new Set<string>();
+
+  for (const partType of partTypes) {
+    const value = String(partType || "").trim().toUpperCase();
+    if (!value) continue;
+
+    if (value === "TYRES") {
+      normalized.add("TYRES_FRONT");
+      normalized.add("TYRES_REAR");
+      continue;
+    }
+
+    normalized.add(value);
+  }
+
+  return Array.from(normalized);
+};
+
 export default function ManualEntryOverlay({ visible, onClose, onSuccess, initialData }: ManualEntryOverlayProps) {
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
@@ -71,7 +109,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [selectedPartType, setSelectedPartType] = useState("ENGINE_OIL");
+  const [selectedPartTypes, setSelectedPartTypes] = useState<string[]>(["ENGINE_OIL"]);
   const [showPartPicker, setShowPartPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -122,7 +160,11 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       if (initialData.date) setDate(initialData.date);
       if (initialData.receiptUrl) setReceiptUrl(initialData.receiptUrl);
       if (initialData.mimeType) setMimeType(initialData.mimeType);
-      if (initialData.partType) setSelectedPartType(initialData.partType);
+      if (initialData.partTypes?.length) {
+        setSelectedPartTypes(initialData.partTypes);
+      } else if (initialData.partType) {
+        setSelectedPartTypes([initialData.partType]);
+      }
     }
   }, [visible, initialData]);
 
@@ -153,25 +195,6 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [loading, setLoading] = useState(false);
 
   const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
-  const partTypes = [
-    { label: "Battery", value: "BATTERY" },
-    { label: "Engine Oil", value: "ENGINE_OIL" },
-    { label: "Oil Filter", value: "OIL_FILTER" },
-    { label: "Air Filter", value: "AIR_FILTER" },
-    { label: "Brake Pads", value: "BRAKE_PADS" },
-    { label: "Brake Discs", value: "BRAKE_DISCS" },
-    { label: "Tyres (All)", value: "TYRES" },
-    { label: "Tyres (Front)", value: "TYRES_FRONT" },
-    { label: "Tyres (Rear)", value: "TYRES_REAR" },
-    { label: "Clutch Plate", value: "CLUTCH_PLATE" },
-    { label: "Spark Plugs", value: "SPARK_PLUGS" },
-    { label: "Coolant", value: "COOLANT" },
-    { label: "AC Filter", value: "AC_FILTER" },
-    { label: "Wiper Blades", value: "WIPER_BLADES" },
-    { label: "Headlight Bulb", value: "HEADLIGHT_BULB" },
-    { label: "Other Part", value: "OTHER_PART" },
-  ];
-
   const isValid = amount.trim().length > 0;
 
   const openDatePicker = () => {
@@ -215,15 +238,28 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
           setLoading(false);
           return;
         }
+        const now = new Date();
+        parsed.setHours(
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds(),
+          now.getMilliseconds(),
+        );
         parsedDate = parsed.toISOString();
       } else {
         parsedDate = new Date().toISOString();
       }
 
+      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      const targetVehicleId = isPartCategory
+        ? (vehicleId ?? selectedVehicleId ?? undefined)
+        : (selectedVehicleId ?? vehicleId ?? undefined);
+      const normalizedPartTypes = normalizeSelectedPartTypes(selectedPartTypes);
+
       const payload: any = {
         amount: parseFloat(amount),
         category: category.toUpperCase(), // Backend expects uppercase
-        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
+        vehicleId: targetVehicleId,
         notes: description,
         date: parsedDate,
         source: "MANUAL",
@@ -249,20 +285,43 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         }
       }
 
-      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
-      if (isPartCategory) {
-        payload.parts = [{
-          partType: selectedPartType,
+      if (isPartCategory && normalizedPartTypes.length > 0) {
+        payload.parts = normalizedPartTypes.map((partType) => ({
+          partType,
           cost: parseFloat(amount),
-        }];
+        }));
       }
 
-      await api.post('/v1/expenses', payload);
+      const response = await api.post<CreateExpenseResponse>('/v1/expenses', payload);
+      const responseData = response?.data;
+      const serviceRecord = responseData?.serviceRecord ?? null;
+      const failedParts = response?.data?.failedParts ?? [];
+      const warrantySyncError = response?.data?.warrantySyncError ?? null;
+
+      if (
+        isPartCategory &&
+        targetVehicleId &&
+        normalizedPartTypes.length > 0 &&
+        !warrantySyncError &&
+        !serviceRecord
+      ) {
+        await api.post('/v1/expenses/warranty/service-records', {
+          vehicleId: targetVehicleId,
+          expenseId: responseData?.expense?.id,
+          serviceType: 'REGULAR_SERVICE',
+          odometerAtService: odometer ? parseFloat(odometer) : undefined,
+          serviceDate: parsedDate,
+          notes: description || undefined,
+          parts: normalizedPartTypes.map((partType) => ({
+            partType,
+            cost: parseFloat(amount),
+          })),
+        });
+      }
 
       // Mark expense list for refresh
       setExpenseListNeedsRefresh();
-      const needsWarrantyRefresh = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
-      if (needsWarrantyRefresh) {
+      if (isPartCategory) {
         setWarrantyStatusNeedsRefresh();
       }
 
@@ -274,13 +333,22 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       setOdometer("");
       setReceiptUrl(null);
       setMimeType(null);
+      setSelectedPartTypes(["ENGINE_OIL"]);
 
       // Close modal first
       onClose();
 
       // Show success and trigger callback after modal closes
       setTimeout(() => {
-        Alert.alert("Success", "Expense added successfully");
+        const failedPartText = failedParts.length
+          ? `\n\nThese selected parts could not be updated: ${failedParts
+              .map((part) => getPartTypeLabel(part.partType))
+              .join(", ")}`
+          : "";
+        const warrantySyncText = warrantySyncError
+          ? `\n\nWarranty status was not updated: ${warrantySyncError}`
+          : "";
+        Alert.alert("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
         if (onSuccess) onSuccess();
       }, 300);
     } catch (error: any) {
@@ -328,7 +396,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                   <Label text="Part Serviced" />
                   <TouchableOpacity onPress={() => setShowPartPicker(true)}>
                     <Input
-                      value={partTypes.find(p => p.value === selectedPartType)?.label || selectedPartType}
+                      value={
+                        selectedPartTypes.length > 0
+                          ? PART_TYPE_OPTIONS
+                              .filter(p => selectedPartTypes.includes(p.value))
+                              .map(p => p.label)
+                              .join(", ")
+                          : "Select parts"
+                      }
                       icon="chevron-down"
                       editable={false}
                     />
@@ -452,22 +527,44 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         >
           <Pressable style={styles.categoryPanel} onPress={() => { }}>
             <ScrollView style={{ maxHeight: hp(50) }}>
-              {partTypes.map((item) => (
+              {PART_TYPE_OPTIONS.map((item) => (
                 <TouchableOpacity
                   key={item.value}
-                  style={styles.categoryItem}
+                  style={[
+                    styles.categoryItem,
+                    selectedPartTypes.includes(item.value) && styles.categoryItemSelected,
+                  ]}
                   onPress={() => {
-                    setSelectedPartType(item.value);
+                    setSelectedPartTypes((prev) =>
+                      prev.includes(item.value)
+                        ? prev.filter((value) => value !== item.value)
+                        : [...prev, item.value],
+                    );
                     if (category !== 'Service' && category !== 'Other') {
                       setCategory('Service');
                     }
-                    setShowPartPicker(false);
                   }}
                 >
-                  <Text style={styles.categoryText}>{item.label}</Text>
+                  <Text style={styles.categoryText}>
+                    {selectedPartTypes.includes(item.value) ? "✓ " : ""}{item.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            <View style={styles.partPickerActions}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => setSelectedPartTypes([])}
+              >
+                <Text style={styles.actionBtnText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => setShowPartPicker(false)}
+              >
+                <Text style={styles.actionBtnText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -666,9 +763,20 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
+  categoryItemSelected: {
+    backgroundColor: "rgba(255,191,0,0.14)",
+  },
   categoryText: {
     color: "#fff",
     fontSize: 16,
+  },
+  partPickerActions: {
+    marginTop: 8,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
   },
   calendarPanel: {
     width: "92%",
