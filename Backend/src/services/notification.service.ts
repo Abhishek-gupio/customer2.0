@@ -96,7 +96,7 @@ export const notificationService = {
       const nextDay = new Date(targetDate);
       nextDay.setDate(nextDay.getDate() + 1);
 
-      const expiringDocs = await dbInstances.customerDocument.findMany({
+      const expiringDocs = await dbInstances.vehicleDocument.findMany({
         where: {
           expiryDate: {
             gte: targetDate,

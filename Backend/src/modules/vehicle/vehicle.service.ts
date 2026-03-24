@@ -120,9 +120,6 @@ export const vehicleService = {
           make: { equals: normalizedMake, mode: "insensitive" },
           model: { equals: normalizedModel, mode: "insensitive" },
           imageUrl: { not: null },
-          ...(normalizedVariant
-            ? { variant: { equals: normalizedVariant, mode: "insensitive" } }
-            : {}),
         },
         orderBy: { updatedAt: "desc" },
         take: 8,
@@ -151,16 +148,17 @@ export const vehicleService = {
 
     console.log('Adding Vehicle to DB. Input Data:', JSON.stringify(input, null, 2));
 
+    const { variant, ...vehicleData } = input;
+
     // Create vehicle with imageUrl
     const [vehicle] = await dbInstances.$transaction([
       dbInstances.customerVehicle.create({
         data: {
-          ...input,
+          ...vehicleData,
           customerId,
           // Store normalized make/model/variant for consistent matching later.
-          make: input.make ? input.make.trim() : undefined,
-          model: input.model ? input.model.trim() : undefined,
-          variant: input.variant ? input.variant.trim() : undefined,
+          make: vehicleData.make ? vehicleData.make.trim() : undefined,
+          model: vehicleData.model ? vehicleData.model.trim() : undefined,
           imageUrl,
         },
       }),
@@ -445,7 +443,7 @@ export const vehicleService = {
     }
 
     return dbInstances.$transaction(async (tx) => {
-      await tx.customerDocument.updateMany({
+      await tx.vehicleDocument.updateMany({
         where: { vehicleId },
         data: { vehicleId: null },
       });

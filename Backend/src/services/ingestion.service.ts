@@ -48,7 +48,7 @@ export const ingestionService = {
    */
   async ingestDocument(documentId: string) {
     try {
-      const doc = await db.customerDocument.findUnique({
+      const doc = await db.vehicleDocument.findUnique({
         where: { id: documentId },
         include: { vehicle: true },
       });

@@ -114,7 +114,7 @@ async function getLifecycleForVehiclePart(
 ): Promise<PartLifecycle> {
   const vehicle = await db.customerVehicle.findUnique({
     where: { id: vehicleId },
-    select: { make: true, model: true, year: true, registrationDate: true },
+    select: { make: true, model: true, manufacturingMonthYear: true, registrationDate: true },
   });
 
   const make = (vehicle?.make ?? "").trim() || null;
@@ -122,9 +122,15 @@ async function getLifecycleForVehiclePart(
   
   // Use explicit year first; fallback to registration year.
   let year: number | null = null;
-  if (typeof vehicle?.year === "number") {
-    year = vehicle.year;
-  } else if (vehicle?.registrationDate) {
+  if (vehicle?.manufacturingMonthYear) {
+    const parts = vehicle.manufacturingMonthYear.split("/");
+    if (parts.length === 2) {
+      year = parseInt(parts[1], 10);
+    } else if (parts.length === 1) {
+      year = parseInt(parts[0], 10);
+    }
+  }
+  if (!year && vehicle?.registrationDate) {
     year = new Date(vehicle.registrationDate).getFullYear();
     if (!Number.isFinite(year)) year = null;
   }

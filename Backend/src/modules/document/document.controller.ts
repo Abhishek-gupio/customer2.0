@@ -104,7 +104,7 @@ export const documentController = {
   }),
 
   getImage: asyncHandler(async (req: Request, res: Response) => {
-    const document = await dbInstances.customerDocument.findUnique({
+    const document = await dbInstances.vehicleDocument.findUnique({
       where: { id: req.params.id as string },
       select: { fileUrl: true, mimeType: true }
     });
@@ -118,7 +118,7 @@ export const documentController = {
 
   // Generate and serve a PDF version for direct system download (avoids Android EACCES)
   getPDF: asyncHandler(async (req: Request, res: Response) => {
-    const document = await dbInstances.customerDocument.findUnique({
+    const document = await dbInstances.vehicleDocument.findUnique({
       where: { id: req.params.id as string },
       select: { id: true, fileUrl: true, type: true }
     });
