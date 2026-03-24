@@ -14,11 +14,38 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
-  { to: '/customers', label: 'Customers', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
-  { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
-  { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] as const },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'white' },
+  { to: '/customers', label: 'Customers', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'emerald' },
+  { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
+  { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red' },
 ];
+
+const colorStyles: Record<string, { glow: string; border: string; bg: string; icon: string }> = {
+  white: {
+    glow: 'rgba(255,255,255,0.4)',
+    border: '#ffffff',
+    bg: 'from-white/[0.12]',
+    icon: 'text-white'
+  },
+  emerald: {
+    glow: 'rgba(34,197,94,0.4)',
+    border: '#22c55e',
+    bg: 'from-[#22c55e]/[0.12]',
+    icon: 'text-[#22c55e]'
+  },
+  blue: {
+    glow: 'rgba(59,130,246,0.4)',
+    border: '#3b82f6',
+    bg: 'from-[#3b82f6]/[0.12]',
+    icon: 'text-[#3b82f6]'
+  },
+  red: {
+    glow: 'rgba(239,68,68,0.4)',
+    border: '#ef4444',
+    bg: 'from-[#ef4444]/[0.12]',
+    icon: 'text-[#ef4444]'
+  }
+};
 
 export default function Shell() {
   const { admin, logout } = useAuth();
@@ -34,6 +61,13 @@ export default function Shell() {
   });
 
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
+  // Redirect SUPPORT role to /tickets if they land on /
+  React.useEffect(() => {
+    if (admin?.role === 'SUPPORT' && location.pathname === '/') {
+      navigate('/tickets', { replace: true });
+    }
+  }, [admin, location.pathname, navigate]);
 
   React.useEffect(() => {
     try {
@@ -76,9 +110,13 @@ export default function Shell() {
 
       {/* Navigation Links */}
       <nav className="flex-1 space-y-1.5 pt-2">
-        {navItems.map((item) => {
+        {navItems
+          .filter((item) => !admin || (item.roles as string[]).includes(admin.role))
+          .map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.to;
+
+          const styles = colorStyles[item.color];
 
           return (
             <NavLink
@@ -88,30 +126,40 @@ export default function Shell() {
               className={cn(
                 "group relative flex h-[46px] items-center gap-[14px] transition-all duration-200 rounded-xl",
                 isActive
-                  ? "bg-gradient-to-r from-[#00f2ff]/[0.08] to-transparent"
+                  ? `bg-gradient-to-r ${styles.bg} to-transparent`
                   : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
                 sidebarCollapsed ? "justify-center px-0" : "px-4"
               )}
             >
-              {/* Fade Cyan Glow Border */}
+              {/* Fade Colored Glow Border */}
               {isActive && (
                 <>
                   <div
-                    className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-[#00f2ff]/50 shadow-[0_0_15px_rgba(0,242,255,0.1),inset_0_0_15px_rgba(0,242,255,0.05)]"
-                    style={{ maskImage: 'linear-gradient(to right, white 10%, transparent 90%)', WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)' }}
+                    className="pointer-events-none absolute inset-0 rounded-xl ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_15px_rgba(0,0,0,0.05)]"
+                    style={{
+                      boxShadow: `0 0 15px ${styles.glow}25, inset 0 0 15px ${styles.glow}15`,
+                      maskImage: 'linear-gradient(to right, white 10%, transparent 90%)',
+                      WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)'
+                    }}
                   />
                   <div
                     className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
                     style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
                   />
                   {/* Thick glowing left line */}
-                  <div className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full bg-[#00f2ff] shadow-[0_0_10px_2px_#00f2ff]" />
+                  <div
+                    className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full"
+                    style={{
+                      backgroundColor: styles.border,
+                      boxShadow: `0 0 10px 2px ${styles.border}80`
+                    }}
+                  />
                 </>
               )}
 
               <Icon className={cn(
                 "transition-colors duration-200 z-10",
-                isActive ? "text-white" : "text-white/80 group-hover:text-white",
+                isActive ? styles.icon : "text-white/80 group-hover:text-white",
                 sidebarCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
               )} />
 
@@ -173,7 +221,7 @@ export default function Shell() {
               className="group relative flex h-[40px] w-[40px] items-center justify-center rounded-xl bg-[#111] border border-white/5 text-white hover:bg-[#1a1a1a] transition-all"
             >
               <LogOut className="h-[16px] w-[16px]" />
-              
+
               {/* Tooltip for Logout */}
               <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
                 <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">

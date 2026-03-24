@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
+import { dbInstances } from "@repo/db-customer";
 import { adminService } from "./admin.service";
 import { adminDashboardService } from "./admin-dashboard.service";
 import { adminLoginSchema } from "./admin.validators";
@@ -84,5 +85,39 @@ export const adminController = {
       role: req.admin.role,
     });
     success(res, data);
+  }),
+
+  addTicketMessage: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const ticketId = req.params.id;
+    const { content } = req.body;
+    if (!content) throw AppError.badRequest("Content is required");
+    
+    // We can use supportService directly for now if we import it
+    const { supportService } = require("../support/support.service");
+    const data = await supportService.addAdminMessage(req.admin.id, ticketId, content);
+    success(res, data, 201);
+  }),
+
+  updateTicketStatus: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const ticketId = req.params.id;
+    const { status } = req.body;
+    if (!status) throw AppError.badRequest("Status is required");
+
+    const { supportService } = require("../support/support.service");
+    const data = await supportService.updateTicketStatus(ticketId, status);
+    success(res, data);
+  }),
+
+  getTicketMessages: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const ticketId = req.params.id;
+    
+    const messages = await (dbInstances as any).ticketMessage.findMany({
+      where: { ticketId },
+      orderBy: { createdAt: 'asc' }
+    });
+    success(res, messages);
   }),
 };

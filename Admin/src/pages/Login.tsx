@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import { cn } from '../lib/cn';
 
 export default function Login() {
   const { token, login, loading } = useAuth();
@@ -25,74 +25,95 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_50%_-10%,var(--accent-dim),transparent_60%),radial-gradient(900px_500px_at_0%_80%,rgba(255,255,255,0.05),transparent_60%)] px-5 py-10">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-[1100px] items-center">
-        <div className="grid w-full grid-cols-1 gap-10 lg:grid-cols-2">
-          <div className="hidden lg:block">
-            <div className="rounded-3xl border border-white/[0.07] bg-white/[0.03] p-8">
-              <div className="text-sm font-semibold text-white/70">Customer</div>
-              <div className="mt-2 text-4xl font-extrabold tracking-tight">
-                Admin <span className="text-[var(--accent)]">Dashboard</span>
-              </div>
-              <p className="mt-4 text-white/60">
-                Modern operations panel for your app — customers, vehicles, documents, expenses and support, with role-based access.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                {['Realtime overview', 'Powerful search', 'Role based access', 'Audit friendly UX'].map((t) => (
-                  <div key={t} className="rounded-2xl border border-white/[0.07] bg-[var(--panel-2)] p-4 text-sm text-white/70">
-                    <div className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-                    <div className="mt-3 font-semibold text-white">{t}</div>
-                  </div>
-                ))}
-              </div>
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 selection:bg-white selection:text-black">
+      <div className="w-full max-w-[1200px] grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        
+        {/* Left Aspect: Branding & Features */}
+        <div className="hidden lg:flex flex-col justify-center p-12 bg-[#0c0c0e] border border-white/[0.05] rounded-[2.5rem] shadow-[0_32px_128px_-32px_rgba(0,0,0,1)] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.02] rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-white/[0.04] duration-1000" />
+          
+          <div className="relative z-10">
+            <span className="text-[11px] font-black uppercase tracking-[0.4em] text-white/30 mb-4 block">Customer</span>
+            <h1 className="text-6xl font-black text-white tracking-tighter leading-[0.9] mb-8">
+              Admin<br/>Dashboard
+            </h1>
+            <p className="text-[14px] leading-relaxed text-white/40 max-w-sm mb-12 font-medium">
+              Modern operations panel for your app — customers, vehicles, documents, expenses and support, with role-based access.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { title: 'Realtime overview', icon: '•' },
+                { title: 'Powerful search', icon: '•' },
+                { title: 'Role based access', icon: '•' },
+                { title: 'Audit friendly UX', icon: '•' }
+              ].map((f) => (
+                <div key={f.title} className="p-6 bg-white/[0.03] border border-white/[0.05] rounded-[1.8rem] hover:bg-white/[0.05] transition-all duration-300 group/feature">
+                  <div className="text-white/20 text-xs mb-4 group-hover/feature:text-white transition-colors">●</div>
+                  <div className="text-[13px] font-bold text-white/70 group-hover/feature:text-white transition-colors leading-tight">{f.title}</div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-white/[0.07] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)]">
-              <CardTitle>Sign in</CardTitle>
-              <CardDescription>Use your admin email and password</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-5">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-xs font-semibold text-white/60">Email</label>
-                  <input
-                    type="email"
-                    placeholder="admin@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="mt-2 h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 text-sm text-white outline-none ring-0 placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
-                  />
+        {/* Right Aspect: Authentication */}
+        <div className="bg-[#0c0c0e] border border-white/[0.05] rounded-[2.5rem] p-8 sm:p-12 shadow-[0_32px_128px_-32px_rgba(0,0,0,1)] flex flex-col justify-center relative overflow-hidden">
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/[0.02] rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none" />
+          
+          <div className="relative z-10">
+            <div className="mb-10">
+              <h2 className="text-3xl font-black text-white tracking-tight mb-2">Sign in</h2>
+              <p className="text-[13px] text-white/30 font-medium">Use your admin email and password</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-4">Email</label>
+                <input
+                  type="email"
+                  placeholder="support@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full h-14 rounded-2xl bg-white/[0.03] border border-white/[0.07] px-6 text-sm text-white placeholder:text-white/10 outline-none focus:bg-white/[0.05] focus:border-white/20 transition-all font-medium"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-4">Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full h-14 rounded-2xl bg-white/[0.03] border border-white/[0.07] px-6 text-sm text-white placeholder:text-white/10 outline-none focus:bg-white/[0.05] focus:border-white/20 transition-all font-medium"
+                />
+              </div>
+
+              {error && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-[12px] font-bold text-red-500 animate-in fade-in slide-in-from-top-2 duration-300">
+                  {error}
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-white/60">Password</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="mt-2 h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 text-sm text-white outline-none ring-0 placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
-                  />
-                </div>
-                {error && (
-                  <div className="rounded-xl border border-[rgba(220,53,69,0.35)] bg-[rgba(220,53,69,0.12)] px-4 py-3 text-sm text-white">
-                    {error}
-                  </div>
+              )}
+
+              <Button 
+                type="submit" 
+                disabled={submitting}
+                className={cn(
+                  "w-full h-14 rounded-2xl bg-white text-black hover:bg-[#e0e0e0] active:scale-[0.98] transition-all font-black uppercase tracking-widest text-[12px] shadow-[0_20px_40px_-10px_rgba(255,255,255,0.15)]",
+                  submitting && "opacity-50"
                 )}
-                <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? 'Signing in...' : 'Sign in'}
-                </Button>
-                <p className="text-center text-xs text-white/40">
-                  Premium monochrome theme
-                </p>
-              </form>
-            </CardContent>
-          </Card>
+              >
+                {submitting ? 'Authenticating...' : 'Sign in'}
+              </Button>
+
+              <div className="pt-6 flex flex-col items-center border-t border-white/[0.05]">
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/10">Premium monochrome theme</span>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

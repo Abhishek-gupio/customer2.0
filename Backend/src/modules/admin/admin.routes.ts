@@ -15,4 +15,9 @@ router.get("/tickets", adminController.listTickets);
 router.get("/vehicles", adminController.listVehicles);
 router.get("/customers/:id", adminController.getCustomerDetail);
 
+// Support Panel Routes
+router.get("/tickets/:id/messages", adminController.getTicketMessages);
+router.post("/tickets/:id/messages", requireAdminRole(["SUPPORT", "ADMIN", "SUPER_ADMIN"]), adminController.addTicketMessage);
+router.patch("/tickets/:id/status", requireAdminRole(["SUPPORT", "ADMIN", "SUPER_ADMIN"]), adminController.updateTicketStatus);
+
 export const adminRoutes = router;

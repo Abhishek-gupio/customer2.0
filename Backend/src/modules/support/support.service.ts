@@ -58,6 +58,12 @@ export const supportService = {
       throw AppError.notFound("Ticket not found");
     }
 
+    console.log(`[SupportService] addMessage ticketId=${ticketId} currentStatus=${ticket.status}`);
+    if (ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') {
+       console.log(`[SupportService] Blocking message for ticketId=${ticketId} because status is ${ticket.status}`);
+       throw AppError.badRequest("Cannot reply to a closed or resolved ticket");
+    }
+
     return await (dbInstances as any).ticketMessage.create({
       data: {
         ticketId,
@@ -66,6 +72,66 @@ export const supportService = {
         content: data.content,
       }
     });
+  },
+
+  async addAdminMessage(adminId: string, ticketId: string, content: string) {
+    const ticket = await (dbInstances as any).supportTicket.findUnique({
+      where: { id: ticketId },
+      include: { customer: true }
+    });
+    if (!ticket) throw AppError.notFound("Ticket not found");
+
+    const message = await (dbInstances as any).ticketMessage.create({
+      data: {
+        ticketId,
+        senderId: adminId,
+        senderRole: 'SUPPORT',
+        content,
+      }
+    });
+
+    // Update ticket's updatedAt timestamp
+    await (dbInstances as any).supportTicket.update({
+      where: { id: ticketId },
+      data: { updatedAt: new Date() }
+    });
+
+    // Emit real-time notification to customer via socket
+    try {
+      const { socketManager } = require("../../socket");
+      if (socketManager) {
+        // Emit to the ticket room and/or the customer specifically
+        socketManager.emitToUser(ticket.customerId, 'new_support_message', {
+          packet: message
+        });
+      }
+    } catch (err) {
+      console.error("Socket emission failed:", err);
+    }
+
+    return message;
+  },
+
+  async updateTicketStatus(ticketId: string, status: string) {
+    const ticket = await (dbInstances as any).supportTicket.update({
+      where: { id: ticketId },
+      data: { status, updatedAt: new Date() }
+    });
+
+    // Emit status change notification
+    try {
+      const { socketManager } = require("../../socket");
+      if (socketManager) {
+        socketManager.emitToUser(ticket.customerId, 'ticket_status_updated', {
+          ticketId,
+          status
+        });
+      }
+    } catch (err) {
+      console.error("Socket emission failed:", err);
+    }
+
+    return ticket;
   },
 
   async listFaqs() {

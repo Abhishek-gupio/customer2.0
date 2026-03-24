@@ -86,6 +86,17 @@ export const adminApi = {
       `/v1/admin/tickets${q ? `?${q}` : ''}`
     );
   },
+  getTicketMessages: (id: string) => api<TicketMessage[]>(`/v1/admin/tickets/${id}/messages`),
+  addTicketMessage: (id: string, content: string) =>
+    api<TicketMessage>(`/v1/admin/tickets/${id}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+  updateTicketStatus: (id: string, status: TicketStatus) =>
+    api<{ success: true }>(`/v1/admin/tickets/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
   listVehicles: (params?: { page?: number; limit?: number; search?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
