@@ -85,6 +85,7 @@ export default function Home() {
   useFocusEffect(
     useCallback(() => {
       fetchPrimaryVehicle();
+      fetchDiscoveryContent();
     }, [])
   );
 
@@ -373,7 +374,7 @@ export default function Home() {
       const res = await api.get<{
         success?: boolean;
         data?: { news?: unknown; videos?: unknown };
-      }>('/v1/discovery/trending');
+      }>(`/v1/discovery/trending?refresh=1&t=${Date.now()}`);
       const body = res as { data?: { news?: unknown; videos?: unknown } };
       const inner = body?.data ?? (res as { news?: unknown; videos?: unknown });
       const newsRaw = inner?.news;

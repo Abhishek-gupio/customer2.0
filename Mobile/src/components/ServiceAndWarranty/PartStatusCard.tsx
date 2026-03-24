@@ -61,6 +61,7 @@ export const PartStatusCard = ({
     const [expanded, setExpanded] = useState(false);
     const isCritical = urgency === 'OVERDUE';
     const displayPercentage = Math.max(0, Math.min(100, percentage));
+    const isOemIntervalSource = ['OEM_WEBSITE', 'OEM'].includes((intervalSource || '').toUpperCase());
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -183,8 +184,8 @@ export const PartStatusCard = ({
                         </View>
                         <View style={styles.detailItem}>
                             <Text style={styles.detailLabel}>Source</Text>
-                            <Text style={[styles.detailValue, (intervalSource || '').toUpperCase() !== 'OEM_WEBSITE' && styles.detailValueWarning]}>
-                                {(intervalSource || '').toUpperCase() === 'OEM_WEBSITE' ? 'From OEM manual' : 'Not from OEM — may be incorrect'}
+                            <Text style={[styles.detailValue, !isOemIntervalSource && styles.detailValueWarning]}>
+                                {isOemIntervalSource ? 'From OEM manual' : 'Not from OEM — may be incorrect'}
                             </Text>
                         </View>
                     </View>

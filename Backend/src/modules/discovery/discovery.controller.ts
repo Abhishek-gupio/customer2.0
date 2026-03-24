@@ -17,19 +17,22 @@ const discoveryContent = db?.discoveryContent;
 export const discoveryController = {
     // GET /v1/discovery/trending
     getTrendingContent: asyncHandler(async (req: Request, res: Response) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date();
+        const cacheWindowStart = new Date(now.getTime() - 6 * 60 * 60 * 1000); // 6h rolling cache
+        const forceRefresh = req.query.refresh === "1" || req.query.force === "1";
 
         try {
             // 1. Check cache for today's content (only if DiscoveryContent model is available)
             let cachedNews: { id?: string; content: any } | null = null;
             let cachedVideos: { id?: string; content: any } | null = null;
-            if (discoveryContent) {
+            if (discoveryContent && !forceRefresh) {
                 cachedNews = await discoveryContent.findFirst({
-                    where: { type: 'NEWS', date: { gte: today } }
+                    where: { type: 'NEWS', date: { gte: cacheWindowStart } },
+                    orderBy: { date: 'desc' },
                 });
                 cachedVideos = await discoveryContent.findFirst({
-                    where: { type: 'VIDEO', date: { gte: today } }
+                    where: { type: 'VIDEO', date: { gte: cacheWindowStart } },
+                    orderBy: { date: 'desc' },
                 });
             }
 
@@ -42,7 +45,7 @@ export const discoveryController = {
             const needVideos = videosFromCache.length === 0;
 
             if (!needNews && !needVideos) {
-                logger.debug("Discovery content served from 24-hour cache");
+                logger.debug("Discovery content served from cache");
                 return success(res, {
                     news: newsFromCache,
                     videos: videosFromCache,
@@ -63,15 +66,15 @@ export const discoveryController = {
             if (discoveryContent && news.length > 0) {
                 await discoveryContent.upsert({
                     where: { id: cachedNews?.id || 'new-news-id' },
-                    update: { content: news, date: today },
-                    create: { type: 'NEWS', content: news, date: today }
+                    update: { content: news, date: now },
+                    create: { type: 'NEWS', content: news, date: now }
                 }).catch(() => { });
             }
             if (discoveryContent && videos.length > 0) {
                 await discoveryContent.upsert({
                     where: { id: cachedVideos?.id || 'new-videos-id' },
-                    update: { content: videos, date: today },
-                    create: { type: 'VIDEO', content: videos, date: today }
+                    update: { content: videos, date: now },
+                    create: { type: 'VIDEO', content: videos, date: now }
                 }).catch(() => { });
             }
 
