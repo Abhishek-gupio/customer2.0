@@ -14,6 +14,7 @@ export const addVehicleSchema = z.object({
     .transform((v) => v.toUpperCase().replace(/\s/g, "")),
   make: jsonOptionalString,
   model: jsonOptionalString,
+  variant: jsonOptionalString,
   fuelType: z.preprocess(
     (val) => {
       if (val === null || val === undefined) return undefined;

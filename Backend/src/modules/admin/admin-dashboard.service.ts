@@ -144,7 +144,7 @@ export const adminDashboardService = {
         orderBy: { date: "desc" },
         include: { vehicle: { select: { registrationNumber: true, make: true, model: true } } },
       }) ?? [],
-      dbInstances.vehicleDocument.findMany({
+      dbInstances.customerDocument.findMany({
         where: { customerId },
         orderBy: { createdAt: "desc" },
       }),

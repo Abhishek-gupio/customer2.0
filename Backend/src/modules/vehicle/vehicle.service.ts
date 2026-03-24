@@ -445,7 +445,7 @@ export const vehicleService = {
     }
 
     return dbInstances.$transaction(async (tx) => {
-      await tx.vehicleDocument.updateMany({
+      await tx.customerDocument.updateMany({
         where: { vehicleId },
         data: { vehicleId: null },
       });

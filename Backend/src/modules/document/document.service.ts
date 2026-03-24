@@ -14,7 +14,7 @@ export const documentService = {
   ) {
     // 1. Check for duplicates (Simple version)
     if (input.documentNumber) {
-      const existing = await dbInstances.vehicleDocument.findFirst({
+      const existing = await dbInstances.customerDocument.findFirst({
         where: {
           customerId,
           documentNumber: input.documentNumber,
@@ -36,14 +36,13 @@ export const documentService = {
     );
 
     // 3. Save to DB (Primary Storage in DB + metadata)
-    const document = await dbInstances.vehicleDocument.create({
+    const document = await dbInstances.customerDocument.create({
       data: {
         customerId,
         vehicleId: input.vehicleId || null,
         type: input.type,
         documentNumber: input.documentNumber,
         expiryDate: input.expiryDate ? new Date(input.expiryDate) : undefined,
-        fileContent: file.buffer as any,
         fileUrl: storageUrl, // Store storage URL
         mimeType: file.mimetype,
       },
@@ -69,7 +68,7 @@ export const documentService = {
   },
 
   async listDocuments(customerId: string) {
-    const docs = await dbInstances.vehicleDocument.findMany({
+    const docs = await dbInstances.customerDocument.findMany({
       where: {
         OR: [
           { customerId },
@@ -96,7 +95,7 @@ export const documentService = {
   },
 
   async getDocument(customerId: string, documentId: string) {
-    const document = await dbInstances.vehicleDocument.findUnique({
+    const document = await dbInstances.customerDocument.findUnique({
       where: { id: documentId },
       include: {
         vehicle: {
@@ -127,7 +126,7 @@ export const documentService = {
   async deleteDocument(customerId: string, documentId: string) {
     const document = await this.getDocument(customerId, documentId);
 
-    await dbInstances.vehicleDocument.delete({
+    await dbInstances.customerDocument.delete({
       where: { id: documentId },
     });
 
@@ -144,7 +143,7 @@ export const documentService = {
     const threshold = new Date();
     threshold.setDate(threshold.getDate() + days);
 
-    const docs = await dbInstances.vehicleDocument.findMany({
+    const docs = await dbInstances.customerDocument.findMany({
       where: {
         customerId,
         expiryDate: {

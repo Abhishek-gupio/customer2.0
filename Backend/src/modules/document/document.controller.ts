@@ -7,6 +7,7 @@ import { checkImageQuality } from "../../services/imageQuality.service";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { dbInstances } from "@repo/db-customer";
+import { storageService } from "../../services/storage.service";
 
 const DEV_CUSTOMER_ID = "cmlj50qq00000ohti713c0bwy";
 
@@ -103,38 +104,32 @@ export const documentController = {
   }),
 
   getImage: asyncHandler(async (req: Request, res: Response) => {
-    const document = await dbInstances.vehicleDocument.findUnique({
+    const document = await dbInstances.customerDocument.findUnique({
       where: { id: req.params.id as string },
-      select: { fileContent: true, mimeType: true }
+      select: { fileUrl: true, mimeType: true }
     });
-    if (!document || !document.fileContent) {
-      throw AppError.notFound("Image content not found");
+    if (!document || !document.fileUrl) {
+      throw AppError.notFound("Image not found");
     }
-    res.setHeader("Content-Type", document.mimeType || "image/jpeg");
-    res.send(document.fileContent);
+    const safeUrl = await storageService.ensureReadableUrl(document.fileUrl);
+    if (!safeUrl) throw AppError.notFound("Image not found");
+    res.redirect(safeUrl);
   }),
 
   // Generate and serve a PDF version for direct system download (avoids Android EACCES)
   getPDF: asyncHandler(async (req: Request, res: Response) => {
-    const document = await dbInstances.vehicleDocument.findUnique({
+    const document = await dbInstances.customerDocument.findUnique({
       where: { id: req.params.id as string },
-      select: { id: true, fileContent: true, type: true }
+      select: { id: true, fileUrl: true, type: true }
     });
     
-    if (!document || !document.fileContent) {
+    if (!document || !document.fileUrl) {
       throw AppError.notFound("Document not found");
     }
-    
-    const sharp = (await import("sharp")).default;
-    const pdfBuffer = await sharp(document.fileContent as Buffer)
-      .resize(1200) // reasonable resolution
-      .toFormat("pdf")
-      .toBuffer();
 
-    const fileName = `${document.type.toLowerCase()}_${document.id}.pdf`;
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
-    res.send(pdfBuffer);
+    const safeUrl = await storageService.ensureReadableUrl(document.fileUrl);
+    if (!safeUrl) throw AppError.notFound("Document not found");
+    res.redirect(safeUrl);
   }),
 
   /** Pre-upload image quality check (blur, glare). Returns { ok, hints }. */

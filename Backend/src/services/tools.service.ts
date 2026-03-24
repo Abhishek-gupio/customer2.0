@@ -486,7 +486,7 @@ export const toolRegistry = {
       vehicleId: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
-      const docs = await db.vehicleDocument.findMany({
+      const docs = await db.customerDocument.findMany({
         where: {
           customerId,
           vehicleId: args.vehicleId || undefined,

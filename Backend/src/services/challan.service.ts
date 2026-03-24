@@ -136,7 +136,25 @@ export const challanService = {
 
       return syncedChallans;
     } catch (error: any) {
-      logger.error({ error: error.message, vehicleId }, "Challan API call failed");
+      const code = String(error?.code ?? "");
+      const isNetworkOrDns =
+        code === "ENOTFOUND" ||
+        code === "EAI_AGAIN" ||
+        code === "ECONNREFUSED" ||
+        code === "ETIMEDOUT";
+
+      if (isNetworkOrDns) {
+        logger.warn(
+          { vehicleId, code, error: error?.message },
+          "Challan provider unavailable; returning cached/local challans",
+        );
+      } else {
+        logger.error(
+          { vehicleId, code, error: error?.message },
+          "Challan API call failed",
+        );
+      }
+
       // If API fails, return current local challans
       return this.getChallans(vehicleId);
     }
@@ -208,8 +226,27 @@ export const challanService = {
             rtoName: resData.data?.rto_name || "N/A"
         }
       }));
-    } catch (error) {
-      logger.error({ error, regNo }, "CheckChallansByPlate failed");
+    } catch (error: any) {
+      const code = String(error?.code ?? "");
+      const isNetworkOrDns =
+        code === "ENOTFOUND" ||
+        code === "EAI_AGAIN" ||
+        code === "ECONNREFUSED" ||
+        code === "ETIMEDOUT";
+
+      logger.error(
+        { regNo, code, message: error?.message },
+        "CheckChallansByPlate failed",
+      );
+
+      if (isNetworkOrDns) {
+        throw new AppError(
+          "Challan provider is temporarily unavailable. Please try again shortly.",
+          503,
+          "CHALLAN_PROVIDER_UNAVAILABLE",
+        );
+      }
+
       return [];
     }
   },
