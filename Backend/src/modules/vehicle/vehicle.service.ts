@@ -88,6 +88,64 @@ function makeCatalogNormalizedKey(args: {
   return `${args.vehicleType}|${mk}|${md}|${v}`;
 }
 
+async function resolveCatalogHeroImageUrl(args: {
+  vehicleType: "CAR" | "BIKE";
+  make?: string | null;
+  model?: string | null;
+  variant?: string | null;
+}): Promise<string | null> {
+  if (!args.make || !args.model) return null;
+
+  const normalizedKey = makeCatalogNormalizedKey(args);
+
+  let catalog: any = await (dbInstances as any).vehicleCatalog.findUnique({
+    where: { normalizedKey },
+  });
+
+  if (!catalog) {
+    const makeNeedle = normalizeForMatch(cleanMake(args.make));
+    const modelNeedle = normalizeForMatch(cleanModel(args.model));
+    const variantNeedle = args.variant
+      ? normalizeForMatch(cleanModel(args.variant))
+      : null;
+
+    // Pass 1: include variant when provided.
+    catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+      where: {
+        vehicleType: args.vehicleType,
+        make: { contains: makeNeedle, mode: "insensitive" },
+        model: { contains: modelNeedle, mode: "insensitive" },
+        ...(variantNeedle
+          ? { variant: { contains: variantNeedle, mode: "insensitive" } }
+          : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    // Pass 2: relax variant constraint so trim-level mismatch does not
+    // push us to random fallback image.
+    if (!catalog) {
+      catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+        where: {
+          vehicleType: args.vehicleType,
+          make: { contains: makeNeedle, mode: "insensitive" },
+          model: { contains: modelNeedle, mode: "insensitive" },
+        },
+        orderBy: { updatedAt: "desc" },
+      });
+    }
+  }
+
+  if (!catalog) return null;
+
+  const hero = await (dbInstances as any).vehicleAsset.findFirst({
+    where: { catalogId: catalog.id, type: "HERO" },
+    orderBy: { assetIndex: "asc" },
+  });
+
+  return hero?.assetUrl ?? null;
+}
+
 export const vehicleService = {
   async addVehicle(customerId: string, input: AddVehicleInput) {
     logger.info({ customerId, registrationNumber: input.registrationNumber }, "Attempting to add vehicle");
@@ -133,8 +191,18 @@ export const vehicleService = {
       if (found) imageUrl = found;
     }
 
-    // 2) Fallback: deterministic hero based on vehicle type.
-    //    (In Phase-1 we will replace these with a one-time ingestion + S3 uploads.)
+    // 2) Prefer catalog hero image for the exact make/model/variant.
+    if (!imageUrl && normalizedMake && normalizedModel) {
+      imageUrl = (await resolveCatalogHeroImageUrl({
+        vehicleType: vehicleTypeBucket(input.vehicleType),
+        make: input.make ?? null,
+        model: input.model ?? null,
+        variant: input.variant ?? null,
+      })) ?? undefined;
+    }
+
+    // 3) Fallback: deterministic hero based on vehicle type.
+    //    (Only used when no catalog image exists.)
     if (!imageUrl) {
       const hashSource = `${input.vehicleType || ""}:${normalizedMake}:${normalizedModel}:${normalizedVariant}`;
       let hash = 0;
@@ -368,6 +436,7 @@ export const vehicleService = {
       const modelNeedle = normalizeForMatch(cleanModel(model));
       const variantNeedle = variant ? normalizeForMatch(cleanModel(variant)) : null;
 
+      // Pass 1: variant-aware fuzzy match.
       catalog = await (dbInstances as any).vehicleCatalog.findFirst({
         where: {
           vehicleType: bucket,
@@ -379,6 +448,18 @@ export const vehicleService = {
         },
         orderBy: { updatedAt: "desc" },
       });
+
+      // Pass 2: ignore variant for broader make+model match.
+      if (!catalog) {
+        catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+          where: {
+            vehicleType: bucket,
+            make: { contains: makeNeedle, mode: "insensitive" },
+            model: { contains: modelNeedle, mode: "insensitive" },
+          },
+          orderBy: { updatedAt: "desc" },
+        });
+      }
     }
 
     if (!catalog) {
