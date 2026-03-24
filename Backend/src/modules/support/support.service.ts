@@ -157,7 +157,7 @@ export const supportService = {
 
     const flows: Record<string, any> = {
       'root': {
-        message: `Hi ${firstName}! I'm Gupio AI. I've analyzed your account. How can I assist you today?`,
+        message: `Hi ${firstName}! I'm Gupio AI. How can I assist you today?`,
         options: [
           { label: "Vehicle Assistant", nextFlow: 'vehicle_hub' },
           { label: "Expense Analysis", nextFlow: 'expense_hub' },
@@ -216,7 +216,7 @@ export const supportService = {
         ]
       },
       'sh_sos': {
-        message: "In case of emergency, Gupio notifies your contacts and emergency services immediately. Have you verified your emergency contacts?",
+        message: "In an emergency, Gupio broadasts your real-time GPS location to your trusted contacts via SMS, Email, and Voice call. We can also help you find the nearest hospitals or police stations instantly. Have you verified your emergency contacts?",
         options: [
           { label: "Review Contacts", nextFlow: 'root' },
           { label: "Back to Services", nextFlow: 'services_hub' }

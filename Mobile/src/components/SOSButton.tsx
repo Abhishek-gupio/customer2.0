@@ -359,8 +359,8 @@ const SOSButton = () => {
 
   const handleAddContact = useCallback(async () => {
     if (addingContact) return;
-    if (!newContactName.trim() || !newContactPhone.trim()) {
-      Alert.alert('Missing details', 'Name and phone number are required.');
+    if (!newContactName.trim() || !newContactPhone.trim() || !newContactEmail.trim()) {
+      Alert.alert('Missing details', 'Name, phone number, and email are required.');
       return;
     }
     setAddingContact(true);
@@ -368,7 +368,7 @@ const SOSButton = () => {
       await sosService.addContact({
         name: newContactName.trim(),
         phoneNumber: newContactPhone.trim(),
-        email: newContactEmail.trim() || undefined,
+        email: newContactEmail.trim(),
         relation: newContactRelation.trim() || undefined,
       });
       setNewContactName('');
@@ -382,7 +382,7 @@ const SOSButton = () => {
     } finally {
       setAddingContact(false);
     }
-  }, [addingContact, newContactName, newContactPhone, newContactRelation, loadContacts]);
+  }, [addingContact, newContactName, newContactPhone, newContactEmail, newContactRelation, loadContacts]);
 
   const handleDeleteContact = useCallback(async (id: string) => {
     try {
@@ -482,7 +482,8 @@ const SOSButton = () => {
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1, backgroundColor: '#000' }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
     >
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -731,42 +732,38 @@ const SOSButton = () => {
             <Text style={styles.sectionMeta}>Trusted people</Text>
           </View>
 
-          <View style={styles.inputRow}>
-            <TextInput
-              placeholder="Name"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              value={newContactName}
-              onChangeText={setNewContactName}
-            />
-            <TextInput
-              placeholder="Phone"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              keyboardType="phone-pad"
-              value={newContactPhone}
-              onChangeText={setNewContactPhone}
-            />
-          </View>
-          <View style={styles.inputRow}>
-            <TextInput
-              placeholder="Relation (optional)"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              value={newContactRelation}
-              onChangeText={setNewContactRelation}
-            />
-            <TextInput
-              placeholder="Email (optional)"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={newContactEmail}
-              onChangeText={setNewContactEmail}
-            />
-          </View>
-          <View style={styles.inputActionRow}>
+          <TextInput
+            placeholder="Name"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            value={newContactName}
+            onChangeText={setNewContactName}
+          />
+          <TextInput
+            placeholder="Phone"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            keyboardType="phone-pad"
+            value={newContactPhone}
+            onChangeText={setNewContactPhone}
+          />
+          <TextInput
+            placeholder="Relation (e.g. Brother, Friend)"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            value={newContactRelation}
+            onChangeText={setNewContactRelation}
+          />
+          <TextInput
+            placeholder="Email Address"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={newContactEmail}
+            onChangeText={setNewContactEmail}
+          />
+          <View style={styles.inputActionRow} collapsable={false}>
             <TouchableOpacity
               style={[styles.addButton, addingContact && styles.addButtonDisabled, { width: '100%' }]}
               onPress={handleAddContact}
@@ -831,7 +828,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: hp(4),
+    paddingBottom: hp(8), // Reduced for a natural look, but still enough for keyboard
   },
   header: {
     flexDirection: "row",
@@ -1090,6 +1087,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: wp(3),
     marginBottom: hp(1.5),
+    alignItems: 'center',
   },
   input: {
     flex: 1,
@@ -1098,10 +1096,12 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
     borderRadius: wp(3),
     paddingHorizontal: wp(4),
-    paddingVertical: hp(1.2),
+    paddingVertical: 0,
+    height: 50,
     color: "#fff",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.8),
+    textAlignVertical: 'center',
   },
   addButton: {
     flex: 0.4,

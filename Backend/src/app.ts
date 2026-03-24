@@ -10,20 +10,19 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 import { apiRoutes } from "./routes";
 import { setupSwagger } from "./swagger";
 
-/** Rate limit key: per user when JWT present, else per IP. Decode only (no verify) for key partitioning. */
+/** Rate limit key: per user when JWT present, else per IP. */
 function rateLimitKey(req: Request): string {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
     try {
       const token = authHeader.slice(7);
       const payload = jwt.decode(token) as { id?: string } | null;
-      if (payload?.id) return `user:${payload.id}`;
+      if (payload?.id) return payload.id;
     } catch {
       // malformed token; fall back to IP
     }
   }
-  const ip = req.ip ?? req.socket?.remoteAddress ?? "unknown";
-  return `ip:${ip}`;
+  return req.ip || "unknown";
 }
 
 const app = express();

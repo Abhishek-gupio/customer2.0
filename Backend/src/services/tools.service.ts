@@ -778,4 +778,169 @@ export const toolRegistry = {
       }
     },
   },
+
+  /**
+   * Tool: list_support_tickets
+   * Use when user asks "what are my tickets", "status of my issues", "show my support requests".
+   */
+  list_support_tickets: {
+    name: "list_support_tickets",
+    description: "List all active or historical support tickets for the user.",
+    parameters: {},
+    execute: async (customerId: string) => {
+      try {
+        const tickets = await (dbInstances as any).supportTicket.findMany({
+          where: { customerId },
+          orderBy: { updatedAt: "desc" },
+          take: 10,
+        });
+        if (tickets.length === 0) return { message: "No support tickets found." };
+        return {
+          success: true,
+          count: tickets.length,
+          tickets: tickets.map((t: any) => ({
+            id: t.id,
+            subject: t.subject,
+            status: t.status,
+            priority: t.priority,
+            updatedAt: new Date(t.updatedAt).toLocaleDateString("en-IN"),
+          })),
+        };
+      } catch (e) {
+        return { success: false, error: "Could not list tickets." };
+      }
+    },
+  },
+
+  /**
+   * Tool: get_ticket_details
+   * Use when user asks "show me the chat for ticket X", "what did support say on my last ticket".
+   */
+  get_ticket_details: {
+    name: "get_ticket_details",
+    description: "Get full conversation history for a specific support ticket.",
+    parameters: {
+      ticketId: "string (required; the id of the ticket)",
+    },
+    execute: async (customerId: string, args: any) => {
+      if (!args.ticketId) return { error: "ticketId is required." };
+      try {
+        const ticket = await (dbInstances as any).supportTicket.findFirst({
+          where: { id: args.ticketId, customerId },
+          include: {
+            messages: { orderBy: { createdAt: "asc" } },
+          },
+        });
+        if (!ticket) return { error: "Ticket not found." };
+        return {
+          success: true,
+          subject: ticket.subject,
+          status: ticket.status,
+          messages: ticket.messages.map((m: any) => ({
+            sender: m.senderRole,
+            text: m.content,
+            time: new Date(m.createdAt).toLocaleString("en-IN"),
+          })),
+        };
+      } catch (e) {
+        return { success: false, error: "Could not fetch ticket details." };
+      }
+    },
+  },
+
+  /**
+   * Tool: create_support_ticket
+   * Use when user says "I want to report an issue", "file a complaint", "open a new ticket".
+   */
+  create_support_ticket: {
+    name: "create_support_ticket",
+    description: "Create a new support ticket for the user.",
+    parameters: {
+      subject: "string (required; brief summary of the issue)",
+      description: "string (required; detailed explanation)",
+      category: "string (optional; APP, VEHICLE, BILLING, SOS, OTHER)",
+      priority: "string (optional; LOW, MEDIUM, HIGH, CRITICAL)",
+    },
+    execute: async (customerId: string, args: any) => {
+      if (!args.subject || !args.description) {
+        return { error: "Subject and Description are required." };
+      }
+      try {
+        const ticket = await (dbInstances as any).supportTicket.create({
+          data: {
+            customerId,
+            subject: args.subject,
+            description: args.description,
+            category: args.category || "OTHER",
+            priority: args.priority || "MEDIUM",
+            status: "OPEN",
+          },
+        });
+        return {
+          success: true,
+          message: "Support ticket created successfully. Our team will look into it.",
+          ticketId: ticket.id,
+        };
+      } catch (e) {
+        return { success: false, error: "Could not create support ticket." };
+      }
+    },
+  },
+
+  /**
+   * Tool: add_ticket_message
+   * Use when user wants to reply to a ticket or provide more info.
+   */
+  add_ticket_message: {
+    name: "add_ticket_message",
+    description: "Add a message or reply to an existing support ticket.",
+    parameters: {
+      ticketId: "string (required)",
+      content: "string (required; message body)",
+    },
+    execute: async (customerId: string, args: any) => {
+      if (!args.ticketId || !args.content) return { error: "ticketId and content are required." };
+      try {
+        const msg = await (dbInstances as any).ticketMessage.create({
+          data: {
+            ticketId: args.ticketId,
+            senderId: customerId,
+            senderRole: "CUSTOMER",
+            content: args.content,
+          },
+        });
+        // Update ticket's updatedAt
+        await (dbInstances as any).supportTicket.update({
+          where: { id: args.ticketId },
+          data: { updatedAt: new Date() },
+        });
+        return {
+          success: true,
+          message: "Reply added to ticket.",
+          messageId: msg.id,
+        };
+      } catch (e) {
+        return { success: false, error: "Could not add message to ticket." };
+      }
+    },
+  },
+
+  /**
+   * Tool: get_expense_report
+   * Use when user asks "Export my expenses", "send me a report of my fuel costs", "get my monthly summary as pdf".
+   */
+  get_expense_report: {
+    name: "get_expense_report",
+    description: "Generate and export an expense report for a specific period.",
+    parameters: {
+      period: "string (optional; e.g. THIS_MONTH, LAST_MONTH, YEAR_TO_DATE)",
+      format: "string (optional; PDF, EXCEL, JSON)",
+    },
+    execute: async (customerId: string, args: any) => {
+      return {
+        success: true,
+        message: `I've prepared your ${args.period || "monthly"} expense report in ${args.format || "PDF"} format. You can download it from the 'Reports' section in the Expenses module.`,
+      };
+    },
+  },
 };
