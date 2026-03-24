@@ -13,6 +13,8 @@ import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
 import DocumentList from '../screens/Documents/DocumentList';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
+import TermsConditions from '../screens/Profile/TermsConditions';
+import PrivacyPolicy from '../screens/Profile/PrivacyPolicy';
 import LiveChat from '../screens/Profile/LiveChat';
 import ContactSupport from '../screens/Profile/ContactSupport';
 import TicketHistory from '../screens/Profile/TicketHistory';
@@ -84,6 +86,8 @@ export function RootNavigator() {
       <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
+      <Stack.Screen name="TermsConditions" component={TermsConditions} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
       <Stack.Screen name="LiveChat" component={LiveChat} />
       <Stack.Screen name="ContactSupport" component={ContactSupport} />
       <Stack.Screen name="TicketHistory" component={TicketHistory} />

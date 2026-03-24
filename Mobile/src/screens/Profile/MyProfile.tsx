@@ -728,9 +728,12 @@ export default function MyProfile() {
             <View style={styles.modalHandle} />
 
             <View style={styles.advancedModalHeader}>
-              <View>
-                <Text style={styles.advancedModalTitle}>Account Details</Text>
-                <Text style={styles.advancedModalSubtitle}>Personal information & settings</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(3) }}>
+                <BackButton onPress={() => setInfoModal(false)} />
+                <View>
+                  <Text style={styles.advancedModalTitle}>Account Details</Text>
+                  <Text style={styles.advancedModalSubtitle}>Personal information & settings</Text>
+                </View>
               </View>
               <View style={styles.headerActions}>
                 {!isEditing ? (
@@ -740,9 +743,6 @@ export default function MyProfile() {
                   </TouchableOpacity>
                 ) : (
                   <>
-                    <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-                      <Icon name="times" size={12} color="#ff4444" />
-                    </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.savePill, saving && { opacity: 0.6 }]}
                       onPress={handleSave}
@@ -941,6 +941,13 @@ export default function MyProfile() {
 
           <View style={styles.integratedGroupCard}>
             <MenuRow
+              icon="user-circle"
+              label="My Account"
+              onPress={() => setInfoModal(true)}
+              color="#00F2FF"
+              bgColor="rgba(0, 242, 255, 0.1)"
+            />
+            <MenuRow
               icon="shield-alt"
               label="Emergency Contacts"
               onPress={() => handleMenuPress('SOS')}
@@ -950,17 +957,17 @@ export default function MyProfile() {
             <MenuRow
               icon="bell"
               label="Notifications"
-              onPress={() => { }}
+              onPress={() => navigation.navigate('Main', { screen: 'Alerts' })}
             />
             <MenuRow
-              icon="shield-alt"
-              label="Privacy & Security"
-              onPress={() => { }}
+              icon="file-contract"
+              label="Terms & Conditions"
+              onPress={() => navigation.navigate('TermsConditions')}
             />
             <MenuRow
-              icon="ellipsis-h"
-              label="App Settings"
-              onPress={() => { }}
+              icon="user-shield"
+              label="Privacy Policy"
+              onPress={() => navigation.navigate('PrivacyPolicy')}
             />
             <MenuRow
               icon="question-circle"

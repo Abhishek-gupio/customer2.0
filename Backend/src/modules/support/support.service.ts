@@ -124,6 +124,9 @@ export const supportService = {
    * Handles personalized greetings, deep vehicle info, expense analysis, and service status.
    */
   async getChatFlow(customerId: string, flowId: string = 'root') {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
     const customer = await (dbInstances as any).customer.findUnique({
       where: { id: customerId },
       include: {
@@ -140,13 +143,53 @@ export const supportService = {
           include: { _count: { select: { messages: true } } }
         },
         expenses: {
-          where: { date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } },
-          select: { amount: true, category: true }
-        }
+          where: { date: { gte: threeMonthsAgo } },
+          select: { amount: true, category: true, date: true }
+        },
+        emergencyContacts: true
       }
     });
 
     if (!customer) throw AppError.unauthorized();
+
+    // --- Deep Data Analysis Logic ---
+    
+    // 1. Expense Breakdown
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const currentMonthExpenses = customer.expenses.filter((e: any) => 
+      e.date.getMonth() === currentMonth && e.date.getFullYear() === currentYear
+    );
+    const prevExpenses = customer.expenses.filter((e: any) => 
+      !(e.date.getMonth() === currentMonth && e.date.getFullYear() === currentYear)
+    );
+
+    const currentMonthTotal = currentMonthExpenses.reduce((sum: number, e: any) => sum + e.amount, 0);
+    const avgMonthlySpend = prevExpenses.length > 0 
+      ? prevExpenses.reduce((sum: number, e: any) => sum + e.amount, 0) / 3 
+      : currentMonthTotal;
+
+    const topCategory = currentMonthExpenses.length > 0
+      ? currentMonthExpenses.reduce((acc: any, e: any) => {
+          acc[e.category] = (acc[e.category] || 0) + e.amount;
+          return acc;
+        }, {})
+      : {};
+    const mainCategory = Object.entries(topCategory).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+    // 2. Document Expiry Audit
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const urgentDocs = customer.vehicles.flatMap((v: any) => 
+      v.documents.filter((d: any) => d.expiryDate && new Date(d.expiryDate) <= thirtyDaysFromNow)
+        .map((d: any) => ({ vehicle: v.registrationNumber, type: d.type, expiry: d.expiryDate }))
+    );
+
+    // 3. SOS Readiness
+    const sosReady = customer.emergencyContacts.length > 0;
 
     const firstName = customer.fullName?.split(' ')[0] || 'there';
     
@@ -166,44 +209,46 @@ export const supportService = {
         ]
       },
       'vehicle_hub': {
-        message: customer.vehicles.length > 0 
-          ? `You have ${customer.vehicles.length} vehicle(s) registered. Which one shall we look at?`
-          : "You haven't added any vehicles yet. Want to add your first one?",
+        message: urgentDocs.length > 0
+          ? `⚠️ Urgent: You have ${urgentDocs.length} document(s) expiring soon (incl. ${urgentDocs[0].type} for ${urgentDocs[0].vehicle}). Which vehicle shall we review?`
+          : `You have ${customer.vehicles.length} vehicle(s) registered. Everything looks healthy! Which one shall we look at?`,
         options: [
           ...customer.vehicles.map((v: any) => ({
             label: `${v.make} ${v.model} (${v.registrationNumber})`,
             nextFlow: `vh_details_${v.id}`
           })),
-          { label: "Add New Vehicle", nextFlow: 'add_vehicle' },
           { label: "Back to Main", nextFlow: 'root' }
         ]
       },
       'expense_hub': {
-        message: `Your fuel spend this month is ₹${fuelSpend.toLocaleString()}. ${fuelSpend > 5000 ? "It's slightly higher than average." : "You're well within your limit!"} What would you like to check?`,
+        message: currentMonthTotal > 0
+          ? `This month you've spent ₹${currentMonthTotal.toLocaleString()}. Your primary expense is ${mainCategory}. ${currentMonthTotal > avgMonthlySpend ? 'Your spend is slightly higher than your 3-month average.' : "You're spending less than usual—great job!"}`
+          : "You haven't logged any expenses this month. Keeping track helps you save!",
         options: [
-          { label: "View All Expenses", nextFlow: 'sh_analytics' },
+          { label: "View Trends", nextFlow: 'sh_analytics' },
           { label: "Budget Tracking", nextFlow: 'sh_budget' },
           { label: "Back to Main", nextFlow: 'root' }
         ]
       },
       'my_tickets': {
         message: customer.supportTickets.length > 0
-          ? `You have ${customer.supportTickets.length} active tickets. Which one needs your attention?`
-          : "No active support tickets found. Everything looks clear!",
+          ? `You have ${customer.supportTickets.length} active tickets. The most recent one is '${customer.supportTickets[0].subject}', updated ${new Date(customer.supportTickets[0].updatedAt).toLocaleDateString()}.`
+          : "No active support tickets found. We're all caught up!",
         options: [
           ...customer.supportTickets.map((t: any) => ({
             label: `[${t.status}] ${t.subject}`,
             nextFlow: `tk_details_${t.id}`
           })),
-          { label: "Raise New Ticket", nextFlow: 'raise_ticket' },
           { label: "Back to Main", nextFlow: 'root' }
         ]
       },
       'services_hub': {
-        message: "Gupio offers several premium services. What can I help you with?",
+        message: sosReady 
+          ? "Your SOS profile is active and emergency contacts are verified. ✅ What else can I help you with?"
+          : "⚠️ Important: You haven't added any emergency contacts yet. Your SOS feature works best when your trusted contacts are set up. Shall we fix that?",
         options: [
           { label: "DigiLocker Sync", nextFlow: 'sh_digilocker' },
-          { label: "SOS Info", nextFlow: 'sh_sos' },
+          { label: "SOS Info & Readiness", nextFlow: 'sh_sos' },
           { label: "Valet Service", nextFlow: 'sh_valet' },
           { label: "Back to Main", nextFlow: 'root' }
         ]
