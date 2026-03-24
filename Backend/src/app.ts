@@ -32,9 +32,9 @@ app.use(helmet());
 const corsOptions: cors.CorsOptions = {
   origin:
     env.NODE_ENV === "development"
-      ? "*"
+      ? true
       : env.CORS_ORIGIN === "*"
-        ? "*"
+        ? true
         : env.CORS_ORIGIN.split(",").map((o) => o.trim()),
   credentials: true,
 };
