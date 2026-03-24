@@ -707,7 +707,10 @@ export default function Home() {
             } else if (label === 'Driving') {
               navigateToRootScreen('DrivingSummary');
             } else if (label === 'Near By') {
-              navigation.navigate('Services' as any, { screen: 'NearbyPlaces' });
+              navigation.navigate('Services' as any, { 
+                screen: 'NearbyPlaces',
+                params: { fromHome: true }
+              });
             } else if (label === 'Support') {
               handleHelpPress();
             }

@@ -953,26 +953,39 @@ export default function MyProfile() {
               onPress={() => handleMenuPress('SOS')}
               color="#FF4D4D"
               bgColor="rgba(255, 77, 77, 0.1)"
+              borderColor="#FF4D4D"
             />
             <MenuRow
               icon="bell"
               label="Notifications"
               onPress={() => navigation.navigate('Main', { screen: 'Alerts' })}
+              color="#00F2FF"
+              bgColor="rgba(0, 242, 255, 0.1)"
+              borderColor="#00F2FF"
             />
             <MenuRow
-              icon="file-contract"
+              icon="file-alt"
               label="Terms & Conditions"
               onPress={() => navigation.navigate('TermsConditions')}
+              color="#FFFFFF"
+              bgColor="rgba(255, 255, 255, 0.1)"
+              borderColor="#FFFFFF"
             />
             <MenuRow
               icon="user-shield"
               label="Privacy Policy"
               onPress={() => navigation.navigate('PrivacyPolicy')}
+              color="#7B61FF"
+              bgColor="rgba(123, 97, 255, 0.1)"
+              borderColor="#7B61FF"
             />
             <MenuRow
               icon="question-circle"
               label="Help & Support"
               onPress={() => handleMenuPress('HelpSupport')}
+              color="#FFBF00"
+              bgColor="rgba(255, 191, 0, 0.1)"
+              borderColor="#FFBF00"
             />
             <MenuRow
               icon="sign-out-alt"
@@ -1732,7 +1745,7 @@ const styles = StyleSheet.create({
 });
 
 /* ── Menu Row Sub-component with Animation ── */
-function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", isLast = false }: any) {
+function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borderColor = "rgba(255,255,255,0.1)", isLast = false }: any) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -1761,7 +1774,7 @@ function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", isLas
         !isLast && styles.menuRowBorder,
         { transform: [{ scale: scaleAnim }] }
       ]}>
-        <View style={[styles.menuIconWrap, { backgroundColor: bgColor }]}>
+        <View style={[styles.menuIconWrap, { backgroundColor: bgColor, borderColor: borderColor }]}>
           <Icon name={icon} size={wp(4.2)} color={color} />
         </View>
         <Text style={[styles.menuLabel, label === 'Logout' && { color: '#F44336' }]}>{label}</Text>
