@@ -2,6 +2,4 @@ packages:
   - "Backend"
   - "prisma"
   - "Admin"
-  - "MobileApp"
-  - "Mobile-v2"
   - "Mobile"
