@@ -160,7 +160,6 @@ export const vehicleService = {
           // Store normalized make/model/variant for consistent matching later.
           make: input.make ? input.make.trim() : undefined,
           model: input.model ? input.model.trim() : undefined,
-          variant: input.variant ? input.variant.trim() : undefined,
           imageUrl,
         },
       }),
@@ -445,7 +444,7 @@ export const vehicleService = {
     }
 
     return dbInstances.$transaction(async (tx) => {
-      await tx.customerDocument.updateMany({
+      await tx.vehicleDocument.updateMany({
         where: { vehicleId },
         data: { vehicleId: null },
       });

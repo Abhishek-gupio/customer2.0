@@ -100,7 +100,7 @@ export const proactiveChatService = {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 7);
 
-        const expiringDocs = await db.customerDocument.findMany({
+        const expiringDocs = await db.vehicleDocument.findMany({
             where: {
                 customerId,
                 expiryDate: { lte: expiryDate, gte: now },

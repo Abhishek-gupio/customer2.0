@@ -103,7 +103,7 @@ export const predictionService = {
 
     let documents: Array<{ type: string; expiryDate: Date | null }> = [];
     try {
-      documents = await (dbInstances as any).customerDocument.findMany({
+      documents = await (dbInstances as any).vehicleDocument.findMany({
         where: {
           vehicleId,
           verificationStatus: "VERIFIED",

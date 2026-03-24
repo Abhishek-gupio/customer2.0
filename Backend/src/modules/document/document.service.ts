@@ -14,7 +14,7 @@ export const documentService = {
   ) {
     // 1. Check for duplicates (Simple version)
     if (input.documentNumber) {
-      const existing = await dbInstances.customerDocument.findFirst({
+      const existing = await dbInstances.vehicleDocument.findFirst({
         where: {
           customerId,
           documentNumber: input.documentNumber,
@@ -36,7 +36,7 @@ export const documentService = {
     );
 
     // 3. Save to DB (Primary Storage in DB + metadata)
-    const document = await dbInstances.customerDocument.create({
+    const document = await dbInstances.vehicleDocument.create({
       data: {
         customerId,
         vehicleId: input.vehicleId || null,
@@ -68,7 +68,7 @@ export const documentService = {
   },
 
   async listDocuments(customerId: string) {
-    const docs = await dbInstances.customerDocument.findMany({
+    const docs = await dbInstances.vehicleDocument.findMany({
       where: {
         OR: [
           { customerId },
@@ -95,7 +95,7 @@ export const documentService = {
   },
 
   async getDocument(customerId: string, documentId: string) {
-    const document = await dbInstances.customerDocument.findUnique({
+    const document = await dbInstances.vehicleDocument.findUnique({
       where: { id: documentId },
       include: {
         vehicle: {
@@ -126,7 +126,7 @@ export const documentService = {
   async deleteDocument(customerId: string, documentId: string) {
     const document = await this.getDocument(customerId, documentId);
 
-    await dbInstances.customerDocument.delete({
+    await dbInstances.vehicleDocument.delete({
       where: { id: documentId },
     });
 
@@ -143,7 +143,7 @@ export const documentService = {
     const threshold = new Date();
     threshold.setDate(threshold.getDate() + days);
 
-    const docs = await dbInstances.customerDocument.findMany({
+    const docs = await dbInstances.vehicleDocument.findMany({
       where: {
         customerId,
         expiryDate: {
