@@ -101,6 +101,23 @@ const ADS_DATA = [
 
 const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id)!;
 
+const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
+  'FuelStations',
+  'Hospital',
+  'PoliceStation',
+  'Hotel',
+  'ChargingStation',
+  'Mechanics',
+  'RTO',
+  'Towing',
+  'CarWash',
+  'Insurance',
+  'Parking',
+  'TyreShop',
+  'DocumentServices',
+  'CarSpa',
+];
+
 export default function ServicesHub() {
   const navigation = useNavigation<any>();
   const [adIndex, setAdIndex] = useState(0);
@@ -120,6 +137,11 @@ export default function ServicesHub() {
   }, [adIndex]);
 
   const onServicePress = (id: string) => {
+    if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
+      navigation.navigate('NearbyPlaces', { placeType: id });
+      return;
+    }
+
     switch (id) {
       case 'PartsWarranty':
       case 'WarrantyStatus':
@@ -133,12 +155,6 @@ export default function ServicesHub() {
         break;
       case 'CheckChallan':
         navigation.navigate('CheckChallan');
-        break;
-      case 'Parking':
-        navigation.navigate('NearbyPlaces', { placeType: 'Parking' });
-        break;
-      case 'Mechanics':
-        navigation.navigate('NearbyPlaces', { placeType: 'Mechanics' });
         break;
       default:
         break;

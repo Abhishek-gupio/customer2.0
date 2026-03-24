@@ -83,7 +83,15 @@ function mapApiToNotificationItem(n: AppNotification): NotificationItem {
     description: n.body,
     time: formatTimeAgo(n.createdAt),
     unread: !n.isRead,
+    pinned: false,
   };
+}
+
+function sortNotifications(items: NotificationItem[]): NotificationItem[] {
+  return [...items].sort((a, b) => {
+    if (!!a.pinned === !!b.pinned) return 0;
+    return a.pinned ? -1 : 1;
+  });
 }
 
 export default function Alerts() {
@@ -106,7 +114,15 @@ export default function Alerts() {
     try {
       const response = await api.get<{ success?: boolean; data?: AppNotification[] }>('/v1/notifications');
       const rawList = parseNotificationsResponse(response);
-      setNotificationsList(rawList.map(mapApiToNotificationItem));
+      setNotificationsList((prev) => {
+        const pinnedById = new Map(prev.map((item) => [item.id, !!item.pinned]));
+        return sortNotifications(
+          rawList.map((item) => ({
+            ...mapApiToNotificationItem(item),
+            pinned: pinnedById.get(item.id) ?? false,
+          })),
+        );
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load notifications';
       console.error('Failed to fetch notifications:', error);
@@ -183,11 +199,11 @@ export default function Alerts() {
   };
 
   const pinNotification = (id: string) => {
-    // Simplified pin logic: move to top
     setNotificationsList(prev => {
-      const item = prev.find(n => n.id === id);
-      if (!item) return prev;
-      return [item, ...prev.filter(n => n.id !== id)];
+      const next = prev.map((n) =>
+        n.id === id ? { ...n, pinned: !n.pinned } : n
+      );
+      return sortNotifications(next);
     });
     setIsLongPressModalVisible(false);
   };
@@ -264,8 +280,14 @@ export default function Alerts() {
           <View style={[styles.menuDivider, { marginBottom: hp(1) }]} />
           
           <TouchableOpacity style={styles.menuItem} onPress={() => selectedItem && pinNotification(selectedItem.id)}>
-            <Ionicons name="pin-outline" size={22} color="#fff" />
-            <Text style={styles.menuItemText}>Pin to top</Text>
+            <Ionicons
+              name={selectedItem?.pinned ? "pin" : "pin-outline"}
+              size={22}
+              color={selectedItem?.pinned ? "#FFBF00" : "#fff"}
+            />
+            <Text style={styles.menuItemText}>
+              {selectedItem?.pinned ? "Unpin from top" : "Pin to top"}
+            </Text>
           </TouchableOpacity>
           
           <View style={styles.menuDivider} />

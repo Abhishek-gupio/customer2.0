@@ -9,6 +9,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  PermissionsAndroid,
   Alert,
   ActivityIndicator,
   ScrollView,
@@ -20,6 +21,15 @@ import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../..
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
+import { googleMapsService } from "../../services/googleMapsService";
+
+let Geolocation: any = null;
+try {
+  const geoModule = require("@react-native-community/geolocation") as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 
 interface ManualEntryData {
   amount?: string;
@@ -96,12 +106,14 @@ const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
   return Array.from(normalized);
 };
 
+const formatManualDate = (value: Date) => format(value, "dd-MM-yyyy");
+
 export default function ManualEntryOverlay({ visible, onClose, onSuccess, initialData }: ManualEntryOverlayProps) {
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [odometer, setOdometer] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(formatManualDate(new Date()));
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
@@ -116,8 +128,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const [placeSearch, setPlaceSearch] = useState("");
-  const [showPlaceInput, setShowPlaceInput] = useState(false);
+  const [placeSearch, setPlaceSearch] = useState("Fetching...");
   const [selectedPlace, setSelectedPlace] = useState<{
     placeId: string;
     name: string;
@@ -145,8 +156,103 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   React.useEffect(() => {
     if (visible) {
       fetchVehicles();
+      fetchCurrentPlace();
     }
   }, [visible]);
+
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === "ios") {
+      try {
+        if (Geolocation?.requestAuthorization) {
+          const status = await Geolocation.requestAuthorization("whenInUse");
+          return (
+            status === "granted" ||
+            status === "authorized" ||
+            status === "authorizedWhenInUse"
+          );
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    try {
+      const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+      const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      const fineHas = await PermissionsAndroid.check(fine);
+      const coarseHas = await PermissionsAndroid.check(coarse);
+      if (fineHas || coarseHas) return true;
+
+      const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+      return (
+        results[fine] === PermissionsAndroid.RESULTS.GRANTED ||
+        results[coarse] === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
+
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+  };
+
+  const fetchCurrentPlace = async () => {
+    try {
+      setPlaceSearch("Fetching...");
+      setSelectedPlace(null);
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(
+        coords.latitude,
+        coords.longitude,
+      );
+
+      setPlaceSearch(address);
+      setSelectedPlace({
+        placeId: `current-${coords.latitude},${coords.longitude}`,
+        name: address,
+        address,
+        lat: coords.latitude,
+        lng: coords.longitude,
+      });
+    } catch (error) {
+      console.log("Place detection failed:", error);
+      setPlaceSearch("Location not available");
+    }
+  };
 
   React.useEffect(() => {
     if (visible && initialData) {
@@ -165,6 +271,8 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       } else if (initialData.partType) {
         setSelectedPartTypes([initialData.partType]);
       }
+    } else if (visible) {
+      setDate(formatManualDate(new Date()));
     }
   }, [visible, initialData]);
 
@@ -329,11 +437,13 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       setCategory("Fuel");
       setAmount("");
       setDescription("");
-      setDate("");
+      setDate(formatManualDate(new Date()));
       setOdometer("");
       setReceiptUrl(null);
       setMimeType(null);
       setSelectedPartTypes(["ENGINE_OIL"]);
+      setPlaceSearch("Fetching...");
+      setSelectedPlace(null);
 
       // Close modal first
       onClose();

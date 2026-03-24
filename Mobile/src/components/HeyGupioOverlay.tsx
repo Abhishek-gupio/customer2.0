@@ -499,14 +499,16 @@ export default function HeyGupioOverlay() {
         <Text style={styles.fabIcon}>
           {status === 'listening' ? '🎤' : status === 'processing' ? '…' : status === 'speaking' ? '🔊' : '🎙'}
         </Text>
-        {status !== 'idle' && (
-          <Text style={styles.fabLabel} numberOfLines={1}>
+      </TouchableOpacity>
+      {status !== 'idle' && (
+        <View style={styles.statusBubble}>
+          <Text style={styles.fabLabel} numberOfLines={2}>
             {status === 'listening' && 'Listening… Speak now'}
             {status === 'processing' && 'Thinking…'}
             {status === 'speaking' && 'Speaking… Tap to stop'}
           </Text>
-        )}
-      </TouchableOpacity>
+        </View>
+      )}
     </Animated.View>
   );
 }
@@ -535,12 +537,22 @@ const styles = StyleSheet.create({
   fabIcon: {
     fontSize: 26,
   },
-  fabLabel: {
+  statusBubble: {
     position: 'absolute',
-    right: 60,
-    fontSize: 11,
+    right: 68,
+    top: 4,
+    minWidth: 120,
+    maxWidth: 160,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  fabLabel: {
+    fontSize: 12,
     fontFamily: 'Outfit-Medium',
-    color: '#7a8599',
-    maxWidth: 80,
+    color: '#d1d5db',
   },
 });

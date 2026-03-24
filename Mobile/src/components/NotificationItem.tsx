@@ -59,6 +59,11 @@ const NotificationCard: React.FC<Props> = ({ item, onRemove, onPress, onLongPres
           <View style={styles.contentColumn}>
             <View style={styles.contentHeader}>
               <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+              {item.pinned ? (
+                <View style={styles.pinBadge}>
+                  <Ionicons name="pin" size={14} color="#FFBF00" />
+                </View>
+              ) : null}
             </View>
             
             <Text style={styles.description} numberOfLines={3}>
@@ -107,12 +112,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    gap: 8,
   },
   title: {
     color: "#fff",
     fontSize: 15,
     fontFamily: 'Outfit-Bold',
     lineHeight: 20,
+    flex: 1,
+  },
+  pinBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,191,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
   },
   description: {
     color: "rgba(255,255,255,0.6)",

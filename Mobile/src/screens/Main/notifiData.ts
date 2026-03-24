@@ -15,4 +15,5 @@ export interface NotificationItem {
   description: string;
   time: string;
   unread: boolean;
+  pinned?: boolean;
 }
