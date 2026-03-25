@@ -675,16 +675,9 @@ export default function MyProfile() {
         }}
         statusBarTranslucent
       >
-        <View style={styles.advancedModalOverlay}>
-          <TouchableWithoutFeedback onPress={() => {
-            if (!isEditing) setInfoModal(false);
-          }}>
-            <View style={styles.advancedModalBlur} />
-          </TouchableWithoutFeedback>
 
-          <Animated.View style={styles.advancedModalContent}>
-            {/* Modal Pull Handle */}
-            <View style={styles.modalHandle} />
+        <Animated.View style={[styles.advancedModalContent, { borderTopLeftRadius: 0, borderTopRightRadius: 0, minHeight: '100%', borderWidth: 0 }]}>
+          <SafeAreaView edges={['top']} style={{ flex: 1 }}>
 
             <View style={styles.advancedModalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(3) }}>
@@ -800,8 +793,8 @@ export default function MyProfile() {
                 <Text style={styles.modalCloseText}>Done</Text>
               </TouchableOpacity>
             </ScrollView>
-          </Animated.View>
-        </View>
+          </SafeAreaView>
+        </Animated.View>
       </Modal>
 
       <ScrollView
@@ -1618,12 +1611,8 @@ const styles = StyleSheet.create({
   },
   advancedModalContent: {
     backgroundColor: '#0a0b0e',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    minHeight: hp(85),
-    paddingTop: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    flex: 1,
+    paddingTop: hp(2),
   },
   modalHandle: {
     width: 40,
@@ -1638,6 +1627,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(6),
+    paddingVertical: hp(2),
     marginBottom: hp(2),
   },
   advancedModalTitle: {
