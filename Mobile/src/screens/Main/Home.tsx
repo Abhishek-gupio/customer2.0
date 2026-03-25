@@ -68,6 +68,8 @@ export default function Home() {
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
+  /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
+  const fuelStateLockedByUserRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -284,7 +286,7 @@ export default function Home() {
             const geo = await reverseGeocode(coords.lat, coords.lon);
             if (geo) {
               setUserLocationDisplay(geo.display);
-              if (geo.state && STATES.includes(geo.state)) {
+              if (!fuelStateLockedByUserRef.current && geo.state && STATES.includes(geo.state)) {
                 setSelectedState(geo.state);
               }
               return;
@@ -308,10 +310,12 @@ export default function Home() {
 
       if (geo) {
         setUserLocationDisplay(`${geo.city}, ${geo.region}`);
-        if (geo.region && STATES.includes(geo.region)) {
-          setSelectedState(geo.region);
-        } else if (geo.region_name && STATES.includes(geo.region_name)) {
-          setSelectedState(geo.region_name);
+        if (!fuelStateLockedByUserRef.current) {
+          if (geo.region && STATES.includes(geo.region)) {
+            setSelectedState(geo.region);
+          } else if (geo.region_name && STATES.includes(geo.region_name)) {
+            setSelectedState(geo.region_name);
+          }
         }
       } else {
         setUserLocationDisplay('Location not available');
@@ -974,6 +978,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={[styles.stateOption, selectedState === item && styles.selectedStateOption]}
                   onPress={() => {
+                    fuelStateLockedByUserRef.current = true;
                     setSelectedState(item);
                     setShowStateModal(false);
                     setStateSearchQuery('');
