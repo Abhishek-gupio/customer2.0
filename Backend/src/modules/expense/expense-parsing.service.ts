@@ -9,8 +9,27 @@ import { fuelPriceService } from "../../services/fuel-price.service";
 import { expenseIntelligenceService } from "../../services/expense-intelligence.service";
 import { queues } from "../../config/queue";
 import { expenseBudgetService } from "./expense-budget.service";
+import { storageService } from "../../services/storage.service";
 
 const db = dbInstances;
+
+const VALID_EXPENSE_CATEGORIES = new Set<string>([
+  "FUEL",
+  "TOLL",
+  "PARKING",
+  "SERVICE",
+  "INSURANCE",
+  "CHALLAN",
+  "EMI",
+  "REPAIR",
+  "OTHER",
+]);
+
+function normalizeExpenseCategory(cat: unknown): ExpenseCategory {
+  const s = typeof cat === "string" ? cat.trim().toUpperCase() : "";
+  if (VALID_EXPENSE_CATEGORIES.has(s)) return s as ExpenseCategory;
+  return "OTHER";
+}
 
 export const expenseParsingService = {
   /**
@@ -202,11 +221,198 @@ export const expenseParsingService = {
       dryRun: true,
       expense: {
         amount: Number(aiResult.amount) || 0,
-        category: (aiResult.category as any) || "OTHER",
+        category: normalizeExpenseCategory(aiResult.category),
         merchantName: aiResult.merchantName || null,
         date: aiResult.date || new Date().toISOString().split("T")[0],
         notes: aiResult.notes || `Voice transcription: ${aiResult.transcription || ""}`,
       },
     };
+  },
+
+  async parseReceiptImage(customerId: string, file: Express.Multer.File, dryRun: boolean) {
+    const parsed = await ocrService.parseReceipt(file.buffer, file.mimetype);
+    if (parsed.error) {
+      throw AppError.badRequest(typeof parsed.error === "string" ? parsed.error : "Could not parse receipt");
+    }
+    if (parsed.isReceipt === false) {
+      throw AppError.badRequest(
+        typeof parsed.error === "string" ? parsed.error : "This image does not look like a receipt.",
+      );
+    }
+    const amount = Number(parsed.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw AppError.badRequest("Could not detect a valid amount on the receipt.");
+    }
+    const category = normalizeExpenseCategory(parsed.category);
+    const targetVehicleId = await vehicleService.resolveVehicleId(customerId, undefined);
+
+    if (dryRun) {
+      return {
+        success: true,
+        dryRun: true,
+        expense: {
+          amount,
+          category,
+          merchantName: parsed.merchantName ?? null,
+          date: parsed.date ? new Date(parsed.date) : new Date(),
+          notes: parsed.notes ?? null,
+          vehicleNumber: parsed.vehicleNumber ?? null,
+        },
+      };
+    }
+
+    const uploaded = await storageService.uploadFile(file, `expenses/${customerId}`);
+    const expense = await db.expense.create({
+      data: {
+        customerId,
+        vehicleId: targetVehicleId,
+        amount,
+        category,
+        merchantName: parsed.merchantName ?? null,
+        date: parsed.date ? new Date(parsed.date) : new Date(),
+        source: "RECEIPT",
+        receiptUrl: uploaded.url,
+        mimeType: file.mimetype,
+        notes:
+          parsed.notes ??
+          (typeof parsed.rawText === "string" ? parsed.rawText.slice(0, 500) : null),
+        isAutomated: true,
+        rawText: typeof parsed.rawText === "string" ? parsed.rawText.slice(0, 5000) : null,
+      },
+    });
+
+    if (queues?.budgetCheck) {
+      void queues.budgetCheck
+        .add("check-budget", { customerId, metadata: { category: expense.category, amount: expense.amount } })
+        .catch(() => {});
+    } else {
+      void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
+    }
+
+    let fuelIntelligence = null;
+    if (category === "FUEL") {
+      fuelIntelligence = await fuelPriceService.enrichFuelExpense(expense.amount, "Delhi", "PETROL").catch(() => null);
+    }
+
+    return { success: true, expense, fuelIntelligence };
+  },
+
+  async createExpenseFromVoice(customerId: string, file: Express.Multer.File) {
+    const aiResult = await ocrService.parseVoiceExpense(file.buffer, file.mimetype);
+    if (aiResult.error) throw AppError.badRequest(String(aiResult.error));
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) throw AppError.badRequest("Could not detect expense amount from voice.");
+
+    const category = normalizeExpenseCategory(aiResult.category);
+    const targetVehicleId = await vehicleService.resolveVehicleId(customerId, undefined);
+    const rawText = typeof aiResult.transcription === "string" ? aiResult.transcription : "";
+
+    const dupCheck = await expenseIntelligenceService.isDuplicate(customerId, amount, category, new Date());
+    if (dupCheck.isDuplicate) {
+      return {
+        success: false,
+        skipped: true,
+        reason: dupCheck.reason,
+        existingExpenseId: dupCheck.existingExpenseId,
+      };
+    }
+
+    const expense = await db.expense.create({
+      data: {
+        customerId,
+        vehicleId: targetVehicleId,
+        amount,
+        category,
+        merchantName: aiResult.merchantName ?? null,
+        date: aiResult.date ? new Date(aiResult.date) : new Date(),
+        source: "VOICE",
+        rawText: rawText.slice(0, 5000),
+        isAutomated: true,
+        notes: aiResult.notes ?? `Voice: ${rawText.slice(0, 500)}`,
+      },
+    });
+
+    if (queues?.budgetCheck) {
+      void queues.budgetCheck
+        .add("check-budget", { customerId, metadata: { category: expense.category, amount: expense.amount } })
+        .catch(() => {});
+    } else {
+      void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
+    }
+
+    let fuelIntelligence = null;
+    if (category === "FUEL") {
+      fuelIntelligence = await fuelPriceService.enrichFuelExpense(amount, "Delhi", "PETROL").catch(() => null);
+    }
+
+    return { success: true, expense, fuelIntelligence, parserMeta: { method: "VOICE_AUDIO" as const } };
+  },
+
+  async previewExpenseFromVoiceText(text: string) {
+    const aiResult = await ocrService.parseVoiceExpenseFromText(text);
+    if (aiResult.error) throw AppError.badRequest(String(aiResult.error));
+
+    return {
+      success: true,
+      dryRun: true,
+      expense: {
+        amount: Number(aiResult.amount) || 0,
+        category: normalizeExpenseCategory(aiResult.category),
+        merchantName: aiResult.merchantName ?? null,
+        date: aiResult.date || new Date().toISOString().split("T")[0],
+        notes: aiResult.notes ?? `Voice transcription: ${aiResult.transcription || text}`,
+      },
+    };
+  },
+
+  async createExpenseFromVoiceText(customerId: string, text: string) {
+    const aiResult = await ocrService.parseVoiceExpenseFromText(text);
+    if (aiResult.error) throw AppError.badRequest(String(aiResult.error));
+    const amount = Number(aiResult.amount) || 0;
+    if (amount <= 0) throw AppError.badRequest("Could not detect expense amount from text.");
+
+    const category = normalizeExpenseCategory(aiResult.category);
+    const targetVehicleId = await vehicleService.resolveVehicleId(customerId, undefined);
+    const rawText = typeof aiResult.transcription === "string" ? aiResult.transcription : text;
+
+    const dupCheck = await expenseIntelligenceService.isDuplicate(customerId, amount, category, new Date());
+    if (dupCheck.isDuplicate) {
+      return {
+        success: false,
+        skipped: true,
+        reason: dupCheck.reason,
+        existingExpenseId: dupCheck.existingExpenseId,
+      };
+    }
+
+    const expense = await db.expense.create({
+      data: {
+        customerId,
+        vehicleId: targetVehicleId,
+        amount,
+        category,
+        merchantName: aiResult.merchantName ?? null,
+        date: aiResult.date ? new Date(aiResult.date) : new Date(),
+        source: "VOICE",
+        rawText: rawText.slice(0, 5000),
+        isAutomated: true,
+        notes: aiResult.notes ?? `Voice (text): ${text.slice(0, 500)}`,
+      },
+    });
+
+    if (queues?.budgetCheck) {
+      void queues.budgetCheck
+        .add("check-budget", { customerId, metadata: { category: expense.category, amount: expense.amount } })
+        .catch(() => {});
+    } else {
+      void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
+    }
+
+    let fuelIntelligence = null;
+    if (category === "FUEL") {
+      fuelIntelligence = await fuelPriceService.enrichFuelExpense(amount, "Delhi", "PETROL").catch(() => null);
+    }
+
+    return { success: true, expense, fuelIntelligence, parserMeta: { method: "VOICE_TEXT" as const } };
   },
 };

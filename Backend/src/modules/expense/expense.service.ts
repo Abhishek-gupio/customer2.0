@@ -1,11 +1,10 @@
 import { dbInstances } from "@repo/db-customer";
-import { CreateExpenseInput, ParseExpenseInput, ExpenseBudgetInput, ExpenseCategory, ExpenseSource } from "./expense.validators";
+import { CreateExpenseInput, ParseExpenseInput, ExpenseBudgetInput, ExpenseCategory } from "./expense.validators";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { storageService } from "../../services/storage.service";
 import { vehicleService } from "../vehicle/vehicle.service";
 import { fuelPriceService } from "../../services/fuel-price.service";
-import { expenseIntelligenceService } from "../../services/expense-intelligence.service";
 import { ingestionService } from "../../services/ingestion.service";
 import { queues } from "../../config/queue";
 
@@ -121,6 +120,64 @@ export const expenseService = {
 
   async getSummary(customerId: string, month?: number, year?: number) {
     return expenseBudgetService.getMonthlySummary(customerId, month, year);
+  },
+
+  async listExpenses(customerId: string, query: Record<string, unknown>) {
+    const page = Math.max(1, parseInt(String(query.page ?? "1"), 10) || 1);
+    const limitRaw = parseInt(String(query.limit ?? "20"), 10);
+    const limit = Math.min(100, Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 20));
+    const skip = (page - 1) * limit;
+
+    const allowedCategories = new Set<string>(Object.values(ExpenseCategory));
+    const where: {
+      customerId: string;
+      vehicleId?: string;
+      category?: (typeof ExpenseCategory)[keyof typeof ExpenseCategory];
+      date?: { gte?: Date; lte?: Date };
+    } = { customerId };
+
+    const vehicleId = query.vehicleId;
+    if (typeof vehicleId === "string" && vehicleId.trim()) {
+      where.vehicleId = vehicleId.trim();
+    }
+    const cat = typeof query.category === "string" ? query.category.toUpperCase() : "";
+    if (cat && allowedCategories.has(cat)) {
+      where.category = cat as (typeof ExpenseCategory)[keyof typeof ExpenseCategory];
+    }
+    const from = query.from;
+    const to = query.to;
+    if ((typeof from === "string" && from) || (typeof to === "string" && to)) {
+      where.date = {};
+      if (typeof from === "string" && from) where.date.gte = new Date(from);
+      if (typeof to === "string" && to) where.date.lte = new Date(to);
+    }
+
+    const [items, total] = await Promise.all([
+      db.expense.findMany({
+        where,
+        orderBy: { date: "desc" },
+        skip,
+        take: limit,
+      }),
+      db.expense.count({ where }),
+    ]);
+    return { items, total, page, limit };
+  },
+
+  async parseReceiptImage(customerId: string, file: Express.Multer.File, dryRun: boolean) {
+    return expenseParsingService.parseReceiptImage(customerId, file, dryRun);
+  },
+
+  async createExpenseFromVoice(customerId: string, file: Express.Multer.File) {
+    return expenseParsingService.createExpenseFromVoice(customerId, file);
+  },
+
+  async previewExpenseFromVoiceText(text: string) {
+    return expenseParsingService.previewExpenseFromVoiceText(text);
+  },
+
+  async createExpenseFromVoiceText(customerId: string, text: string) {
+    return expenseParsingService.createExpenseFromVoiceText(customerId, text);
   },
 
   // Shared utilities
