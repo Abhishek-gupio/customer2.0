@@ -291,7 +291,7 @@ model InAppNotification {
   updatedAt  DateTime  @updatedAt
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  @@index([customerId])
+  @@index([customerId, isRead, createdAt])
   @@schema("customer")
 }
 
@@ -525,13 +525,14 @@ model DrivingTrip {
   safetyScore   Int
   startLocation Json?
   endLocation   Json?
+  scores        Json?
+  statistics    Json?
   status        String
   createdAt     DateTime        @default(now())
   events        DrivingEvent[]
   vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  @@index([vehicleId])
-  @@index([startTime])
+  @@index([vehicleId, startTime])
   @@schema("customer")
 }
 
@@ -1614,6 +1615,7 @@ enum ExpenseCategory {
   INSURANCE
   CHALLAN
   EMI
+  REPAIR
   OTHER
 
   @@schema("customer")
@@ -1625,6 +1627,7 @@ enum ExpenseSource {
   NOTIFICATION
   VOICE
   RECEIPT
+  UPI
 
   @@schema("customer")
 }

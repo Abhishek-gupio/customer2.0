@@ -26,11 +26,13 @@ import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
 import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
 import NotificationPermission from '../../components/NotificationPermission';
 import Bills from './Bills';
-import { colors }from '../../theme/colors';
-import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
+import { colors } from '../../theme/colors';
+import { fontSizes as FS, fontWeights as FW } from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { vehicleService } from '../../services/vehicleService';
 import { setPrimaryVehicleId } from '../../services/storage';
+import { FlashList } from "@shopify/flash-list";
+const FlashListAny = FlashList as any;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -502,218 +504,246 @@ const ExpenseFeed = () => {
     return `₹${val}`;
   };
 
+  const renderItem = ({ item }: { item: any }) => (
+    <View key={item.id} style={styles.listCard}>
+      <View style={[styles.iconCircle, { borderColor: item.color }]}>
+        <Icon name={item.icon} size={wp(5)} color={item.color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.itemTitle}>{item.title}</Text>
+        <Text style={styles.itemSub}>{item.date} · {item.source}</Text>
+      </View>
+      <Text style={styles.itemAmount}>₹{item.amount}</Text>
+    </View>
+  );
+
   return (
-
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
+      <FlashListAny
+        data={displayedExpenses}
+        estimatedItemSize={80}
+        onRefresh={fetchExpenses}
+        refreshing={loading}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={fetchExpenses} tintColor="#fff" />
-        }
-      >
-        <View style={styles.shader}>
-          <View style={styles.header}>
-            <BackButton onPress={() => navigation.goBack()} />
-            <Text style={styles.headerTitle}>Expenses</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
-              <Icon name="plus" size={wp(5)} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
-            <NotificationPermission />
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Total This Month</Text>
-            <Text style={styles.amount}>{formatCurrency(totalThisMonth)}</Text>
-
-            <View style={styles.row}>
-              <Icon
-                name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
-                size={wp(3)}
-                color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
-              />
-              <Text style={[
-                styles.growthText,
-                { color: growthPercent >= 0 ? '#ff5252' : '#00c853' }
-              ]}>
-                {' '}{growthPercent >= 0 ? '+' : ''}{growthPercent}% from last month
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={[styles.card, { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' }]}>
-          <View style={styles.rowBetween}>
-            <Text style={styles.cardLabel}>Total Spent</Text>
-            <View style={styles.percentBadge}>
-              <TouchableOpacity
-                onPress={() => {
-                  setCalendarSelectionTarget(selectedFromDate ? 'to' : 'from');
-                  setIsCalendarVisible(true);
-                }}
-                style={styles.calendarButton}
-              >
-                <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
-                <Text style={styles.selectedDateText}>{selectedDateLabel}</Text>
-              </TouchableOpacity>
-              
-            </View>
-          </View>
-          <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
-
-          <View style={styles.timelineContainer}>
-            <View style={styles.timelineSubContainer}>
-              {['Daily', 'Weekly', 'Monthly', 'Yearly'].map(item => (
+        contentContainerStyle={{ paddingBottom: hp(5) }}
+        ListHeaderComponent={
+          <>
+            <View style={styles.shader}>
+              <View style={styles.header}>
+                <BackButton onPress={() => navigation.goBack()} />
+                <Text style={styles.headerTitle}>Expenses</Text>
                 <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.timelineItem,
-                    timelineFilter === item && styles.activeTimelineItem,
-                  ]}
-                  onPress={() => {
-                  setTimelineFilter(item);
-                  setSelectedFromDate(null);
-                  setSelectedToDate(null);
-                  setCalendarSelectionTarget('from');
-                  setIsCalendarVisible(false)
-                  }
-                  }
+                  onPress={() => navigation.navigate('addExpense')}
                 >
-                  <Text
-                    style={[
-                      styles.timelineText,
-                      timelineFilter === item && styles.activeTimelineText,
-                    ]}
-                  >
-                    {item}
-                  </Text>
+                  <Icon name="plus" size={wp(5)} color="#fff" />
                 </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {categoryBreakdown.length > 0 ? (
-            categoryBreakdown.map(item => (
-              <ProgressRow
-                key={item.key}
-                label={item.label}
-                percent={item.percent}
-                color={item.color}
-                value={`₹${item.amount.toLocaleString('en-IN')} (${item.percent}%)`}
-              />
-            ))
-          ) : (
-            <View style={{ paddingVertical: hp(2), alignItems: 'center' }}>
-              <Text style={{ color: '#666', fontSize: wp(3.5) }}>No data for this period</Text>
-            </View>
-          )}
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterRow}>
-            {serviceTypes.map(item => {
-              const isActive = selectedType === item;
-
-              return (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.filterChip,
-                    isActive && styles.activeChip,
-                  ]}
-                  onPress={() => setSelectedType(item)}
-                >
-                  <Text
-                    style={[
-                      styles.filterText,
-                      isActive && styles.activeText,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-
-        {filteredExpenses.length === 0 && !loading ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No expenses found</Text>
-          </View>
-        ) : (
-          displayedExpenses.map(item => (
-            <View key={item.id} style={styles.listCard}>
-              <View style={[styles.iconCircle, { borderColor: item.color }]}>
-                <Icon name={item.icon} size={wp(5)} color={item.color} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
 
-                <Text style={styles.itemSub}>
-                  {item.date} · {item.source}
+              <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
+                <NotificationPermission />
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>Total This Month</Text>
+                <Text style={styles.amount}>
+                  {formatCurrency(totalThisMonth)}
                 </Text>
+
+                <View style={styles.row}>
+                  <Icon
+                    name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
+                    size={wp(3)}
+                    color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
+                  />
+                  <Text
+                    style={[
+                      styles.growthText,
+                      { color: growthPercent >= 0 ? '#ff5252' : '#00c853' },
+                    ]}
+                  >
+                    {' '}
+                    {growthPercent >= 0 ? '+' : ''}
+                    {growthPercent}% from last month
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.card,
+                { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' },
+              ]}
+            >
+              <View style={styles.rowBetween}>
+                <Text style={styles.cardLabel}>Total Spent</Text>
+                <View style={styles.percentBadge}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCalendarSelectionTarget(
+                        selectedFromDate ? 'to' : 'from',
+                      );
+                      setIsCalendarVisible(true);
+                    }}
+                    style={styles.calendarButton}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={22}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.selectedDateText}>
+                      {selectedDateLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
+
+              <View style={styles.timelineContainer}>
+                <View style={styles.timelineSubContainer}>
+                  {['Daily', 'Weekly', 'Monthly', 'Yearly'].map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      style={[
+                        styles.timelineItem,
+                        timelineFilter === item && styles.activeTimelineItem,
+                      ]}
+                      onPress={() => {
+                        setTimelineFilter(item);
+                        setSelectedFromDate(null);
+                        setSelectedToDate(null);
+                        setCalendarSelectionTarget('from');
+                        setIsCalendarVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.timelineText,
+                          timelineFilter === item && styles.activeTimelineText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
 
-              <Text style={styles.itemAmount}>₹{item.amount}</Text>
+              {categoryBreakdown.length > 0 ? (
+                categoryBreakdown.map((item) => (
+                  <ProgressRow
+                    key={item.key}
+                    label={item.label}
+                    percent={item.percent}
+                    color={item.color}
+                    value={`₹${item.amount.toLocaleString('en-IN')} (${
+                      item.percent
+                    }%)`}
+                  />
+                ))
+              ) : (
+                <View style={{ paddingVertical: hp(2), alignItems: 'center' }}>
+                  <Text style={{ color: '#666', fontSize: wp(3.5) }}>
+                    No data for this period
+                  </Text>
+                </View>
+              )}
             </View>
-          ))
-        )}
 
-        {filteredExpenses.length > 3 && (
-          <TouchableOpacity
-            style={styles.viewMoreBtn}
-            onPress={() => setShowAllExpenses(!showAllExpenses)}
-          >
-            <Text style={styles.viewMoreText}>
-              {showAllExpenses ? 'View Less' : 'View More'}
-            </Text>
-            <Icon
-              name={showAllExpenses ? 'chevron-up' : 'chevron-down'}
-              size={wp(3)}
-              color="#4CAF50"
-              style={{ marginLeft: 6 }}
-            />
-          </TouchableOpacity>
-        )}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.filterRow}>
+                {serviceTypes.map((item) => {
+                  const isActive = selectedType === item;
 
-        <Bills bills={bills} />
+                  return (
+                    <TouchableOpacity
+                      key={item}
+                      style={[styles.filterChip, isActive && styles.activeChip]}
+                      onPress={() => setSelectedType(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.filterText,
+                          isActive && styles.activeText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
 
-        <TouchableOpacity
-          style={styles.sectionTitleCentered}
-          onPress={() => navigation.navigate('BudgetSettings')}
-        >
-          <Icon name="wallet" size={wp(5)} color="#fff" />
-          <Text style={{ color: '#fff', marginLeft: wp(2) }}>
-            Set Budget
-          </Text>
-        </TouchableOpacity>
+            {filteredExpenses.length === 0 && !loading && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No expenses found</Text>
+              </View>
+            )}
+          </>
+        }
+        renderItem={renderItem}
+        ListFooterComponent={
+          <>
+            {filteredExpenses.length > 3 && (
+              <TouchableOpacity
+                style={styles.viewMoreBtn}
+                onPress={() => setShowAllExpenses(!showAllExpenses)}
+              >
+                <Text style={styles.viewMoreText}>
+                  {showAllExpenses ? 'View Less' : 'View More'}
+                </Text>
+                <Icon
+                  name={showAllExpenses ? 'chevron-up' : 'chevron-down'}
+                  size={wp(3)}
+                  color="#4CAF50"
+                  style={{ marginLeft: 6 }}
+                />
+              </TouchableOpacity>
+            )}
 
-        <TouchableOpacity
-          style={styles.sectionTitleCenteredAnalytics}
-          onPress={() => navigation.navigate('ExpenseAnalytics')}
-        >
-          <Icon name="chart-bar" size={wp(5)} color="#fff" />
-          <Text style={{ color: '#fff', marginLeft: wp(2) }}>
-            View Detailed Analytics
-          </Text>
-        </TouchableOpacity>
+            <Bills bills={bills} />
 
-      </ScrollView>
+            <TouchableOpacity
+              style={styles.sectionTitleCentered}
+              onPress={() => navigation.navigate('BudgetSettings')}
+            >
+              <Icon name="wallet" size={wp(5)} color="#fff" />
+              <Text style={{ color: '#fff', marginLeft: wp(2) }}>
+                Set Budget
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sectionTitleCenteredAnalytics}
+              onPress={() => navigation.navigate('ExpenseAnalytics')}
+            >
+              <Icon name="chart-bar" size={wp(5)} color="#fff" />
+              <Text style={{ color: '#fff', marginLeft: wp(2) }}>
+                View Detailed Analytics
+              </Text>
+            </TouchableOpacity>
+          </>
+        }
+      />
       <Modal
         visible={isCalendarVisible}
         transparent
         animationType="fade"
         onRequestClose={() => setIsCalendarVisible(false)}
       >
-        <Pressable style={styles.calendarModalBackdrop} onPress={() => setIsCalendarVisible(false)}>
+        <Pressable
+          style={styles.calendarModalBackdrop}
+          onPress={() => setIsCalendarVisible(false)}
+        >
           <View style={styles.calendarModalCard}>
             <View style={styles.calendarHeader}>
               <TouchableOpacity
                 onPress={() =>
                   setCalendarMonth(
-                    prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+                    (prev) =>
+                      new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
                   )
                 }
               >
@@ -723,7 +753,8 @@ const ExpenseFeed = () => {
               <TouchableOpacity
                 onPress={() =>
                   setCalendarMonth(
-                    prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+                    (prev) =>
+                      new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
                   )
                 }
               >
@@ -733,27 +764,39 @@ const ExpenseFeed = () => {
 
             <View style={styles.weekHeader}>
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-                <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>{day}</Text>
+                <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>
+                  {day}
+                </Text>
               ))}
             </View>
 
             <View style={styles.rangePickerRow}>
               <TouchableOpacity
-                style={[styles.rangeChip, calendarSelectionTarget === 'from' && styles.rangeChipActive]}
+                style={[
+                  styles.rangeChip,
+                  calendarSelectionTarget === 'from' && styles.rangeChipActive,
+                ]}
                 onPress={() => setCalendarSelectionTarget('from')}
               >
                 <Text style={styles.rangeChipLabel}>From</Text>
                 <Text style={styles.rangeChipValue}>
-                  {selectedFromDate ? formatRangeDate(selectedFromDate) : 'Select date'}
+                  {selectedFromDate
+                    ? formatRangeDate(selectedFromDate)
+                    : 'Select date'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.rangeChip, calendarSelectionTarget === 'to' && styles.rangeChipActive]}
+                style={[
+                  styles.rangeChip,
+                  calendarSelectionTarget === 'to' && styles.rangeChipActive,
+                ]}
                 onPress={() => setCalendarSelectionTarget('to')}
               >
                 <Text style={styles.rangeChipLabel}>To</Text>
                 <Text style={styles.rangeChipValue}>
-                  {selectedToDate ? formatRangeDate(selectedToDate) : 'Select date'}
+                  {selectedToDate
+                    ? formatRangeDate(selectedToDate)
+                    : 'Select date'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -763,11 +806,16 @@ const ExpenseFeed = () => {
                 if (!day) {
                   return <View key={`empty-${index}`} style={styles.dayCell} />;
                 }
-                const isFrom = selectedFromDate ? sameDay(day, selectedFromDate) : false;
-                const isTo = selectedToDate ? sameDay(day, selectedToDate) : false;
+                const isFrom = selectedFromDate
+                  ? sameDay(day, selectedFromDate)
+                  : false;
+                const isTo = selectedToDate
+                  ? sameDay(day, selectedToDate)
+                  : false;
                 const isInRange =
                   selectedFromDate && selectedToDate
-                    ? day >= startOfDay(selectedFromDate) && day <= endOfDay(selectedToDate)
+                    ? day >= startOfDay(selectedFromDate) &&
+                      day <= endOfDay(selectedToDate)
                     : false;
                 const isSelected = isFrom || isTo;
                 return (
@@ -780,7 +828,12 @@ const ExpenseFeed = () => {
                     ]}
                     onPress={() => onSelectCalendarDay(day)}
                   >
-                    <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                    <Text
+                      style={[
+                        styles.dayText,
+                        isSelected && styles.dayTextSelected,
+                      ]}
+                    >
                       {day.getDate()}
                     </Text>
                   </TouchableOpacity>
@@ -810,7 +863,6 @@ const ExpenseFeed = () => {
           </View>
         </Pressable>
       </Modal>
-
     </SafeAreaView>
   );
 };

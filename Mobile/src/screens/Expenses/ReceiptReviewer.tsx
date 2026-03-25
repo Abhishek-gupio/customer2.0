@@ -121,6 +121,7 @@ export default function ReceiptReviewer({
     "Toll",
     "Parking",
     "Service",
+    "Repair",
     "Insurance",
     "Challan",
     "Emi",

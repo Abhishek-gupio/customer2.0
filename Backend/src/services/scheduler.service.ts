@@ -129,4 +129,13 @@ export const schedulerService = {
       payload,
     });
   },
+
+  /**
+   * Graceful Shutdown
+   */
+  async shutdown() {
+    if (!queues) return;
+    logger.info("Closing BullMQ queues...");
+    await Promise.all(Object.values(queues).map((q) => q.close()));
+  },
 };

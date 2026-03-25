@@ -3,17 +3,15 @@ import { logger } from "../config/logger";
 import { env } from "../config/env";
 import axios from "axios";
 
-const db = dbInstances as any;
+const db = dbInstances;
 
 const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
 
-/** Cache admin token to avoid hitting Damoov login rate limit (reuse for 50 min). */
-const ADMIN_TOKEN_CACHE_TTL_MS = 50 * 60 * 1000;
-let adminTokenCache: { token: string; expiresAt: number } | null = null;
+import { getRedis } from "../config/redis";
 
-/** After rate limit, skip login attempts for 2 hours so Damoov's limit can reset. */
+const ADMIN_TOKEN_REDIS_KEY = "damoov:admin_token";
+const RATE_LIMIT_BACKOFF_REDIS_KEY = "damoov:rate_limit_backoff";
 const RATE_LIMIT_BACKOFF_MS = 2 * 60 * 60 * 1000;
-let rateLimitBackoffUntil = 0;
 
 function isRateLimitError(err: any): boolean {
   const status = err.response?.status;
@@ -23,17 +21,22 @@ function isRateLimitError(err: any): boolean {
 }
 
 async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null> {
-  if (adminTokenCache && Date.now() < adminTokenCache.expiresAt) {
-    return adminTokenCache.token;
-  }
-  adminTokenCache = null;
+  const redis = getRedis();
+  
+  if (redis) {
+    const cachedToken = await redis.get(ADMIN_TOKEN_REDIS_KEY);
+    if (cachedToken) return cachedToken;
 
-  if (!forceLogin && Date.now() < rateLimitBackoffUntil) {
-    logger.debug(
-      { backoffUntil: new Date(rateLimitBackoffUntil).toISOString() },
-      "Skipping Damoov login (rate limit backoff)"
-    );
-    return null;
+    if (!forceLogin) {
+      const backoffUntil = await redis.get(RATE_LIMIT_BACKOFF_REDIS_KEY);
+      if (backoffUntil && Date.now() < parseInt(backoffUntil, 10)) {
+        logger.debug(
+          { backoffUntil: new Date(parseInt(backoffUntil, 10)).toISOString() },
+          "Skipping Damoov login (rate limit backoff cached in Redis)"
+        );
+        return null;
+      }
+    }
   }
 
   if (!env.DAMOOV_ADMIN_EMAIL || !env.DAMOOV_ADMIN_PASSWORD) {
@@ -53,14 +56,21 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
     );
     const token = authRes.data?.Result?.AccessToken?.Token;
     if (!token) return null;
-    adminTokenCache = { token, expiresAt: Date.now() + ADMIN_TOKEN_CACHE_TTL_MS };
+
+    if (redis) {
+      // TTL set to 50 minutes (3000 seconds)
+      await redis.setex(ADMIN_TOKEN_REDIS_KEY, 3000, token);
+    }
     return token;
   } catch (err: any) {
     if (isRateLimitError(err)) {
-      rateLimitBackoffUntil = Date.now() + RATE_LIMIT_BACKOFF_MS;
+      if (redis) {
+        const backoffTime = Date.now() + RATE_LIMIT_BACKOFF_MS;
+        await redis.setex(RATE_LIMIT_BACKOFF_REDIS_KEY, 7200, backoffTime.toString());
+      }
       logger.warn(
         { error: err.response?.data || err.message, backoffMinutes: 120 },
-        "Damoov Admin API rate limited on login; skipping login for 2 hours"
+        "Damoov Admin API rate limited on login; set 2-hour backoff in Redis"
       );
     } else {
       logger.error(
@@ -122,21 +132,21 @@ export const telematicsService = {
 
     const payload = { deviceToken, platform, isActive: true };
 
-    // 1) If this instanceId is already linked (possibly to another vehicle), move it to this vehicle
-    const byInstance = await db.telematicsDevice.findUnique({ where: { instanceId } });
-    if (byInstance) {
-      return db.telematicsDevice.update({
-        where: { instanceId },
-        data: { vehicleId, ...payload },
-      });
-    }
+    const existing = await db.telematicsDevice.findFirst({
+      where: {
+        OR: [
+          { instanceId },
+          { vehicleId },
+        ],
+      },
+    });
 
-    // 2) If this vehicle already has a device, update it to this instanceId/token
-    const byVehicle = await db.telematicsDevice.findUnique({ where: { vehicleId } });
-    if (byVehicle) {
+    if (existing) {
+      // If the row matches instanceId, update it (possibly changing its vehicleId)
+      // If the row matches vehicleId, update it (possibly changing its instanceId)
       return db.telematicsDevice.update({
-        where: { vehicleId },
-        data: { instanceId, ...payload },
+        where: { id: existing.id },
+        data: { instanceId, vehicleId, ...payload },
       });
     }
 
@@ -315,8 +325,30 @@ export const telematicsService = {
               Authorization: `Bearer ${accessToken}`,
             };
 
+            const redis = getRedis();
             const enrichTrip = async (trip: any) => {
+              const cacheKey = `damoov:trip_enrichment:${trip.tripId}`;
+              
               try {
+                // 1. Check if we already have it in DB
+                if (trip.scores && trip.statistics && trip.distanceKm > 0) {
+                  return {
+                    ...trip,
+                    damoovStatistics: trip.statistics,
+                    damoovScores: trip.scores
+                  };
+                }
+
+                // 2. Check if we have it in Redis (pending persistence/recent)
+                if (redis) {
+                  const cached = await redis.get(cacheKey);
+                  if (cached) {
+                    const parsed = JSON.parse(cached);
+                    return { ...trip, ...parsed };
+                  }
+                }
+
+                // 3. Fetch from Damoov
                 const tripDetailRes = await axios.post(
                   `https://api.telematicssdk.com/trips/get/admin/v1/${trip.tripId}`,
                   {
@@ -337,42 +369,62 @@ export const telematicsService = {
 
                 const distanceKm = Number(stats?.Mileage ?? trip.distanceKm ?? 0) || 0;
                 const durationMin = Number(stats?.DurationMinutes ?? trip.durationMin ?? 0) || 0;
-                const maxSpeed =
-                  stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : trip.maxSpeed ?? null;
-                const avgSpeed =
-                  stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : trip.avgSpeed ?? null;
-                const safetyScore =
-                  Math.round(Number(scores?.Safety ?? scores?.Overall ?? trip.safetyScore ?? 100)) || 100;
+                const maxSpeed = stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : trip.maxSpeed ?? null;
+                const avgSpeed = stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : trip.avgSpeed ?? null;
+                const safetyScore = Math.round(Number(scores?.Safety ?? scores?.Overall ?? trip.safetyScore ?? 100)) || 100;
+                const startLocation = addresses?.Start ?? trip.startLocation;
+                const endLocation = addresses?.End ?? trip.endLocation;
 
-                return {
-                  ...trip,
+                const enrichedData = {
                   distanceKm,
                   durationMin,
                   maxSpeed,
                   avgSpeed,
                   safetyScore,
-                  startLocation: addresses?.Start ?? trip.startLocation,
-                  endLocation: addresses?.End ?? trip.endLocation,
-                  // These are not persisted fields, but mobile expects these in the response.
+                  startLocation,
+                  endLocation,
                   damoovStatistics: stats,
                   damoovScores: scores,
                 };
+
+                // 4. PERSIST to DB (async to avoid blocking)
+                db.drivingTrip.update({
+                  where: { id: trip.id },
+                  data: {
+                    distanceKm,
+                    durationMin,
+                    maxSpeed,
+                    avgSpeed,
+                    safetyScore,
+                    startLocation: startLocation as any,
+                    endLocation: endLocation as any,
+                    scores: scores as any,
+                    statistics: stats as any,
+                  },
+                }).catch(err => logger.error({ err, tripId: trip.id }, "Background trip persistence failed"));
+
+                // 5. CACHE in Redis (TTL 1 day for recent trips)
+                if (redis) {
+                  await redis.setex(cacheKey, 24 * 3600, JSON.stringify(enrichedData)).catch(() => {});
+                }
+
+                return { ...trip, ...enrichedData };
               } catch (e: any) {
-                logger.warn(
+                logger.debug(
                   { tripDbId: trip.id, tripId: trip.tripId, err: e?.response?.data || e?.message },
-                  "Failed to enrich trip from Damoov; returning stored trip data"
+                  "Failed to enrich trip from Damoov"
                 );
                 return trip;
               }
             };
 
-            // Enrich in small batches to reduce rate-limit risk.
-            const batchSize = 3;
+            // Parallel enrichment with a slightly larger batch size to optimize throughput
+            const batchSize = 5;
             for (let i = 0; i < trips.length; i += batchSize) {
               const batch = trips.slice(i, i + batchSize);
-              const results = await Promise.all(batch.map(enrichTrip));
-              for (let j = 0; j < results.length; j++) {
-                trips[i + j] = results[j];
+              const batchResults = await Promise.all(batch.map(enrichTrip));
+              for (let j = 0; j < batchResults.length; j++) {
+                trips[i + j] = batchResults[j];
               }
             }
           }
@@ -587,6 +639,7 @@ export const telematicsService = {
   async syncTripsForAllDevices(options?: { forceLogin?: boolean }) {
     logger.info("Starting Damoov API sync for all devices (Admin Method)");
 
+    const redis = getRedis();
     const accessToken = await getDamoovAdminToken(options?.forceLogin);
     if (!accessToken) {
       return;
@@ -705,7 +758,7 @@ export const telematicsService = {
           );
 
           if (response.status === 401) {
-            adminTokenCache = null;
+            if (redis) await redis.del(ADMIN_TOKEN_REDIS_KEY);
             logger.warn("Damoov admin token expired; will re-login on next sync");
             return;
           }
@@ -992,7 +1045,7 @@ export const telematicsService = {
         });
       } catch (error: any) {
         if (error.response?.status === 401) {
-          adminTokenCache = null;
+          if (redis) await redis.del(ADMIN_TOKEN_REDIS_KEY);
           logger.warn("Damoov admin token rejected; will re-login on next sync");
           return;
         }

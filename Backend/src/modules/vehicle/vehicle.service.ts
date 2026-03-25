@@ -88,7 +88,135 @@ function makeCatalogNormalizedKey(args: {
   return `${args.vehicleType}|${mk}|${md}|${v}`;
 }
 
+async function resolveCatalogHeroImageUrl(args: {
+  vehicleType: "CAR" | "BIKE";
+  make?: string | null;
+  model?: string | null;
+  variant?: string | null;
+}): Promise<string | null> {
+  if (!args.make || !args.model) return null;
+
+  const normalizedKey = makeCatalogNormalizedKey(args);
+
+  let catalog: any = await dbInstances.vehicleCatalog.findUnique({
+    where: { normalizedKey },
+  });
+
+  if (!catalog) {
+    const makeNeedle = normalizeForMatch(cleanMake(args.make));
+    const modelNeedle = normalizeForMatch(cleanModel(args.model));
+    const variantNeedle = args.variant
+      ? normalizeForMatch(cleanModel(args.variant))
+      : null;
+
+    // Pass 1: include variant when provided.
+    catalog = await dbInstances.vehicleCatalog.findFirst({
+      where: {
+        vehicleType: args.vehicleType,
+        make: { contains: makeNeedle, mode: "insensitive" },
+        model: { contains: modelNeedle, mode: "insensitive" },
+        ...(variantNeedle
+          ? { variant: { contains: variantNeedle, mode: "insensitive" } }
+          : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    // Pass 2: relax variant constraint so trim-level mismatch does not
+    // push us to random fallback image.
+    if (!catalog) {
+      catalog = await dbInstances.vehicleCatalog.findFirst({
+        where: {
+          vehicleType: args.vehicleType,
+          make: { contains: makeNeedle, mode: "insensitive" },
+          model: { contains: modelNeedle, mode: "insensitive" },
+        },
+        orderBy: { updatedAt: "desc" },
+      });
+    }
+  }
+
+  if (!catalog) return null;
+
+  const hero = await dbInstances.vehicleAsset.findFirst({
+    where: { catalogId: catalog.id, type: "HERO" },
+    orderBy: { assetIndex: "asc" },
+  });
+
+  return hero?.assetUrl ?? null;
+}
+
 export const vehicleService = {
+  async resolveVehicleId(customerId: string, preferredId?: string | null): Promise<string | null> {
+    // 1. My owned vehicles
+    const myVehicles = await dbInstances.customerVehicle.findMany({
+      where: { customerId, isActive: true },
+      select: { id: true, isPrimary: true },
+    });
+
+    // 2. Shared vehicles I have access to
+    const sharedVehicles = await dbInstances.customerVehicle.findMany({
+      where: {
+        isActive: true,
+        accessList: {
+          some: { customerId }
+        }
+      },
+      select: { id: true, isPrimary: true },
+    });
+
+    const allVehicles = [...myVehicles, ...sharedVehicles];
+    if (allVehicles.length === 0) return null;
+
+    if (preferredId && preferredId.trim()) {
+      const pid = preferredId.trim();
+      if (allVehicles.some((v) => v.id === pid)) return pid;
+    }
+
+    const primary = allVehicles.find((v) => v.isPrimary);
+    if (primary) return primary.id;
+
+    return allVehicles[0].id;
+  },
+
+  /**
+   * Centralized Access Control: Ensures a user can interact with a vehicle
+   * Logic: Owners always have access. Shared users must have a matching role.
+   */
+  async ensureVehicleAccess(
+    customerId: string,
+    vehicleId: string,
+    requiredRoles: ("OWNER" | "EDITOR" | "DRIVER" | "VIEWER")[] = ["OWNER", "EDITOR", "DRIVER"]
+  ) {
+    const vehicle = await dbInstances.customerVehicle.findUnique({
+      where: { id: vehicleId },
+      include: {
+        accessList: {
+          where: { customerId },
+        },
+      },
+    });
+
+    if (!vehicle) throw AppError.notFound("Vehicle not found");
+
+    const isOwner = vehicle.customerId === customerId;
+    if (isOwner) return { vehicle, role: "OWNER" as const };
+
+    const matchingAccess = vehicle.accessList?.[0];
+    if (!matchingAccess) {
+      throw AppError.forbidden("You do not have access to this vehicle");
+    }
+
+    const role = matchingAccess.role as "EDITOR" | "DRIVER" | "VIEWER";
+    if (!requiredRoles.includes(role)) {
+      throw AppError.forbidden(
+        `Your access role (${role}) is insufficient for this action. Required: ${requiredRoles.join("/")}`
+      );
+    }
+
+    return { vehicle, role };
+  },
+
   async addVehicle(customerId: string, input: AddVehicleInput) {
     logger.info({ customerId, registrationNumber: input.registrationNumber }, "Attempting to add vehicle");
     
@@ -133,8 +261,18 @@ export const vehicleService = {
       if (found) imageUrl = found;
     }
 
-    // 2) Fallback: deterministic hero based on vehicle type.
-    //    (In Phase-1 we will replace these with a one-time ingestion + S3 uploads.)
+    // 2) Prefer catalog hero image for the exact make/model/variant.
+    if (!imageUrl && normalizedMake && normalizedModel) {
+      imageUrl = (await resolveCatalogHeroImageUrl({
+        vehicleType: vehicleTypeBucket(input.vehicleType),
+        make: input.make ?? null,
+        model: input.model ?? null,
+        variant: input.variant ?? null,
+      })) ?? undefined;
+    }
+
+    // 3) Fallback: deterministic hero based on vehicle type.
+    //    (Only used when no catalog image exists.)
     if (!imageUrl) {
       const hashSource = `${input.vehicleType || ""}:${normalizedMake}:${normalizedModel}:${normalizedVariant}`;
       let hash = 0;
@@ -215,7 +353,7 @@ export const vehicleService = {
       );
     }
 
-    const lastLog = await (dbInstances as any).odometerLog.findFirst({
+    const lastLog = await dbInstances.odometerLog.findFirst({
       where: { vehicleId },
       orderBy: { date: "desc" },
     });
@@ -226,7 +364,7 @@ export const vehicleService = {
       );
     }
 
-    const log = await (dbInstances as any).odometerLog.create({
+    const log = await dbInstances.odometerLog.create({
       data: {
         vehicleId,
         reading: input.reading,
@@ -358,7 +496,7 @@ export const vehicleService = {
     });
 
     // 1) Exact normalizedKey lookup (preferred; deterministic)
-    let catalog: any = await (dbInstances as any).vehicleCatalog.findUnique({
+    let catalog: any = await dbInstances.vehicleCatalog.findUnique({
       where: { normalizedKey },
     });
 
@@ -368,7 +506,8 @@ export const vehicleService = {
       const modelNeedle = normalizeForMatch(cleanModel(model));
       const variantNeedle = variant ? normalizeForMatch(cleanModel(variant)) : null;
 
-      catalog = await (dbInstances as any).vehicleCatalog.findFirst({
+      // Pass 1: variant-aware fuzzy match.
+      catalog = await dbInstances.vehicleCatalog.findFirst({
         where: {
           vehicleType: bucket,
           make: { contains: makeNeedle, mode: "insensitive" },
@@ -379,17 +518,29 @@ export const vehicleService = {
         },
         orderBy: { updatedAt: "desc" },
       });
+
+      // Pass 2: ignore variant for broader make+model match.
+      if (!catalog) {
+        catalog = await dbInstances.vehicleCatalog.findFirst({
+          where: {
+            vehicleType: bucket,
+            make: { contains: makeNeedle, mode: "insensitive" },
+            model: { contains: modelNeedle, mode: "insensitive" },
+          },
+          orderBy: { updatedAt: "desc" },
+        });
+      }
     }
 
     if (!catalog) {
       return { heroUrl: vehicle?.imageUrl ?? null, angles: [] as string[] };
     }
 
-    const hero = await (dbInstances as any).vehicleAsset.findFirst({
+    const hero = await dbInstances.vehicleAsset.findFirst({
       where: { catalogId: catalog.id, type: "HERO", assetIndex: 0 },
     });
 
-    const angleAssets = await (dbInstances as any).vehicleAsset.findMany({
+    const angleAssets = await dbInstances.vehicleAsset.findMany({
       where: { catalogId: catalog.id, type: "ANGLE" },
       orderBy: { assetIndex: "asc" },
       take: 12,
@@ -555,7 +706,7 @@ export const vehicleService = {
     logger.info({ normalizedRegNo }, "Starting vehicle verification");
 
     // 1. Check if vehicle already exists in any customer's account
-    const existingVehicle = await (dbInstances as any).customerVehicle.findUnique({
+    const existingVehicle = await dbInstances.customerVehicle.findUnique({
       where: { registrationNumber: normalizedRegNo },
     });
 

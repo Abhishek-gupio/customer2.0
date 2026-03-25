@@ -9,11 +9,19 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
  */
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '..');
+const appNodeModules = path.resolve(projectRoot, 'node_modules');
+const rootNodeModules = path.resolve(monorepoRoot, 'node_modules');
 
 const config = {
   projectRoot,
   watchFolders: [monorepoRoot],
   resolver: {
+    disableHierarchicalLookup: true,
+    nodeModulesPaths: [appNodeModules, rootNodeModules],
+    extraNodeModules: {
+      react: path.resolve(appNodeModules, 'react'),
+      'react-native': path.resolve(appNodeModules, 'react-native'),
+    },
     unstable_enableSymlinks: true,
     unstable_enablePackageExports: true,
   },

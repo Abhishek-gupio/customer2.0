@@ -3,7 +3,7 @@ import { logger } from "../config/logger";
 import { vectorService } from "./vector.service";
 import { ocrService } from "./ocr.service";
 
-const db = dbInstances as any;
+const db = dbInstances;
 
 /**
  * Service to automatically ingest new data into the AI's vector memory.

@@ -483,6 +483,8 @@ exports.Prisma.DrivingTripScalarFieldEnum = {
   safetyScore: 'safetyScore',
   startLocation: 'startLocation',
   endLocation: 'endLocation',
+  scores: 'scores',
+  statistics: 'statistics',
   status: 'status',
   createdAt: 'createdAt'
 };
@@ -1219,6 +1221,7 @@ exports.ExpenseCategory = exports.$Enums.ExpenseCategory = {
   INSURANCE: 'INSURANCE',
   CHALLAN: 'CHALLAN',
   EMI: 'EMI',
+  REPAIR: 'REPAIR',
   OTHER: 'OTHER'
 };
 
@@ -1227,7 +1230,8 @@ exports.ExpenseSource = exports.$Enums.ExpenseSource = {
   SMS: 'SMS',
   NOTIFICATION: 'NOTIFICATION',
   VOICE: 'VOICE',
-  RECEIPT: 'RECEIPT'
+  RECEIPT: 'RECEIPT',
+  UPI: 'UPI'
 };
 
 exports.ServicePartType = exports.$Enums.ServicePartType = {

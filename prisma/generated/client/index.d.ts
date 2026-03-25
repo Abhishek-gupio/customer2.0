@@ -458,6 +458,7 @@ export const ExpenseCategory: {
   INSURANCE: 'INSURANCE',
   CHALLAN: 'CHALLAN',
   EMI: 'EMI',
+  REPAIR: 'REPAIR',
   OTHER: 'OTHER'
 };
 
@@ -469,7 +470,8 @@ export const ExpenseSource: {
   SMS: 'SMS',
   NOTIFICATION: 'NOTIFICATION',
   VOICE: 'VOICE',
-  RECEIPT: 'RECEIPT'
+  RECEIPT: 'RECEIPT',
+  UPI: 'UPI'
 };
 
 export type ExpenseSource = (typeof ExpenseSource)[keyof typeof ExpenseSource]
@@ -39433,6 +39435,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation: number
     endLocation: number
+    scores: number
+    statistics: number
     status: number
     createdAt: number
     _all: number
@@ -39503,6 +39507,8 @@ export namespace Prisma {
     safetyScore?: true
     startLocation?: true
     endLocation?: true
+    scores?: true
+    statistics?: true
     status?: true
     createdAt?: true
     _all?: true
@@ -39608,6 +39614,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation: JsonValue | null
     endLocation: JsonValue | null
+    scores: JsonValue | null
+    statistics: JsonValue | null
     status: string
     createdAt: Date
     _count: DrivingTripCountAggregateOutputType | null
@@ -39645,6 +39653,8 @@ export namespace Prisma {
     safetyScore?: boolean
     startLocation?: boolean
     endLocation?: boolean
+    scores?: boolean
+    statistics?: boolean
     status?: boolean
     createdAt?: boolean
     events?: boolean | DrivingTrip$eventsArgs<ExtArgs>
@@ -39666,6 +39676,8 @@ export namespace Prisma {
     safetyScore?: boolean
     startLocation?: boolean
     endLocation?: boolean
+    scores?: boolean
+    statistics?: boolean
     status?: boolean
     createdAt?: boolean
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
@@ -39685,6 +39697,8 @@ export namespace Prisma {
     safetyScore?: boolean
     startLocation?: boolean
     endLocation?: boolean
+    scores?: boolean
+    statistics?: boolean
     status?: boolean
     createdAt?: boolean
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
@@ -39704,11 +39718,13 @@ export namespace Prisma {
     safetyScore?: boolean
     startLocation?: boolean
     endLocation?: boolean
+    scores?: boolean
+    statistics?: boolean
     status?: boolean
     createdAt?: boolean
   }
 
-  export type DrivingTripOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "tripId" | "startTime" | "endTime" | "distanceKm" | "durationMin" | "maxSpeed" | "avgSpeed" | "fuelConsumed" | "safetyScore" | "startLocation" | "endLocation" | "status" | "createdAt", ExtArgs["result"]["drivingTrip"]>
+  export type DrivingTripOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "tripId" | "startTime" | "endTime" | "distanceKm" | "durationMin" | "maxSpeed" | "avgSpeed" | "fuelConsumed" | "safetyScore" | "startLocation" | "endLocation" | "scores" | "statistics" | "status" | "createdAt", ExtArgs["result"]["drivingTrip"]>
   export type DrivingTripInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     events?: boolean | DrivingTrip$eventsArgs<ExtArgs>
     vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
@@ -39741,6 +39757,8 @@ export namespace Prisma {
       safetyScore: number
       startLocation: Prisma.JsonValue | null
       endLocation: Prisma.JsonValue | null
+      scores: Prisma.JsonValue | null
+      statistics: Prisma.JsonValue | null
       status: string
       createdAt: Date
     }, ExtArgs["result"]["drivingTrip"]>
@@ -40181,6 +40199,8 @@ export namespace Prisma {
     readonly safetyScore: FieldRef<"DrivingTrip", 'Int'>
     readonly startLocation: FieldRef<"DrivingTrip", 'Json'>
     readonly endLocation: FieldRef<"DrivingTrip", 'Json'>
+    readonly scores: FieldRef<"DrivingTrip", 'Json'>
+    readonly statistics: FieldRef<"DrivingTrip", 'Json'>
     readonly status: FieldRef<"DrivingTrip", 'String'>
     readonly createdAt: FieldRef<"DrivingTrip", 'DateTime'>
   }
@@ -95596,6 +95616,8 @@ export namespace Prisma {
     safetyScore: 'safetyScore',
     startLocation: 'startLocation',
     endLocation: 'endLocation',
+    scores: 'scores',
+    statistics: 'statistics',
     status: 'status',
     createdAt: 'createdAt'
   };
@@ -99504,6 +99526,8 @@ export namespace Prisma {
     safetyScore?: IntFilter<"DrivingTrip"> | number
     startLocation?: JsonNullableFilter<"DrivingTrip">
     endLocation?: JsonNullableFilter<"DrivingTrip">
+    scores?: JsonNullableFilter<"DrivingTrip">
+    statistics?: JsonNullableFilter<"DrivingTrip">
     status?: StringFilter<"DrivingTrip"> | string
     createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string
     events?: DrivingEventListRelationFilter
@@ -99524,6 +99548,8 @@ export namespace Prisma {
     safetyScore?: SortOrder
     startLocation?: SortOrderInput | SortOrder
     endLocation?: SortOrderInput | SortOrder
+    scores?: SortOrderInput | SortOrder
+    statistics?: SortOrderInput | SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     events?: DrivingEventOrderByRelationAggregateInput
@@ -99547,6 +99573,8 @@ export namespace Prisma {
     safetyScore?: IntFilter<"DrivingTrip"> | number
     startLocation?: JsonNullableFilter<"DrivingTrip">
     endLocation?: JsonNullableFilter<"DrivingTrip">
+    scores?: JsonNullableFilter<"DrivingTrip">
+    statistics?: JsonNullableFilter<"DrivingTrip">
     status?: StringFilter<"DrivingTrip"> | string
     createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string
     events?: DrivingEventListRelationFilter
@@ -99567,6 +99595,8 @@ export namespace Prisma {
     safetyScore?: SortOrder
     startLocation?: SortOrderInput | SortOrder
     endLocation?: SortOrderInput | SortOrder
+    scores?: SortOrderInput | SortOrder
+    statistics?: SortOrderInput | SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     _count?: DrivingTripCountOrderByAggregateInput
@@ -99593,6 +99623,8 @@ export namespace Prisma {
     safetyScore?: IntWithAggregatesFilter<"DrivingTrip"> | number
     startLocation?: JsonNullableWithAggregatesFilter<"DrivingTrip">
     endLocation?: JsonNullableWithAggregatesFilter<"DrivingTrip">
+    scores?: JsonNullableWithAggregatesFilter<"DrivingTrip">
+    statistics?: JsonNullableWithAggregatesFilter<"DrivingTrip">
     status?: StringWithAggregatesFilter<"DrivingTrip"> | string
     createdAt?: DateTimeWithAggregatesFilter<"DrivingTrip"> | Date | string
   }
@@ -106341,6 +106373,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
     events?: DrivingEventCreateNestedManyWithoutTripInput
@@ -106361,6 +106395,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
     events?: DrivingEventUncheckedCreateNestedManyWithoutTripInput
@@ -106379,6 +106415,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: DrivingEventUpdateManyWithoutTripNestedInput
@@ -106399,6 +106437,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: DrivingEventUncheckedUpdateManyWithoutTripNestedInput
@@ -106418,6 +106458,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
   }
@@ -106435,6 +106477,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -106453,6 +106497,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -113164,6 +113210,8 @@ export namespace Prisma {
     safetyScore?: SortOrder
     startLocation?: SortOrder
     endLocation?: SortOrder
+    scores?: SortOrder
+    statistics?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
   }
@@ -123866,6 +123914,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
     events?: DrivingEventCreateNestedManyWithoutTripInput
@@ -123884,6 +123934,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
     events?: DrivingEventUncheckedCreateNestedManyWithoutTripInput
@@ -124248,6 +124300,8 @@ export namespace Prisma {
     safetyScore?: IntFilter<"DrivingTrip"> | number
     startLocation?: JsonNullableFilter<"DrivingTrip">
     endLocation?: JsonNullableFilter<"DrivingTrip">
+    scores?: JsonNullableFilter<"DrivingTrip">
+    statistics?: JsonNullableFilter<"DrivingTrip">
     status?: StringFilter<"DrivingTrip"> | string
     createdAt?: DateTimeFilter<"DrivingTrip"> | Date | string
   }
@@ -126969,6 +127023,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
     vehicle: CustomerVehicleCreateNestedOneWithoutDrivingTripsInput
@@ -126988,6 +127044,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
   }
@@ -127021,6 +127079,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vehicle?: CustomerVehicleUpdateOneRequiredWithoutDrivingTripsNestedInput
@@ -127040,6 +127100,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -139635,6 +139697,8 @@ export namespace Prisma {
     safetyScore: number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status: string
     createdAt?: Date | string
   }
@@ -139790,6 +139854,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: DrivingEventUpdateManyWithoutTripNestedInput
@@ -139808,6 +139874,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: DrivingEventUncheckedUpdateManyWithoutTripNestedInput
@@ -139826,6 +139894,8 @@ export namespace Prisma {
     safetyScore?: IntFieldUpdateOperationsInput | number
     startLocation?: NullableJsonNullValueInput | InputJsonValue
     endLocation?: NullableJsonNullValueInput | InputJsonValue
+    scores?: NullableJsonNullValueInput | InputJsonValue
+    statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

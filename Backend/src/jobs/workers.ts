@@ -12,7 +12,6 @@ import { expenseIntelligenceService } from "../services/expense-intelligence.ser
 import { warrantyService } from "../services/warranty.service";
 import { predictionService } from "../services/prediction.service";
 import { telematicsService } from "../services/telematics.service";
-import { proactiveChatService } from "../services/proactive-chat.service";
 
 const db = dbInstances as any;
 let workersInitialized = false;
@@ -21,11 +20,19 @@ let workersInitialized = false;
 let maintenanceWorker: Worker<JobData> | null = null;
 let notificationWorker: Worker<JobData> | null = null;
 let healthScoreWorker: Worker<JobData> | null = null;
+let expenseIngestionWorker: Worker<JobData> | null = null;
+let budgetCheckWorker: Worker<JobData> | null = null;
 
-export { maintenanceWorker, notificationWorker, healthScoreWorker };
+export { 
+  maintenanceWorker, 
+  notificationWorker, 
+  healthScoreWorker, 
+  expenseIngestionWorker, 
+  budgetCheckWorker 
+};
 
 // ============================================================================
-// JOB HANDLERS (Migrated from Scheduler Service)
+// JOB HANDLERS
 // ============================================================================
 
 // 1. Daily Maintenance (Warranty + Docs)
@@ -45,16 +52,11 @@ async function runDailyMaintenance() {
     }
   }
 
-  const customers = await db.customer.findMany({
-    select: { id: true },
-  });
+  const customers = await db.customer.findMany({ select: { id: true } });
 
   for (const customer of customers) {
     try {
-      const expiringDocs = await documentService.getExpiringDocuments(
-        customer.id,
-        30,
-      );
+      const expiringDocs = await documentService.getExpiringDocuments(customer.id, 30);
       for (const doc of expiringDocs) {
         await db.inAppNotification.create({
           data: {
@@ -77,12 +79,9 @@ async function runDailyMaintenance() {
 async function runWeeklyDigest() {
   logger.info("Running Weekly Expense Digest...");
   const customers = await db.customer.findMany({ select: { id: true } });
-
   for (const customer of customers) {
     try {
-      await expenseIntelligenceService.sendWeeklyDigestNotification(
-        customer.id,
-      );
+      await expenseIntelligenceService.sendWeeklyDigestNotification(customer.id);
     } catch (err) {
       logger.error({ err, customerId: customer.id }, "Weekly digest failed");
     }
@@ -96,7 +95,6 @@ async function runHealthScoreUpdate() {
     where: { isActive: true },
     select: { id: true },
   });
-
   for (const vehicle of vehicles) {
     try {
       await predictionService.calculateAdvancedHealthScore(vehicle.id);
@@ -106,7 +104,7 @@ async function runHealthScoreUpdate() {
   }
 }
 
-// Initialize workers lazily so local dev without Redis does not try localhost:6379.
+// Initialize workers lazily
 export const initWorkers = () => {
   if (!isQueueEnabled || !defaultWorkerOptions) {
     logger.info("BullMQ workers disabled (REDIS_URL not set)");
@@ -117,73 +115,78 @@ export const initWorkers = () => {
   maintenanceWorker = new Worker<JobData>(
     QUEUE_NAMES.MAINTENANCE,
     async (job: Job) => {
-      logger.info(
-        `[MaintenanceWorker] Processing job ${job.name} (ID: ${job.id})`,
-      );
-      try {
-        if (job.name === "daily-maintenance") {
-          await runDailyMaintenance();
-        } else if (job.name === "sync-telematics") {
-          await telematicsService.syncTripsForAllDevices();
-        } else if (job.name === "daily-scraping") {
-          const { contentScraperService } = await import("../services/content-scraper.service");
-          await contentScraperService.scrapeFuelPrices();
-        }
-      } catch (err: any) {
-        const code = err?.code ?? err?.meta?.code;
-        const msg = err?.message ?? "";
-        const isDbUnreachable =
-          code === "P1001" ||
-          /can't reach database|database server|DatabaseNotReachable/i.test(msg);
-        if (isDbUnreachable) {
-          logger.warn(
-            { jobId: job.id, jobName: job.name, host: err?.meta?.driverAdapterError?.cause?.host },
-            "Database unreachable; skipping maintenance job. Check network and RDS.",
-          );
-          return;
-        }
-        throw err;
+      logger.info(`[MaintenanceWorker] Processing job ${job.name} (ID: ${job.id})`);
+      if (job.name === "daily-maintenance") {
+        await runDailyMaintenance();
+      } else if (job.name === "sync-telematics") {
+        await telematicsService.syncTripsForAllDevices();
+      } else if (job.name === "daily-scraping") {
+        const { contentScraperService } = await import("../services/content-scraper.service");
+        await contentScraperService.scrapeFuelPrices();
       }
     },
-    defaultWorkerOptions ?? undefined,
+    defaultWorkerOptions
   );
 
   notificationWorker = new Worker<JobData>(
     QUEUE_NAMES.NOTIFICATIONS,
     async (job: Job) => {
-      logger.info(
-        `[NotificationWorker] Processing job ${job.name} (ID: ${job.id})`,
-      );
-      if (job.name === "weekly-digest") {
-        await runWeeklyDigest();
-      }
+      if (job.name === "weekly-digest") await runWeeklyDigest();
     },
-    defaultWorkerOptions ?? undefined,
+    defaultWorkerOptions
   );
 
   healthScoreWorker = new Worker<JobData>(
     QUEUE_NAMES.HEALTH_SCORE,
     async (job: Job) => {
-      logger.info(
-        `[HealthScoreWorker] Processing job ${job.name} (ID: ${job.id})`,
-      );
-      if (job.name === "update-health-scores") {
-        await runHealthScoreUpdate();
-      }
+      if (job.name === "update-health-scores") await runHealthScoreUpdate();
     },
-    defaultWorkerOptions ?? undefined,
+    defaultWorkerOptions
   );
 
-  maintenanceWorker.on("failed", (job, err) => {
-    logger.error({ jobId: job?.id, err }, "Maintenance Job Failed");
-  });
-  notificationWorker.on("failed", (job, err) => {
-    logger.error({ jobId: job?.id, err }, "Notification Job Failed");
-  });
-  healthScoreWorker.on("failed", (job, err) => {
-    logger.error({ jobId: job?.id, err }, "Health Score Job Failed");
-  });
+  expenseIngestionWorker = new Worker<JobData>(
+    QUEUE_NAMES.EXPENSE_INGESTION,
+    async (job: Job) => {
+      if (job.name === "ingest-expense") {
+        const { ingestionService } = await import("../services/ingestion.service");
+        await ingestionService.ingestExpense(job.data.metadata.expenseId);
+      }
+    },
+    defaultWorkerOptions
+  );
+
+  budgetCheckWorker = new Worker<JobData>(
+    QUEUE_NAMES.BUDGET_CHECK,
+    async (job: Job) => {
+      if (job.name === "check-budget") {
+        const { expenseBudgetService } = await import("../modules/expense/expense-budget.service");
+        const { customerId, metadata } = job.data as any;
+        await expenseBudgetService.checkBudget(customerId!, metadata.category, metadata.amount);
+      }
+    },
+    defaultWorkerOptions
+  );
+
+  maintenanceWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "Maintenance Job Failed"));
+  notificationWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "Notification Job Failed"));
+  healthScoreWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "Health Score Job Failed"));
+  expenseIngestionWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "Expense Ingestion Job Failed"));
+  budgetCheckWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "Budget Check Job Failed"));
 
   workersInitialized = true;
   logger.info("Background Workers Initialized");
+};
+
+export const closeWorkers = async () => {
+  if (!workersInitialized) return;
+  const workers = [
+    maintenanceWorker,
+    notificationWorker,
+    healthScoreWorker,
+    expenseIngestionWorker,
+    budgetCheckWorker,
+  ];
+  logger.info("Closing BullMQ workers...");
+  await Promise.all(workers.filter(Boolean).map((w) => w!.close()));
+  workersInitialized = false;
 };

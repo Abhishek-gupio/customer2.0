@@ -7,6 +7,7 @@ import {
   StatusBar,
   FlatList,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -101,9 +102,28 @@ const ADS_DATA = [
 
 const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id)!;
 
+const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
+  'FuelStations',
+  'Hospital',
+  'PoliceStation',
+  'Hotel',
+  'ChargingStation',
+  'Mechanics',
+  'RTO',
+  'Towing',
+  'CarWash',
+  'Insurance',
+  'Parking',
+  'TyreShop',
+  'DocumentServices',
+  'CarSpa',
+];
+
 export default function ServicesHub() {
   const navigation = useNavigation<any>();
   const [adIndex, setAdIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -120,6 +140,11 @@ export default function ServicesHub() {
   }, [adIndex]);
 
   const onServicePress = (id: string) => {
+    if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
+      navigation.navigate('NearbyPlaces', { placeType: id });
+      return;
+    }
+
     switch (id) {
       case 'PartsWarranty':
       case 'WarrantyStatus':
@@ -134,16 +159,22 @@ export default function ServicesHub() {
       case 'CheckChallan':
         navigation.navigate('CheckChallan');
         break;
-      case 'Parking':
-        navigation.navigate('NearbyPlaces', { placeType: 'Parking' });
-        break;
-      case 'Mechanics':
-        navigation.navigate('NearbyPlaces', { placeType: 'Mechanics' });
-        break;
       default:
         break;
     }
   };
+
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredCategories = CATEGORIES.map((cat) => {
+    const filteredIds = cat.itemIds.filter((id) => {
+      const item = getItemById(id);
+      return (
+        item.name.toLowerCase().includes(normalizedSearch) ||
+        cat.title.toLowerCase().includes(normalizedSearch)
+      );
+    });
+    return { ...cat, itemIds: filteredIds };
+  }).filter((cat) => cat.itemIds.length > 0);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -155,10 +186,39 @@ export default function ServicesHub() {
           <Text style={styles.headerTitle}>Services Hub</Text>
           <Text style={styles.headerSubtitle}>Explore automotive care & utilities</Text>
         </View>
-        <TouchableOpacity style={styles.headerIcon}>
-          <IconMC name="magnify" size={wp(5.5)} color="#fff" />
+        <TouchableOpacity
+          style={styles.headerIcon}
+          onPress={() => {
+            if (isSearchVisible && searchQuery.trim().length > 0) {
+              setSearchQuery('');
+              return;
+            }
+            setIsSearchVisible((prev) => !prev);
+          }}
+        >
+          <IconMC
+            name={isSearchVisible && searchQuery.trim().length > 0 ? 'close' : 'magnify'}
+            size={wp(5.5)}
+            color="#fff"
+          />
         </TouchableOpacity>
       </View>
+
+      {isSearchVisible ? (
+        <View style={styles.searchWrap}>
+          <View style={styles.searchInputWrap}>
+            <IconMC name="magnify" size={wp(4.5)} color="rgba(255,255,255,0.45)" />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search services..."
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              style={styles.searchInput}
+              autoFocus
+            />
+          </View>
+        </View>
+      ) : null}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Ad Carousel */}
@@ -214,7 +274,7 @@ export default function ServicesHub() {
         </View>
 
         <View style={styles.content}>
-          {CATEGORIES.map((cat) => (
+          {filteredCategories.map((cat) => (
             <View key={cat.title} style={styles.categoryWrap}>
               <Text style={[styles.categoryTitle, { borderLeftColor: cat.color }]}>{cat.title}</Text>
               <View style={styles.row}>
@@ -241,6 +301,13 @@ export default function ServicesHub() {
               </View>
             </View>
           ))}
+          {normalizedSearch && filteredCategories.length === 0 ? (
+            <View style={styles.emptySearchState}>
+              <IconMC name="magnify-close" size={wp(8)} color="rgba(255,255,255,0.3)" />
+              <Text style={styles.emptySearchTitle}>No services found</Text>
+              <Text style={styles.emptySearchText}>Try a different keyword like warranty, fuel, parking, or challan.</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.infoRow}>
@@ -288,6 +355,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: hp(4),
+  },
+  searchWrap: {
+    paddingHorizontal: wp(6),
+    paddingBottom: hp(1.5),
+  },
+  searchInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2.5),
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: wp(4),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
+  },
+  searchInput: {
+    flex: 1,
+    color: '#fff',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.6),
+    padding: 0,
   },
   adsWrapper: {
     marginBottom: hp(2),
@@ -423,5 +512,25 @@ const styles = StyleSheet.create({
     color: '#444',
     fontSize: wp(2.8),
     fontFamily: 'Outfit-Medium',
+  },
+  emptySearchState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(5),
+    paddingHorizontal: wp(8),
+  },
+  emptySearchTitle: {
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontFamily: 'Outfit-Bold',
+    marginTop: hp(1.2),
+  },
+  emptySearchText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+    textAlign: 'center',
+    marginTop: hp(0.8),
+    lineHeight: 18,
   },
 });

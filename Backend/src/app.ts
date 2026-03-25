@@ -47,12 +47,23 @@ app.use(compression());
 // Static files for local storage fallback
 app.use("/uploads", express.static(env.UPLOAD_DIR));
 
+import { RedisStore } from "rate-limit-redis";
+import { getRedis } from "./config/redis";
+
+const redis = getRedis();
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: env.RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: rateLimitKey,
+  store: redis 
+    ? new RedisStore({
+        // @ts-expect-error - ioredis type mismatch in rate-limit-redis
+        sendCommand: (...args: string[]) => redis.call(...args),
+      })
+    : undefined,
   validate: { default: false },
   skip: (req) => {
     // Don't count health checks so load balancers don't burn the limit

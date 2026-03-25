@@ -1,5 +1,6 @@
 import React, { use, useState } from "react";
-import { View, Text, StyleSheet, Image, ImageSourcePropType, Pressable, TouchableOpacity,Alert, Modal } from "react-native";
+import { View, Text, StyleSheet, Image, ImageSourcePropType, Pressable, TouchableOpacity, Alert, Modal } from "react-native";
+import FastImage from "react-native-fast-image";
 import LinearGradient from "react-native-linear-gradient";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { Bill } from "../navigation/types";
@@ -34,13 +35,12 @@ const BillCard: React.FC<Props> = ({ item }) => {
         </Text>
       </View>
 
-      {/* Image */}
       <TouchableOpacity onPress={()=>setVisible(true)}>
       {imageSource ? (
-        <Image
-          source={imageSource}
+        <FastImage
+          source={typeof imageSource === 'object' && 'uri' in (imageSource as any) ? { ...(imageSource as any), priority: FastImage.priority.high } : imageSource}
           style={styles.billImage}
-          resizeMode="cover"
+          resizeMode={FastImage.resizeMode.cover}
           onError={() => setImgError(true)}
         />
       ) : (
@@ -56,10 +56,10 @@ const BillCard: React.FC<Props> = ({ item }) => {
         onPress={() => setVisible(false)}
       >
         {imageSource && (
-          <Image
-            source={imageSource}
+          <FastImage
+            source={imageSource as any}
             style={styles.fullImage}
-            resizeMode="contain"
+            resizeMode={FastImage.resizeMode.contain}
           />
         )}
       </TouchableOpacity>

@@ -9,6 +9,7 @@ export const ExpenseCategory = {
   INSURANCE: "INSURANCE",
   CHALLAN: "CHALLAN",
   EMI: "EMI",
+  REPAIR: "REPAIR",
   OTHER: "OTHER",
 } as const;
 
@@ -36,6 +37,7 @@ export const createExpenseSchema = z.object({
     "INSURANCE",
     "CHALLAN",
     "EMI",
+    "REPAIR",
     "OTHER",
   ]),
   date: z.string().datetime().optional(),
@@ -82,6 +84,7 @@ export const updateExpenseSchema = z.object({
       "INSURANCE",
       "CHALLAN",
       "EMI",
+      "REPAIR",
       "OTHER",
     ])
     .optional(),
@@ -110,6 +113,7 @@ export const expenseBudgetSchema = z.object({
     "INSURANCE",
     "CHALLAN",
     "EMI",
+    "REPAIR",
     "OTHER",
   ]),
   amount: z.number().positive(),
