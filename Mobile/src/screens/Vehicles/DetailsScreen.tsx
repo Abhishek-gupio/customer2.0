@@ -708,6 +708,24 @@ export const DetailsScreen = ({
                                         <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
                                         <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
                                         <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
+                                        {(rto?.pollutionUpto || activeVehicle.pollutionUpto) && (
+                                            <InfoCard icon={ShieldCheck} label="PUC Upto" value={rto?.pollutionUpto || activeVehicle.pollutionUpto} />
+                                        )}
+                                        {(rto?.fuelNorms || activeVehicle.fuelNorms) && (
+                                            <InfoCard icon={Info} label="Fuel Norms" value={rto?.fuelNorms || activeVehicle.fuelNorms} />
+                                        )}
+                                        {(rto?.mileage || activeVehicle.mileage) && (
+                                            <InfoCard icon={Gauge} label="Mileage" value={rto?.mileage || activeVehicle.mileage} />
+                                        )}
+                                        {(rto?.transmission || activeVehicle.transmission) && (
+                                            <InfoCard icon={Cpu} label="Transmission" value={rto?.transmission || activeVehicle.transmission} />
+                                        )}
+                                        {(rto?.regDate || rto?.registrationDate || activeVehicle.registrationDate) && (
+                                            <InfoCard icon={Calendar} label="Registration Date" value={rto?.regDate || rto?.registrationDate || (activeVehicle.registrationDate ? new Date(activeVehicle.registrationDate).toLocaleDateString() : 'N/A')} />
+                                        )}
+                                        {((rto as any)?.presentAddress || (rto as any)?.present_address || (activeVehicle as any)?.presentAddress || (activeVehicle as any)?.present_address) && (
+                                            <InfoCard icon={Building} label="Registered Address" value={(rto as any)?.presentAddress || (rto as any)?.present_address || (activeVehicle as any)?.presentAddress || (activeVehicle as any)?.present_address} />
+                                        )}
                                         <InfoCard icon={Calendar} label="Manufacturing Date" value={rto?.manufacturingMonthYear || activeVehicle.manufacturingMonthYear || 'N/A'} />
                                     </>
                                 )}

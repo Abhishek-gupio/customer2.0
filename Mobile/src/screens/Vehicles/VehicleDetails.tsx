@@ -110,6 +110,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
   const [odoInput, setOdoInput] = useState('');
   const [expandWhyScore, setExpandWhyScore] = useState(false);
   const [expandNextActions, setExpandNextActions] = useState(false);
+  const [expandMoreDetails, setExpandMoreDetails] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
   const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -136,10 +137,11 @@ const VehicleDetails = ({ navigation, route }: any) => {
       const data = await vehicleService.getVehicleById(vehicle.id);
       setVehicle((prev: any) => ({
         ...prev,
+        ...data,
         healthScore: data.healthScore?.overallScore ?? prev.healthScore ?? 0,
         healthScoreDetail: data.healthScore ?? null,
         odometer: data.currentOdometer ? `${data.currentOdometer.toLocaleString()} km` : prev.odometer,
-        photo: data.photo || prev.photo || prev.img,
+        photo: data.imageUrl || data.photo || prev.photo || prev.img,
         chassisNumber: data.chassisNumber,
         engineNumber: data.engineNumber,
         rcVerified: data.rcVerified,
@@ -573,6 +575,75 @@ const VehicleDetails = ({ navigation, route }: any) => {
                 <Text style={styles.infoValue}>{item.v}</Text>
               </View>
             ))}
+
+            {/* Extended Info (More Section) */}
+            {[
+              { key: 'ownerName', label: 'Owner Name', icon: 'user' },
+              { key: 'rto', label: 'RTO Office', icon: 'building' },
+              { key: 'vehicleClass', label: 'Vehicle Class', icon: 'car-side' },
+              { key: 'fuelNorms', label: 'Fuel Norms', icon: 'leaf' },
+              { key: 'rcStatus', label: 'RC Status', icon: 'info-circle' },
+              { key: 'unloadedWeight', label: 'Unloaded Weight', icon: 'weight-hanging' },
+              { key: 'fitnessUpto', label: 'Fitness Upto', icon: 'clipboard-check' },
+              { key: 'insuranceUpto', label: 'Insurance Upto', icon: 'shield-alt' },
+              { key: 'pollutionUpto', label: 'Pollution Upto', icon: 'smog' },
+              { key: 'mileage', label: 'Mileage', icon: 'gas-pump' },
+              { key: 'transmission', label: 'Transmission', icon: 'shift' },
+              { key: 'color', label: 'Color', icon: 'palette' },
+              { key: 'manufacturingMonthYear', label: 'Manufacturing Date', icon: 'calendar-day' },
+              { key: 'vehicleType', label: 'Type', icon: 'car' },
+              { key: 'presentAddress', label: 'Present Address', icon: 'map-marker-alt' },
+            ].some(f => vehicle[f.key]) && (
+              <>
+                <TouchableOpacity
+                  style={[styles.whyScoreRow, { marginTop: hp(1) }]}
+                  onPress={() => setExpandMoreDetails(v => !v)}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome5 name="list-ul" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.whyScoreLabel}>More Details</Text>
+                  <FontAwesome5
+                    name={expandMoreDetails ? 'chevron-up' : 'chevron-down'}
+                    size={wp(3.5)}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+
+                {expandMoreDetails && (
+                  <View style={{ marginTop: hp(1) }}>
+                    {[
+                      { key: 'ownerName', label: 'Owner Name', icon: 'user' },
+                      { key: 'rto', label: 'RTO Office', icon: 'building' },
+                      { key: 'vehicleClass', label: 'Vehicle Class', icon: 'car-side' },
+                      { key: 'fuelNorms', label: 'Fuel Norms', icon: 'leaf' },
+                      { key: 'rcStatus', label: 'RC Status', icon: 'info-circle' },
+                      { key: 'unloadedWeight', label: 'Unloaded Weight', icon: 'weight-hanging' },
+                      { key: 'fitnessUpto', label: 'Fitness Upto', icon: 'clipboard-check' },
+                      { key: 'insuranceUpto', label: 'Insurance Upto', icon: 'shield-alt' },
+                      { key: 'pollutionUpto', label: 'Pollution Upto', icon: 'smog' },
+                      { key: 'mileage', label: 'Mileage', icon: 'gas-pump' },
+                      { key: 'transmission', label: 'Transmission', icon: 'shift' },
+                      { key: 'color', label: 'Color', icon: 'palette' },
+                      { key: 'manufacturingMonthYear', label: 'Manufacturing Date', icon: 'calendar-day' },
+                      { key: 'vehicleType', label: 'Type', icon: 'car' },
+                      { key: 'presentAddress', label: 'Present Address', icon: 'map-marker-alt' },
+                    ].map((f, i) => vehicle[f.key] ? (
+                      <View key={i} style={styles.infoRow}>
+                        <View style={styles.infoLeft}>
+                          <FontAwesome5
+                            name={f.icon as any}
+                            size={wp(3.5)}
+                            color="#444"
+                          />
+                          <Text style={styles.infoLabel}>{f.label}</Text>
+                        </View>
+                        <Text style={styles.infoValue}>{vehicle[f.key]}</Text>
+                      </View>
+                    ) : null)}
+                  </View>
+                )}
+              </>
+            )}
 
             <TouchableOpacity
               style={styles.updateBtn}
