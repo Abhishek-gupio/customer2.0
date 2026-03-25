@@ -73,11 +73,13 @@ function SplashScreen(props: SplashScreenProps): React.ReactElement {
   return (
     <View style={styles.container}>
       <View style={styles.brandSection}>
+        {/* 
         <Image
           source={require('../assets/images/splashScreen_bg.png') as ImageSourcePropType}
           style={styles.bgImage}
           resizeMode="contain"
         />
+        */}
         <Animated.View style={[styles.logoWrap, { opacity: logoOpacity }]}>
           <Image
             source={require('../assets/images/logo.png') as ImageSourcePropType}

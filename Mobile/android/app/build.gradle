@@ -156,6 +156,11 @@ dependencies {
     }
 
     implementation project(':react-native-share')
+
+    // Firebase BoM and Analytics (Step 3)
+    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 }
 
 // Fix: React Native's generateReactNativeEntryPoint uses default "com.mobile". We use com.mobile1.
