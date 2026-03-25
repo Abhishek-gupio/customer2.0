@@ -44,6 +44,15 @@ function bootstrapAuthToRedux() {
   }
 }
 
+const linking = {
+  prefixes: ['gupio://'],
+  config: {
+    screens: {
+      DocumentList: 'document-list',
+    },
+  },
+};
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
@@ -73,7 +82,7 @@ function App() {
         <View style={{ flex: 1 }}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />
               </VoiceOwnerProvider>
