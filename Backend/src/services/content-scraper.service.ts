@@ -128,20 +128,41 @@ export const contentScraperService = {
             const response = await axios.get(url, { headers: BROWSER_HEADERS });
             const $ = cheerio.load(response.data, { xmlMode: true });
 
-            const news: any[] = [];
+            type RawNews = { title: string; source: string; url: string; pubDateRaw: string };
+            const raw: RawNews[] = [];
             $("item").each((i, item) => {
                 if (i >= 6) return; // Keep a few items so home feed rotates more often
                 const fullTitle = $(item).find("title").text();
                 const [title, source] = fullTitle.split(" - ");
-
-                news.push({
-                    id: i.toString(),
+                const pubDateRaw = $(item).find("pubDate").text();
+                raw.push({
                     title: title.trim(),
-                    source: source || "Auto News",
+                    source: (source || "Auto News").trim(),
                     url: $(item).find("link").text(),
-                    time: this.formatNewsTime($(item).find("pubDate").text()),
-                    snippet: "Latest update on new car launches and automotive trends in India.",
+                    pubDateRaw,
                 });
+            });
+
+            raw.sort((a, b) => {
+                const ta = new Date(a.pubDateRaw).getTime();
+                const tb = new Date(b.pubDateRaw).getTime();
+                const na = Number.isFinite(ta) ? ta : 0;
+                const nb = Number.isFinite(tb) ? tb : 0;
+                return nb - na; // newest first
+            });
+
+            const news = raw.map((item, idx) => {
+                const published = new Date(item.pubDateRaw);
+                const publishedAt = Number.isFinite(published.getTime()) ? published.toISOString() : null;
+                return {
+                    id: String(idx),
+                    title: item.title,
+                    source: item.source,
+                    url: item.url,
+                    publishedAt,
+                    time: this.formatNewsTime(item.pubDateRaw),
+                    snippet: "Latest update on new car launches and automotive trends in India.",
+                };
             });
 
             return news;

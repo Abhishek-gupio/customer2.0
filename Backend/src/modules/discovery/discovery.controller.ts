@@ -10,6 +10,21 @@ const db = dbInstances as any;
 /** DiscoveryContent model may be missing if client is stale or migration not run; guard all access */
 const discoveryContent = db?.discoveryContent;
 
+function sortCarNewsLatestFirst(items: unknown): any[] {
+    if (!Array.isArray(items)) return [];
+    return [...items].sort((a, b) => {
+        const ta =
+            a && typeof (a as any).publishedAt === "string"
+                ? new Date((a as any).publishedAt).getTime()
+                : 0;
+        const tb =
+            b && typeof (b as any).publishedAt === "string"
+                ? new Date((b as any).publishedAt).getTime()
+                : 0;
+        return tb - ta;
+    });
+}
+
 /**
  * DISCOVERY CONTROLLER
  * Handles trending car news and videos with a 24-hour cache.
@@ -47,7 +62,7 @@ export const discoveryController = {
             if (!needNews && !needVideos) {
                 logger.debug("Discovery content served from cache");
                 return success(res, {
-                    news: newsFromCache,
+                    news: sortCarNewsLatestFirst(newsFromCache),
                     videos: videosFromCache,
                 });
             }
@@ -78,7 +93,7 @@ export const discoveryController = {
                 }).catch(() => { });
             }
 
-            return success(res, { news, videos });
+            return success(res, { news: sortCarNewsLatestFirst(news), videos });
 
         } catch (err) {
             logger.error({ err }, "Failed to fetch discovery content");
@@ -98,7 +113,7 @@ export const discoveryController = {
                 const n = lastNews?.content;
                 const v = lastVideos?.content;
                 return success(res, {
-                    news: Array.isArray(n) ? n : [],
+                    news: sortCarNewsLatestFirst(Array.isArray(n) ? n : []),
                     videos: Array.isArray(v) ? v : [],
                 });
             } catch {

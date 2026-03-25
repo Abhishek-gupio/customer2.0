@@ -56,6 +56,133 @@ function getSuggestedActionsFromText(text: string): { label: string; prompt: str
   return [...sorted, ...rest].slice(0, 4);
 }
 
+/** Suggested action chip; optional in-app navigation (mobile reads `navigate`). */
+export type AISuggestedAction = {
+  label: string;
+  prompt: string;
+  navigate?: { screen: string; params?: Record<string, unknown> };
+};
+
+function buildNavigationActionsFromToolResults(
+  toolResults: any[] | undefined,
+): AISuggestedAction[] {
+  if (!toolResults?.length) return [];
+  const out: AISuggestedAction[] = [];
+  const add = (a: AISuggestedAction) => {
+    if (out.some((x) => x.label === a.label && !x.navigate && !a.navigate)) return;
+    if (
+      a.navigate &&
+      out.some(
+        (x) =>
+          x.navigate?.screen === a.navigate?.screen &&
+          JSON.stringify(x.navigate?.params) === JSON.stringify(a.navigate?.params),
+      )
+    ) {
+      return;
+    }
+    out.push(a);
+  };
+
+  for (const tr of toolResults) {
+    const tool = tr.tool;
+    const res = tr.result;
+    if (!res || res.success === false) continue;
+
+    if (tool === "get_challans" && res.vehicle?.id && !res.summary) {
+      add({
+        label: "Open challans",
+        prompt: `Open challans for ${res.vehicle.registrationNumber}`,
+        navigate: {
+          screen: "Challans",
+          params: { vehicle: res.vehicle },
+        },
+      });
+    }
+    if (tool === "get_challans" && res.summary) {
+      add({
+        label: "My Garage",
+        prompt: "Open my vehicle list",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "sync_challans" && res.vehicle?.id) {
+      add({
+        label: "Open challans",
+        prompt: `Open challans for ${res.vehicle.registrationNumber}`,
+        navigate: {
+          screen: "Challans",
+          params: { vehicle: res.vehicle },
+        },
+      });
+    }
+    if (tool === "get_driving_trips_summary" && res.success && res.vehicleId) {
+      add({
+        label: "Driving summary",
+        prompt: "Show my driving summary",
+        navigate: { screen: "DrivingSummary" },
+      });
+    }
+    if (tool === "get_service_history" && res.success && res.vehicle?.id) {
+      add({
+        label: "Service history",
+        prompt: "Open service history",
+        navigate: { screen: "ServiceHistory" },
+      });
+    }
+    if (tool === "get_upcoming_service_parts" && res.success && res.vehicle?.id) {
+      add({
+        label: "Warranty & parts",
+        prompt: "Open warranty and parts status",
+        navigate: { screen: "WarrantyStatus" },
+      });
+    }
+    if (tool === "add_vehicle_to_garage" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "remove_vehicle_from_garage" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "get_expenses_summary" && res.success) {
+      add({
+        label: "Expenses",
+        prompt: "Open expenses",
+        navigate: { screen: "Expenses" },
+      });
+    }
+  }
+  return out;
+}
+
+function mergeSuggestedActionsWithNavigation(
+  textActions: { label: string; prompt: string }[],
+  toolResults: any[] | undefined,
+): AISuggestedAction[] {
+  const nav = buildNavigationActionsFromToolResults(toolResults);
+  const merged: AISuggestedAction[] = [
+    ...nav,
+    ...(textActions || []).map((a) => ({ label: a.label, prompt: a.prompt })),
+  ];
+  const seen = new Set<string>();
+  const deduped: AISuggestedAction[] = [];
+  for (const a of merged) {
+    const key = a.navigate
+      ? `nav:${a.navigate.screen}:${JSON.stringify(a.navigate.params ?? {})}`
+      : `lbl:${a.label}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(a);
+  }
+  return deduped.slice(0, 8);
+}
+
 // ============================================================================
 // SYSTEM PROMPT — Enhanced with agent capabilities
 // ============================================================================
@@ -81,12 +208,18 @@ CORE PRINCIPLES FOR ALL MODES:
 MODE 1: VEHICLE ASSISTANT 🚗
 =====================================================
 TRIGGER: User selects "Vehicle Assistant" or asks about car health, mileage, service, or parts.
-CONTEXT ACCESS: [VEHICLES], [RECENT EXPENSES], [PENDING ALERTS]
+CONTEXT ACCESS: [MY GARAGE / VEHICLES], [RECENT EXPENSES], [PENDING ALERTS]
 CAPABILITIES:
-1. Health & Odometer: Use 'get_vehicle_status' and 'get_maintenance_advisor'.
-2. Expense Logging: Use 'add_expense' (Fuel, Service, etc.).
-3. Service Schedule: Use 'get_or_suggest_parts_interval'.
-4. Document Status: Use 'get_document_status' or 'list_documents'.
+1. My Garage / fleet: User phrases like "my garage", "what's in my garage", "how many cars" → ALWAYS call 'list_my_vehicles' first (then 'get_vehicle_status' if they want health/odometer detail).
+2. Health & Odometer: Use 'get_vehicle_status' and 'get_maintenance_advisor'.
+3. Expense Logging: Use 'add_expense' (Fuel, Service, etc.).
+4. Service Schedule: Use 'get_or_suggest_parts_interval'.
+5. Document Status: Use 'get_document_status' or 'list_documents'.
+6. Challans: 'get_challans' (summary or per vehicle); 'sync_challans' only if user asks to refresh from the government/provider API.
+7. Driving: 'get_driving_trips_summary' for recent trips, distance, safety (telematics).
+8. Service & parts: 'get_service_history', 'get_upcoming_service_parts' for due maintenance.
+9. Garage edits: 'add_vehicle_to_garage' when user gives a registration number; 'remove_vehicle_from_garage' ONLY with userConfirmed true after explicit delete confirmation.
+10. After fetching challans, driving, service, or expenses, mention the matching Open … chip when available.
 
 =====================================================
 MODE 2: EXPENSE ANALYSIS 💰
@@ -569,7 +702,10 @@ Write a concise summary (max 200 words) capturing all important details.`,
         toolResults:
           allToolResults.length > 0 ? allToolResults : undefined,
         agentSteps: agentSteps.length > 0 ? agentSteps : undefined,
-        suggestedActions: getSuggestedActionsFromText(responseText),
+        suggestedActions: mergeSuggestedActionsWithNavigation(
+          getSuggestedActionsFromText(responseText),
+          allToolResults,
+        ),
       };
     } catch (error) {
       if (isGeminiRateLimitError(error)) {
@@ -718,7 +854,10 @@ Write a concise summary (max 200 words) capturing all important details.`,
       const voiceUrl =
         await voiceService.generateSpeechUrl(fullResponse);
 
-      const suggestedActions = getSuggestedActionsFromText(fullResponse);
+      const suggestedActions = mergeSuggestedActionsWithNavigation(
+        getSuggestedActionsFromText(fullResponse),
+        toolResults,
+      );
       yield JSON.stringify({
         type: "done",
         voiceUrl,

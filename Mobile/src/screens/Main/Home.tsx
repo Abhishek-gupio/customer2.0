@@ -47,6 +47,14 @@ try {
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 
+function sortCarNewsLatestFirst(list: any[]): any[] {
+  return [...list].sort((a, b) => {
+    const ta = typeof a?.publishedAt === 'string' ? new Date(a.publishedAt).getTime() : 0;
+    const tb = typeof b?.publishedAt === 'string' ? new Date(b.publishedAt).getTime() : 0;
+    return tb - ta;
+  });
+}
+
 export default function Home() {
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
@@ -384,7 +392,7 @@ export default function Home() {
       const inner = body?.data ?? (res as { news?: unknown; videos?: unknown });
       const newsRaw = inner?.news;
       const videosRaw = inner?.videos;
-      setTrendingNews(Array.isArray(newsRaw) ? newsRaw : []);
+      setTrendingNews(sortCarNewsLatestFirst(Array.isArray(newsRaw) ? newsRaw : []));
       setTrendingVideos(Array.isArray(videosRaw) ? videosRaw : []);
     } catch (error) {
       console.error('Error fetching discovery content:', error);
