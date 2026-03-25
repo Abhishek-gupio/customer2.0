@@ -13,6 +13,44 @@ import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
 
 const db = dbInstances as any;
 
+// Debug logging for AI tool-call path analysis.
+// #region agent log
+const DEBUG_LOG_ENDPOINT =
+  "http://127.0.0.1:7317/ingest/c1ee2c59-97af-43c3-b8e6-f54db6b420fe";
+const DEBUG_SESSION_ID = "3a03a4";
+function debugLog(
+  location: string,
+  hypothesisId: string,
+  message: string,
+  data: Record<string, unknown>,
+) {
+  try {
+    const _fetch = (globalThis as any).fetch as
+      | ((url: string, init: any) => Promise<any>)
+      | undefined;
+    if (!_fetch) return;
+    _fetch(DEBUG_LOG_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": DEBUG_SESSION_ID,
+      },
+      body: JSON.stringify({
+        sessionId: DEBUG_SESSION_ID,
+        runId: "ai-doc-access-debug",
+        hypothesisId,
+        location,
+        message,
+        data,
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  } catch {
+    // ignore debug failures
+  }
+}
+// #endregion
+
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
   : null;
@@ -488,6 +526,16 @@ Write a concise summary (max 200 words) capturing all important details.`,
         (p: any) => p.functionCall,
       );
 
+      debugLog(
+        "ai.service.ts:executeToolLoop",
+        "H1_H5",
+        "function_calls_detected",
+        {
+          iteration: i + 1,
+          functionCallCount: functionCalls?.length || 0,
+        },
+      );
+
       // If no function calls, we have the final text answer
       if (!functionCalls || functionCalls.length === 0) {
         responseText = result.response.text();
@@ -500,6 +548,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
         const call = fc.functionCall!;
         const tool = toolRegistry[call.name as keyof typeof toolRegistry];
         if (tool) {
+          debugLog(
+            "ai.service.ts:executeToolLoop",
+            "H2_H4",
+            "tool_execute_start",
+            {
+              tool: call.name,
+              argsKeys: call.args ? Object.keys(call.args).slice(0, 8) : [],
+            },
+          );
           logger.info(
             { tool: call.name, args: call.args, iteration: i + 1 },
             "Executing Tool (multi-turn)",
@@ -508,11 +565,34 @@ Write a concise summary (max 200 words) capturing all important details.`,
             const result = await tool.execute(customerId, call.args);
             toolResults.push({ tool: call.name, args: call.args, result });
             const res = result as any;
+
+            debugLog(
+              "ai.service.ts:executeToolLoop",
+              "H2_H4",
+              "tool_execute_success",
+              {
+                tool: call.name,
+                success: (res as any)?.success,
+                error: (res as any)?.error,
+                documentsCount:
+                  call.name === "get_document_status" && Array.isArray((res as any)?.documents)
+                    ? (res as any).documents.length
+                    : undefined,
+              },
+            );
+
             callResults.push(
               `Tool ${call.name} result: ${res?.message || JSON.stringify(result)}`,
             );
           } catch (err) {
             callResults.push(`Tool ${call.name} failed: ${err}`);
+
+            debugLog(
+              "ai.service.ts:executeToolLoop",
+              "H2_H4",
+              "tool_execute_error",
+              { tool: call.name, error: String(err) },
+            );
           }
         }
       }
@@ -813,6 +893,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
             const tool =
               toolRegistry[call.name as keyof typeof toolRegistry];
             if (tool) {
+              debugLog(
+                "ai.service.ts:chatStream",
+                "H1_H5",
+                "tool_execute_start",
+                {
+                  tool: call.name,
+                  argsKeys: call.args ? Object.keys(call.args).slice(0, 8) : [],
+                },
+              );
               yield JSON.stringify({
                 type: "tool_start",
                 tool: call.name,
@@ -833,6 +922,21 @@ Write a concise summary (max 200 words) capturing all important details.`,
                   res?.message || `Completed ${call.name}`;
                 fullResponse += ` ${toolMessage}`;
 
+                debugLog(
+                  "ai.service.ts:chatStream",
+                  "H2_H4",
+                  "tool_execute_success",
+                  {
+                    tool: call.name,
+                    success: res?.success,
+                    error: res?.error,
+                    documentsCount:
+                      call.name === "get_document_status" && Array.isArray(res?.documents)
+                        ? res.documents.length
+                        : undefined,
+                  },
+                );
+
                 yield JSON.stringify({
                   type: "tool_result",
                   tool: call.name,
@@ -840,6 +944,12 @@ Write a concise summary (max 200 words) capturing all important details.`,
                   result: toolResult,
                 });
               } catch (err) {
+                debugLog(
+                  "ai.service.ts:chatStream",
+                  "H2_H4",
+                  "tool_execute_error",
+                  { tool: call.name, error: String(err) },
+                );
                 yield JSON.stringify({
                   type: "tool_error",
                   tool: call.name,

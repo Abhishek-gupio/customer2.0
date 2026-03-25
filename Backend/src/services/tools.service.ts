@@ -544,16 +544,28 @@ export const toolRegistry = {
   get_document_status: {
     name: "get_document_status",
     description:
-      "Check status and expiry of vehicle documents (RC, Insurance, PUC)",
+      "Check status and expiry of vehicle documents (RC, Insurance, PUC). Includes shared vehicles (accessList) as well as owned vehicles.",
     parameters: {
       vehicleId: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
+      const accessOr = {
+        OR: [{ customerId, isActive: true }, { accessList: { some: { customerId } }, isActive: true }],
+      };
+
+      const where: any = {
+        OR: [
+          // Owner: docs stored with customerId
+          { customerId },
+          // Shared: docs are linked to a vehicle the customer can access
+          { vehicle: { accessList: { some: { customerId } } } },
+        ],
+      };
+
+      if (args.vehicleId) where.vehicleId = args.vehicleId;
+
       const docs = await db.vehicleDocument.findMany({
-        where: {
-          customerId,
-          vehicleId: args.vehicleId || undefined,
-        },
+        where,
         select: {
           type: true,
           expiryDate: true,
@@ -562,7 +574,51 @@ export const toolRegistry = {
         },
       });
 
-      if (docs.length === 0) return { message: "No verified documents found." };
+      // Fallback: if no VehicleDocument rows exist, try expiry fields stored directly on CustomerVehicle
+      // (these are shown in the app under Garage → Details → More).
+      if (docs.length === 0) {
+        const vehicleId =
+          typeof args.vehicleId === "string" && args.vehicleId.trim()
+            ? args.vehicleId.trim()
+            : null;
+
+        const v = await db.customerVehicle.findFirst({
+          where: vehicleId ? { id: vehicleId, ...accessOr } : accessOr,
+          orderBy: vehicleId ? undefined : [{ isPrimary: "desc" }, { createdAt: "desc" }],
+          select: {
+            id: true,
+            make: true,
+            model: true,
+            registrationNumber: true,
+            insuranceUpto: true,
+            pollutionUpto: true,
+            fitnessUpto: true,
+            rcStatus: true,
+          },
+        });
+
+        if (!v) return { success: false, error: "Vehicle not found or you do not have access." };
+
+        const fmt = (d: any) => {
+          const dt = d ? new Date(d) : null;
+          return dt && !isNaN(dt.getTime()) ? dt.toLocaleDateString("en-IN") : null;
+        };
+
+        const documents = [
+          { type: "INSURANCE", expiry: fmt(v.insuranceUpto), status: v.insuranceUpto ? "Valid" : "Unknown", vehicle: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber },
+          { type: "PUC", expiry: fmt(v.pollutionUpto), status: v.pollutionUpto ? "Valid" : "Unknown", vehicle: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber },
+          { type: "FITNESS", expiry: fmt(v.fitnessUpto), status: v.fitnessUpto ? "Valid" : "Unknown", vehicle: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber },
+        ];
+
+        return {
+          success: true,
+          source: "CUSTOMER_VEHICLE_FIELDS",
+          vehicle: { id: v.id, registrationNumber: v.registrationNumber, make: v.make, model: v.model, rcStatus: v.rcStatus ?? null },
+          documents,
+          message:
+            "I couldn't find uploaded document records, but I found expiry dates saved on your vehicle profile (Garage → Details → More).",
+        };
+      }
 
       const now = new Date();
       const status = docs.map((d: any) => {
