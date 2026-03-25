@@ -29,8 +29,8 @@ import Bills from './Bills';
 import { colors }from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { vehicleService } from '../../services/vehicleService';
-import { setPrimaryVehicleId } from '../../services/storage';
+import { vehicleService, type Vehicle } from '../../services/vehicleService';
+import { getPrimaryVehicleId, setPrimaryVehicleId } from '../../services/storage';
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -110,6 +110,7 @@ const ExpenseFeed = () => {
   const [loading, setLoading] = React.useState(false);
   const [bills, setBills] = React.useState<Bill[]>([]);
   const [showAllExpenses, setShowAllExpenses] = React.useState(false);
+  const [primaryVehicle, setPrimaryVehicle] = React.useState<Vehicle | null>(null);
   const [vehicleId, setVehicleId] = React.useState<string | null>(null);
   const isRefreshingRef = React.useRef(false);
   const pendingRefreshRef = React.useRef(false);
@@ -143,32 +144,79 @@ const ExpenseFeed = () => {
     OTHER: '#00c853',
   };
 
-  const fetchExpenses = React.useCallback(async () => {
+  const extractExpenseItems = React.useCallback((response: any) => {
+    const items =
+      response?.data?.expenses ??
+      response?.data?.data?.expenses ??
+      response?.data?.data ??
+      response?.expenses ??
+      response?.data ??
+      [];
+    return Array.isArray(items) ? items : [];
+  }, []);
+
+  const loadPrimaryVehicle = React.useCallback(async (): Promise<Vehicle | null> => {
+    const cachedPrimaryId = getPrimaryVehicleId();
+    if (cachedPrimaryId) {
+      vehicleIdRef.current = cachedPrimaryId;
+      setVehicleId((prev) => prev ?? cachedPrimaryId);
+    }
+
+    try {
+      const res = await vehicleService.getVehicles();
+      const list = Array.isArray(res)
+        ? res
+        : Array.isArray((res as any)?.data)
+          ? (res as any).data
+          : [];
+      const primary: Vehicle | null =
+        list.find((v: any) => v?.isPrimary) ||
+        list.find((v: any) => v?.id === cachedPrimaryId) ||
+        list[0] ||
+        null;
+
+      const nextVehicleId = primary?.id ?? null;
+      setPrimaryVehicleId(nextVehicleId);
+      setPrimaryVehicle(primary);
+      vehicleIdRef.current = nextVehicleId;
+      setVehicleId(nextVehicleId);
+      return primary;
+    } catch {
+      if (!cachedPrimaryId) {
+        setPrimaryVehicle(null);
+        vehicleIdRef.current = null;
+        setVehicleId(null);
+      }
+      return null;
+    }
+  }, []);
+
+  const fetchExpenses = React.useCallback(async (targetVehicleId?: string | null) => {
     if (isRefreshingRef.current) {
       pendingRefreshRef.current = true;
-      return;
-    }
-    if (!vehicleIdRef.current) {
-      setRawExpenses([]);
-      setExpensesList([]);
-      setBills([]);
       return;
     }
     isRefreshingRef.current = true;
     setLoading(true);
     try {
+      const resolvedVehicleId = targetVehicleId ?? primaryVehicle?.id ?? vehicleIdRef.current ?? null;
       const response = await api.get<any>(
-        vehicleIdRef.current ? `/v1/expenses?vehicleId=${vehicleIdRef.current}` : '/v1/expenses'
+        resolvedVehicleId ? `/v1/expenses?vehicleId=${resolvedVehicleId}` : '/v1/expenses'
       );
       console.log("response", response);
-      const items =
-        response?.data?.expenses ??
-        response?.data?.data?.expenses ??
-        response?.data?.data ??
-        response?.expenses ??
-        response?.data ??
-        [];
-      const list = Array.isArray(items) ? items : [];
+      let list = extractExpenseItems(response);
+
+      // Some existing customer expenses are stored without vehicleId.
+      // If the strict vehicle-filtered API returns empty, recover by loading
+      // the full customer list and keeping rows for this vehicle or unassigned rows.
+      if (resolvedVehicleId && list.length === 0) {
+        const fallbackResponse = await api.get<any>('/v1/expenses');
+        const fallbackItems = extractExpenseItems(fallbackResponse);
+        list = fallbackItems.filter((item: any) => {
+          const itemVehicleId = typeof item?.vehicleId === 'string' ? item.vehicleId : null;
+          return !itemVehicleId || itemVehicleId === resolvedVehicleId;
+        });
+      }
 
       setRawExpenses(list);
 
@@ -214,53 +262,36 @@ const ExpenseFeed = () => {
       isRefreshingRef.current = false;
       if (pendingRefreshRef.current) {
         pendingRefreshRef.current = false;
-        fetchExpenses();
+        fetchExpenses(targetVehicleId);
       }
     }
-  }, []);
+  }, [extractExpenseItems, primaryVehicle?.id]);
 
   React.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await vehicleService.getVehicles();
-        const list = Array.isArray(res)
-          ? res
-          : Array.isArray((res as any)?.data)
-            ? (res as any).data
-            : [];
-        const primary = list.find((v: any) => v?.isPrimary) || list[0];
-        if (mounted) setVehicleId(primary?.id ?? null);
-      } catch {
-        if (mounted) setVehicleId(null);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    loadPrimaryVehicle();
+  }, [loadPrimaryVehicle]);
 
   React.useEffect(() => {
     vehicleIdRef.current = vehicleId;
   }, [vehicleId]);
 
   React.useEffect(() => {
-    if (vehicleId === null) return;
-    fetchExpenses();
-  }, [vehicleId, fetchExpenses]);
+    if (!primaryVehicle?.id) return;
+    fetchExpenses(primaryVehicle.id);
+  }, [primaryVehicle?.id, fetchExpenses]);
 
   React.useEffect(() => {
     const params = route.params as { expense?: any } | undefined;
     
     // Only process if we have an expense object, a primary vehicleId, and it hasn't been processed yet.
-    if (params?.expense && vehicleId && !params.expense._processed) {
+    if (params?.expense && primaryVehicle?.id && !params.expense._processed) {
 
       const saveAndRefresh = async (expenseData: any) => {
         try {
           // 1. Add primary vehicle ID if missing
           const payload = {
             ...expenseData,
-            vehicleId: expenseData.vehicleId || vehicleId,
+            vehicleId: expenseData.vehicleId || primaryVehicle.id,
             source: expenseData.source || 'NOTIFICATION', // Good to have a source
           };
 
@@ -275,7 +306,7 @@ const ExpenseFeed = () => {
           });
 
           // 4. Refresh the expense list to show the new item
-          fetchExpenses();
+          fetchExpenses(primaryVehicle.id);
 
         } catch (error) {
           console.error('Failed to auto-save expense from params:', error);
@@ -285,7 +316,7 @@ const ExpenseFeed = () => {
 
       saveAndRefresh(params.expense);
     }
-  }, [route.params, vehicleId, navigation, fetchExpenses]);
+  }, [route.params, primaryVehicle?.id, navigation, fetchExpenses]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -293,18 +324,27 @@ const ExpenseFeed = () => {
       const needsRefresh = getAndClearExpenseListRefresh();
       const timers: ReturnType<typeof setTimeout>[] = [];
 
-      fetchExpenses();
-      if (needsRefresh) {
-        // Follow-up fetch helps when backend write/indexing is slightly delayed.
-        timers.push(setTimeout(() => {
-          fetchExpenses();
-        }, 1000));
-      }
+      let cancelled = false;
+
+      const refreshCurrentVehicleExpenses = async () => {
+        const resolvedPrimaryVehicle = await loadPrimaryVehicle();
+        if (cancelled) return;
+        fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+        if (needsRefresh) {
+          // Follow-up fetch helps when backend write/indexing is slightly delayed.
+          timers.push(setTimeout(() => {
+            fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+          }, 1000));
+        }
+      };
+
+      refreshCurrentVehicleExpenses();
 
       return () => {
+        cancelled = true;
         timers.forEach(clearTimeout);
       };
-    }, [fetchExpenses])
+    }, [fetchExpenses, loadPrimaryVehicle])
   );
 
   // ── Compute "Total This Month" ──
