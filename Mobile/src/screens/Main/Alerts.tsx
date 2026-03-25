@@ -9,6 +9,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -45,6 +46,30 @@ interface AppNotification {
   type: string;
   isRead: boolean;
   createdAt: string;
+}
+
+function getDeletedNotificationsStorageKey(userId: string): string {
+  return `deleted_notifications_${userId}`;
+}
+
+async function loadDeletedNotificationIds(userId: string): Promise<Set<string>> {
+  try {
+    const raw = await AsyncStorage.getItem(getDeletedNotificationsStorageKey(userId));
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed.filter((id): id is string => typeof id === 'string')) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+async function persistDeletedNotificationId(userId: string, id: string): Promise<void> {
+  const deletedIds = await loadDeletedNotificationIds(userId);
+  deletedIds.add(id);
+  await AsyncStorage.setItem(
+    getDeletedNotificationsStorageKey(userId),
+    JSON.stringify([...deletedIds]),
+  );
 }
 
 const NOTIFICATION_TYPES: NotificationType[] = [
@@ -100,6 +125,8 @@ export default function Alerts() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [search, setSearch] = useState('');
   const [notificationsList, setNotificationsList] = useState<NotificationItem[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -114,7 +141,8 @@ export default function Alerts() {
     setFetchError(null);
     try {
       const response = await api.get<{ success?: boolean; data?: AppNotification[] }>('/v1/notifications');
-      const rawList = parseNotificationsResponse(response);
+      const deletedIds = await loadDeletedNotificationIds(user.id);
+      const rawList = parseNotificationsResponse(response).filter((item) => !deletedIds.has(item.id));
       setNotificationsList((prev) => {
         const pinnedById = new Map(prev.map((item) => [item.id, !!item.pinned]));
         return sortNotifications(
@@ -155,15 +183,57 @@ export default function Alerts() {
   );
 
   const removeNotification = async (id: string) => {
+    if (!user?.id) return;
     try {
-      await api.patch(`/v1/notifications/${id}/read`);
-      setNotificationsList((prev) => prev.filter((n) => n.id !== id));
+      await api.delete(`/v1/notifications/${id}`);
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      console.warn('Delete endpoint unavailable, hiding notification locally:', error);
     }
+    await persistDeletedNotificationId(user.id, id);
+    setNotificationsList((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const enterSelectionMode = () => {
+    setIsMenuVisible(false);
+    setIsLongPressModalVisible(false);
+    setSelectedItem(null);
+    setSelectedIds([]);
+    setIsSelectionMode(true);
+  };
+
+  const selectAllMessages = () => {
+    setIsMenuVisible(false);
+    setIsLongPressModalVisible(false);
+    setSelectedItem(null);
+    setIsSelectionMode(true);
+    setSelectedIds(filteredNotifications.map((item) => item.id));
+  };
+
+  const exitSelectionMode = () => {
+    setSelectedIds([]);
+    setIsSelectionMode(false);
+  };
+
+  const toggleSelectedMessage = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id],
+    );
+  };
+
+  const deleteSelectedMessages = async () => {
+    const idsToDelete = [...selectedIds];
+    for (const id of idsToDelete) {
+      await removeNotification(id);
+    }
+    exitSelectionMode();
   };
 
   const handleNotificationPress = (item: NotificationItem) => {
+    if (isSelectionMode) {
+      toggleSelectedMessage(item.id);
+      return;
+    }
+
     // 1. Mark as read on backend
     api.patch(`/v1/notifications/${item.id}/read`).catch(() => {});
     
@@ -184,6 +254,10 @@ export default function Alerts() {
   };
 
   const handleLongPress = (item: NotificationItem) => {
+    if (isSelectionMode) {
+      toggleSelectedMessage(item.id);
+      return;
+    }
     setSelectedItem(item);
     setIsLongPressModalVisible(true);
   };
@@ -225,14 +299,28 @@ export default function Alerts() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(3) }}>
-            <BackButton onPress={() => navigation.goBack()} />
-            <Text style={styles.title}>Notifications</Text>
+            <BackButton onPress={() => (isSelectionMode ? exitSelectionMode() : navigation.goBack())} />
+            <Text style={styles.title}>
+              {isSelectionMode ? `${selectedIds.length} selected` : 'Notifications'}
+            </Text>
           </View>
-          <TouchableOpacity onPress={() => setIsMenuVisible(true)} style={styles.menuButton}>
-            <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
-          </TouchableOpacity>
+          {isSelectionMode ? (
+            <TouchableOpacity onPress={deleteSelectedMessages} style={styles.menuButton} disabled={selectedIds.length === 0}>
+              <Ionicons
+                name="trash-outline"
+                size={24}
+                color={selectedIds.length === 0 ? 'rgba(255,255,255,0.3)' : '#ff4444'}
+              />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={() => setIsMenuVisible(true)} style={styles.menuButton}>
+              <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
-        <Text style={styles.subtitle}>Stay updated with your vehicle alerts</Text>
+        <Text style={styles.subtitle}>
+          {isSelectionMode ? 'Tap messages to select, then delete them together' : 'Stay updated with your vehicle alerts'}
+        </Text>
         
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="rgba(255,255,255,0.4)" />
@@ -257,9 +345,14 @@ export default function Alerts() {
         style={styles.modal}
       >
         <View style={styles.menuContent}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => setIsMenuVisible(false)}>
+          <TouchableOpacity style={styles.menuItem} onPress={enterSelectionMode}>
             <MaterialCommunityIcons name="checkbox-multiple-marked-outline" size={22} color="#fff" />
             <Text style={styles.menuItemText}>Select messages</Text>
+          </TouchableOpacity>
+          <View style={styles.menuDivider} />
+          <TouchableOpacity style={styles.menuItem} onPress={selectAllMessages}>
+            <MaterialCommunityIcons name="select-all" size={22} color="#fff" />
+            <Text style={styles.menuItemText}>Select all</Text>
           </TouchableOpacity>
           <View style={styles.menuDivider} />
           <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => setIsMenuVisible(false)}>
@@ -284,8 +377,8 @@ export default function Alerts() {
           <View style={[styles.menuDivider, { marginBottom: hp(1) }]} />
           
           <TouchableOpacity style={styles.menuItem} onPress={() => selectedItem && pinNotification(selectedItem.id)}>
-            <Ionicons
-              name={selectedItem?.pinned ? "pin" : "pin-outline"}
+            <MaterialCommunityIcons
+              name={selectedItem?.pinned ? "pin-off-outline" : "pin-outline"}
               size={22}
               color={selectedItem?.pinned ? "#FFBF00" : "#fff"}
             />
@@ -345,6 +438,8 @@ export default function Alerts() {
                 onPress={() => handleNotificationPress(item)}
                 onLongPress={() => handleLongPress(item)}
                 onSwipeDelete={() => removeNotification(item.id)}
+                isSelectionMode={isSelectionMode}
+                isSelected={selectedIds.includes(item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
