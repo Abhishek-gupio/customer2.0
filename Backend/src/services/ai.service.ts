@@ -647,8 +647,12 @@ Write a concise summary (max 200 words) capturing all important details.`,
       // 🚀 BACKGROUND SIDE-EFFECTS (fire-and-forget)
       const responseTimeMs = Date.now() - startTime;
 
+      // Generate voice ONCE and reuse it for:
+      // 1) saving the assistant message metadata (background logging)
+      // 2) returning `voiceUrl` to the client
+      const voiceUrl = await voiceService.generateSpeechUrl(responseText);
+
       (async () => {
-        const voiceUrl = await voiceService.generateSpeechUrl(responseText);
         await db.$transaction([
           db.chatMessage.create({
             data: {
@@ -691,13 +695,10 @@ Write a concise summary (max 200 words) capturing all important details.`,
         logger.error({ err }, "Background chat logging failed"),
       );
 
-      const immediateVoiceUrl =
-        await voiceService.generateSpeechUrl(responseText);
-
       return {
         sessionId: finalSessionId,
         message: responseText,
-        voiceUrl: immediateVoiceUrl,
+        voiceUrl,
         contextUsed: contextDocs.length,
         toolResults:
           allToolResults.length > 0 ? allToolResults : undefined,
