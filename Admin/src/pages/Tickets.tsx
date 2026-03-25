@@ -120,10 +120,10 @@ export default function Tickets() {
 
   // --- SUPPORT VIEW: Dual-Pane Chat ---
   const renderSupportView = () => (
-    <div className="flex h-[calc(100vh-140px)] flex-col lg:flex-row gap-6 animate-in fade-in duration-500">
+    <div className="flex-1 h-full flex flex-col lg:flex-row gap-6 items-start animate-in fade-in duration-500 overflow-hidden min-h-0">
       {/* Sidebar: Ticket List */}
       <div className={cn(
-        "flex flex-col bg-[#0c0c0c] border border-white/[0.08] rounded-3xl overflow-hidden transition-all duration-300",
+        "flex flex-col h-full bg-[#0c0c0c] border border-white/[0.08] rounded-3xl overflow-hidden transition-all duration-300",
         selectedTicketId ? "hidden lg:flex w-full lg:w-[400px]" : "flex w-full lg:w-[400px]"
       )}>
         <div className="p-5 border-b border-white/[0.08] space-y-4">
@@ -185,7 +185,7 @@ export default function Tickets() {
       </div>
 
       {/* Main Chat Area */}
-      <div className={cn("flex-1 flex flex-col bg-[#0c0c0c] border border-white/[0.08] rounded-3xl overflow-hidden relative", !selectedTicketId && "hidden lg:flex")}>
+      <div className={cn("flex-1 h-full flex flex-col bg-[#0c0c0c] border border-white/[0.08] rounded-3xl overflow-hidden relative", !selectedTicketId && "hidden lg:flex")}>
         {!selectedTicketId ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-10">
             <div className="h-20 w-20 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mb-6 shadow-2xl"><Ticket className="h-10 w-10 text-white/20" /></div>
@@ -252,7 +252,7 @@ export default function Tickets() {
 
   // --- ADMIN VIEW: Table Format (Matching Customers Page) ---
   const renderAdminView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex-1 min-h-0 flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Support Management</h1>
@@ -273,7 +273,7 @@ export default function Tickets() {
         </div>
       </div>
 
-      <Card>
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Ticket className="h-4 w-4 text-red-400" />
@@ -287,8 +287,8 @@ export default function Tickets() {
             </div>
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] custom-scrollbar">
+        <CardContent className="p-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-[#0c0c0e]">
                 <tr className="border-b border-white/[0.07] text-[10px] font-black uppercase tracking-widest text-white/50 bg-[#111]">
@@ -398,7 +398,7 @@ export default function Tickets() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-6">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/90 backdrop-blur-md animate-in fade-in duration-500"
+            className="absolute inset-0 bg-black/40 backdrop-blur-xl animate-in fade-in duration-500"
             onClick={() => setSelectedTicketId(null)}
           />
 
@@ -450,9 +450,9 @@ export default function Tickets() {
                           )}>
                             {msg.content}
                           </div>
-                          <div className="mt-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-white/10 mx-4 opacity-40 group-hover/msg:opacity-100 transition-opacity">
+                          <div className="mt-2.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 mx-4 opacity-70 group-hover/msg:opacity-100 transition-opacity">
                             {isMe ? 'OPERATOR' : 'CLIENT'}
-                            <span className="opacity-30">•</span>
+                            <span className="opacity-40">•</span>
                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>

@@ -5,7 +5,6 @@ import {
   Users,
   LogOut,
   PanelLeftClose,
-  PanelLeftOpen,
   Ticket,
   CarFront,
 } from 'lucide-react';
@@ -82,159 +81,175 @@ export default function Shell() {
     navigate('/login');
   };
 
-  const navContent = (
-    <div className="flex h-full flex-col bg-[#050505] p-3">
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between pb-6 pt-3 px-3">
-        {!sidebarCollapsed && (
-          <div className="animate-in fade-in duration-500 flex flex-col pt-1">
-            <div className="text-[13px] text-[#a1a1aa] font-medium leading-tight">Customer</div>
-            <div className="text-[19px] font-extrabold text-white tracking-tight mt-0.5">Admin Dashboard</div>
+  const renderNavContent = (isMobile = false) => {
+    const isCollapsed = isMobile ? false : sidebarCollapsed;
+
+    return (
+      <div className="flex h-full flex-col bg-[#050505] p-3">
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between pb-6 pt-3 px-3">
+          <div className={cn(
+            "flex flex-col pt-1 transition-all duration-300 origin-left overflow-hidden",
+            isCollapsed ? "max-w-0 opacity-0 -translate-x-4" : "max-w-[200px] opacity-100 translate-x-0"
+          )}>
+            <div className="text-[13px] text-[#a1a1aa] font-medium leading-tight whitespace-nowrap uppercase tracking-wider">Customer</div>
+            <div className="text-[19px] font-extrabold text-white tracking-tight mt-0.5 whitespace-nowrap">Admin Dashboard</div>
           </div>
-        )}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className={cn(
-            "flex h-[28px] w-[28px] items-center justify-center rounded-md border border-white/10 hover:bg-white/10 transition-colors",
-            sidebarCollapsed ? "mx-auto bg-white/5" : "bg-transparent ml-2"
-          )}
-          title={sidebarCollapsed ? "Expand" : "Collapse"}
-        >
-          {sidebarCollapsed ? (
-            <PanelLeftOpen className="h-[14px] w-[14px] text-white" />
-          ) : (
-            <PanelLeftClose className="h-[14px] w-[14px] text-white" />
-          )}
-        </button>
-      </div>
-
-      {/* Navigation Links */}
-      <nav className="flex-1 space-y-1.5 pt-2">
-        {navItems
-          .filter((item) => !admin || (item.roles as string[]).includes(admin.role))
-          .map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.to;
-
-          const styles = colorStyles[item.color];
-
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setMobileMenuOpen(false)}
+          {!isMobile && (
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className={cn(
-                "group relative flex h-[46px] items-center gap-[14px] transition-all duration-200 rounded-xl",
-                isActive
-                  ? `bg-gradient-to-r ${styles.bg} to-transparent`
-                  : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
-                sidebarCollapsed ? "justify-center px-0" : "px-4"
+                "flex h-[28px] w-[28px] flex-shrink-0 items-center justify-center rounded-md border border-white/10 hover:bg-white/10 transition-all duration-300",
+                isCollapsed ? "bg-white/5 translate-x-0" : "bg-transparent translate-x-0"
               )}
+              title={isCollapsed ? "Expand" : "Collapse"}
             >
-              {/* Fade Colored Glow Border */}
-              {isActive && (
-                <>
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-xl ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_15px_rgba(0,0,0,0.05)]"
-                    style={{
-                      boxShadow: `0 0 15px ${styles.glow}25, inset 0 0 15px ${styles.glow}15`,
-                      maskImage: 'linear-gradient(to right, white 10%, transparent 90%)',
-                      WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)'
-                    }}
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
-                    style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
-                  />
-                  {/* Thick glowing left line */}
-                  <div
-                    className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full"
-                    style={{
-                      backgroundColor: styles.border,
-                      boxShadow: `0 0 10px 2px ${styles.border}80`
-                    }}
-                  />
-                </>
-              )}
+              <div className="transition-transform duration-500 ease-out" style={{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <PanelLeftClose className="h-[14px] w-[14px] text-white" />
+              </div>
+            </button>
+          )}
+        </div>
 
-              <Icon className={cn(
-                "transition-colors duration-200 z-10",
-                isActive ? styles.icon : "text-white/80 group-hover:text-white",
-                sidebarCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
-              )} />
+        {/* Navigation Links */}
+        <nav className="flex-1 space-y-1.5 pt-2">
+          {navItems
+            .filter((item) => !admin || (item.roles as string[]).includes(admin.role))
+            .map((item) => {
+            const Icon = item.icon;
+            const sourceContext = location.state?.sourceContext;
+            const isActive = sourceContext 
+              ? item.to === `/${sourceContext}`
+              : (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to));
 
-              <span className={cn(
-                "text-[14px] transition-all duration-300 z-10 text-white tracking-[0.01em]",
-                sidebarCollapsed && "opacity-0 invisible absolute translate-x-4",
-                isActive ? "font-semibold" : "font-medium"
-              )}>
-                {item.label}
-              </span>
+            const styles = colorStyles[item.color];
 
-              {/* Tooltip for Collapsed Sidebar */}
-              {sidebarCollapsed && (
-                <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">
-                    <span className="text-[12px] font-semibold text-[#e4e4e7] whitespace-nowrap leading-none tracking-wide text-shadow-sm">{item.label}</span>
-                    <div className="absolute -left-[5px] top-[50%] -translate-y-1/2 h-[10px] w-[10px] bg-[#0c0c0c] border-l border-t border-white/10 -rotate-45 rounded-sm" />
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "group relative flex h-[46px] items-center gap-[14px] transition-all duration-200 rounded-xl",
+                  isActive
+                    ? `bg-gradient-to-r ${styles.bg} to-transparent`
+                    : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
+                  isCollapsed ? "justify-center px-0" : "px-4"
+                )}
+              >
+                {/* Fade Colored Glow Border */}
+                {isActive && (
+                  <>
+                    <div
+                      className="pointer-events-none absolute inset-0 rounded-xl ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_15px_rgba(0,0,0,0.05)]"
+                      style={{
+                        boxShadow: `0 0 15px ${styles.glow}25, inset 0 0 15px ${styles.glow}15`,
+                        maskImage: 'linear-gradient(to right, white 10%, transparent 90%)',
+                        WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)'
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
+                      style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
+                    />
+                    {/* Thick glowing left line */}
+                    <div
+                      className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full"
+                      style={{
+                        backgroundColor: styles.border,
+                        boxShadow: `0 0 10px 2px ${styles.border}80`
+                      }}
+                    />
+                  </>
+                )}
+
+                <Icon className={cn(
+                  "transition-colors duration-200 z-10",
+                  isActive ? styles.icon : "text-white/80 group-hover:text-white",
+                  isCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
+                )} />
+
+                <span className={cn(
+                  "text-[14px] transition-all duration-300 z-10 text-white tracking-[0.01em] whitespace-nowrap overflow-hidden",
+                  isCollapsed ? "max-w-0 opacity-0 translate-x-2" : "max-w-[200px] opacity-100 translate-x-0",
+                  isActive ? "font-semibold" : "font-medium"
+                )}>
+                  {item.label}
+                </span>
+
+                {/* Tooltip for Collapsed Sidebar */}
+                {isCollapsed && (
+                  <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">
+                      <span className="text-[12px] font-semibold text-[#e4e4e7] whitespace-nowrap leading-none tracking-wide text-shadow-sm">{item.label}</span>
+                      <div className="absolute -left-[5px] top-[50%] -translate-y-1/2 h-[10px] w-[10px] bg-[#0c0c0c] border-l border-t border-white/10 -rotate-45 rounded-sm" />
+                    </div>
                   </div>
-                </div>
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
+                )}
+              </NavLink>
+            );
+          })}
+        </nav>
 
-      {/* Bottom Profile Section */}
-      <div className="relative mt-auto pt-4 pb-2">
-        {/* Subtle cyan glow behind the card on the bottom-left */}
-        <div className="absolute -left-6 bottom-0 h-40 w-24 rounded-full bg-[#00f2ff]/15 blur-[35px] pointer-events-none -z-10" />
+        {/* Bottom Profile Section */}
+        <div className="relative mt-auto pt-4 pb-2">
+          {/* Subtle cyan glow behind the card on the bottom-left */}
+          <div className="absolute -left-6 bottom-0 h-40 w-24 rounded-full bg-[#00f2ff]/15 blur-[35px] pointer-events-none -z-10" />
 
-        <div className={cn(
-          "relative z-10 rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-4 transition-all duration-300 overflow-hidden",
-          sidebarCollapsed && "border-0 bg-transparent p-0 flex justify-center"
-        )}>
-          {!sidebarCollapsed && (
-            <div className="animate-in fade-in duration-700">
-              <div className="text-[13px] font-normal text-[#a1a1aa]">Signed in as</div>
+          <div className={cn(
+            "relative z-10 rounded-2xl border transition-all duration-500 overflow-hidden",
+            isCollapsed 
+              ? "border-transparent bg-transparent p-0" 
+              : "border-white/[0.08] bg-[#0c0c0c] p-4 shadow-xl"
+          )}>
+            {/* Expanded Content (Fades Out) */}
+            <div className={cn(
+              "transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+              isCollapsed ? "max-h-0 opacity-0 scale-95 pointer-events-none" : "max-h-[300px] opacity-100 scale-100"
+            )}>
+              <div className="text-[13px] font-normal text-[#a1a1aa] whitespace-nowrap">Signed in as</div>
               <div className="mt-1 truncate text-[15px] font-bold text-white tracking-tight">{admin?.email || 'admin@example.com'}</div>
 
-              <div className="mt-2.5">
-                <span className="inline-flex h-[24px] items-center rounded-md bg-[#1a1a1a] px-2.5 text-[11px] font-semibold tracking-wide text-[#a1a1aa] border border-white/[0.08]">
+              <div className="mt-3">
+                <span className="inline-flex h-[24px] items-center rounded-lg bg-white/5 px-2.5 text-[11px] font-bold tracking-wide text-white/50 border border-white/5 uppercase">
                   {admin?.role || 'SUPER ADMIN'}
                 </span>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="mt-5 flex h-[40px] w-full items-center justify-center gap-2 rounded-xl bg-[#111] border border-white/5 text-[14px] font-semibold text-white hover:bg-[#1a1a1a] transition-all active:scale-[0.98]"
+                className="mt-6 flex h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.03] border border-white/5 text-[14px] font-bold text-white hover:bg-white/[0.08] transition-all active:scale-[0.98] group/btn"
               >
-                <LogOut className="h-[16px] w-[16px]" />
+                <LogOut className="h-[18px] w-[18px] text-white/40 group-hover/btn:text-white transition-colors" />
                 <span>Logout</span>
               </button>
             </div>
-          )}
 
-          {sidebarCollapsed && (
-            <button
-              onClick={handleLogout}
-              className="group relative flex h-[40px] w-[40px] items-center justify-center rounded-xl bg-[#111] border border-white/5 text-white hover:bg-[#1a1a1a] transition-all"
-            >
-              <LogOut className="h-[16px] w-[16px]" />
+            {/* Collapsed Content (Fades In) */}
+            <div className={cn(
+              "flex justify-center transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+              isCollapsed ? "opacity-100 scale-100 h-[44px]" : "opacity-0 scale-75 h-0 pointer-events-none"
+            )}>
+              <button
+                onClick={handleLogout}
+                className="group relative flex h-[44px] w-[44px] items-center justify-center rounded-xl bg-white/[0.03] border border-white/5 text-white hover:bg-white/[0.08] transition-all hover:scale-105"
+              >
+                <LogOut className="h-[18px] w-[18px] text-white/40 group-hover:text-white transition-colors" />
 
-              {/* Tooltip for Logout */}
-              <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
-                <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">
-                  <span className="text-[12px] font-semibold text-[#e4e4e7] whitespace-nowrap leading-none tracking-wide text-shadow-sm">Logout</span>
-                  <div className="absolute -left-[5px] top-[50%] -translate-y-1/2 h-[10px] w-[10px] bg-[#0c0c0c] border-l border-t border-white/10 -rotate-45 rounded-sm" />
+                {/* Tooltip for Logout */}
+                <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">
+                    <span className="text-[12px] font-semibold text-[#e4e4e7] whitespace-nowrap leading-none tracking-wide">Logout</span>
+                    <div className="absolute -left-[5px] top-[50%] -translate-y-1/2 h-[10px] w-[10px] bg-[#0c0c0c] border-l border-t border-white/10 -rotate-45 rounded-sm" />
+                  </div>
                 </div>
-              </div>
-            </button>
-          )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="h-screen overflow-hidden bg-[#000000] text-[#e4e4e7] antialiased selection:bg-[#00f2ff]/30">
@@ -242,11 +257,11 @@ export default function Shell() {
         {/* Desktop Sidebar */}
         <aside
           className={cn(
-            "hidden lg:flex flex-shrink-0 relative z-30 h-full flex-col border-r border-[#ffffff0a] bg-[#050505] transition-all duration-300 ease-in-out font-sans",
+            "hidden lg:flex flex-shrink-0 relative z-30 h-full flex-col border-r border-[#ffffff0a] bg-[#050505] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] font-sans",
             sidebarCollapsed ? "w-[80px]" : "w-[280px]"
           )}
         >
-          {navContent}
+          {renderNavContent(false)}
         </aside>
 
         {/* Mobile Header */}
@@ -259,33 +274,37 @@ export default function Shell() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10"
           >
-            <LayoutDashboard className="h-5 w-5 text-[#00f2ff]" />
+            {mobileMenuOpen ? (
+              <LayoutDashboard className="h-5 w-5 text-white/40" />
+            ) : (
+              <LayoutDashboard className="h-5 w-5 text-[#00f2ff]" />
+            )}
           </button>
         </div>
 
         {/* Mobile Sidebar Overlay */}
         {mobileMenuOpen && (
           <div
-            className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm transition-all animate-in fade-in duration-300"
+            className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xl transition-all animate-in fade-in duration-300"
             onClick={() => setMobileMenuOpen(false)}
           >
             <aside
-              className="absolute left-0 top-0 h-full w-[280px] bg-[#050505] border-r border-white/10 animate-in slide-in-from-left duration-300"
+              className="absolute left-0 top-0 h-full w-[85%] max-w-[300px] bg-[#050505] border-r border-white/10 animate-in slide-in-from-left duration-300 shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
               onClick={(e) => e.stopPropagation()}
             >
-              {navContent}
+              {renderNavContent(true)}
             </aside>
           </div>
         )}
 
         {/* Main Content Area */}
         <main className={cn(
-          "flex-1 overflow-y-auto overflow-x-hidden pt-[64px] lg:pt-0 bg-[#000000] custom-scrollbar",
-          "p-6 lg:p-10"
+          "flex-1 h-full overflow-hidden flex flex-col bg-[#000000]",
+          "pt-[76px] px-3 pb-3 sm:pt-[80px] sm:px-6 sm:pb-6 lg:pt-0 lg:p-10"
         )}>
-          <div className="mx-auto max-w-[1600px] animate-in fade-in slide-in-from-bottom-2 duration-700">
+          <div className="mx-auto w-full max-w-[1600px] flex-1 flex flex-col min-h-0 animate-in fade-in slide-in-from-bottom-2 duration-700">
             {/* Dynamic Header */}
-            <header className="mb-10 lg:flex items-center justify-between hidden">
+            <header className="mb-6 lg:flex items-center justify-between hidden">
               <div>
                 <h2 className="text-[32px] font-black tracking-tight text-white uppercase leading-none">
                   {getPageTitle(location.pathname).title}

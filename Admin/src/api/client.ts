@@ -54,6 +54,11 @@ export const adminApi = {
       '/v1/admin/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
+  signup: (data: { email: string; password: string; name?: string; role?: string }) =>
+    api<{ id: string; email: string; name: string | null; role: string }>(
+      '/v1/admin/auth/signup',
+      { method: 'POST', body: JSON.stringify(data) }
+    ),
   me: () => api<{ admin: { id: string; email: string; role: string } }>('/v1/admin/me'),
   stats: () =>
     api<{
@@ -192,6 +197,9 @@ export interface AdminVehicleDocument {
   verificationStatus: string | null;
   expiryDate: string | null;
   documentNumber: string | null;
+  fileUrl?: string | null;
+  downloadUrl?: string | null;
+  mimeType?: string | null;
 }
 
 export interface AdminOdometerLog {
@@ -249,7 +257,7 @@ export interface CustomerDetail {
   digilocker: unknown;
   _count: { vehicles: number; expenses: number; documents: number; supportTickets: number; chats: number; sosRequests: number };
   expenses?: unknown[];
-  documents?: unknown[];
+  documents?: AdminVehicleDocument[];
   supportTickets?: SupportTicket[];
 }
 

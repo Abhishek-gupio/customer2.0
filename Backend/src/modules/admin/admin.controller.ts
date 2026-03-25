@@ -26,6 +26,13 @@ export const adminController = {
     success(res, data, 200);
   }),
 
+  signup: asyncHandler(async (req: Request, res: Response) => {
+    const { email, password, name, role } = req.body;
+    if (!email || !password) throw AppError.badRequest("Email and password required");
+    const data = await adminService.createAdmin({ email, password, name, role });
+    success(res, data, 201);
+  }),
+
   me: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
     success(res, { admin: req.admin });
@@ -92,7 +99,7 @@ export const adminController = {
     const ticketId = req.params.id;
     const { content } = req.body;
     if (!content) throw AppError.badRequest("Content is required");
-    
+
     // We can use supportService directly for now if we import it
     const { supportService } = require("../support/support.service");
     const data = await supportService.addAdminMessage(req.admin.id, ticketId, content);
@@ -113,11 +120,22 @@ export const adminController = {
   getTicketMessages: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
     const ticketId = req.params.id;
-    
+
     const messages = await (dbInstances as any).ticketMessage.findMany({
       where: { ticketId },
       orderBy: { createdAt: 'asc' }
     });
     success(res, messages);
+  }),
+
+  downloadDocument: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const documentId = req.params.id as string;
+    const { buffer, mimeType, filename } = await adminDashboardService.downloadDocument(documentId);
+    
+    const finalMime = (Array.isArray(mimeType) ? mimeType[0] : mimeType) || "application/octet-stream";
+    res.setHeader("Content-Type", String(finalMime));
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }),
 };

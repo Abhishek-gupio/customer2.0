@@ -1,4 +1,5 @@
 import { dbInstances } from "@repo/db-customer";
+import axios from "axios";
 import { storageService } from "../../services/storage.service";
 import { AppError } from "../../utils/AppError";
 import type { AdminRole } from "@repo/db-customer";
@@ -212,7 +213,6 @@ export const adminDashboardService = {
     const [expensesRaw, documentsRaw, supportTickets] = await Promise.all([
       db.expense?.findMany({
         where: { customerId },
-        take: 50,
         orderBy: { date: "desc" },
         include: {
           vehicle: { select: { registrationNumber: true, make: true, model: true } },
@@ -247,6 +247,9 @@ export const adminDashboardService = {
           fileUrl: d.fileUrl
             ? await storageService.ensureReadableUrl(d.fileUrl)
             : d.fileUrl,
+          downloadUrl: d.fileUrl
+            ? await storageService.ensureReadableUrl(d.fileUrl, 3600, `attachment; filename="${d.type.replace(/\s+/g, '_')}_${d.id.slice(0, 8)}"`)
+            : d.fileUrl,
         }))
       ),
     ]);
@@ -271,6 +274,36 @@ export const adminDashboardService = {
       expenses,
       documents,
       supportTickets,
+    };
+  },
+
+  async downloadDocument(documentId: string) {
+    const doc = await dbInstances.vehicleDocument.findUnique({
+      where: { id: documentId },
+    });
+    if (!doc) throw AppError.notFound("Document not found");
+
+    if (!doc.fileUrl) {
+      if (doc.fileContent) {
+        return {
+          buffer: doc.fileContent,
+          mimeType: doc.mimeType || "application/octet-stream",
+          filename: `${doc.type}_${doc.id.slice(0, 8)}`,
+        };
+      }
+      throw AppError.badRequest("Document has no file content or URL");
+    }
+
+    const readableUrl = await storageService.ensureReadableUrl(doc.fileUrl, 3600, `attachment; filename="${doc.type.replace(/\s+/g, '_')}_${doc.id.slice(0, 8)}"`);
+    
+    // If it's already a signed URL with query params, we can just return the URL or stream it.
+    // Streaming is safer for forcing download.
+    const response = await axios.get(readableUrl, { responseType: "arraybuffer" });
+    
+    return {
+      buffer: Buffer.from(response.data),
+      mimeType: (response.headers["content-type"] as string) || doc.mimeType || "application/octet-stream",
+      filename: `${doc.type.replace(/\s+/g, "_")}_${doc.id.slice(0, 8)}`,
     };
   },
 

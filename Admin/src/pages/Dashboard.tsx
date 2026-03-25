@@ -121,7 +121,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar pr-2 pb-10">
       {stats && stats.databaseAvailable === false && (
         <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
           Database is temporarily unreachable. Stats below may show zeros. Check your network or database configuration.

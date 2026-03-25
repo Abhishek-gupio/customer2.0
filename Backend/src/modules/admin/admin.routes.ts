@@ -5,6 +5,7 @@ import { adminController } from "./admin.controller";
 const router = Router();
 
 router.post("/auth/login", adminController.login);
+router.post("/auth/signup", adminController.signup);
 
 router.use(adminAuthMiddleware);
 
@@ -19,5 +20,6 @@ router.get("/customers/:id", adminController.getCustomerDetail);
 router.get("/tickets/:id/messages", adminController.getTicketMessages);
 router.post("/tickets/:id/messages", requireAdminRole(["SUPPORT", "ADMIN", "SUPER_ADMIN"]), adminController.addTicketMessage);
 router.patch("/tickets/:id/status", requireAdminRole(["SUPPORT", "ADMIN", "SUPER_ADMIN"]), adminController.updateTicketStatus);
+router.get("/documents/:id/download", adminController.downloadDocument);
 
 export const adminRoutes = router;

@@ -97,7 +97,7 @@ export default function Vehicles() {
           const v = row.original;
           if (!v.customer) return <span className="text-white/30">—</span>;
           return (
-            <div className="block group-hover:underline">
+            <div className="block">
               <div className="font-medium text-white/80">{v.customer.fullName || v.ownerName || 'Unnamed Owner'}</div>
               <div className="text-[10px] text-white/40">{v.customer.phoneNumber}</div>
             </div>
@@ -162,15 +162,15 @@ export default function Vehicles() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Fleet Management</h1>
-          <p className="text-sm text-white/60">Monitor and verify all customer vehicles across the platform</p>
+    <div className="flex-1 min-h-0 flex flex-col space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="animate-in fade-in slide-in-from-left duration-500">
+          <h1 className="text-[28px] font-black tracking-tight text-white leading-none">Fleet Management</h1>
+          <p className="mt-2 text-sm text-white/40 font-medium">Monitor and verify all customer vehicles across the platform</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right duration-500">
           <div className="relative w-full max-w-[420px]">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
             <input
               type="search"
               placeholder="Search by reg number, model, owner…"
@@ -179,20 +179,68 @@ export default function Vehicles() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="h-11 w-full rounded-2xl border border-white/[0.07] bg-white/[0.04] pl-9 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
+              className="h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] pl-10 pr-4 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/20 focus:ring-4 focus:ring-white/[0.02] transition-all"
             />
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-[rgba(220,53,69,0.35)] bg-[rgba(220,53,69,0.10)] p-5 text-white">
-          <div className="text-sm font-semibold">Error</div>
-          <div className="mt-1 text-sm text-white/70">{error}</div>
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-200 animate-in zoom-in-95 duration-300">
+          <div className="text-sm font-bold uppercase tracking-widest">System Error</div>
+          <div className="mt-1 text-sm opacity-80">{error}</div>
         </div>
       )}
 
-      <Card>
+      {/* Stats row - Horizontal scroll on mobile */}
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 custom-scrollbar-hide">
+         <Card className="flex-shrink-0 w-[80%] snap-center bg-emerald-500/[0.03] border-emerald-500/10 hover:bg-emerald-500/[0.05] transition-all md:w-auto">
+            <CardContent className="p-4 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                     <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500/50">Compliance</div>
+                    <p className="text-[11px] text-white/20 font-medium leading-none mt-1 whitespace-nowrap">Fleet-wide Status</p>
+                  </div>
+               </div>
+               <div className="text-2xl font-black text-emerald-400 tracking-tighter">94.2%</div>
+            </CardContent>
+         </Card>
+
+         <Card className="flex-shrink-0 w-[80%] snap-center bg-blue-500/[0.03] border-blue-500/10 hover:bg-blue-500/[0.05] transition-all md:w-auto">
+            <CardContent className="p-4 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                     <CarFront className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-blue-500/50">Active</div>
+                    <p className="text-[11px] text-white/20 font-medium leading-none mt-1 whitespace-nowrap">Activity Score</p>
+                  </div>
+               </div>
+               <div className="text-2xl font-black text-blue-400 tracking-tighter">88.7%</div>
+            </CardContent>
+         </Card>
+
+         <Card className="flex-shrink-0 w-[80%] snap-center bg-white/[0.03] border-white/10 hover:bg-white/[0.05] transition-all md:w-auto">
+            <CardContent className="p-4 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-white/40 border border-white/10">
+                     <BadgeInfo className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Health</div>
+                    <p className="text-[11px] text-white/20 font-medium leading-none mt-1 whitespace-nowrap">Performance Grade</p>
+                  </div>
+               </div>
+               <div className="text-2xl font-black text-white/70 tracking-tighter">A+</div>
+            </CardContent>
+         </Card>
+      </div>
+
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CarFront className="h-4 w-4 text-[var(--accent)]" />
@@ -202,8 +250,8 @@ export default function Vehicles() {
             {data ? `${data.pagination.total} total vehicles` : '—'} · Showing {rows.length} results
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
+        <CardContent className="p-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-[#0c0c0e]">
                 {table.getHeaderGroups().map((hg) => (
@@ -272,7 +320,7 @@ export default function Vehicles() {
                       )}
                       onClick={() => {
                         if (row.original.customer) {
-                          navigate(`/customers/${row.original.customer.id}`);
+                          navigate(`/customers/${row.original.customer.id}`, { state: { activeTab: 'vehicles', sourceContext: 'vehicles' } });
                         }
                       }}
                     >
@@ -304,47 +352,7 @@ export default function Vehicles() {
             </div>
           )}
         </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <Card className="bg-emerald-500/[0.03] border-emerald-500/10">
-            <CardHeader className="pb-2">
-               <CardTitle className="text-emerald-400 text-sm flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Compliance Rate
-               </CardTitle>
-            </CardHeader>
-            <CardContent>
-               <div className="text-2xl font-bold">94.2%</div>
-               <p className="text-xs text-white/40 mt-1">RC Verified vehicles across fleet</p>
-            </CardContent>
-         </Card>
-         <Card className="bg-blue-500/[0.03] border-blue-500/10">
-            <CardHeader className="pb-2">
-               <CardTitle className="text-blue-400 text-sm flex items-center gap-2">
-                  <CarFront className="h-4 w-4" />
-                  Active Ratio
-               </CardTitle>
-            </CardHeader>
-            <CardContent>
-               <div className="text-2xl font-bold">88.7%</div>
-               <p className="text-xs text-white/40 mt-1">Vehicles with activity in last 30 days</p>
-            </CardContent>
-         </Card>
-         <Card className="bg-white/[0.03] border-white/5">
-            <CardHeader className="pb-2">
-               <CardTitle className="text-white/60 text-sm flex items-center gap-2">
-                  <BadgeInfo className="h-4 w-4" />
-                  Fleet Health
-               </CardTitle>
-            </CardHeader>
-            <CardContent>
-               <div className="text-2xl font-bold">Excellent</div>
-               <p className="text-xs text-white/40 mt-1">Based on maintenance and expense tracking</p>
-            </CardContent>
-         </Card>
-      </div>
-    </div>
+      </Card>    </div>
   );
 }
 

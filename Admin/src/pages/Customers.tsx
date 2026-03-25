@@ -135,7 +135,7 @@ export default function Customers() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 min-h-0 flex flex-col space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Customer Directory</h1>
@@ -165,7 +165,7 @@ export default function Customers() {
         </div>
       )}
 
-      <Card>
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-4 w-4 text-[var(--accent)]" />
@@ -175,8 +175,8 @@ export default function Customers() {
             {data ? `${data.pagination.total} total members` : '—'} · Showing {rows.length} results
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
+        <CardContent className="p-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-[#0c0c0e]">
                 {table.getHeaderGroups().map((hg) => (
