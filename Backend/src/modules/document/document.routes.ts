@@ -16,7 +16,7 @@ const upload = multer({
 router.get("/:id/image", documentController.getImage);
 router.get("/:id/pdf", documentController.getPDF);
 
-// DigiLocker Public Testing (Moved to routes.ts for safety)
+
 
 
 router.use(authMiddleware);

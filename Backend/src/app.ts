@@ -8,6 +8,7 @@ import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { apiRoutes } from "./routes";
+import { digilockerController } from "./modules/document/digilocker.controller";
 import { setupSwagger } from "./swagger";
 
 /** Rate limit key: per user when JWT present, else per IP. */
@@ -119,6 +120,9 @@ app.get("/health/detailed", async (_req: Request, res: Response) => {
 
 // Swagger setup
 setupSwagger(app);
+
+// Public DigiLocker Success Redirect (Must be before /api to bypass auth middleware)
+app.get("/api/v1/documents/digilocker/success", digilockerController.handleSuccess);
 
 app.use("/api", apiRoutes);
 

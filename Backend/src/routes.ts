@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { customerRoutes } from "./modules/customer/customer.routes";
 import { documentRoutes } from "./modules/document/document.routes";
+import { digilockerController } from "./modules/document/digilocker.controller";
 import { vehicleRoutes } from "./modules/vehicle/vehicle.routes";
 import { sharingRoutes } from "./modules/sharing/sharing.routes";
 import { notificationRoutes } from "./modules/notification/notification.routes";
@@ -55,41 +56,7 @@ router.get("/v1/documents/digilocker/mock-auth", (req, res) => {
   `);
 });
 
-router.get("/v1/documents/digilocker/success", (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Verification Successful</title>
-      <style>
-        body {
-          margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
-          height: 100vh; background-color: #000; color: #FFF; font-family: sans-serif; text-align: center;
-        }
-        .container { padding: 24px; }
-        .icon { font-size: 64px; margin-bottom: 24px; color: #FFC107; }
-        h1 { font-size: 28px; margin-bottom: 12px; }
-        p { font-size: 18px; color: #8E8E93; }
-        .btn {
-          margin-top: 32px; background: #FFC107; color: #000; padding: 12px 24px; 
-          border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="icon">✓</div>
-        <h1>Verified!</h1>
-        <p>Your documents are synced with Gupio.</p>
-        <p style="margin-top: 10px;">Please return to the app to see your documents.</p>
-        <a href="gupio://document-list" class="btn">Close & Return to App</a>
-      </div>
-    </body>
-    </html>
-  `);
-});
+
 
 router.use("/v1/auth", authRoutes);
 router.use("/v1/customer", customerRoutes);

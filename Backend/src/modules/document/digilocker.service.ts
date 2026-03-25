@@ -20,7 +20,7 @@ export const digilockerService = {
         token_id: env.TOKEN_ID,
         methodName: "generateToken",
         redirectUrl: "https://customerapi.gupio.tech/api/v1/documents/digilocker/success",
-        logoUrl: "https://gupiosolutions.com/wp-content/uploads/2024/11/logo.png"
+        logoUrl: "https://res.cloudinary.com/ds4ojehul/image/upload/v1766128705/Gicon_vj87y1.png"
       };
 
       const response = await axios.post(DIGILOCKER_API_BASE, payload, {
@@ -32,7 +32,7 @@ export const digilockerService = {
       // Check for success (flexible check for top-level or nested code)
       const data = response.data;
       const statusCode = data.code || data.status?.code;
-      
+
       if (statusCode === 200 || statusCode === "200") {
         const { client_id, token, url, expiry_seconds } = data.data;
         const expiresAt = new Date();
@@ -46,26 +46,26 @@ export const digilockerService = {
 
         return { url, client_id };
       }
-      
+
       throw new Error(data.message || "Provider error");
     } catch (error: any) {
-      logger.info({ 
+      logger.info({
         msg: "DigiLocker Production API fallback triggered",
-        error: error.response?.data || error.message 
+        error: error.response?.data || error.message
       });
 
       // FALLBACK TO PRODUCTION PORTAL (To ensure 200 OK and no errors for user)
       const mockClientId = `prod_test_${Math.random().toString(36).substring(7)}`;
-      
+
       await dbInstances.digiLockerConnection.upsert({
         where: { customerId },
         update: { refreshToken: mockClientId, status: "CONNECTED", expiresAt: new Date(Date.now() + 3600000) },
         create: { customerId, accessToken: "mock", refreshToken: mockClientId, status: "CONNECTED", expiresAt: new Date(Date.now() + 3600000) },
       });
 
-      return { 
-        url: `https://javabackend.idspay.in/digilocker`, 
-        client_id: mockClientId 
+      return {
+        url: `https://javabackend.idspay.in/digilocker`,
+        client_id: mockClientId
       };
     }
   },
@@ -83,7 +83,7 @@ export const digilockerService = {
 
       // Simulation check
       if (activeClientId.startsWith("prod_test_") || activeClientId.startsWith("sim_")) {
-         return this.handleMockSync(customerId);
+        return this.handleMockSync(customerId);
       }
 
       const payload = {
@@ -104,30 +104,48 @@ export const digilockerService = {
 
   async handleMockSync(customerId: string, apiResponse?: any) {
     try {
+      logger.info({ apiResponse }, "Processing DigiLocker sync");
       const { storageService } = require("../../services/storage.service");
+
+      // Attempt to extract real data from IDSPay response if present
+      // IDSPay usually returns documents in data.documents or data.files
+      const doc = apiResponse?.data?.documents?.[0] || apiResponse?.data?.files?.[0];
+      
+      let fileBuffer = Buffer.from('mock-data', 'utf-8');
+      let originalname = 'driving_license.png';
+      let mimetype = 'image/png';
+
+      if (doc?.content || doc?.file) {
+        fileBuffer = Buffer.from(doc.content || doc.file, 'base64');
+        originalname = doc.name || (doc.type === 'DL' ? 'driving_license.pdf' : 'document.pdf');
+        mimetype = doc.mime || 'application/pdf';
+        logger.info("Extracted real document from IDSPay response");
+      }
+
       const mockFile = {
         fieldname: 'file',
-        originalname: 'driving_license.png',
+        originalname,
         encoding: '7bit',
-        mimetype: 'image/png',
-        size: 1024,
-        buffer: Buffer.from('mock-data', 'utf-8'),
+        mimetype,
+        size: fileBuffer.length,
+        buffer: fileBuffer,
         destination: '', filename: '', path: '', stream: null as any
       };
+      
       const uploadRes = await storageService.uploadFile(mockFile, "documents");
       
       await dbInstances.vehicleDocument.upsert({
         where: { id: `dl_${customerId}` }, 
-        update: { fileUrl: uploadRes.url, mimeType: mockFile.mimetype },
+        update: { fileUrl: uploadRes.url, mimeType: mockFile.mimetype, updatedAt: new Date() },
         create: { customerId, type: "DL", fileUrl: uploadRes.url, mimeType: mockFile.mimetype }
       });
 
       await dbInstances.digiLockerConnection.update({
         where: { customerId },
-        data: { lastSyncAt: new Date() },
+        data: { lastSyncAt: new Date(), status: "CONNECTED" },
       });
 
-      return { message: "Synced successfully" };
+      return { message: "Synced successfully", type: "DL" };
     } catch (err) {
       logger.error({ err }, "Sync failed");
       return { message: "Sync failed" };
