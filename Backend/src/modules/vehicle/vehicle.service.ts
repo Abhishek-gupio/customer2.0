@@ -127,8 +127,8 @@ export const vehicleService = {
       });
 
       const found = candidates
-        .map((c) => c.imageUrl)
-        .find((u) => u && !isUnsplashFallback(u));
+        .map((c: any) => c.imageUrl)
+        .find((u: any) => u && !isUnsplashFallback(u));
 
       if (found) imageUrl = found;
     }
@@ -442,7 +442,7 @@ export const vehicleService = {
       throw AppError.forbidden("Only the owner can delete this vehicle");
     }
 
-    return dbInstances.$transaction(async (tx) => {
+    return dbInstances.$transaction(async (tx: any) => {
       await tx.vehicleDocument.updateMany({
         where: { vehicleId },
         data: { vehicleId: null },

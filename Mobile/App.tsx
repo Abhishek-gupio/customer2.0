@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, LogBox, StatusBar, useColorScheme, View } from 'react-native';
+
+LogBox.ignoreLogs([
+  'new NativeEventEmitter()',
+  '[storage] MMKV unavailable',
+]);
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -14,6 +19,8 @@ import {
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GOOGLE_WEB_CLIENT_ID } from './src/config/index';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -49,6 +56,12 @@ function App() {
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
+    if (GOOGLE_WEB_CLIENT_ID) {
+      GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        offlineAccess: true,
+      });
+    }
     hydrateAuthFromPersistedStorage()
       .catch(() => {
         /* keep going; MMKV path still works */

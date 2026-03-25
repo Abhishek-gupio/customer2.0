@@ -88,7 +88,7 @@ export const documentService = {
       orderBy: { createdAt: "desc" },
     });
 
-    return Promise.all(docs.map(async (d) => ({
+    return Promise.all(docs.map(async (d: any) => ({
         ...d,
         fileUrl: (await storageService.ensureReadableUrl(d.fileUrl || "")) || `/api/v1/documents/${d.id}/image`
     })));
@@ -163,7 +163,7 @@ export const documentService = {
       orderBy: { expiryDate: "asc" },
     });
 
-    return Promise.all(docs.map(async (d) => ({
+    return Promise.all(docs.map(async (d: any) => ({
         ...d,
         fileUrl: (await storageService.ensureReadableUrl(d.fileUrl || "")) || `/api/v1/documents/${d.id}/image`
     })));

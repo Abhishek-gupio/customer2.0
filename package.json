@@ -17,6 +17,19 @@
         "admin:dev": "pnpm --filter admin-dashboard dev",
         "admin:build": "pnpm --filter admin-dashboard build"
     },
+    "dependencies": {
+        "@prisma/client": "^7.5.0",
+        "@prisma/adapter-pg": "^7.5.0",
+        "@prisma/engines": "^7.5.0",
+        "@prisma/debug": "^7.5.0"
+    },
+    "dependencies": {
+        "@prisma/client": "^7.5.0",
+        "@prisma/adapter-pg": "^7.5.0",
+        "@prisma/engines": "^7.5.0",
+        "@prisma/debug": "^7.5.0",
+        "prisma": "^7.5.0"
+    },
     "devDependencies": {
         "prettier": "latest",
         "turbo": "latest",

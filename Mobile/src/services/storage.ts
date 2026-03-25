@@ -107,8 +107,8 @@ try {
       : asyncStorageLoadError instanceof Error
         ? `${asyncStorageLoadError.name}: ${asyncStorageLoadError.message}`
         : String(asyncStorageLoadError);
-    console.warn(`[storage] MMKV unavailable. ${mmkvMsg}`);
-    console.warn(
+    console.log(`[storage] MMKV unavailable. ${mmkvMsg}`);
+    console.log(
       asyncStorage
         ? `[storage] ${asyncMsg}`
         : `[storage] AsyncStorage unavailable; using in-memory storage only. ${asyncMsg}`,

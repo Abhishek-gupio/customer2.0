@@ -23,7 +23,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { GOOGLE_WEB_CLIENT_ID } from '../../config';
+import { GOOGLE_WEB_CLIENT_ID } from '../../config/index';
 import { login as loginApi, loginWithGoogle } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
@@ -38,15 +38,6 @@ export default function Signin() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [buttonScale] = useState(() => new RNAnimated.Value(1));
-
-  useEffect(() => {
-    if (GOOGLE_WEB_CLIENT_ID) {
-      GoogleSignin.configure({
-        webClientId: GOOGLE_WEB_CLIENT_ID,
-        offlineAccess: true,
-      });
-    }
-  }, []);
 
   const handlePressIn = () => {
     RNAnimated.spring(buttonScale, {
@@ -121,9 +112,15 @@ export default function Signin() {
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const signInResult = await GoogleSignin.signIn();
-      const idToken =
-        signInResult.data?.idToken ??
-        (await GoogleSignin.getTokens().catch(() => ({}))).idToken;
+      console.log('Google Sign-In Result:', JSON.stringify(signInResult, null, 2));
+      
+      const getTokensRes = await GoogleSignin.getTokens().catch((err) => {
+        console.error('getTokens error:', err);
+        return null;
+      });
+      const idToken = signInResult.data?.idToken ?? getTokensRes?.idToken;
+      console.log('Final ID Token:', idToken ? `${idToken.substring(0, 10)}...` : 'NULL');
+
       if (!idToken) {
         if (signInResult.data?.user === null) return; // user cancelled
         throw new Error('No ID token from Google');

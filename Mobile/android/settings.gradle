@@ -1,4 +1,4 @@
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+pluginManagement { includeBuild("../../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'Mobile'
@@ -17,7 +17,7 @@ if (pnpmRoot.exists()) {
 		}
 	}
 }
-includeBuild('../node_modules/@react-native/gradle-plugin')
+includeBuild('../../node_modules/@react-native/gradle-plugin')
 
 // Locate the 'expo' package (supports pnpm layout) and apply autolinking if found
 def findExpoDir = { ->
@@ -43,6 +43,6 @@ if (expoDir != null) {
 }
 
 include ':react-native-share'
-project(':react-native-share').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-share/android')
+project(':react-native-share').projectDir = new File(rootProject.projectDir, '../../node_modules/react-native-share/android')
 
 

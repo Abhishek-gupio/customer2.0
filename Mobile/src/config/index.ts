@@ -31,7 +31,7 @@ export function getAbsoluteUrl(path: string | null | undefined): string {
 }
 
 /** Google Sign-In: OAuth 2.0 Web client ID (for ID token). Same as backend GOOGLE_CLIENT_ID. */
-export const GOOGLE_WEB_CLIENT_ID = '789540291597-vlbm38kh3a2ruk1egkajgfq9untkjqp0.apps.googleusercontent.com';
+export const GOOGLE_WEB_CLIENT_ID = '911744821268-88knnvpfksurd8aar6u8rfnfv3nbnrfm.apps.googleusercontent.com';
 
 // ─── Location / Geo (reverse geocode + IP fallback) – all URLs and user agent from config ───
 export const GEO = {
