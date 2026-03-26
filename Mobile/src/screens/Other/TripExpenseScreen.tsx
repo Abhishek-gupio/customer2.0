@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StatusBar,
   Linking,
+  Modal,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -21,28 +22,71 @@ import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useNavigation } from '../../lib/react-navigation-native';
 import { tripExpenseService, type TripRoute, type TripExpenseResult } from '../../services/tripExpenseService';
 import { placesService, type SearchSuggestion } from '../../services/placesService';
+import { vehicleService, type Vehicle } from '../../services/vehicleService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decodePolyline } from '../../utils/polyline';
+import LinearGradient from 'react-native-linear-gradient';
+import { Clock, HeartPulse, Zap, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Share2, Maximize2, X, MapPin, Navigation, List } from 'lucide-react-native';
 
 // ─── Colors (matching app dark theme) ────────────────────────────────────────
 const C = {
-  bg: '#0a0a0a',
-  card: '#111111',
-  cardBorder: 'rgba(255,255,255,0.08)',
-  accent: '#ffffff',
-  accentLight: '#f0f0f0',
-  accentBg: 'rgba(255,255,255,0.08)',
-  text: '#ffffff',
-  textSecondary: '#999999',
+  bg: '#000000',
+  card: '#1C1C1E',
+  cardBorder: '#2C2C2E',
+  accent: '#FFD700',
+  accentLight: 'rgba(255, 215, 0, 0.1)',
+  accentBg: 'rgba(255, 215, 0, 0.1)',
+  text: '#FFFFFF',
+  textSecondary: '#8E8E93',
   textMuted: '#555555',
-  green: '#22c55e',
-  greenBg: 'rgba(34,197,94,0.12)',
-  orange: '#f59e0b',
-  orangeBg: 'rgba(245,158,11,0.12)',
-  red: '#ef4444',
-  inputBg: '#1a1a1a',
-  inputBorder: '#222222',
-  divider: '#1e1e1e',
+  green: '#32D74B',
+  greenBg: 'rgba(50, 215, 75, 0.12)',
+  orange: '#FF9F0A',
+  orangeBg: 'rgba(255, 159, 10, 0.12)',
+  red: '#FF453A',
+  inputBg: '#1A1A1A',
+  inputBorder: '#2C2C2E',
+  divider: '#2C2C2E',
+};
+
+// Helper functions for Vehicle Health vs Trip Distance
+const getHealthAssessment = (score: number | undefined, distanceKm: number | undefined) => {
+  const dScore = score || 0;
+  const dist = distanceKm || 0;
+  
+  if (!score) {
+    return {
+      icon: 'ℹ️',
+      color: C.textSecondary,
+      message: 'Vehicle health data unavailable. Make sure your vehicle is serviced regularly before long trips.'
+    };
+  }
+
+  if (dist > 500 && dScore < 80) {
+    return {
+      icon: '⚠️',
+      color: C.orange,
+      message: `Warning: Your vehicle health is ${Math.round(dScore)}/100. For a long trip of ${Math.round(dist)}km, a full checkup is recommended.`
+    };
+  } else if (dist > 200 && dScore < 60) {
+    return {
+      icon: '⚠️',
+      color: C.orange,
+      message: `Warning: Your vehicle health is ${Math.round(dScore)}/100. It might not be ideal for this ${Math.round(dist)}km trip without a checkup.`
+    };
+  } else if (dScore < 40) {
+    return {
+      icon: '🛑',
+      color: C.red,
+      message: `Critical: Your vehicle health is ${Math.round(dScore)}/100. Get it serviced before embarking on trips.`
+    };
+  } else {
+    return {
+      icon: '✅',
+      color: C.green,
+      message: `Your vehicle health (${Math.round(dScore)}/100) is good for this trip. Drive safely!`
+    };
+  }
 };
 
 export default function TripExpenseScreen() {
@@ -64,11 +108,14 @@ export default function TripExpenseScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const [result, setResult] = useState<TripExpenseResult | null>(null);
+  const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
   const [amenities, setAmenities] = useState<any[]>([]);
   const [searchingAmenities, setSearchingAmenities] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showTraffic, setShowTraffic] = useState(true);
+  const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(false);
+  const [showFullMap, setShowFullMap] = useState(false);
 
   useEffect(() => {
     const loadCachedData = async () => {
@@ -93,6 +140,19 @@ export default function TripExpenseScreen() {
       }
     };
     loadCachedData();
+
+    const fetchVehicle = async () => {
+      try {
+        const vehicles = await vehicleService.getVehicles();
+        const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
+        if (primary) {
+          setPrimaryVehicle(primary);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch vehicles', e);
+      }
+    };
+    fetchVehicle();
   }, []);
 
   // Save Result
@@ -116,10 +176,19 @@ export default function TripExpenseScreen() {
     result?.routes?.[selectedRouteIdx] ?? null;
   const mapRef = useRef<MapView>(null);
 
+  const allRoutePolylines = useMemo(() => {
+    if (!result?.routes) return [];
+    return result.routes
+      .filter(r => !!r.polyline)
+      .map(r => ({
+        coords: decodePolyline(r.polyline || ''),
+        route: r
+      }));
+  }, [result]);
+
   const routePolyline = useMemo(() => {
-    if (!selectedRoute?.polyline) return [];
-    return decodePolyline(selectedRoute.polyline);
-  }, [selectedRoute]);
+    return allRoutePolylines[selectedRouteIdx]?.coords || [];
+  }, [allRoutePolylines, selectedRouteIdx]);
 
   useEffect(() => {
     if (routePolyline.length > 0 && mapRef.current) {
@@ -201,6 +270,85 @@ export default function TripExpenseScreen() {
     setWaypointSuggestions(newWPSuggestions);
   };
 
+  const renderMapContent = () => {
+    if (!result || allRoutePolylines.length === 0) return null;
+    return (
+      <>
+        {/* Render all routes first (dimmed) */}
+        {allRoutePolylines.map((item, idx) => {
+          const isSelected = idx === selectedRouteIdx;
+          if (isSelected) return null; // Render selected last for z-index
+          return (
+            <Polyline
+              key={`route-line-${idx}`}
+              coordinates={item.coords}
+              strokeColor="rgba(255,255,255,0.25)"
+              strokeWidth={3}
+              lineDashPattern={[5, 5]}
+            />
+          );
+        })}
+
+        {/* Render Selected Route (Bold) */}
+        <Polyline
+          coordinates={routePolyline}
+          strokeColor="rgba(255,255,255,0.9)"
+          strokeWidth={6}
+        />
+
+        {/* Start Marker */}
+        <Marker
+          coordinate={routePolyline[0]}
+          title="Start"
+          description={result.from}
+        >
+          <View style={[s.markerDot, { backgroundColor: C.green }]}>
+            <Text style={s.markerIcon}>🚀</Text>
+          </View>
+        </Marker>
+
+        {/* End Marker */}
+        <Marker
+          coordinate={routePolyline[routePolyline.length - 1]}
+          title="Destination"
+          description={result.to}
+        >
+          <View style={[s.markerDot, { backgroundColor: C.red }]}>
+            <Text style={s.markerIcon}>📍</Text>
+          </View>
+        </Marker>
+
+        {/* Toll Markers (Selected Route Only) */}
+        {selectedRoute?.tolls?.map((toll, idx) => (
+          <Marker
+            key={`toll-${idx}`}
+            coordinate={{ latitude: toll.lat, longitude: toll.lng }}
+            title={toll.name}
+            description={`₹${toll.tagCost} (FASTag)`}
+          >
+            <View style={[s.markerDot, { backgroundColor: C.accent }]}>
+              <Text style={s.markerIcon}>🛣️</Text>
+            </View>
+            {toll.weather && (
+              <View style={s.weatherAnnotation}>
+                <Text style={s.weatherText}>{toll.weather.temp}°</Text>
+              </View>
+            )}
+          </Marker>
+        ))}
+        {/* Amenity Markers */}
+        {amenities.map((item, idx) => (
+          <Marker
+            key={`amenity-${idx}`}
+            coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+            title={item.name}
+            pinColor="#4ade80"
+          />
+        ))}
+      </>
+    );
+  };
+
   const handleCalculate = useCallback(async () => {
     if (!from.trim() || !to.trim()) {
       setError('Please enter both origin and destination');
@@ -217,6 +365,19 @@ export default function TripExpenseScreen() {
       });
       setResult(data);
       setSelectedRouteIdx(0);
+      
+      // Clear inputs after successful calculation as requested
+      setFrom('');
+      setTo('');
+      setWaypoints([]);
+      
+      // Also clear any open suggestions
+      setShowFromSuggestions(false);
+      setShowToSuggestions(false);
+      setShowWaypointSuggestions({});
+      setFromSuggestions([]);
+      setToSuggestions([]);
+      setWaypointSuggestions({});
     } catch (err: any) {
       setError(err?.message || 'Failed to calculate trip expenses');
     } finally {
@@ -241,12 +402,17 @@ export default function TripExpenseScreen() {
   };
 
   const handleStartNavigation = () => {
-    if (!from || !to) return;
+    // Use result data if inputs were cleared
+    const finalFrom = from || result?.from;
+    const finalTo = to || result?.to;
+    const finalWaypoints = (waypoints.length > 0 ? waypoints : result?.waypoints) || [];
+
+    if (!finalFrom || !finalTo) return;
     
-    const originStr = encodeURIComponent(from);
-    const destinationStr = encodeURIComponent(to);
-    const activeWaypoints = waypoints.filter(w => w.trim() !== '');
-    const waypointsStr = activeWaypoints.map(w => encodeURIComponent(w)).join('|');
+    const originStr = encodeURIComponent(finalFrom);
+    const destinationStr = encodeURIComponent(finalTo);
+    const activeWaypoints = finalWaypoints.filter((w: string) => w.trim() !== '');
+    const waypointsStr = activeWaypoints.map((w: string) => encodeURIComponent(w)).join('|');
     
     let url = `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${destinationStr}`;
     if (waypointsStr) {
@@ -341,11 +507,13 @@ export default function TripExpenseScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
       {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backText}>←</Text>
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Trip Expense Calculator</Text>
+      <View style={s.premiumHeader}>
+        <View style={s.headerLeftContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+            <ArrowLeft size={28} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={[s.headerTitle, { marginLeft: 8 }]}>Trip Planner</Text>
+        </View>
         <View style={{ width: 40 }} />
       </View>
 
@@ -355,21 +523,26 @@ export default function TripExpenseScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Input Card */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Plan Your Trip</Text>
-          <Text style={s.cardSubtitle}>
-            Get exact toll charges, fuel cost & total expense
+        {/* Journey Planning Card (Premium Manifest) */}
+        <View style={s.premiumManifestCard}>
+          <View style={s.manifestHeader}>
+             <View style={s.manifestBadge}>
+                 <Text style={s.manifestBadgeText}>NEW</Text>
+             </View>
+             <Text style={s.manifestTitle}>Journey Manifest</Text>
+          </View>
+          <Text style={s.manifestSubtitle}>
+            Configure your route, vehicle vitals, and cost-optimized stops
           </Text>
 
-          {/* From */}
+          {/* Origin */}
           <View style={s.inputGroup}>
             <View style={s.inputIcon}>
-              <View style={[s.dot, { backgroundColor: C.green }]} />
+              <MapPin size={18} color={C.green} fill={C.green + '20'} />
             </View>
             <TextInput
               style={s.input}
-              placeholder="From — e.g. Mysuru, Karnataka"
+              placeholder="Origin — e.g. Mysuru, Karnataka"
               placeholderTextColor={C.textMuted}
               value={from}
               onChangeText={(t: string) => handleSearch(t, 'from')}
@@ -446,14 +619,14 @@ export default function TripExpenseScreen() {
             </TouchableOpacity>
           )}
 
-          {/* To */}
+          {/* Destination */}
           <View style={s.inputGroup}>
             <View style={s.inputIcon}>
-              <View style={[s.dot, { backgroundColor: C.red }]} />
+              <MapPin size={18} color={C.red} fill={C.red + '20'} />
             </View>
             <TextInput
               style={s.input}
-              placeholder="To — e.g. Kochi, Kerala"
+              placeholder="Destination — e.g. Kochi, Kerala"
               placeholderTextColor={C.textMuted}
               value={to}
               onChangeText={(t: string) => handleSearch(t, 'to')}
@@ -478,18 +651,27 @@ export default function TripExpenseScreen() {
             </View>
           )}
 
-          {/* Calculate Button */}
+          {/* Calculate Action */}
           <TouchableOpacity
-            style={[s.calcBtn, loading && s.calcBtnDisabled]}
             onPress={handleCalculate}
             disabled={loading}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
+            style={{ marginTop: hp(2) }}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={s.calcBtnText}>Calculate Expenses</Text>
-            )}
+            <LinearGradient
+              colors={[C.accent, '#FFA800']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.premiumCalcBtn}
+            >
+              {loading ? (
+                <ActivityIndicator color="#000" size="small" />
+              ) : (
+                <View style={s.calcBtnContent}>
+                  <Text style={s.premiumCalcText}>Calculate Manifest</Text>
+                </View>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           {error && (
@@ -502,6 +684,106 @@ export default function TripExpenseScreen() {
         {/* Results */}
         {result && result.routes.length > 0 && (
           <>
+            {/* Route Overview (Current Route) */}
+            <View style={s.premiumRouteCard}>
+              <View style={s.premiumRouteHeader}>
+                <Navigation size={18} color={C.accent} />
+                <Text style={s.premiumRouteTitle}>Plan Verified</Text>
+              </View>
+
+              <View style={s.routeTimeline}>
+                <View style={s.timelineItem}>
+                  <View style={s.timelineLeft}>
+                    <MapPin size={18} color={C.green} />
+                    <View style={s.timelineLine} />
+                  </View>
+                  <View style={s.timelineRight}>
+                    <Text style={s.timelineLabel}>Origin</Text>
+                    <Text style={s.timelineValue}>{result.from}</Text>
+                  </View>
+                </View>
+
+                {result.waypoints?.map((wp: string, i: number) => (
+                  <View key={`ov-wp-${i}`} style={s.timelineItem}>
+                    <View style={s.timelineLeft}>
+                      <View style={s.timelineDot} />
+                      <View style={s.timelineLine} />
+                    </View>
+                    <View style={s.timelineRight}>
+                      <Text style={s.timelineLabel}>Stop {i + 1}</Text>
+                      <Text style={s.timelineValue}>{wp}</Text>
+                    </View>
+                  </View>
+                ))}
+
+                <View style={s.timelineItem}>
+                  <View style={s.timelineLeft}>
+                    <MapPin size={18} color={C.red} fill={C.red + '20'} />
+                  </View>
+                  <View style={s.timelineRight}>
+                    <Text style={s.timelineLabel}>Destination</Text>
+                    <Text style={s.timelineValue}>{result.to}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+ 
+            {/* Vehicle Health Check (Premium Match) - Relocated below Current Route */}
+            {primaryVehicle && (
+              (() => {
+                const healthStatus = getHealthAssessment(primaryVehicle.healthScore?.overallScore, selectedRoute?.distance?.km);
+                const healthPcnt = primaryVehicle.healthScore?.overallScore || 100;
+                return (
+                  <View style={[s.premiumHealthCard, { borderColor: healthStatus.color + '33' }]}>
+                    <View style={s.healthHeaderRow}>
+                      <View style={s.healthTitleGroup}>
+                        <HeartPulse size={20} color={healthStatus.color} />
+                        <Text style={s.healthTitleText}>
+                          {healthPcnt}% <Text style={s.healthTypeSub}>Vitals</Text>
+                        </Text>
+                      </View>
+                      <View style={s.healthCarBadge}>
+                         <Text style={s.healthCarNameText}>{primaryVehicle.make} {primaryVehicle.model}</Text>
+                      </View>
+                    </View>
+                    
+                    <View style={s.healthBarContainer}>
+                      <LinearGradient
+                        colors={[healthStatus.color, healthStatus.color + '99']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={[s.healthBarFillGradient, { width: `${healthPcnt}%` }]}
+                      />
+                    </View>
+                    
+                    <View style={s.healthStatusFooter}>
+                       {healthStatus.icon === '✅' ? (
+                         <CheckCircle2 size={14} color={C.green} />
+                       ) : healthStatus.icon === '⚠️' ? (
+                         <AlertTriangle size={14} color={C.orange} />
+                       ) : (
+                         <Info size={14} color={C.textSecondary} />
+                       )}
+                       <Text style={[s.healthStatusMsg, { color: healthStatus.color }]}>
+                         {healthStatus.message}
+                       </Text>
+                    </View>
+
+                    {primaryVehicle.healthScore?.explanations && healthPcnt < 80 && (
+                      <View style={s.healthExpBox}>
+                        {primaryVehicle.healthScore.explanations.slice(0, 2).map((exp: string, idx: number) => (
+                          <View key={idx} style={s.expRow}>
+                            <View style={[s.dotSmall, { backgroundColor: C.textMuted, marginTop: 6 }]} />
+                            <Text style={s.healthExpText}>{exp}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              })()
+            )}
+
             {/* Route Tabs */}
             {result.routes.length > 1 && (
               <ScrollView
@@ -548,7 +830,94 @@ export default function TripExpenseScreen() {
 
             {selectedRoute && (
               <>
-                {/* Map View */}
+                {/* EV Planning Assistant (Phase 3) */}
+                {result.fuelType === 'ELECTRIC' && selectedRoute.distance.km > 150 && (
+                  <View style={[s.optimalCard, { borderLeftColor: C.green }]}>
+                    <Text style={[s.optimalTitle, { color: C.green }]}>⚡ EV Charging Support</Text>
+                    <Text style={s.optimalSub}>This is a long journey. Tap "⚡ EV" below to find chargers along your route.</Text>
+                  </View>
+                )}
+
+                 {/* Total Cost Hero (Premium) */}
+                <LinearGradient
+                   colors={[C.accent, '#FFB800']}
+                   start={{ x: 0, y: 0 }}
+                   end={{ x: 1, y: 1 }}
+                   style={s.premiumHeroCard}
+                >
+                  <View style={s.heroTopRow}>
+                    <View style={s.heroLabelGroup}>
+                       <Receipt size={16} color="rgba(0,0,0,0.6)" />
+                       <Text style={s.premiumHeroLabel}>Estimated Total</Text>
+                    </View>
+                  </View>
+
+                  <Text style={s.premiumHeroAmount}>
+                    ₹{selectedRoute.costs.total.toLocaleString('en-IN')}
+                  </Text>
+
+                  <View style={s.heroSummaryPanel}>
+                    <View style={s.heroStatItem}>
+                      <Route size={14} color="rgba(0,0,0,0.5)" />
+                      <Text style={s.heroStatText}>{selectedRoute.distance.text}</Text>
+                    </View>
+                    <View style={s.heroStatDivider} />
+                    <View style={s.heroStatItem}>
+                      <Timer size={14} color="rgba(0,0,0,0.5)" />
+                      <Text style={s.heroStatText}>{selectedRoute.duration.text}</Text>
+                    </View>
+                  </View>
+
+                  <View style={s.heroCostBreakdownRow}>
+                    <View style={s.heroCostPill}>
+                      <Text style={s.heroPillLabel}>Fuel</Text>
+                      <Text style={s.heroPillValue}>₹{selectedRoute.costs.fuel}</Text>
+                    </View>
+                    <View style={s.heroCostPill}>
+                      <Text style={s.heroPillLabel}>Tolls</Text>
+                      <Text style={s.heroPillValue}>₹{selectedRoute.costs.tollFastag + selectedRoute.costs.tollCash}</Text>
+                    </View>
+                  </View>
+
+                  <View style={s.heroDivider} />
+
+                  <View style={s.heroActionGrid}>
+                    <TouchableOpacity
+                      style={s.premiumNavBtn}
+                      onPress={handleStartNavigation}
+                      activeOpacity={0.8}
+                    >
+                      <Route size={18} color={C.accent} />
+                      <Text style={s.premiumNavBtnText}>Start Navigation</Text>
+                    </TouchableOpacity>
+
+                    <View style={s.heroUtilityGroup}>
+                      <TouchableOpacity
+                        onPress={() => setShowTraffic(!showTraffic)}
+                        style={[s.utilityPill, showTraffic && s.utilityPillActive]}
+                        activeOpacity={0.7}
+                      >
+                         <Text style={{ fontSize: 16 }}>{showTraffic ? '🚥' : '⚪'}</Text>
+                      </TouchableOpacity>
+
+                      {result?.id && (
+                        <TouchableOpacity
+                          onPress={handleRefreshTraffic}
+                          style={[s.utilityPill, refreshing && s.utilityPillDisabled]}
+                          disabled={refreshing}
+                        >
+                          {refreshing ? (
+                            <ActivityIndicator size="small" color="#000" />
+                          ) : (
+                            <Text style={{ fontSize: 16 }}>🔄</Text>
+                          )}
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                </LinearGradient>
+
+                {/* Map View relocated below Hero Card */}
                 <View style={s.mapContainer}>
                   <MapView
                     ref={mapRef}
@@ -562,69 +931,49 @@ export default function TripExpenseScreen() {
                     customMapStyle={darkMapStyle}
                     showsTraffic={showTraffic}
                   >
-                    {routePolyline.length > 0 && (
-                      <>
-                        <Polyline
-                          coordinates={routePolyline}
-                          strokeColor="rgba(255,255,255,0.6)"
-                          strokeWidth={5}
-                        />
-
-                        {/* Start Marker */}
-                        <Marker
-                          coordinate={routePolyline[0]}
-                          title="Start"
-                          description={from}
-                        >
-                          <View style={[s.markerDot, { backgroundColor: C.green }]}>
-                            <Text style={s.markerIcon}>🚀</Text>
-                          </View>
-                        </Marker>
-
-                        {/* End Marker */}
-                        <Marker
-                          coordinate={routePolyline[routePolyline.length - 1]}
-                          title="Destination"
-                          description={to}
-                        >
-                          <View style={[s.markerDot, { backgroundColor: C.red }]}>
-                            <Text style={s.markerIcon}>📍</Text>
-                          </View>
-                        </Marker>
-
-                        {/* Toll Markers */}
-                        {selectedRoute.tolls.map((toll, idx) => (
-                          <Marker
-                            key={`toll-${idx}`}
-                            coordinate={{ latitude: toll.lat, longitude: toll.lng }}
-                            title={toll.name}
-                            description={`₹${toll.tagCost} (FASTag)`}
-                          >
-                            <View style={[s.markerDot, { backgroundColor: C.accent }]}>
-                              <Text style={s.markerIcon}>🛣️</Text>
-                            </View>
-                            {toll.weather && (
-                              <View style={s.weatherAnnotation}>
-                                <Text style={s.weatherText}>{toll.weather.temp}°</Text>
-                              </View>
-                            )}
-                          </Marker>
-                        ))}
-                        {/* Amenity Markers */}
-                        {amenities.map((item, idx) => (
-                          <Marker
-                            key={`amenity-${idx}`}
-                            coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-                            title={item.name}
-                            pinColor="#4ade80"
-                          />
-                        ))}
-                      </>
-                    )}
+                    {renderMapContent()}
                   </MapView>
+                  <TouchableOpacity
+                    style={s.maximizeBtn}
+                    onPress={() => setShowFullMap(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Maximize2 size={18} color="#FFF" />
+                  </TouchableOpacity>
                 </View>
 
-                {/* Amenities Bar */}
+                {/* Full Screen Map Modal */}
+                <Modal visible={showFullMap} animationType="slide" transparent={false}>
+                   <View style={s.fullMapContainer}>
+                     <MapView
+                       style={s.map}
+                       initialRegion={{
+                         latitude: 20.5937,
+                         longitude: 78.9629,
+                         latitudeDelta: 25,
+                         longitudeDelta: 25,
+                       }}
+                       customMapStyle={darkMapStyle}
+                       showsTraffic={showTraffic}
+                     >
+                        {renderMapContent()}
+                     </MapView>
+                     
+                     <TouchableOpacity 
+                       style={s.closeMapBtn}
+                       onPress={() => setShowFullMap(false)}
+                     >
+                        <X size={24} color="#FFF" />
+                     </TouchableOpacity>
+
+                     <View style={s.mapFloatingInfo}>
+                       <Text style={s.mapFloatingTitle}>{selectedRoute.distance.text} • {selectedRoute.duration.text}</Text>
+                       <Text style={s.mapFloatingSub}>{result.from} → {result.to}</Text>
+                     </View>
+                   </View>
+                </Modal>
+
+                {/* Amenities Bar - Relocated below Map */}
                 <View style={s.amenitiesBar}>
                   <Text style={s.amenityTitle}>Find along route:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.amenityCapsules}>
@@ -646,176 +995,122 @@ export default function TripExpenseScreen() {
                   {searchingAmenities && <ActivityIndicator size="small" color={C.accent} style={{ marginTop: 10 }} />}
                 </View>
 
-                {/* Optimal Departure Suggestion (Phase 3) */}
-                {result.optimalDeparture && (
-                  <View style={s.optimalCard}>
-                    <Text style={s.optimalTitle}>💡 Suggested Departure: {new Date(result.optimalDeparture.bestTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                    <Text style={s.optimalSub}>Save up to {result.optimalDeparture.savingsMinutes} mins by leaving later.</Text>
-                  </View>
-                )}
-
-                {/* EV Planning Assistant (Phase 3) */}
-                {result.fuelType === 'ELECTRIC' && selectedRoute.distance.km > 150 && (
-                  <View style={[s.optimalCard, { borderLeftColor: C.green }]}>
-                    <Text style={[s.optimalTitle, { color: C.green }]}>⚡ EV Charging Support</Text>
-                    <Text style={s.optimalSub}>This is a long journey. Tap "⚡ EV" below to find chargers along your route.</Text>
-                  </View>
-                )}
-
-                {/* Total Cost Hero */}
-                <View style={s.heroCard}>
-                  <View style={s.heroHeader}>
-                    <Text style={s.heroLabel}>Total Trip Cost</Text>
-                    <TouchableOpacity onPress={handleSharePDF} style={s.heroActionBtn}>
-                      <Text style={s.heroActionIcon}>📤</Text>
-                    </TouchableOpacity>
-                    {result?.id && (
-                      <TouchableOpacity 
-                        onPress={handleRefreshTraffic} 
-                        style={[s.heroActionBtn, refreshing && s.heroActionBtnDisabled]}
-                        disabled={refreshing}
-                      >
-                        {refreshing ? (
-                          <ActivityIndicator size="small" color={C.accent} />
-                        ) : (
-                          <Text style={s.heroActionIcon}>🔄</Text>
-                        )}
-                      </TouchableOpacity>
-                    )}
-                    <TouchableOpacity 
-                      onPress={() => setShowTraffic(!showTraffic)} 
-                      style={[s.heroActionBtn, showTraffic && { backgroundColor: 'rgba(255,255,255,0.2)' }]}
-                    >
-                      <Text style={[s.heroActionIcon, { opacity: showTraffic ? 1 : 0.5 }]}>🚥</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={s.heroAmount}>
-                    ₹{selectedRoute.costs.total.toLocaleString('en-IN')}
-                  </Text>
-                  <Text style={s.heroSub}>
-                    {selectedRoute.distance.text} • {selectedRoute.duration.text}
-                  </Text>
-                  
+                {/* Expandable Breakdown Section - Premium Accordion */}
+                <View style={[s.premiumBreakdownCard, { paddingBottom: showDetailedBreakdown ? wp(5) : 0 }]}>
                   <TouchableOpacity 
-                    style={s.navBtn}
-                    onPress={handleStartNavigation}
+                    style={s.breakdownHeader}
+                    onPress={() => setShowDetailedBreakdown(!showDetailedBreakdown)}
+                    activeOpacity={0.8}
                   >
-                    <Text style={s.navBtnText}>🚀 Start Navigation</Text>
+                    <View style={s.breakdownTitleGroup}>
+                       <View style={s.breakdownIconBox}>
+                          <List size={18} color={C.accent} />
+                       </View>
+                       <View>
+                          <Text style={s.breakdownTitle}>Detailed Manifest</Text>
+                          <Text style={s.breakdownSub}>Fuel, Routes & Toll Plazas</Text>
+                       </View>
+                    </View>
+                    {showDetailedBreakdown ? (
+                       <ChevronUp size={22} color={C.textMuted} />
+                    ) : (
+                       <ChevronDown size={22} color={C.textMuted} />
+                    )}
                   </TouchableOpacity>
-                </View>
 
-                {/* Route Overview */}
-                <View style={s.card}>
-                  <Text style={s.sectionTitle}>Current Route</Text>
-                  <View style={s.routeOverview}>
-                    <View style={s.routeOverviewItem}>
-                      <View style={[s.dotSmall, { backgroundColor: C.green }]} />
-                      <Text style={s.routeOverviewText}>{result.from}</Text>
-                    </View>
-                    <View style={s.routeOverviewDivider} />
-                    {result.waypoints?.map((wp: string, i: number) => (
-                      <React.Fragment key={`ov-wp-${i}`}>
-                        <View style={s.routeOverviewItem}>
-                          <View style={[s.dotSmall, { backgroundColor: C.accent }]} />
-                          <Text style={s.routeOverviewText}>{wp}</Text>
-                        </View>
-                        <View style={s.routeOverviewDivider} />
-                      </React.Fragment>
-                    ))}
-                    <View style={s.routeOverviewItem}>
-                      <View style={[s.dotSmall, { backgroundColor: C.red }]} />
-                      <Text style={s.routeOverviewText}>{result.to}</Text>
-                    </View>
-                  </View>
-                </View>
 
-                {/* Cost Breakdown */}
-                <View style={s.card}>
-                  <Text style={s.sectionTitle}>Cost Breakdown</Text>
-
-                  <CostRow
-                    icon="⛽"
-                    label="Fuel Cost"
-                    amount={selectedRoute.costs.fuel}
-                    sub={`${selectedRoute.fuelUsed.liters}L @ ₹${selectedRoute.fuelPriceUsed.price}/L (${selectedRoute.fuelPriceUsed.type})`}
-                    color={C.orange}
-                    bgColor={C.orangeBg}
-                  />
-                  <View style={s.divider} />
-                  <CostRow
-                    icon="🛣️"
-                    label="Toll (FASTag)"
-                    amount={selectedRoute.costs.tollFastag}
-                    sub={`${selectedRoute.tolls.length} toll plaza${selectedRoute.tolls.length !== 1 ? 's' : ''}`}
-                    color={C.accent}
-                    bgColor={C.accentBg}
-                  />
-                  {selectedRoute.costs.tollCash > 0 && (
-                    <>
+                  {showDetailedBreakdown && (
+                    <View style={{ marginTop: hp(2) }}>
+                      <View style={s.divider} />
+                      
+                      {/* Cost Breakdown Sub-Section */}
+                      <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginTop: hp(1) }]}>Cost Breakdown</Text>
+                      <CostRow
+                        icon="⛽"
+                        label="Fuel Cost"
+                        amount={selectedRoute.costs.fuel}
+                        sub={`${selectedRoute.fuelUsed.liters}L @ ₹${selectedRoute.fuelPriceUsed.price}/L (${selectedRoute.fuelPriceUsed.type})`}
+                        color={C.orange}
+                        bgColor={C.orangeBg}
+                      />
                       <View style={s.divider} />
                       <CostRow
-                        icon="💵"
-                        label="Toll (Cash)"
-                        amount={selectedRoute.costs.tollCash}
-                        sub="Without FASTag"
-                        color={C.textSecondary}
-                        bgColor="rgba(136,136,136,0.1)"
+                        icon="🛣️"
+                        label="Toll (FASTag)"
+                        amount={selectedRoute.costs.tollFastag}
+                        sub={`${selectedRoute.tolls.length} toll plaza${selectedRoute.tolls.length !== 1 ? 's' : ''}`}
+                        color={C.accent}
+                        bgColor={C.accentBg}
                       />
-                    </>
+                      {selectedRoute.costs.tollCash > 0 && (
+                        <>
+                          <View style={s.divider} />
+                          <CostRow
+                            icon="💵"
+                            label="Toll (Cash)"
+                            amount={selectedRoute.costs.tollCash}
+                            sub="Without FASTag"
+                            color={C.textSecondary}
+                            bgColor="rgba(136,136,136,0.1)"
+                          />
+                        </>
+                      )}
+
+                      <View style={s.divider} />
+
+                      {/* Trip Details Sub-Section */}
+                      <Text style={[s.sectionTitle, { fontSize: wp(3.8) }]}>Trip Details</Text>
+                      <View style={s.detailsGrid}>
+                        <DetailItem label="Distance" value={selectedRoute.distance.text} />
+                        <DetailItem label="Duration" value={selectedRoute.duration.text} />
+                        <DetailItem
+                          label="Fuel Efficiency"
+                          value={`${selectedRoute.fuelEfficiency.city}/${selectedRoute.fuelEfficiency.hwy} ${selectedRoute.fuelEfficiency.unit}`}
+                        />
+                        <DetailItem
+                          label="Vehicle Type"
+                          value={result.vehicleType}
+                        />
+                      </View>
+
+                      {/* Toll Plazas Sub-Section */}
+                      {selectedRoute.tolls.length > 0 && (
+                        <>
+                          <View style={s.divider} />
+                          <Text style={[s.sectionTitle, { fontSize: wp(3.8) }]}>
+                            Toll Plazas ({selectedRoute.tolls.length})
+                          </Text>
+                          {selectedRoute.tolls.map((toll, idx) => (
+                            <View key={idx}>
+                              {idx > 0 && <View style={s.divider} />}
+                              <View style={s.tollRow}>
+                                <View style={s.tollInfo}>
+                                  <Text style={s.tollName} numberOfLines={1}>
+                                    {toll.name}
+                                  </Text>
+                                  <Text style={s.tollRoad}>
+                                    {toll.road}
+                                    {toll.state ? ` • ${toll.state}` : ''}
+                                  </Text>
+                                </View>
+                                <View style={s.tollCosts}>
+                                  <Text style={s.tollFastag}>
+                                    ₹{toll.tagCost}
+                                  </Text>
+                                  {toll.cashCost > 0 && toll.cashCost !== toll.tagCost && (
+                                    <Text style={s.tollCash}>
+                                      Cash: ₹{toll.cashCost}
+                                    </Text>
+                                  )}
+                                </View>
+                              </View>
+                            </View>
+                          ))}
+                        </>
+                      )}
+                    </View>
                   )}
                 </View>
-
-                {/* Trip Details */}
-                <View style={s.card}>
-                  <Text style={s.sectionTitle}>Trip Details</Text>
-                  <View style={s.detailsGrid}>
-                    <DetailItem label="Distance" value={selectedRoute.distance.text} />
-                    <DetailItem label="Duration" value={selectedRoute.duration.text} />
-                    <DetailItem
-                      label="Fuel Efficiency"
-                      value={`${selectedRoute.fuelEfficiency.city}/${selectedRoute.fuelEfficiency.hwy} ${selectedRoute.fuelEfficiency.unit}`}
-                    />
-                    <DetailItem
-                      label="Vehicle Type"
-                      value={result.vehicleType}
-                    />
-                  </View>
-                </View>
-
-                {/* Toll Plazas */}
-                {selectedRoute.tolls.length > 0 && (
-                  <View style={s.card}>
-                    <Text style={s.sectionTitle}>
-                      Toll Plazas ({selectedRoute.tolls.length})
-                    </Text>
-                    {selectedRoute.tolls.map((toll, idx) => (
-                      <View key={idx}>
-                        {idx > 0 && <View style={s.divider} />}
-                        <View style={s.tollRow}>
-                          <View style={s.tollInfo}>
-                            <Text style={s.tollName} numberOfLines={1}>
-                              {toll.name}
-                            </Text>
-                            <Text style={s.tollRoad}>
-                              {toll.road}
-                              {toll.state ? ` • ${toll.state}` : ''}
-                            </Text>
-                          </View>
-                          <View style={s.tollCosts}>
-                            <Text style={s.tollFastag}>
-                              ₹{toll.tagCost}
-                            </Text>
-                            {toll.cashCost > 0 && toll.cashCost !== toll.tagCost && (
-                              <Text style={s.tollCash}>
-                                Cash: ₹{toll.cashCost}
-                              </Text>
-                            )}
-                          </View>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
               </>
             )}
           </>
@@ -911,18 +1206,27 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
 
   // Header
-  header: {
+  premiumHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(5),
+    paddingHorizontal: 20,
     paddingTop: hp(6),
-    paddingBottom: hp(1.5),
-    backgroundColor: C.bg,
+    paddingBottom: 15,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
-  backBtn: { width: wp(10), height: wp(10), justifyContent: 'center', alignItems: 'center' },
-  backText: { fontSize: wp(6), color: C.text },
-  headerTitle: { fontSize: wp(4.5), fontFamily: 'Outfit-Bold', color: C.text },
+  headerLeftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerTitle: { fontSize: 22, fontFamily: 'Outfit-Bold', color: '#FFF' },
+  backBtn: {
+    width: 44, height: 44,
+    alignItems: 'center', justifyContent: 'center',
+    marginLeft: -10,
+  },
 
   // Scroll
   scroll: { flex: 1 },
@@ -939,6 +1243,73 @@ const s = StyleSheet.create({
   },
   cardTitle: { fontSize: wp(5), fontFamily: 'Outfit-Bold', color: C.text, marginBottom: hp(0.5) },
   cardSubtitle: { fontSize: wp(3.5), fontFamily: 'Outfit-Medium', color: C.textSecondary, marginBottom: hp(2.5) },
+  
+  // Premium Route Card
+  premiumRouteCard: {
+    backgroundColor: C.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    padding: wp(4.5),
+    marginBottom: hp(2),
+  },
+  premiumRouteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: hp(2.5),
+    paddingBottom: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  premiumRouteTitle: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  routeTimeline: {
+    paddingLeft: wp(1),
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    minHeight: hp(5),
+  },
+  timelineLeft: {
+    alignItems: 'center',
+    width: wp(8),
+  },
+  timelineRight: {
+    flex: 1,
+    paddingLeft: wp(2),
+    paddingBottom: hp(1.5),
+  },
+  timelineLine: {
+    flex: 1,
+    width: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginVertical: 4,
+  },
+  timelineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: C.accent,
+    marginTop: 6,
+  },
+  timelineLabel: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Medium',
+    color: C.textMuted,
+    textTransform: 'uppercase',
+  },
+  timelineValue: {
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: C.text,
+    marginTop: 2,
+  },
 
   // Input
   inputGroup: {
@@ -971,21 +1342,77 @@ const s = StyleSheet.create({
     backgroundColor: C.divider,
   },
 
-  // Calculate Button
-  calcBtn: {
-    backgroundColor: C.accent,
-    borderRadius: 12,
-    height: 52,
+  // Manifest Styles
+  premiumManifestCard: {
+    backgroundColor: C.card,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    padding: wp(5.5),
+    marginBottom: hp(2.5),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  manifestHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 6,
+  },
+  manifestBadge: {
+    backgroundColor: C.accentLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+  },
+  manifestBadgeText: {
+    fontSize: wp(2.5),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+  },
+  manifestTitle: {
+    fontSize: wp(4.8),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+  },
+  manifestSubtitle: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+    color: C.textSecondary,
+    marginBottom: hp(2.5),
+    lineHeight: 18,
+  },
+  premiumCalcBtn: {
+    height: 54,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: hp(2.5),
+    shadowColor: C.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  calcBtnDisabled: { opacity: 0.6 },
-  calcBtnText: { fontSize: wp(4), fontFamily: 'Outfit-Bold', color: '#000' },
+  calcBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  premiumCalcText: {
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
+    letterSpacing: 0.5,
+  },
 
   // Error
   errorBox: {
-    backgroundColor: 'rgba(239,68,68,0.1)',
+    backgroundColor: 'rgba(255, 69, 58, 0.1)',
     borderRadius: 10,
     padding: wp(3),
     marginTop: hp(1.5),
@@ -1017,17 +1444,160 @@ const s = StyleSheet.create({
   },
   badgeText: { fontSize: wp(2.5), fontFamily: 'Outfit-Bold', color: C.green },
 
-  // Hero
-  heroCard: {
-    backgroundColor: C.accent,
-    borderRadius: 16,
-    padding: wp(6),
+  // Premium Hero
+  premiumHeroCard: {
+    borderRadius: 24,
+    padding: wp(5),
+    paddingVertical: hp(2),
     marginBottom: hp(2),
+    shadowColor: C.accent,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  heroLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  premiumHeroLabel: {
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(0,0,0,0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  premiumHeroActionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  heroLabel: { fontSize: wp(3.5), fontFamily: 'Outfit-Medium', color: 'rgba(0,0,0,0.6)' },
-  heroAmount: { fontSize: wp(9), fontFamily: 'Outfit-Bold', color: '#000', marginTop: hp(0.5) },
-  heroSub: { fontSize: wp(3.5), fontFamily: 'Outfit-Medium', color: 'rgba(0,0,0,0.5)', marginTop: hp(0.8) },
+  premiumHeroAmount: {
+    fontSize: wp(9),
+    fontFamily: 'Outfit-Bold',
+    color: '#000000',
+    textAlign: 'center',
+  },
+  heroSummaryPanel: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: 'center',
+    marginTop: hp(1),
+    alignItems: 'center',
+    gap: 12,
+  },
+  heroStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  heroStatText: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(0,0,0,0.7)',
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  heroCostBreakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: wp(3),
+    marginTop: hp(1.5),
+  },
+  heroCostPill: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  heroPillLabel: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Medium',
+    color: 'rgba(0,0,0,0.5)',
+    marginBottom: 2,
+  },
+  heroPillValue: {
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
+  },
+  heroActionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 15,
+    marginBottom: hp(2),
+  },
+  heroDivider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    marginVertical: hp(1.5),
+    width: '100%',
+  },
+  heroActionGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  premiumNavBtn: {
+    flex: 1,
+    backgroundColor: '#000',
+    height: 48,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  premiumNavBtnText: {
+    color: '#FFF',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+  },
+  heroUtilityGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  utilityPill: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  utilityPillActive: {
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderColor: 'rgba(255,255,255,0.8)',
+  },
+  utilityPillDisabled: {
+    opacity: 0.5,
+  },
 
   // Section
   sectionTitle: {
@@ -1064,6 +1634,58 @@ const s = StyleSheet.create({
     borderColor: C.cardBorder,
   },
   map: { flex: 1 },
+  maximizeBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  fullMapContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  closeMapBtn: {
+    position: 'absolute',
+    top: hp(6),
+    right: wp(5),
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  mapFloatingInfo: {
+    position: 'absolute',
+    bottom: hp(5),
+    left: wp(5),
+    right: wp(5),
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    padding: wp(4),
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  mapFloatingTitle: {
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+    marginBottom: 4,
+  },
+  mapFloatingSub: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+    color: C.textSecondary,
+  },
   markerDot: {
     width: 28,
     height: 28,
@@ -1071,7 +1693,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: '#000',
   },
   markerIcon: { fontSize: 12 },
 
@@ -1111,7 +1733,7 @@ const s = StyleSheet.create({
   },
   heroActionBtn: {
     padding: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 8,
     marginLeft: 8,
   },
@@ -1123,7 +1745,7 @@ const s = StyleSheet.create({
   },
   shareIcon: {
     fontSize: wp(5),
-    color: '#000',
+    color: '#000000',
     opacity: 0.6,
   },
 
@@ -1149,11 +1771,11 @@ const s = StyleSheet.create({
 
   // Suggestions
   suggestionsList: {
-    backgroundColor: '#161616',
+    backgroundColor: '#1C1C1E',
     borderRadius: 12,
     marginTop: 4,
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: '#2C2C2E',
     overflow: 'hidden',
     zIndex: 100,
   },
@@ -1161,18 +1783,18 @@ const s = StyleSheet.create({
     paddingVertical: hp(1.5),
     paddingHorizontal: wp(4),
     borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    borderBottomColor: '#2C2C2E',
   },
   suggestionMain: {
     fontSize: wp(3.5),
     fontFamily: 'Outfit-SemiBold',
-    color: '#fff',
+    color: '#FFFFFF',
     marginBottom: hp(0.2),
   },
   suggestionSub: {
     fontSize: wp(3),
     fontFamily: 'Outfit-Medium',
-    color: '#888',
+    color: '#8E8E93',
   },
 
   // Add Stop
@@ -1195,18 +1817,63 @@ const s = StyleSheet.create({
     fontSize: wp(3.5),
     color: C.textSecondary,
   },
+  // Breakdown Styles
+  premiumBreakdownCard: {
+    backgroundColor: C.card,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    marginBottom: hp(3),
+    overflow: 'hidden',
+  },
+  breakdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: wp(4.5),
+    paddingVertical: hp(1.8),
+  },
+  breakdownTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  breakdownIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 215, 0, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  breakdownTitle: {
+    fontSize: wp(4.2),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+  },
+  breakdownSub: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Medium',
+    color: C.textSecondary,
+    marginTop: 2,
+  },
 
   // Phase 3 Additions
   weatherAnnotation: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
     marginTop: 4,
     borderWidth: 1,
-    borderColor: C.accent,
+    borderColor: C.cardBorder,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   weatherText: {
     fontSize: 10,
@@ -1214,13 +1881,17 @@ const s = StyleSheet.create({
     color: '#FFF',
   },
   optimalCard: {
-    backgroundColor: 'rgba(255,191,0,0.08)',
-    marginHorizontal: wp(5),
+    backgroundColor: C.card,
     marginBottom: hp(1.5),
     padding: wp(4),
     borderRadius: 12,
     borderLeftWidth: 4,
     borderLeftColor: C.accent,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   optimalTitle: {
     fontSize: wp(3.5),
@@ -1233,6 +1904,144 @@ const s = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
     color: C.textSecondary,
   },
+  
+  // Premium Layout Additions
+  premiumOptimalCard: {
+    marginBottom: hp(1.8),
+    padding: wp(4.5),
+    borderRadius: 20,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+  },
+  optimalIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optimalMain: {
+    flex: 1,
+  },
+  optimalTitleSmall: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  optimalTimeDisplay: {
+    fontSize: wp(4.2),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+    marginBottom: 6,
+  },
+  savingsBadge: {
+    backgroundColor: C.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+  },
+  savingsText: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
+  },
+
+  premiumHealthCard: {
+    backgroundColor: C.card,
+    marginBottom: hp(1.8),
+    padding: wp(5),
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  healthHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  healthTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  healthTitleText: {
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+    fontSize: wp(5),
+  },
+  healthTypeSub: {
+    fontSize: wp(3.5),
+    color: C.textSecondary,
+    fontWeight: '500',
+  },
+  healthCarBadge: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  healthCarNameText: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    color: C.textSecondary,
+    textTransform: 'uppercase',
+  },
+  healthBarContainer: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 4,
+    marginVertical: hp(2),
+    overflow: 'hidden',
+  },
+  healthBarFillGradient: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  healthStatusFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  healthStatusMsg: {
+    flex: 1,
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(3.2),
+    lineHeight: 18,
+  },
+  healthExpBox: {
+    marginTop: hp(1.5),
+    paddingTop: hp(1.5),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+  },
+  expRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 4,
+  },
+  healthExpText: {
+    flex: 1,
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3),
+    color: C.textSecondary,
+  },
+
   mikeBtn: {
     backgroundColor: C.card,
     marginVertical: 12,
@@ -1295,19 +2104,20 @@ const s = StyleSheet.create({
     borderRadius: 4,
   },
   navBtn: {
-    backgroundColor: C.accent,
+    backgroundColor: '#1A1A1A',
     marginTop: 16,
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: C.accent,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    width: '100%',
   },
   navBtnText: {
-    color: '#000',
+    color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Outfit-Bold',
   },
