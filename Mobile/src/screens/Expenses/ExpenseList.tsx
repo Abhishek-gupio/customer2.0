@@ -29,8 +29,8 @@ import Bills from './Bills';
 import { colors } from '../../theme/colors';
 import { fontSizes as FS, fontWeights as FW } from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { vehicleService } from '../../services/vehicleService';
-import { setPrimaryVehicleId } from '../../services/storage';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
+import { setPrimaryVehicleId, getPrimaryVehicleId } from '../../services/storage';
 import { FlashList } from "@shopify/flash-list";
 const FlashListAny = FlashList as any;
 
