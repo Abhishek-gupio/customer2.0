@@ -342,6 +342,15 @@ export default function Home() {
     }
   };
 
+  const handleAlertsPress = () => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Alerts');
+    } else {
+      navigation.navigate('Alerts');   
+    }
+  };
+
   const handleHelpPress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
@@ -663,10 +672,15 @@ export default function Home() {
             <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
               <Icon name="user" size={wp(5.2)} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSOSPress} style={styles.sosOverlayButton}>
-              <Icon name="shield-alt" size={wp(4)} color="#fff" />
-              <Text style={styles.sosOverlayText}>SOS</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={handleAlertsPress} style={styles.overlayIconButton}>
+                <Icon name="bell" size={wp(4.6)} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSOSPress} style={styles.sosOverlayButton}>
+                <Icon name="shield-alt" size={wp(4)} color="#fff" />
+                <Text style={styles.sosOverlayText}>SOS</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
