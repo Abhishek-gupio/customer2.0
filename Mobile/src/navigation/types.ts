@@ -38,6 +38,7 @@ export type RootStackParamList = {
   Alerts: undefined;
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
+  TripExpense: undefined;
 };
 
 export type MainTabParamList = {

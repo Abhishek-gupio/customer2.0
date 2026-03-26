@@ -727,6 +727,8 @@ export default function Home() {
               });
             } else if (label === 'Support') {
               handleHelpPress();
+            } else if (label === 'Trip Cost') {
+              navigateToRootScreen('TripExpense');
             }
           }}
         />

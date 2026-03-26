@@ -35,6 +35,12 @@ export interface NearbyPlace {
   placeId: string;
   openNow?: boolean;
 }
+export interface SearchSuggestion {
+  description: string;
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+}
 
 const PLACE_TYPE_MAP: Record<string, { type?: string; keyword?: string; keywordFallback?: string }> = {
   // For fuel, we want to explicitly target petrol pumps via keyword only.
@@ -124,6 +130,32 @@ export const placesService = {
       return withDistance;
     } catch (err: any) {
       console.error("Places API error:", err?.message || err);
+      return [];
+    }
+  },
+
+  searchPlaces: async (query: string): Promise<SearchSuggestion[]> => {
+    const key = process.env.GOOGLE_MAPS_API_KEY || "";
+    if (!key || !query) return [];
+
+    try {
+      const response = await googleMapsClient.placeAutocomplete({
+        params: {
+          input: query,
+          components: ["country:in"], // Restrict to India
+          key,
+        },
+      });
+
+      const predictions = response.data.predictions || [];
+      return predictions.map((p) => ({
+        description: p.description,
+        placeId: p.place_id,
+        mainText: p.structured_formatting.main_text,
+        secondaryText: p.structured_formatting.secondary_text,
+      }));
+    } catch (err: any) {
+      console.error("Places Autocomplete error:", err?.message || err);
       return [];
     }
   },

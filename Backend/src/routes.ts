@@ -17,6 +17,7 @@ import { fuelRoutes } from "./modules/fuel/fuel.routes";
 import { discoveryRoutes } from "./modules/discovery/discovery.routes";
 import { supportRoutes } from "./modules/support/support.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
+import { tripExpenseRoutes } from "./modules/trip-expense/trip-expense.routes";
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use("/v1/fuel", fuelRoutes);
 router.use("/v1/discovery", discoveryRoutes);
 router.use("/v1/support", supportRoutes);
 router.use("/v1/admin", adminRoutes);
+router.use("/v1/trip-expense", tripExpenseRoutes);
 
 export const apiRoutes = router;
