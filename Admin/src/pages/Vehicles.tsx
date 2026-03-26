@@ -201,8 +201,8 @@ export default function Vehicles() {
                      <ShieldCheck className="h-4 w-4" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500/50">Compliance</div>
-                    <p className="text-[11px] text-white/20 font-medium leading-none mt-1 whitespace-nowrap">Fleet-wide Status</p>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500/70">Compliance</div>
+                    <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Fleet-wide Status</p>
                   </div>
                </div>
                <div className="text-2xl font-black text-emerald-400 tracking-tighter">94.2%</div>
@@ -216,26 +216,26 @@ export default function Vehicles() {
                      <CarFront className="h-4 w-4" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-blue-500/50">Active</div>
-                    <p className="text-[11px] text-white/20 font-medium leading-none mt-1 whitespace-nowrap">Activity Score</p>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-blue-500/70">Active</div>
+                    <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Activity Score</p>
                   </div>
                </div>
                <div className="text-2xl font-black text-blue-400 tracking-tighter">88.7%</div>
             </CardContent>
          </Card>
 
-         <Card className="flex-shrink-0 w-[80%] snap-center bg-white/[0.03] border-white/10 hover:bg-white/[0.05] transition-all md:w-auto">
+         <Card className="flex-shrink-0 w-[80%] snap-center bg-indigo-500/[0.03] border-indigo-500/10 hover:bg-indigo-500/[0.05] transition-all md:w-auto">
             <CardContent className="p-4 flex items-center justify-between">
                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-white/40 border border-white/10">
+                  <div className="h-9 w-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
                      <BadgeInfo className="h-4 w-4" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Health</div>
-                    <p className="text-[11px] text-white/20 font-medium leading-none mt-1 whitespace-nowrap">Performance Grade</p>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-indigo-500/70">Health</div>
+                    <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Performance Grade</p>
                   </div>
                </div>
-               <div className="text-2xl font-black text-white/70 tracking-tighter">A+</div>
+               <div className="text-2xl font-black text-indigo-400 tracking-tighter">A+</div>
             </CardContent>
          </Card>
       </div>
