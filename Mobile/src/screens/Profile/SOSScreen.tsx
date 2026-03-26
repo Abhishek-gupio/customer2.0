@@ -20,6 +20,8 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { sosService, type EmergencyContact, type SOSType } from '../../services/sosService';
 import { googleMapsService } from '../../services/googleMapsService';
+import { getProfile } from '../../services/profileService';
+import { getAbsoluteUrl } from '../../config';
 
 // Removed Geolocation logic
 
@@ -36,6 +38,8 @@ const SOSScreen = () => {
   const [sosType, setSosType] = useState<SOSType>('OTHER');
   const [nearbyHelp, setNearbyHelp] = useState<any[]>([]);
   const [searchingHelp, setSearchingHelp] = useState<boolean>(false);
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string>('');
 
   // Animation Refs
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -67,13 +71,21 @@ const SOSScreen = () => {
 
   const fetchInitialData = async () => {
     try {
-      const [contactList, activeSOS] = await Promise.all([
+      const [contactList, activeSOS, profileData] = await Promise.all([
         sosService.getContacts(),
-        sosService.getActiveSOS()
+        sosService.getActiveSOS(),
+        getProfile().catch(() => null),
       ]);
-      
+
       setContacts(contactList);
-      
+
+      if (profileData) {
+        setProfileName(profileData.fullName || '');
+        if (profileData.profilePic) {
+          setProfilePic(getAbsoluteUrl(profileData.profilePic));
+        }
+      }
+
       if (activeSOS) {
         navigation.replace('ActiveSOS', {
           sosId: activeSOS.id,
@@ -230,14 +242,22 @@ const SOSScreen = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <View>
+          <View style={styles.headerTitleGroup}>
             <Text style={styles.title}>EMERGENCY SOS</Text>
             <Text style={styles.subTitle}>Ready to assist 24/7</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={20} color="#fff" />
-        </TouchableOpacity>
+        {/* Profile Photo */}
+        {profilePic ? (
+          <Image
+            source={{ uri: profilePic }}
+            style={styles.headerAvatar}
+          />
+        ) : (
+          <View style={styles.headerAvatarPlaceholder}>
+            <Ionicons name="person" size={18} color="rgba(255,255,255,0.6)" />
+          </View>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -505,6 +525,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: wp(3),
+  },
+  headerTitleGroup: {
+    flex: 1,
+  },
+  headerAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 2,
+    borderColor: '#FFD700',
+  },
+  headerAvatarPlaceholder: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     color: "#fff",

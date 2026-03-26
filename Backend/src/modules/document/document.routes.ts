@@ -16,6 +16,9 @@ const upload = multer({
 router.get("/:id/image", documentController.getImage);
 router.get("/:id/pdf", documentController.getPDF);
 
+
+
+
 router.use(authMiddleware);
 
 // Pre-upload quality check (documents + receipts)
@@ -29,9 +32,8 @@ router.get("/:id", documentController.getById);
 router.post("/:id/verify", documentController.verify);
 router.delete("/:id", documentController.delete);
 
-// DigiLocker
+// DigiLocker (Session Protected)
 router.get("/digilocker/connect", digilockerController.connect);
-router.get("/digilocker/callback", digilockerController.callback);
 router.post("/digilocker/sync", digilockerController.sync);
 
 export const documentRoutes = router;

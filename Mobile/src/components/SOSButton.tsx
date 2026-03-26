@@ -12,6 +12,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { vehicleService, type Vehicle } from '../services/vehicleService';
 import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../services/sosService';
 import { getProfile, type ProfileResponse } from '../services/profileService';
+import { getAbsoluteUrl } from '../config';
 import BackButton from './BackButton';
 
 let Geolocation: any = null;
@@ -496,7 +497,11 @@ const SOSButton = () => {
         <View style={styles.profileRow}>
           <BackButton onPress={() => navigation.goBack()} />
           <Image
-            source={{ uri: userData?.profilePic || "https://api.dicebear.com/9.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4&scale=90" }}
+            source={{
+              uri: userData?.profilePic
+                ? getAbsoluteUrl(userData.profilePic)
+                : 'https://api.dicebear.com/9.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4&scale=90'
+            }}
             style={styles.avatar}
           />
           <View>
