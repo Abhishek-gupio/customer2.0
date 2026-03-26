@@ -297,6 +297,12 @@ importers:
       '@babel/runtime':
         specifier: ^7.28.6
         version: 7.28.6
+      '@lottiefiles/dotlottie-react':
+        specifier: ^0.18.7
+        version: 0.18.7(react@18.3.1)
+      '@lottiefiles/dotlottie-react-native':
+        specifier: ^0.7.4
+        version: 0.7.4(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@18.3.1))(react@18.3.1)
       '@react-native-async-storage/async-storage':
         specifier: ^2.2.0
         version: 2.2.0(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@18.3.1))
@@ -454,8 +460,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@18.3.1))(react@18.3.1)
       react-native-webview:
-        specifier: ^13.13.2
-        version: 13.16.1(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+        specifier: ^13.16.1
+        version: 13.16.1(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@18.3.1))(react@18.3.1)
       react-redux:
         specifier: ^9.2.0
         version: 9.2.0(@types/react@19.2.14)(react@18.3.1)(redux@5.0.1)
@@ -2391,6 +2397,20 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       '@langchain/core': ^1.0.0
+
+  '@lottiefiles/dotlottie-react-native@0.7.4':
+    resolution: {integrity: sha512-PZHqt/F5q+NpMnNgdRF6uok1kqEprHghFAsepQkQxVpXvKTdJnjWrVIB2cCZDNzRsWe9XcMYVFiWEqglZMO9dg==}
+    peerDependencies:
+      react: 18.3.1
+      react-native: '*'
+
+  '@lottiefiles/dotlottie-react@0.18.7':
+    resolution: {integrity: sha512-aEUS3GR7U3ldT74Xt4l1pPz5KfY4IOXM30e4LMChXH2qNcwy3PZdoT7i44jf+vV+qgEffXshAAepVAZD6XZmTw==}
+    peerDependencies:
+      react: 18.3.1
+
+  '@lottiefiles/dotlottie-web@0.67.0':
+    resolution: {integrity: sha512-XdMbVQAKqI8NLGqwN1RYQv0eGDM74JhISJFOovBf7k2Uh5B3QJwMOYhMqz8L0UZAs+LzXYdP/wZR7s8hh0uo2g==}
 
   '@mrleebo/prisma-ast@0.13.1':
     resolution: {integrity: sha512-XyroGQXcHrZdvmrGJvsA9KNeOOgGMg1Vg9OlheUsBOSKznLMDl+YChxbkboRHvtFYJEMRYmlV3uoo/njCw05iw==}
@@ -12227,6 +12247,19 @@ snapshots:
       zod: 4.3.6
     transitivePeerDependencies:
       - ws
+
+  '@lottiefiles/dotlottie-react-native@0.7.4(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@lottiefiles/dotlottie-react': 0.18.7(react@18.3.1)
+      react: 18.3.1
+      react-native: 0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@18.3.1)
+
+  '@lottiefiles/dotlottie-react@0.18.7(react@18.3.1)':
+    dependencies:
+      '@lottiefiles/dotlottie-web': 0.67.0
+      react: 18.3.1
+
+  '@lottiefiles/dotlottie-web@0.67.0': {}
 
   '@mrleebo/prisma-ast@0.13.1':
     dependencies:
