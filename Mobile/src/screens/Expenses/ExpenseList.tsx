@@ -139,7 +139,7 @@ const ExpenseFeed = () => {
     TOLL: '#9c27b0',
     TOLLS: '#9c27b0',
     INSURANCE: '#00bcd4',
-    PARKING: '#ffeb3b',
+    PARKING: '#C0C0C0',
     CHALLAN: '#f44336',
     EMI: '#4caf50',
     OTHER: '#00c853',

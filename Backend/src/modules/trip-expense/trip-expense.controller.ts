@@ -4,6 +4,7 @@ import { success } from "../../utils/apiResponse";
 import { tripExpenseService } from "./trip-expense.service";
 import { calculateTripExpenseSchema } from "./trip-expense.validators";
 import { vehicleService } from "../vehicle/vehicle.service";
+import { AppError } from "../../utils/AppError";
 
 /**
  * TRIP EXPENSE CONTROLLER
@@ -43,6 +44,7 @@ export const tripExpenseController = {
     const result = await tripExpenseService.calculateTripExpense({
       from: parsed.from,
       to: parsed.to,
+      waypoints: parsed.waypoints,
       vehicleId,
       customerId,
       vehicleType: parsed.vehicleType,
@@ -61,5 +63,20 @@ export const tripExpenseController = {
   getVehicleTypes: asyncHandler(async (_req: Request, res: Response) => {
     const types = tripExpenseService.getSupportedVehicleTypes();
     return success(res, { vehicleTypes: types }, 200);
+  }),
+
+  /**
+   * POST /v1/trip-expense/refresh/:tripId
+   *
+   * Re-calculates an existing trip to update traffic and toll data.
+   */
+  refresh: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = (req as any).customerId;
+    const { tripId } = req.params;
+    if (!customerId) throw AppError.unauthorized();
+    if (!tripId || typeof tripId !== 'string') throw AppError.badRequest("Trip ID is required");
+
+    const result = await tripExpenseService.refreshTripTraffic(tripId as string, customerId);
+    return success(res, result, 200);
   }),
 };

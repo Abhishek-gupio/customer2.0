@@ -14,6 +14,7 @@ export const calculateTripExpenseSchema = z.object({
     .string()
     .min(2, "Destination location is required (e.g. 'Kochi, Kerala')")
     .max(500),
+  waypoints: z.array(z.string().min(2).max(500)).max(10).optional(),
   vehicleId: z.string().optional(),
   vehicleType: z
     .enum(["CAR", "SUV", "SEDAN", "HATCHBACK", "BIKE", "MOTORCYCLE", "SCOOTER", "TRUCK", "BUS", "AUTO"])

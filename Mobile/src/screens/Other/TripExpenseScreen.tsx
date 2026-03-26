@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,23 +8,30 @@ import {
   StyleSheet,
   ActivityIndicator,
   StatusBar,
+  Linking,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import MapView, { Polyline, Marker } from 'react-native-maps';
+import Share from 'react-native-share';
+// @ts-ignore
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useNavigation } from '../../lib/react-navigation-native';
 import { tripExpenseService, type TripRoute, type TripExpenseResult } from '../../services/tripExpenseService';
 import { placesService, type SearchSuggestion } from '../../services/placesService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { decodePolyline } from '../../utils/polyline';
 
 // ─── Colors (matching app dark theme) ────────────────────────────────────────
 const C = {
   bg: '#0a0a0a',
   card: '#111111',
   cardBorder: 'rgba(255,255,255,0.08)',
-  accent: '#FFBF00',
-  accentLight: '#FFD700',
-  accentBg: 'rgba(255,191,0,0.1)',
+  accent: '#ffffff',
+  accentLight: '#f0f0f0',
+  accentBg: 'rgba(255,255,255,0.08)',
   text: '#ffffff',
   textSecondary: '#999999',
   textMuted: '#555555',
@@ -43,20 +50,87 @@ export default function TripExpenseScreen() {
 
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [waypoints, setWaypoints] = useState<string[]>([]);
   
   const [fromSuggestions, setFromSuggestions] = useState<SearchSuggestion[]>([]);
   const [toSuggestions, setToSuggestions] = useState<SearchSuggestion[]>([]);
+  const [waypointSuggestions, setWaypointSuggestions] = useState<{ [key: number]: SearchSuggestion[] }>({});
+
   const [showFromSuggestions, setShowFromSuggestions] = useState(false);
   const [showToSuggestions, setShowToSuggestions] = useState(false);
+  const [showWaypointSuggestions, setShowWaypointSuggestions] = useState<{ [key: number]: boolean }>({});
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [result, setResult] = useState<TripExpenseResult | null>(null);
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
+  const [amenities, setAmenities] = useState<any[]>([]);
+  const [searchingAmenities, setSearchingAmenities] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showTraffic, setShowTraffic] = useState(true);
+
+  useEffect(() => {
+    const loadCachedData = async () => {
+      try {
+        const [cachedResult, cachedDraft] = await Promise.all([
+          AsyncStorage.getItem('last_trip_result'),
+          AsyncStorage.getItem('trip_inputs_draft'),
+        ]);
+
+        if (cachedResult) {
+          setResult(JSON.parse(cachedResult));
+        }
+
+        if (cachedDraft) {
+          const draft = JSON.parse(cachedDraft);
+          if (draft.from) setFrom(draft.from);
+          if (draft.to) setTo(draft.to);
+          if (draft.waypoints) setWaypoints(draft.waypoints);
+        }
+      } catch (e) {
+        console.warn('Failed to load cached data', e);
+      }
+    };
+    loadCachedData();
+  }, []);
+
+  // Save Result
+  useEffect(() => {
+    if (result) {
+      AsyncStorage.setItem('last_trip_result', JSON.stringify(result)).catch(e => 
+        console.warn('Failed to cache trip result', e)
+      );
+    }
+  }, [result]);
+
+  // Save Draft (Inputs)
+  useEffect(() => {
+    AsyncStorage.setItem('trip_inputs_draft', JSON.stringify({ from, to, waypoints })).catch(e => 
+      console.warn('Failed to cache inputs draft', e)
+    );
+  }, [from, to, waypoints]);
 
   const searchTimeout = useRef<any>(null);
+  const selectedRoute: TripRoute | null =
+    result?.routes?.[selectedRouteIdx] ?? null;
+  const mapRef = useRef<MapView>(null);
 
-  const handleSearch = (text: string, type: 'from' | 'to') => {
+  const routePolyline = useMemo(() => {
+    if (!selectedRoute?.polyline) return [];
+    return decodePolyline(selectedRoute.polyline);
+  }, [selectedRoute]);
+
+  useEffect(() => {
+    if (routePolyline.length > 0 && mapRef.current) {
+      mapRef.current.fitToCoordinates(routePolyline, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
+  }, [routePolyline]);
+
+  const handleSearch = (text: string, type: 'from' | 'to' | number) => {
     if (type === 'from') {
       setFrom(text);
       if (text.length < 3) {
@@ -64,11 +138,21 @@ export default function TripExpenseScreen() {
         setShowFromSuggestions(false);
         return;
       }
-    } else {
+    } else if (type === 'to') {
       setTo(text);
       if (text.length < 3) {
         setToSuggestions([]);
         setShowToSuggestions(false);
+        return;
+      }
+    } else {
+      // Waypoint search
+      const newWaypoints = [...waypoints];
+      newWaypoints[type] = text;
+      setWaypoints(newWaypoints);
+      if (text.length < 3) {
+        setWaypointSuggestions({ ...waypointSuggestions, [type]: [] });
+        setShowWaypointSuggestions({ ...showWaypointSuggestions, [type]: false });
         return;
       }
     }
@@ -79,21 +163,42 @@ export default function TripExpenseScreen() {
       if (type === 'from') {
         setFromSuggestions(suggestions);
         setShowFromSuggestions(suggestions.length > 0);
-      } else {
+      } else if (type === 'to') {
         setToSuggestions(suggestions);
         setShowToSuggestions(suggestions.length > 0);
+      } else {
+        setWaypointSuggestions({ ...waypointSuggestions, [type]: suggestions });
+        setShowWaypointSuggestions({ ...showWaypointSuggestions, [type]: suggestions.length > 0 });
       }
     }, 400);
   };
 
-  const selectSuggestion = (suggestion: SearchSuggestion, type: 'from' | 'to') => {
+  const selectSuggestion = (suggestion: SearchSuggestion, type: 'from' | 'to' | number) => {
     if (type === 'from') {
       setFrom(suggestion.description);
       setShowFromSuggestions(false);
-    } else {
+    } else if (type === 'to') {
       setTo(suggestion.description);
       setShowToSuggestions(false);
+    } else {
+      const newWaypoints = [...waypoints];
+      newWaypoints[type] = suggestion.description;
+      setWaypoints(newWaypoints);
+      setShowWaypointSuggestions({ ...showWaypointSuggestions, [type]: false });
     }
+  };
+
+  const addWaypoint = () => {
+    setWaypoints([...waypoints, '']);
+  };
+
+  const removeWaypoint = (index: number) => {
+    const newWaypoints = waypoints.filter((_, i) => i !== index);
+    setWaypoints(newWaypoints);
+    // Cleanup suggestions
+    const newWPSuggestions = { ...waypointSuggestions };
+    delete newWPSuggestions[index];
+    setWaypointSuggestions(newWPSuggestions);
   };
 
   const handleCalculate = useCallback(async () => {
@@ -108,6 +213,7 @@ export default function TripExpenseScreen() {
       const data = await tripExpenseService.calculate({
         from: from.trim(),
         to: to.trim(),
+        waypoints: waypoints.filter(w => w.trim() !== ''),
       });
       setResult(data);
       setSelectedRouteIdx(0);
@@ -116,10 +222,119 @@ export default function TripExpenseScreen() {
     } finally {
       setLoading(false);
     }
-  }, [from, to]);
+  }, [from, to, waypoints]);
 
-  const selectedRoute: TripRoute | null =
-    result?.routes?.[selectedRouteIdx] ?? null;
+  const handleRefreshTraffic = async () => {
+    if (!result?.id) return;
+    setRefreshing(true);
+    setError(null);
+    try {
+      const refreshed = await tripExpenseService.refresh(result.id);
+      setResult(refreshed);
+      setSelectedRouteIdx(0);
+    } catch (err: any) {
+      console.warn('Refresh failed', err);
+      setError(err?.message || 'Live traffic refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleStartNavigation = () => {
+    if (!from || !to) return;
+    
+    const originStr = encodeURIComponent(from);
+    const destinationStr = encodeURIComponent(to);
+    const activeWaypoints = waypoints.filter(w => w.trim() !== '');
+    const waypointsStr = activeWaypoints.map(w => encodeURIComponent(w)).join('|');
+    
+    let url = `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${destinationStr}`;
+    if (waypointsStr) {
+      url += `&waypoints=${waypointsStr}`;
+    }
+    
+    Linking.openURL(url).catch(err => {
+      console.error('An error occurred', err);
+      setError('Could not open Google Maps navigation.');
+    });
+  };
+
+  const searchAlongRoute = async (category: string) => {
+    if (!selectedRoute || routePolyline.length === 0) return;
+    setSearchingAmenities(true);
+    setAmenities([]);
+    try {
+      // Sample 5 points along the route to search around
+      const step = Math.floor(routePolyline.length / 5);
+      const pointsToSearch = [
+        routePolyline[Math.floor(step / 2)],
+        routePolyline[Math.floor(step * 1.5)],
+        routePolyline[Math.floor(step * 2.5)],
+        routePolyline[Math.floor(step * 3.5)],
+        routePolyline[Math.floor(step * 4.5)],
+      ];
+
+      const allResults: any[] = [];
+      for (const pt of pointsToSearch) {
+        const typeMap: any = {
+          FuelStations: 'gas_station',
+          Hotel: 'lodging',
+          ChargingStation: 'electric_charging_station',
+          Hospital: 'hospital',
+        };
+        const near = await placesService.getNearby(pt.latitude, pt.longitude, typeMap[category] || 'gas_station');
+        allResults.push(...near);
+      }
+      
+      // Remove duplicates by placeId
+      const unique = Array.from(new Map(allResults.map(p => [p.placeId, p])).values());
+      setAmenities(unique);
+    } catch (err) {
+      console.warn('Amenity search failed', err);
+    } finally {
+      setSearchingAmenities(false);
+    }
+  };
+
+  const handleSharePDF = async () => {
+    if (!selectedRoute) return;
+    try {
+      const html = `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h1 style="color: #FFBF00;">Trip Cost Summary</h1>
+          <p><strong>From:</strong> ${from}</p>
+          <p><strong>To:</strong> ${to}</p>
+          <hr/>
+          <h2>Total Cost: ₹${selectedRoute.costs.total}</h2>
+          <p>Distance: ${selectedRoute.distance.text} | Duration: ${selectedRoute.duration.text}</p>
+          <hr/>
+          <h3>Cost Breakdown</h3>
+          <ul>
+            <li>Fuel: ₹${selectedRoute.costs.fuel}</li>
+            <li>Toll (FASTag): ₹${selectedRoute.costs.tollFastag}</li>
+          </ul>
+          <h3>Toll Plazas (${selectedRoute.tolls.length})</h3>
+          ${selectedRoute.tolls.map(t => `<p>${t.name}: ₹${t.tagCost}</p>`).join('')}
+        </div>
+      `;
+      const options = {
+        html,
+        fileName: 'TripSummary',
+        directory: 'Documents',
+      };
+      const file = await (RNHTMLtoPDF as any).convert(options);
+      if (file.filePath) {
+        await Share.open({
+          url: `file://${file.filePath}`,
+          type: 'application/pdf',
+        });
+      }
+    } catch (err) {
+      console.warn('PDF Share failed', err);
+    }
+  };
+
+
 
   return (
     <View style={s.container}>
@@ -182,6 +397,54 @@ export default function TripExpenseScreen() {
           <View style={s.connector}>
             <View style={s.connectorLine} />
           </View>
+
+          {/* Waypoints */}
+          {waypoints.map((wpText, index) => (
+            <React.Fragment key={`wp-${index}`}>
+              <View style={s.inputGroup}>
+                <View style={s.inputIcon}>
+                  <View style={[s.dot, { backgroundColor: C.accent }]} />
+                </View>
+                <TextInput
+                  style={s.input}
+                  placeholder={`Stop ${index + 1}`}
+                  placeholderTextColor={C.textMuted}
+                  value={wpText}
+                  onChangeText={(t) => handleSearch(t, index)}
+                  onFocus={() => waypointSuggestions[index]?.length > 0 && setShowWaypointSuggestions({ ...showWaypointSuggestions, [index]: true })}
+                />
+                <TouchableOpacity onPress={() => removeWaypoint(index)} style={s.removeWpBtn}>
+                  <Text style={s.removeWpText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {showWaypointSuggestions[index] && (
+                <View style={s.suggestionsList}>
+                  {waypointSuggestions[index].map((item) => (
+                    <TouchableOpacity
+                      key={item.placeId}
+                      style={s.suggestionItem}
+                      onPress={() => selectSuggestion(item, index)}
+                    >
+                      <Text style={s.suggestionMain} numberOfLines={1}>{item.mainText}</Text>
+                      <Text style={s.suggestionSub} numberOfLines={1}>{item.secondaryText}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              <View style={s.connector}>
+                <View style={s.connectorLine} />
+              </View>
+            </React.Fragment>
+          ))}
+
+          {/* Add Stop Button */}
+          {waypoints.length < 5 && (
+            <TouchableOpacity style={s.addStopBtn} onPress={addWaypoint}>
+              <Text style={s.addStopText}>+ Add Stop</Text>
+            </TouchableOpacity>
+          )}
 
           {/* To */}
           <View style={s.inputGroup}>
@@ -285,15 +548,185 @@ export default function TripExpenseScreen() {
 
             {selectedRoute && (
               <>
+                {/* Map View */}
+                <View style={s.mapContainer}>
+                  <MapView
+                    ref={mapRef}
+                    style={s.map}
+                    initialRegion={{
+                      latitude: 20.5937,
+                      longitude: 78.9629,
+                      latitudeDelta: 25,
+                      longitudeDelta: 25,
+                    }}
+                    customMapStyle={darkMapStyle}
+                    showsTraffic={showTraffic}
+                  >
+                    {routePolyline.length > 0 && (
+                      <>
+                        <Polyline
+                          coordinates={routePolyline}
+                          strokeColor="rgba(255,255,255,0.6)"
+                          strokeWidth={5}
+                        />
+
+                        {/* Start Marker */}
+                        <Marker
+                          coordinate={routePolyline[0]}
+                          title="Start"
+                          description={from}
+                        >
+                          <View style={[s.markerDot, { backgroundColor: C.green }]}>
+                            <Text style={s.markerIcon}>🚀</Text>
+                          </View>
+                        </Marker>
+
+                        {/* End Marker */}
+                        <Marker
+                          coordinate={routePolyline[routePolyline.length - 1]}
+                          title="Destination"
+                          description={to}
+                        >
+                          <View style={[s.markerDot, { backgroundColor: C.red }]}>
+                            <Text style={s.markerIcon}>📍</Text>
+                          </View>
+                        </Marker>
+
+                        {/* Toll Markers */}
+                        {selectedRoute.tolls.map((toll, idx) => (
+                          <Marker
+                            key={`toll-${idx}`}
+                            coordinate={{ latitude: toll.lat, longitude: toll.lng }}
+                            title={toll.name}
+                            description={`₹${toll.tagCost} (FASTag)`}
+                          >
+                            <View style={[s.markerDot, { backgroundColor: C.accent }]}>
+                              <Text style={s.markerIcon}>🛣️</Text>
+                            </View>
+                            {toll.weather && (
+                              <View style={s.weatherAnnotation}>
+                                <Text style={s.weatherText}>{toll.weather.temp}°</Text>
+                              </View>
+                            )}
+                          </Marker>
+                        ))}
+                        {/* Amenity Markers */}
+                        {amenities.map((item, idx) => (
+                          <Marker
+                            key={`amenity-${idx}`}
+                            coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+                            title={item.name}
+                            pinColor="#4ade80"
+                          />
+                        ))}
+                      </>
+                    )}
+                  </MapView>
+                </View>
+
+                {/* Amenities Bar */}
+                <View style={s.amenitiesBar}>
+                  <Text style={s.amenityTitle}>Find along route:</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.amenityCapsules}>
+                    {['FuelStations', 'Hotel', 'ChargingStation', 'Hospital', 'PitStop'].map((cat) => (
+                      <TouchableOpacity 
+                        key={cat} 
+                        style={s.amenityCapsule}
+                        onPress={() => searchAlongRoute(cat === 'PitStop' ? 'Hotel' : cat)} // PitStop uses Hotel/POI for now
+                      >
+                        <Text style={s.amenityCapsuleText}>
+                          {cat === 'FuelStations' ? '⛽ Fuel' : 
+                           cat === 'Hotel' ? '🏨 Hotels' :
+                           cat === 'ChargingStation' ? '⚡ EV' : 
+                           cat === 'PitStop' ? '📸 Pits' : '🏥 Hospital'}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                  {searchingAmenities && <ActivityIndicator size="small" color={C.accent} style={{ marginTop: 10 }} />}
+                </View>
+
+                {/* Optimal Departure Suggestion (Phase 3) */}
+                {result.optimalDeparture && (
+                  <View style={s.optimalCard}>
+                    <Text style={s.optimalTitle}>💡 Suggested Departure: {new Date(result.optimalDeparture.bestTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                    <Text style={s.optimalSub}>Save up to {result.optimalDeparture.savingsMinutes} mins by leaving later.</Text>
+                  </View>
+                )}
+
+                {/* EV Planning Assistant (Phase 3) */}
+                {result.fuelType === 'ELECTRIC' && selectedRoute.distance.km > 150 && (
+                  <View style={[s.optimalCard, { borderLeftColor: C.green }]}>
+                    <Text style={[s.optimalTitle, { color: C.green }]}>⚡ EV Charging Support</Text>
+                    <Text style={s.optimalSub}>This is a long journey. Tap "⚡ EV" below to find chargers along your route.</Text>
+                  </View>
+                )}
+
                 {/* Total Cost Hero */}
                 <View style={s.heroCard}>
-                  <Text style={s.heroLabel}>Total Trip Cost</Text>
+                  <View style={s.heroHeader}>
+                    <Text style={s.heroLabel}>Total Trip Cost</Text>
+                    <TouchableOpacity onPress={handleSharePDF} style={s.heroActionBtn}>
+                      <Text style={s.heroActionIcon}>📤</Text>
+                    </TouchableOpacity>
+                    {result?.id && (
+                      <TouchableOpacity 
+                        onPress={handleRefreshTraffic} 
+                        style={[s.heroActionBtn, refreshing && s.heroActionBtnDisabled]}
+                        disabled={refreshing}
+                      >
+                        {refreshing ? (
+                          <ActivityIndicator size="small" color={C.accent} />
+                        ) : (
+                          <Text style={s.heroActionIcon}>🔄</Text>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity 
+                      onPress={() => setShowTraffic(!showTraffic)} 
+                      style={[s.heroActionBtn, showTraffic && { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+                    >
+                      <Text style={[s.heroActionIcon, { opacity: showTraffic ? 1 : 0.5 }]}>🚥</Text>
+                    </TouchableOpacity>
+                  </View>
                   <Text style={s.heroAmount}>
                     ₹{selectedRoute.costs.total.toLocaleString('en-IN')}
                   </Text>
                   <Text style={s.heroSub}>
                     {selectedRoute.distance.text} • {selectedRoute.duration.text}
                   </Text>
+                  
+                  <TouchableOpacity 
+                    style={s.navBtn}
+                    onPress={handleStartNavigation}
+                  >
+                    <Text style={s.navBtnText}>🚀 Start Navigation</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Route Overview */}
+                <View style={s.card}>
+                  <Text style={s.sectionTitle}>Current Route</Text>
+                  <View style={s.routeOverview}>
+                    <View style={s.routeOverviewItem}>
+                      <View style={[s.dotSmall, { backgroundColor: C.green }]} />
+                      <Text style={s.routeOverviewText}>{result.from}</Text>
+                    </View>
+                    <View style={s.routeOverviewDivider} />
+                    {result.waypoints?.map((wp: string, i: number) => (
+                      <React.Fragment key={`ov-wp-${i}`}>
+                        <View style={s.routeOverviewItem}>
+                          <View style={[s.dotSmall, { backgroundColor: C.accent }]} />
+                          <Text style={s.routeOverviewText}>{wp}</Text>
+                        </View>
+                        <View style={s.routeOverviewDivider} />
+                      </React.Fragment>
+                    ))}
+                    <View style={s.routeOverviewItem}>
+                      <View style={[s.dotSmall, { backgroundColor: C.red }]} />
+                      <Text style={s.routeOverviewText}>{result.to}</Text>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Cost Breakdown */}
@@ -405,6 +838,30 @@ export default function TripExpenseScreen() {
     </View>
   );
 }
+
+const darkMapStyle = [
+  { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },
+  { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
+  { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+  { "elementType": "labels.text.stroke", "stylers": [{ "color": "#212121" }] },
+  { "featureType": "administrative", "elementType": "geometry", "stylers": [{ "color": "#757575" }] },
+  { "featureType": "administrative.country", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] },
+  { "featureType": "administrative.land_parcel", "stylers": [{ "visibility": "off" }] },
+  { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
+  { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+  { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "color": "#181818" }] },
+  { "featureType": "poi.park", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+  { "featureType": "poi.park", "elementType": "labels.text.stroke", "stylers": [{ "color": "#1b1b1b" }] },
+  { "featureType": "road", "elementType": "geometry.fill", "stylers": [{ "color": "#2c2c2c" }] },
+  { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "color": "#8a8a8a" }] },
+  { "featureType": "road.arterial", "elementType": "geometry", "stylers": [{ "color": "#373737" }] },
+  { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#3c3c3c" }] },
+  { "featureType": "road.highway.controlled_access", "elementType": "geometry", "stylers": [{ "color": "#4e4e4e" }] },
+  { "featureType": "road.local", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+  { "featureType": "transit", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] },
+  { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#3d3d3d" }] }
+];
 
 // ─── Sub Components ──────────────────────────────────────────────────────────
 
@@ -597,6 +1054,79 @@ const s = StyleSheet.create({
   // Divider
   divider: { height: 1, backgroundColor: C.divider, marginVertical: hp(1.5) },
 
+  // Map
+  mapContainer: {
+    height: hp(30),
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: hp(2),
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+  },
+  map: { flex: 1 },
+  markerDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  markerIcon: { fontSize: 12 },
+
+  // Amenities
+  amenitiesBar: {
+    marginBottom: hp(2),
+  },
+  amenityTitle: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+    color: C.textSecondary,
+    marginBottom: hp(1),
+  },
+  amenityCapsules: {
+    gap: wp(2),
+  },
+  amenityCapsule: {
+    backgroundColor: C.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(0.8),
+  },
+  amenityCapsuleText: {
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Bold',
+    color: C.text,
+  },
+
+  // Hero Additions
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(4),
+  },
+  heroActionBtn: {
+    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  heroActionBtnDisabled: {
+    opacity: 0.5,
+  },
+  heroActionIcon: {
+    fontSize: wp(4.5),
+  },
+  shareIcon: {
+    fontSize: wp(5),
+    color: '#000',
+    opacity: 0.6,
+  },
+
   // Details Grid
   detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(3) },
   detailItem: {
@@ -643,5 +1173,142 @@ const s = StyleSheet.create({
     fontSize: wp(3),
     fontFamily: 'Outfit-Medium',
     color: '#888',
+  },
+
+  // Add Stop
+  addStopBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(2),
+    marginLeft: wp(8),
+    marginBottom: hp(1),
+  },
+  addStopText: {
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+  },
+  removeWpBtn: {
+    padding: wp(2),
+  },
+  removeWpText: {
+    fontSize: wp(3.5),
+    color: C.textSecondary,
+  },
+
+  // Phase 3 Additions
+  weatherAnnotation: {
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: C.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weatherText: {
+    fontSize: 10,
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+  },
+  optimalCard: {
+    backgroundColor: 'rgba(255,191,0,0.08)',
+    marginHorizontal: wp(5),
+    marginBottom: hp(1.5),
+    padding: wp(4),
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: C.accent,
+  },
+  optimalTitle: {
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+    marginBottom: 4,
+  },
+  optimalSub: {
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+    color: C.textSecondary,
+  },
+  mikeBtn: {
+    backgroundColor: C.card,
+    marginVertical: 12,
+    marginHorizontal: wp(5),
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mikeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  mikeIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  mikeTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: C.text,
+  },
+  mikeSub: {
+    fontSize: 13,
+    color: C.textSecondary,
+    marginTop: 2,
+  },
+  mikeArrow: {
+    fontSize: 18,
+    color: C.accent,
+    fontWeight: 'bold',
+  },
+  routeOverview: {
+    paddingVertical: 8,
+  },
+  routeOverviewItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  routeOverviewText: {
+    fontSize: 14,
+    color: C.text,
+    marginLeft: 12,
+    fontFamily: 'Outfit-Medium',
+  },
+  routeOverviewDivider: {
+    width: 2,
+    height: 12,
+    backgroundColor: C.divider,
+    marginLeft: 3,
+    marginVertical: 2,
+  },
+  dotSmall: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  navBtn: {
+    backgroundColor: C.accent,
+    marginTop: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: C.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  navBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
   },
 });

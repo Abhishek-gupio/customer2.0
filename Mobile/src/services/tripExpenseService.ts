@@ -13,6 +13,7 @@ export interface TripTollPlaza {
   cashCost: number;
   lat: number;
   lng: number;
+  weather?: { temp: number; condition: string; icon: string };
 }
 
 export interface TripRoute {
@@ -30,17 +31,22 @@ export interface TripRoute {
   fuelUsed: { liters: number };
   fuelEfficiency: { city: number; hwy: number; unit: string };
   fuelPriceUsed: { price: number; currency: string; type: string };
+  polyline?: string;
 }
 
 export interface TripExpenseResult {
+  id?: string;
   from: string;
   to: string;
+  waypoints?: string[];
   vehicleType: string;
   fuelType: string;
   routes: TripRoute[];
   cheapestRoute: TripRoute | null;
   fastestRoute: TripRoute | null;
   calculatedAt: string;
+  optimalDeparture?: { bestTime: string; savingsMinutes: number } | null;
+  weather?: { temp: number; condition: string; icon: string };
 }
 
 export interface VehicleTypeOption {
@@ -49,15 +55,18 @@ export interface VehicleTypeOption {
   tollGuruType: string;
 }
 
+export interface TripExpenseRequest {
+  from: string;
+  to: string;
+  waypoints?: string[];
+  vehicleId?: string;
+  vehicleType?: string;
+  fuelType?: string;
+}
+
 export const tripExpenseService = {
-  async calculate(params: {
-    from: string;
-    to: string;
-    vehicleId?: string;
-    vehicleType?: string;
-    fuelType?: string;
-  }): Promise<TripExpenseResult> {
-    const res = await api.post<{ data: TripExpenseResult }>(
+  async calculate(params: TripExpenseRequest): Promise<TripExpenseResult> {
+    const res = await api.post<TripExpenseResult>(
       '/v1/trip-expense/calculate',
       params,
     );
@@ -65,9 +74,17 @@ export const tripExpenseService = {
   },
 
   async getVehicleTypes(): Promise<VehicleTypeOption[]> {
-    const res = await api.get<{ data: { vehicleTypes: VehicleTypeOption[] } }>(
+    const res = await api.get<{ vehicleTypes: VehicleTypeOption[] }>(
       '/v1/trip-expense/vehicle-types',
     );
-    return (res as any)?.data?.vehicleTypes ?? [];
+    return (res as any)?.data?.vehicleTypes ?? (res as any)?.vehicleTypes ?? [];
+  },
+
+  async refresh(tripId: string): Promise<TripExpenseResult> {
+    const res = await api.post<TripExpenseResult>(
+      `/v1/trip-expense/refresh/${tripId}`,
+      {},
+    );
+    return (res as any)?.data ?? res;
   },
 };

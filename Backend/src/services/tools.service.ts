@@ -17,6 +17,7 @@ import { challanService } from "./challan.service";
 import { telematicsService } from "./telematics.service";
 import { vehicleService } from "../modules/vehicle/vehicle.service";
 import { addVehicleSchema } from "../modules/vehicle/vehicle.validators";
+import { tripExpenseService } from "../modules/trip-expense/trip-expense.service";
 
 const db = dbInstances as any;
 
@@ -785,6 +786,43 @@ export const toolRegistry = {
           isRead: n.isRead,
           createdAt: new Date(n.createdAt).toLocaleString("en-IN"),
         })),
+      };
+    },
+  },
+
+  /**
+   * Tool: get_current_trip_info
+   * Use when user asks "How much is the next toll?", "Show my trip budget", "Tell me about my journey"
+   */
+  get_current_trip_info: {
+    name: "get_current_trip_info",
+    description: "Get details of the user's most recently calculated trip (origin, destination, total costs, tolls, weather).",
+    parameters: {},
+    execute: async (customerId: string) => {
+      const trip = await tripExpenseService.getLatestTrip(customerId);
+      if (!trip) {
+        return { success: false, message: "No active or saved trip found. You can plan one in the Trip Expense screen." };
+      }
+
+      const activeRoute = trip.cheapestRoute || trip.fastestRoute || trip.routes?.[0];
+      if (!activeRoute) {
+        return { success: false, message: "No route data found for the recent trip." };
+      }
+
+      return {
+        success: true,
+        origin: trip.from,
+        destination: trip.to,
+        vehicleType: trip.vehicleType,
+        fuelType: trip.fuelType,
+        totalCost: `₹${activeRoute.costs.total}`,
+        fuelCost: `₹${activeRoute.costs.fuel}`,
+        tollCost: `₹${activeRoute.costs.tollFastag}`,
+        distance: activeRoute.distance.text,
+        duration: activeRoute.duration.text,
+        nextTolls: activeRoute.tolls.slice(0, 3).map(t => `${t.name} (₹${t.tagCost})`),
+        weather: trip.weather ? `${trip.weather.temp}°C, ${trip.weather.condition}` : "Clear conditions expected",
+        message: `Your trip from ${trip.from} to ${trip.to} for a ${trip.vehicleType} has an estimated cost of ₹${activeRoute.costs.total}.`,
       };
     },
   },

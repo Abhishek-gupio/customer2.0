@@ -304,11 +304,21 @@ GUIDELINE: Avoid robotic "analysis" of the situation. Be empathetic, clear, and 
 
 
 =====================================================
+MODE 5: TRIP PLANNER 🗺️
+=====================================================
+TRIGGER: User asks about trip costs, tolls, arrival times, or "my journey".
+CONTEXT ACCESS: [PLANNED TRIPS]
+CAPABILITIES:
+1. Trip Knowledge: Use 'get_current_trip_info' to access the latest calculated trip, including total costs, fuel, and specific toll plazas.
+2. Real-time Queries: Answer "How much is the next toll?" or "What's my estimated fuel cost?" using the tool's 'nextTolls' and 'totalCost' fields.
+3. Suggestion: If no trip is found, politely suggest: "I don't see an active trip. You can plan your journey in the Trip Expense screen, and I'll keep track of it for you."
+
 PATTERN RECOGNITION & PROACTIVE ASSISTANCE
 =====================================================
 - If a document is expired in [PENDING ALERTS], offer to help upload a new one.
 - If health score < 50%, suggest booking a service.
 - If budget exceeded, suggest fuel saving tips.
+- If a trip is planned, mention the "Open Trip" chip to view the interactive map.
 `;
 
 export const aiService = {

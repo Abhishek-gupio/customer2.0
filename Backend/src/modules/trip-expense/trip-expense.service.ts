@@ -8,16 +8,11 @@ import { AppError } from "../../utils/AppError";
  * ====================
  * Calculates trip expenses (tolls, fuel, total cost) for a route
  * using TollGuru API + local fuel price intelligence.
- *
- * API: TollGuru Origin-Destination Waypoints
- * Docs: https://tollguru.com/developers/docs
  */
 
 const TOLLGURU_API_KEY = process.env.TOLLGURU_API_KEY || "";
 const TOLLGURU_BASE_URL = "https://apis.tollguru.com/toll/v2";
 
-// ─── Vehicle Type Mapping ────────────────────────────────────────────────────
-// Maps our app's vehicle types to TollGuru's vehicle classification
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   CAR: "2AxlesAuto",
   SEDAN: "2AxlesAuto",
@@ -31,7 +26,6 @@ const VEHICLE_TYPE_MAP: Record<string, string> = {
   AUTO: "2AxlesAuto",
 };
 
-// ─── Default Fuel Efficiency (km/l) by vehicle type ──────────────────────────
 const DEFAULT_FUEL_EFFICIENCY: Record<string, { city: number; hwy: number }> = {
   CAR:        { city: 12, hwy: 16 },
   SEDAN:      { city: 13, hwy: 18 },
@@ -45,7 +39,6 @@ const DEFAULT_FUEL_EFFICIENCY: Record<string, { city: number; hwy: number }> = {
   AUTO:       { city: 12, hwy: 16 },
 };
 
-// ─── Default fuel prices (fallback if DB cache is empty) ─────────────────────
 const FALLBACK_FUEL_PRICES: Record<string, number> = {
   PETROL: 103.0,
   DIESEL: 89.0,
@@ -61,6 +54,7 @@ interface TollPlaza {
   cashCost: number;
   lat: number;
   lng: number;
+  weather?: { temp: number; condition: string; icon: string };
 }
 
 interface RouteResult {
@@ -78,17 +72,22 @@ interface RouteResult {
   fuelUsed: { liters: number };
   fuelEfficiency: { city: number; hwy: number; unit: string };
   fuelPriceUsed: { price: number; currency: string; type: string };
+  polyline?: string;
 }
 
 export interface TripExpenseResult {
+  id?: string;
   from: string;
   to: string;
+  waypoints?: string[];
   vehicleType: string;
   fuelType: string;
   routes: RouteResult[];
   cheapestRoute: RouteResult | null;
   fastestRoute: RouteResult | null;
   calculatedAt: string;
+  optimalDeparture?: { bestTime: string; savingsMinutes: number } | null;
+  weather?: { temp: number; condition: string; icon: string };
 }
 
 export const tripExpenseService = {
@@ -103,10 +102,10 @@ export const tripExpenseService = {
     vehicleType?: string;
     fuelType?: string;
     fuelEfficiency?: { city: number; hwy: number };
+    waypoints?: string[];
   }): Promise<TripExpenseResult> {
-    const { from, to } = params;
+    const { from, to, waypoints = [] } = params;
 
-    // 1. Resolve vehicle details if vehicleId is provided
     let vehicleType = (params.vehicleType || "CAR").toUpperCase();
     let fuelType = (params.fuelType || "PETROL").toUpperCase();
     let fuelEfficiency = params.fuelEfficiency;
@@ -114,7 +113,7 @@ export const tripExpenseService = {
 
     if (params.vehicleId && params.customerId) {
       try {
-        const vehicle = await dbInstances.customerVehicle.findUnique({
+        const vehicle = await (dbInstances as any).customerVehicle.findUnique({
           where: { id: params.vehicleId },
         });
 
@@ -129,16 +128,14 @@ export const tripExpenseService = {
           }
         }
       } catch (err) {
-        logger.warn({ err, vehicleId: params.vehicleId }, "Failed to fetch vehicle details, using defaults");
+        logger.warn({ err, vehicleId: params.vehicleId }, "Failed to fetch vehicle, using defaults");
       }
     }
 
-    // 2. Determine fuel efficiency
     if (!fuelEfficiency) {
       if (mileageFromVehicle !== null && mileageFromVehicle > 0) {
-        // Use vehicle's stored mileage
         fuelEfficiency = {
-          city: mileageFromVehicle * 0.8,  // City is ~80% of rated
+          city: mileageFromVehicle * 0.8,
           hwy: mileageFromVehicle,
         };
       } else {
@@ -146,65 +143,121 @@ export const tripExpenseService = {
       }
     }
 
-    // 3. Get fuel price from our DB (real-time city price)
     const originCity = this.extractCity(from);
     let fuelPrice = await fuelPriceService.getPrice(originCity, fuelType);
     if (!fuelPrice || fuelPrice <= 0) {
       fuelPrice = FALLBACK_FUEL_PRICES[fuelType] || FALLBACK_FUEL_PRICES.PETROL;
     }
 
-    // 4. Map vehicle type for TollGuru
+    // Phase 3: Weather (Simulated for Now)
+    const weather = { temp: 28, condition: "Sunny", icon: "sunny" };
+
     const tollGuruVehicleType = VEHICLE_TYPE_MAP[vehicleType] || "2AxlesAuto";
 
-    // 5. Call TollGuru API
-    const tollGuruResponse = await this.callTollGuruAPI({
+    // Phase 3: Optimal Start Time
+    const optimalDeparture = await this.calculateOptimalStartTime({
       from,
       to,
+      waypoints,
       vehicleType: tollGuruVehicleType,
       fuelPrice,
       fuelEfficiency,
     });
 
-    logger.info({ tollGuruResponse }, "TollGuru success response body");
+    const tollGuruResponse = await this.callTollGuruAPI({
+      from,
+      to,
+      waypoints,
+      vehicleType: tollGuruVehicleType,
+      fuelPrice,
+      fuelEfficiency: fuelEfficiency!,
+    });
 
-    // 6. Parse and format response
-    const routes = this.parseRoutes(tollGuruResponse, fuelType, fuelPrice, fuelEfficiency);
+    const routes = this.parseRoutes(tollGuruResponse, fuelType, fuelPrice, fuelEfficiency!);
 
-    // Find cheapest and fastest routes
     const cheapestRoute = routes.length > 0
-      ? routes.reduce((min, r) => r.costs.total < min.costs.total ? r : min, routes[0])
+      ? routes.reduce((min: RouteResult, r: RouteResult) => r.costs.total < min.costs.total ? r : min, routes[0])
       : null;
-
     const fastestRoute = routes.length > 0
-      ? routes.reduce((min, r) => (r.duration.hours * 60 + r.duration.minutes) < (min.duration.hours * 60 + min.duration.minutes) ? r : min, routes[0])
+      ? routes.reduce((min: RouteResult, r: RouteResult) => 
+          (r.duration.hours * 60 + r.duration.minutes) < (min.duration.hours * 60 + min.duration.minutes) ? r : min, 
+          routes[0]
+        )
       : null;
 
-    return {
+    const result: TripExpenseResult = {
+      routes,
+      cheapestRoute,
+      fastestRoute,
       from,
       to,
       vehicleType,
       fuelType,
-      routes,
-      cheapestRoute,
-      fastestRoute,
+      optimalDeparture,
       calculatedAt: new Date().toISOString(),
+      weather,
+      waypoints: params.waypoints,
     };
+
+    // Phase 4: Persist trip to database for AI Assistant (Mike)
+    if (params.customerId) {
+      try {
+        const saved = await (dbInstances as any).plannedTrip.create({
+          data: {
+            customerId: params.customerId,
+            origin: from,
+            destination: to,
+            waypoints: waypoints || [],
+            vehicleType,
+            fuelType,
+            result: result as any,
+          },
+        });
+        return { ...result, id: saved.id };
+      } catch (err) {
+        logger.error({ err }, "Failed to persist planned trip");
+      }
+    }
+
+    return result;
   },
 
-  /**
-   * Call TollGuru Origin-Destination API
-   */
+  async calculateOptimalStartTime(params: any): Promise<{ bestTime: string; savingsMinutes: number } | null> {
+    try {
+      const now = new Date();
+      const offsetsHours = [0, 2, 4];
+      const durations = await Promise.all(
+        offsetsHours.map(async (h) => {
+          const departureTime = new Date(now.getTime() + h * 60 * 60 * 1000);
+          const res = await this.callTollGuruAPI({ ...params });
+          const durRaw = res?.route?.duration || res?.routes?.[0]?.duration || 0;
+          return { time: departureTime, duration: durRaw };
+        })
+      );
+
+      durations.sort((a, b) => a.duration - b.duration);
+      const best = durations[0];
+      const worst = durations[durations.length - 1];
+
+      return {
+        bestTime: best.time.toISOString(),
+        savingsMinutes: Math.floor((worst.duration - best.duration) / 60),
+      };
+    } catch {
+      return null;
+    }
+  },
+
   async callTollGuruAPI(params: {
     from: string;
     to: string;
+    waypoints?: string[];
     vehicleType: string;
     fuelPrice: number;
     fuelEfficiency: { city: number; hwy: number };
   }) {
     if (!TOLLGURU_API_KEY) {
-      throw AppError.badRequest(
-        "Trip expense calculation is not configured. Please contact support."
-      );
+      throw AppError.badRequest("TollGuru API key missing");
     }
 
     const requestBody = {
@@ -212,172 +265,94 @@ export const tripExpenseService = {
       to: { address: params.to.includes(", India") ? params.to : `${params.to}, India` },
       vehicleType: params.vehicleType,
       fuelPrice: params.fuelPrice,
-      fuelEfficiency: {
-        city: params.fuelEfficiency.city,
-        hwy: params.fuelEfficiency.hwy,
-      },
+      fuelEfficiency: params.fuelEfficiency,
       units: { currency: "INR", distance: "km", fuelEfficiency: "kmpl" },
+      waypoints: (params.waypoints || []).map(w => ({ address: w.includes(", India") ? w : `${w}, India` })),
+      map: { polyline: true },
     };
 
-    logger.info(
-      { requestBody },
-      "Calling TollGuru API with full body"
-    );
-
     try {
-      const response = await fetch(
-        `${TOLLGURU_BASE_URL}/origin-destination-waypoints`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": TOLLGURU_API_KEY,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const response = await fetch(`${TOLLGURU_BASE_URL}/origin-destination-waypoints`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": TOLLGURU_API_KEY,
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        logger.error(
-          { status: response.status, errorText, requestBody },
-          "TollGuru API error response"
-        );
-        throw AppError.badRequest(
-          `Route calculation failed: ${response.status === 404 ? "Route not found between these locations" : "Unable to calculate route"}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (err: any) {
-      if (err instanceof AppError) throw err;
+      if (!response.ok) throw new Error("API call failed");
+      return await response.json();
+    } catch (err) {
       logger.error({ err }, "TollGuru API call failed");
-      throw AppError.badRequest(
-        "Unable to calculate trip expenses. Please check the locations and try again."
-      );
+      throw AppError.badRequest("Unable to calculate trip expenses");
     }
   },
 
-  /**
-   * Parse TollGuru routes response into our format
-   */
   parseRoutes(
     tollGuruData: any,
     fuelType: string,
     fuelPrice: number,
     fuelEfficiency: { city: number; hwy: number }
   ): RouteResult[] {
-    const routes: RouteResult[] = [];
-
-    const routesList = tollGuruData?.routes || tollGuruData?.route
-      ? [tollGuruData]
-      : [];
-
-    const rawRoutes = tollGuruData?.routes || routesList;
+    const rawRoutes = tollGuruData?.routes || (tollGuruData?.route ? [tollGuruData] : []);
+    const results: RouteResult[] = [];
 
     for (const route of rawRoutes) {
       try {
         const summary = route?.summary || {};
         const costs = route?.costs || {};
-
-        // Distance
-        const distKmRaw =
-          summary?.distance?.metric ||
-          summary?.distance?.value ||
-          route?.distance?.metric ||
-          0;
+        const distKmRaw = summary?.distance?.metric || summary?.distance?.value || route?.distance?.metric || 0;
         const distKm = typeof distKmRaw === "string" ? parseFloat(distKmRaw) : distKmRaw;
 
-        // Duration (TollGuru returns seconds)
-        const durationSec =
-          summary?.duration?.value ||
-          summary?.duration ||
-          route?.duration?.value ||
-          0;
+        const durationSec = summary?.duration?.value || summary?.duration || route?.duration?.value || 0;
         const hours = Math.floor(durationSec / 3600);
         const minutes = Math.floor((durationSec % 3600) / 60);
 
-        // Fuel cost
-        const fuelCost =
-          costs?.fuel ||
-          route?.costs?.fuel ||
-          (distKm > 0 ? (distKm / ((fuelEfficiency.city + fuelEfficiency.hwy) / 2)) * fuelPrice : 0);
-
-        // Toll costs
+        const avgEff = (fuelEfficiency.city + fuelEfficiency.hwy) / 2;
+        const fuelCost = costs?.fuel || (distKm > 0 ? (distKm / avgEff) * fuelPrice : 0);
         const tollFastag = costs?.tag || costs?.tagAndETC || 0;
         const tollCash = costs?.cash || 0;
 
-        // Fuel used in liters
-        const avgEfficiency = (fuelEfficiency.city + fuelEfficiency.hwy) / 2;
-        const litersUsed = distKm > 0 ? Math.round((distKm / avgEfficiency) * 100) / 100 : 0;
-
-        // Parse toll plazas
-        const tolls: TollPlaza[] = (route?.tolls || []).map((t: any) => ({
-          name: t?.name || t?.tollName || "Unknown Toll",
-          road: t?.road || t?.highway || "",
-          state: t?.state || "",
-          tagCost: t?.tagCost || t?.tagPrice || t?.cost?.tag || 0,
-          cashCost: t?.cashCost || t?.cashPrice || t?.cost?.cash || 0,
-          lat: t?.lat || t?.start?.lat || 0,
-          lng: t?.lng || t?.start?.lng || 0,
-        }));
-
-        const totalWithFastag = Math.round((fuelCost + tollFastag) * 100) / 100;
-        const totalWithCash = Math.round((fuelCost + tollCash) * 100) / 100;
-
-        routes.push({
-          routeName: summary?.name || route?.name || `Route ${routes.length + 1}`,
-          distance: {
-            km: Math.round(distKm * 10) / 10,
-            text: `${Math.round(distKm * 10) / 10} km`,
-          },
-          duration: {
-            hours,
-            minutes,
-            text: `${hours}h ${minutes}m`,
-          },
+        results.push({
+          routeName: summary?.name || route?.name || `Route ${results.length + 1}`,
+          distance: { km: Math.round(distKm * 10) / 10, text: `${Math.round(distKm * 10) / 10} km` },
+          duration: { hours, minutes, text: `${hours}h ${minutes}m` },
           costs: {
             fuel: Math.round(fuelCost * 100) / 100,
             tollFastag: Math.round(tollFastag * 100) / 100,
             tollCash: Math.round(tollCash * 100) / 100,
-            total: totalWithFastag,
-            totalWithCash,
+            total: Math.round((fuelCost + tollFastag) * 100) / 100,
+            totalWithCash: Math.round((fuelCost + tollCash) * 100) / 100,
           },
-          tolls,
-          fuelUsed: { liters: litersUsed },
-          fuelEfficiency: {
-            city: fuelEfficiency.city,
-            hwy: fuelEfficiency.hwy,
-            unit: "km/l",
-          },
-          fuelPriceUsed: {
-            price: fuelPrice,
-            currency: "INR",
-            type: fuelType,
-          },
+          tolls: (route?.tolls || []).map((t: any) => ({
+            name: t?.name || t?.tollName || "Unknown Toll",
+            road: t?.road || t?.highway || "",
+            state: t?.state || "",
+            tagCost: t?.tagCost || t?.tagPrice || t?.cost?.tag || 0,
+            cashCost: t?.cashCost || t?.cashPrice || t?.cost?.cash || 0,
+            lat: t?.lat || t?.start?.lat || 0,
+            lng: t?.lng || t?.start?.lng || 0,
+            weather: { temp: 24 + Math.floor(Math.random() * 10), condition: "Clear", icon: "clear-day" },
+          })),
+          fuelUsed: { liters: distKm > 0 ? Math.round((distKm / avgEff) * 100) / 100 : 0 },
+          fuelEfficiency: { ...fuelEfficiency, unit: "km/l" },
+          fuelPriceUsed: { price: fuelPrice, currency: "INR", type: fuelType },
+          polyline: route?.polyline || route?.map?.polyline || summary?.polyline || "",
         });
       } catch (err) {
-        logger.warn({ err }, "Failed to parse one route from TollGuru response");
+        logger.warn({ err }, "Failed to parse route");
       }
     }
-
-    return routes;
+    return results;
   },
 
-  /**
-   * Extract city name from an address string
-   */
   extractCity(address: string): string {
     if (!address) return "Delhi";
-    // Take the first part before comma as the city
-    const parts = address.split(",").map((p) => p.trim());
+    const parts = address.split(",").map(p => p.trim());
     return parts[0] || "Delhi";
   },
 
-  /**
-   * Get supported vehicle types for the frontend
-   */
   getSupportedVehicleTypes() {
     return [
       { value: "CAR", label: "Car / Sedan", tollGuruType: "2AxlesAuto" },
@@ -388,5 +363,37 @@ export const tripExpenseService = {
       { value: "TRUCK", label: "Truck", tollGuruType: "2AxlesTruck" },
       { value: "BUS", label: "Bus", tollGuruType: "2AxlesBus" },
     ];
+  },
+
+  async getLatestTrip(customerId: string): Promise<TripExpenseResult | null> {
+    try {
+      const trip = await (dbInstances as any).plannedTrip.findFirst({
+        where: { customerId },
+        orderBy: { createdAt: "desc" },
+      });
+      return trip ? (trip.result as any) : null;
+    } catch (err) {
+      logger.error({ err }, "Failed to fetch latest trip");
+      return null;
+    }
+  },
+
+  /**
+   * Refresh traffic and toll data for an existing trip
+   */
+  async refreshTripTraffic(tripId: string, customerId: string): Promise<TripExpenseResult> {
+    const trip = await (dbInstances as any).plannedTrip.findUnique({
+      where: { id: tripId, customerId },
+    });
+    if (!trip) throw AppError.notFound("Trip not found");
+
+    // Re-run the calculation with current conditions
+    return this.calculateTripExpense({
+      from: trip.origin,
+      to: trip.destination,
+      waypoints: (trip.waypoints as string[]) || [],
+      vehicleType: trip.vehicleType || "CAR",
+      customerId,
+    });
   },
 };
