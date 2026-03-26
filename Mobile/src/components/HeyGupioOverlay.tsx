@@ -13,6 +13,8 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
+import  {DotLottie}  from '@lottiefiles/dotlottie-react-native';
+import FastImage from 'react-native-fast-image';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { chatService } from '../services/chatService';
@@ -25,6 +27,9 @@ const FAB_SIZE = 56;
 const FAB_MARGIN = 20;
 const FAB_BOTTOM_OFFSET = 88;
 const MIN_TOP_OFFSET = 72;
+const SPEAKING_LOTTIE_SOURCE: number | { uri: string } | null = null;
+const AI_GIF_SOURCE = require('../../assets/ai.gif');
+const MIC_GIF_SOURCE = require('../../assets/mic.gif');
 
 function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -496,6 +501,32 @@ export default function HeyGupioOverlay() {
         accessibilityLabel={status === 'idle' ? 'Tap to start talking to Gupio' : 'Tap to stop'}
         accessibilityRole="button"
       >
+        {status === 'speaking' && SPEAKING_LOTTIE_SOURCE ? (
+          <View style={styles.speakingAnimationWrap}>
+            <DotLottie
+              source={SPEAKING_LOTTIE_SOURCE}
+              loop
+              autoplay
+              style={styles.speakingAnimation}
+            />
+          </View>
+        ) : null}
+        {status === 'idle' ? (
+          <FastImage
+            source={AI_GIF_SOURCE}
+            style={styles.fabGif}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        ) : status === 'listening' ? (
+          <FastImage
+            source={MIC_GIF_SOURCE}
+            style={styles.listeningGif}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        ) : null}
+        <Text style={styles.stateFabIcon}>
+          {status === 'processing' ? '...' : status === 'speaking' ? '🎤' : ''}
+        </Text>
         <Text style={styles.fabIcon}>
           {status === 'listening' ? '🎤' : status === 'processing' ? '…' : status === 'speaking' ? '🔊' : '🎙'}
         </Text>
@@ -522,6 +553,7 @@ const styles = StyleSheet.create({
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
+    overflow: 'hidden',
     backgroundColor: '#1a1a2e',
     alignItems: 'center',
     justifyContent: 'center',
@@ -536,6 +568,31 @@ const styles = StyleSheet.create({
   },
   fabIcon: {
     fontSize: 26,
+    position: 'absolute',
+    opacity: 0,
+  },
+  stateFabIcon: {
+    fontSize: 26,
+    position: 'absolute',
+  },
+  fabGif: {
+    width: FAB_SIZE + 72,
+    height: FAB_SIZE + 72,
+    borderRadius: FAB_SIZE / 2,
+  },
+  listeningGif: {
+    width: FAB_SIZE + 12,
+    height: FAB_SIZE + 12,
+    borderRadius: FAB_SIZE / 2,
+  },
+  speakingAnimationWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speakingAnimation: {
+    width: 36,
+    height: 36,
   },
   statusBubble: {
     position: 'absolute',
