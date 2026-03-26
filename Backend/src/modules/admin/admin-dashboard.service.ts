@@ -253,6 +253,23 @@ export const adminDashboardService = {
         }))
       ),
     ]);
+    
+    // Calculate full expense breakdown for export
+    const totalExpenseAmount = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const categories = ["FUEL", "TOLL", "PARKING", "SERVICE", "INSURANCE", "CHALLAN", "EMI", "OTHER"];
+    const breakdown: Record<string, number> = {};
+    
+    categories.forEach(cat => {
+      breakdown[cat.toLowerCase()] = expenses
+        .filter(e => e.category === cat)
+        .reduce((sum, e) => sum + (e.amount || 0), 0);
+    });
+
+    const expenseSummary = {
+      total: totalExpenseAmount,
+      breakdown,
+      currency: expenses[0]?.currency || "INR",
+    };
 
     // SUPPORT role: hide vehicles and devices but still show docs/expenses/tickets
     if (role === "SUPPORT") {
@@ -266,6 +283,7 @@ export const adminDashboardService = {
         supportTickets,
         expenses,
         documents,
+        expenseSummary,
       };
     }
 
@@ -274,6 +292,7 @@ export const adminDashboardService = {
       expenses,
       documents,
       supportTickets,
+      expenseSummary,
     };
   },
 
