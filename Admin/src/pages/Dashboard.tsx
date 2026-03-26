@@ -26,6 +26,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedRange, setSelectedRange] = useState(7);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const canSeeStats = hasRole('SUPER_ADMIN', 'ADMIN');
 
@@ -207,8 +212,8 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[320px] pt-4">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+            {isMounted && chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
                 <ComposedChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
                   <defs>
                     <linearGradient id="signupGradient" x1="0" y1="0" x2="0" y2="1">
@@ -416,6 +421,12 @@ function KPICard({
   subtext?: string;
   href: string;
 }) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const colorMap = {
     emerald: {
       cardBg: 'bg-[#0a0a0a]',
@@ -527,8 +538,9 @@ function KPICard({
           </div>
 
           {/* Bottom-right: sparkline chart — absolutely positioned so it can be as tall as needed */}
-          <div className="absolute right-[-8px] bottom-[-12px] w-[62%] h-[110px] opacity-90 pointer-events-none z-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="absolute right-[-8px] bottom-[-12px] w-[62%] h-[110px] opacity-90 pointer-events-none z-10 min-h-0 min-w-0">
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
               <AreaChart data={displayChartData} margin={{ top: 6, right: 8, bottom: 10, left: 4 }}>
                 <YAxis hide domain={[0, 'dataMax + 2']} padding={{ top: 16, bottom: 0 }} />
                 <defs>
@@ -549,6 +561,7 @@ function KPICard({
                 />
               </AreaChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
