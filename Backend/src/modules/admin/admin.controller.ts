@@ -62,7 +62,8 @@ export const adminController = {
 
   getOverviewStats: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
-    const data = await adminDashboardService.getOverviewStats(req.admin.role);
+    const days = req.query.days ? Number(req.query.days) : 7;
+    const data = await adminDashboardService.getOverviewStats(req.admin.role, days);
     success(res, data);
   }),
 

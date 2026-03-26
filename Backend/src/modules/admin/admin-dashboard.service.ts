@@ -308,23 +308,29 @@ export const adminDashboardService = {
   },
 
   /** Dashboard overview stats. Only SUPER_ADMIN and ADMIN. */
-  async getOverviewStats(role: AdminRole) {
+  async getOverviewStats(role: AdminRole, days: number = 7) {
     const empty = {
       customers: 0,
       vehicles: 0,
       totalExpenses: 0,
       expenseCount: 0,
       supportTicketsOpen: 0,
-      weeklyTrend: [] as { date: string; label: string; customers: number; expenseAmount: number }[],
+      unverifiedVehiclesCount: 0,
+      totalCustomersToday: 0,
+      recentHighExpenses: [] as any[],
+      trendData: [] as { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[],
       databaseAvailable: false as boolean,
     };
     if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
       return { ...empty, databaseAvailable: true };
     }
     const db = dbInstances as any;
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
     try {
       const expenseFallback = { _sum: { amount: 0 as number }, _count: 0 };
-      const [customers, vehicles, expenses, supportTicketsOpen, weeklyTrend] = await Promise.all([
+      const [customers, vehicles, expenses, supportTicketsOpen, trendData, unverifiedVehiclesCount, totalCustomersToday, recentHighExpenses] = await Promise.all([
         dbInstances.customer.count(),
         dbInstances.customerVehicle.count(),
         db.expense
@@ -333,7 +339,17 @@ export const adminDashboardService = {
         db.supportTicket
           ? db.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }).catch(() => 0)
           : Promise.resolve(0),
-        this.getWeeklyTrend(db),
+        this.getTrendData(db, days),
+        dbInstances.customerVehicle.count({ where: { rcVerified: false } }),
+        dbInstances.customer.count({ where: { createdAt: { gte: today } } }),
+        db.expense
+          ? db.expense.findMany({
+              where: { amount: { gt: 1000 } },
+              take: 3,
+              orderBy: { date: "desc" },
+              include: { customer: { select: { fullName: true } } },
+            }).catch(() => [])
+          : Promise.resolve([]),
       ]);
       return {
         customers,
@@ -341,7 +357,10 @@ export const adminDashboardService = {
         totalExpenses: (expenses as { _sum?: { amount?: number }; _count?: number })._sum?.amount ?? 0,
         expenseCount: (expenses as { _count?: number })._count ?? 0,
         supportTicketsOpen: Number(supportTicketsOpen),
-        weeklyTrend,
+        trendData,
+        unverifiedVehiclesCount,
+        totalCustomersToday,
+        recentHighExpenses,
         databaseAvailable: true,
       };
     } catch (err) {
@@ -350,30 +369,50 @@ export const adminDashboardService = {
     }
   },
 
-  /** Last 7 days: new customers and expense amount per day (UTC). */
-  async getWeeklyTrend(db: any): Promise<{ date: string; label: string; customers: number; expenseAmount: number }[]> {
+  /** Trend analysis for specified number of days: new customers, vehicles, expense amount, and tickets per day (UTC). */
+  async getTrendData(db: any, daysToFetch: number): Promise<{ date: string; label: string; customers: number; vehicles: number; expenseAmount: number; tickets: number }[]> {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const days: { dayStart: Date; dayEnd: Date; dateStr: string; label: string }[] = [];
-    for (let i = 6; i >= 0; i--) {
+    const periods: { dayStart: Date; dayEnd: Date; dateStr: string; label: string }[] = [];
+    
+    for (let i = daysToFetch - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
       const dayStart = new Date(d);
       const dayEnd = new Date(d);
       dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
       const dateStr = `${dayStart.getUTCFullYear()}-${String(dayStart.getUTCMonth() + 1).padStart(2, "0")}-${String(dayStart.getUTCDate()).padStart(2, "0")}`;
-      days.push({ dayStart, dayEnd, dateStr, label: dayLabels[dayStart.getUTCDay()] });
+      
+      // If fetching many days, use month + day for label (e.g. "Oct 12") instead of just weekday
+      let label = dayLabels[dayStart.getUTCDay()];
+      if (daysToFetch > 7) {
+        label = `${monthNames[dayStart.getUTCMonth()]} ${dayStart.getUTCDate()}`;
+      }
+      
+      periods.push({ dayStart, dayEnd, dateStr, label });
     }
     const results = await Promise.all(
-      days.map(async ({ dayStart, dayEnd, dateStr, label }) => {
-        const [custCount, expSum] = await Promise.all([
+      periods.map(async ({ dayStart, dayEnd, dateStr, label }) => {
+        const [custCount, vehicleCount, expSum, ticketCount] = await Promise.all([
           dbInstances.customer.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
+          dbInstances.customerVehicle.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
           db.expense
             ? db.expense.aggregate({ _sum: { amount: true }, where: { date: { gte: dayStart, lt: dayEnd } } }).then((r: { _sum?: { amount?: number } }) => r._sum?.amount ?? 0).catch(() => 0)
             : Promise.resolve(0),
+          db.supportTicket
+            ? db.supportTicket.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }).catch(() => 0)
+            : Promise.resolve(0),
         ]);
-        return { date: dateStr, label, customers: custCount, expenseAmount: Math.round((expSum as number) * 100) / 100 };
+        return { 
+          date: dateStr, 
+          label, 
+          customers: custCount, 
+          vehicles: vehicleCount,
+          expenseAmount: Math.round((expSum as number) * 100) / 100,
+          tickets: ticketCount
+        };
       })
     );
     return results;

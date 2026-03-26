@@ -1,8 +1,8 @@
 import { dbInstances } from "@repo/db-customer";
 import { AppError } from "../../utils/AppError";
-import type { 
-  CreateTicketDTO, 
-  AddMessageDTO 
+import type {
+  CreateTicketDTO,
+  AddMessageDTO
 } from "./support.types";
 
 export const supportService = {
@@ -60,8 +60,8 @@ export const supportService = {
 
     console.log(`[SupportService] addMessage ticketId=${ticketId} currentStatus=${ticket.status}`);
     if (ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') {
-       console.log(`[SupportService] Blocking message for ticketId=${ticketId} because status is ${ticket.status}`);
-       throw AppError.badRequest("Cannot reply to a closed or resolved ticket");
+      console.log(`[SupportService] Blocking message for ticketId=${ticketId} because status is ${ticket.status}`);
+      throw AppError.badRequest("Cannot reply to a closed or resolved ticket");
     }
 
     return await (dbInstances as any).ticketMessage.create({
@@ -197,7 +197,7 @@ export const supportService = {
       where: { id: customerId },
       include: {
         vehicles: {
-          include: { 
+          include: {
             documents: true,
             _count: { select: { serviceRecords: true } }
           }
@@ -219,29 +219,29 @@ export const supportService = {
     if (!customer) throw AppError.unauthorized();
 
     // --- Deep Data Analysis Logic ---
-    
+
     // 1. Expense Breakdown
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    const currentMonthExpenses = customer.expenses.filter((e: any) => 
+    const currentMonthExpenses = customer.expenses.filter((e: any) =>
       e.date.getMonth() === currentMonth && e.date.getFullYear() === currentYear
     );
-    const prevExpenses = customer.expenses.filter((e: any) => 
+    const prevExpenses = customer.expenses.filter((e: any) =>
       !(e.date.getMonth() === currentMonth && e.date.getFullYear() === currentYear)
     );
 
     const currentMonthTotal = currentMonthExpenses.reduce((sum: number, e: any) => sum + e.amount, 0);
-    const avgMonthlySpend = prevExpenses.length > 0 
-      ? prevExpenses.reduce((sum: number, e: any) => sum + e.amount, 0) / 3 
+    const avgMonthlySpend = prevExpenses.length > 0
+      ? prevExpenses.reduce((sum: number, e: any) => sum + e.amount, 0) / 3
       : currentMonthTotal;
 
     const topCategory = currentMonthExpenses.length > 0
       ? currentMonthExpenses.reduce((acc: any, e: any) => {
-          acc[e.category] = (acc[e.category] || 0) + e.amount;
-          return acc;
-        }, {})
+        acc[e.category] = (acc[e.category] || 0) + e.amount;
+        return acc;
+      }, {})
       : {};
     const mainCategory = Object.entries(topCategory).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A';
 
@@ -249,7 +249,7 @@ export const supportService = {
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-    const urgentDocs = customer.vehicles.flatMap((v: any) => 
+    const urgentDocs = customer.vehicles.flatMap((v: any) =>
       v.documents.filter((d: any) => d.expiryDate && new Date(d.expiryDate) <= thirtyDaysFromNow)
         .map((d: any) => ({ vehicle: v.registrationNumber, type: d.type, expiry: d.expiryDate }))
     );
@@ -258,7 +258,7 @@ export const supportService = {
     const sosReady = customer.emergencyContacts.length > 0;
 
     const firstName = customer.fullName?.split(' ')[0] || 'there';
-    
+
     // Calculate monthly fuel spend
     const fuelSpend = customer.expenses
       .filter((e: any) => e.category === 'FUEL')
@@ -309,7 +309,7 @@ export const supportService = {
         ]
       },
       'services_hub': {
-        message: sosReady 
+        message: sosReady
           ? "Your SOS profile is active and emergency contacts are verified. ✅ What else can I help you with?"
           : "⚠️ Important: You haven't added any emergency contacts yet. Your SOS feature works best when your trusted contacts are set up. Shall we fix that?",
         options: [
@@ -417,7 +417,7 @@ export const supportService = {
       const v = customer.vehicles.find((veh: any) => veh.id === vid);
       const rc = v.documents.find((d: any) => d.type === 'RC');
       return {
-        message: rc 
+        message: rc
           ? `Your RC for ${v.registrationNumber} was successfully uploaded. Everything looks good! ✅`
           : "No RC document found for this vehicle. Would you like to upload it now?",
         options: [

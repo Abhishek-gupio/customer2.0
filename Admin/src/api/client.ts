@@ -60,16 +60,19 @@ export const adminApi = {
       { method: 'POST', body: JSON.stringify(data) }
     ),
   me: () => api<{ admin: { id: string; email: string; role: string } }>('/v1/admin/me'),
-  stats: () =>
+  stats: (days: number = 7) =>
     api<{
       customers: number;
       vehicles: number;
       totalExpenses: number;
       expenseCount: number;
       supportTicketsOpen: number;
-      weeklyTrend?: { date: string; label: string; customers: number; expenseAmount: number }[];
+      unverifiedVehiclesCount: number;
+      totalCustomersToday: number;
+      recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+      trendData?: { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[];
       databaseAvailable?: boolean;
-    }>('/v1/admin/stats'),
+    }>(`/v1/admin/stats?days=${days}`),
   listCustomers: (params?: { page?: number; limit?: number; search?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
