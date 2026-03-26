@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
+import { dbInstances } from "@repo/db-customer";
 import { adminService } from "./admin.service";
 import { adminDashboardService } from "./admin-dashboard.service";
 import { adminLoginSchema } from "./admin.validators";
@@ -23,6 +24,13 @@ export const adminController = {
     const body = parseBody(req, adminLoginSchema);
     const data = await adminService.login(body);
     success(res, data, 200);
+  }),
+
+  signup: asyncHandler(async (req: Request, res: Response) => {
+    const { email, password, name, role } = req.body;
+    if (!email || !password) throw AppError.badRequest("Email and password required");
+    const data = await adminService.createAdmin({ email, password, name, role });
+    success(res, data, 201);
   }),
 
   me: asyncHandler(async (req: Request, res: Response) => {
@@ -54,7 +62,8 @@ export const adminController = {
 
   getOverviewStats: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
-    const data = await adminDashboardService.getOverviewStats(req.admin.role);
+    const days = req.query.days ? Number(req.query.days) : 7;
+    const data = await adminDashboardService.getOverviewStats(req.admin.role, days);
     success(res, data);
   }),
 
@@ -84,5 +93,50 @@ export const adminController = {
       role: req.admin.role,
     });
     success(res, data);
+  }),
+
+  addTicketMessage: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const ticketId = req.params.id;
+    const { content } = req.body;
+    if (!content) throw AppError.badRequest("Content is required");
+
+    // We can use supportService directly for now if we import it
+    const { supportService } = require("../support/support.service");
+    const data = await supportService.addAdminMessage(req.admin.id, ticketId, content);
+    success(res, data, 201);
+  }),
+
+  updateTicketStatus: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const ticketId = req.params.id;
+    const { status } = req.body;
+    if (!status) throw AppError.badRequest("Status is required");
+
+    const { supportService } = require("../support/support.service");
+    const data = await supportService.updateTicketStatus(ticketId, status);
+    success(res, data);
+  }),
+
+  getTicketMessages: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const ticketId = req.params.id;
+
+    const messages = await (dbInstances as any).ticketMessage.findMany({
+      where: { ticketId },
+      orderBy: { createdAt: 'asc' }
+    });
+    success(res, messages);
+  }),
+
+  downloadDocument: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const documentId = req.params.id as string;
+    const { buffer, mimeType, filename } = await adminDashboardService.downloadDocument(documentId);
+    
+    const finalMime = (Array.isArray(mimeType) ? mimeType[0] : mimeType) || "application/octet-stream";
+    res.setHeader("Content-Type", String(finalMime));
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }),
 };

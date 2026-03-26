@@ -14,3 +14,7 @@ export const addMessageSchema = z.object({
 export const getTicketSchema = z.object({
   ticketId: z.string().min(1),
 });
+
+export const updateTicketStatusSchema = z.object({
+  status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']),
+});

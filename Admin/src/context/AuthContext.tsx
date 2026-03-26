@@ -18,6 +18,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState & {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signup: (data: { email: string; password: string; name?: string; role?: string }) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   hasRole: (...roles: AdminRole[]) => boolean;
 } | null>(null);
@@ -82,8 +83,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return state.admin ? roles.includes(state.admin.role) : false;
   }, [state.admin]);
 
+  const signup = useCallback(async (data: { email: string; password: string; name?: string; role?: string }) => {
+    const res = await adminApi.signup(data);
+    if (!res.success) {
+      return { ok: false, error: res.error.message };
+    }
+    return { ok: true };
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>
+    <AuthContext.Provider value={{ ...state, login, signup, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -90,13 +90,13 @@ export default function TicketDetail() {
         </View>
       </View>
 
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={hp(10)}
       >
-        <ScrollView 
-          style={styles.content} 
+        <ScrollView
+          style={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -120,7 +120,7 @@ export default function TicketDetail() {
 
           {/* Conversation History */}
           <Text style={styles.sectionTitle}>CONVERSATION HISTORY</Text>
-          
+
           {(ticket.messages || []).map((msg: any) => {
             const isAgent = msg.senderRole === 'AGENT';
             return (
@@ -166,8 +166,8 @@ export default function TicketDetail() {
               onChangeText={setReply}
             />
           </View>
-          <TouchableOpacity 
-            style={[styles.sendBtn, !reply.trim() && styles.sendBtnDisabled]} 
+          <TouchableOpacity
+            style={[styles.sendBtn, !reply.trim() && styles.sendBtnDisabled]}
             onPress={handleSendReply}
             disabled={sending || !reply.trim()}
           >
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     marginTop: hp(0.2),
   },
   content: { flex: 1, paddingHorizontal: wp(4), paddingTop: hp(2) },
-  
+
   ticketCard: {
     backgroundColor: '#121212',
     borderRadius: wp(5),
@@ -257,16 +257,16 @@ const styles = StyleSheet.create({
   ticketDate: { fontSize: wp(3), color: '#444', flex: 1, textAlign: 'right' },
   ticketSubject: { fontSize: wp(4.5), fontWeight: '800', color: '#fff', marginBottom: hp(1.5), lineHeight: wp(6) },
   ticketDescription: { fontSize: wp(3.5), color: '#888', lineHeight: wp(5.5) },
-  
+
   sectionTitle: { fontSize: wp(3), fontWeight: '800', color: '#222', letterSpacing: 1, marginBottom: hp(2), textAlign: 'center' },
-  
+
   msgContainer: { marginBottom: hp(2), width: '100%' },
   agentMsgAlign: { alignItems: 'flex-start' },
   customerMsgAlign: { alignItems: 'flex-end' },
   msgCard: { maxWidth: '85%', padding: wp(4), borderRadius: wp(4) },
   agentMsgCard: { backgroundColor: '#121212', borderWidth: 1, borderColor: '#1a1a1a' },
   customerMsgCard: { backgroundColor: '#161616', borderBottomRightRadius: wp(1) },
-  
+
   agentInfo: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(1.5) },
   avatarWrap: {
     width: wp(8),
@@ -281,12 +281,12 @@ const styles = StyleSheet.create({
   },
   agentName: { fontSize: wp(3.2), fontWeight: '800', color: '#4CAF50' },
   msgTime: { fontSize: wp(2.6), color: '#444', marginTop: hp(0.2) },
-  
+
   msgContent: { fontSize: wp(3.8), lineHeight: wp(5.5) },
   agentMsgContent: { color: '#ccc' },
   customerMsgContent: { color: '#fff' },
   customerMsgTime: { fontSize: wp(2.5), color: '#444', marginTop: hp(1), textAlign: 'right' },
-  
+
   replyArea: { padding: wp(5), backgroundColor: '#000000', borderTopWidth: 1, borderTopColor: '#111' },
   replyLabel: { fontSize: wp(3.5), fontWeight: '800', color: '#444', marginBottom: hp(1.5) },
   inputWrap: {
