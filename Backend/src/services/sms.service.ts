@@ -194,6 +194,10 @@ export class SMTPSMSService implements SMSService {
 
   async sendSMS(to: string, message: string): Promise<boolean> {
     try {
+      if (!to || !to.includes("@")) {
+        console.error("❌ SMTP Error: Recipient is not a valid email address:", to);
+        return false;
+      }
       const info = await this.transporter.sendMail({
         from: `"${process.env.SMTP_FROM_NAME || "GUPIO SOS"}" <${process.env.SMTP_USER}>`,
         to, // Can be email or email-to-sms gateway address
