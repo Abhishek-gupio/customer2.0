@@ -5,11 +5,14 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
   : undefined;
 
+let isInitialized = false;
+
 if (serviceAccount || process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   try {
     admin.initializeApp({
       credential: serviceAccount ? admin.credential.cert(serviceAccount) : admin.credential.applicationDefault(),
     });
+    isInitialized = true;
     logger.info("Firebase Admin initialized successfully.");
   } catch (error) {
     logger.error({ error }, "Failed to initialize Firebase Admin");
@@ -18,4 +21,7 @@ if (serviceAccount || process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   logger.warn("Firebase credentials missing (FIREBASE_SERVICE_ACCOUNT_JSON). Push notifications via FCM will be disabled.");
 }
 
-export const messaging = admin.messaging();
+export const getMessaging = () => {
+  if (!isInitialized) return null;
+  return admin.messaging();
+};
