@@ -26,7 +26,12 @@ import { vehicleService, type Vehicle } from '../../services/vehicleService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decodePolyline } from '../../utils/polyline';
 import LinearGradient from 'react-native-linear-gradient';
-import { Clock, HeartPulse, Zap, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Share2, Maximize2, X, MapPin, Navigation, List } from 'lucide-react-native';
+import { Clock, HeartPulse, Zap, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Share2, Maximize2, X, MapPin, Navigation, List, Sparkles, History } from 'lucide-react-native';
+import TripPlannerFlow from './TripPlannerFlow';
+import { loadPlanningState } from '../../services/tripPlannerPersistence';
+import { PlanningState } from './tripPlannerTypes';
+import TripHistoryModal from './components/TripHistoryModal';
+import { HistoryEntry } from '../../services/tripHistoryTypes';
 
 // ─── Colors (matching app dark theme) ────────────────────────────────────────
 const C = {
@@ -116,6 +121,15 @@ export default function TripExpenseScreen() {
   const [showTraffic, setShowTraffic] = useState(true);
   const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
+  const [isPlanningMode, setIsPlanningMode] = useState(false);
+  const [isHistoryMode, setIsHistoryMode] = useState(false);
+  const [planningData, setPlanningData] = useState<PlanningState | null>(null);
+  const [requestedPlanningStep, setRequestedPlanningStep] = useState<number | undefined>(undefined);
+
+  const tripId = useMemo(() => {
+    if (!from || !to) return undefined;
+    return `${from.trim()}_${to.trim()}`.replace(/\s+/g, '_').toLowerCase();
+  }, [from, to]);
 
   useEffect(() => {
     const loadCachedData = async () => {
@@ -140,7 +154,21 @@ export default function TripExpenseScreen() {
       }
     };
     loadCachedData();
+  }, []);
 
+  useEffect(() => {
+    const fetchPlanningData = async () => {
+      try {
+        const data = await loadPlanningState(tripId);
+        setPlanningData(data);
+      } catch (e) {
+        console.warn('Failed to load planning data', e);
+      }
+    };
+    fetchPlanningData();
+  }, [tripId]);
+
+  useEffect(() => {
     const fetchVehicle = async () => {
       try {
         const vehicles = await vehicleService.getVehicles();
@@ -500,7 +528,21 @@ export default function TripExpenseScreen() {
     }
   };
 
+  const handleSelectHistoryTrip = (entry: HistoryEntry) => {
+    setFrom(entry.from);
+    setTo(entry.to);
+    setResult(entry.tripResult);
+    setPlanningData(entry.planning);
+    setIsHistoryMode(false);
+    
+    // Automatically open the planner at step 2 (Summary)
+    setRequestedPlanningStep(2);
+    setIsPlanningMode(true);
 
+    if (entry.tripResult.routes?.[0]?.polyline) {
+      setSelectedRouteIdx(0);
+    }
+  };
 
   return (
     <View style={s.container}>
@@ -514,7 +556,12 @@ export default function TripExpenseScreen() {
           </TouchableOpacity>
           <Text style={[s.headerTitle, { marginLeft: 8 }]}>Trip Planner</Text>
         </View>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity 
+          onPress={() => setIsHistoryMode(true)} 
+          style={s.historyButton}
+        >
+          <History size={24} color={C.accent} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -1113,23 +1160,82 @@ export default function TripExpenseScreen() {
                 </View>
               </>
             )}
-          </>
-        )}
 
-        {/* No results */}
-        {result && result.routes.length === 0 && !error && (
-          <View style={s.card}>
-            <Text style={[s.cardTitle, { textAlign: 'center' }]}>
-              No routes found
-            </Text>
-            <Text style={[s.cardSubtitle, { textAlign: 'center' }]}>
-              Try different locations or check the spelling
-            </Text>
-          </View>
+            {result && !error && (
+              <TouchableOpacity 
+                style={s.planningCtaCard}
+                onPress={() => setIsPlanningMode(true)}
+                activeOpacity={0.9}
+              >
+                <LinearGradient
+                  colors={planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) 
+                    ? ['rgba(50, 215, 75, 0.15)', 'rgba(50, 215, 75, 0.05)']
+                    : ['rgba(255, 215, 0, 0.15)', 'rgba(255, 159, 10, 0.05)']}
+                  style={s.planningCtaInner}
+                >
+                  <View style={[s.iconCircle, planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) && { backgroundColor: 'rgba(50, 215, 75, 0.1)' }]}>
+                    {planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) ? (
+                      <CheckCircle2 size={20} color={C.green} />
+                    ) : (
+                      <Sparkles size={20} color={C.accent} />
+                    )}
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={s.planningCtaTitle}>
+                      {planningData && (planningData.selectedHotelId || (planningData.selectedActivities && planningData.selectedActivities.length > 0))
+                        ? 'Your Trip Itinerary is Ready!'
+                        : 'Complete Your Itinerary'}
+                    </Text>
+                    <Text style={s.planningCtaSub}>
+                      {planningData && (planningData.selectedHotelId || (planningData.selectedActivities && planningData.selectedActivities.length > 0))
+                        ? `Planned: ${planningData.selectedHotelId ? '1 Hotel, ' : ''}${planningData.selectedActivities?.length || 0} Activities`
+                        : 'Plan stays, activities, and daily schedules for your destination.'}
+                    </Text>
+                  </View>
+                  <View style={[s.planningCtaBadge, planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) && { backgroundColor: C.green }]}>
+                    <Text style={s.planningCtaBadgeText}>
+                      {planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) ? 'READY' : 'NEW'}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          </>
         )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Trip Planning Flow Overlay */}
+      {isPlanningMode && (
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={isPlanningMode}
+          onRequestClose={() => setIsPlanningMode(false)}
+        >
+          <TripPlannerFlow 
+            tripId={tripId}
+            tripResult={result}
+            from={result?.from || ''}
+            to={result?.to || ''}
+            initialStep={requestedPlanningStep}
+            onClose={async () => {
+              setIsPlanningMode(false);
+              setRequestedPlanningStep(undefined);
+              const data = await loadPlanningState(tripId);
+              setPlanningData(data);
+            }} 
+          />
+        </Modal>
+      )}
+
+      {/* Trip History Modal */}
+      <TripHistoryModal 
+        isVisible={isHistoryMode} 
+        onClose={() => setIsHistoryMode(false)}
+        onSelectTrip={handleSelectHistoryTrip}
+      />
     </View>
   );
 }
@@ -1397,6 +1503,49 @@ const s = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  // Planning CTA
+  planningCtaCard: {
+    marginTop: hp(2),
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+  },
+  planningCtaInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: wp(4.5),
+  },
+  planningCtaTitle: {
+    color: '#FFF',
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+  },
+  planningCtaSub: {
+    color: C.textSecondary,
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Medium',
+    marginTop: 2,
+  },
+  planningCtaBadge: {
+    backgroundColor: C.accent,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  planningCtaBadgeText: {
+    fontSize: wp(2),
+    fontFamily: 'Outfit-Black',
+    color: '#000',
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   calcBtnContent: {
     flexDirection: 'row',
@@ -2120,5 +2269,10 @@ const s = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Outfit-Bold',
+  },
+  historyButton: {
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
   },
 });

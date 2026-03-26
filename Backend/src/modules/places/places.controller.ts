@@ -11,6 +11,12 @@ const VALID_TYPES: NearbyPlaceType[] = [
   "car_repair",
   "parking",
   "lodging",
+  "tourist_attraction",
+  "park",
+  "museum",
+  "restaurant",
+  "car_rental",
+  "bicycle_store",
 ];
 
 export const placesController = {

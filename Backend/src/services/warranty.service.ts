@@ -13,7 +13,7 @@ const db = dbInstances;
  * - Predict when parts need replacement based on driving patterns
  */
 
-import { suggestIntervalsFromAI, saveSuggestedIntervals } from "./oem-interval.service";
+import { fetchAndSaveIntervalsForVehicle } from "./oem-scraper.service";
 
 export interface CreateServiceRecordInput {
   vehicleId: string;
@@ -138,24 +138,37 @@ async function getLifecycleForVehiclePart(
     });
 
     if (matches.length === 0) {
-      // Trigger AI suggestion on-the-fly if no matching intervals found
-      logger.info({ vehicleId, make, model, partType }, "No DB intervals found, requesting AI suggestion");
-      const suggested = await suggestIntervalsFromAI(make || "Generic", model || "Vehicle", year || null);
-      if (suggested.length > 0) {
-        await saveSuggestedIntervals(make || "Generic", model || "Vehicle", year, suggested);
-        // Retry fetch after save
-        rows = await db.partReplacementInterval.findMany({
-          where: { partType: partTypeForDb },
-        });
-        // Filter again with new rows
-        const newMatches = rows.filter((r: any) => {
-          if (r.make === "DEFAULT") return true;
-          if (!make) return r.make === "Generic";
-          if (r.make.toLowerCase() !== make.toLowerCase()) return false;
-          return true;
-        });
-        if (newMatches.length > 0) {
-          matches.push(...newMatches);
+      // Check if we already have ANY intervals for this make/model (excluding DEFAULT)
+      // to avoid calling AI repeatedly for part types that AI doesn't know about.
+      const existingForVehicle = make ? await db.partReplacementInterval.findFirst({
+        where: {
+          make: { equals: make, mode: "insensitive" },
+          model: model ? { equals: model, mode: "insensitive" } : undefined,
+        },
+      }) : null;
+
+      if (existingForVehicle) {
+        logger.debug({ vehicleId, make, model, partType }, "Some intervals already exist for vehicle, skipping redundant fetch for missing part type");
+      } else {
+        // Trigger OEM/AI fetch on-the-fly if no matching intervals found at all for this vehicle
+        logger.info({ vehicleId, make, model, partType }, "No DB intervals found for this vehicle, triggering OEM/AI fetch");
+        const fetchResult = await fetchAndSaveIntervalsForVehicle(vehicleId);
+        
+        if (fetchResult.saved > 0) {
+          // Retry fetch after save
+          rows = await db.partReplacementInterval.findMany({
+            where: { partType: partTypeForDb },
+          });
+          // Filter again with new rows
+          const newMatches = rows.filter((r: any) => {
+            if (r.make === "DEFAULT") return true;
+            if (!make) return r.make === "Generic";
+            if (r.make.toLowerCase() !== make.toLowerCase()) return false;
+            return true;
+          });
+          if (newMatches.length > 0) {
+            matches.push(...newMatches);
+          }
         }
       }
     }

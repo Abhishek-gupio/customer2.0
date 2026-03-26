@@ -242,8 +242,22 @@ export async function fetchAndSaveIntervalsForVehicle(
   const cacheKey = `${makeKey}:${(model || "").toLowerCase()}`;
   const lastFetch = cache.get(cacheKey);
   if (lastFetch != null && Date.now() - lastFetch < CACHE_TTL_MS) {
-    logger.debug({ cacheKey, vehicleId }, "OEM interval fetch skipped (cache)");
+    logger.debug({ cacheKey, vehicleId }, "OEM interval fetch skipped (memory cache)");
     return { saved: 0, source: "CACHE" };
+  }
+
+  // Check DB before external fetch to reuse across vehicles
+  const existingInDb = await db.partReplacementInterval.findFirst({
+    where: {
+      make: { equals: make, mode: "insensitive" },
+      model: model ? { equals: model, mode: "insensitive" } : undefined,
+    },
+  });
+
+  if (existingInDb) {
+    logger.info({ make, model, vehicleId }, "OEM intervals already exist in DB, reusing");
+    cache.set(cacheKey, Date.now());
+    return { saved: 0, source: "DB" };
   }
 
   const fetchWithRetries = async <T>(
@@ -367,7 +381,7 @@ async function parsePdfIntervals(pdfBuffer: Buffer): Promise<SuggestedInterval[]
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = `
 From this vehicle manual / service schedule text, extract maintenance intervals.
-Return a JSON array. Each object: { "partType": "ENGINE_OIL" | "OIL_FILTER" | "AIR_FILTER" | "BRAKE_PADS" | "COOLANT" | "SPARK_PLUGS" | "AC_FILTER" | "OTHER_PART", "intervalKm": number, "intervalMonths": number }.
+Return a JSON array. Each object: { "partType": "ENGINE_OIL" | "OIL_FILTER" | "AIR_FILTER" | "BRAKE_PADS" | "BRAKE_DISCS" | "BATTERY" | "TYRES_FRONT" | "TYRES_REAR" | "CLUTCH_PLATE" | "SPARK_PLUGS" | "COOLANT" | "TIMING_BELT" | "AC_FILTER" | "WIPER_BLADES" | "HEADLIGHT_BULB" | "OTHER_PART", "intervalKm": number, "intervalMonths": number }.
 Use partType only from the list. intervalKm in km (e.g. 10000), intervalMonths in months (e.g. 6 or 12).
 Return ONLY the JSON array, no markdown.
 

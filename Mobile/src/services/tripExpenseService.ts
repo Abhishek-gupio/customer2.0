@@ -87,4 +87,21 @@ export const tripExpenseService = {
     );
     return (res as any)?.data ?? res;
   },
+
+  async saveTrip(payload: any): Promise<any> {
+    const res = await api.post(
+      '/v1/trip-expense/save',
+      payload
+    );
+    return (res as any)?.data ?? res;
+  },
+
+  async getHistory(): Promise<any[]> {
+    const res = await api.get('/v1/trip-expense/history');
+    return (res as any)?.data ?? res ?? [];
+  },
+
+  async deleteTrip(tripId: string): Promise<void> {
+    await api.delete(`/v1/trip-expense/history/${tripId}`);
+  },
 };
