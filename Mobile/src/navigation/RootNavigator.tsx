@@ -20,6 +20,7 @@ import ContactSupport from '../screens/Profile/ContactSupport';
 import TicketHistory from '../screens/Profile/TicketHistory';
 import TicketDetail from '../screens/Profile/TicketDetail';
 import Settings from '../screens/Profile/Settings';
+import DigiLockerKYC from '../screens/Documents/DigiLockerKYC';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
 // NOTE: VehicleDetails and AddVehicle are self-contained inside GupioGarageApp.
 // Do not register them as separate stack screens — all vehicle navigation is
@@ -42,6 +43,7 @@ import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
 import ValetService from '../screens/Main/ValetService';
 import VehicleSearch from '../screens/Main/VehicleSearch';
+import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
 import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -74,6 +76,7 @@ export function RootNavigator() {
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
       <Stack.Screen name="DocumentList" component={DocumentList} />
+      <Stack.Screen name="DigiLockerKYC" component={DigiLockerKYC} />
       <Stack.Screen name="Valet" component={ValetService} />
 
       {/* All vehicle screens are handled internally by GupioGarageApp */}
@@ -106,6 +109,7 @@ export function RootNavigator() {
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
+      <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
     </Stack.Navigator>
   );
 }

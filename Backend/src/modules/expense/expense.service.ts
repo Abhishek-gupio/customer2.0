@@ -161,7 +161,10 @@ export const expenseService = {
       }),
       db.expense.count({ where }),
     ]);
-    return { items, total, page, limit };
+    // Backward-compatible shape for mobile clients:
+    // - Older app expects `expenses` array in various nesting locations.
+    // - Newer API can still use `items`/pagination if needed.
+    return { expenses: items, items, total, page, limit };
   },
 
   async parseReceiptImage(customerId: string, file: Express.Multer.File, dryRun: boolean) {

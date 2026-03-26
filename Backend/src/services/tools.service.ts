@@ -13,8 +13,62 @@ import {
 } from "./oem-interval.service";
 import { customerService } from "../modules/customer/customer.service";
 import { notificationService } from "./notification.service";
+import { challanService } from "./challan.service";
+import { telematicsService } from "./telematics.service";
+import { vehicleService } from "../modules/vehicle/vehicle.service";
+import { addVehicleSchema } from "../modules/vehicle/vehicle.validators";
+import { tripExpenseService } from "../modules/trip-expense/trip-expense.service";
 
 const db = dbInstances as any;
+
+async function resolveVehicleForTools(
+  customerId: string,
+  vehicleId?: string,
+  registrationNumber?: string,
+): Promise<{
+  id: string;
+  registrationNumber: string;
+  make: string | null;
+  model: string | null;
+} | null> {
+  if (vehicleId?.trim()) {
+    try {
+      const v = await vehicleService.getVehicle(customerId, vehicleId.trim());
+      return {
+        id: v.id,
+        registrationNumber: v.registrationNumber,
+        make: v.make ?? null,
+        model: v.model ?? null,
+      };
+    } catch {
+      return null;
+    }
+  }
+  if (registrationNumber?.trim()) {
+    const clean = registrationNumber.replace(/\s/g, "");
+    const v = await db.customerVehicle.findFirst({
+      where: {
+        isActive: true,
+        registrationNumber: { contains: clean, mode: "insensitive" },
+        OR: [{ customerId }, { accessList: { some: { customerId } } }],
+      },
+      select: { id: true, registrationNumber: true, make: true, model: true },
+    });
+    return v;
+  }
+  return null;
+}
+
+async function defaultGarageVehicleForTools(customerId: string) {
+  return db.customerVehicle.findFirst({
+    where: {
+      isActive: true,
+      OR: [{ customerId }, { accessList: { some: { customerId } } }],
+    },
+    orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
+    select: { id: true, registrationNumber: true, make: true, model: true },
+  });
+}
 
 /**
  * Registry of safe tools the AI can call.
@@ -187,25 +241,33 @@ export const toolRegistry = {
    */
   get_vehicle_status: {
     name: "get_vehicle_status",
-    description: "Get status, odometer, and health of a specific vehicle",
+    description:
+      "Get odometer, fuel type, and health score for one vehicle or all vehicles in the garage. Use when user asks about a specific car, 'my primary vehicle', or wants a health/odometer snapshot (pairs well after list_my_vehicles for 'my garage').",
     parameters: {
       vehicleId: "string (optional, usually inferred from context)", // If null, fetches all
       registrationNumber: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
-      const where: any = { customerId, isActive: true };
-
-      if (args.vehicleId) {
-        where.id = args.vehicleId;
-      } else if (args.registrationNumber) {
-        where.registrationNumber = {
-          contains: args.registrationNumber.replace(/\s/g, ""),
-          mode: "insensitive",
-        };
-      }
+      const accessOr = {
+        OR: [
+          { customerId, isActive: true },
+          { accessList: { some: { customerId } }, isActive: true },
+        ],
+      };
 
       const vehicles = await db.customerVehicle.findMany({
-        where,
+        where:
+          args.vehicleId
+            ? { id: args.vehicleId, ...accessOr }
+            : args.registrationNumber
+              ? {
+                  registrationNumber: {
+                    contains: args.registrationNumber.replace(/\s/g, ""),
+                    mode: "insensitive",
+                  },
+                  ...accessOr,
+                }
+              : accessOr,
         select: {
           id: true,
           make: true,
@@ -215,16 +277,18 @@ export const toolRegistry = {
           fuelType: true,
           healthScore: { select: { overallScore: true } },
         },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
       });
 
       if (vehicles.length === 0)
-        return { message: "No active vehicles found." };
+        return { message: "No active vehicles found in your garage (including shared access)." };
 
       return {
         success: true,
         vehicles: vehicles.map((v: any) => ({
           name: `${v.make} ${v.model} (${v.registrationNumber})`,
-          odometer: `${v.currentOdometer} km`,
+          odometer:
+            typeof v.currentOdometer === "number" ? `${v.currentOdometer} km` : "—",
           fuel: v.fuelType,
           health: v.healthScore
             ? `${v.healthScore.overallScore}%`
@@ -481,16 +545,28 @@ export const toolRegistry = {
   get_document_status: {
     name: "get_document_status",
     description:
-      "Check status and expiry of vehicle documents (RC, Insurance, PUC)",
+      "Check status and expiry of vehicle documents (RC, Insurance, PUC). Includes shared vehicles (accessList) as well as owned vehicles.",
     parameters: {
       vehicleId: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
+      const accessOr = {
+        OR: [{ customerId, isActive: true }, { accessList: { some: { customerId } }, isActive: true }],
+      };
+
+      const where: any = {
+        OR: [
+          // Owner: docs stored with customerId
+          { customerId },
+          // Shared: docs are linked to a vehicle the customer can access
+          { vehicle: { accessList: { some: { customerId } } } },
+        ],
+      };
+
+      if (args.vehicleId) where.vehicleId = args.vehicleId;
+
       const docs = await db.vehicleDocument.findMany({
-        where: {
-          customerId,
-          vehicleId: args.vehicleId || undefined,
-        },
+        where,
         select: {
           type: true,
           expiryDate: true,
@@ -499,7 +575,51 @@ export const toolRegistry = {
         },
       });
 
-      if (docs.length === 0) return { message: "No verified documents found." };
+      // Fallback: if no VehicleDocument rows exist, try expiry fields stored directly on CustomerVehicle
+      // (these are shown in the app under Garage → Details → More).
+      if (docs.length === 0) {
+        const vehicleId =
+          typeof args.vehicleId === "string" && args.vehicleId.trim()
+            ? args.vehicleId.trim()
+            : null;
+
+        const v = await db.customerVehicle.findFirst({
+          where: vehicleId ? { id: vehicleId, ...accessOr } : accessOr,
+          orderBy: vehicleId ? undefined : [{ isPrimary: "desc" }, { createdAt: "desc" }],
+          select: {
+            id: true,
+            make: true,
+            model: true,
+            registrationNumber: true,
+            insuranceUpto: true,
+            pollutionUpto: true,
+            fitnessUpto: true,
+            rcStatus: true,
+          },
+        });
+
+        if (!v) return { success: false, error: "Vehicle not found or you do not have access." };
+
+        const fmt = (d: any) => {
+          const dt = d ? new Date(d) : null;
+          return dt && !isNaN(dt.getTime()) ? dt.toLocaleDateString("en-IN") : null;
+        };
+
+        const documents = [
+          { type: "INSURANCE", expiry: fmt(v.insuranceUpto), status: v.insuranceUpto ? "Valid" : "Unknown", vehicle: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber },
+          { type: "PUC", expiry: fmt(v.pollutionUpto), status: v.pollutionUpto ? "Valid" : "Unknown", vehicle: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber },
+          { type: "FITNESS", expiry: fmt(v.fitnessUpto), status: v.fitnessUpto ? "Valid" : "Unknown", vehicle: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber },
+        ];
+
+        return {
+          success: true,
+          source: "CUSTOMER_VEHICLE_FIELDS",
+          vehicle: { id: v.id, registrationNumber: v.registrationNumber, make: v.make, model: v.model, rcStatus: v.rcStatus ?? null },
+          documents,
+          message:
+            "I couldn't find uploaded document records, but I found expiry dates saved on your vehicle profile (Garage → Details → More).",
+        };
+      }
 
       const now = new Date();
       const status = docs.map((d: any) => {
@@ -671,6 +791,43 @@ export const toolRegistry = {
   },
 
   /**
+   * Tool: get_current_trip_info
+   * Use when user asks "How much is the next toll?", "Show my trip budget", "Tell me about my journey"
+   */
+  get_current_trip_info: {
+    name: "get_current_trip_info",
+    description: "Get details of the user's most recently calculated trip (origin, destination, total costs, tolls, weather).",
+    parameters: {},
+    execute: async (customerId: string) => {
+      const trip = await tripExpenseService.getLatestTrip(customerId);
+      if (!trip) {
+        return { success: false, message: "No active or saved trip found. You can plan one in the Trip Expense screen." };
+      }
+
+      const activeRoute = trip.cheapestRoute || trip.fastestRoute || trip.routes?.[0];
+      if (!activeRoute) {
+        return { success: false, message: "No route data found for the recent trip." };
+      }
+
+      return {
+        success: true,
+        origin: trip.from,
+        destination: trip.to,
+        vehicleType: trip.vehicleType,
+        fuelType: trip.fuelType,
+        totalCost: `₹${activeRoute.costs.total}`,
+        fuelCost: `₹${activeRoute.costs.fuel}`,
+        tollCost: `₹${activeRoute.costs.tollFastag}`,
+        distance: activeRoute.distance.text,
+        duration: activeRoute.duration.text,
+        nextTolls: activeRoute.tolls.slice(0, 3).map(t => `${t.name} (₹${t.tagCost})`),
+        weather: trip.weather ? `${trip.weather.temp}°C, ${trip.weather.condition}` : "Clear conditions expected",
+        message: `Your trip from ${trip.from} to ${trip.to} for a ${trip.vehicleType} has an estimated cost of ₹${activeRoute.costs.total}.`,
+      };
+    },
+  },
+
+  /**
    * Tool: mark_notification_read
    * Use when user says "mark that as read", "dismiss notification", or "clear that alert".
    */
@@ -701,22 +858,38 @@ export const toolRegistry = {
   list_my_vehicles: {
     name: "list_my_vehicles",
     description:
-      "List all vehicles linked to the user's account (make, model, registration). Use when they ask 'what vehicles do I have', 'list my cars', 'which vehicles'.",
+      "List the user's full garage / fleet: every saved vehicle in the app (same as the 'My Garage' screen). Use for: 'my garage', 'what's in my garage', 'show my garage', 'list my cars', 'how many vehicles', 'which cars do I own', 'all my vehicles'. Returns make, model, reg number, primary flag, odometer, health, fuel type, body type.",
     parameters: {},
     execute: async (customerId: string) => {
       const vehicles = await db.customerVehicle.findMany({
-        where: { customerId, isActive: true },
+        where: {
+          OR: [
+            { customerId, isActive: true },
+            { accessList: { some: { customerId } }, isActive: true },
+          ],
+        },
         select: {
           id: true,
+          customerId: true,
           make: true,
           model: true,
           manufacturingMonthYear: true,
           registrationNumber: true,
           isPrimary: true,
+          vehicleType: true,
+          fuelType: true,
+          color: true,
+          currentOdometer: true,
+          healthScore: { select: { overallScore: true } },
         },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
       });
       if (vehicles.length === 0) {
-        return { success: true, message: "No vehicles added yet.", vehicles: [] };
+        return {
+          success: true,
+          message: "No vehicles in your garage yet. They can add one from the My Garage screen.",
+          vehicles: [],
+        };
       }
       return {
         success: true,
@@ -729,11 +902,25 @@ export const toolRegistry = {
               if (!isNaN(parsedYear)) vYear = parsedYear;
           }
 
+          const odo =
+            typeof v.currentOdometer === "number" ? `${v.currentOdometer} km` : "—";
+          const health =
+            v.healthScore?.overallScore != null
+              ? `${v.healthScore.overallScore}%`
+              : "not calculated";
+
           return {
             id: v.id,
             name: `${v.make || ""} ${v.model || ""}${v.manufacturingMonthYear ? ` (${v.manufacturingMonthYear})` : ""}`.trim(),
             registrationNumber: v.registrationNumber,
             isPrimary: v.isPrimary ?? false,
+            isOwner: v.customerId === customerId,
+            vehicleType: v.vehicleType || null,
+            fuelType: v.fuelType || null,
+            color: v.color || null,
+            odometer: odo,
+            healthScore: health,
+            yearHint: vYear,
           };
         }),
       };
@@ -941,6 +1128,457 @@ export const toolRegistry = {
         success: true,
         message: `I've prepared your ${args.period || "monthly"} expense report in ${args.format || "PDF"} format. You can download it from the 'Reports' section in the Expenses module.`,
       };
+    },
+  },
+
+  get_challans: {
+    name: "get_challans",
+    description:
+      "Traffic e-challans stored for the user's vehicles. Use for 'any challans', 'challan on DL01…', 'fines for my car'. If vehicleId or registrationNumber is omitted, returns a per-vehicle summary (counts).",
+    parameters: {
+      vehicleId: "string (optional)",
+      registrationNumber: "string (optional, e.g. DL01AB1234)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const resolved = await resolveVehicleForTools(
+        customerId,
+        args.vehicleId,
+        args.registrationNumber,
+      );
+      if (!resolved) {
+        const vehicles = await db.customerVehicle.findMany({
+          where: {
+            isActive: true,
+            OR: [{ customerId }, { accessList: { some: { customerId } } }],
+          },
+          select: { id: true, registrationNumber: true, make: true, model: true },
+          orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
+        });
+        const rows: any[] = [];
+        for (const v of vehicles) {
+          const list = await challanService.getChallans(v.id);
+          const unpaid = list.filter((c: any) => String(c.status).toUpperCase() !== "PAID");
+          const amountUnpaid = unpaid.reduce((s: number, c: any) => s + (Number(c.amount) || 0), 0);
+          rows.push({
+            vehicleId: v.id,
+            registrationNumber: v.registrationNumber,
+            label: `${v.make || ""} ${v.model || ""}`.trim() || v.registrationNumber,
+            totalChallans: list.length,
+            unpaidCount: unpaid.length,
+            unpaidAmountApprox: amountUnpaid,
+          });
+        }
+        return {
+          success: true,
+          summary: true,
+          vehicles: rows,
+          message:
+            rows.length === 0
+              ? "No vehicles in your garage to check challans for."
+              : `Challan summary for ${rows.length} vehicle(s). Ask which registration to see full detail or say 'open challans for …'.`,
+        };
+      }
+
+      await vehicleService.getVehicle(customerId, resolved.id);
+      const challans = await challanService.getChallans(resolved.id);
+      const slim = challans.slice(0, 25).map((c: any) => ({
+        id: c.id,
+        challanNumber: c.challanNumber,
+        amount: c.amount,
+        status: c.status,
+        date: c.date ? new Date(c.date).toLocaleDateString("en-IN") : null,
+        violationType: c.violationType,
+        location: c.location,
+      }));
+      return {
+        success: true,
+        vehicle: {
+          id: resolved.id,
+          registrationNumber: resolved.registrationNumber,
+          make: resolved.make,
+          model: resolved.model,
+        },
+        count: challans.length,
+        challans: slim,
+        message: `${challans.length} challan(s) for ${resolved.registrationNumber} (${slim.filter((c: any) => String(c.status).toUpperCase() !== "PAID").length} unpaid in list shown).`,
+      };
+    },
+  },
+
+  sync_challans: {
+    name: "sync_challans",
+    description:
+      "Refresh challans from the external e-challan provider for one vehicle. Use only when the user explicitly asks to sync, refresh, or update challans (may call third-party API).",
+    parameters: {
+      vehicleId: "string (optional)",
+      registrationNumber: "string (optional)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const resolved = await resolveVehicleForTools(
+        customerId,
+        args.vehicleId,
+        args.registrationNumber,
+      );
+      if (!resolved) {
+        return { success: false, error: "Provide vehicleId or registrationNumber to sync challans." };
+      }
+      await vehicleService.getVehicle(customerId, resolved.id);
+      const synced = await challanService.syncChallans(resolved.id);
+      const list = Array.isArray(synced) ? synced : [];
+      return {
+        success: true,
+        vehicle: {
+          id: resolved.id,
+          registrationNumber: resolved.registrationNumber,
+          make: resolved.make,
+          model: resolved.model,
+        },
+        count: list.length,
+        message: `Synced challans for ${resolved.registrationNumber}. ${list.length} record(s) returned from provider/cache.`,
+      };
+    },
+  },
+
+  get_driving_trips_summary: {
+    name: "get_driving_trips_summary",
+    description:
+      "Read-only recent driving trips (telematics): distance, duration, safety score. Use for 'last trip', 'how far did I drive', 'driving stats'. Uses primary vehicle if none specified.",
+    parameters: {
+      vehicleId: "string (optional)",
+      registrationNumber: "string (optional)",
+    },
+    execute: async (customerId: string, args: any) => {
+      let v =
+        (await resolveVehicleForTools(customerId, args.vehicleId, args.registrationNumber)) ||
+        (await defaultGarageVehicleForTools(customerId));
+      if (!v) {
+        return { success: false, error: "No vehicle found for driving summary." };
+      }
+      await vehicleService.getVehicle(customerId, v.id);
+      const pack = await telematicsService.getTrips(v.id, 1, 8);
+      const trips = pack?.data || [];
+      const total = pack?.pagination?.total ?? trips.length;
+      const recent = trips.map((t: any) => ({
+        id: t.id,
+        tripId: t.tripId,
+        startTime: t.startTime ? new Date(t.startTime).toISOString() : null,
+        endTime: t.endTime ? new Date(t.endTime).toISOString() : null,
+        distanceKm: t.distanceKm,
+        durationMin: t.durationMin,
+        safetyScore: t.safetyScore,
+      }));
+      return {
+        success: true,
+        vehicleId: v.id,
+        vehicle: {
+          id: v.id,
+          registrationNumber: v.registrationNumber,
+          make: v.make,
+          model: v.model,
+        },
+        totalTrips: total,
+        recentTrips: recent,
+        message:
+          recent.length === 0
+            ? `No recorded trips yet for ${v.registrationNumber}. Trip recording requires telematics to be active.`
+            : `Latest trips for ${v.registrationNumber}: showing ${recent.length} of ${total} total.`,
+      };
+    },
+  },
+
+  get_trip_detail_by_id: {
+    name: "get_trip_detail_by_id",
+    description:
+      "Get detailed telematics breakdown for one trip (route summary + harsh event points). Use for: 'show my last trip problem points', 'trip details', 'what went wrong in trip'.",
+    parameters: {
+      tripId:
+        "string (required; trip database id or external telematics tripId value from get_driving_trips_summary)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const rawTripId =
+        typeof args?.tripId === "string" ? args.tripId.trim() : "";
+      if (!rawTripId) {
+        return { success: false, error: "tripId is required." };
+      }
+
+      const trip = await db.drivingTrip.findFirst({
+        where: {
+          OR: [{ id: rawTripId }, { tripId: rawTripId }],
+        },
+        select: {
+          id: true,
+          tripId: true,
+          vehicleId: true,
+          startTime: true,
+          endTime: true,
+          distanceKm: true,
+          durationMin: true,
+          safetyScore: true,
+          maxSpeed: true,
+          avgSpeed: true,
+        },
+      });
+
+      if (!trip) {
+        return {
+          success: false,
+          error: "Trip not found. Please share a valid trip id from recent trips.",
+        };
+      }
+
+      // Access guard: user must own/have access to the trip's vehicle.
+      const vehicle = await vehicleService.getVehicle(customerId, trip.vehicleId);
+
+      const [tripSummary, pathPoints] = await Promise.all([
+        telematicsService.getTripSummaryById(trip.id).catch(() => null),
+        telematicsService.getTripPathById(trip.id).catch(() => []),
+      ]);
+
+      const harshPoints = (Array.isArray(pathPoints) ? pathPoints : [])
+        .filter((p: any) =>
+          /harsh|brak|brake|accel|acceleration|overspeed|speed/i.test(
+            String(p?.eventType || ""),
+          ),
+        )
+        .slice(0, 40)
+        .map((p: any) => ({
+          eventType: p.eventType,
+          timestamp: p.timestamp
+            ? new Date(p.timestamp).toISOString()
+            : null,
+          lat: p.lat,
+          lon: p.lon,
+          speed: p.speed ?? null,
+          severity: p.severity ?? null,
+        }));
+
+      const harshEventCounts = harshPoints.reduce((acc: any, p: any) => {
+        const key = String(p.eventType || "UNKNOWN").toUpperCase();
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+
+      return {
+        success: true,
+        vehicle: {
+          id: vehicle.id,
+          registrationNumber: vehicle.registrationNumber,
+          make: vehicle.make,
+          model: vehicle.model,
+        },
+        trip: {
+          id: trip.id,
+          externalTripId: trip.tripId,
+          startTime: trip.startTime
+            ? new Date(trip.startTime).toISOString()
+            : null,
+          endTime: trip.endTime ? new Date(trip.endTime).toISOString() : null,
+          distanceKm: trip.distanceKm,
+          durationMin: trip.durationMin,
+          safetyScore: trip.safetyScore,
+          maxSpeed: trip.maxSpeed,
+          avgSpeed: trip.avgSpeed,
+          startLocation: tripSummary?.trip?.startLocation ?? null,
+          endLocation: tripSummary?.trip?.endLocation ?? null,
+        },
+        harshEvents: {
+          total: harshPoints.length,
+          breakdown: harshEventCounts,
+          points: harshPoints,
+        },
+        tips: {
+          moneyTip: tripSummary?.moneyTip ?? null,
+          safetyTip: tripSummary?.safetyTip ?? null,
+        },
+        message:
+          harshPoints.length > 0
+            ? `Found ${harshPoints.length} harsh/speeding event point(s) for this trip.`
+            : "No harsh event points found for this trip.",
+      };
+    },
+  },
+
+  get_service_history: {
+    name: "get_service_history",
+    description:
+      "Service / workshop history for a vehicle (records and parts). Use for 'when was last service', 'service history', 'what was replaced'.",
+    parameters: {
+      vehicleId: "string (optional)",
+      registrationNumber: "string (optional)",
+    },
+    execute: async (customerId: string, args: any) => {
+      const resolved = await resolveVehicleForTools(
+        customerId,
+        args.vehicleId,
+        args.registrationNumber,
+      );
+      if (!resolved) {
+        return { success: false, error: "Provide vehicleId or registrationNumber for service history." };
+      }
+      await vehicleService.getVehicle(customerId, resolved.id);
+      const records = await warrantyService.getServiceHistory(resolved.id);
+      const slim = records.slice(0, 15).map((r: any) => ({
+        id: r.id,
+        serviceDate: r.serviceDate ? new Date(r.serviceDate).toLocaleDateString("en-IN") : null,
+        serviceType: r.serviceType,
+        garageName: r.garageName,
+        odometerAtService: r.odometerAtService,
+        partsCount: Array.isArray(r.parts) ? r.parts.length : 0,
+        partTypes: Array.isArray(r.parts)
+          ? r.parts.map((p: any) => p.partType).slice(0, 8)
+          : [],
+      }));
+      return {
+        success: true,
+        vehicle: {
+          id: resolved.id,
+          registrationNumber: resolved.registrationNumber,
+          make: resolved.make,
+          model: resolved.model,
+        },
+        recordCount: records.length,
+        records: slim,
+        message: `${records.length} service record(s) on file for ${resolved.registrationNumber}.`,
+      };
+    },
+  },
+
+  get_upcoming_service_parts: {
+    name: "get_upcoming_service_parts",
+    description:
+      "Upcoming part replacements / warranty-style intervals (km & time). Use for 'what service is due', 'upcoming maintenance', 'parts due soon'.",
+    parameters: {
+      vehicleId: "string (optional)",
+      registrationNumber: "string (optional)",
+    },
+    execute: async (customerId: string, args: any) => {
+      let resolved = await resolveVehicleForTools(
+        customerId,
+        args.vehicleId,
+        args.registrationNumber,
+      );
+      if (!resolved) {
+        resolved = await defaultGarageVehicleForTools(customerId);
+      }
+      if (!resolved) {
+        return { success: false, error: "No vehicle found for upcoming service data." };
+      }
+      await vehicleService.getVehicle(customerId, resolved.id);
+      const upcoming = await warrantyService.getUpcomingReplacements(resolved.id);
+      const slim = (upcoming || []).slice(0, 20).map((u: any) => ({
+        partType: u.partType,
+        urgency: u.urgency,
+        message: u.message,
+        kmSinceReplacement: u.kmSinceReplacement,
+        lifecycleKm: u.lifecycleKm,
+      }));
+      return {
+        success: true,
+        vehicle: {
+          id: resolved.id,
+          registrationNumber: resolved.registrationNumber,
+          make: resolved.make,
+          model: resolved.model,
+        },
+        upcoming: slim,
+        message:
+          slim.length === 0
+            ? `No upcoming part replacements flagged for ${resolved.registrationNumber} (add service records for better tracking).`
+            : `${slim.length} upcoming item(s) for ${resolved.registrationNumber}.`,
+      };
+    },
+  },
+
+  add_vehicle_to_garage: {
+    name: "add_vehicle_to_garage",
+    description:
+      "Add a new vehicle to the user's garage (same as Add Vehicle). registrationNumber required; make/model/vehicleType/fuelType optional. Only call after user provided the registration number.",
+    parameters: {
+      registrationNumber: "string (required)",
+      make: "string (optional)",
+      model: "string (optional)",
+      vehicleType: "string (optional; CAR, BIKE, SUV, etc.)",
+      fuelType: "string (optional; PETROL, DIESEL, CNG, EV, HYBRID, OTHER)",
+      currentOdometer: "number (optional)",
+    },
+    execute: async (customerId: string, args: any) => {
+      if (!args.registrationNumber?.trim()) {
+        return { success: false, error: "registrationNumber is required to add a vehicle." };
+      }
+      const parsed = addVehicleSchema.safeParse({
+        registrationNumber: args.registrationNumber,
+        make: args.make,
+        model: args.model,
+        vehicleType: args.vehicleType,
+        fuelType: args.fuelType,
+        currentOdometer: args.currentOdometer,
+      });
+      if (!parsed.success) {
+        return {
+          success: false,
+          error: parsed.error.issues[0]?.message || "Invalid vehicle data.",
+        };
+      }
+      try {
+        const vehicle = await vehicleService.addVehicle(customerId, parsed.data as any);
+        return {
+          success: true,
+          vehicle: {
+            id: vehicle.id,
+            registrationNumber: vehicle.registrationNumber,
+            make: vehicle.make,
+            model: vehicle.model,
+          },
+          message: `Added ${vehicle.registrationNumber} to your garage.`,
+        };
+      } catch (e: any) {
+        logger.warn({ e, customerId }, "add_vehicle_to_garage failed");
+        return {
+          success: false,
+          error: e?.message || "Could not add vehicle (duplicate registration or validation error).",
+        };
+      }
+    },
+  },
+
+  remove_vehicle_from_garage: {
+    name: "remove_vehicle_from_garage",
+    description:
+      "PERMANENTLY remove a vehicle from the user's garage (owner only). Call ONLY with userConfirmed=true after the user clearly said they want to delete/remove that vehicle from the app.",
+    parameters: {
+      vehicleId: "string (optional)",
+      registrationNumber: "string (optional)",
+      userConfirmed: "boolean (required; must be true — user explicitly confirmed deletion)",
+    },
+    execute: async (customerId: string, args: any) => {
+      if (args.userConfirmed !== true && String(args.userConfirmed).toLowerCase() !== "true") {
+        return {
+          success: false,
+          error:
+            "Deletion not performed. Ask the user to confirm they want to permanently remove the vehicle from Gupio, then call again with userConfirmed: true.",
+        };
+      }
+      const resolved = await resolveVehicleForTools(
+        customerId,
+        args.vehicleId,
+        args.registrationNumber,
+      );
+      if (!resolved) {
+        return { success: false, error: "Vehicle not found." };
+      }
+      try {
+        await vehicleService.deleteVehicle(customerId, resolved.id);
+        return {
+          success: true,
+          removedRegistration: resolved.registrationNumber,
+          message: `Removed ${resolved.registrationNumber} from your garage.`,
+        };
+      } catch (e: any) {
+        return {
+          success: false,
+          error: e?.message || "Could not remove vehicle (must be owner).",
+        };
+      }
     },
   },
 };

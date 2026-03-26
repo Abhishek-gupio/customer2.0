@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
   Alert,
   PermissionsAndroid,
   TouchableWithoutFeedback,
-  Share as RNShare,
+  Linking,
 } from 'react-native';
 import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
@@ -42,9 +42,9 @@ import type { RootStackParamList } from '../../navigation/types';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
 import { fetchDocuments, addDocumentFromResponse, toDocItem, removeDocumentAsync } from '../../store/slices/documentsSlice';
-import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
+import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
-import { uploadDocument } from '../../services/documentService';
+import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -405,6 +405,43 @@ export default function DocumentList() {
     );
   };
 
+  const handleConnectDigiLocker = async () => {
+    try {
+      setIsUploading(true);
+      const res = await connectDigiLocker();
+      setIsUploading(false);
+      if (res?.url) {
+        await Linking.openURL(res.url);
+        // After opening, we can show a prompt to sync once they are done
+        Alert.alert(
+          'DigiLocker Started',
+          'Once you complete the verification in your browser, tap "Sync" to update your documents.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Sync Now', 
+              onPress: async () => {
+                setIsUploading(true);
+                try {
+                  await syncDigiLocker(res.client_id);
+                  dispatch(fetchDocuments());
+                  Alert.alert('Success', 'Documents updated!');
+                } catch (err) {
+                  Alert.alert('Error', 'Sync failed. Please try again.');
+                } finally {
+                  setIsUploading(false);
+                }
+              } 
+            }
+          ]
+        );
+      }
+    } catch (error: any) {
+      setIsUploading(false);
+      Alert.alert('Error', error.message || 'Could not connect to DigiLocker');
+    }
+  };
+
   const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
     const doc = getDocByType(type);
     return (
@@ -479,39 +516,32 @@ export default function DocumentList() {
 
         {/* DigiLocker Banner */}
         <View style={styles.digiBanner}>
-          <View style={styles.digiTopRow}>
-            <View style={styles.digiTextSection}>
+          <View style={styles.digiRow}>
+            <View style={styles.digiContentLeft}>
               {totalDocs > 0 ? (
                  <Text style={styles.digiTitle}>add your official driving license to your glovebox</Text>
               ) : (
                  <Text style={styles.digiTitle}>accepted as official documents by traffic police everywhere</Text>
               )}
+              
+              <TouchableOpacity style={styles.digiBtn} onPress={handleConnectDigiLocker}>
+                <View style={styles.digiBtnContent}>
+                  <View style={styles.digiLogoPlaceholder}>
+                    <FileText size={14} color="#FFF" />
+                  </View>
+                  <Text style={styles.digiBtnText}>Link to Digilocker</Text>
+                </View>
+                <ArrowRight size={18} color="#FFF" />
+              </TouchableOpacity>
             </View>
             <View style={styles.digiGraphic}>
-              <View style={styles.graphicRect}>
-                <FileText size={32} color="#DDD" />
-                <View style={styles.alertCircle}>
-                  <Text style={styles.alertText}>!</Text>
-                </View>
-              </View>
+              <Image 
+                source={require('../../assets/images/document.png') as any}
+                style={styles.digiImage}
+                resizeMode="contain"
+              />
             </View>
           </View>
-
-          <View style={styles.dotRow}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-          </View>
-
-          <TouchableOpacity style={styles.digiBtn}>
-            <View style={styles.digiBtnContent}>
-              <View style={styles.digiLogoPlaceholder}>
-                <FileText size={16} color="#FFF" />
-              </View>
-              <Text style={styles.digiBtnText}>Link to Digilocker</Text>
-            </View>
-            <ArrowRight size={20} color="#FFF" />
-          </TouchableOpacity>
         </View>
 
         {/* Your Vehicle Documents */}
@@ -771,22 +801,16 @@ const styles = StyleSheet.create({
 
   // DigiLocker Banner
   digiBanner: { backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginTop: 32 },
-  digiTopRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-  digiTextSection: { flex: 1, paddingRight: 12 },
-  digiTitle: { fontSize: 18, fontFamily: 'Outfit-Bold', color: '#000', lineHeight: 24, fontWeight: '700' },
-  digiGraphic: { width: 80, alignItems: 'flex-end' },
-  graphicRect: { width: 68, height: 64, backgroundColor: '#F0F0F0', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#EEE' },
-  alertCircle: { position: 'absolute', bottom: -5, right: -5, width: 22, height: 22, borderRadius: 11, backgroundColor: '#6200EA', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
-  alertText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
+  digiRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  digiContentLeft: { flex: 1, paddingRight: 16 },
+  digiTitle: { fontSize: 16, fontFamily: 'Outfit-Bold', color: '#000', lineHeight: 22, fontWeight: '700', marginBottom: 12 },
+  digiGraphic: { width: 75, alignItems: 'flex-end', justifyContent: 'flex-start', marginTop: -10, marginRight: -4 },
+  digiImage: { width: 75, height: 75 },
 
-  dotRow: { flexDirection: 'row', gap: 6, marginBottom: 28 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#DDD' },
-  dotActive: { width: 14, backgroundColor: '#AAA' },
-
-  digiBtn: { backgroundColor: '#000', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 18 },
-  digiBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  digiLogoPlaceholder: { width: 24, height: 24, borderRadius: 6, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
-  digiBtnText: { color: '#FFF', fontSize: 15, fontFamily: 'Outfit-Bold', fontWeight: '600' },
+  digiBtn: { backgroundColor: '#111', borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, alignSelf: 'flex-start' },
+  digiBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  digiLogoPlaceholder: { width: 20, height: 20, borderRadius: 4, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
+  digiBtnText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Bold', fontWeight: '600', marginRight: 12 },
 
   // Sections
   sectionHeaderRow: { marginTop: 44, marginBottom: 24 },

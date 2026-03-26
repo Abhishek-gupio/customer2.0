@@ -63,6 +63,7 @@ model Customer {
   sosRequests       SOSRequest[]
   supportTickets    SupportTicket[]
   sharedVehicles    VehicleAccess[]
+  plannedTrips      PlannedTrip[]
 
   @@schema("customer")
 }
@@ -533,6 +534,23 @@ model DrivingTrip {
   vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@index([vehicleId, startTime])
+  @@schema("customer")
+}
+
+model PlannedTrip {
+  id              String   @id @default(cuid())
+  customerId      String
+  origin          String
+  destination     String
+  waypoints       Json?    // Array of addresses
+  vehicleType     String?
+  fuelType        String?
+  result          Json     // Full TripExpenseResult
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
   @@schema("customer")
 }
 

@@ -19,7 +19,7 @@ import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import type { MainTabParamList } from '../../navigation/types';
+import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
 import { chatService, type SSEChunk, type SuggestedAction } from '../../services/chatService';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
@@ -114,6 +114,7 @@ export default function AIAssistant() {
 
   const quickPrompts = useMemo(
     () => [
+      'What’s in my garage?',
       'Add an expense for fuel',
       'Show upcoming service reminders',
       'How can I upload insurance docs?',
@@ -680,20 +681,31 @@ export default function AIAssistant() {
     'Set reminder': 'notifications-outline',
     Documents: 'document-text-outline',
     Support: 'help-buoy-outline',
+    'Open challans': 'receipt-outline',
+    'My Garage': 'car-outline',
+    'Driving summary': 'speedometer-outline',
+    'Service history': 'construct-outline',
+    'Warranty & parts': 'shield-checkmark-outline',
+    Expenses: 'wallet-outline',
   };
 
   const onActionChipPress = useCallback(
     (action: SuggestedAction) => {
       if (isLoading || isStreaming) return;
+      if (action.navigate?.screen) {
+        const { screen, params } = action.navigate;
+        rootNavigation.navigate(screen as keyof RootStackParamList, params as never);
+        return;
+      }
       if (action.label === 'Log expense') {
         setQuickExpenseAmount('');
         setQuickExpenseCategory('FUEL');
         setQuickExpenseVisible(true);
-      } else {
+      } else if (action.prompt?.trim()) {
         handleSend(action.prompt);
       }
     },
-    [isLoading, isStreaming],
+    [isLoading, isStreaming, rootNavigation],
   );
 
   const submitQuickExpense = useCallback(() => {
@@ -759,7 +771,11 @@ export default function AIAssistant() {
                     hitSlop={6}
                     disabled={isLoading || isStreaming}
                     accessibilityLabel={action.label}
-                    accessibilityHint={`Asks AI: ${action.prompt}`}
+                    accessibilityHint={
+                      action.navigate
+                        ? `Opens ${action.navigate.screen}`
+                        : `Asks AI: ${action.prompt || action.label}`
+                    }
                   >
                     <Ionicons
                       name={(actionChipIcon[action.label] || 'ellipse-outline') as any}

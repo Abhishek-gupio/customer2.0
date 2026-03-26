@@ -218,6 +218,43 @@ export default function MyProfile() {
     return true;
   };
 
+  const requestCameraPermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs camera access to capture your profile picture',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  };
+
+  const requestStoragePermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    try {
+      const permission = Platform.Version >= 33
+        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+      const granted = await PermissionsAndroid.request(permission, {
+        title: 'Photo Library Permission',
+        message: 'App needs access to your photo library to select a profile picture',
+        buttonPositive: 'OK',
+        buttonNegative: 'Cancel',
+      });
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  };
+
   const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
     if (!Geolocation) return null;
 
@@ -295,7 +332,7 @@ export default function MyProfile() {
       fullName: data.fullName ?? '',
       email: data.email ?? '',
       phone: data.phoneNumber ?? '',
-      location: 'Detecting...',
+      location: profile?.location || 'Detecting...',
       profilePic: data.profilePic || undefined,
       memberSince: data.createdAt
         ? new Date(data.createdAt).toLocaleDateString('default', {
@@ -368,6 +405,11 @@ export default function MyProfile() {
 
   const handleCameraOption = async () => {
     setProfilePicModal(false);
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+      return;
+    }
     const result = await launchCamera({
       mediaType: 'photo',
       quality: 0.7,
@@ -377,6 +419,11 @@ export default function MyProfile() {
 
   const handleGalleryOption = async () => {
     setProfilePicModal(false);
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Storage access is required to pick a photo.');
+      return;
+    }
     const result = await launchImageLibrary({
       mediaType: 'photo',
       quality: 0.7,
@@ -434,6 +481,13 @@ export default function MyProfile() {
   };
 
   const processImageResult = async (result: any) => {
+    if (result.didCancel) return;
+
+    if (result.errorCode) {
+      Alert.alert('Error', result.errorMessage || 'An error occurred while picking the image');
+      return;
+    }
+
     if (result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
       const selectedImage = asset.uri;
@@ -441,6 +495,7 @@ export default function MyProfile() {
         if (isEditing && editData) {
           setEditData({ ...editData, profilePic: selectedImage });
         } else {
+          if (saving) return; // prevent duplicate upload if already in progress
           try {
             setSaving(true);
             const formData = new FormData();
@@ -453,7 +508,16 @@ export default function MyProfile() {
             mapProfileData(updated);
             Alert.alert('Success', 'Profile picture updated!');
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to update picture');
+            const isNetworkError =
+              err?.message?.toLowerCase().includes('network') ||
+              err?.code === 'ECONNREFUSED' ||
+              err?.code === 'ERR_NETWORK';
+            Alert.alert(
+              'Upload Failed',
+              isNetworkError
+                ? 'Could not upload photo. Please check your internet connection and try again.'
+                : err.message || 'Failed to update picture',
+            );
           } finally {
             setSaving(false);
           }
@@ -675,16 +739,9 @@ export default function MyProfile() {
         }}
         statusBarTranslucent
       >
-        <View style={styles.advancedModalOverlay}>
-          <TouchableWithoutFeedback onPress={() => {
-            if (!isEditing) setInfoModal(false);
-          }}>
-            <View style={styles.advancedModalBlur} />
-          </TouchableWithoutFeedback>
 
-          <Animated.View style={styles.advancedModalContent}>
-            {/* Modal Pull Handle */}
-            <View style={styles.modalHandle} />
+        <Animated.View style={[styles.advancedModalContent, { borderTopLeftRadius: 0, borderTopRightRadius: 0, minHeight: '100%', borderWidth: 0 }]}>
+          <SafeAreaView edges={['top']} style={{ flex: 1 }}>
 
             <View style={styles.advancedModalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(3) }}>
@@ -775,17 +832,19 @@ export default function MyProfile() {
                 />
 
                 <VerticalInfoRow
-                  icon="map-marker-alt"
-                  label="Location"
-                  value={profile.location}
-                  isEditing={false}
-                />
-
-                <VerticalInfoRow
                   icon="calendar-alt"
                   label="Member Since"
                   value={profile.memberSince}
                   isEditing={false}
+                />
+
+                <VerticalInfoRow
+                  icon="map-marker-alt"
+                  label="Location"
+                  value={profile.location}
+                  isEditing={false}
+                  numberOfLines={2}
+                  fixedHeight
                 />
               </View>
 
@@ -800,8 +859,8 @@ export default function MyProfile() {
                 <Text style={styles.modalCloseText}>Done</Text>
               </TouchableOpacity>
             </ScrollView>
-          </Animated.View>
-        </View>
+          </SafeAreaView>
+        </Animated.View>
       </Modal>
 
       <ScrollView
@@ -848,9 +907,10 @@ export default function MyProfile() {
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.cameraBtn}
+                style={[styles.cameraBtn, saving && { opacity: 0.6 }]}
                 activeOpacity={0.9}
-                onPress={handleImagePick}
+                onPress={saving ? undefined : handleImagePick}
+                disabled={saving}
               >
                 {saving ? (
                   <ActivityIndicator size="small" color="#000" />
@@ -914,14 +974,7 @@ export default function MyProfile() {
               bgColor="rgba(255, 77, 77, 0.1)"
               borderColor="#FF4D4D"
             />
-            <MenuRow
-              icon="bell"
-              label="Notifications"
-              onPress={() => navigation.navigate('Main', { screen: 'Alerts' })}
-              color="#00F2FF"
-              bgColor="rgba(0, 242, 255, 0.1)"
-              borderColor="#00F2FF"
-            />
+
             <MenuRow
               icon="file-alt"
               label="Terms & Conditions"
@@ -970,6 +1023,8 @@ function VerticalInfoRow({
   onChange,
   keyboardType = 'default',
   error,
+  numberOfLines,
+  fixedHeight,
 }: any) {
   return (
     <View style={styles.verticalRow}>
@@ -981,7 +1036,8 @@ function VerticalInfoRow({
         <View style={[
           styles.inputContainer,
           isEditing ? styles.inputContainerActive : undefined,
-          (isEditing && error) ? styles.inputContainerError : undefined
+          (isEditing && error) ? styles.inputContainerError : undefined,
+          fixedHeight ? styles.inputContainerFixed : undefined,
         ]}>
           {isEditing && onChange ? (
             <TextInput
@@ -994,7 +1050,7 @@ function VerticalInfoRow({
               style={styles.vInput}
             />
           ) : (
-            <Text style={styles.vValue}>{value || 'Not provided'}</Text>
+            <Text style={styles.vValue} numberOfLines={numberOfLines}>{value || 'Not provided'}</Text>
           )}
         </View>
         {isEditing && error ? (
@@ -1246,6 +1302,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0A0A',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+  },
+  inputContainerFixed: {
+    minHeight: 44,
+    justifyContent: 'flex-start',
   },
   inputContainerActive: {
     borderColor: '#FFFFFF',
@@ -1618,12 +1678,8 @@ const styles = StyleSheet.create({
   },
   advancedModalContent: {
     backgroundColor: '#0a0b0e',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    minHeight: hp(85),
-    paddingTop: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    flex: 1,
+    paddingTop: hp(2),
   },
   modalHandle: {
     width: 40,
@@ -1638,6 +1694,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(6),
+    paddingVertical: hp(2),
     marginBottom: hp(2),
   },
   advancedModalTitle: {

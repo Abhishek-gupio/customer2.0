@@ -47,6 +47,14 @@ try {
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 
+function sortCarNewsLatestFirst(list: any[]): any[] {
+  return [...list].sort((a, b) => {
+    const ta = typeof a?.publishedAt === 'string' ? new Date(a.publishedAt).getTime() : 0;
+    const tb = typeof b?.publishedAt === 'string' ? new Date(b.publishedAt).getTime() : 0;
+    return tb - ta;
+  });
+}
+
 export default function Home() {
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
@@ -68,6 +76,8 @@ export default function Home() {
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
+  /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
+  const fuelStateLockedByUserRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -284,7 +294,7 @@ export default function Home() {
             const geo = await reverseGeocode(coords.lat, coords.lon);
             if (geo) {
               setUserLocationDisplay(geo.display);
-              if (geo.state && STATES.includes(geo.state)) {
+              if (!fuelStateLockedByUserRef.current && geo.state && STATES.includes(geo.state)) {
                 setSelectedState(geo.state);
               }
               return;
@@ -308,10 +318,12 @@ export default function Home() {
 
       if (geo) {
         setUserLocationDisplay(`${geo.city}, ${geo.region}`);
-        if (geo.region && STATES.includes(geo.region)) {
-          setSelectedState(geo.region);
-        } else if (geo.region_name && STATES.includes(geo.region_name)) {
-          setSelectedState(geo.region_name);
+        if (!fuelStateLockedByUserRef.current) {
+          if (geo.region && STATES.includes(geo.region)) {
+            setSelectedState(geo.region);
+          } else if (geo.region_name && STATES.includes(geo.region_name)) {
+            setSelectedState(geo.region_name);
+          }
         }
       } else {
         setUserLocationDisplay('Location not available');
@@ -380,7 +392,7 @@ export default function Home() {
       const inner = body?.data ?? (res as { news?: unknown; videos?: unknown });
       const newsRaw = inner?.news;
       const videosRaw = inner?.videos;
-      setTrendingNews(Array.isArray(newsRaw) ? newsRaw : []);
+      setTrendingNews(sortCarNewsLatestFirst(Array.isArray(newsRaw) ? newsRaw : []));
       setTrendingVideos(Array.isArray(videosRaw) ? videosRaw : []);
     } catch (error) {
       console.error('Error fetching discovery content:', error);
@@ -715,6 +727,8 @@ export default function Home() {
               });
             } else if (label === 'Support') {
               handleHelpPress();
+            } else if (label === 'Trip Cost') {
+              navigateToRootScreen('TripExpense');
             }
           }}
         />
@@ -974,6 +988,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={[styles.stateOption, selectedState === item && styles.selectedStateOption]}
                   onPress={() => {
+                    fuelStateLockedByUserRef.current = true;
                     setSelectedState(item);
                     setShowStateModal(false);
                     setStateSearchQuery('');

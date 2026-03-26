@@ -36,7 +36,8 @@ type ServiceId =
   | 'Parking'
   | 'TyreShop'
   | 'DocumentServices'
-  | 'CarSpa';
+  | 'CarSpa'
+  | 'TripExpense';
 
 type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' };
 
@@ -53,12 +54,14 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
+  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
   { title: 'Vehicle & Warranty', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'Insurance', 'Towing'], color: '#FFBF00' }, // Yellow
   { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
+  { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
 
 const ADS_DATA = [
@@ -158,6 +161,9 @@ export default function ServicesHub() {
         break;
       case 'CheckChallan':
         navigation.navigate('CheckChallan');
+        break;
+      case 'TripExpense':
+        navigation.navigate('TripExpense');
         break;
       default:
         break;

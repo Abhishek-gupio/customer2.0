@@ -149,6 +149,11 @@ export type TelematicsDevice = $Result.DefaultSelection<Prisma.$TelematicsDevice
  */
 export type DrivingTrip = $Result.DefaultSelection<Prisma.$DrivingTripPayload>
 /**
+ * Model PlannedTrip
+ * 
+ */
+export type PlannedTrip = $Result.DefaultSelection<Prisma.$PlannedTripPayload>
+/**
  * Model DrivingEvent
  * 
  */
@@ -1538,6 +1543,16 @@ export class PrismaClient<
   get drivingTrip(): Prisma.DrivingTripDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.plannedTrip`: Exposes CRUD operations for the **PlannedTrip** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PlannedTrips
+    * const plannedTrips = await prisma.plannedTrip.findMany()
+    * ```
+    */
+  get plannedTrip(): Prisma.PlannedTripDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.drivingEvent`: Exposes CRUD operations for the **DrivingEvent** model.
     * Example usage:
     * ```ts
@@ -2457,6 +2472,7 @@ export namespace Prisma {
     PartReplacementInterval: 'PartReplacementInterval',
     TelematicsDevice: 'TelematicsDevice',
     DrivingTrip: 'DrivingTrip',
+    PlannedTrip: 'PlannedTrip',
     DrivingEvent: 'DrivingEvent',
     SOSRequest: 'SOSRequest',
     EmergencyContact: 'EmergencyContact',
@@ -2518,7 +2534,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4517,6 +4533,80 @@ export namespace Prisma {
           count: {
             args: Prisma.DrivingTripCountArgs<ExtArgs>
             result: $Utils.Optional<DrivingTripCountAggregateOutputType> | number
+          }
+        }
+      }
+      PlannedTrip: {
+        payload: Prisma.$PlannedTripPayload<ExtArgs>
+        fields: Prisma.PlannedTripFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PlannedTripFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PlannedTripFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>
+          }
+          findFirst: {
+            args: Prisma.PlannedTripFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PlannedTripFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>
+          }
+          findMany: {
+            args: Prisma.PlannedTripFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>[]
+          }
+          create: {
+            args: Prisma.PlannedTripCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>
+          }
+          createMany: {
+            args: Prisma.PlannedTripCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PlannedTripCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>[]
+          }
+          delete: {
+            args: Prisma.PlannedTripDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>
+          }
+          update: {
+            args: Prisma.PlannedTripUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>
+          }
+          deleteMany: {
+            args: Prisma.PlannedTripDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PlannedTripUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PlannedTripUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>[]
+          }
+          upsert: {
+            args: Prisma.PlannedTripUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlannedTripPayload>
+          }
+          aggregate: {
+            args: Prisma.PlannedTripAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePlannedTrip>
+          }
+          groupBy: {
+            args: Prisma.PlannedTripGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PlannedTripGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PlannedTripCountArgs<ExtArgs>
+            result: $Utils.Optional<PlannedTripCountAggregateOutputType> | number
           }
         }
       }
@@ -8059,6 +8149,7 @@ export namespace Prisma {
     partReplacementInterval?: PartReplacementIntervalOmit
     telematicsDevice?: TelematicsDeviceOmit
     drivingTrip?: DrivingTripOmit
+    plannedTrip?: PlannedTripOmit
     drivingEvent?: DrivingEventOmit
     sOSRequest?: SOSRequestOmit
     emergencyContact?: EmergencyContactOmit
@@ -8197,6 +8288,7 @@ export namespace Prisma {
     sosRequests: number
     supportTickets: number
     sharedVehicles: number
+    plannedTrips: number
   }
 
   export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8212,6 +8304,7 @@ export namespace Prisma {
     sosRequests?: boolean | CustomerCountOutputTypeCountSosRequestsArgs
     supportTickets?: boolean | CustomerCountOutputTypeCountSupportTicketsArgs
     sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs
+    plannedTrips?: boolean | CustomerCountOutputTypeCountPlannedTripsArgs
   }
 
   // Custom InputTypes
@@ -8307,6 +8400,13 @@ export namespace Prisma {
    */
   export type CustomerCountOutputTypeCountSharedVehiclesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VehicleAccessWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountPlannedTripsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlannedTripWhereInput
   }
 
 
@@ -11493,6 +11593,7 @@ export namespace Prisma {
     sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
     supportTickets?: boolean | Customer$supportTicketsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
+    plannedTrips?: boolean | Customer$plannedTripsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customer"]>
 
@@ -11544,6 +11645,7 @@ export namespace Prisma {
     sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
     supportTickets?: boolean | Customer$supportTicketsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
+    plannedTrips?: boolean | Customer$plannedTripsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -11565,6 +11667,7 @@ export namespace Prisma {
       sosRequests: Prisma.$SOSRequestPayload<ExtArgs>[]
       supportTickets: Prisma.$SupportTicketPayload<ExtArgs>[]
       sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[]
+      plannedTrips: Prisma.$PlannedTripPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -11982,6 +12085,7 @@ export namespace Prisma {
     sosRequests<T extends Customer$sosRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sosRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     supportTickets<T extends Customer$supportTicketsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$supportTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sharedVehicles<T extends Customer$sharedVehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sharedVehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    plannedTrips<T extends Customer$plannedTripsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$plannedTripsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -12711,6 +12815,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VehicleAccessScalarFieldEnum | VehicleAccessScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.plannedTrips
+   */
+  export type Customer$plannedTripsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    where?: PlannedTripWhereInput
+    orderBy?: PlannedTripOrderByWithRelationInput | PlannedTripOrderByWithRelationInput[]
+    cursor?: PlannedTripWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PlannedTripScalarFieldEnum | PlannedTripScalarFieldEnum[]
   }
 
   /**
@@ -40638,6 +40766,1121 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DrivingTripInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PlannedTrip
+   */
+
+  export type AggregatePlannedTrip = {
+    _count: PlannedTripCountAggregateOutputType | null
+    _min: PlannedTripMinAggregateOutputType | null
+    _max: PlannedTripMaxAggregateOutputType | null
+  }
+
+  export type PlannedTripMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    origin: string | null
+    destination: string | null
+    vehicleType: string | null
+    fuelType: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PlannedTripMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    origin: string | null
+    destination: string | null
+    vehicleType: string | null
+    fuelType: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PlannedTripCountAggregateOutputType = {
+    id: number
+    customerId: number
+    origin: number
+    destination: number
+    waypoints: number
+    vehicleType: number
+    fuelType: number
+    result: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PlannedTripMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    origin?: true
+    destination?: true
+    vehicleType?: true
+    fuelType?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PlannedTripMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    origin?: true
+    destination?: true
+    vehicleType?: true
+    fuelType?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PlannedTripCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    origin?: true
+    destination?: true
+    waypoints?: true
+    vehicleType?: true
+    fuelType?: true
+    result?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PlannedTripAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlannedTrip to aggregate.
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlannedTrips to fetch.
+     */
+    orderBy?: PlannedTripOrderByWithRelationInput | PlannedTripOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PlannedTripWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlannedTrips from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlannedTrips.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PlannedTrips
+    **/
+    _count?: true | PlannedTripCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PlannedTripMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PlannedTripMaxAggregateInputType
+  }
+
+  export type GetPlannedTripAggregateType<T extends PlannedTripAggregateArgs> = {
+        [P in keyof T & keyof AggregatePlannedTrip]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePlannedTrip[P]>
+      : GetScalarType<T[P], AggregatePlannedTrip[P]>
+  }
+
+
+
+
+  export type PlannedTripGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlannedTripWhereInput
+    orderBy?: PlannedTripOrderByWithAggregationInput | PlannedTripOrderByWithAggregationInput[]
+    by: PlannedTripScalarFieldEnum[] | PlannedTripScalarFieldEnum
+    having?: PlannedTripScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PlannedTripCountAggregateInputType | true
+    _min?: PlannedTripMinAggregateInputType
+    _max?: PlannedTripMaxAggregateInputType
+  }
+
+  export type PlannedTripGroupByOutputType = {
+    id: string
+    customerId: string
+    origin: string
+    destination: string
+    waypoints: JsonValue | null
+    vehicleType: string | null
+    fuelType: string | null
+    result: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: PlannedTripCountAggregateOutputType | null
+    _min: PlannedTripMinAggregateOutputType | null
+    _max: PlannedTripMaxAggregateOutputType | null
+  }
+
+  type GetPlannedTripGroupByPayload<T extends PlannedTripGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PlannedTripGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PlannedTripGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PlannedTripGroupByOutputType[P]>
+            : GetScalarType<T[P], PlannedTripGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PlannedTripSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    origin?: boolean
+    destination?: boolean
+    waypoints?: boolean
+    vehicleType?: boolean
+    fuelType?: boolean
+    result?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["plannedTrip"]>
+
+  export type PlannedTripSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    origin?: boolean
+    destination?: boolean
+    waypoints?: boolean
+    vehicleType?: boolean
+    fuelType?: boolean
+    result?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["plannedTrip"]>
+
+  export type PlannedTripSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    origin?: boolean
+    destination?: boolean
+    waypoints?: boolean
+    vehicleType?: boolean
+    fuelType?: boolean
+    result?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["plannedTrip"]>
+
+  export type PlannedTripSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    origin?: boolean
+    destination?: boolean
+    waypoints?: boolean
+    vehicleType?: boolean
+    fuelType?: boolean
+    result?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PlannedTripOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "origin" | "destination" | "waypoints" | "vehicleType" | "fuelType" | "result" | "createdAt" | "updatedAt", ExtArgs["result"]["plannedTrip"]>
+  export type PlannedTripInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type PlannedTripIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type PlannedTripIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $PlannedTripPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PlannedTrip"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      origin: string
+      destination: string
+      waypoints: Prisma.JsonValue | null
+      vehicleType: string | null
+      fuelType: string | null
+      result: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["plannedTrip"]>
+    composites: {}
+  }
+
+  type PlannedTripGetPayload<S extends boolean | null | undefined | PlannedTripDefaultArgs> = $Result.GetResult<Prisma.$PlannedTripPayload, S>
+
+  type PlannedTripCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PlannedTripFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PlannedTripCountAggregateInputType | true
+    }
+
+  export interface PlannedTripDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PlannedTrip'], meta: { name: 'PlannedTrip' } }
+    /**
+     * Find zero or one PlannedTrip that matches the filter.
+     * @param {PlannedTripFindUniqueArgs} args - Arguments to find a PlannedTrip
+     * @example
+     * // Get one PlannedTrip
+     * const plannedTrip = await prisma.plannedTrip.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PlannedTripFindUniqueArgs>(args: SelectSubset<T, PlannedTripFindUniqueArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PlannedTrip that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PlannedTripFindUniqueOrThrowArgs} args - Arguments to find a PlannedTrip
+     * @example
+     * // Get one PlannedTrip
+     * const plannedTrip = await prisma.plannedTrip.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PlannedTripFindUniqueOrThrowArgs>(args: SelectSubset<T, PlannedTripFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlannedTrip that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripFindFirstArgs} args - Arguments to find a PlannedTrip
+     * @example
+     * // Get one PlannedTrip
+     * const plannedTrip = await prisma.plannedTrip.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PlannedTripFindFirstArgs>(args?: SelectSubset<T, PlannedTripFindFirstArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlannedTrip that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripFindFirstOrThrowArgs} args - Arguments to find a PlannedTrip
+     * @example
+     * // Get one PlannedTrip
+     * const plannedTrip = await prisma.plannedTrip.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PlannedTripFindFirstOrThrowArgs>(args?: SelectSubset<T, PlannedTripFindFirstOrThrowArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PlannedTrips that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PlannedTrips
+     * const plannedTrips = await prisma.plannedTrip.findMany()
+     * 
+     * // Get first 10 PlannedTrips
+     * const plannedTrips = await prisma.plannedTrip.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const plannedTripWithIdOnly = await prisma.plannedTrip.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PlannedTripFindManyArgs>(args?: SelectSubset<T, PlannedTripFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PlannedTrip.
+     * @param {PlannedTripCreateArgs} args - Arguments to create a PlannedTrip.
+     * @example
+     * // Create one PlannedTrip
+     * const PlannedTrip = await prisma.plannedTrip.create({
+     *   data: {
+     *     // ... data to create a PlannedTrip
+     *   }
+     * })
+     * 
+     */
+    create<T extends PlannedTripCreateArgs>(args: SelectSubset<T, PlannedTripCreateArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PlannedTrips.
+     * @param {PlannedTripCreateManyArgs} args - Arguments to create many PlannedTrips.
+     * @example
+     * // Create many PlannedTrips
+     * const plannedTrip = await prisma.plannedTrip.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PlannedTripCreateManyArgs>(args?: SelectSubset<T, PlannedTripCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PlannedTrips and returns the data saved in the database.
+     * @param {PlannedTripCreateManyAndReturnArgs} args - Arguments to create many PlannedTrips.
+     * @example
+     * // Create many PlannedTrips
+     * const plannedTrip = await prisma.plannedTrip.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PlannedTrips and only return the `id`
+     * const plannedTripWithIdOnly = await prisma.plannedTrip.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PlannedTripCreateManyAndReturnArgs>(args?: SelectSubset<T, PlannedTripCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PlannedTrip.
+     * @param {PlannedTripDeleteArgs} args - Arguments to delete one PlannedTrip.
+     * @example
+     * // Delete one PlannedTrip
+     * const PlannedTrip = await prisma.plannedTrip.delete({
+     *   where: {
+     *     // ... filter to delete one PlannedTrip
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PlannedTripDeleteArgs>(args: SelectSubset<T, PlannedTripDeleteArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PlannedTrip.
+     * @param {PlannedTripUpdateArgs} args - Arguments to update one PlannedTrip.
+     * @example
+     * // Update one PlannedTrip
+     * const plannedTrip = await prisma.plannedTrip.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PlannedTripUpdateArgs>(args: SelectSubset<T, PlannedTripUpdateArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PlannedTrips.
+     * @param {PlannedTripDeleteManyArgs} args - Arguments to filter PlannedTrips to delete.
+     * @example
+     * // Delete a few PlannedTrips
+     * const { count } = await prisma.plannedTrip.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PlannedTripDeleteManyArgs>(args?: SelectSubset<T, PlannedTripDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlannedTrips.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PlannedTrips
+     * const plannedTrip = await prisma.plannedTrip.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PlannedTripUpdateManyArgs>(args: SelectSubset<T, PlannedTripUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlannedTrips and returns the data updated in the database.
+     * @param {PlannedTripUpdateManyAndReturnArgs} args - Arguments to update many PlannedTrips.
+     * @example
+     * // Update many PlannedTrips
+     * const plannedTrip = await prisma.plannedTrip.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PlannedTrips and only return the `id`
+     * const plannedTripWithIdOnly = await prisma.plannedTrip.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PlannedTripUpdateManyAndReturnArgs>(args: SelectSubset<T, PlannedTripUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PlannedTrip.
+     * @param {PlannedTripUpsertArgs} args - Arguments to update or create a PlannedTrip.
+     * @example
+     * // Update or create a PlannedTrip
+     * const plannedTrip = await prisma.plannedTrip.upsert({
+     *   create: {
+     *     // ... data to create a PlannedTrip
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PlannedTrip we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PlannedTripUpsertArgs>(args: SelectSubset<T, PlannedTripUpsertArgs<ExtArgs>>): Prisma__PlannedTripClient<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PlannedTrips.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripCountArgs} args - Arguments to filter PlannedTrips to count.
+     * @example
+     * // Count the number of PlannedTrips
+     * const count = await prisma.plannedTrip.count({
+     *   where: {
+     *     // ... the filter for the PlannedTrips we want to count
+     *   }
+     * })
+    **/
+    count<T extends PlannedTripCountArgs>(
+      args?: Subset<T, PlannedTripCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PlannedTripCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PlannedTrip.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PlannedTripAggregateArgs>(args: Subset<T, PlannedTripAggregateArgs>): Prisma.PrismaPromise<GetPlannedTripAggregateType<T>>
+
+    /**
+     * Group by PlannedTrip.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlannedTripGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PlannedTripGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PlannedTripGroupByArgs['orderBy'] }
+        : { orderBy?: PlannedTripGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PlannedTripGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPlannedTripGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PlannedTrip model
+   */
+  readonly fields: PlannedTripFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PlannedTrip.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PlannedTripClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PlannedTrip model
+   */
+  interface PlannedTripFieldRefs {
+    readonly id: FieldRef<"PlannedTrip", 'String'>
+    readonly customerId: FieldRef<"PlannedTrip", 'String'>
+    readonly origin: FieldRef<"PlannedTrip", 'String'>
+    readonly destination: FieldRef<"PlannedTrip", 'String'>
+    readonly waypoints: FieldRef<"PlannedTrip", 'Json'>
+    readonly vehicleType: FieldRef<"PlannedTrip", 'String'>
+    readonly fuelType: FieldRef<"PlannedTrip", 'String'>
+    readonly result: FieldRef<"PlannedTrip", 'Json'>
+    readonly createdAt: FieldRef<"PlannedTrip", 'DateTime'>
+    readonly updatedAt: FieldRef<"PlannedTrip", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PlannedTrip findUnique
+   */
+  export type PlannedTripFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * Filter, which PlannedTrip to fetch.
+     */
+    where: PlannedTripWhereUniqueInput
+  }
+
+  /**
+   * PlannedTrip findUniqueOrThrow
+   */
+  export type PlannedTripFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * Filter, which PlannedTrip to fetch.
+     */
+    where: PlannedTripWhereUniqueInput
+  }
+
+  /**
+   * PlannedTrip findFirst
+   */
+  export type PlannedTripFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * Filter, which PlannedTrip to fetch.
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlannedTrips to fetch.
+     */
+    orderBy?: PlannedTripOrderByWithRelationInput | PlannedTripOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlannedTrips.
+     */
+    cursor?: PlannedTripWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlannedTrips from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlannedTrips.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlannedTrips.
+     */
+    distinct?: PlannedTripScalarFieldEnum | PlannedTripScalarFieldEnum[]
+  }
+
+  /**
+   * PlannedTrip findFirstOrThrow
+   */
+  export type PlannedTripFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * Filter, which PlannedTrip to fetch.
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlannedTrips to fetch.
+     */
+    orderBy?: PlannedTripOrderByWithRelationInput | PlannedTripOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlannedTrips.
+     */
+    cursor?: PlannedTripWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlannedTrips from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlannedTrips.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlannedTrips.
+     */
+    distinct?: PlannedTripScalarFieldEnum | PlannedTripScalarFieldEnum[]
+  }
+
+  /**
+   * PlannedTrip findMany
+   */
+  export type PlannedTripFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * Filter, which PlannedTrips to fetch.
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlannedTrips to fetch.
+     */
+    orderBy?: PlannedTripOrderByWithRelationInput | PlannedTripOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PlannedTrips.
+     */
+    cursor?: PlannedTripWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlannedTrips from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlannedTrips.
+     */
+    skip?: number
+    distinct?: PlannedTripScalarFieldEnum | PlannedTripScalarFieldEnum[]
+  }
+
+  /**
+   * PlannedTrip create
+   */
+  export type PlannedTripCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PlannedTrip.
+     */
+    data: XOR<PlannedTripCreateInput, PlannedTripUncheckedCreateInput>
+  }
+
+  /**
+   * PlannedTrip createMany
+   */
+  export type PlannedTripCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PlannedTrips.
+     */
+    data: PlannedTripCreateManyInput | PlannedTripCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlannedTrip createManyAndReturn
+   */
+  export type PlannedTripCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * The data used to create many PlannedTrips.
+     */
+    data: PlannedTripCreateManyInput | PlannedTripCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlannedTrip update
+   */
+  export type PlannedTripUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PlannedTrip.
+     */
+    data: XOR<PlannedTripUpdateInput, PlannedTripUncheckedUpdateInput>
+    /**
+     * Choose, which PlannedTrip to update.
+     */
+    where: PlannedTripWhereUniqueInput
+  }
+
+  /**
+   * PlannedTrip updateMany
+   */
+  export type PlannedTripUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PlannedTrips.
+     */
+    data: XOR<PlannedTripUpdateManyMutationInput, PlannedTripUncheckedUpdateManyInput>
+    /**
+     * Filter which PlannedTrips to update
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * Limit how many PlannedTrips to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlannedTrip updateManyAndReturn
+   */
+  export type PlannedTripUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * The data used to update PlannedTrips.
+     */
+    data: XOR<PlannedTripUpdateManyMutationInput, PlannedTripUncheckedUpdateManyInput>
+    /**
+     * Filter which PlannedTrips to update
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * Limit how many PlannedTrips to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlannedTrip upsert
+   */
+  export type PlannedTripUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PlannedTrip to update in case it exists.
+     */
+    where: PlannedTripWhereUniqueInput
+    /**
+     * In case the PlannedTrip found by the `where` argument doesn't exist, create a new PlannedTrip with this data.
+     */
+    create: XOR<PlannedTripCreateInput, PlannedTripUncheckedCreateInput>
+    /**
+     * In case the PlannedTrip was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PlannedTripUpdateInput, PlannedTripUncheckedUpdateInput>
+  }
+
+  /**
+   * PlannedTrip delete
+   */
+  export type PlannedTripDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
+    /**
+     * Filter which PlannedTrip to delete.
+     */
+    where: PlannedTripWhereUniqueInput
+  }
+
+  /**
+   * PlannedTrip deleteMany
+   */
+  export type PlannedTripDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlannedTrips to delete
+     */
+    where?: PlannedTripWhereInput
+    /**
+     * Limit how many PlannedTrips to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlannedTrip without action
+   */
+  export type PlannedTripDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlannedTrip
+     */
+    select?: PlannedTripSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlannedTrip
+     */
+    omit?: PlannedTripOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlannedTripInclude<ExtArgs> | null
   }
 
 
@@ -95625,6 +96868,22 @@ export namespace Prisma {
   export type DrivingTripScalarFieldEnum = (typeof DrivingTripScalarFieldEnum)[keyof typeof DrivingTripScalarFieldEnum]
 
 
+  export const PlannedTripScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    origin: 'origin',
+    destination: 'destination',
+    waypoints: 'waypoints',
+    vehicleType: 'vehicleType',
+    fuelType: 'fuelType',
+    result: 'result',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PlannedTripScalarFieldEnum = (typeof PlannedTripScalarFieldEnum)[keyof typeof PlannedTripScalarFieldEnum]
+
+
   export const DrivingEventScalarFieldEnum: {
     id: 'id',
     tripId: 'tripId',
@@ -97429,6 +98688,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestListRelationFilter
     supportTickets?: SupportTicketListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
+    plannedTrips?: PlannedTripListRelationFilter
   }
 
   export type CustomerOrderByWithRelationInput = {
@@ -97453,6 +98713,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestOrderByRelationAggregateInput
     supportTickets?: SupportTicketOrderByRelationAggregateInput
     sharedVehicles?: VehicleAccessOrderByRelationAggregateInput
+    plannedTrips?: PlannedTripOrderByRelationAggregateInput
   }
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -97480,6 +98741,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestListRelationFilter
     supportTickets?: SupportTicketListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
+    plannedTrips?: PlannedTripListRelationFilter
   }, "id" | "phoneNumber" | "googleId">
 
   export type CustomerOrderByWithAggregationInput = {
@@ -99627,6 +100889,86 @@ export namespace Prisma {
     statistics?: JsonNullableWithAggregatesFilter<"DrivingTrip">
     status?: StringWithAggregatesFilter<"DrivingTrip"> | string
     createdAt?: DateTimeWithAggregatesFilter<"DrivingTrip"> | Date | string
+  }
+
+  export type PlannedTripWhereInput = {
+    AND?: PlannedTripWhereInput | PlannedTripWhereInput[]
+    OR?: PlannedTripWhereInput[]
+    NOT?: PlannedTripWhereInput | PlannedTripWhereInput[]
+    id?: StringFilter<"PlannedTrip"> | string
+    customerId?: StringFilter<"PlannedTrip"> | string
+    origin?: StringFilter<"PlannedTrip"> | string
+    destination?: StringFilter<"PlannedTrip"> | string
+    waypoints?: JsonNullableFilter<"PlannedTrip">
+    vehicleType?: StringNullableFilter<"PlannedTrip"> | string | null
+    fuelType?: StringNullableFilter<"PlannedTrip"> | string | null
+    result?: JsonFilter<"PlannedTrip">
+    createdAt?: DateTimeFilter<"PlannedTrip"> | Date | string
+    updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type PlannedTripOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    origin?: SortOrder
+    destination?: SortOrder
+    waypoints?: SortOrderInput | SortOrder
+    vehicleType?: SortOrderInput | SortOrder
+    fuelType?: SortOrderInput | SortOrder
+    result?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type PlannedTripWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: PlannedTripWhereInput | PlannedTripWhereInput[]
+    OR?: PlannedTripWhereInput[]
+    NOT?: PlannedTripWhereInput | PlannedTripWhereInput[]
+    customerId?: StringFilter<"PlannedTrip"> | string
+    origin?: StringFilter<"PlannedTrip"> | string
+    destination?: StringFilter<"PlannedTrip"> | string
+    waypoints?: JsonNullableFilter<"PlannedTrip">
+    vehicleType?: StringNullableFilter<"PlannedTrip"> | string | null
+    fuelType?: StringNullableFilter<"PlannedTrip"> | string | null
+    result?: JsonFilter<"PlannedTrip">
+    createdAt?: DateTimeFilter<"PlannedTrip"> | Date | string
+    updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id">
+
+  export type PlannedTripOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    origin?: SortOrder
+    destination?: SortOrder
+    waypoints?: SortOrderInput | SortOrder
+    vehicleType?: SortOrderInput | SortOrder
+    fuelType?: SortOrderInput | SortOrder
+    result?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PlannedTripCountOrderByAggregateInput
+    _max?: PlannedTripMaxOrderByAggregateInput
+    _min?: PlannedTripMinOrderByAggregateInput
+  }
+
+  export type PlannedTripScalarWhereWithAggregatesInput = {
+    AND?: PlannedTripScalarWhereWithAggregatesInput | PlannedTripScalarWhereWithAggregatesInput[]
+    OR?: PlannedTripScalarWhereWithAggregatesInput[]
+    NOT?: PlannedTripScalarWhereWithAggregatesInput | PlannedTripScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PlannedTrip"> | string
+    customerId?: StringWithAggregatesFilter<"PlannedTrip"> | string
+    origin?: StringWithAggregatesFilter<"PlannedTrip"> | string
+    destination?: StringWithAggregatesFilter<"PlannedTrip"> | string
+    waypoints?: JsonNullableWithAggregatesFilter<"PlannedTrip">
+    vehicleType?: StringNullableWithAggregatesFilter<"PlannedTrip"> | string | null
+    fuelType?: StringNullableWithAggregatesFilter<"PlannedTrip"> | string | null
+    result?: JsonWithAggregatesFilter<"PlannedTrip">
+    createdAt?: DateTimeWithAggregatesFilter<"PlannedTrip"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PlannedTrip"> | Date | string
   }
 
   export type DrivingEventWhereInput = {
@@ -103993,6 +105335,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateInput = {
@@ -104017,6 +105360,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUpdateInput = {
@@ -104041,6 +105385,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateInput = {
@@ -104065,6 +105410,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateManyInput = {
@@ -106501,6 +107847,96 @@ export namespace Prisma {
     statistics?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlannedTripCreateInput = {
+    id?: string
+    origin: string
+    destination: string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: string | null
+    fuelType?: string | null
+    result: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutPlannedTripsInput
+  }
+
+  export type PlannedTripUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    origin: string
+    destination: string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: string | null
+    fuelType?: string | null
+    result: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlannedTripUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutPlannedTripsNestedInput
+  }
+
+  export type PlannedTripUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlannedTripCreateManyInput = {
+    id?: string
+    customerId: string
+    origin: string
+    destination: string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: string | null
+    fuelType?: string | null
+    result: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlannedTripUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlannedTripUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DrivingEventCreateInput = {
@@ -111524,6 +112960,12 @@ export namespace Prisma {
     none?: VehicleAccessWhereInput
   }
 
+  export type PlannedTripListRelationFilter = {
+    every?: PlannedTripWhereInput
+    some?: PlannedTripWhereInput
+    none?: PlannedTripWhereInput
+  }
+
   export type ChatSessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -111565,6 +113007,10 @@ export namespace Prisma {
   }
 
   export type VehicleAccessOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PlannedTripOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -113264,6 +114710,41 @@ export namespace Prisma {
     avgSpeed?: SortOrder
     fuelConsumed?: SortOrder
     safetyScore?: SortOrder
+  }
+
+  export type PlannedTripCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    origin?: SortOrder
+    destination?: SortOrder
+    waypoints?: SortOrder
+    vehicleType?: SortOrder
+    fuelType?: SortOrder
+    result?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PlannedTripMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    origin?: SortOrder
+    destination?: SortOrder
+    vehicleType?: SortOrder
+    fuelType?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PlannedTripMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    origin?: SortOrder
+    destination?: SortOrder
+    vehicleType?: SortOrder
+    fuelType?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type DrivingTripScalarRelationFilter = {
@@ -116714,6 +118195,13 @@ export namespace Prisma {
     connect?: VehicleAccessWhereUniqueInput | VehicleAccessWhereUniqueInput[]
   }
 
+  export type PlannedTripCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<PlannedTripCreateWithoutCustomerInput, PlannedTripUncheckedCreateWithoutCustomerInput> | PlannedTripCreateWithoutCustomerInput[] | PlannedTripUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: PlannedTripCreateOrConnectWithoutCustomerInput | PlannedTripCreateOrConnectWithoutCustomerInput[]
+    createMany?: PlannedTripCreateManyCustomerInputEnvelope
+    connect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutCustomerInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -116802,6 +118290,13 @@ export namespace Prisma {
     connectOrCreate?: VehicleAccessCreateOrConnectWithoutCustomerInput | VehicleAccessCreateOrConnectWithoutCustomerInput[]
     createMany?: VehicleAccessCreateManyCustomerInputEnvelope
     connect?: VehicleAccessWhereUniqueInput | VehicleAccessWhereUniqueInput[]
+  }
+
+  export type PlannedTripUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<PlannedTripCreateWithoutCustomerInput, PlannedTripUncheckedCreateWithoutCustomerInput> | PlannedTripCreateWithoutCustomerInput[] | PlannedTripUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: PlannedTripCreateOrConnectWithoutCustomerInput | PlannedTripCreateOrConnectWithoutCustomerInput[]
+    createMany?: PlannedTripCreateManyCustomerInputEnvelope
+    connect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
   }
 
   export type ChatSessionUpdateManyWithoutCustomerNestedInput = {
@@ -116982,6 +118477,20 @@ export namespace Prisma {
     deleteMany?: VehicleAccessScalarWhereInput | VehicleAccessScalarWhereInput[]
   }
 
+  export type PlannedTripUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<PlannedTripCreateWithoutCustomerInput, PlannedTripUncheckedCreateWithoutCustomerInput> | PlannedTripCreateWithoutCustomerInput[] | PlannedTripUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: PlannedTripCreateOrConnectWithoutCustomerInput | PlannedTripCreateOrConnectWithoutCustomerInput[]
+    upsert?: PlannedTripUpsertWithWhereUniqueWithoutCustomerInput | PlannedTripUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: PlannedTripCreateManyCustomerInputEnvelope
+    set?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    disconnect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    delete?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    connect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    update?: PlannedTripUpdateWithWhereUniqueWithoutCustomerInput | PlannedTripUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: PlannedTripUpdateManyWithWhereWithoutCustomerInput | PlannedTripUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
+  }
+
   export type ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -117158,6 +118667,20 @@ export namespace Prisma {
     update?: VehicleAccessUpdateWithWhereUniqueWithoutCustomerInput | VehicleAccessUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: VehicleAccessUpdateManyWithWhereWithoutCustomerInput | VehicleAccessUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: VehicleAccessScalarWhereInput | VehicleAccessScalarWhereInput[]
+  }
+
+  export type PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<PlannedTripCreateWithoutCustomerInput, PlannedTripUncheckedCreateWithoutCustomerInput> | PlannedTripCreateWithoutCustomerInput[] | PlannedTripUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: PlannedTripCreateOrConnectWithoutCustomerInput | PlannedTripCreateOrConnectWithoutCustomerInput[]
+    upsert?: PlannedTripUpsertWithWhereUniqueWithoutCustomerInput | PlannedTripUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: PlannedTripCreateManyCustomerInputEnvelope
+    set?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    disconnect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    delete?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    connect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+    update?: PlannedTripUpdateWithWhereUniqueWithoutCustomerInput | PlannedTripUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: PlannedTripUpdateManyWithWhereWithoutCustomerInput | PlannedTripUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
   }
 
   export type CustomerCreateNestedOneWithoutDevicesInput = {
@@ -118066,6 +119589,20 @@ export namespace Prisma {
     update?: DrivingEventUpdateWithWhereUniqueWithoutTripInput | DrivingEventUpdateWithWhereUniqueWithoutTripInput[]
     updateMany?: DrivingEventUpdateManyWithWhereWithoutTripInput | DrivingEventUpdateManyWithWhereWithoutTripInput[]
     deleteMany?: DrivingEventScalarWhereInput | DrivingEventScalarWhereInput[]
+  }
+
+  export type CustomerCreateNestedOneWithoutPlannedTripsInput = {
+    create?: XOR<CustomerCreateWithoutPlannedTripsInput, CustomerUncheckedCreateWithoutPlannedTripsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutPlannedTripsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutPlannedTripsNestedInput = {
+    create?: XOR<CustomerCreateWithoutPlannedTripsInput, CustomerUncheckedCreateWithoutPlannedTripsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutPlannedTripsInput
+    upsert?: CustomerUpsertWithoutPlannedTripsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutPlannedTripsInput, CustomerUpdateWithoutPlannedTripsInput>, CustomerUncheckedUpdateWithoutPlannedTripsInput>
   }
 
   export type DrivingTripCreateNestedOneWithoutEventsInput = {
@@ -122840,6 +124377,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PlannedTripCreateWithoutCustomerInput = {
+    id?: string
+    origin: string
+    destination: string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: string | null
+    fuelType?: string | null
+    result: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlannedTripUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    origin: string
+    destination: string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: string | null
+    fuelType?: string | null
+    result: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlannedTripCreateOrConnectWithoutCustomerInput = {
+    where: PlannedTripWhereUniqueInput
+    create: XOR<PlannedTripCreateWithoutCustomerInput, PlannedTripUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type PlannedTripCreateManyCustomerInputEnvelope = {
+    data: PlannedTripCreateManyCustomerInput | PlannedTripCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ChatSessionUpsertWithWhereUniqueWithoutCustomerInput = {
     where: ChatSessionWhereUniqueInput
     update: XOR<ChatSessionUpdateWithoutCustomerInput, ChatSessionUncheckedUpdateWithoutCustomerInput>
@@ -123270,6 +124841,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"VehicleAccess"> | Date | string
   }
 
+  export type PlannedTripUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: PlannedTripWhereUniqueInput
+    update: XOR<PlannedTripUpdateWithoutCustomerInput, PlannedTripUncheckedUpdateWithoutCustomerInput>
+    create: XOR<PlannedTripCreateWithoutCustomerInput, PlannedTripUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type PlannedTripUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: PlannedTripWhereUniqueInput
+    data: XOR<PlannedTripUpdateWithoutCustomerInput, PlannedTripUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type PlannedTripUpdateManyWithWhereWithoutCustomerInput = {
+    where: PlannedTripScalarWhereInput
+    data: XOR<PlannedTripUpdateManyMutationInput, PlannedTripUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type PlannedTripScalarWhereInput = {
+    AND?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
+    OR?: PlannedTripScalarWhereInput[]
+    NOT?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
+    id?: StringFilter<"PlannedTrip"> | string
+    customerId?: StringFilter<"PlannedTrip"> | string
+    origin?: StringFilter<"PlannedTrip"> | string
+    destination?: StringFilter<"PlannedTrip"> | string
+    waypoints?: JsonNullableFilter<"PlannedTrip">
+    vehicleType?: StringNullableFilter<"PlannedTrip"> | string | null
+    fuelType?: StringNullableFilter<"PlannedTrip"> | string | null
+    result?: JsonFilter<"PlannedTrip">
+    createdAt?: DateTimeFilter<"PlannedTrip"> | Date | string
+    updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
+  }
+
   export type CustomerCreateWithoutDevicesInput = {
     id?: string
     phoneNumber: string
@@ -123291,6 +124894,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDevicesInput = {
@@ -123314,6 +124918,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDevicesInput = {
@@ -123353,6 +124958,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDevicesInput = {
@@ -123376,6 +124982,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutDocumentsInput = {
@@ -123399,6 +125006,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDocumentsInput = {
@@ -123422,6 +125030,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDocumentsInput = {
@@ -123548,6 +125157,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDocumentsInput = {
@@ -123571,6 +125181,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutDocumentsInput = {
@@ -123687,6 +125298,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDigilockerInput = {
@@ -123710,6 +125322,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDigilockerInput = {
@@ -123749,6 +125362,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDigilockerInput = {
@@ -123772,6 +125386,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChallanCreateWithoutVehicleInput = {
@@ -123871,6 +125486,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutVehiclesInput = {
@@ -123894,6 +125510,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutVehiclesInput = {
@@ -124242,6 +125859,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutVehiclesInput = {
@@ -124265,6 +125883,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type DrivingTripUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -124979,6 +126598,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
@@ -125002,6 +126622,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
@@ -125128,6 +126749,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
@@ -125151,6 +126773,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutAccessListInput = {
@@ -125447,6 +127070,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutNotificationsInput = {
@@ -125470,6 +127094,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutNotificationsInput = {
@@ -125509,6 +127134,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutNotificationsInput = {
@@ -125532,6 +127158,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChatMessageCreateWithoutSessionInput = {
@@ -125581,6 +127208,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutChatsInput = {
@@ -125604,6 +127232,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutChatsInput = {
@@ -125671,6 +127300,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutChatsInput = {
@@ -125694,6 +127324,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChatSessionCreateWithoutMessagesInput = {
@@ -125773,6 +127404,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutExpensesInput = {
@@ -125796,6 +127428,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutExpensesInput = {
@@ -125824,6 +127457,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDriverExpensesInput = {
@@ -125847,6 +127481,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDriverExpensesInput = {
@@ -125973,6 +127608,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutExpensesInput = {
@@ -125996,6 +127632,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUpsertWithoutDriverExpensesInput = {
@@ -126030,6 +127667,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDriverExpensesInput = {
@@ -126053,6 +127691,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutExpensesInput = {
@@ -126169,6 +127808,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutBudgetsInput = {
@@ -126192,6 +127832,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutBudgetsInput = {
@@ -126231,6 +127872,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutBudgetsInput = {
@@ -126254,6 +127896,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ServicePartCreateWithoutServiceRecordInput = {
@@ -127010,6 +128653,118 @@ export namespace Prisma {
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
   }
 
+  export type CustomerCreateWithoutPlannedTripsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutPlannedTripsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutPlannedTripsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutPlannedTripsInput, CustomerUncheckedCreateWithoutPlannedTripsInput>
+  }
+
+  export type CustomerUpsertWithoutPlannedTripsInput = {
+    update: XOR<CustomerUpdateWithoutPlannedTripsInput, CustomerUncheckedUpdateWithoutPlannedTripsInput>
+    create: XOR<CustomerCreateWithoutPlannedTripsInput, CustomerUncheckedCreateWithoutPlannedTripsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutPlannedTripsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutPlannedTripsInput, CustomerUncheckedUpdateWithoutPlannedTripsInput>
+  }
+
+  export type CustomerUpdateWithoutPlannedTripsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutPlannedTripsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
   export type DrivingTripCreateWithoutEventsInput = {
     id?: string
     tripId: string
@@ -127127,6 +128882,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSosRequestsInput = {
@@ -127150,6 +128906,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSosRequestsInput = {
@@ -127189,6 +128946,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSosRequestsInput = {
@@ -127212,6 +128970,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutEmergencyContactsInput = {
@@ -127235,6 +128994,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutEmergencyContactsInput = {
@@ -127258,6 +129018,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutEmergencyContactsInput = {
@@ -127297,6 +129058,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutEmergencyContactsInput = {
@@ -127320,6 +129082,7 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutSupportTicketsInput = {
@@ -127343,6 +129106,7 @@ export namespace Prisma {
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSupportTicketsInput = {
@@ -127366,6 +129130,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSupportTicketsInput = {
@@ -127431,6 +129196,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSupportTicketsInput = {
@@ -127454,6 +129220,7 @@ export namespace Prisma {
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type TicketMessageUpsertWithWhereUniqueWithoutTicketInput = {
@@ -139094,6 +140861,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type PlannedTripCreateManyCustomerInput = {
+    id?: string
+    origin: string
+    destination: string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: string | null
+    fuelType?: string | null
+    result: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ChatSessionUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
@@ -139652,6 +141431,42 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     vehicleId?: StringFieldUpdateOperationsInput | string
     role?: EnumAccessRoleFieldUpdateOperationsInput | $Enums.AccessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlannedTripUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlannedTripUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlannedTripUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    origin?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    waypoints?: NullableJsonNullValueInput | InputJsonValue
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    result?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

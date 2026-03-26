@@ -28,6 +28,11 @@ export interface ChatSession {
 export interface SuggestedAction {
     label: string;
     prompt: string;
+    /** When set, the app navigates instead of sending `prompt` as a new AI message. */
+    navigate?: {
+        screen: string;
+        params?: Record<string, unknown>;
+    };
 }
 
 export interface ChatResponse {

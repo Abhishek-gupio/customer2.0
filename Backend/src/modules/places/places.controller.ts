@@ -51,4 +51,17 @@ export const placesController = {
     );
     return success(res, { places, location: { latitude, longitude } });
   }),
+
+  search: asyncHandler(async (req: Request, res: Response) => {
+    const query = req.query.q as string;
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "query (q) is required" },
+      });
+    }
+
+    const suggestions = await placesService.searchPlaces(query);
+    return success(res, { suggestions });
+  }),
 };

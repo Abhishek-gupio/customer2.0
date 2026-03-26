@@ -26,6 +26,7 @@ export type RootStackParamList = {
   ContactSupport: { category?: string };
   TicketHistory: undefined;
   TicketDetail: { ticketId: string };
+  DigiLockerKYC: { url: string; client_id: string };
   Settings: undefined;
   BudgetSettings: undefined;
   ServiceHistory: { selectedPartType?: string } | undefined;
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   Alerts: undefined;
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
+  TripExpense: undefined;
 };
 
 export type MainTabParamList = {

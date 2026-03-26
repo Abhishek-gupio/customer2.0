@@ -12,7 +12,7 @@ const db = dbInstances as any;
  */
 
 const BROWSER_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
@@ -23,7 +23,10 @@ const BROWSER_HEADERS = {
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-Site": "none",
     "Sec-Fetch-User": "?1",
-    "Cache-Control": "max-age=0"
+    "Cache-Control": "max-age=0",
+    "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"'
 };
 
 export const contentScraperService = {
@@ -54,41 +57,77 @@ export const contentScraperService = {
         return totalSaved;
     },
 
-    async scrapeFromUrl(url: string, fuelType: "PETROL" | "DIESEL" | "CNG"): Promise<number> {
+    async scrapeFromUrl(url: string, fuelType: "PETROL" | "DIESEL" | "CNG", isFallback = false): Promise<number> {
         let savedCount = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const response = await axios.get(url, {
-            headers: {
-                ...BROWSER_HEADERS,
-                "Referer": "https://www.google.com/"
-            },
-            timeout: 15000
-        });
-        const $ = cheerio.load(response.data);
-        const promises: Promise<any>[] = [];
+        try {
+            const response = await axios.get(url, {
+                headers: {
+                    ...BROWSER_HEADERS,
+                    "Referer": isFallback ? "https://www.google.com/" : "https://www.google.com/"
+                },
+                timeout: 15000
+            });
+            const $ = cheerio.load(response.data);
+            const promises: Promise<any>[] = [];
 
-        // Updated selector based on actual website structure
-        // div.gold_rate_table_inner is the container for city-wise tables
-        $("div.gold_rate_table_inner table tr, div.gold_silver_table tr, table tr").each((_, tr) => {
-            const cells = $(tr).find("td");
-            if (cells.length >= 2) {
-                const name = $(cells[0]).text().trim();
-                const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
-                const price = parseFloat(priceText);
+            // Selectors for GoodReturns
+            const goodReturnsSelectors = "div.gold_rate_table_inner table tr, div.gold_silver_table tr, table tr";
+            // Selectors for alternative sources (placeholder for now, matching common patterns)
+            const fallbackSelectors = "table.table tr, .fuel-price-table tr, .city-wise-price tr";
 
-                // Validation: City name exists, price is reasonable, not a header row
-                if (name && !isNaN(price) && price > 30 && name !== "City" && name !== "State" && name !== "City Name") {
-                    promises.push(this.savePriceToCache(name, fuelType, price, today).then(ok => {
-                        if (ok) savedCount++;
-                    }));
+            const selectors = isFallback ? `${goodReturnsSelectors}, ${fallbackSelectors}` : goodReturnsSelectors;
+
+            $(selectors).each((_, tr) => {
+                const cells = $(tr).find("td");
+                if (cells.length >= 2) {
+                    const name = $(cells[0]).text().trim();
+                    const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
+                    const price = parseFloat(priceText);
+
+                    // Validation: City name exists, price is reasonable, not a header row
+                    if (name && !isNaN(price) && price > 30 && name !== "City" && name !== "State" && name !== "City Name") {
+                        promises.push(this.savePriceToCache(name, fuelType, price, today).then(ok => {
+                            if (ok) savedCount++;
+                        }));
+                    }
                 }
-            }
-        });
+            });
 
-        await Promise.all(promises);
-        return savedCount;
+            await Promise.all(promises);
+            
+            // If GoodReturns failed to provide data (even if 200 OK), try a specific fallback if not already fallback
+            if (savedCount === 0 && !isFallback) {
+                return this.attemptFallbackScrape(fuelType);
+            }
+
+            return savedCount;
+        } catch (err: any) {
+            if (err.response?.status === 403 && !isFallback) {
+                logger.warn(`⚠️ 403 Forbidden on ${url}. Attempting fallback...`);
+                return this.attemptFallbackScrape(fuelType);
+            }
+            throw err;
+        }
+    },
+
+    /**
+     * Fallback scraping from alternative source (Economic Times / India Today)
+     */
+    async attemptFallbackScrape(fuelType: "PETROL" | "DIESEL" | "CNG"): Promise<number> {
+        const fallbacks: Record<string, string> = {
+            "PETROL": "https://economictimes.indiatimes.com/wealth/fuel-depot/petrol-price-in-india",
+            "DIESEL": "https://economictimes.indiatimes.com/wealth/fuel-depot/diesel-price-in-india",
+            "CNG": "https://www.indiatoday.in/fuel-prices/cng-price-in-india"
+        };
+
+        const url = fallbacks[fuelType];
+        if (!url) return 0;
+
+        logger.info(`🔄 Attempting fallback scrape for ${fuelType} from ${url}`);
+        return this.scrapeFromUrl(url, fuelType, true);
     },
 
     async savePriceToCache(city: string, fuelType: string, price: number, date: Date): Promise<boolean> {
@@ -128,20 +167,41 @@ export const contentScraperService = {
             const response = await axios.get(url, { headers: BROWSER_HEADERS });
             const $ = cheerio.load(response.data, { xmlMode: true });
 
-            const news: any[] = [];
+            type RawNews = { title: string; source: string; url: string; pubDateRaw: string };
+            const raw: RawNews[] = [];
             $("item").each((i, item) => {
                 if (i >= 6) return; // Keep a few items so home feed rotates more often
                 const fullTitle = $(item).find("title").text();
                 const [title, source] = fullTitle.split(" - ");
-
-                news.push({
-                    id: i.toString(),
+                const pubDateRaw = $(item).find("pubDate").text();
+                raw.push({
                     title: title.trim(),
-                    source: source || "Auto News",
+                    source: (source || "Auto News").trim(),
                     url: $(item).find("link").text(),
-                    time: this.formatNewsTime($(item).find("pubDate").text()),
-                    snippet: "Latest update on new car launches and automotive trends in India.",
+                    pubDateRaw,
                 });
+            });
+
+            raw.sort((a, b) => {
+                const ta = new Date(a.pubDateRaw).getTime();
+                const tb = new Date(b.pubDateRaw).getTime();
+                const na = Number.isFinite(ta) ? ta : 0;
+                const nb = Number.isFinite(tb) ? tb : 0;
+                return nb - na; // newest first
+            });
+
+            const news = raw.map((item, idx) => {
+                const published = new Date(item.pubDateRaw);
+                const publishedAt = Number.isFinite(published.getTime()) ? published.toISOString() : null;
+                return {
+                    id: String(idx),
+                    title: item.title,
+                    source: item.source,
+                    url: item.url,
+                    publishedAt,
+                    time: this.formatNewsTime(item.pubDateRaw),
+                    snippet: "Latest update on new car launches and automotive trends in India.",
+                };
             });
 
             return news;

@@ -15,6 +15,7 @@ const SERVICES = [
   { icon: 'file-alt', label: 'Document' },
   { icon: 'wallet', label: 'Expense' },
   { icon: 'parking', label: 'Valet' },
+  { icon: 'map-signs', label: 'Trip Cost' },
 ];
 
 type QuickServicesGridProps = {
@@ -44,6 +45,22 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
           />
         ))}
       </View>
+      {SERVICES.length > 8 && (
+        <View style={[styles.row, { marginTop: hp(1.5) }]}>
+          {SERVICES.slice(8).map((item) => (
+            <QuickServiceButton
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              onPress={() => onServicePress?.(item.label)}
+            />
+          ))}
+          {/* Pad with empty Views to keep the first item left-aligned in the 4-column grid */}
+          {[...Array(4 - (SERVICES.length % 4 || 4))].map((_, i) => (
+            <View key={`empty-${i}`} style={{ flex: 1 }} />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
