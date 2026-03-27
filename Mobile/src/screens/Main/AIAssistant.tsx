@@ -840,8 +840,8 @@ export default function AIAssistant() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.header}>
+        <Ionicons name="sparkles" size={18} color="#9fb3ff" />
         <View style={styles.headerCenter}>
-          <Ionicons name="sparkles" size={18} color="#9fb3ff" />
           <Text style={styles.headerTitle}>Gupio AI</Text>
         </View>
         <View style={styles.headerActions}>
@@ -1075,13 +1075,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 9,
     paddingTop:5,
     paddingVertical: 5,
     borderBottomWidth: 1,
     borderBottomColor: '#111b2e',
   },
   headerCenter: {
+    left:22,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

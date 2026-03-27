@@ -259,9 +259,14 @@ export interface CustomerDetail {
   emergencyContacts: unknown[];
   digilocker: unknown;
   _count: { vehicles: number; expenses: number; documents: number; supportTickets: number; chats: number; sosRequests: number };
-  expenses?: unknown[];
+  expenses?: any[];
   documents?: AdminVehicleDocument[];
   supportTickets?: SupportTicket[];
+  expenseSummary?: {
+    total: number;
+    breakdown: Record<string, number>;
+    currency: string;
+  };
 }
 
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';

@@ -2,6 +2,7 @@ import { dbInstances } from "@repo/db-customer";
 import { logger } from "../../config/logger";
 import { fuelPriceService } from "../../services/fuel-price.service";
 import { AppError } from "../../utils/AppError";
+import { Prisma } from "@repo/db-customer";
 
 /**
  * TRIP EXPENSE SERVICE
@@ -202,9 +203,30 @@ export const tripExpenseService = {
     // Phase 4: Persist trip to database for AI Assistant (Mike)
     if (params.customerId) {
       try {
+        const tripId = `${from.trim()}_${to.trim()}`.replace(/\s+/g, '_').toLowerCase();
+        
+        const existing = await (dbInstances as any).plannedTrip.findFirst({
+          where: {
+            customerId: params.customerId,
+            tripId,
+          },
+        });
+
+        if (existing) {
+          const updated = await (dbInstances as any).plannedTrip.update({
+            where: { id: existing.id },
+            data: {
+              result: result as any,
+              updatedAt: new Date(),
+            },
+          });
+          return { ...result, id: updated.id };
+        }
+
         const saved = await (dbInstances as any).plannedTrip.create({
           data: {
             customerId: params.customerId,
+            tripId,
             origin: from,
             destination: to,
             waypoints: waypoints || [],
@@ -375,6 +397,87 @@ export const tripExpenseService = {
     } catch (err) {
       logger.error({ err }, "Failed to fetch latest trip");
       return null;
+    }
+  },
+
+  async saveTripHistory(customerId: string, payload: any) {
+    try {
+      // Check if a trip with this ID already exists for this customer
+      const existing = await (dbInstances as any).plannedTrip.findFirst({
+        where: {
+          customerId,
+          tripId: payload.id,
+        },
+      });
+
+      if (existing) {
+        // Update existing record with new planning/results
+        const updated = await (dbInstances as any).plannedTrip.update({
+          where: { id: existing.id },
+          data: {
+            result: payload.tripResult,
+            planning: payload.planning,
+            updatedAt: new Date(),
+          },
+        });
+        return updated;
+      }
+
+      // Otherwise create new
+      const saved = await (dbInstances as any).plannedTrip.create({
+        data: {
+          customerId,
+          tripId: payload.id,
+          origin: payload.from,
+          destination: payload.to,
+          result: payload.tripResult,
+          planning: payload.planning,
+          createdAt: new Date(payload.timestamp || Date.now()),
+        }
+      });
+      return saved;
+    } catch (err) {
+      logger.error({ err }, "Failed to save trip history");
+      throw AppError.internal("Could not save trip to history");
+    }
+  },
+
+  async getTripHistory(customerId: string) {
+    try {
+      const trips = await (dbInstances as any).plannedTrip.findMany({
+        where: { customerId, planning: { not: Prisma.DbNull } },
+        orderBy: { createdAt: "desc" },
+      });
+      return trips;
+    } catch (err) {
+      logger.error({ err }, "Failed to fetch trip history");
+      return [];
+    }
+  },
+
+  async deleteTripHistory(customerId: string, tripId: string) {
+    try {
+      // Find the record first to ensure it belongs to the customer
+      const existing = await (dbInstances as any).plannedTrip.findFirst({
+        where: { 
+          customerId,
+          OR: [
+            { tripId: tripId },
+            { id: tripId }
+          ]
+        }
+      });
+
+      if (!existing) throw AppError.notFound("Trip not found");
+
+      await (dbInstances as any).plannedTrip.delete({
+        where: { id: existing.id }
+      });
+      return { success: true };
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      logger.error({ err }, "Failed to delete trip history");
+      throw AppError.internal("Could not delete trip");
     }
   },
 

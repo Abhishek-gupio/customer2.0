@@ -492,12 +492,14 @@ exports.Prisma.DrivingTripScalarFieldEnum = {
 exports.Prisma.PlannedTripScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
+  tripId: 'tripId',
   origin: 'origin',
   destination: 'destination',
   waypoints: 'waypoints',
   vehicleType: 'vehicleType',
   fuelType: 'fuelType',
   result: 'result',
+  planning: 'planning',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

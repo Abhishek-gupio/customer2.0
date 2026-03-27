@@ -45,12 +45,12 @@ export type RootStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
+  my_garage: undefined;
   Services: undefined;
   AIAssistant: {
     userMessage?: string;
     sessionId?: string;
   } | undefined;
-  Alerts: undefined;
   Odometer: undefined;
 };
 

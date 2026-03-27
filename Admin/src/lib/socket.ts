@@ -6,7 +6,7 @@ export const getSocket = () => {
   if (!socket) {
     socket = io({
       path: '/socket.io',
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 10,

@@ -355,6 +355,15 @@ export default function Home() {
     }
   };
 
+  const handleAlertsPress = () => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Alerts');
+    } else {
+      navigation.navigate('Alerts');   
+    }
+  };
+
   const handleHelpPress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
@@ -676,10 +685,15 @@ export default function Home() {
             <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
               <Icon name="user" size={wp(5.2)} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSOSPress} style={styles.sosOverlayButton}>
-              <Icon name="shield-alt" size={wp(4)} color="#fff" />
-              <Text style={styles.sosOverlayText}>SOS</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={handleAlertsPress} style={styles.overlayIconButton}>
+                <Icon name="bell" size={wp(4.6)} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSOSPress} style={styles.sosOverlayButton}>
+                <Icon name="shield-alt" size={wp(4)} color="#fff" />
+                <Text style={styles.sosOverlayText}>SOS</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -705,29 +719,28 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        {/* QUICK SERVICES GRID */}
         <QuickServicesGrid
-          onServicePress={label => {
-            if (label === 'Document') {
+          onServicePress={id => {
+            if (id === 'document') {
               navigateToRootScreen('DocumentList');
-            } else if (label === 'My Garage') {
+            } else if (id === 'garage') {
               navigateToRootScreen('VehicleList');
-            } else if (label === 'Expense') {
+            } else if (id === 'expense') {
               navigateToRootScreen('Expenses');
-            } else if (label === 'Valet') {
+            } else if (id === 'valet') {
               navigateToRootScreen('Valet');
-            } else if (label === 'Service') {
+            } else if (id === 'service') {
               navigation.navigate('Services' as any, { screen: 'ServicesHome' });
-            } else if (label === 'Driving') {
+            } else if (id === 'driving') {
               navigateToRootScreen('DrivingSummary');
-            } else if (label === 'Near By') {
+            } else if (id === 'nearby') {
               navigation.navigate('Services' as any, { 
                 screen: 'NearbyPlaces',
                 params: { fromHome: true }
               });
-            } else if (label === 'Support') {
+            } else if (id === 'support') {
               handleHelpPress();
-            } else if (label === 'Trip Cost') {
+            } else if (id === 'tripcost') {
               navigateToRootScreen('TripExpense');
             }
           }}

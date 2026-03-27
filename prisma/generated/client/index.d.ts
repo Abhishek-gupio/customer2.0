@@ -40782,6 +40782,7 @@ export namespace Prisma {
   export type PlannedTripMinAggregateOutputType = {
     id: string | null
     customerId: string | null
+    tripId: string | null
     origin: string | null
     destination: string | null
     vehicleType: string | null
@@ -40793,6 +40794,7 @@ export namespace Prisma {
   export type PlannedTripMaxAggregateOutputType = {
     id: string | null
     customerId: string | null
+    tripId: string | null
     origin: string | null
     destination: string | null
     vehicleType: string | null
@@ -40804,12 +40806,14 @@ export namespace Prisma {
   export type PlannedTripCountAggregateOutputType = {
     id: number
     customerId: number
+    tripId: number
     origin: number
     destination: number
     waypoints: number
     vehicleType: number
     fuelType: number
     result: number
+    planning: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -40819,6 +40823,7 @@ export namespace Prisma {
   export type PlannedTripMinAggregateInputType = {
     id?: true
     customerId?: true
+    tripId?: true
     origin?: true
     destination?: true
     vehicleType?: true
@@ -40830,6 +40835,7 @@ export namespace Prisma {
   export type PlannedTripMaxAggregateInputType = {
     id?: true
     customerId?: true
+    tripId?: true
     origin?: true
     destination?: true
     vehicleType?: true
@@ -40841,12 +40847,14 @@ export namespace Prisma {
   export type PlannedTripCountAggregateInputType = {
     id?: true
     customerId?: true
+    tripId?: true
     origin?: true
     destination?: true
     waypoints?: true
     vehicleType?: true
     fuelType?: true
     result?: true
+    planning?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -40927,12 +40935,14 @@ export namespace Prisma {
   export type PlannedTripGroupByOutputType = {
     id: string
     customerId: string
+    tripId: string | null
     origin: string
     destination: string
     waypoints: JsonValue | null
     vehicleType: string | null
     fuelType: string | null
     result: JsonValue
+    planning: JsonValue | null
     createdAt: Date
     updatedAt: Date
     _count: PlannedTripCountAggregateOutputType | null
@@ -40957,12 +40967,14 @@ export namespace Prisma {
   export type PlannedTripSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
+    tripId?: boolean
     origin?: boolean
     destination?: boolean
     waypoints?: boolean
     vehicleType?: boolean
     fuelType?: boolean
     result?: boolean
+    planning?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -40971,12 +40983,14 @@ export namespace Prisma {
   export type PlannedTripSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
+    tripId?: boolean
     origin?: boolean
     destination?: boolean
     waypoints?: boolean
     vehicleType?: boolean
     fuelType?: boolean
     result?: boolean
+    planning?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -40985,12 +40999,14 @@ export namespace Prisma {
   export type PlannedTripSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     customerId?: boolean
+    tripId?: boolean
     origin?: boolean
     destination?: boolean
     waypoints?: boolean
     vehicleType?: boolean
     fuelType?: boolean
     result?: boolean
+    planning?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -40999,17 +41015,19 @@ export namespace Prisma {
   export type PlannedTripSelectScalar = {
     id?: boolean
     customerId?: boolean
+    tripId?: boolean
     origin?: boolean
     destination?: boolean
     waypoints?: boolean
     vehicleType?: boolean
     fuelType?: boolean
     result?: boolean
+    planning?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type PlannedTripOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "origin" | "destination" | "waypoints" | "vehicleType" | "fuelType" | "result" | "createdAt" | "updatedAt", ExtArgs["result"]["plannedTrip"]>
+  export type PlannedTripOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "tripId" | "origin" | "destination" | "waypoints" | "vehicleType" | "fuelType" | "result" | "planning" | "createdAt" | "updatedAt", ExtArgs["result"]["plannedTrip"]>
   export type PlannedTripInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }
@@ -41028,12 +41046,14 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       customerId: string
+      tripId: string | null
       origin: string
       destination: string
       waypoints: Prisma.JsonValue | null
       vehicleType: string | null
       fuelType: string | null
       result: Prisma.JsonValue
+      planning: Prisma.JsonValue | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["plannedTrip"]>
@@ -41462,12 +41482,14 @@ export namespace Prisma {
   interface PlannedTripFieldRefs {
     readonly id: FieldRef<"PlannedTrip", 'String'>
     readonly customerId: FieldRef<"PlannedTrip", 'String'>
+    readonly tripId: FieldRef<"PlannedTrip", 'String'>
     readonly origin: FieldRef<"PlannedTrip", 'String'>
     readonly destination: FieldRef<"PlannedTrip", 'String'>
     readonly waypoints: FieldRef<"PlannedTrip", 'Json'>
     readonly vehicleType: FieldRef<"PlannedTrip", 'String'>
     readonly fuelType: FieldRef<"PlannedTrip", 'String'>
     readonly result: FieldRef<"PlannedTrip", 'Json'>
+    readonly planning: FieldRef<"PlannedTrip", 'Json'>
     readonly createdAt: FieldRef<"PlannedTrip", 'DateTime'>
     readonly updatedAt: FieldRef<"PlannedTrip", 'DateTime'>
   }
@@ -96871,12 +96893,14 @@ export namespace Prisma {
   export const PlannedTripScalarFieldEnum: {
     id: 'id',
     customerId: 'customerId',
+    tripId: 'tripId',
     origin: 'origin',
     destination: 'destination',
     waypoints: 'waypoints',
     vehicleType: 'vehicleType',
     fuelType: 'fuelType',
     result: 'result',
+    planning: 'planning',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -100897,12 +100921,14 @@ export namespace Prisma {
     NOT?: PlannedTripWhereInput | PlannedTripWhereInput[]
     id?: StringFilter<"PlannedTrip"> | string
     customerId?: StringFilter<"PlannedTrip"> | string
+    tripId?: StringNullableFilter<"PlannedTrip"> | string | null
     origin?: StringFilter<"PlannedTrip"> | string
     destination?: StringFilter<"PlannedTrip"> | string
     waypoints?: JsonNullableFilter<"PlannedTrip">
     vehicleType?: StringNullableFilter<"PlannedTrip"> | string | null
     fuelType?: StringNullableFilter<"PlannedTrip"> | string | null
     result?: JsonFilter<"PlannedTrip">
+    planning?: JsonNullableFilter<"PlannedTrip">
     createdAt?: DateTimeFilter<"PlannedTrip"> | Date | string
     updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -100911,12 +100937,14 @@ export namespace Prisma {
   export type PlannedTripOrderByWithRelationInput = {
     id?: SortOrder
     customerId?: SortOrder
+    tripId?: SortOrderInput | SortOrder
     origin?: SortOrder
     destination?: SortOrder
     waypoints?: SortOrderInput | SortOrder
     vehicleType?: SortOrderInput | SortOrder
     fuelType?: SortOrderInput | SortOrder
     result?: SortOrder
+    planning?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     customer?: CustomerOrderByWithRelationInput
@@ -100928,12 +100956,14 @@ export namespace Prisma {
     OR?: PlannedTripWhereInput[]
     NOT?: PlannedTripWhereInput | PlannedTripWhereInput[]
     customerId?: StringFilter<"PlannedTrip"> | string
+    tripId?: StringNullableFilter<"PlannedTrip"> | string | null
     origin?: StringFilter<"PlannedTrip"> | string
     destination?: StringFilter<"PlannedTrip"> | string
     waypoints?: JsonNullableFilter<"PlannedTrip">
     vehicleType?: StringNullableFilter<"PlannedTrip"> | string | null
     fuelType?: StringNullableFilter<"PlannedTrip"> | string | null
     result?: JsonFilter<"PlannedTrip">
+    planning?: JsonNullableFilter<"PlannedTrip">
     createdAt?: DateTimeFilter<"PlannedTrip"> | Date | string
     updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -100942,12 +100972,14 @@ export namespace Prisma {
   export type PlannedTripOrderByWithAggregationInput = {
     id?: SortOrder
     customerId?: SortOrder
+    tripId?: SortOrderInput | SortOrder
     origin?: SortOrder
     destination?: SortOrder
     waypoints?: SortOrderInput | SortOrder
     vehicleType?: SortOrderInput | SortOrder
     fuelType?: SortOrderInput | SortOrder
     result?: SortOrder
+    planning?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PlannedTripCountOrderByAggregateInput
@@ -100961,12 +100993,14 @@ export namespace Prisma {
     NOT?: PlannedTripScalarWhereWithAggregatesInput | PlannedTripScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"PlannedTrip"> | string
     customerId?: StringWithAggregatesFilter<"PlannedTrip"> | string
+    tripId?: StringNullableWithAggregatesFilter<"PlannedTrip"> | string | null
     origin?: StringWithAggregatesFilter<"PlannedTrip"> | string
     destination?: StringWithAggregatesFilter<"PlannedTrip"> | string
     waypoints?: JsonNullableWithAggregatesFilter<"PlannedTrip">
     vehicleType?: StringNullableWithAggregatesFilter<"PlannedTrip"> | string | null
     fuelType?: StringNullableWithAggregatesFilter<"PlannedTrip"> | string | null
     result?: JsonWithAggregatesFilter<"PlannedTrip">
+    planning?: JsonNullableWithAggregatesFilter<"PlannedTrip">
     createdAt?: DateTimeWithAggregatesFilter<"PlannedTrip"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PlannedTrip"> | Date | string
   }
@@ -107851,12 +107885,14 @@ export namespace Prisma {
 
   export type PlannedTripCreateInput = {
     id?: string
+    tripId?: string | null
     origin: string
     destination: string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: string | null
     fuelType?: string | null
     result: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutPlannedTripsInput
@@ -107865,24 +107901,28 @@ export namespace Prisma {
   export type PlannedTripUncheckedCreateInput = {
     id?: string
     customerId: string
+    tripId?: string | null
     origin: string
     destination: string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: string | null
     fuelType?: string | null
     result: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type PlannedTripUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutPlannedTripsNestedInput
@@ -107891,12 +107931,14 @@ export namespace Prisma {
   export type PlannedTripUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -107904,24 +107946,28 @@ export namespace Prisma {
   export type PlannedTripCreateManyInput = {
     id?: string
     customerId: string
+    tripId?: string | null
     origin: string
     destination: string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: string | null
     fuelType?: string | null
     result: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type PlannedTripUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -107929,12 +107975,14 @@ export namespace Prisma {
   export type PlannedTripUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -114715,12 +114763,14 @@ export namespace Prisma {
   export type PlannedTripCountOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
+    tripId?: SortOrder
     origin?: SortOrder
     destination?: SortOrder
     waypoints?: SortOrder
     vehicleType?: SortOrder
     fuelType?: SortOrder
     result?: SortOrder
+    planning?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -114728,6 +114778,7 @@ export namespace Prisma {
   export type PlannedTripMaxOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
+    tripId?: SortOrder
     origin?: SortOrder
     destination?: SortOrder
     vehicleType?: SortOrder
@@ -114739,6 +114790,7 @@ export namespace Prisma {
   export type PlannedTripMinOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
+    tripId?: SortOrder
     origin?: SortOrder
     destination?: SortOrder
     vehicleType?: SortOrder
@@ -124379,24 +124431,28 @@ export namespace Prisma {
 
   export type PlannedTripCreateWithoutCustomerInput = {
     id?: string
+    tripId?: string | null
     origin: string
     destination: string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: string | null
     fuelType?: string | null
     result: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type PlannedTripUncheckedCreateWithoutCustomerInput = {
     id?: string
+    tripId?: string | null
     origin: string
     destination: string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: string | null
     fuelType?: string | null
     result: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -124863,12 +124919,14 @@ export namespace Prisma {
     NOT?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
     id?: StringFilter<"PlannedTrip"> | string
     customerId?: StringFilter<"PlannedTrip"> | string
+    tripId?: StringNullableFilter<"PlannedTrip"> | string | null
     origin?: StringFilter<"PlannedTrip"> | string
     destination?: StringFilter<"PlannedTrip"> | string
     waypoints?: JsonNullableFilter<"PlannedTrip">
     vehicleType?: StringNullableFilter<"PlannedTrip"> | string | null
     fuelType?: StringNullableFilter<"PlannedTrip"> | string | null
     result?: JsonFilter<"PlannedTrip">
+    planning?: JsonNullableFilter<"PlannedTrip">
     createdAt?: DateTimeFilter<"PlannedTrip"> | Date | string
     updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
   }
@@ -140863,12 +140921,14 @@ export namespace Prisma {
 
   export type PlannedTripCreateManyCustomerInput = {
     id?: string
+    tripId?: string | null
     origin: string
     destination: string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: string | null
     fuelType?: string | null
     result: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -141437,36 +141497,42 @@ export namespace Prisma {
 
   export type PlannedTripUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PlannedTripUncheckedUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PlannedTripUncheckedUpdateManyWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
+    tripId?: NullableStringFieldUpdateOperationsInput | string | null
     origin?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     waypoints?: NullableJsonNullValueInput | InputJsonValue
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     fuelType?: NullableStringFieldUpdateOperationsInput | string | null
     result?: JsonNullValueInput | InputJsonValue
+    planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

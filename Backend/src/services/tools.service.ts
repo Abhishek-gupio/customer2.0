@@ -11,6 +11,7 @@ import {
   suggestIntervalsFromAI,
   saveSuggestedIntervals,
 } from "./oem-interval.service";
+import { fetchAndSaveIntervalsForVehicle } from "./oem-scraper.service";
 import { customerService } from "../modules/customer/customer.service";
 import { notificationService } from "./notification.service";
 import { challanService } from "./challan.service";
@@ -490,9 +491,10 @@ export const toolRegistry = {
         };
       }
 
-      // Suggest intervals from AI (public OEM knowledge)
-      const suggested = await suggestIntervalsFromAI(make, model, year);
-      if (suggested.length === 0) {
+      // Fetch intervals (prioritizes scraper, then fallback to AI)
+      const fetchResult = await fetchAndSaveIntervalsForVehicle(vehicle.id);
+      
+      if (fetchResult.saved === 0 && fetchResult.source === "NONE") {
         return {
           success: true,
           message: `Could not suggest intervals for ${make} ${model}. You can add them manually from the OEM manual (see app help).`,
@@ -500,40 +502,35 @@ export const toolRegistry = {
         };
       }
 
-      const saveToDb =
-        args.saveToDatabase === "true" || args.saveToDatabase === true;
-      if (saveToDb) {
-        const { saved, errors } = await saveSuggestedIntervals(
-          make,
-          model,
-          year,
-          suggested,
-        );
-        return {
-          success: true,
-          message: `I've added suggested parts intervals for your ${make} ${model} based on typical Indian OEM schedules (${saved} parts). Future replacement reminders will use these. For exact values, verify with the manufacturer manual.`,
-          vehicle: `${make} ${model}${year ? ` (${year})` : ""}`,
-          intervalsSaved: saved,
-          intervals: suggested.map((p) => ({
-            part: p.partType,
-            everyKm: p.intervalKm,
-            everyMonths: p.intervalMonths,
-          })),
-          source: "AI_SUGGESTED",
-          errors: errors.length ? errors : undefined,
-        };
-      }
+      // Re-query saved intervals for response
+      const allRows = await db.partReplacementInterval.findMany({
+        where: {
+          make: { equals: make, mode: "insensitive" },
+          model: model ? { equals: model, mode: "insensitive" } : undefined,
+        },
+      });
+
+      const intervals = allRows.filter((r: any) => {
+        if (year != null && r.yearMin != null && year < r.yearMin) return false;
+        if (year != null && r.yearMax != null && year > r.yearMax) return false;
+        return true;
+      });
+
+      const message = fetchResult.source === "DB" 
+        ? `I've found existing intervals for your ${make} ${model} in our database. Future replacement reminders will use these.`
+        : `I've ${fetchResult.source === "OEM_WEBSITE" ? "fetched" : "suggested"} parts intervals for your ${make} ${model} (${fetchResult.saved} parts). Future replacement reminders will use these. For exact values, verify with the manufacturer manual.`;
 
       return {
         success: true,
-        message: `Suggested intervals for ${make} ${model} (from typical Indian OEM schedules). Say "save these intervals" or ask to save if you want to use them for reminders.`,
+        message,
         vehicle: `${make} ${model}${year ? ` (${year})` : ""}`,
-        intervals: suggested.map((p) => ({
+        intervals: intervals.map((p: any) => ({
           part: p.partType,
           everyKm: p.intervalKm,
           everyMonths: p.intervalMonths,
         })),
-        source: "AI_SUGGESTED",
+        source: fetchResult.source,
+        errors: fetchResult.errors,
       };
     },
   },

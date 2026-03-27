@@ -293,7 +293,7 @@ export const WarrantyStatus = () => {
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
-          <Text style={styles.headerTitle}>Warranty Status</Text>
+          <Text style={styles.headerTitle}>Vehicle Health</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Icon name="car" size={wp(15)} color="#333" />
@@ -312,32 +312,22 @@ export const WarrantyStatus = () => {
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Warranty Status</Text>
+            <Text style={styles.headerTitle}>Vehicle Health</Text>
             {vehicle && <Text style={styles.vehicleSub}>{vehicle.registrationNumber}</Text>}
           </View>
         </View>
-        <WarrantySummary
-          active={summary.active}
-          expired={summary.expired}
-          health={vehicle?.healthScore?.overallScore ?? 0}
-        />
-        
       </View>
 
-      {parts.some(
-        (p) =>
-          !OEM_WARNING_EXCLUDED_PART_TYPES.has((p.id || '').toUpperCase()) &&
-          !OEM_INTERVAL_SOURCES.has((p.intervalSource || '').toUpperCase()),
-      ) && (
-        <View style={styles.oemWarningBanner}>
-          <Icon name="exclamation-triangle" size={wp(4)} color="#F59E0B" style={styles.oemWarningIcon} />
-          <Text style={styles.oemWarningText}>
-            Intervals not from OEM manual — data may be incorrect. Set vehicle make/model and pull to refresh to fetch from manufacturer.
-          </Text>
-        </View>
-      )}
-
       <FlatList
+        ListHeaderComponent={
+          <View style={{ marginBottom: 15 }}>
+            <WarrantySummary
+              active={summary.active}
+              expired={summary.expired}
+              health={vehicle?.healthScore?.overallScore ?? 0}
+            />
+          </View>
+        }
         data={parts}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
