@@ -47,6 +47,8 @@ try {
 }
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
+const AUTO_SCROLL_INTERVAL_MS = 9000;
+const AUTO_SCROLL_RESUME_DELAY_MS = 15000;
 
 function sortCarNewsLatestFirst(list: any[]): any[] {
   return [...list].sort((a, b) => {
@@ -194,6 +196,7 @@ export default function Home() {
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
+  const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
@@ -220,6 +223,16 @@ export default function Home() {
     }, [])
   );
 
+  const pauseAutoScrollTemporarily = useCallback(() => {
+    autoScrollStoppedRef.current = true;
+    if (autoScrollResumeTimerRef.current) {
+      clearTimeout(autoScrollResumeTimerRef.current);
+    }
+    autoScrollResumeTimerRef.current = setTimeout(() => {
+      autoScrollStoppedRef.current = false;
+    }, AUTO_SCROLL_RESUME_DELAY_MS);
+  }, []);
+
   // Auto-scroll carousel every 5 seconds
   // Use a ref to avoid stale closure & re-creating the interval on every slide,
   // which caused IllegalStateException from conflicting Animated frame timestamps.
@@ -228,7 +241,7 @@ export default function Home() {
     const totalSlides = showOdometerSlide ? 5 : 4;
     const timer = setInterval(() => {
       if (autoScrollStoppedRef.current) return;
-      const nextIndex = (carouselIndexRef.current + 1) % 4;
+      const nextIndex = (carouselIndexRef.current + 1) % totalSlides;
       carouselIndexRef.current = nextIndex;
       setCarouselIndex(nextIndex);
       try {
@@ -239,8 +252,14 @@ export default function Home() {
       } catch (_) {
         // guard against layout-not-ready race
       }
-    }, 9000);
-    return () => clearInterval(timer);
+    }, AUTO_SCROLL_INTERVAL_MS);
+    return () => {
+      clearInterval(timer);
+      if (autoScrollResumeTimerRef.current) {
+        clearTimeout(autoScrollResumeTimerRef.current);
+        autoScrollResumeTimerRef.current = null;
+      }
+    };
   }, [showOdometerSlide]); // ← dependency added to update interval when slides change
 
   // Typewriter animation for rotating number plate placeholders
@@ -604,7 +623,7 @@ export default function Home() {
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onTouchStart={() => {
-              autoScrollStoppedRef.current = true;
+              pauseAutoScrollTemporarily();
             }}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
