@@ -310,40 +310,40 @@ export const WarrantyStatus = () => {
         </View>
       </View>
       {loading ? (
-        <View style={styles.loadingBar}>
-          <ActivityIndicator size="small" color="#FFBF00" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFBF00" />
           <Text style={styles.loadingBarText}>Loading vehicle health details...</Text>
         </View>
-      ) : null}
-
-      <FlatList
-        ListHeaderComponent={
-          <View style={{ marginBottom: 15 }}>
-            <WarrantySummary
-              active={summary.active}
-              expired={summary.expired}
-              health={vehicle?.healthScore?.overallScore ?? 0}
+      ) : (
+        <FlatList
+          ListHeaderComponent={
+            <View style={{ marginBottom: 15 }}>
+              <WarrantySummary
+                active={summary.active}
+                expired={summary.expired}
+                health={vehicle?.healthScore?.overallScore ?? 0}
+              />
+            </View>
+          }
+          data={parts}
+          keyExtractor={item => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
+          }
+          renderItem={({ item }) => (
+            <PartStatusCard
+              {...item}
+              onPressHistory={() =>
+                navigation.navigate('ServiceHistory', { selectedPartType: item.id })
+              }
+              onPressUpdate={() => openUpdateModal(item)}
             />
-          </View>
-        }
-        data={parts}
-        keyExtractor={item => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
-        }
-        renderItem={({ item }) => (
-          <PartStatusCard
-            {...item}
-            onPressHistory={() =>
-              navigation.navigate('ServiceHistory', { selectedPartType: item.id })
-            }
-            onPressUpdate={() => openUpdateModal(item)}
-          />
-        )}
-        style={styles.list}
-      />
+          )}
+          style={styles.list}
+        />
+      )}
 
       <Modal transparent visible={isUpdateModalVisible} animationType="fade" statusBarTranslucent>
         <Pressable style={styles.modalBackdrop} onPress={closeUpdateModal}>
@@ -429,17 +429,18 @@ const styles = StyleSheet.create({
     paddingBottom: hp(2),
     backgroundColor: '#000',
   },
-  loadingBar: {
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: wp(2),
     paddingHorizontal: wp(5),
-    paddingBottom: hp(1.2),
   },
   loadingBarText: {
     color: '#b5b5b5',
     fontSize: wp(3.3),
     fontFamily: 'Outfit-Medium',
+    textAlign: 'center',
+    marginTop: hp(1.4),
   },
   header: {
     flexDirection: 'row',
