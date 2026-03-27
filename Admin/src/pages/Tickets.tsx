@@ -281,11 +281,11 @@ export default function Tickets() {
           </CardTitle>
           <CardDescription>
             {loading ? '---' : `${tickets.length} total tickets`} · Showing {filteredTickets.length} results
-            <div className="flex mt-3 p-1 bg-white/[0.03] rounded-xl border border-white/[0.05] w-fit">
-              <button onClick={() => setActiveTab('OPEN')} className={cn("px-4 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all", activeTab === 'OPEN' ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/60")}>Active</button>
-              <button onClick={() => setActiveTab('CLOSED')} className={cn("px-4 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all", activeTab === 'CLOSED' ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/60")}>Resolved</button>
-            </div>
           </CardDescription>
+          <div className="flex mt-3 p-1 bg-white/[0.03] rounded-xl border border-white/[0.05] w-fit">
+            <button onClick={() => setActiveTab('OPEN')} className={cn("px-4 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all", activeTab === 'OPEN' ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/60")}>Active</button>
+            <button onClick={() => setActiveTab('CLOSED')} className={cn("px-4 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all", activeTab === 'CLOSED' ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/60")}>Resolved</button>
+          </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 min-h-0 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
