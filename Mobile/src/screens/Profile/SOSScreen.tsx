@@ -251,8 +251,8 @@ const SOSScreen = () => {
         )}
       </View>
       {loading ? (
-        <View style={styles.loadingBanner}>
-          <ActivityIndicator size="small" color="#FFD700" />
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFD700" />
           <Text style={styles.loadingBannerText}>Initializing Secure SOS...</Text>
         </View>
       ) : null}
@@ -511,17 +511,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Outfit-Bold',
   },
-  loadingBanner: {
-    flexDirection: 'row',
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    gap: wp(2),
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(1),
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    zIndex: 10,
   },
   loadingBannerText: {
     color: '#FFD700',
     fontSize: wp(3.4),
     fontFamily: 'Outfit-Medium',
+    marginTop: hp(1.2),
+    textAlign: 'center',
   },
   header: {
     flexDirection: "row",

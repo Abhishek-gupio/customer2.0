@@ -61,6 +61,15 @@ export const documentService = {
       }
     });
 
+    if (document.vehicleId) {
+      void vehicleService.calculateHealthScore(document.vehicleId).catch((err) =>
+        logger.warn(
+          { err, vehicleId: document.vehicleId, documentId: document.id },
+          "Health recalculation failed after document upload",
+        ),
+      );
+    }
+
     return {
       ...document,
       fileUrl: (await storageService.ensureReadableUrl(document.fileUrl || "")) || `/api/v1/documents/${document.id}/image`,
@@ -129,6 +138,15 @@ export const documentService = {
     await dbInstances.vehicleDocument.delete({
       where: { id: documentId },
     });
+
+    if (document.vehicleId) {
+      void vehicleService.calculateHealthScore(document.vehicleId).catch((err) =>
+        logger.warn(
+          { err, vehicleId: document.vehicleId, documentId },
+          "Health recalculation failed after document delete",
+        ),
+      );
+    }
 
     return { success: true };
   },

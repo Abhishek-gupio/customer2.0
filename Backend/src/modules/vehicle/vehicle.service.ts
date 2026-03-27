@@ -661,6 +661,21 @@ export const vehicleService = {
       );
     }
 
+    const shouldRecalculateHealth =
+      input.currentOdometer !== undefined ||
+      input.registrationDate !== undefined ||
+      input.insuranceUpto !== undefined ||
+      input.pollutionUpto !== undefined;
+
+    if (shouldRecalculateHealth) {
+      void this.calculateHealthScore(vehicleId).catch((err) =>
+        logger.warn(
+          { err, vehicleId },
+          "Health recalculation failed after vehicle update",
+        ),
+      );
+    }
+
     return updated;
   },
 

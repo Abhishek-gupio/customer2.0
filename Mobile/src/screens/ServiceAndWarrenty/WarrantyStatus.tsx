@@ -118,7 +118,16 @@ export const WarrantyStatus = () => {
         setLoading(false);
         return;
       }
-      setVehicle(primary);
+      let latestPrimary = primary;
+      try {
+        // Keep health score fresh whenever this screen opens.
+        await vehicleService.recalculateHealth(primary.id);
+        const refreshed = await vehicleService.getVehicleById(primary.id);
+        if (refreshed) latestPrimary = refreshed;
+      } catch {
+        // Non-blocking: continue with the current primary data if recalc fails.
+      }
+      setVehicle(latestPrimary);
 
       // Refresh OEM manual intervals for primary vehicle (fire-and-forget) so part intervals match OEM e.g. 60k km for tyres
       api.post('/v1/expenses/warranty/primary/refresh-oem').catch(() => {});
@@ -155,7 +164,7 @@ export const WarrantyStatus = () => {
           lifecycleKm: item.lifecycleKm,
           lifecycleMonths: item.lifecycleMonths,
           lastReplacedAt: item.lastReplacedAt,
-          currentOdo: primary.currentOdometer,
+          currentOdo: latestPrimary.currentOdometer,
           overdueByKm: item.overdueByKm,
           intervalSource: item.intervalSource,
         };

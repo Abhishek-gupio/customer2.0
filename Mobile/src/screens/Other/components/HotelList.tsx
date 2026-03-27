@@ -241,8 +241,8 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
   return (
     <View style={styles.container}>
       {loading ? (
-        <View style={styles.loadingBar}>
-          <ActivityIndicator size="small" color="#FFD700" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFD700" />
           <Text style={styles.loadingText}>Expanding search radius to 20km and finding deals...</Text>
         </View>
       ) : null}
@@ -267,16 +267,19 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
-  loadingBar: {
-    flexDirection: 'row',
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    justifyContent: 'center',
+    zIndex: 5,
+    backgroundColor: '#000',
   },
   loadingText: {
     color: '#888',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
   },
   sortBar: {
     flexDirection: 'row',

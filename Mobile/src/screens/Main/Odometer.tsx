@@ -135,25 +135,29 @@ export default function Odometer() {
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <ActivityIndicator size="large" color="#FFBF00" />
+          <Text style={styles.loadingHint}>Loading your vehicle...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!vehicle) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerFallback}>
           <Text style={styles.headerTitle}>Odometer</Text>
         </View>
-        {loading ? (
-          <View style={[styles.centered, { flex: 1 }]}>
-            <ActivityIndicator size="small" color="#FFBF00" />
-            <Text style={styles.loadingHint}>Loading your vehicle...</Text>
-          </View>
-        ) : (
-          <View style={[styles.centered, { flex: 1 }]}>
-            <Icon name="car" size={wp(20)} color="#333" />
-            <Text style={styles.emptyText}>
-              No primary vehicle set.{'\n'}Add a vehicle and set it as primary to track odometer.
-            </Text>
-          </View>
-        )}
+        <View style={[styles.centered, { flex: 1 }]}>
+          <Icon name="car" size={wp(20)} color="#333" />
+          <Text style={styles.emptyText}>
+            No primary vehicle set.{'\n'}Add a vehicle and set it as primary to track odometer.
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -164,12 +168,6 @@ export default function Odometer() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboard}
       >
-        {loading ? (
-          <View style={styles.loadingBar}>
-            <ActivityIndicator size="small" color="#FFBF00" />
-            <Text style={styles.loadingBarText}>Refreshing odometer data...</Text>
-          </View>
-        ) : null}
         <LinearGradient 
              colors={['rgba(255, 191, 0, 0.1)', 'transparent']}
              style={styles.headerGradient}
@@ -299,18 +297,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingTop: hp(2),
     paddingBottom: hp(1),
-  },
-  loadingBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: wp(5),
-    paddingTop: hp(1),
-  },
-  loadingBarText: {
-    color: '#888',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Medium',
   },
   loadingHint: {
     marginTop: hp(1.2),

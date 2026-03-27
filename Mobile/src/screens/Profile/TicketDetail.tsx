@@ -109,22 +109,21 @@ export default function TicketDetail() {
         </View>
       </View>
       {loading ? (
-        <View style={styles.loadingBar}>
-          <ActivityIndicator size="small" color="#4CAF50" />
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color="#4CAF50" />
           <Text style={styles.loadingText}>Refreshing conversation...</Text>
         </View>
-      ) : null}
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={hp(10)}
-      >
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      ) : (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={hp(10)}
         >
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
           {/* Ticket Original Content */}
           <View style={styles.ticketCard}>
             <View style={styles.ticketMeta}>
@@ -176,37 +175,38 @@ export default function TicketDetail() {
               </View>
             );
           })}
-        </ScrollView>
+          </ScrollView>
 
-        {/* Reply Area */}
-        <View style={styles.replyArea}>
-          <Text style={styles.replyLabel}>Add a reply</Text>
-          <View style={styles.inputWrap}>
-            <TextInput
-              style={styles.input}
-              placeholder="Type your reply..."
-              placeholderTextColor="#555"
-              multiline
-              value={reply}
-              onChangeText={setReply}
-            />
+          {/* Reply Area */}
+          <View style={styles.replyArea}>
+            <Text style={styles.replyLabel}>Add a reply</Text>
+            <View style={styles.inputWrap}>
+              <TextInput
+                style={styles.input}
+                placeholder="Type your reply..."
+                placeholderTextColor="#555"
+                multiline
+                value={reply}
+                onChangeText={setReply}
+              />
+            </View>
+            <TouchableOpacity
+              style={[styles.sendBtn, !reply.trim() && styles.sendBtnDisabled]}
+              onPress={handleSendReply}
+              disabled={sending || !reply.trim()}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="#000" />
+              ) : (
+                <View style={styles.sendBtnContent}>
+                  <Icon name="paper-plane" size={wp(4)} color="#000" />
+                  <Text style={styles.sendBtnText}>Send Reply</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.sendBtn, !reply.trim() && styles.sendBtnDisabled]}
-            onPress={handleSendReply}
-            disabled={sending || !reply.trim()}
-          >
-            {sending ? (
-              <ActivityIndicator size="small" color="#000" />
-            ) : (
-              <View style={styles.sendBtnContent}>
-                <Icon name="paper-plane" size={wp(4)} color="#000" />
-                <Text style={styles.sendBtnText}>Send Reply</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
@@ -247,16 +247,9 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: hp(0.2),
   },
-  loadingBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(2),
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(1),
-  },
   loadingText: {
     color: '#888',
-    fontSize: wp(3.1),
+    fontSize: wp(3.2),
   },
   centerState: {
     flex: 1,

@@ -559,8 +559,8 @@ export default function MyProfile() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       {loading ? (
-        <View style={styles.loadingBanner}>
-          <ActivityIndicator size="small" color="#e5e5e5" />
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#e5e5e5" />
           <Text style={styles.loadingBannerText}>Refreshing profile...</Text>
         </View>
       ) : null}
@@ -1091,17 +1091,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingBanner: {
-    flexDirection: 'row',
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(1),
+    backgroundColor: 'rgba(0,0,0,0.82)',
+    zIndex: 20,
   },
   loadingBannerText: {
     color: '#b8b8b8',
-    fontSize: wp(3.3),
+    fontSize: wp(3.4),
     fontFamily: 'Outfit-Medium',
+    marginTop: hp(1.4),
+    textAlign: 'center',
   },
   fallbackState: {
     flex: 1,

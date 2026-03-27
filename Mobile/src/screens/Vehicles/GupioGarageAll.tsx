@@ -515,8 +515,8 @@ export default function GupioGarageApp() {
     return (
         <View style={styles.screen}>
             {initialLoading ? (
-                <View style={styles.loadingBar}>
-                    <ActivityIndicator size="small" color={COLORS.primary} />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
                     <Text style={styles.loadingText}>Loading garage data...</Text>
                 </View>
             ) : null}
@@ -527,20 +527,18 @@ export default function GupioGarageApp() {
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
-    loadingBar: {
-        flexDirection: 'row',
+    loadingContainer: {
+        ...StyleSheet.absoluteFillObject,
         alignItems: 'center',
-        gap: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        backgroundColor: '#111',
-        borderBottomWidth: 1,
-        borderBottomColor: '#1f1f1f',
+        justifyContent: 'center',
+        backgroundColor: COLORS.background,
+        zIndex: 10,
     },
     loadingText: {
         color: '#b5b5b5',
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '600',
+        marginTop: 8,
     },
     header: { padding: 24, paddingTop: 48, minHeight: 80 },
     backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },

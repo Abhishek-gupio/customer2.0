@@ -152,6 +152,12 @@ export const DetailsScreen = ({
 
     const fetchHealthDetail = useCallback(async (vehicleId: string) => {
         try {
+            // Recalculate first so user sees the latest score and reasons.
+            await vehicleService.recalculateHealth(vehicleId);
+        } catch {
+            // Continue and fetch whatever is currently stored.
+        }
+        try {
             const data = await vehicleService.getVehicleById(vehicleId);
             const hs = data?.healthScore as typeof healthScoreDetail;
             setHealthScoreDetail(hs ?? null);
