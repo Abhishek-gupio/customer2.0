@@ -32,10 +32,11 @@
             "react-native-tts@4.1.1": "patches/react-native-tts@4.1.1.patch"
         },
         "overrides": {
-            "react": "18.3.1",
-            "react-is": "18.3.1",
-            "react-test-renderer": "18.3.1",
-            "react-dom": "18.3.1"
+            "react": "19.2.0",
+            "react-dom": "19.2.0",
+            "react-is": "19.2.0",
+            "@types/react": "19.2.0",
+            "@types/react-dom": "19.2.0"
         }
     }
 }

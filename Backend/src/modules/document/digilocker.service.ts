@@ -3,6 +3,7 @@ import { dbInstances } from "@repo/db-customer";
 import { env } from "../../config/env";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
+import { documentService } from "./document.service";
 
 const DIGILOCKER_API_BASE = "https://javabackend.idspay.in/api/v1/prod/srv2/validation/digilocker-digital-kyc";
 
@@ -134,10 +135,13 @@ export const digilockerService = {
       
       const uploadRes = await storageService.uploadFile(mockFile, "documents");
       
-      await dbInstances.vehicleDocument.upsert({
+      // USE CENTRALIZED STORAGE to ensure all fields like documentNumber, expiryDate and fileContent are saved
+      await documentService.storeVerifiedDL(customerId, apiResponse?.data || { documents: [doc] });
+      
+      // Update fileUrl separately to preserve the uploaded image/PDF from DigiLocker
+      await dbInstances.vehicleDocument.update({
         where: { id: `dl_${customerId}` }, 
-        update: { fileUrl: uploadRes.url, mimeType: mockFile.mimetype, updatedAt: new Date() },
-        create: { customerId, type: "DL", fileUrl: uploadRes.url, mimeType: mockFile.mimetype }
+        data: { fileUrl: uploadRes.url, mimeType: mockFile.mimetype }
       });
 
       await dbInstances.digiLockerConnection.update({

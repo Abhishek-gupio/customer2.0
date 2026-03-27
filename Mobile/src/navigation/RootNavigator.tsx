@@ -44,6 +44,8 @@ import Alerts from '../screens/Main/Alerts';
 import ValetService from '../screens/Main/ValetService';
 import VehicleSearch from '../screens/Main/VehicleSearch';
 import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
+import DLVerification from '../screens/ServiceAndWarrenty/DLVerification';
+import Fastag from '../screens/ServiceAndWarrenty/Fastag';
 import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -111,6 +113,8 @@ export function RootNavigator() {
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
       <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
+      <Stack.Screen name="DLVerification" component={DLVerification} />
+      <Stack.Screen name="Fastag" component={Fastag} />
     </Stack.Navigator>
   );
 }

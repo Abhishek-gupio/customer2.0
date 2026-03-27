@@ -175,6 +175,38 @@ exports.Prisma.VehicleDocumentScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DrivingLicenseScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  dlNumber: 'dlNumber',
+  fullName: 'fullName',
+  dob: 'dob',
+  referenceNumber: 'referenceNumber',
+  dateOfIssue: 'dateOfIssue',
+  originalLA: 'originalLA',
+  dateOfFirstIssue: 'dateOfFirstIssue',
+  validityTransport: 'validityTransport',
+  validityNonTransport: 'validityNonTransport',
+  registeredAddress: 'registeredAddress',
+  rawResponse: 'rawResponse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FastagDocumentScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  creditorAccountId: 'creditorAccountId',
+  ifscCode: 'ifscCode',
+  creditorName: 'creditorName',
+  transactionReferenceNumber: 'transactionReferenceNumber',
+  transactionId: 'transactionId',
+  status: 'status',
+  rawResponse: 'rawResponse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.DigiLockerConnectionScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
@@ -1565,6 +1597,8 @@ exports.Prisma.ModelName = {
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
   VehicleDocument: 'VehicleDocument',
+  DrivingLicense: 'DrivingLicense',
+  FastagDocument: 'FastagDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
   VehicleCatalog: 'VehicleCatalog',

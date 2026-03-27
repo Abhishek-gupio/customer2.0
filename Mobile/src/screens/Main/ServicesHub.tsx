@@ -37,7 +37,9 @@ type ServiceId =
   | 'TyreShop'
   | 'DocumentServices'
   | 'CarSpa'
-  | 'TripExpense';
+  | 'TripExpense'
+  | 'DLVerification'
+  | 'Fastag';
 
 type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' };
 
@@ -51,15 +53,15 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
   { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
   { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
-  { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
+  { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
-  { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
+  { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
   { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
-  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'Insurance', 'Towing'], color: '#FFBF00' }, // Yellow
+  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
@@ -113,9 +115,7 @@ const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
   'ChargingStation',
   'Mechanics',
   'RTO',
-  'Towing',
   'CarWash',
-  'Insurance',
   'Parking',
   'TyreShop',
   'DocumentServices',
@@ -164,6 +164,12 @@ export default function ServicesHub() {
         break;
       case 'TripExpense':
         navigation.navigate('TripExpense');
+        break;
+      case 'DLVerification':
+        navigation.navigate('DLVerification');
+        break;
+      case 'Fastag':
+        navigation.navigate('Fastag');
         break;
       default:
         break;
