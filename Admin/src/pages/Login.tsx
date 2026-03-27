@@ -497,10 +497,7 @@ export default function Login() {
         <div className="overlay-container">
           <div className="overlay">
             <div className="overlay-panel overlay-left">
-              <div className="status-badge">
-                <span className="status-dot"></span>
-                SECURE ACCESS
-              </div>
+
               <SplitText
                 text="Welcome Back Admin"
                 className="text-[32px] font-bold text-white mb-2"
@@ -517,10 +514,7 @@ export default function Login() {
               <button className="ghost" id="signIn" onClick={() => setIsRightPanelActive(false)}>Sign In</button>
             </div>
             <div className="overlay-panel overlay-right">
-              <div className="status-badge">
-                <span className="status-dot"></span>
-                SYSTEM ONLINE
-              </div>
+
               <SplitText
                 text="Welcome Back Admin"
                 className="text-[32px] font-bold text-white mb-2"
