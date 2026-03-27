@@ -96,8 +96,8 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
   const handleBooking = (providerId: string, hotel: Hotel) => {
     setRedirectingProvider(providerId);
     setRedirectingHotelId(hotel.id);
-    
-    setTimeout(async () => {
+
+    (async () => {
       const provider = PROVIDERS.find(p => p.id === providerId);
       if (provider) {
         const url = provider.getBaseUrl(hotel.name, destinationCity);
@@ -106,12 +106,15 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
         } catch (e) {
           console.error('Failed to open booking URL', e);
         } finally {
-            setRedirectingProvider(null);
-            setRedirectingHotelId(null);
+          setRedirectingProvider(null);
+          setRedirectingHotelId(null);
         }
+      } else {
+        setRedirectingProvider(null);
+        setRedirectingHotelId(null);
       }
-    }, 1200);
-    
+    })();
+
     onChange({ selectedHotelId: hotel.id });
   };
 

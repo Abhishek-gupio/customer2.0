@@ -244,12 +244,10 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
     const handleFeedbackSubmit = () => {
         if (!rating) return;
         setIsSubmitting(true);
-        setTimeout(() => {
-            setSubmittedFeedback({ rating, text: feedback });
-            setIsSubmitting(false);
-            setRating(0);
-            setFeedback('');
-        }, 1500);
+        setSubmittedFeedback({ rating, text: feedback });
+        setIsSubmitting(false);
+        setRating(0);
+        setFeedback('');
     };
 
     return (

@@ -203,6 +203,28 @@ export default function Home() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  const getBannerVehicleShortName = useCallback((v: Vehicle | null): string => {
+    if (!v) return 'Vehicle';
+
+    const makeWords = (v.make || '').trim().split(/\s+/).filter(Boolean);
+    const modelWords = (v.model || '').trim().split(/\s+/).filter(Boolean);
+
+    const makeFirst = makeWords[0] || '';
+    let modelFirst = modelWords[0] || '';
+
+    // If model starts with make (e.g. "Tata Nexon"), pick next model word.
+    if (
+      makeFirst &&
+      modelFirst &&
+      makeFirst.toLowerCase() === modelFirst.toLowerCase()
+    ) {
+      modelFirst = modelWords[1] || modelFirst;
+    }
+
+    const shortName = [makeFirst, modelFirst].filter(Boolean).join(' ').trim();
+    return shortName || v.model || v.make || 'Vehicle';
+  }, []);
+
   // Initial load
   useEffect(() => {
     fetchDiscoveryContent();
@@ -671,7 +693,7 @@ export default function Home() {
                                   </View>
                                   <Text style={styles.regBadgeText}>{vehicle.registrationNumber}</Text>
                                 </View>
-                                <Text style={styles.bannerModel}>{vehicle.model}</Text>
+                                <Text style={styles.bannerModel}>{getBannerVehicleShortName(vehicle)}</Text>
                                 <HealthDisplay score={vehicle.healthScore?.overallScore ?? 100} />
                               </View>
                             ) : (
