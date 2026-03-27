@@ -476,41 +476,72 @@ export default function GupioGarageApp() {
         }
     };
 
-    if (initialLoading) {
-        return (
-            <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-            </View>
-        );
+    let content: React.ReactNode = null;
+    if (vehicles.length === 0 && screen === 'GARAGE' && !initialLoading) {
+        content = <AddVehicleScreen isFirst={true} onDone={handleAdd} />;
+    } else {
+        switch (screen) {
+            case 'GARAGE':
+                content = (
+                    <GarageScreen
+                        vehicles={vehicles}
+                        onAdd={() => setScreen('ADD')}
+                        onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }}
+                        onDelete={handleDelete}
+                    />
+                );
+                break;
+            case 'ADD':
+                content = <AddVehicleScreen onBack={() => setScreen('GARAGE')} onDone={handleAdd} />;
+                break;
+            case 'DETAILS':
+                content = (
+                    <DetailsScreen
+                        vehicles={vehicles}
+                        activeVehicle={activeVehicle}
+                        setActiveVehicle={setActiveVehicle}
+                        onBack={() => setScreen('GARAGE')}
+                        onAddNew={() => setScreen('ADD')}
+                        onDelete={handleDelete}
+                    />
+                );
+                break;
+            default:
+                content = null;
+                break;
+        }
     }
 
-    if (vehicles.length === 0 && screen === 'GARAGE') {
-        return <AddVehicleScreen isFirst={true} onDone={handleAdd} />;
-    }
-
-    switch (screen) {
-        case 'GARAGE':
-            return <GarageScreen vehicles={vehicles} onAdd={() => setScreen('ADD')} onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }} onDelete={handleDelete} />;
-        case 'ADD':
-            return <AddVehicleScreen onBack={() => setScreen('GARAGE')} onDone={handleAdd} />;
-        case 'DETAILS':
-            return (
-                <DetailsScreen
-                    vehicles={vehicles}
-                    activeVehicle={activeVehicle}
-                    setActiveVehicle={setActiveVehicle}
-                    onBack={() => setScreen('GARAGE')}
-                    onAddNew={() => setScreen('ADD')}
-                    onDelete={handleDelete}
-                />
-            );
-        default:
-            return null;
-    }
+    return (
+        <View style={styles.screen}>
+            {initialLoading ? (
+                <View style={styles.loadingBar}>
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                    <Text style={styles.loadingText}>Loading garage data...</Text>
+                </View>
+            ) : null}
+            {content}
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
+    loadingBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: '#111',
+        borderBottomWidth: 1,
+        borderBottomColor: '#1f1f1f',
+    },
+    loadingText: {
+        color: '#b5b5b5',
+        fontSize: 12,
+        fontWeight: '600',
+    },
     header: { padding: 24, paddingTop: 48, minHeight: 80 },
     backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
 

@@ -13,32 +13,6 @@ const base = `${API_BASE_URL}/api`;
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: object };
 
 let refreshPromise: Promise<boolean> | null = null;
-let activeApiRequestCount = 0;
-const apiLoadingListeners = new Set<(count: number) => void>();
-
-function emitApiLoadingCount() {
-  for (const listener of apiLoadingListeners) {
-    listener(activeApiRequestCount);
-  }
-}
-
-function beginApiRequest() {
-  activeApiRequestCount += 1;
-  emitApiLoadingCount();
-}
-
-function endApiRequest() {
-  activeApiRequestCount = Math.max(0, activeApiRequestCount - 1);
-  emitApiLoadingCount();
-}
-
-export function subscribeApiLoading(listener: (count: number) => void) {
-  apiLoadingListeners.add(listener);
-  listener(activeApiRequestCount);
-  return () => {
-    apiLoadingListeners.delete(listener);
-  };
-}
 
 async function doRefresh(): Promise<boolean> {
   const refreshToken = getRefreshToken();
@@ -83,9 +57,6 @@ async function request<T>(
   options: RequestOptions = {},
   isRetry = false,
 ): Promise<T> {
-  const trackLoader = !isRetry;
-  if (trackLoader) beginApiRequest();
-
   const { body, ...rest } = options;
   const url = path.startsWith('http') ? path : `${base}${path}`;
   const headers: Record<string, string> = {
@@ -102,40 +73,36 @@ async function request<T>(
   const fetchBody: RequestInit['body'] =
     body != null ? JSON.stringify(body) : undefined;
 
+  let res: Response;
   try {
-    let res: Response;
-    try {
-      res = await fetch(url, { ...rest, headers, body: fetchBody });
-    } catch (e: any) {
-      const msg = e?.message || '';
-      const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
-      throw new Error(
-        isNetworkErr
-          ? 'Network error. Check internet and that the server is reachable.'
-          : msg || 'Request failed',
-      );
-    }
-    const data = await res.json().catch(() => ({}));
-
-    if (res.status === 401 && !isRetry) {
-      const refreshed = await doRefresh();
-      if (refreshed) return request<T>(path, options, true);
-    }
-
-    if (!res.ok) {
-      const err = data as any;
-      const message =
-        err?.error?.message ??
-        err?.message ??
-        err?.error ??
-        res.statusText ??
-        'Request failed';
-      throw new Error(`${message}`); // Only throw the message, without the status code for cleaner UI
-    }
-    return data as T;
-  } finally {
-    if (trackLoader) endApiRequest();
+    res = await fetch(url, { ...rest, headers, body: fetchBody });
+  } catch (e: any) {
+    const msg = e?.message || '';
+    const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
+    throw new Error(
+      isNetworkErr
+        ? 'Network error. Check internet and that the server is reachable.'
+        : msg || 'Request failed',
+    );
   }
+  const data = await res.json().catch(() => ({}));
+
+  if (res.status === 401 && !isRetry) {
+    const refreshed = await doRefresh();
+    if (refreshed) return request<T>(path, options, true);
+  }
+
+  if (!res.ok) {
+    const err = data as any;
+    const message =
+      err?.error?.message ??
+      err?.message ??
+      err?.error ??
+      res.statusText ??
+      'Request failed';
+    throw new Error(`${message}`); // Only throw the message, without the status code for cleaner UI
+  }
+  return data as T;
 }
 
 async function upload<T>(
@@ -143,9 +110,6 @@ async function upload<T>(
   formData: FormData,
   isRetry = false,
 ): Promise<T> {
-  const trackLoader = !isRetry;
-  if (trackLoader) beginApiRequest();
-
   const url = path.startsWith('http') ? path : `${base}${path}`;
   const token = getAccessToken();
   const headers: Record<string, string> = { Accept: 'application/json' };
@@ -155,44 +119,40 @@ async function upload<T>(
     console.warn(`[api] No token found for upload to ${url}`);
   }
 
+  let res: Response;
   try {
-    let res: Response;
-    try {
-      res = await fetch(url, { method: 'POST', headers, body: formData });
-    } catch (e: any) {
-      const msg = e?.message || '';
-      const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
-      throw new Error(
-        isNetworkErr
-          ? 'Network error. Check that the app can reach the server (e.g. use your computer\'s IP instead of localhost).'
-          : msg || 'Upload failed',
-      );
-    }
-
-    const text = await res.text();
-    let data: any = {};
-    try {
-      data = text && text.trim().startsWith('{') ? JSON.parse(text) : {};
-    } catch {
-      if (!res.ok) {
-        throw new Error(res.status === 404 ? 'Upload endpoint not found. Is the backend running?' : `Upload failed (${res.status})`);
-      }
-    }
-
-    if (res.status === 401 && !isRetry) {
-      const refreshed = await doRefresh();
-      if (refreshed) return upload<T>(path, formData, true);
-    }
-
-    if (!res.ok) {
-      const err = data as { message?: string; error?: { message?: string } };
-      const message = err?.error?.message ?? err?.message ?? res.statusText ?? 'Upload failed';
-      throw new Error(message);
-    }
-    return data as T;
-  } finally {
-    if (trackLoader) endApiRequest();
+    res = await fetch(url, { method: 'POST', headers, body: formData });
+  } catch (e: any) {
+    const msg = e?.message || '';
+    const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
+    throw new Error(
+      isNetworkErr
+        ? 'Network error. Check that the app can reach the server (e.g. use your computer\'s IP instead of localhost).'
+        : msg || 'Upload failed',
+    );
   }
+
+  const text = await res.text();
+  let data: any = {};
+  try {
+    data = text && text.trim().startsWith('{') ? JSON.parse(text) : {};
+  } catch {
+    if (!res.ok) {
+      throw new Error(res.status === 404 ? 'Upload endpoint not found. Is the backend running?' : `Upload failed (${res.status})`);
+    }
+  }
+
+  if (res.status === 401 && !isRetry) {
+    const refreshed = await doRefresh();
+    if (refreshed) return upload<T>(path, formData, true);
+  }
+
+  if (!res.ok) {
+    const err = data as { message?: string; error?: { message?: string } };
+    const message = err?.error?.message ?? err?.message ?? res.statusText ?? 'Upload failed';
+    throw new Error(message);
+  }
+  return data as T;
 }
 
 export const api = {

@@ -238,17 +238,14 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#FFD700" />
-        <Text style={styles.emptyText}>Expanding search radius to 20km...{"\n"}Finding all available deals.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {loading ? (
+        <View style={styles.loadingBar}>
+          <ActivityIndicator size="small" color="#FFD700" />
+          <Text style={styles.loadingText}>Expanding search radius to 20km and finding deals...</Text>
+        </View>
+      ) : null}
       {renderSortBar()}
       <FlatList
         data={sortedHotels}
@@ -256,6 +253,13 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
+        ListEmptyComponent={
+          loading ? null : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No hotel options found for this destination.</Text>
+            </View>
+          )
+        }
       />
     </View>
   );
@@ -263,6 +267,17 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
+  loadingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   sortBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',

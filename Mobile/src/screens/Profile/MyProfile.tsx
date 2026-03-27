@@ -526,15 +526,31 @@ export default function MyProfile() {
     }
   };
 
-  if (loading && !profile) {
+  if (!profile || !editData) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e5e5e5" />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.topBar}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+              <Icon name="arrow-left" size={wp(4.8)} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
+          </View>
+        </View>
+        <View style={styles.fallbackState}>
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#e5e5e5" />
+              <Text style={styles.fallbackText}>Loading your profile...</Text>
+            </>
+          ) : (
+            <Text style={styles.fallbackText}>Unable to load your profile right now.</Text>
+          )}
+        </View>
       </SafeAreaView>
     );
   }
-
-  if (!profile || !editData) return null;
 
   const currentPic = isEditing ? editData?.profilePic : profile?.profilePic;
   const profilePicUri = currentPic ? getAbsoluteUrl(currentPic) : undefined;
@@ -542,6 +558,12 @@ export default function MyProfile() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
+      {loading ? (
+        <View style={styles.loadingBanner}>
+          <ActivityIndicator size="small" color="#e5e5e5" />
+          <Text style={styles.loadingBannerText}>Refreshing profile...</Text>
+        </View>
+      ) : null}
 
 
       {/* ── Full-screen Photo Preview Modal ── */}
@@ -1068,6 +1090,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(1),
+  },
+  loadingBannerText: {
+    color: '#b8b8b8',
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Medium',
+  },
+  fallbackState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: wp(10),
+  },
+  fallbackText: {
+    color: '#8a8a8a',
+    fontSize: wp(3.6),
+    textAlign: 'center',
+    fontFamily: 'Outfit-Medium',
   },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: hp(4) },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -14,8 +14,6 @@ import {
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
-import PremiumLoader from './src/components/PremiumLoader';
-import { subscribeApiLoading } from './src/services/api';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -58,8 +56,6 @@ const linking = {
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
-  const [activeApiCalls, setActiveApiCalls] = useState(0);
-  const [showGlobalLoader, setShowGlobalLoader] = useState(false);
 
   useEffect(() => {
     hydrateAuthFromPersistedStorage()
@@ -72,42 +68,26 @@ function App() {
       });
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = subscribeApiLoading((count) => {
-      setActiveApiCalls(count);
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    setShowGlobalLoader(activeApiCalls > 0);
-  }, [activeApiCalls]);
-
   if (!storageReady) {
     return (
       <View style={styles.bootstrapLoader}>
-        <PremiumLoader size="large" label="Preparing your garage" />
+        <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }
 
   return (
     <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.appRoot}>
+        <View style={styles.appContent}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <NavigationContainer linking={linking}>
               <VoiceOwnerProvider>
-              <RootNavigator />
+                <RootNavigator />
               </VoiceOwnerProvider>
             </NavigationContainer>
           </SafeAreaProvider>
-          {showGlobalLoader ? (
-            <View style={styles.blockingOverlay}>
-              <PremiumLoader size="large" label="Loading" />
-            </View>
-          ) : null}
         </View>
       </GestureHandlerRootView>
     </Provider>
@@ -115,17 +95,17 @@ function App() {
 }
 
 const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+  },
+  appContent: {
+    flex: 1,
+  },
   bootstrapLoader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0a0a0a',
-  },
-  blockingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0a0a0a',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 

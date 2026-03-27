@@ -101,14 +101,6 @@ export const NotificationsScreen = () => {
         );
     }
 
-    if (loading) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color="#007bff" />
-            </View>
-        );
-    }
-
     return (
         <View style={styles.container}>
             <FlatList
@@ -116,7 +108,15 @@ export const NotificationsScreen = () => {
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContainer}
-                ListEmptyComponent={<Text style={styles.emptyText}>No notifications yet.</Text>}
+                ListHeaderComponent={
+                    loading ? (
+                        <View style={styles.loadingBar}>
+                            <ActivityIndicator size="small" color="#007bff" />
+                            <Text style={styles.loadingText}>Refreshing notifications...</Text>
+                        </View>
+                    ) : null
+                }
+                ListEmptyComponent={loading ? null : <Text style={styles.emptyText}>No notifications yet.</Text>}
             />
         </View>
     );
@@ -126,6 +126,13 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f1f5f9' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     listContainer: { padding: 16 },
+    loadingBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+    loadingText: { fontSize: 13, color: '#64748b' },
     notificationCard: {
         backgroundColor: '#fff',
         padding: 16,

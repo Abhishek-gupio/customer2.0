@@ -30,6 +30,7 @@ export default function TicketDetail() {
   const [sending, setSending] = useState(false);
 
   const loadTicketDetail = async () => {
+    setLoading(true);
     try {
       const resp = await supportApi.getTicket(ticketId);
       if (resp.success) setTicket(resp.data);
@@ -70,10 +71,28 @@ export default function TicketDetail() {
     }
   };
 
-  if (loading) {
+  if (!ticket) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: hp(10) }} />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Icon name="arrow-left" size={wp(4.5)} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.headerTitle}>{ticketId.substring(0, 15).toUpperCase()}</Text>
+            <Text style={styles.headerSubtitle}>Ticket Conversation</Text>
+          </View>
+        </View>
+        <View style={styles.centerState}>
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#4CAF50" />
+              <Text style={styles.loadingText}>Loading ticket details...</Text>
+            </>
+          ) : (
+            <Text style={styles.emptyStateText}>Unable to load this ticket right now.</Text>
+          )}
+        </View>
       </SafeAreaView>
     );
   }
@@ -89,6 +108,12 @@ export default function TicketDetail() {
           <Text style={styles.headerSubtitle}>Ticket Conversation</Text>
         </View>
       </View>
+      {loading ? (
+        <View style={styles.loadingBar}>
+          <ActivityIndicator size="small" color="#4CAF50" />
+          <Text style={styles.loadingText}>Refreshing conversation...</Text>
+        </View>
+      ) : null}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -221,6 +246,29 @@ const styles = StyleSheet.create({
     fontSize: wp(2.8),
     color: '#888',
     marginTop: hp(0.2),
+  },
+  loadingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(1),
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: wp(3.1),
+  },
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: hp(1),
+    paddingHorizontal: wp(8),
+  },
+  emptyStateText: {
+    color: '#666',
+    fontSize: wp(3.5),
+    textAlign: 'center',
   },
   content: { flex: 1, paddingHorizontal: wp(4), paddingTop: hp(2) },
 

@@ -5,12 +5,12 @@ import {
     StyleSheet,
     FlatList,
     TouchableOpacity,
+    ActivityIndicator,
     ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import ServiceCard from '../../components/ServiceCard';
-import PremiumLoader from '../../components/PremiumLoader';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -213,10 +213,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
 
                 {loading ? (
                     <View style={styles.loading}>
-                        <PremiumLoader
-                            size={68}
-                            label="Fetching Service Records"
-                        />
+                        <ActivityIndicator size="large" color="#FFBF00" />
                     </View>
                 ) : (
                     <FlatList

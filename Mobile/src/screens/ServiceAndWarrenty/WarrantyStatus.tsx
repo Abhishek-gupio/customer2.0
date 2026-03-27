@@ -280,15 +280,7 @@ export const WarrantyStatus = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.safe, { justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#FFBF00" />
-      </SafeAreaView>
-    );
-  }
-
-  if (!vehicle) {
+  if (!vehicle && !loading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
@@ -317,6 +309,12 @@ export const WarrantyStatus = () => {
           </View>
         </View>
       </View>
+      {loading ? (
+        <View style={styles.loadingBar}>
+          <ActivityIndicator size="small" color="#FFBF00" />
+          <Text style={styles.loadingBarText}>Loading vehicle health details...</Text>
+        </View>
+      ) : null}
 
       <FlatList
         ListHeaderComponent={
@@ -430,6 +428,18 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingBottom: hp(2),
     backgroundColor: '#000',
+  },
+  loadingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(1.2),
+  },
+  loadingBarText: {
+    color: '#b5b5b5',
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Medium',
   },
   header: {
     flexDirection: 'row',

@@ -53,7 +53,7 @@ export default function AIAssistant() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [playingVoiceUrl, setPlayingVoiceUrl] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -167,8 +167,8 @@ export default function AIAssistant() {
   );
 
   const canSend = useMemo(
-    () => message.trim().length > 0 && !isLoading && !isStreaming,
-    [message, isLoading, isStreaming],
+    () => message.trim().length > 0 && !isStreaming,
+    [message, isStreaming],
   );
 
   useEffect(() => {
@@ -368,7 +368,7 @@ export default function AIAssistant() {
 
   const loadHistory = async (sid: string) => {
     try {
-      setIsLoading(true);
+      setIsHistoryLoading(true);
       const history = await chatService.getHistory(sid);
       const uiMessages: UIMessage[] = history.messages.map((m) => ({
         id: m.id,
@@ -385,7 +385,7 @@ export default function AIAssistant() {
     } catch (error) {
       console.error('Failed to load history:', error);
     } finally {
-      setIsLoading(false);
+      setIsHistoryLoading(false);
     }
   };
 
@@ -716,7 +716,7 @@ export default function AIAssistant() {
   };
 
   const onActionChipPress = (action: SuggestedAction) => {
-    if (isLoading || isStreaming) return;
+    if (isStreaming) return;
     if (action.label === 'Log expense') {
       setQuickExpenseAmount('');
       setQuickExpenseCategory('FUEL');
@@ -785,9 +785,9 @@ export default function AIAssistant() {
                   <Pressable
                     key={action.label}
                     onPress={() => onActionChipPress(action)}
-                    style={[styles.actionChip, (isLoading || isStreaming) && styles.actionChipDisabled]}
+                    style={[styles.actionChip, isStreaming && styles.actionChipDisabled]}
                     hitSlop={6}
-                    disabled={isLoading || isStreaming}
+                    disabled={isStreaming}
                     accessibilityLabel={action.label}
                     accessibilityHint={`Asks AI: ${action.prompt}`}
                   >
@@ -878,6 +878,12 @@ export default function AIAssistant() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
+        {isHistoryLoading && (
+          <View style={styles.historyLoadingBar}>
+            <ActivityIndicator size="small" color="#9fb3ff" />
+            <Text style={styles.historyLoadingText}>Loading conversation...</Text>
+          </View>
+        )}
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -889,39 +895,32 @@ export default function AIAssistant() {
           renderItem={renderMessage}
           onContentSizeChange={scrollToBottom}
           ListEmptyComponent={
-            isLoading ? (
-              <View style={styles.emptyContainer}>
-                <ActivityIndicator color="#9fb3ff" size="large" />
-                <Text>Loading conversation...</Text>
+            <View style={styles.emptyContainer}>
+                    <FastImage
+                      source={require('../../assets/images/index.gif') as any}
+                      style={styles.gif}
+                      resizeMode={FastImage.resizeMode.contain}
+                    />
+              <Text style={styles.heroGreeting}>
+                {userName ? `Hello ${userName} !` : 'Hello there'}
+              </Text>
+              <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
+              <View style={styles.cardGrid}>
+                {assistantCards.map((card) => (
+                  <Pressable
+                    key={card.title}
+                    onPress={() => handleSend(card.prompt)}
+                    style={styles.card}
+                  >
+                    <View style={styles.cardIconWrap}>
+                      <Ionicons name={card.icon as any} size={20} color="#a8b7ff" />
+                    </View>
+                    <Text style={styles.cardTitle}>{card.title}</Text>
+                    <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
+                  </Pressable>
+                ))}
               </View>
-            ) : (
-              <View style={styles.emptyContainer}>
-                      <FastImage
-                        source={require('../../assets/images/index.gif') as any}
-                        style={styles.gif}
-                        resizeMode={FastImage.resizeMode.contain}
-                      />
-                <Text style={styles.heroGreeting}>
-                  {userName ? `Hello ${userName} !` : 'Hello there'}
-                </Text>
-                <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
-                <View style={styles.cardGrid}>
-                  {assistantCards.map((card) => (
-                    <Pressable
-                      key={card.title}
-                      onPress={() => handleSend(card.prompt)}
-                      style={styles.card}
-                    >
-                      <View style={styles.cardIconWrap}>
-                        <Ionicons name={card.icon as any} size={20} color="#a8b7ff" />
-                      </View>
-                      <Text style={styles.cardTitle}>{card.title}</Text>
-                      <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )
+            </View>
           }
         />
           <View style={styles.inputContainer}>
@@ -1077,6 +1076,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 19,
     fontWeight: '700',
+  },
+  historyLoadingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#0a1324',
+    borderBottomWidth: 1,
+    borderBottomColor: '#111b2e',
+  },
+  historyLoadingText: {
+    color: '#9fb3ff',
+    fontSize: 12,
   },
 
   listContent: {

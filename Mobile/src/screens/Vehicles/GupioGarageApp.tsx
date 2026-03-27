@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, ToastAndroid, Platform, Alert } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, ToastAndroid, Platform, Alert, Text } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
@@ -95,19 +95,11 @@ export default function GupioGarageApp() {
         }
     }, []);
 
-    // 2. Early Return (Must be after all Hooks)
-    if (initialLoading) {
-        return (
-            <View style={[styles.screen, styles.centered]}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-            </View>
-        );
-    }
-
-    // 3. Render
+    // 2. Render
+    let content: React.ReactNode = null;
     switch (screen) {
         case 'ADD':
-            return (
+            content = (
                 <AddVehicleScreen
                     isFirst={vehicles.length === 0}
                     initialRegistrationNumber={(route.params as any)?.registrationNumber}
@@ -121,9 +113,10 @@ export default function GupioGarageApp() {
                     onDone={handleAddDone}
                 />
             );
+            break;
 
         case 'DETAILS':
-            return (
+            content = (
                 <DetailsScreen
                     vehicles={vehicles}
                     activeVehicle={activeVehicle}
@@ -137,10 +130,28 @@ export default function GupioGarageApp() {
                     onSetPrimary={handleSetPrimary}
                 />
             );
+            break;
 
         default:
-            return null;
+            content = null;
+            break;
     }
+
+    return (
+        <View style={styles.screen}>
+            {initialLoading ? (
+                <View style={styles.loadingBar}>
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                    <Text style={styles.loadingText}>Syncing your garage...</Text>
+                </View>
+            ) : null}
+            {content ?? (
+                <View style={[styles.centered, styles.placeholder]}>
+                    <Text style={styles.placeholderText}>Preparing your garage...</Text>
+                </View>
+            )}
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -151,5 +162,27 @@ const styles = StyleSheet.create({
     centered: {
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    loadingBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: '#111',
+        borderBottomWidth: 1,
+        borderBottomColor: '#1f1f1f',
+    },
+    loadingText: {
+        color: '#b5b5b5',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    placeholder: {
+        flex: 1,
+    },
+    placeholderText: {
+        color: '#888',
+        fontSize: 13,
     },
 });
