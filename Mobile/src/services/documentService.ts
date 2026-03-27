@@ -153,3 +153,18 @@ export async function deleteDocument(id: string): Promise<void> {
     throw new Error((data as any)?.message || 'Failed to delete');
   }
 }
+
+export async function syncDigiLocker(client_id?: string): Promise<any> {
+    return api.post('/v1/documents/digilocker/sync', { client_id });
+}
+
+export async function connectDigiLocker(): Promise<{ url: string; client_id: string }> {
+  try {
+    // res here is already the full JSON { status, data, message }
+    // We need to return the INNER data object which contains url and client_id
+    const res = await api.get<any>('/v1/documents/digilocker/connect');
+    return res.data || res; 
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to connect to DigiLocker');
+  }
+}

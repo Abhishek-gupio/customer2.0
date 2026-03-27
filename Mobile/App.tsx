@@ -14,6 +14,7 @@ import {
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
+import { setupNotifications } from './src/services/notification';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -44,6 +45,15 @@ function bootstrapAuthToRedux() {
   }
 }
 
+const linking = {
+  prefixes: ['gupio://'],
+  config: {
+    screens: {
+      DocumentList: 'document-list',
+    },
+  },
+};
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
@@ -56,6 +66,9 @@ function App() {
       .finally(() => {
         bootstrapAuthToRedux();
         setStorageReady(true);
+        setupNotifications().catch(err => {
+          console.error('Error during notification setup:', err);
+        });
       });
   }, []);
 
@@ -73,7 +86,7 @@ function App() {
         <View style={{ flex: 1 }}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />
               </VoiceOwnerProvider>
