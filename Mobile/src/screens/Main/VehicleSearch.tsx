@@ -20,6 +20,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
+
 export default function VehicleSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();

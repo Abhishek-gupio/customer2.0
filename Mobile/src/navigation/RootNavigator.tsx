@@ -106,6 +106,7 @@ export function RootNavigator() {
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
       <Stack.Screen name="DrivingTimeline" component={DrivingTimeline} />
       <Stack.Screen name="TripDetail" component={TripDetail} />
+      <Stack.Screen name="Alerts" component={Alerts} />
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />

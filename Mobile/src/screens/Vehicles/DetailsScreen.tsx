@@ -495,7 +495,11 @@ export const DetailsScreen = ({
                     )}
 
                     {/* ── Vehicle switcher circle icons ── */}
-                    <View style={styles.switcherRow}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.switcherRow}
+                    >
                         <TouchableOpacity onPress={onAddNew} style={styles.addCircleBtn}>
                             <Plus size={24} color={COLORS.primary} />
                         </TouchableOpacity>
@@ -534,7 +538,7 @@ export const DetailsScreen = ({
                                     </Text>
                                 </TouchableOpacity>
                             ))}
-                    </View>
+                    </ScrollView>
                 </View>
 
                 {/* ── Tab Content ── */}
@@ -547,6 +551,7 @@ export const DetailsScreen = ({
                                     icon={FileText}
                                     label="challans"
                                     value="CHECK NOW"
+                                    style={activeVehicle.isPrimary ? styles.statusCardHalf : styles.statusCardFull}
                                     onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
                                 {activeVehicle.isPrimary && (
@@ -554,6 +559,7 @@ export const DetailsScreen = ({
                                         icon={ShieldCheck}
                                         label="warranty"
                                         value="STATUS"
+                                        style={styles.statusCardHalf}
                                         onPress={() => navigation.navigate('WarrantyStatus')}
                                     />
                                 )}
@@ -849,7 +855,7 @@ const styles = StyleSheet.create({
     heroPlateBox: { marginTop: hp('1.5%') },
 
     // Switcher Row
-    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%') },
+    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%'), paddingBottom: hp('3%') },
     addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)' },
     miniCircleWrap: { alignItems: 'center', gap: hp('0.5%') },
     miniCircleInner: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), padding: wp('1%'), borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
@@ -908,7 +914,20 @@ const styles = StyleSheet.create({
     sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: hp('2%') },
 
     // Status Boxes
-    statusGrid: { flexDirection: 'row', gap: wp('3%') },
+    statusGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        gap: wp('3%')
+    },
+    statusCardHalf: {
+        width: width < 380 ? '100%' : '48.5%',
+        minHeight: hp('12%')
+    },
+    statusCardFull: {
+        width: '100%',
+        minHeight: hp('12%')
+    },
     statusBox: {
         flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: 24,
         flexDirection: 'column', alignItems: 'center', gap: hp('2%'),

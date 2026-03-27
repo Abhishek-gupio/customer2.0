@@ -3,6 +3,7 @@ import {
   Animated,
   View,
   Text,
+  Image,
   StyleSheet,
   Platform,
   PermissionsAndroid,
@@ -13,7 +14,6 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
-import  {DotLottie}  from '@lottiefiles/dotlottie-react-native';
 import FastImage from 'react-native-fast-image';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
@@ -27,9 +27,10 @@ const FAB_SIZE = 56;
 const FAB_MARGIN = 20;
 const FAB_BOTTOM_OFFSET = 88;
 const MIN_TOP_OFFSET = 72;
-const SPEAKING_LOTTIE_SOURCE: number | { uri: string } | null = null;
 const AI_GIF_SOURCE = require('../../assets/ai.gif');
 const MIC_GIF_SOURCE = require('../../assets/mic.gif');
+const BRAIN_GIF_SOURCE = require('../../assets/brain.gif');
+const SPEAKER_GIF_SOURCE = require('../../assets/speaker.gif');
 
 function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -455,7 +456,7 @@ export default function HeyGupioOverlay() {
     }
     ttsFinishRef.current = null;
     Tts.stop();
-    setStatus('listening');
+    setStatus('idle');
 
     const begin = () => {
       if (!isMountedRef.current || !continuousModeRef.current) return;
@@ -501,16 +502,6 @@ export default function HeyGupioOverlay() {
         accessibilityLabel={status === 'idle' ? 'Tap to start talking to Gupio' : 'Tap to stop'}
         accessibilityRole="button"
       >
-        {status === 'speaking' && SPEAKING_LOTTIE_SOURCE ? (
-          <View style={styles.speakingAnimationWrap}>
-            <DotLottie
-              source={SPEAKING_LOTTIE_SOURCE}
-              loop
-              autoplay
-              style={styles.speakingAnimation}
-            />
-          </View>
-        ) : null}
         {status === 'idle' ? (
           <FastImage
             source={AI_GIF_SOURCE}
@@ -523,10 +514,20 @@ export default function HeyGupioOverlay() {
             style={styles.listeningGif}
             resizeMode={FastImage.resizeMode.contain}
           />
+        ) : status === 'processing' ? (
+          <FastImage
+            source={BRAIN_GIF_SOURCE}
+            style={styles.processingGif}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        ) : status === 'speaking' ? (
+          <Image
+            source={SPEAKER_GIF_SOURCE}
+            style={styles.speakingGif}
+            resizeMode="contain"
+          />
         ) : null}
-        <Text style={styles.stateFabIcon}>
-          {status === 'processing' ? '...' : status === 'speaking' ? '🎤' : ''}
-        </Text>
+        <Text style={styles.stateFabIcon}>{''}</Text>
         <Text style={styles.fabIcon}>
           {status === 'listening' ? '🎤' : status === 'processing' ? '…' : status === 'speaking' ? '🔊' : '🎙'}
         </Text>
@@ -576,8 +577,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   fabGif: {
-    width: FAB_SIZE + 72,
-    height: FAB_SIZE + 72,
+    width: FAB_SIZE + 101,
+    height: FAB_SIZE + 101,
     borderRadius: FAB_SIZE / 2,
   },
   listeningGif: {
@@ -585,14 +586,15 @@ const styles = StyleSheet.create({
     height: FAB_SIZE + 12,
     borderRadius: FAB_SIZE / 2,
   },
-  speakingAnimationWrap: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
+  processingGif: {
+    width: FAB_SIZE + 34,
+    height: FAB_SIZE + 34,
+    borderRadius: FAB_SIZE / 2,
   },
-  speakingAnimation: {
-    width: 36,
-    height: 36,
+  speakingGif: {
+    width: FAB_SIZE + 40,
+    height: FAB_SIZE + 120,
+    borderRadius: FAB_SIZE / 2,
   },
   statusBubble: {
     position: 'absolute',

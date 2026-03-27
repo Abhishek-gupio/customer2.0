@@ -17,9 +17,9 @@ import type { MainTabParamList } from './types';
 import Home from '../screens/Main/Home';
 import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
-import Alerts from '../screens/Main/Alerts';
 import Odometer from '../screens/Main/Odometer';
 import HeyGupioOverlay from '../components/HeyGupioOverlay';
+import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
 
 const AI_GRADIENT = ['#4f46e5', '#7c3aed', '#06b6d4', '#4f46e5'] as const;
 const FLOW_DURATION_MS = 3000;
@@ -29,9 +29,9 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   Home: 'home',
+  my_garage: 'car',
   Services: 'th-large',
   AIAssistant: 'robot',
-  Alerts: 'bell',
   Odometer: 'tachometer-alt',
 };
 
@@ -154,19 +154,14 @@ export function MainBottomTabs() {
           }}
         />
         <Tab.Screen
-          name="Services"
-          component={ServiceNavigator}
+          name="my_garage"
+          component={GupioGarageApp}
           options={{
-            tabBarLabel: 'Services',
+            tabBarLabel: 'My Garage',
             tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Services} size={18} color={color} />
+              <Icon name={TAB_ICONS.my_garage} size={18} color={color} />
             ),
           }}
-          listeners={({ navigation }) => ({
-            tabPress: () => {
-              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
-            },
-          })}
         />
         <Tab.Screen
           name="AIAssistant"
@@ -186,14 +181,19 @@ export function MainBottomTabs() {
           }}
         />
         <Tab.Screen
-          name="Alerts"
-          component={Alerts}
+          name="Services"
+          component={ServiceNavigator}
           options={{
-            tabBarLabel: 'Alerts',
+            tabBarLabel: 'Services',
             tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Alerts} size={18} color={color} />
+              <Icon name={TAB_ICONS.Services} size={18} color={color} />
             ),
           }}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
+            },
+          })}
         />
         <Tab.Screen
           name="Odometer"
