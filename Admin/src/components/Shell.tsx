@@ -11,6 +11,7 @@ import {
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
+import ShinyText from './ui/ShinyText/ShinyText';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'white' },
@@ -93,7 +94,12 @@ export default function Shell() {
             isCollapsed ? "max-w-0 opacity-0 -translate-x-4" : "max-w-[200px] opacity-100 translate-x-0"
           )}>
             <div className="text-[13px] text-[#a1a1aa] font-medium leading-tight whitespace-nowrap uppercase tracking-wider">Customer</div>
-            <div className="text-[19px] font-extrabold text-white tracking-tight mt-0.5 whitespace-nowrap">Admin Dashboard</div>
+            <ShinyText 
+              text="Admin Dashboard" 
+              disabled={false} 
+              speed={3} 
+              className="text-[19px] font-extrabold text-white tracking-tight mt-0.5 whitespace-nowrap"
+            />
           </div>
           {!isMobile && (
             <button
@@ -307,7 +313,11 @@ export default function Shell() {
             <header className="mb-6 lg:flex items-center justify-between hidden">
               <div>
                 <h2 className="text-[32px] font-black tracking-tight text-white uppercase leading-none">
-                  {getPageTitle(location.pathname).title}
+                  <ShinyText 
+                    text={getPageTitle(location.pathname).title} 
+                    disabled={false} 
+                    speed={3} 
+                  />
                 </h2>
                 <p className="mt-2 text-[14px] text-[#71717a] font-medium">
                   {getPageTitle(location.pathname).sub}
