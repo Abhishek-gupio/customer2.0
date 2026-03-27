@@ -59,6 +59,7 @@ export interface RTODetails {
     registrationNumber?: string;
     manufacturingMonthYear?: string;
     present_address?: string;
+    year?: string | number;
 }
 
 export interface VehicleHealthScore {

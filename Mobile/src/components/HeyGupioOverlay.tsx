@@ -513,13 +513,13 @@ export default function HeyGupioOverlay() {
         ) : null}
         {status === 'idle' ? (
           <FastImage
-            source={AI_GIF_SOURCE}
+            source={AI_GIF_SOURCE as any}
             style={styles.fabGif}
             resizeMode={FastImage.resizeMode.contain}
           />
         ) : status === 'listening' ? (
           <FastImage
-            source={MIC_GIF_SOURCE}
+            source={MIC_GIF_SOURCE as any}
             style={styles.listeningGif}
             resizeMode={FastImage.resizeMode.contain}
           />

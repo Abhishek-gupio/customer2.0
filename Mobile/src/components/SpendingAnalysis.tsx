@@ -223,7 +223,6 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
       <View style={styles.exportCaptureContainer}>
         <ViewShot
           ref={lineChartRef}
-          collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
           <View style={[styles.exportCard, { width: lineChartWidth }]}>
@@ -244,7 +243,6 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
 
         <ViewShot
           ref={pieChartRef}
-          collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
           <View style={styles.exportCard}>

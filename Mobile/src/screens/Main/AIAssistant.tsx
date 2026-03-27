@@ -279,9 +279,9 @@ export default function AIAssistant() {
     const errorSub = Tts.addEventListener('tts-error', onError);
 
     return () => {
-      finishSub.remove();
-      cancelSub.remove();
-      errorSub.remove();
+      (finishSub as any)?.remove?.();
+      (cancelSub as any)?.remove?.();
+      (errorSub as any)?.remove?.();
     };
   }, []);
 
@@ -322,7 +322,6 @@ export default function AIAssistant() {
         wantsListeningRef.current = true;
         voiceRetryRef.current = 0;
         setVoiceOwner('chat' as any);
-        await Voice.cancel().catch(() => {});
         await startVoiceRecognition();
       }
     } catch (e: any) {
@@ -724,7 +723,7 @@ export default function AIAssistant() {
     const isUser = item.sender === 'user';
     const isBot = item.sender === 'bot';
     const actionChips =
-      item.suggestedActions?.length > 0
+      (item.suggestedActions && item.suggestedActions.length > 0)
         ? item.suggestedActions
         : orderActionsByRelevance(DEFAULT_ACTIONS, item.text);
 
@@ -762,8 +761,8 @@ export default function AIAssistant() {
 
           {isBot && !item.isStreaming && item.text.length > 0 && (
             <>
-              <View style={styles.actionChipsRow}>
-                {actionChips.map((action) => (
+              <View style={styles.actionRow}>
+                {actionChips && actionChips.map((action) => (
                   <Pressable
                     key={action.label}
                     onPress={() => onActionChipPress(action)}

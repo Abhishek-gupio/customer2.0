@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
   Linking,
 } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation } from '../../lib/react-navigation-native';
@@ -47,7 +49,7 @@ const SOSScreen = () => {
 
   // Map Ref
   const mapRef = useRef<MapView>(null);
-  const locationInterval = useRef<NodeJS.Timeout | null>(null);
+  const locationInterval = useRef<any>(null);
 
   // Initialize
   useEffect(() => {

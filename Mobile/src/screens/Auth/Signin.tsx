@@ -123,7 +123,7 @@ export default function Signin() {
       const signInResult = await GoogleSignin.signIn();
       const idToken =
         signInResult.data?.idToken ??
-        (await GoogleSignin.getTokens().catch(() => ({}))).idToken;
+        (await (GoogleSignin.getTokens() as any).catch(() => ({}))).idToken;
       if (!idToken) {
         if (signInResult.data?.user === null) return; // user cancelled
         throw new Error('No ID token from Google');
