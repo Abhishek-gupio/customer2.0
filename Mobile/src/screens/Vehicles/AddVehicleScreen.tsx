@@ -158,7 +158,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                 <View style={styles.inputGroup}>
                                     <View style={styles.plateInputContainer}>
                                         <View style={styles.indStrip}>
-                                            <View style={styles.indDot} />
+                                            <Text style={styles.flagEmoji}>🇮🇳</Text>
                                             <Text style={styles.indText}>IND</Text>
                                         </View>
                                         <TextInput
@@ -330,9 +330,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', height: 68,
         borderWidth: 1, borderColor: '#333'
     },
-    indStrip: { backgroundColor: '#003399', width: 44, height: '100%', alignItems: 'center', justifyContent: 'center' },
-    indDot: { width: 5, height: 5, backgroundColor: '#8BC34A', borderRadius: 2.5, marginBottom: 4 },
-    indText: { color: '#FFF', fontSize: 11, fontWeight: '900' },
+    indStrip: { backgroundColor: '#003399', width: 44, height: '100%', alignItems: 'center', justifyContent: 'center', gap: 2 },
+    flagEmoji: { fontSize: 14, lineHeight: 18 },
+    indText: { color: '#FFF', fontSize: 10, fontFamily: 'Outfit-Black', letterSpacing: 0.5 },
     plateInput: { flex: 1, paddingHorizontal: 16, fontSize: 26, fontWeight: '900', color: '#FFF', letterSpacing: 2 },
 
     // Inline Proceed

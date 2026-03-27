@@ -16,6 +16,7 @@ import {
   type ImageSourcePropType,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -55,11 +56,128 @@ function sortCarNewsLatestFirst(list: any[]): any[] {
   });
 }
 
+import { Animated, Easing } from 'react-native';
+
+// ─── Animated Health Display ──────────────────────────────────────────────────
+function HealthDisplay({ score }: { score: number }) {
+  const countAnim = useRef(new Animated.Value(0)).current;
+  const barAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [displayScore, setDisplayScore] = React.useState(0);
+
+  useEffect(() => {
+    countAnim.setValue(0);
+    barAnim.setValue(0);
+    fadeAnim.setValue(0);
+
+    const countListener = countAnim.addListener(({ value }) => {
+      setDisplayScore(Math.round(value));
+    });
+
+    Animated.parallel([
+      Animated.timing(countAnim, {
+        toValue: score,
+        duration: 1400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.timing(barAnim, {
+        toValue: score,
+        duration: 1500,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: false,
+      }),
+      Animated.sequence([
+        Animated.delay(1200),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    return () => { countAnim.removeListener(countListener); };
+  }, [score]);
+
+  const color = score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
+  const label = score >= 80 ? 'EXCELLENT' : score >= 50 ? 'GOOD' : 'CRITICAL';
+  const barWidth = barAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <View style={healthStyles.container}>
+      <View style={healthStyles.row}>
+        {/* Animated count-up score */}
+        <Text style={[healthStyles.score, { color }]}>
+          {displayScore}<Text style={healthStyles.scoreUnit}>%</Text>
+        </Text>
+        {/* Fade-in status pill */}
+        <Animated.View style={[healthStyles.statusPill, { opacity: fadeAnim, borderColor: `${color}55`, backgroundColor: `${color}18` }]}>
+          <Text style={[healthStyles.statusText, { color }]}>{label}</Text>
+        </Animated.View>
+      </View>
+      {/* Animated fill bar */}
+      <View style={healthStyles.barBg}>
+        <Animated.View style={[healthStyles.barFill, { width: barWidth, backgroundColor: color, shadowColor: color }]} />
+      </View>
+      <Text style={healthStyles.subLabel}>VEHICLE HEALTH</Text>
+    </View>
+  );
+}
+
+const healthStyles = StyleSheet.create({
+  container: { marginTop: hp(1.5) },
+  row: { flexDirection: 'row', alignItems: 'center', gap: wp(3), marginBottom: hp(0.8) },
+  score: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(10),
+    lineHeight: wp(11),
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  scoreUnit: { fontSize: wp(5), opacity: 0.5 },
+  statusPill: {
+    borderWidth: 1,
+    borderRadius: 50,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    alignSelf: 'center',
+  },
+  statusText: { fontFamily: 'Outfit-Black', fontSize: wp(3), letterSpacing: 1 },
+  barBg: {
+    width: wp(55),
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginBottom: hp(0.5),
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  subLabel: {
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: wp(2.2),
+    letterSpacing: 1.5,
+  },
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function Home() {
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
-  const [selectedState, setSelectedState] = useState('Kerala');
+  const [selectedState, setSelectedState] = useState('Detecting...');
   const [userLocationDisplay, setUserLocationDisplay] = useState('Detecting...');
   const [showStateModal, setShowStateModal] = useState(false);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
@@ -85,12 +203,14 @@ export default function Home() {
   // Initial load
   useEffect(() => {
     fetchDiscoveryContent();
-    fetchUserLocation();
+    fetchUserLocationWithRetry(0);
   }, []);
 
   // Fetch fuel prices when state changes
   useEffect(() => {
-    fetchFuelPrices();
+    if (selectedState && selectedState !== 'Detecting...' && STATES.includes(selectedState)) {
+      fetchFuelPrices();
+    }
   }, [selectedState]);
 
   useFocusEffect(
@@ -275,7 +395,10 @@ export default function Home() {
     }
   };
 
-  const fetchUserLocation = async () => {
+  const [isGpsPrecise, setIsGpsPrecise] = useState(false);
+
+  const fetchUserLocationWithRetry = async (attempt = 0) => {
+    const maxAttempts = 20; // Try for ~4 minutes if needed
     try {
       setLocationLoading(true);
 
@@ -287,7 +410,7 @@ export default function Home() {
             Geolocation.getCurrentPosition(
               (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
               () => resolve(null),
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+              { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 },
             );
           });
           if (coords) {
@@ -297,44 +420,57 @@ export default function Home() {
               if (!fuelStateLockedByUserRef.current && geo.state && STATES.includes(geo.state)) {
                 setSelectedState(geo.state);
               }
+              setIsGpsPrecise(true);
+              setLocationLoading(false);
               return;
             }
           }
         }
       }
 
-      // fallback to IP
-      let geo: any = null;
-      for (const ipUrl of GEO.ipProviders) {
-        try {
-          const res = await fetch(ipUrl, { headers: { 'User-Agent': GEO.userAgent } });
-          const data = await res.json();
-          if (data?.city && data?.region) {
-            geo = data;
-            break;
-          }
-        } catch { /* ignore */ }
-      }
+      // fallback to IP (only if GPS failed and we haven't found a GPS result yet)
+      if (!isGpsPrecise) {
+        let geo: any = null;
+        for (const ipUrl of GEO.ipProviders) {
+          try {
+            const res = await fetch(ipUrl, { headers: { 'User-Agent': GEO.userAgent } });
+            const data = await res.json();
+            const region = data?.region || data?.region_name || data?.regionName;
+            if (data?.city && region) {
+              geo = { ...data, region: region };
+              break;
+            }
+          } catch { /* ignore */ }
+        }
 
-      if (geo) {
-        setUserLocationDisplay(`${geo.city}, ${geo.region}`);
-        if (!fuelStateLockedByUserRef.current) {
-          if (geo.region && STATES.includes(geo.region)) {
+        if (geo) {
+          setUserLocationDisplay(`${geo.city}, ${geo.region}`);
+          if (!fuelStateLockedByUserRef.current && geo.region && STATES.includes(geo.region)) {
             setSelectedState(geo.region);
-          } else if (geo.region_name && STATES.includes(geo.region_name)) {
-            setSelectedState(geo.region_name);
           }
         }
-      } else {
+      }
+
+      // If we don't have a GPS-precise result yet, retry
+      if (!isGpsPrecise && attempt < maxAttempts) {
+        setTimeout(() => fetchUserLocationWithRetry(attempt + 1), 10000); // Wait 10s between retries
+      } else if (!isGpsPrecise && attempt >= maxAttempts && !userLocationDisplay.includes(',')) {
         setUserLocationDisplay('Location not available');
+        setLocationLoading(false);
+      } else {
+        setLocationLoading(false);
       }
     } catch (error) {
       console.error('Location detection failed:', error);
-      setUserLocationDisplay('Location not available');
-    } finally {
-      setLocationLoading(false);
+      if (!isGpsPrecise && attempt < maxAttempts) {
+        setTimeout(() => fetchUserLocationWithRetry(attempt + 1), 10000);
+      } else {
+        setLocationLoading(false);
+      }
     }
   };
+
+  const fetchUserLocation = () => fetchUserLocationWithRetry(0);
 
   const handleProfilePress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
@@ -474,40 +610,44 @@ export default function Home() {
                         style={styles.primaryImageFull}
                         resizeMode={FastImage.resizeMode.cover}
                       />
-                      <View style={styles.primaryImageOverlay}>
-                        {vehicleLoading ? (
-                          <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
-                        ) : vehicle ? (
-                          <>
-                            <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
-                            <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
-                            <View style={styles.healthSection}>
-                              <Text style={styles.healthText}>
-                                {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
-                              </Text>
-                              <View style={styles.healthBarBg}>
-                                <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
+                      {/* Bottom-up gradient scrim for text legibility */}
+                      <LinearGradient
+                        colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
+                        locations={[0, 0.3, 0.65, 1]}
+                        style={styles.primaryImageOverlay}
+                      >
+                          <View style={styles.bannerBottomRow}>
+                            {/* Left: vehicle info + health */}
+                            {vehicleLoading ? (
+                              <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-end' }} />
+                            ) : vehicle ? (
+                              <View style={styles.vehicleBannerContent}>
+                                {/* Real Indian number plate */}
+                                <View style={styles.regBadge}>
+                                  <View style={styles.regIndStrip}>
+                                    <Text style={styles.regFlagEmoji}>🇮🇳</Text>
+                                    <Text style={styles.regIndText}>IND</Text>
+                                  </View>
+                                  <Text style={styles.regBadgeText}>{vehicle.registrationNumber}</Text>
+                                </View>
+                                <Text style={styles.bannerMake}>{vehicle.make}</Text>
+                                <Text style={styles.bannerModel}>{vehicle.model}</Text>
+                                <HealthDisplay score={vehicle.healthScore?.overallScore ?? 100} />
                               </View>
-                            </View>
-                          </>
-                        ) : (
-                          <View>
-                            <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
-                            <Text style={styles.headerCarModel}>Tap to get started</Text>
-                          </View>
-                        )}
+                            ) : (
+                              <View style={styles.vehicleBannerContent}>
+                                <Text style={styles.bannerMake}>My Garage</Text>
+                                <Text style={styles.bannerModel}>Add your vehicle to get started</Text>
+                              </View>
+                            )}
 
-                        <View style={styles.headerFooterOverlay}>
-                          <View style={styles.footerItem}>
-                            <Text style={styles.footerLabel}>Service due in</Text>
-                            <Text style={styles.footerValue}>{serviceDueText}</Text>
+                            {/* Right: service due chip */}
+                            <View style={styles.serviceDueChip}>
+                              <Text style={styles.serviceDueLabel}>DUE IN</Text>
+                              <Text style={styles.serviceDueValue}>{serviceDueText}</Text>
+                            </View>
                           </View>
-                          <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
-                            <Text style={styles.footerLabel}>FASTag</Text>
-                            <Text style={styles.footerValue}>₹ ---</Text>
-                          </View>
-                        </View>
-                      </View>
+                        </LinearGradient>
                     </View>
                   </View>
                 );
@@ -705,7 +845,7 @@ export default function Home() {
             onPress={() => navigation.navigate('VehicleSearch')}
           >
             <View style={styles.indContainer}>
-              <View style={styles.greenDot} />
+              <Text style={styles.flagEmoji}>🇮🇳</Text>
               <Text style={styles.indText}>IND</Text>
             </View>
             <View style={styles.numberPlatePlaceholderContainer}>
@@ -870,18 +1010,19 @@ export default function Home() {
             </View>
           ) : (
             <View style={styles.fuelContentCard}>
-              <Text style={styles.loadingText}>Unable to load fuel prices</Text>
+              <Text style={styles.loadingText}>
+                {selectedState === 'Detecting...' 
+                  ? 'Finding your city...' 
+                  : `No fuel data for ${selectedState || 'current state'}`}
+              </Text>
             </View>
           )}
         </View>
 
-        {/* TRENDING CAR NEWS */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Car News</Text>
-            {discoveryLoading ? (
-              <ActivityIndicator size="small" color="#FFBF00" />
-            ) : null}
+            <Text style={styles.sectionTitle}>Trending News</Text>
+            {discoveryLoading ? <ActivityIndicator size="small" color="#FFBF00" /> : null}
           </View>
           {discoveryLoading && trendingNews.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
@@ -892,21 +1033,44 @@ export default function Home() {
               <Text style={styles.discoveryPlaceholderText}>No news right now. Check back soon.</Text>
             </View>
           ) : (
-            trendingNews.map((news, index) => (
-              <TouchableOpacity
-                key={String(news?.id ?? index)}
-                style={styles.newsCard}
-                onPress={() => handleNewsPress(news.url)}
-              >
-                <View style={styles.newsContent}>
-                  <Text style={styles.newsTitle}>{news.title}</Text>
-                  <Text style={styles.newsSnippet} numberOfLines={1}>
-                    {news.snippet}
-                  </Text>
-                  <Text style={styles.newsTime}>{news.time}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              contentContainerStyle={styles.videoListContent}
+            >
+              {trendingNews.map((news, index) => (
+                <TouchableOpacity
+                  key={String(news?.id ?? index)}
+                  style={styles.videoCard}
+                  onPress={() => handleNewsPress(news.url)}
+                >
+                  {news.source ? (
+                    <View style={styles.videoTag}>
+                      <Text style={styles.tagText}>{news.source}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.videoThumbnail}>
+                    <FastImage
+                      source={{ uri: news.image || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800', priority: FastImage.priority.normal }}
+                      style={styles.thumbnailImage}
+                      resizeMode={FastImage.resizeMode.cover}
+                    />
+                  </View>
+                  <View style={styles.videoCardInfo}>
+                    <Text style={styles.videoCardTitle} numberOfLines={2}>
+                      {news.title}
+                    </Text>
+                    <View style={styles.videoCardFooter}>
+                      <Text style={styles.videoCardDetails}>{news.time}</Text>
+                      <View style={styles.latestBadge}>
+                        <Text style={styles.latestLabel}>LATEST</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           )}
         </View>
 
@@ -1101,104 +1265,178 @@ const styles = StyleSheet.create({
   },
   primaryImageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    paddingHorizontal: wp(6),
-    paddingTop: hp(6),
-    paddingBottom: hp(6),
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.22)',
+    // Bottom-up scrim for text legibility — handled by LinearGradient
+    justifyContent: 'flex-end',
+    paddingBottom: hp(3.5),
+    paddingHorizontal: wp(5.5),
   },
+  bannerBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  vehicleBannerContent: {
+    flex: 1,
+    marginBottom: hp(2),
+  },
+  // Authentic licence plate badge
+  regBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    marginBottom: hp(1),
+    borderWidth: 2,
+    borderColor: '#003580',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.7,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  regIndStrip: {
+    backgroundColor: '#003580',
+    paddingHorizontal: wp(1.5),
+    paddingVertical: hp(0.4),
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+  },
+  regFlagEmoji: {
+    fontSize: wp(2.8),
+    lineHeight: wp(3.2),
+  },
+  regIndText: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(2),
+    letterSpacing: 0.5,
+  },
+  regBadgeText: {
+    fontFamily: 'Outfit-Black',
+    color: '#0A0A0A',
+    fontSize: wp(4.8),
+    letterSpacing: 2.5,
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+  },
+  bannerMake: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(8),
+    letterSpacing: 0.5,
+    lineHeight: wp(8.5),
+    textShadowColor: 'rgba(0,0,0,0.95)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  bannerModel: {
+    fontFamily: 'Outfit-Medium',
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: wp(4),
+    letterSpacing: 1,
+    marginBottom: hp(1.5),
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  // Inline health score
+  inlineHealth: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    marginTop: hp(1.2),
+  },
+  inlineScore: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(11),
+    lineHeight: wp(12),
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  inlineScoreUnit: {
+    fontSize: wp(5),
+    opacity: 0.5,
+  },
+  inlineRight: {
+    gap: hp(0.6),
+    justifyContent: 'center',
+  },
+  inlineStatusPill: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 50,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.4),
+  },
+  inlineStatusText: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(3),
+    letterSpacing: 1,
+  },
+  inlineSubLabel: {
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: wp(2.2),
+    letterSpacing: 1.5,
+  },
+  // Service due chip (right side)
+  serviceDueChip: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(1.2),
+    borderRadius: 14,
+    marginBottom: hp(2),
+    marginLeft: wp(3),
+  },
+  serviceDueLabel: {
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: wp(2.5),
+    letterSpacing: 1.5,
+  },
+  serviceDueValue: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(4),
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  // legacy / other slides
   headerFooterOverlay: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingHorizontal: wp(6),
-    paddingTop: hp(4), // Avoid top overlay
-    alignItems: 'center', // Center vertically
-  },
-  headerLeft: {
-    flex: 1.3,
-    justifyContent: 'center',
-  },
-  headerRight: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'flex-end',
   },
   headerNumberPlate: {
-    fontFamily: 'Outfit-Bold',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
-    fontSize: wp(5.5),
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontSize: wp(6),
+    letterSpacing: 2,
   },
   headerCarModel: {
     fontFamily: 'Outfit-SemiBold',
-    color: '#f4f4f4',
-    fontSize: wp(3.7),
-    fontWeight: '700',
-    marginTop: hp(0.2),
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  healthSection: {
-    marginTop: hp(1.5),
-  },
-  healthText: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(4.5),
-    fontWeight: '700',
-  },
-  healthLabel: {
-    color: '#4ade80', // Greenish
-    fontSize: wp(3.5),
-    fontWeight: '600',
-  },
-  healthBarBg: {
-    width: wp(40),
-    height: hp(0.5),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 4,
-    marginTop: hp(1),
-    overflow: 'hidden',
-  },
-  healthBarFill: {
-    height: '100%',
-    backgroundColor: '#32D74B',
-    borderRadius: 4,
-  },
-  headerFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(6),
-    paddingBottom: hp(6),
-  },
-  footerItem: {
-    justifyContent: 'center',
-  },
-  footerLabel: {
-    fontFamily: 'Outfit-Medium',
-    color: '#f1f1f1',
-    fontSize: wp(3.1),
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  footerValue: {
-    fontFamily: 'Outfit-Black',
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: wp(4),
-    marginTop: hp(0.2),
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
+  healthPillRow: { flexDirection: 'row', alignItems: 'center', gap: wp(2) },
+  healthDot: { width: 8, height: 8, borderRadius: 4 },
+  healthPillText: { fontFamily: 'Outfit-Black', color: '#FFFFFF', fontSize: wp(5) },
+  healthPillLabel: { fontFamily: 'Outfit-Bold', color: 'rgba(255,255,255,0.5)', fontSize: wp(2.8), letterSpacing: 1.5 },
+  footerItem: { justifyContent: 'center' },
+  footerLabel: { fontFamily: 'Outfit-Bold', color: 'rgba(255,255,255,0.6)', fontSize: wp(2.5), letterSpacing: 1 },
+  footerValue: { fontFamily: 'Outfit-Black', color: '#FFFFFF', fontSize: wp(4.5), marginTop: hp(0.2) },
+  healthSection: { marginTop: hp(1.5) },
+  healthText: { fontFamily: 'Outfit-Black', color: '#fff', fontSize: wp(4.5) },
+  healthLabel: { color: '#4ade80', fontSize: wp(3.5) },
   headerCarImage: {
     width: wp(40),
     height: hp(16),
@@ -1218,17 +1456,17 @@ const styles = StyleSheet.create({
     width: wp(11),
     height: wp(11),
     borderRadius: wp(5.5),
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   sosOverlayButton: {
     height: hp(4),
     paddingHorizontal: wp(3.5),
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 77, 77, 0.18)',
+    backgroundColor: 'rgba(255, 77, 77, 0.4)',
     borderWidth: 1.5,
     borderColor: '#ff4d4d',
     flexDirection: 'row',
@@ -1238,8 +1476,8 @@ const styles = StyleSheet.create({
     // Premium glow effect
     shadowColor: '#ff4d4d',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
     elevation: 8,
   },
   sosOverlayText: {
@@ -1247,6 +1485,9 @@ const styles = StyleSheet.create({
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
     marginLeft: wp(1.2),
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   /* CAROUSEL SLIDE STYLES */
@@ -1455,22 +1696,20 @@ const styles = StyleSheet.create({
   indContainer: {
     backgroundColor: '#003399',
     height: '100%',
-    paddingHorizontal: wp(2.5),
+    paddingHorizontal: wp(2),
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: hp(0.5),
+    gap: 1,
   },
-  greenDot: {
-    width: wp(1.5),
-    height: wp(1.5),
-    borderRadius: wp(0.75),
-    backgroundColor: '#4ade80',
-    marginBottom: hp(0.3),
+  flagEmoji: {
+    fontSize: wp(2.8),
+    lineHeight: wp(3.5),
   },
   indText: {
-    fontFamily: 'Outfit-Bold',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
-    fontSize: wp(2.6),
+    fontSize: wp(2.2),
+    letterSpacing: 0.5,
   },
   numberPlatePlaceholderContainer: {
     flex: 1,
@@ -1663,6 +1902,41 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-SemiBold',
     padding: wp(3),
     lineHeight: hp(2.2),
+  },
+  videoCardInfo: {
+    padding: wp(3),
+    gap: hp(0.5),
+  },
+  videoCardTitle: {
+    color: '#fff',
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Bold',
+    lineHeight: wp(4.5),
+  },
+  videoCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(0.5),
+  },
+  videoCardDetails: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Medium',
+  },
+  latestBadge: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    paddingHorizontal: wp(1.5),
+    paddingVertical: hp(0.2),
+    borderRadius: 4,
+    borderWidth: 0.5,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  latestLabel: {
+    color: '#22C55E',
+    fontSize: wp(2),
+    fontFamily: 'Outfit-Black',
+    letterSpacing: 0.5,
   },
 
   /* NEWS CARDS */
