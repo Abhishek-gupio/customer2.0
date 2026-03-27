@@ -8,6 +8,8 @@ import {
   Platform,
   StatusBar,
   ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,7 +21,6 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-
 
 export default function VehicleSearch() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,65 +40,129 @@ export default function VehicleSearch() {
     }
   };
 
+  const handleDLVerification = () => {
+    navigation.navigate('DLVerification');
+  };
+
+  const handleFastag = () => {
+    navigation.navigate('Fastag');
+  };
+
   const isValidPlate = searchQuery.length >= 6;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
-      
-      {/* Header with Search Bar */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
         
-        <View style={styles.searchBarContainer}>
-          <View style={styles.flagContainer}>
-            <View style={styles.flagIcon}>
-              <View style={styles.flagBlueDot} />
-              <Text style={styles.indText}>IND</Text>
-            </View>
-          </View>
-          
-          <TextInput
-            style={styles.searchInput}
-            placeholder="UP 80 CJ 4222"
-            placeholderTextColor="#999"
-            value={searchQuery}
-            onChangeText={(t) => setSearchQuery(t.toUpperCase())}
-            autoFocus
-            autoCapitalize="characters"
-          />
-          
-          <TouchableOpacity style={styles.searchIconContainer} onPress={() => {}}>
-            <MaterialIcon name="magnify" size={26} color="#000" />
+        {/* Header Section */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={28} color="#fff" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Search & Services</Text>
         </View>
-      </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {isValidPlate && (
-          <View style={styles.resultsContainer}>
-            <Text style={styles.resultsTitle}>Quick Actions for {searchQuery}</Text>
-            <View style={styles.actionsGrid}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleCheckChallan}>
-                <View style={[styles.actionIconContainer, { backgroundColor: '#111' }]}>
-                  <MaterialIcon name="file-document-outline" size={28} color="#fff" />
-                </View>
-                <Text style={styles.actionText}>Check Challan</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionButton} onPress={handleRCVerification}>
-                <View style={[styles.actionIconContainer, { backgroundColor: '#111' }]}>
-                  <MaterialIcon name="card-account-details-outline" size={28} color="#fff" />
-                </View>
-                <Text style={styles.actionText}>RC Verification</Text>
-              </TouchableOpacity>
+        {/* Dynamic Search Bar Section */}
+        <View style={styles.searchSection}>
+          <View style={styles.searchBarContainer}>
+            <View style={styles.flagContainer}>
+              <View style={styles.flagIcon}>
+                <View style={styles.flagBlueDot} />
+                <Text style={styles.indText}>IND</Text>
+              </View>
             </View>
+            
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Enter Vehicle Number"
+              placeholderTextColor="rgba(0,0,0,0.4)"
+              value={searchQuery}
+              onChangeText={(t) => setSearchQuery(t.toUpperCase())}
+              autoCapitalize="characters"
+              placeholderStyle={{ fontFamily: 'Outfit-Medium' }}
+            />
+            
+            <TouchableOpacity 
+              style={[styles.searchActionBtn, { opacity: isValidPlate ? 1 : 0.5 }]} 
+              disabled={!isValidPlate}
+              onPress={() => {}}
+            >
+              <MaterialIcon name="magnify" size={26} color="#fff" />
+            </TouchableOpacity>
           </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          <Text style={styles.searchHint}>e.g. MH01AB1234, DL3C1234</Text>
+        </View>
+
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Main Services Grid - Always Visible */}
+          <Text style={styles.sectionTitle}>Essential Services</Text>
+          <View style={styles.servicesGrid}>
+            <TouchableOpacity style={styles.serviceCard} onPress={handleDLVerification}>
+              <View style={[styles.serviceIconContainer, { backgroundColor: 'rgba(255, 191, 0, 0.1)' }]}>
+                <MaterialIcon name="card-account-details-star-outline" size={32} color="#FFBF00" />
+              </View>
+              <Text style={styles.serviceTitle}>DL Verification</Text>
+              <Text style={styles.serviceDesc}>Verify your DL instantly</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.serviceCard} onPress={handleFastag}>
+              <View style={[styles.serviceIconContainer, { backgroundColor: 'rgba(0, 200, 255, 0.1)' }]}>
+                <MaterialIcon name="tag-outline" size={32} color="#00C8FF" />
+              </View>
+              <Text style={styles.serviceTitle}>FASTag Services</Text>
+              <Text style={styles.serviceDesc}>Check balance & recharge</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Vehicle Specific Actions - Context Sensitive */}
+          <Text style={styles.sectionTitle}>Vehicle Actions</Text>
+          <View style={styles.actionsContainer}>
+             <TouchableOpacity 
+               style={[styles.actionRow, !isValidPlate && styles.disabledAction]} 
+               onPress={handleCheckChallan}
+               disabled={!isValidPlate}
+             >
+                <View style={[styles.smallIconBox, { backgroundColor: '#1A1A1A' }]}>
+                   <MaterialIcon name="file-document-outline" size={24} color={isValidPlate ? "#00c3ff" : "#444"} />
+                </View>
+                <View style={styles.actionTextContainer}>
+                   <Text style={[styles.actionTitle, !isValidPlate && styles.disabledText]}>Check Challans</Text>
+                   <Text style={styles.actionSubtitle}>Check traffic violations for this vehicle</Text>
+                </View>
+                {isValidPlate && <Ionicons name="chevron-forward" size={20} color="#666" />}
+             </TouchableOpacity>
+
+             <TouchableOpacity 
+               style={[styles.actionRow, !isValidPlate && styles.disabledAction]} 
+               onPress={handleRCVerification}
+               disabled={!isValidPlate}
+             >
+                <View style={[styles.smallIconBox, { backgroundColor: '#1A1A1A' }]}>
+                   <MaterialIcon name="card-search-outline" size={24} color={isValidPlate ? "#00ff88" : "#444"} />
+                </View>
+                <View style={styles.actionTextContainer}>
+                   <Text style={[styles.actionTitle, !isValidPlate && styles.disabledText]}>RC Verification</Text>
+                   <Text style={styles.actionSubtitle}>Verify RC details & ownership</Text>
+                </View>
+                {isValidPlate && <Ionicons name="chevron-forward" size={20} color="#666" />}
+             </TouchableOpacity>
+          </View>
+
+          {!isValidPlate && (
+             <View style={styles.infoBanner}>
+                <MaterialIcon name="information-outline" size={20} color="#666" />
+                <Text style={styles.infoBannerText}>Enter a valid vehicle number to unlock vehicle actions</Text>
+             </View>
+          )}
+
+        </ScrollView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -109,26 +174,44 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: hp(4),
-    paddingBottom: hp(2),
+    paddingHorizontal: wp(5),
+    paddingTop: hp(2),
+    paddingBottom: hp(1),
   },
   backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
+  headerTitle: {
+    color: '#fff',
+    fontSize: wp(5),
+    fontFamily: 'Outfit-Bold',
+  },
+  searchSection: {
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
+  },
   searchBarContainer: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    height: 56,
-    paddingLeft: 0,
+    borderRadius: 16,
+    height: 64,
     overflow: 'hidden',
+    shadowColor: "#FFBF00",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
   },
   flagContainer: {
     backgroundColor: '#003399',
-    width: 44,
+    width: 48,
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
@@ -137,69 +220,147 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   flagBlueDot: {
-    width: 5,
-    height: 5,
-    backgroundColor: '#8BC34A',
-    borderRadius: 2.5,
+    width: 6,
+    height: 6,
+    backgroundColor: '#FFBF00',
+    borderRadius: 3,
     marginBottom: 4,
   },
   indText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '900',
+    fontFamily: 'Outfit-Bold',
   },
   searchInput: {
     flex: 1,
     color: '#000',
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: wp(5),
+    fontFamily: 'Outfit-Bold',
     paddingHorizontal: 16,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
-  searchIconContainer: {
-    paddingRight: 16,
+  searchActionBtn: {
+    width: 54,
+    height: 54,
+    borderRadius: 12,
+    backgroundColor: '#000',
+    marginRight: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchHint: {
+    color: '#555',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+    marginTop: 10,
+    marginLeft: 4,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
   },
-  resultsContainer: {
-    padding: 24,
-    marginTop: hp(2),
+  scrollContent: {
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(5),
   },
-  resultsTitle: {
-    color: '#666',
-    fontSize: 12,
-    fontWeight: '800',
+  sectionTitle: {
+    color: '#888',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    marginBottom: 20,
-    textAlign: 'center',
+    marginTop: hp(3),
+    marginBottom: hp(2),
+    marginLeft: 4,
   },
-  actionsGrid: {
+  servicesGrid: {
     flexDirection: 'row',
     gap: 16,
   },
-  actionButton: {
+  serviceCard: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#0D0D0D',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#222',
-    paddingVertical: 24,
+    borderColor: '#1A1A1A',
+    padding: wp(4),
+    alignItems: 'flex-start',
+  },
+  serviceIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: hp(2),
   },
-  actionIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  actionText: {
+  serviceTitle: {
     color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    marginBottom: 4,
+  },
+  serviceDesc: {
+    color: '#666',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Regular',
+  },
+  actionsContainer: {
+    backgroundColor: '#0D0D0D',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+    overflow: 'hidden',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
+  },
+  disabledAction: {
+    opacity: 0.5,
+  },
+  smallIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  actionTextContainer: {
+    flex: 1,
+  },
+  actionTitle: {
+    color: '#fff',
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+  },
+  disabledText: {
+    color: '#666',
+  },
+  actionSubtitle: {
+    color: '#555',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Regular',
+    marginTop: 2,
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,191,0,0.05)',
+    padding: 16,
+    borderRadius: 16,
+    marginTop: hp(4),
+    gap: 10,
+  },
+  infoBannerText: {
+    color: '#666',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
   },
 });

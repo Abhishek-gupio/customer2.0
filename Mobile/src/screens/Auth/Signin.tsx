@@ -27,6 +27,7 @@ import { GOOGLE_WEB_CLIENT_ID } from '../../config';
 import { login as loginApi, loginWithGoogle } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signin'>;
 
@@ -186,14 +187,8 @@ export default function Signin() {
             onPress={handleSubmit}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <>
-                <Text style={styles.submitText}>Submit</Text>
-                <Icon name="arrow-right" size={wp(5)} color="#000" />
-              </>
-            )}
+            <Text style={styles.submitText}>Submit</Text>
+            <Icon name="arrow-right" size={wp(5)} color="#000" />
           </TouchableOpacity>
         </RNAnimated.View>
 
@@ -234,6 +229,7 @@ export default function Signin() {
           <Text style={styles.signUpText}>Sign Up</Text>
         </TouchableOpacity>
       </ScrollView>
+      <LoadingSpinner visible={loading || googleLoading} />
     </KeyboardAvoidingView>
   );
 }

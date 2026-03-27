@@ -17,6 +17,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 type ServiceId =
   | 'PartsWarranty'
@@ -127,6 +128,7 @@ export default function ServicesHub() {
   const [adIndex, setAdIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [navLoading, setNavLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -143,16 +145,21 @@ export default function ServicesHub() {
   }, [adIndex]);
 
   const onServicePress = (id: string) => {
+    if (id === 'PartsWarranty' || id === 'WarrantyStatus') {
+      setNavLoading(true);
+      setTimeout(() => {
+        setNavLoading(false);
+        navigation.navigate('WarrantyStatus');
+      }, 300); // Brief transition delay for better animation feel
+      return;
+    }
+
     if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
       navigation.navigate('NearbyPlaces', { placeType: id });
       return;
     }
 
     switch (id) {
-      case 'PartsWarranty':
-      case 'WarrantyStatus':
-        navigation.navigate('WarrantyStatus');
-        break;
       case 'ServiceHistory':
         navigation.navigate('ServiceHistory');
         break;
@@ -327,6 +334,7 @@ export default function ServicesHub() {
           <Text style={styles.infoText}>More services coming soon</Text>
         </View>
       </ScrollView>
+      <LoadingSpinner visible={navLoading} />
     </SafeAreaView>
   );
 }

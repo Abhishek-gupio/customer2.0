@@ -22,6 +22,7 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { signup as signupApi } from '../../services/authService';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 
@@ -147,14 +148,8 @@ export default function Signup() {
             onPress={handleSubmit}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <>
-                <Text style={styles.submitText}>Submit</Text>
-                <Icon name="arrow-right" size={wp(5)} color="#000" />
-              </>
-            )}
+            <Text style={styles.submitText}>Submit</Text>
+            <Icon name="arrow-right" size={wp(5)} color="#000" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -167,6 +162,7 @@ export default function Signup() {
           <Text style={styles.signInText}>Sign In</Text>
         </TouchableOpacity>
       </ScrollView>
+      <LoadingSpinner visible={loading} />
     </KeyboardAvoidingView>
   );
 }

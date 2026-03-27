@@ -32,6 +32,7 @@ import {
   setWarrantyStatusNeedsRefresh,
 } from '../../utils/refreshManager';
 import BackButton from '../../components/BackButton';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import type { RootStackParamList } from '../../navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getPartTypeLabel } from '../../constants/partTypes';
@@ -283,7 +284,7 @@ export const WarrantyStatus = () => {
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#FFBF00" />
+        <LoadingSpinner visible={true} />
       </SafeAreaView>
     );
   }
@@ -408,9 +409,7 @@ export const WarrantyStatus = () => {
                 onPress={handlePartUpdate}
                 disabled={savingUpdate}
               >
-                {savingUpdate ? (
-                  <ActivityIndicator color="#000" />
-                ) : (
+                {savingUpdate ? null : (
                   <Text style={styles.updateButtonText}>Save Update</Text>
                 )}
               </TouchableOpacity>
@@ -418,6 +417,7 @@ export const WarrantyStatus = () => {
           </KeyboardAvoidingView>
         </Pressable>
       </Modal>
+      <LoadingSpinner visible={savingUpdate} />
     </SafeAreaView>
   );
 };

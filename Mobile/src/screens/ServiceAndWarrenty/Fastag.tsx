@@ -21,6 +21,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function Fastag() {
   const navigation = useNavigation();
@@ -169,9 +170,7 @@ export default function Fastag() {
   if (checkingExisting) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loaderCenter}>
-          <ActivityIndicator size="large" color="#FFBF00" />
-        </View>
+        <LoadingSpinner visible={true} />
       </SafeAreaView>
     );
   }
@@ -258,13 +257,10 @@ export default function Fastag() {
                 disabled={accountNumber.length <= 5 || ifscCode.length !== 11 || loading}
                 onPress={handleVerify}
               >
-                {loading ? (
-                  <ActivityIndicator color="#000" />
-                ) : (
-                  <Text style={styles.verifyButtonText}>Verify Account</Text>
-                )}
+                <Text style={styles.verifyButtonText}>Verify Account</Text>
               </TouchableOpacity>
             </View>
+            <LoadingSpinner visible={loading} />
 
             <View style={styles.infoCard}>
               <Icon name="shield" size={18} color="#FFBF00" />

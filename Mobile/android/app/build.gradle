@@ -1,5 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "org.jetbrains.kotlin.plugin.compose"
 apply plugin: "com.facebook.react"
 
 def hasGoogleServicesConfig =
@@ -136,6 +137,10 @@ android {
             proguardFiles = [getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"]
         }
     }
+
+    buildFeatures {
+        compose true
+    }
 }
 
 repositories {
@@ -162,6 +167,13 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
+
+    // Jetpack Compose Dependencies (Required for DotLottie)
+    def compose_version = "1.7.5"
+    implementation("androidx.compose.runtime:runtime:$compose_version")
+    implementation("androidx.compose.ui:ui:$compose_version")
+    implementation("androidx.compose.foundation:foundation:$compose_version")
+    implementation("androidx.compose.material:material:$compose_version")
 }
 
 // Fix: React Native's generateReactNativeEntryPoint uses default "com.mobile". We use com.mobile1.
