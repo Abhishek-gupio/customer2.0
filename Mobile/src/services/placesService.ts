@@ -19,7 +19,8 @@ export type NearbyPlaceType =
   | 'police'
   | 'car_repair'
   | 'parking'
-  | 'lodging';
+  | 'lodging'
+  | 'restaurant';
 
 interface NearbyResponse {
   success?: boolean;
