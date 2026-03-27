@@ -95,6 +95,14 @@ export default function DrivingSummary({ navigation }: any) {
                     if (backendLinked && !storedLinked) {
                         setTelematicsLinked(primary.id, true);
                     }
+                } else {
+                    // For safety, if we have trips, it must be linked
+                    const tripsRes = await telematicsApi.getTrips(primary.id);
+                    const tripsArray = Array.isArray(tripsRes?.data?.data) ? tripsRes.data.data : (Array.isArray(tripsRes?.data) ? tripsRes.data : []);
+                    if (tripsArray.length > 0) {
+                        setLinkDone(true);
+                        setTelematicsLinked(primary.id, true);
+                    }
                 }
 
                 const tripsRes = await telematicsApi.getTrips(primary.id);
@@ -611,6 +619,13 @@ export default function DrivingSummary({ navigation }: any) {
                     </View>
                     <MapView 
                         style={{ flex: 1 }}
+                        provider={Platform.OS === 'android' ? 'google' : undefined}
+                        showsUserLocation={true}
+                        showsMyLocationButton={true}
+                        zoomEnabled={true}
+                        scrollEnabled={true}
+                        zoomControlEnabled={true}
+                        onMapReady={() => setLatestMapReady(true)}
                         initialRegion={latestPath.length > 0 ? {
                             latitude: Number(latestPath[0].lat),
                             longitude: Number(latestPath[0].lon),

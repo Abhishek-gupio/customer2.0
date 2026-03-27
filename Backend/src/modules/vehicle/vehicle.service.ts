@@ -11,33 +11,32 @@ import { predictionService } from "../../services/prediction.service";
 import { ocrService } from "../../services/ocr.service";
 import { fetchAndSaveIntervalsForVehicle } from "../../services/oem-scraper.service";
 import { rcVerificationService } from "../../services/rc-verification.service";
-
-// ─── Vehicle Images (Curated Static list) ───────────────────────────────────
-const CAR_IMAGES = [
-  "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=800",
-];
-
-const BIKE_IMAGES = [
-  "https://images.unsplash.com/photo-1558981403-c5f91cbba527?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1591637333184-19aa84b3e01f?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1558981403-c5f91cbba527?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1614705139031-6e828114f86d?auto=format&fit=crop&q=80&w=800",
-];
-
-const FALLBACK_CAR_IMAGE = CAR_IMAGES[0];
+import { warrantyService } from "../../services/warranty.service";
 
 function normalizeForMatch(s: string | null | undefined): string {
   return (s ?? "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function isUnsplashFallback(url: string | null | undefined): boolean {
-  if (!url) return true;
-  // Current dummy images are from this exact Unsplash domain list.
+function tokenizeForFuzzyMatch(s: string | null | undefined): string[] {
+  return normalizeForMatch(s)
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .split(" ")
+    .map((w) => w.trim())
+    .filter(Boolean);
+}
+
+function overlapCount(a: string[], b: string[]): number {
+  if (a.length === 0 || b.length === 0) return 0;
+  const setB = new Set(b);
+  let count = 0;
+  for (const token of new Set(a)) {
+    if (setB.has(token)) count += 1;
+  }
+  return count;
+}
+
+function isLegacyUnsplashUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
   return url.includes("images.unsplash.com/photo-");
 }
 
@@ -53,21 +52,29 @@ function normalizeForKey(s: string): string {
 function cleanMake(make: string): string {
   return make
     .replace(
-      /\b(india|ltd|limited|pvt|private|vehicles|auto|motorcycle|scooter|and|&|\(p\)|\.)\b/gi,
+      /\b(india|ltd|limited|pvt|private|vehicles|auto|motorcycle|scooter|and|&|\(p\)|\.|motors|passenger)\b/gi,
       " ",
     )
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function cleanModel(model: string): string {
-  return model
-    .replace(
-      /\b(bs\s*iv|bs\s*vi|bs4|bs6|vdi|vxi|zxi|dlx|std)\b/gi,
-      " ",
-    )
-    .replace(/\s+/g, " ")
-    .trim();
+function cleanModel(model: string, make?: string): string {
+  let cleaned = model.replace(
+    /\b(bs\s*iv|bs\s*vi|bs4|bs6|vdi|vxi|zxi|dlx|std)\b/gi,
+    " ",
+  );
+
+  // Remove make from model if it starts with it (e.g. "Tata Nexon" -> "Nexon")
+  if (make) {
+    const makeWords = make.toLowerCase().split(' ');
+    const firstWordOfMake = makeWords[0];
+    if (cleaned.toLowerCase().startsWith(firstWordOfMake)) {
+      cleaned = cleaned.substring(firstWordOfMake.length).trim();
+    }
+  }
+
+  return cleaned.replace(/\s+/g, " ").trim();
 }
 
 function vehicleTypeBucket(vehicleType?: string | null): "CAR" | "BIKE" {
@@ -83,8 +90,8 @@ function makeCatalogNormalizedKey(args: {
   variant?: string | null;
 }): string {
   const mk = normalizeForKey(cleanMake(args.make ?? ""));
-  const md = normalizeForKey(cleanModel(args.model ?? ""));
-  const v = args.variant ? normalizeForKey(cleanModel(args.variant)) : "";
+  const md = normalizeForKey(cleanModel(args.model ?? "", args.make ?? ""));
+  const v = args.variant ? normalizeForKey(cleanModel(args.variant, args.make ?? "")) : "";
   return `${args.vehicleType}|${mk}|${md}|${v}`;
 }
 
@@ -104,35 +111,79 @@ async function resolveCatalogHeroImageUrl(args: {
 
   if (!catalog) {
     const makeNeedle = normalizeForMatch(cleanMake(args.make));
-    const modelNeedle = normalizeForMatch(cleanModel(args.model));
+    const modelNeedle = normalizeForMatch(cleanModel(args.model, args.make ?? undefined));
     const variantNeedle = args.variant
-      ? normalizeForMatch(cleanModel(args.variant))
+      ? normalizeForMatch(cleanModel(args.variant, args.make ?? undefined))
       : null;
+    const makeTokens = tokenizeForFuzzyMatch(makeNeedle);
+    const modelTokens = tokenizeForFuzzyMatch(modelNeedle);
+    const variantTokens = tokenizeForFuzzyMatch(variantNeedle);
+    const makeFirst = makeTokens[0] ?? null;
+    const modelFirst = modelTokens[0] ?? null;
+    const modelFirstTwo = modelTokens.slice(0, 2).join(" ");
 
-    // Pass 1: include variant when provided.
-    catalog = await dbInstances.vehicleCatalog.findFirst({
+    let candidates = await dbInstances.vehicleCatalog.findMany({
       where: {
         vehicleType: args.vehicleType,
-        make: { contains: makeNeedle, mode: "insensitive" },
-        model: { contains: modelNeedle, mode: "insensitive" },
-        ...(variantNeedle
-          ? { variant: { contains: variantNeedle, mode: "insensitive" } }
+        ...(makeFirst
+          ? { make: { contains: makeFirst, mode: "insensitive" } }
+          : {}),
+        ...(modelFirst
+          ? { model: { contains: modelFirst, mode: "insensitive" } }
           : {}),
       },
+      take: 250,
       orderBy: { updatedAt: "desc" },
     });
 
-    // Pass 2: relax variant constraint so trim-level mismatch does not
-    // push us to random fallback image.
-    if (!catalog) {
-      catalog = await dbInstances.vehicleCatalog.findFirst({
+    // If model's first word is too different, widen to same make bucket only.
+    if (candidates.length === 0 && makeFirst) {
+      candidates = await dbInstances.vehicleCatalog.findMany({
         where: {
           vehicleType: args.vehicleType,
-          make: { contains: makeNeedle, mode: "insensitive" },
-          model: { contains: modelNeedle, mode: "insensitive" },
+          make: { contains: makeFirst, mode: "insensitive" },
         },
+        take: 250,
         orderBy: { updatedAt: "desc" },
       });
+    }
+
+    let bestScore = -1;
+    let bestCatalog: any = null;
+
+    for (const c of candidates) {
+      const cMake = normalizeForMatch(cleanMake(c.make ?? ""));
+      const cModel = normalizeForMatch(cleanModel(c.model ?? "", c.make ?? undefined));
+      const cVariant = normalizeForMatch(cleanModel(c.variant ?? "", c.make ?? undefined));
+      const cModelTokens = tokenizeForFuzzyMatch(cModel);
+      const cVariantTokens = tokenizeForFuzzyMatch(cVariant);
+
+      let score = 0;
+
+      if (cMake === makeNeedle) score += 40;
+      if (makeFirst && (cMake.includes(makeFirst) || makeFirst.includes(cMake))) score += 16;
+      if (cMake && makeNeedle && (cMake.includes(makeNeedle) || makeNeedle.includes(cMake))) score += 12;
+
+      if (cModel === modelNeedle) score += 90;
+      if (modelFirstTwo && (cModel.includes(modelFirstTwo) || modelFirstTwo.includes(cModel))) score += 48;
+      if (modelFirst && (cModel.includes(modelFirst) || modelFirst.includes(cModel))) score += 24;
+      score += overlapCount(modelTokens, cModelTokens) * 8;
+
+      if (variantNeedle) {
+        if (cVariant && (cVariant.includes(variantNeedle) || variantNeedle.includes(cVariant))) score += 18;
+        score += overlapCount(variantTokens, cVariantTokens) * 5;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCatalog = c;
+      }
+    }
+
+    // Threshold tuned so "same make + nearby first 1-2 model words" matches,
+    // while reducing accidental wrong-model picks.
+    if (bestCatalog && bestScore >= 48) {
+      catalog = bestCatalog;
     }
   }
 
@@ -144,6 +195,20 @@ async function resolveCatalogHeroImageUrl(args: {
   });
 
   return hero?.assetUrl ?? null;
+}
+
+async function resolveCatalogHeroForVehicleRecord(vehicle: {
+  vehicleType?: string | null;
+  make?: string | null;
+  model?: string | null;
+}): Promise<string | null> {
+  if (!vehicle?.make || !vehicle?.model) return null;
+  return resolveCatalogHeroImageUrl({
+    vehicleType: vehicleTypeBucket(vehicle.vehicleType),
+    make: vehicle.make,
+    model: vehicle.model,
+    variant: null,
+  });
 }
 
 export const vehicleService = {
@@ -234,35 +299,9 @@ export const vehicleService = {
 
     const normalizedMake = normalizeForMatch(input.make);
     const normalizedModel = normalizeForMatch(input.model);
-    const normalizedVariant = normalizeForMatch(input.variant);
-
-    // 1) Try to reuse an already-known hero image from any existing vehicle
-    //    with the same (type, make, model, variant). This avoids random dummy images.
+    // Resolve image only from catalog assets table (VehicleCatalog + VehicleAsset).
     let imageUrl: string | undefined;
     if (normalizedMake && normalizedModel) {
-      const candidates = await dbInstances.customerVehicle.findMany({
-        where: {
-          isActive: true,
-          customerId: { not: customerId },
-          vehicleType: input.vehicleType ?? undefined,
-          make: { equals: normalizedMake, mode: "insensitive" },
-          model: { equals: normalizedModel, mode: "insensitive" },
-          imageUrl: { not: null },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 8,
-        select: { imageUrl: true },
-      });
-
-      const found = candidates
-        .map((c) => c.imageUrl)
-        .find((u) => u && !isUnsplashFallback(u));
-
-      if (found) imageUrl = found;
-    }
-
-    // 2) Prefer catalog hero image for the exact make/model/variant.
-    if (!imageUrl && normalizedMake && normalizedModel) {
       imageUrl = (await resolveCatalogHeroImageUrl({
         vehicleType: vehicleTypeBucket(input.vehicleType),
         make: input.make ?? null,
@@ -270,18 +309,11 @@ export const vehicleService = {
         variant: input.variant ?? null,
       })) ?? undefined;
     }
-
-    // 3) Fallback: deterministic hero based on vehicle type.
-    //    (Only used when no catalog image exists.)
     if (!imageUrl) {
-      const hashSource = `${input.vehicleType || ""}:${normalizedMake}:${normalizedModel}:${normalizedVariant}`;
-      let hash = 0;
-      for (let i = 0; i < hashSource.length; i++) hash = (hash * 31 + hashSource.charCodeAt(i)) >>> 0;
-      if (input.vehicleType === "BIKE") {
-        imageUrl = BIKE_IMAGES[hash % BIKE_IMAGES.length];
-      } else {
-        imageUrl = CAR_IMAGES[hash % CAR_IMAGES.length];
-      }
+      logger.warn(
+        { registrationNumber: input.registrationNumber, make: input.make, model: input.model },
+        "No VehicleAsset hero found for this make/model. Saving vehicle without catalog image",
+      );
     }
 
     console.log('Adding Vehicle to DB. Input Data:', JSON.stringify(input, null, 2));
@@ -306,7 +338,9 @@ export const vehicleService = {
 
     const vehicleWithImage = {
       ...vehicle,
-      imageUrl: await storageService.ensureReadableUrl(imageUrl),
+      imageUrl: imageUrl
+        ? await storageService.ensureReadableUrl(imageUrl)
+        : undefined,
     };
 
     // Initialize health score (default 100)
@@ -317,7 +351,6 @@ export const vehicleService = {
         explanations: ["New vehicle added."],
       },
     });
-
     // If odometer provided, add first log
     if (input.currentOdometer) {
       await this.addOdometerLog(customerId, vehicle.id, {
@@ -325,6 +358,12 @@ export const vehicleService = {
         date: new Date(),
       });
     }
+
+    // Initialize all parts to 100% health (as if all service is done) at current odo
+    await warrantyService.initializeMaintenance(vehicle.id, input.currentOdometer || 0);
+
+    // Trigger health recalculation immediately
+    await this.calculateHealthScore(vehicle.id);
 
     // Fetch OEM intervals in background
     fetchAndSaveIntervalsForVehicle(vehicle.id).catch((err) =>
@@ -400,14 +439,32 @@ export const vehicleService = {
       },
       orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
     });
-    // Ensure images are readable from S3 for mobile.
+    // Ensure vehicle image comes from catalog assets when available.
     return Promise.all(
-      vehicles.map(async (v: any) => ({
-        ...v,
-        imageUrl: v.imageUrl
-          ? await storageService.ensureReadableUrl(v.imageUrl)
-          : v.imageUrl,
-      })),
+      vehicles.map(async (v: any) => {
+        const shouldResolveFromCatalog = !v.imageUrl || isLegacyUnsplashUrl(v.imageUrl);
+        const catalogHero = shouldResolveFromCatalog
+          ? await resolveCatalogHeroForVehicleRecord(v)
+          : null;
+        const resolvedImageUrl = catalogHero ?? (shouldResolveFromCatalog ? null : v.imageUrl);
+
+        // Backfill DB once catalog hero is found, so future reads stay consistent.
+        if (catalogHero && catalogHero !== v.imageUrl) {
+          dbInstances.customerVehicle.update({
+            where: { id: v.id },
+            data: { imageUrl: catalogHero },
+          }).catch((err) =>
+            logger.warn({ err, vehicleId: v.id }, "Failed to backfill catalog hero image"),
+          );
+        }
+
+        return {
+          ...v,
+          imageUrl: resolvedImageUrl
+            ? await storageService.ensureReadableUrl(resolvedImageUrl)
+            : null,
+        };
+      }),
     );
   },
 
@@ -473,11 +530,26 @@ export const vehicleService = {
       };
     }
 
+    const shouldResolveFromCatalog = !vehicle?.imageUrl || isLegacyUnsplashUrl(vehicle?.imageUrl);
+    const catalogHero = shouldResolveFromCatalog
+      ? await resolveCatalogHeroForVehicleRecord(vehicle)
+      : null;
+    const resolvedImageUrl = catalogHero ?? (shouldResolveFromCatalog ? null : vehicle?.imageUrl ?? null);
+
+    if (catalogHero && catalogHero !== vehicle?.imageUrl) {
+      dbInstances.customerVehicle.update({
+        where: { id: vehicle.id },
+        data: { imageUrl: catalogHero },
+      }).catch((err) =>
+        logger.warn({ err, vehicleId: vehicle.id }, "Failed to backfill catalog hero image"),
+      );
+    }
+
     return {
       ...vehicle,
-      imageUrl: vehicle?.imageUrl
-        ? await storageService.ensureReadableUrl(vehicle.imageUrl)
-        : vehicle?.imageUrl,
+      imageUrl: resolvedImageUrl
+        ? await storageService.ensureReadableUrl(resolvedImageUrl)
+        : null,
     };
   },
 
@@ -490,7 +562,7 @@ export const vehicleService = {
     const variant = vehicle.variant ?? null;
 
     if (!make || !model) {
-      return { heroUrl: vehicle?.imageUrl ?? null, angles: [] as string[] };
+      return { heroUrl: null, angles: [] as string[] };
     }
 
     const bucket = vehicleTypeBucket(vehicle.vehicleType);
@@ -539,7 +611,7 @@ export const vehicleService = {
     }
 
     if (!catalog) {
-      return { heroUrl: vehicle?.imageUrl ?? null, angles: [] as string[] };
+      return { heroUrl: null, angles: [] as string[] };
     }
 
     const hero = await dbInstances.vehicleAsset.findFirst({
@@ -555,7 +627,7 @@ export const vehicleService = {
     const heroUrl =
       hero?.assetUrl != null
         ? await storageService.ensureReadableUrl(hero.assetUrl)
-        : vehicle?.imageUrl ?? null;
+        : null;
 
     const angles = await Promise.all(
       (angleAssets ?? []).map(async (a: any) => {
@@ -696,15 +768,12 @@ export const vehicleService = {
       brand: "Unknown",
       model: "Unknown",
       fuelType: "PETROL",
-      imageUrl: FALLBACK_CAR_IMAGE
+      imageUrl: null
     };
   },
 
-  async generateVehicleImage(type: string): Promise<string> {
-    if (type.toLowerCase().includes("bike")) {
-      return BIKE_IMAGES[Math.round(Math.random() * (BIKE_IMAGES.length - 1))];
-    }
-    return CAR_IMAGES[Math.round(Math.random() * (CAR_IMAGES.length - 1))];
+  async generateVehicleImage(_type: string): Promise<string | null> {
+    return null;
   },
 
   async verifyVehicle(regNo: string) {

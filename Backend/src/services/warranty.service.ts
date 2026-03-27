@@ -736,4 +736,38 @@ export const warrantyService = {
 
     return Array.from(names).sort();
   },
+
+  /**
+   * Automatically initializes all tracked parts to 100% health at the current odometer reading.
+   * Useful when adding a new vehicle to establish a baseline.
+   */
+  async initializeMaintenance(vehicleId: string, odometer: number) {
+    const trackedPartTypes = [
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
+    ];
+
+    logger.info({ vehicleId, odometer }, "Initializing maintenance state for new vehicle");
+    
+    try {
+      return await this.createServiceRecord({
+        vehicleId,
+        serviceType: "INITIAL_CHECKUP",
+        garageName: "System Initialization",
+        odometerAtService: odometer,
+        serviceDate: new Date().toISOString(),
+        notes: "Auto-initialized: All parts assumed healthy at time of addition.",
+        parts: trackedPartTypes.map(pt => ({ 
+          partType: pt, 
+          brand: "Original/Genuine",
+          warrantyMonths: 0,
+          warrantyKm: 0
+        }))
+      });
+    } catch (err) {
+      logger.warn({ err, vehicleId }, "Maintenance initialization failed (non-critical)");
+      return null;
+    }
+  }
 };

@@ -300,23 +300,29 @@ export default function Home() {
 
         // Also fetch upcoming service to show in header footer
         try {
-          const upcoming = await api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
-          const overdue = (upcoming as any).data?.find((p: any) => p.urgency === 'OVERDUE');
-          if (overdue) {
-            setServiceDueText('Overdue!');
-          } else {
-            // Find closest logic... for simplicity using first
-            const first = (upcoming as any).data?.[0];
-            if (first) {
-              const kmLeft = first.lifecycleKm - first.kmSinceReplacement;
-              setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
+          const upcoming = await api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
+          const rawData = (upcoming as any).data || upcoming;
+
+          if (Array.isArray(rawData)) {
+            const overdue = rawData.find((p: any) => p.urgency === 'OVERDUE');
+            if (overdue) {
+              setServiceDueText('Overdue!');
             } else {
-              setServiceDueText('Healthy');
+              const first = rawData[0];
+              if (first) {
+                const kmLeft = (first.lifecycleKm || 10000) - (first.kmSinceReplacement || 0);
+                setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
+              } else {
+                setServiceDueText('Healthy');
+              }
             }
+          } else {
+            console.warn('Unexpected upcoming service response format', rawData);
+            setServiceDueText('Healthy');
           }
         } catch (err) {
           console.warn('Could not fetch upcoming service for home', err);
-          setServiceDueText('N/A');
+          setServiceDueText('Checking...');
         }
       }
     } catch (error) {
@@ -526,6 +532,22 @@ export default function Home() {
     }
   };
 
+  const navigateToServicesScreen = (
+    screen:
+      | 'ServicesHome'
+      | 'NearbyPlaces'
+      | 'CheckChallan'
+      | 'ServiceHistory'
+      | 'WarrantyStatus',
+    params?: any
+  ) => {
+    if (params) {
+      navigation.navigate('Services' as any, { screen, params });
+      return;
+    }
+    navigation.navigate('Services' as any, { screen });
+  };
+
   const fetchDiscoveryContent = async () => {
     try {
       setDiscoveryLoading(true);
@@ -630,7 +652,6 @@ export default function Home() {
                                   </View>
                                   <Text style={styles.regBadgeText}>{vehicle.registrationNumber}</Text>
                                 </View>
-                                <Text style={styles.bannerMake}>{vehicle.make}</Text>
                                 <Text style={styles.bannerModel}>{vehicle.model}</Text>
                                 <HealthDisplay score={vehicle.healthScore?.overallScore ?? 100} />
                               </View>
@@ -870,14 +891,11 @@ export default function Home() {
             } else if (id === 'valet') {
               navigateToRootScreen('Valet');
             } else if (id === 'service') {
-              navigation.navigate('Services' as any, { screen: 'ServicesHome' });
+              navigateToServicesScreen('ServicesHome');
             } else if (id === 'driving') {
               navigateToRootScreen('DrivingSummary');
             } else if (id === 'nearby') {
-              navigation.navigate('Services' as any, { 
-                screen: 'NearbyPlaces',
-                params: { fromHome: true }
-              });
+              navigateToServicesScreen('NearbyPlaces', { fromHome: true });
             } else if (id === 'support') {
               handleHelpPress();
             } else if (id === 'tripcost') {
@@ -899,7 +917,7 @@ export default function Home() {
               <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
               <TouchableOpacity
                 style={styles.payNowButton}
-                onPress={() => navigation.navigate('Services' as any, { screen: 'CheckChallan' })}
+                onPress={() => navigateToServicesScreen('CheckChallan')}
               >
                 <Text style={styles.payNowText}>Check Now</Text>
               </TouchableOpacity>
@@ -1185,7 +1203,7 @@ export default function Home() {
         onClose={() => setServiceModalVisible(false)}
         onSelect={(screen) => {
           setServiceModalVisible(false);
-          navigation.navigate(screen);
+          navigateToServicesScreen(screen);
         }}
       />
     </SafeAreaView>
@@ -1333,14 +1351,15 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   bannerModel: {
-    fontFamily: 'Outfit-Medium',
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: wp(4),
-    letterSpacing: 1,
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(8),
+    letterSpacing: 0.5,
+    lineHeight: wp(8.5),
     marginBottom: hp(1.5),
-    textShadowColor: 'rgba(0,0,0,0.9)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    textShadowColor: 'rgba(0,0,0,0.95)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   // Inline health score
   inlineHealth: {

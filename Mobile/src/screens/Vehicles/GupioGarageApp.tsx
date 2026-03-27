@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, ActivityIndicator, StyleSheet, ToastAndroid, Platform, Alert } from 'react-native';
-import { useRoute, useNavigation } from '../../lib/react-navigation-native';
+import { useRoute, useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { AddVehicleScreen } from './AddVehicleScreen';
@@ -43,9 +43,11 @@ export default function GupioGarageApp() {
         }
     }, [route?.name]);
 
-    useEffect(() => {
-        fetchVehicles();
-    }, [fetchVehicles]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchVehicles();
+        }, [fetchVehicles])
+    );
 
     const handleAddDone = useCallback(async (newVehicle: Vehicle) => {
         setVehicles(prev => [...prev, newVehicle]);
@@ -71,6 +73,7 @@ export default function GupioGarageApp() {
                 setScreen('DETAILS');
             }
         } catch (error) {
+            console.error('[GupioGarageApp] deleteVehicle error:', error);
             Alert.alert('Error', 'Failed to delete vehicle.');
         }
     }, [vehicles]);
@@ -87,6 +90,7 @@ export default function GupioGarageApp() {
                 ToastAndroid.show('Primary Vehicle Updated!', ToastAndroid.SHORT);
             }
         } catch (error) {
+            console.error('[GupioGarageApp] setPrimaryVehicle error:', error);
             Alert.alert('Error', 'Failed to set primary vehicle.');
         }
     }, []);
