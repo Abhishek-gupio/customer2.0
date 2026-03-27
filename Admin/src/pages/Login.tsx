@@ -146,10 +146,10 @@ export default function Login() {
         </div>
 
         <div className="container forgot-container" style={{ zIndex: 1 }}>
-          <div className="form-container" style={{ width: '100%', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="form-container" style={{ width: '100%', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
 
             {/* Step indicator with labels */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px', width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px', width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                 {(['forgot_email', 'forgot_otp', 'forgot_reset'] as View[]).map((step, idx) => (
                   <div key={step} style={{ display: 'flex', alignItems: 'center' }}>
@@ -177,7 +177,7 @@ export default function Login() {
             {/* Step 1: Email */}
             {view === 'forgot_email' && (
               <form onSubmit={handleForgotSubmitEmail} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '16px', borderRadius: '50%', marginBottom: '16px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
                   <Mail size={32} strokeWidth={1.5} color="#000" />
                 </div>
                 <SplitText
@@ -189,7 +189,7 @@ export default function Login() {
                   tag="h1"
                   textAlign="center"
                 />
-                <p style={{ textAlign: 'center', marginBottom: '20px', opacity: 0.7, fontSize: '13px' }}>Enter your authorized email to receive a recovery code.</p>
+                <p style={{ textAlign: 'center', marginBottom: '16px', opacity: 0.7, fontSize: '13px' }}>Enter your authorized email to receive a recovery code.</p>
                 {fpError && <p className="error-msg">{fpError}</p>}
                 <input
                   type="email"
@@ -213,7 +213,7 @@ export default function Login() {
             {/* Step 2: OTP */}
             {view === 'forgot_otp' && (
               <form onSubmit={handleForgotVerifyOtp} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '16px', borderRadius: '50%', marginBottom: '16px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
                   <ShieldCheck size={32} strokeWidth={1.5} color="#000" />
                 </div>
                 <SplitText
@@ -225,7 +225,7 @@ export default function Login() {
                   tag="h1"
                   textAlign="center"
                 />
-                <p style={{ textAlign: 'center', marginBottom: '20px', opacity: 0.7, fontSize: '13px' }}>
+                <p style={{ textAlign: 'center', marginBottom: '16px', opacity: 0.7, fontSize: '13px' }}>
                   We've transmitted a specialized 6-digit security code to <strong>{fpEmail}</strong>
                 </p>
                 {fpMessage && <p style={{ textAlign: 'center', color: 'rgba(0,0,0,0.5)', fontSize: 13, marginBottom: 16, fontFamily: 'monospace', background: 'rgba(0,0,0,0.05)', padding: '10px 16px', borderRadius: 10 }}>{fpMessage}</p>}
@@ -253,7 +253,7 @@ export default function Login() {
             {/* Step 3: New password */}
             {view === 'forgot_reset' && (
               <form onSubmit={handleForgotReset} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '16px', borderRadius: '50%', marginBottom: '16px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
                   <Lock size={32} strokeWidth={1.5} color="#000" />
                 </div>
                 <SplitText
@@ -265,7 +265,7 @@ export default function Login() {
                   tag="h1"
                   textAlign="center"
                 />
-                <p style={{ textAlign: 'center', marginBottom: '20px', opacity: 0.7, fontSize: '13px' }}>Define a robust new cryptographic credential to finalize your recovery.</p>
+                <p style={{ textAlign: 'center', marginBottom: '16px', opacity: 0.7, fontSize: '13px' }}>Define a robust new cryptographic credential to finalize your recovery.</p>
                 {fpError && <p className="error-msg">{fpError}</p>}
                 <div style={{ position: 'relative', width: '100%' }}>
                   <input

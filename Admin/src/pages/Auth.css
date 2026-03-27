@@ -105,6 +105,12 @@
   display: flex;
 }
 
+.auth-body .container.forgot-container {
+  width: 500px;
+  min-height: 520px;
+  margin: auto;
+}
+
 .auth-body h1 {
   font-size: 42px;
   font-weight: 900;
