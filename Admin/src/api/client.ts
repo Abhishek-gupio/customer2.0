@@ -54,17 +54,25 @@ export const adminApi = {
       '/v1/admin/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
+  signup: (data: { email: string; password: string; name?: string; role?: string }) =>
+    api<{ id: string; email: string; name: string | null; role: string }>(
+      '/v1/admin/auth/signup',
+      { method: 'POST', body: JSON.stringify(data) }
+    ),
   me: () => api<{ admin: { id: string; email: string; role: string } }>('/v1/admin/me'),
-  stats: () =>
+  stats: (days: number = 7) =>
     api<{
       customers: number;
       vehicles: number;
       totalExpenses: number;
       expenseCount: number;
       supportTicketsOpen: number;
-      weeklyTrend?: { date: string; label: string; customers: number; expenseAmount: number }[];
+      unverifiedVehiclesCount: number;
+      totalCustomersToday: number;
+      recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+      trendData?: { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[];
       databaseAvailable?: boolean;
-    }>('/v1/admin/stats'),
+    }>(`/v1/admin/stats?days=${days}`),
   listCustomers: (params?: { page?: number; limit?: number; search?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
@@ -86,6 +94,17 @@ export const adminApi = {
       `/v1/admin/tickets${q ? `?${q}` : ''}`
     );
   },
+  getTicketMessages: (id: string) => api<TicketMessage[]>(`/v1/admin/tickets/${id}/messages`),
+  addTicketMessage: (id: string, content: string) =>
+    api<TicketMessage>(`/v1/admin/tickets/${id}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+  updateTicketStatus: (id: string, status: TicketStatus) =>
+    api<{ success: true }>(`/v1/admin/tickets/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
   listVehicles: (params?: { page?: number; limit?: number; search?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
@@ -181,6 +200,9 @@ export interface AdminVehicleDocument {
   verificationStatus: string | null;
   expiryDate: string | null;
   documentNumber: string | null;
+  fileUrl?: string | null;
+  downloadUrl?: string | null;
+  mimeType?: string | null;
 }
 
 export interface AdminOdometerLog {
@@ -237,9 +259,14 @@ export interface CustomerDetail {
   emergencyContacts: unknown[];
   digilocker: unknown;
   _count: { vehicles: number; expenses: number; documents: number; supportTickets: number; chats: number; sosRequests: number };
-  expenses?: unknown[];
-  documents?: unknown[];
+  expenses?: any[];
+  documents?: AdminVehicleDocument[];
   supportTickets?: SupportTicket[];
+  expenseSummary?: {
+    total: number;
+    breakdown: Record<string, number>;
+    currency: string;
+  };
 }
 
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';

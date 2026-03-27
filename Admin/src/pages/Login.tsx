@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import './Auth.css';
 
 export default function Login() {
-  const { token, login, loading } = useAuth();
+  const { token, login, signup, loading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('SUPPORT');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isRightPanelActive, setIsRightPanelActive] = useState(false);
 
   if (token && !loading) return <Navigate to="/" replace />;
 
@@ -24,75 +26,182 @@ export default function Login() {
     else setError(res.error ?? 'Login failed');
   };
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!email || !password || !name) {
+      setError('Name, email and password are required');
+      return;
+    }
+    setSubmitting(true);
+    const res = await signup({ email: email.trim(), password, name: name.trim(), role });
+    setSubmitting(false);
+    if (res.ok) {
+      // Auto-login after signup
+      const loginRes = await login(email.trim(), password);
+      if (loginRes.ok) navigate('/', { replace: true });
+      else setError('Account created but login failed. Please sign in manually.');
+    } else {
+      setError(res.error ?? 'Registration failed');
+    }
+  };
+
+  const handleSignUpClick = () => {
+    setIsRightPanelActive(true);
+  };
+
+  const handleSignInClick = () => {
+    setIsRightPanelActive(false);
+  };
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_50%_-10%,var(--accent-dim),transparent_60%),radial-gradient(900px_500px_at_0%_80%,rgba(255,255,255,0.05),transparent_60%)] px-5 py-10">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-[1100px] items-center">
-        <div className="grid w-full grid-cols-1 gap-10 lg:grid-cols-2">
-          <div className="hidden lg:block">
-            <div className="rounded-3xl border border-white/[0.07] bg-white/[0.03] p-8">
-              <div className="text-sm font-semibold text-white/70">Customer</div>
-              <div className="mt-2 text-4xl font-extrabold tracking-tight">
-                Admin <span className="text-[var(--accent)]">Dashboard</span>
+    <div className="auth-body selection:bg-white selection:text-black">
+      <div className={`container ${isRightPanelActive ? 'right-panel-active' : ''}`} id="container">
+        {/* Sign Up Container */}
+        <div className="form-container sign-up-container">
+          <form onSubmit={handleSignUp}>
+            <h1>Create Account</h1>
+            <span className="mt-8">Enter your details for registration</span>
+            <input 
+              type="text" 
+              placeholder="Name" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <input 
+              type="email" 
+              placeholder="Email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <select 
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="role-select"
+            >
+              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="SUPPORT">SUPPORT</option>
+            </select>
+            <button type="submit" disabled={submitting}>
+              {submitting ? 'CREATING...' : 'SIGN UP'}
+            </button>
+            {error && isRightPanelActive && (
+              <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-[11px] font-bold text-red-500">
+                {error}
               </div>
-              <p className="mt-4 text-white/60">
-                Modern operations panel for your app — customers, vehicles, documents, expenses and support, with role-based access.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                {['Realtime overview', 'Powerful search', 'Role based access', 'Audit friendly UX'].map((t) => (
-                  <div key={t} className="rounded-2xl border border-white/[0.07] bg-[var(--panel-2)] p-4 text-sm text-white/70">
-                    <div className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-                    <div className="mt-3 font-semibold text-white">{t}</div>
-                  </div>
-                ))}
+            )}
+          </form>
+        </div>
+
+        {/* Sign In Container */}
+        <div className="form-container sign-in-container">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6 text-left w-full">
+              <h1 className="text-4xl mb-2 font-black">Sign In</h1>
+              <p className="m-0 text-white/40 text-sm">Use your admin email and password</p>
+            </div>
+            
+            <input 
+              type="email" 
+              placeholder="support@gmail.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            
+            <a href="#" className="forgot-password-link">Forgot password?</a>
+
+            {error && isRightPanelActive === false && (
+              <div className="w-full mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-[12px] font-bold text-red-500">
+                {error}
               </div>
+            )}
+
+            <button type="submit" disabled={submitting} className="w-full">
+              {submitting ? 'AUTHENTICATING...' : 'SIGN IN'}
+            </button>
+
+            <div className="mt-12 w-full text-center">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">Premium monochrome theme</span>
+            </div>
+          </form>
+        </div>
+
+        {/* Overlay Container */}
+        <div className="overlay-container">
+          <div className="overlay">
+            <div className="overlay-panel overlay-left">
+              <div className="status-badge">
+                <div className="pulse"></div>
+                Secure Access
+              </div>
+              <h1 className="text-5xl mb-6">Welcome<br/>Back</h1>
+              <p>Enter your enterprise credentials to manage the operator workspace.</p>
+              
+              <div className="module-grid">
+                <div className="module-item">
+                  <i className="fas fa-shield-alt"></i>
+                  <p>Security</p>
+                </div>
+                <div className="module-item">
+                  <i className="fas fa-terminal"></i>
+                  <p>System</p>
+                </div>
+              </div>
+
+              <button className="ghost mt-12" id="signIn" onClick={handleSignInClick}>
+                SIGN IN
+              </button>
+            </div>
+            <div className="overlay-panel overlay-right">
+              <div className="status-badge">
+                <div className="pulse"></div>
+                System Online
+              </div>
+              <h1 className="text-5xl mb-6">Admin<br/>Console</h1>
+              <p>Unified operations panel for fleet management, CRM, and support excellence.</p>
+              
+              <div className="module-grid">
+                <div className="module-item">
+                  <i className="fas fa-users"></i>
+                  <p>CRM</p>
+                </div>
+                <div className="module-item">
+                  <i className="fas fa-car-side"></i>
+                  <p>Fleet</p>
+                </div>
+                <div className="module-item">
+                  <i className="fas fa-file-invoice-dollar"></i>
+                  <p>Billing</p>
+                </div>
+                <div className="module-item">
+                  <i className="fas fa-headset"></i>
+                  <p>Support</p>
+                </div>
+              </div>
+
+              <button className="ghost mt-12" id="signUp" onClick={handleSignUpClick}>
+                SIGN UP
+              </button>
             </div>
           </div>
-
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-white/[0.07] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)]">
-              <CardTitle>Sign in</CardTitle>
-              <CardDescription>Use your admin email and password</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-5">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-xs font-semibold text-white/60">Email</label>
-                  <input
-                    type="email"
-                    placeholder="admin@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="mt-2 h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 text-sm text-white outline-none ring-0 placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-white/60">Password</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="mt-2 h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 text-sm text-white outline-none ring-0 placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
-                  />
-                </div>
-                {error && (
-                  <div className="rounded-xl border border-[rgba(220,53,69,0.35)] bg-[rgba(220,53,69,0.12)] px-4 py-3 text-sm text-white">
-                    {error}
-                  </div>
-                )}
-                <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? 'Signing in...' : 'Sign in'}
-                </Button>
-                <p className="text-center text-xs text-white/40">
-                  Premium monochrome theme
-                </p>
-              </form>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

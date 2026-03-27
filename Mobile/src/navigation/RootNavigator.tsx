@@ -43,6 +43,7 @@ import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
 import ValetService from '../screens/Main/ValetService';
 import VehicleSearch from '../screens/Main/VehicleSearch';
+import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
 import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -105,9 +106,11 @@ export function RootNavigator() {
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
       <Stack.Screen name="DrivingTimeline" component={DrivingTimeline} />
       <Stack.Screen name="TripDetail" component={TripDetail} />
+      <Stack.Screen name="Alerts" component={Alerts} />
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
+      <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
     </Stack.Navigator>
   );
 }

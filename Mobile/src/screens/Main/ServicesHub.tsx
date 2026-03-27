@@ -36,12 +36,13 @@ type ServiceId =
   | 'Parking'
   | 'TyreShop'
   | 'DocumentServices'
-  | 'CarSpa';
+  | 'CarSpa'
+  | 'TripExpense';
 
 type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' };
 
 const SERVICE_ITEMS: ServiceItem[] = [
-  { id: 'PartsWarranty', name: 'Warranty', icon: 'shield-alt', iconSet: 'fa' },
+  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
   { id: 'ServiceHistory', name: 'History', icon: 'history', iconSet: 'fa' },
   { id: 'NearbyPlaces', name: 'Nearby', icon: 'map-marker-alt', iconSet: 'fa' },
   { id: 'CheckChallan', name: 'Challan', icon: 'gavel', iconSet: 'fa' },
@@ -53,12 +54,14 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
+  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle & Warranty', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'Insurance', 'Towing'], color: '#FFBF00' }, // Yellow
   { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
+  { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
 
 const ADS_DATA = [
@@ -91,11 +94,11 @@ const ADS_DATA = [
   },
   {
     id: '4',
-    title: 'Warranty Guard',
-    subtitle: 'Protection Plan',
-    desc: 'Keep track of your parts and warranty status with smart alerts.',
+    title: 'Vehicle Health',
+    subtitle: 'Smart Tracking',
+    desc: 'Monitor your vehicle health score and parts lifecycle easily.',
     theme: '#4ade80',
-    icon: 'shield-alt',
+    icon: 'heartbeat',
     target: 'WarrantyStatus',
   },
 ];
@@ -158,6 +161,9 @@ export default function ServicesHub() {
         break;
       case 'CheckChallan':
         navigation.navigate('CheckChallan');
+        break;
+      case 'TripExpense':
+        navigation.navigate('TripExpense');
         break;
       default:
         break;
@@ -294,7 +300,7 @@ export default function ServicesHub() {
                           <Icon name={item.icon as any} size={wp(5.8)} color="#fff" />
                         )}
                       </View>
-                      <Text style={styles.label} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
                     </TouchableOpacity>
                   );
                 })}

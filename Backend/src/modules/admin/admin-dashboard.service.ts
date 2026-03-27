@@ -1,4 +1,5 @@
 import { dbInstances } from "@repo/db-customer";
+import axios from "axios";
 import { storageService } from "../../services/storage.service";
 import { AppError } from "../../utils/AppError";
 import type { AdminRole } from "@repo/db-customer";
@@ -212,7 +213,6 @@ export const adminDashboardService = {
     const [expensesRaw, documentsRaw, supportTickets] = await Promise.all([
       db.expense?.findMany({
         where: { customerId },
-        take: 50,
         orderBy: { date: "desc" },
         include: {
           vehicle: { select: { registrationNumber: true, make: true, model: true } },
@@ -247,9 +247,29 @@ export const adminDashboardService = {
           fileUrl: d.fileUrl
             ? await storageService.ensureReadableUrl(d.fileUrl)
             : d.fileUrl,
+          downloadUrl: d.fileUrl
+            ? await storageService.ensureReadableUrl(d.fileUrl, 3600, `attachment; filename="${d.type.replace(/\s+/g, '_')}_${d.id.slice(0, 8)}"`)
+            : d.fileUrl,
         }))
       ),
     ]);
+    
+    // Calculate full expense breakdown for export
+    const totalExpenseAmount = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const categories = ["FUEL", "TOLL", "PARKING", "SERVICE", "INSURANCE", "CHALLAN", "EMI", "OTHER"];
+    const breakdown: Record<string, number> = {};
+    
+    categories.forEach(cat => {
+      breakdown[cat.toLowerCase()] = expenses
+        .filter(e => e.category === cat)
+        .reduce((sum, e) => sum + (e.amount || 0), 0);
+    });
+
+    const expenseSummary = {
+      total: totalExpenseAmount,
+      breakdown,
+      currency: expenses[0]?.currency || "INR",
+    };
 
     // SUPPORT role: hide vehicles and devices but still show docs/expenses/tickets
     if (role === "SUPPORT") {
@@ -263,6 +283,7 @@ export const adminDashboardService = {
         supportTickets,
         expenses,
         documents,
+        expenseSummary,
       };
     }
 
@@ -271,27 +292,64 @@ export const adminDashboardService = {
       expenses,
       documents,
       supportTickets,
+      expenseSummary,
+    };
+  },
+
+  async downloadDocument(documentId: string) {
+    const doc = await dbInstances.vehicleDocument.findUnique({
+      where: { id: documentId },
+    });
+    if (!doc) throw AppError.notFound("Document not found");
+
+    if (!doc.fileUrl) {
+      if (doc.fileContent) {
+        return {
+          buffer: doc.fileContent,
+          mimeType: doc.mimeType || "application/octet-stream",
+          filename: `${doc.type}_${doc.id.slice(0, 8)}`,
+        };
+      }
+      throw AppError.badRequest("Document has no file content or URL");
+    }
+
+    const readableUrl = await storageService.ensureReadableUrl(doc.fileUrl, 3600, `attachment; filename="${doc.type.replace(/\s+/g, '_')}_${doc.id.slice(0, 8)}"`);
+    
+    // If it's already a signed URL with query params, we can just return the URL or stream it.
+    // Streaming is safer for forcing download.
+    const response = await axios.get(readableUrl, { responseType: "arraybuffer" });
+    
+    return {
+      buffer: Buffer.from(response.data),
+      mimeType: (response.headers["content-type"] as string) || doc.mimeType || "application/octet-stream",
+      filename: `${doc.type.replace(/\s+/g, "_")}_${doc.id.slice(0, 8)}`,
     };
   },
 
   /** Dashboard overview stats. Only SUPER_ADMIN and ADMIN. */
-  async getOverviewStats(role: AdminRole) {
+  async getOverviewStats(role: AdminRole, days: number = 7) {
     const empty = {
       customers: 0,
       vehicles: 0,
       totalExpenses: 0,
       expenseCount: 0,
       supportTicketsOpen: 0,
-      weeklyTrend: [] as { date: string; label: string; customers: number; expenseAmount: number }[],
+      unverifiedVehiclesCount: 0,
+      totalCustomersToday: 0,
+      recentHighExpenses: [] as any[],
+      trendData: [] as { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[],
       databaseAvailable: false as boolean,
     };
     if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
       return { ...empty, databaseAvailable: true };
     }
-    const db = dbInstances;
+    const db = dbInstances as any;
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
     try {
       const expenseFallback = { _sum: { amount: 0 as number }, _count: 0 };
-      const [customers, vehicles, expenses, supportTicketsOpen, weeklyTrend] = await Promise.all([
+      const [customers, vehicles, expenses, supportTicketsOpen, trendData, unverifiedVehiclesCount, totalCustomersToday, recentHighExpenses] = await Promise.all([
         dbInstances.customer.count(),
         dbInstances.customerVehicle.count(),
         db.expense
@@ -300,7 +358,17 @@ export const adminDashboardService = {
         db.supportTicket
           ? db.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }).catch(() => 0)
           : Promise.resolve(0),
-        this.getWeeklyTrend(),
+        this.getTrendData(db, days),
+        dbInstances.customerVehicle.count({ where: { rcVerified: false } }),
+        dbInstances.customer.count({ where: { createdAt: { gte: today } } }),
+        db.expense
+          ? db.expense.findMany({
+              where: { amount: { gt: 1000 } },
+              take: 3,
+              orderBy: { date: "desc" },
+              include: { customer: { select: { fullName: true } } },
+            }).catch(() => [])
+          : Promise.resolve([]),
       ]);
       return {
         customers,
@@ -308,7 +376,10 @@ export const adminDashboardService = {
         totalExpenses: (expenses as { _sum?: { amount?: number }; _count?: number })._sum?.amount ?? 0,
         expenseCount: (expenses as { _count?: number })._count ?? 0,
         supportTicketsOpen: Number(supportTicketsOpen),
-        weeklyTrend,
+        trendData,
+        unverifiedVehiclesCount,
+        totalCustomersToday,
+        recentHighExpenses,
         databaseAvailable: true,
       };
     } catch (err) {
@@ -317,55 +388,52 @@ export const adminDashboardService = {
     }
   },
 
-  /** Last 7 days: new customers and expense amount per day (UTC) using efficient groupBy. */
-  async getWeeklyTrend(): Promise<{ date: string; label: string; customers: number; expenseAmount: number }[]> {
+  /** Trend analysis for specified number of days: new customers, vehicles, expense amount, and tickets per day (UTC). */
+  async getTrendData(db: any, daysToFetch: number): Promise<{ date: string; label: string; customers: number; vehicles: number; expenseAmount: number; tickets: number }[]> {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6);
-
-    const db = dbInstances;
-
-    // 1. Fetch data in bulk using groupBy (2 queries total vs 14)
-    const [customerCounts, expenseSums] = await Promise.all([
-      dbInstances.customer.groupBy({
-        by: ['createdAt'],
-        where: { createdAt: { gte: sevenDaysAgo } },
-        _count: { id: true },
-      }),
-      db.expense ? db.expense.groupBy({
-        by: ['date'],
-        where: { date: { gte: sevenDaysAgo } },
-        _sum: { amount: true },
-      }) : Promise.resolve([]),
-    ]);
-
-    // 2. Map results into the 7-day window
-    const results = [];
-    for (let i = 6; i >= 0; i--) {
+    const periods: { dayStart: Date; dayEnd: Date; dateStr: string; label: string }[] = [];
+    
+    for (let i = daysToFetch - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const label = dayLabels[d.getUTCDay()];
-
-      // Simple filter logic for pre-fetched counts
-      const custCount = customerCounts
-        .filter(c => c.createdAt.toISOString().split('T')[0] === dateStr)
-        .reduce((sum, c) => sum + (c._count?.id || 0), 0);
+      const dayStart = new Date(d);
+      const dayEnd = new Date(d);
+      dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+      const dateStr = `${dayStart.getUTCFullYear()}-${String(dayStart.getUTCMonth() + 1).padStart(2, "0")}-${String(dayStart.getUTCDate()).padStart(2, "0")}`;
       
-      const expSum = expenseSums
-        .filter((e: any) => e.date.toISOString().split('T')[0] === dateStr)
-        .reduce((sum: number, e: any) => sum + (e._sum?.amount || 0), 0);
-
-      results.push({
-        date: dateStr,
-        label,
-        customers: custCount,
-        expenseAmount: Math.round(expSum * 100) / 100,
-      });
+      // If fetching many days, use month + day for label (e.g. "Oct 12") instead of just weekday
+      let label = dayLabels[dayStart.getUTCDay()];
+      if (daysToFetch > 7) {
+        label = `${monthNames[dayStart.getUTCMonth()]} ${dayStart.getUTCDate()}`;
+      }
+      
+      periods.push({ dayStart, dayEnd, dateStr, label });
     }
-
+    const results = await Promise.all(
+      periods.map(async ({ dayStart, dayEnd, dateStr, label }) => {
+        const [custCount, vehicleCount, expSum, ticketCount] = await Promise.all([
+          dbInstances.customer.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
+          dbInstances.customerVehicle.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
+          db.expense
+            ? db.expense.aggregate({ _sum: { amount: true }, where: { date: { gte: dayStart, lt: dayEnd } } }).then((r: { _sum?: { amount?: number } }) => r._sum?.amount ?? 0).catch(() => 0)
+            : Promise.resolve(0),
+          db.supportTicket
+            ? db.supportTicket.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }).catch(() => 0)
+            : Promise.resolve(0),
+        ]);
+        return { 
+          date: dateStr, 
+          label, 
+          customers: custCount, 
+          vehicles: vehicleCount,
+          expenseAmount: Math.round((expSum as number) * 100) / 100,
+          tickets: ticketCount
+        };
+      })
+    );
     return results;
   },
 };

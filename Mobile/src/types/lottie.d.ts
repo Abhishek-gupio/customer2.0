@@ -1,0 +1,1 @@
+declare module '@lottiefiles/dotlottie-react-native';

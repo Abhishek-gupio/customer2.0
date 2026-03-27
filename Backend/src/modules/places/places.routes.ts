@@ -6,5 +6,6 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get("/nearby", placesController.getNearby);
+router.get("/search", placesController.search);
 
 export const placesRoutes = router;

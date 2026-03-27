@@ -39,16 +39,17 @@ export type RootStackParamList = {
   Alerts: undefined;
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
+  TripExpense: undefined;
 };
 
 export type MainTabParamList = {
   Home: undefined;
+  my_garage: undefined;
   Services: undefined;
   AIAssistant: {
     userMessage?: string;
     sessionId?: string;
   } | undefined;
-  Alerts: undefined;
   Odometer: undefined;
 };
 

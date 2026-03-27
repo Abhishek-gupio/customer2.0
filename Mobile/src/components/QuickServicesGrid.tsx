@@ -7,14 +7,15 @@ import {
 import QuickServiceButton from './QuickServiceButton';
 
 const SERVICES = [
-  { icon: 'wrench', label: 'Service' },
-  { icon: 'map-marker-alt', label: 'Near By' },
-  { icon: 'tachometer-alt', label: 'Driving' },
-  { icon: 'comments', label: 'Support' },
-  { icon: 'car', label: 'My Garage' },
-  { icon: 'file-alt', label: 'Document' },
-  { icon: 'wallet', label: 'Expense' },
-  { icon: 'parking', label: 'Valet' },
+  { id: 'service', icon: 'wrench', label: 'Services' },
+  { id: 'nearby', icon: 'map-marker-alt', label: 'Nearby Map' },
+  { id: 'driving', icon: 'tachometer-alt', label: 'Trips Log' },
+  { id: 'support', icon: 'comments', label: 'Support' },
+  { id: 'garage', icon: 'car', label: 'My Garage' },
+  { id: 'document', icon: 'file-alt', label: 'Documents' },
+  { id: 'expense', icon: 'wallet', label: 'Expenses' },
+  { id: 'valet', icon: 'parking', label: 'Valet Parking' },
+  // { id: 'tripcost', icon: 'map-signs', label: 'Trip Planner' },
 ];
 
 type QuickServicesGridProps = {
@@ -27,23 +28,39 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
       <View style={styles.row}>
         {SERVICES.slice(0, 4).map((item) => (
           <QuickServiceButton
-            key={item.label}
+            key={item.id}
             icon={item.icon}
             label={item.label}
-            onPress={() => onServicePress?.(item.label)}
+            onPress={() => onServicePress?.(item.id)}
           />
         ))}
       </View>
       <View style={[styles.row, { marginTop: hp(1.5) }]}>
         {SERVICES.slice(4, 8).map((item) => (
           <QuickServiceButton
-            key={item.label}
+            key={item.id}
             icon={item.icon}
             label={item.label}
-            onPress={() => onServicePress?.(item.label)}
+            onPress={() => onServicePress?.(item.id)}
           />
         ))}
       </View>
+      {SERVICES.length > 8 && (
+        <View style={[styles.row, { marginTop: hp(1.5) }]}>
+          {SERVICES.slice(8).map((item) => (
+            <QuickServiceButton
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              onPress={() => onServicePress?.(item.id)}
+            />
+          ))}
+          {/* Pad with empty Views to keep the first item left-aligned in the 4-column grid */}
+          {[...Array(4 - (SERVICES.length % 4 || 4))].map((_, i) => (
+            <View key={`empty-${i}`} style={{ flex: 1 }} />
+          ))}
+        </View>
+      )}
     </View>
   );
 }

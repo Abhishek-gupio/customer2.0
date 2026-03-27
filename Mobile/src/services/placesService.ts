@@ -10,6 +10,7 @@ export interface NearbyPlace {
   rating: number | undefined;
   placeId: string;
   openNow?: boolean;
+  imageUrl?: string;
 }
 
 export type NearbyPlaceType =
@@ -19,7 +20,13 @@ export type NearbyPlaceType =
   | 'police'
   | 'car_repair'
   | 'parking'
-  | 'lodging';
+  | 'lodging'
+  | 'tourist_attraction'
+  | 'park'
+  | 'museum'
+  | 'restaurant'
+  | 'car_rental'
+  | 'bicycle_store';
 
 interface NearbyResponse {
   success?: boolean;
@@ -29,25 +36,64 @@ interface NearbyResponse {
   };
 }
 
+export interface SearchSuggestion {
+  description: string;
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+}
+
+interface SearchResponse {
+  success?: boolean;
+  data?: {
+    suggestions: SearchSuggestion[];
+  };
+}
+
 export const placesService = {
   getNearby: async (
     latitude: number,
     longitude: number,
-    type: NearbyPlaceType = 'gas_station',
-    radiusMeters?: number,
+    type: NearbyPlaceType = "gas_station",
+    radiusMeters?: number
   ): Promise<NearbyPlace[]> => {
-    const params = new URLSearchParams({
-      latitude: String(latitude),
-      longitude: String(longitude),
-      type,
-    });
-    if (radiusMeters != null) params.set('radius', String(radiusMeters));
-    const res = await api.get<NearbyResponse>(`/v1/places/nearby?${params.toString()}`);
-    const data = (res as any)?.data ?? res;
-    const places = Array.isArray(data?.places) ? data.places : [];
-    return places;
+    try {
+      const params = new URLSearchParams({
+        latitude: String(latitude),
+        longitude: String(longitude),
+        type,
+      });
+      if (radiusMeters != null) params.set("radius", String(radiusMeters));
+      
+      const res = await api.get<NearbyResponse>(
+        `/v1/places/nearby?${params.toString()}`
+      );
+      
+      const data = (res as any)?.data ?? res;
+      return Array.isArray(data?.places) ? data.places : [];
+    } catch (err) {
+      console.error("Nearby Places API error:", err);
+      return [];
+    }
   },
 
-  getNearbyFuelStations: (latitude: number, longitude: number, radiusMeters?: number) =>
-    placesService.getNearby(latitude, longitude, 'gas_station', radiusMeters),
+  search: async (query: string): Promise<SearchSuggestion[]> => {
+    if (!query || query.length < 3) return [];
+    try {
+      const res = await api.get<SearchResponse>(
+        `/v1/places/search?q=${encodeURIComponent(query)}`
+      );
+      const data = (res as any)?.data ?? res;
+      return Array.isArray(data?.suggestions) ? data.suggestions : [];
+    } catch (err) {
+      console.error("Search API error:", err);
+      return [];
+    }
+  },
+
+  getNearbyFuelStations: (
+    latitude: number,
+    longitude: number,
+    radiusMeters?: number
+  ) => placesService.getNearby(latitude, longitude, "gas_station", radiusMeters),
 };

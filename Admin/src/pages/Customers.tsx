@@ -8,7 +8,8 @@ import {
   useReactTable,
   flexRender,
 } from '@tanstack/react-table';
-import { Search, Users, ChevronUp, ChevronDown, UserCircle } from 'lucide-react';
+import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerListItem } from '../api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -121,6 +122,75 @@ export default function Customers() {
           </span>
         ),
       },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          const { hasRole } = useAuth();
+          const [exporting, setExporting] = useState(false);
+
+          const handleExport = async (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (exporting) return;
+            setExporting(true);
+            try {
+              const res = await adminApi.getCustomer(row.original.id);
+              if (res.success) {
+                const html = generateCustomerExport(res.data);
+                
+                // Create an isolated iframe for printing
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+                
+                const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
+                if (frameDoc) {
+                  frameDoc.open();
+                  frameDoc.write(html);
+                  frameDoc.close();
+                  
+                  // Wait for content to load before opening the print dialog
+                  setTimeout(() => {
+                    iframe.contentWindow?.focus();
+                    iframe.contentWindow?.print();
+                    document.body.removeChild(iframe);
+                  }, 500);
+                }
+              }
+            } catch (err) {
+              console.error('Export failed:', err);
+            } finally {
+              setExporting(false);
+            }
+          };
+
+          if (!hasRole('ADMIN', 'SUPER_ADMIN')) return null;
+
+          return (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-8 px-2 rounded-lg border-white/5 bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-wider"
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <>
+                  <FileDown className="h-3 w-3 mr-1.5" />
+                  Download
+                </>
+              )}
+            </Button>
+          );
+        },
+      },
     ],
     []
   );
@@ -135,7 +205,7 @@ export default function Customers() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 min-h-0 flex flex-col space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Customer Directory</h1>
@@ -165,7 +235,7 @@ export default function Customers() {
         </div>
       )}
 
-      <Card>
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-4 w-4 text-[var(--accent)]" />
@@ -175,8 +245,8 @@ export default function Customers() {
             {data ? `${data.pagination.total} total members` : '—'} · Showing {rows.length} results
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
+        <CardContent className="p-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-[#0c0c0e]">
                 {table.getHeaderGroups().map((hg) => (
@@ -284,3 +354,191 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
   return debounced;
 }
 
+
+const generateCustomerExport = (data: any) => {
+  const customer = data;
+  const { vehicles = [], expenses = [], supportTickets = [], documents = [], expenseSummary } = data;
+  const exportDate = new Date().toLocaleDateString('en-GB');
+  const joinDate = new Date(customer.createdAt).toLocaleDateString('en-GB');
+  const vehicleCount = vehicles.length;
+  const totalExpenses = expenseSummary?.total || 0;
+  const currency = expenseSummary?.currency || 'INR';
+  
+  const breakdown = expenseSummary?.breakdown || {};
+  const activeCategories = Object.entries(breakdown)
+    .filter(([_, amount]) => (amount as number) > 0)
+    .sort((a,b) => (b[1] as number) - (a[1] as number));
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${customer.fullName || 'Customer'} document</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1a1a; line-height: 1.5; padding: 40px; background: #fff; max-width: 900px; margin: 0 auto; }
+    .header { border-bottom: 2px solid #f0f0f0; padding-bottom: 24px; margin-bottom: 32px; }
+    .customer-name { font-size: 32px; font-weight: 800; tracking: -0.02em; color: #000; margin-bottom: 12px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .meta-item { display: flex; flex-direction: column; }
+    .meta-label { font-size: 10px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .meta-value { font-size: 15px; font-weight: 600; color: #333; }
+    
+    .section { margin-bottom: 40px; }
+    .section-title { font-size: 14px; font-weight: 800; color: #000; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; }
+    .section-title::after { content: ""; flex: 1; height: 1px; background: #eee; margin-left: 16px; }
+    
+    .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .card { background: #f8f9fa; border: 1px solid #eee; border-radius: 12px; padding: 20px; }
+    .card.highlight { background: #000; color: #fff; border: none; }
+    .card.highlight .meta-label { color: rgba(255,255,255,0.5); }
+    .card.highlight .meta-value { color: #fff; }
+    .amount { font-size: 24px; font-weight: 800; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px 16px; border-bottom: 2px solid #eee; font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: #444; }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; background: #eee; color: #666; }
+    .status-active { background: #e6fcf5; color: #0ca678; }
+    
+    @media print {
+      body { padding: 0; }
+      .card { border: 1px solid #eee !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="customer-name">${customer.fullName || 'Unnamed Customer'}</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Export Date</div>
+        <div class="meta-value">${exportDate}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Joined On</div>
+        <div class="meta-value">${joinDate}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Vehicle Inventory</div>
+        <div class="meta-value">${vehicleCount} ${vehicleCount === 1 ? 'Vehicle' : 'Vehicles'}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Expense Overview</div>
+    <div class="summary-cards" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+      <div class="card highlight">
+        <div class="meta-label">Total Amount</div>
+        <div class="amount">${currency} ${totalExpenses.toLocaleString()}</div>
+      </div>
+      ${activeCategories.map(([cat, amt]) => `
+        <div class="card">
+          <div class="meta-label">${cat.toUpperCase()} EXPENSES</div>
+          <div class="amount" style="color: ${cat === 'fuel' ? '#2f9e44' : cat === 'service' ? '#1971c2' : '#d6336c'};">
+            ${currency} ${(amt as number).toLocaleString()}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Expense History (${expenses.length})</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Merchant</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${expenses.map((e: any) => `
+          <tr>
+            <td>${new Date(e.date).toLocaleDateString('en-GB')}</td>
+            <td><span class="badge">${e.category}</span></td>
+            <td>${e.merchantName || '—'}</td>
+            <td><strong>${currency} ${e.amount.toLocaleString()}</strong></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Vehicles (${vehicles.length})</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Reg. Number</th>
+          <th>Fuel</th>
+          <th>Health</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${vehicles.map((v: any) => `
+          <tr>
+            <td><strong>${v.make} ${v.model}</strong></td>
+            <td><code>${v.registrationNumber}</code></td>
+            <td>${v.fuelType || '—'}</td>
+            <td><span class="badge ${v.healthScore?.overallScore > 70 ? 'status-active' : ''}">${v.healthScore?.overallScore || 'N/A'}%</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Uploaded Documents (${documents.length})</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Number</th>
+          <th>Expiry</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${documents.map((d: any) => `
+          <tr>
+            <td>${d.type}</td>
+            <td>${d.documentNumber || '—'}</td>
+            <td>${d.expiryDate ? new Date(d.expiryDate).toLocaleDateString('en-GB') : '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Support Tickets (${supportTickets.length})</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${supportTickets.map((t: any) => `
+          <tr>
+            <td>${t.subject}</td>
+            <td>${t.category}</td>
+            <td><span class="badge">${t.status}</span></td>
+            <td>${new Date(t.createdAt).toLocaleDateString('en-GB')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
+  `;
+};

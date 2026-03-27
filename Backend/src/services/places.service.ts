@@ -22,7 +22,20 @@ function distanceKm(
   return R * c;
 }
 
-export type NearbyPlaceType = "gas_station" | "electric_charging_station" | "hospital" | "police" | "car_repair" | "parking" | "lodging";
+export type NearbyPlaceType = 
+  | "gas_station" 
+  | "electric_charging_station" 
+  | "hospital" 
+  | "police" 
+  | "car_repair" 
+  | "parking" 
+  | "lodging"
+  | "tourist_attraction"
+  | "park"
+  | "museum"
+  | "restaurant"
+  | "car_rental"
+  | "bicycle_store";
 
 export interface NearbyPlace {
   name: string;
@@ -35,10 +48,16 @@ export interface NearbyPlace {
   placeId: string;
   openNow?: boolean;
 }
+export interface SearchSuggestion {
+  description: string;
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+}
 
 const PLACE_TYPE_MAP: Record<string, { type?: string; keyword?: string; keywordFallback?: string }> = {
   // For fuel, we want to explicitly target petrol pumps via keyword only.
-  // We do NOT send type=gas_station so that results are purely \"petrol pump\" matches.
+  // We do NOT send type=gas_station so that results are purely "petrol pump" matches.
   gas_station: { keyword: "petrol pump" },
   electric_charging_station: { type: "electric_charging_station" },
   hospital: { keyword: "hospital" },
@@ -46,6 +65,12 @@ const PLACE_TYPE_MAP: Record<string, { type?: string; keyword?: string; keywordF
   car_repair: { keyword: "car repair" },
   parking: { type: "parking" },
   lodging: { type: "lodging" },
+  tourist_attraction: { type: "tourist_attraction" },
+  park: { type: "park" },
+  museum: { type: "museum" },
+  restaurant: { type: "restaurant" },
+  car_rental: { type: "car_rental" },
+  bicycle_store: { type: "bicycle_store" },
 };
 
 function formatDistance(km: number): string {
@@ -85,6 +110,13 @@ export const placesService = {
           const lat = place.geometry?.location?.lat ?? 0;
           const lng = place.geometry?.location?.lng ?? 0;
           const dist = distanceKm(latitude, longitude, lat, lng);
+          
+          let imageUrl: string | undefined;
+          if (place.photos && place.photos.length > 0) {
+            const photoRef = place.photos[0].photo_reference;
+            imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photoRef}&key=${key}`;
+          }
+
           return {
             name: place.name || "Unknown",
             address: place.vicinity,
@@ -95,6 +127,7 @@ export const placesService = {
             rating: place.rating,
             placeId: place.place_id || "",
             openNow: (place as any).opening_hours?.open_now,
+            imageUrl,
           };
         });
       };
@@ -124,6 +157,32 @@ export const placesService = {
       return withDistance;
     } catch (err: any) {
       console.error("Places API error:", err?.message || err);
+      return [];
+    }
+  },
+
+  searchPlaces: async (query: string): Promise<SearchSuggestion[]> => {
+    const key = process.env.GOOGLE_MAPS_API_KEY || "";
+    if (!key || !query) return [];
+
+    try {
+      const response = await googleMapsClient.placeAutocomplete({
+        params: {
+          input: query,
+          components: ["country:in"], // Restrict to India
+          key,
+        },
+      });
+
+      const predictions = response.data.predictions || [];
+      return predictions.map((p) => ({
+        description: p.description,
+        placeId: p.place_id,
+        mainText: p.structured_formatting.main_text,
+        secondaryText: p.structured_formatting.secondary_text,
+      }));
+    } catch (err: any) {
+      console.error("Places Autocomplete error:", err?.message || err);
       return [];
     }
   },

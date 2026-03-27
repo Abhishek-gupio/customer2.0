@@ -22,7 +22,7 @@ export default function QuickServiceButton({ icon, label, onPress }: QuickServic
       <View style={styles.iconBox}>
         <Icon name={icon} size={wp(5.5)} color="#fff" />
       </View>
-      <Text style={styles.label} numberOfLines={1}>{label}</Text>
+      <Text style={styles.label} numberOfLines={2}>{label}</Text>
     </TouchableOpacity>
   );
 }

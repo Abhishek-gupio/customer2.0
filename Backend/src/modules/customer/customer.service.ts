@@ -7,7 +7,7 @@ import type {
   RegisterDeviceInput,
 } from "./customer.validators";
 
-type ProfileWithPic = { profilePic: string | null; [k: string]: unknown };
+type ProfileWithPic = { profilePic: string | null;[k: string]: unknown };
 type RequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "COMPLETED" | "RETURNED";
 type VehicleStatus = "PARKED" | "PICKED_UP" | "IN_TRANSIT" | "RETURNED";
 type LocationInput = { latitude: number; longitude: number; timestamp?: number };
@@ -395,14 +395,14 @@ export const customerService = {
 
     const pickupInfo = latestPickup
       ? {
-          pickedBy: latestPickup.User_Pickup_valetIdToUser?.fullName || "Not assigned",
-          valetPhone: latestPickup.User_Pickup_valetIdToUser?.phoneNumber || "N/A",
-          pickupTime: latestPickup.pickupTime.toISOString(),
-          pickupLocation: latestPickup.pickupFrom || "Not available",
-          parkLocation: latestPickup.parkAt || "Not available",
-          notes: latestPickup.notes || "",
-          status: latestPickup.status,
-        }
+        pickedBy: latestPickup.User_Pickup_valetIdToUser?.fullName || "Not assigned",
+        valetPhone: latestPickup.User_Pickup_valetIdToUser?.phoneNumber || "N/A",
+        pickupTime: latestPickup.pickupTime.toISOString(),
+        pickupLocation: latestPickup.pickupFrom || "Not available",
+        parkLocation: latestPickup.parkAt || "Not available",
+        notes: latestPickup.notes || "",
+        status: latestPickup.status,
+      }
       : null;
 
     return {

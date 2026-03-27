@@ -13,29 +13,7 @@ const db = dbInstances;
  * - Predict when parts need replacement based on driving patterns
  */
 
-// In-memory fallback when DB has no PartReplacementInterval (e.g. before seed)
-const PART_LIFECYCLE_FALLBACK: Record<
-  string,
-  { months: number; km: number; defaultWarrantyMonths: number }
-> = {
-  ENGINE_OIL: { months: 6, km: 10000, defaultWarrantyMonths: 0 },
-  OIL_FILTER: { months: 6, km: 10000, defaultWarrantyMonths: 0 },
-  AIR_FILTER: { months: 12, km: 15000, defaultWarrantyMonths: 0 },
-  BRAKE_PADS: { months: 24, km: 30000, defaultWarrantyMonths: 6 },
-  BRAKE_DISCS: { months: 36, km: 60000, defaultWarrantyMonths: 12 },
-  BATTERY: { months: 36, km: 80000, defaultWarrantyMonths: 24 },
-  TYRES: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
-  TYRES_FRONT: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
-  TYRES_REAR: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
-  CLUTCH_PLATE: { months: 48, km: 60000, defaultWarrantyMonths: 6 },
-  SPARK_PLUGS: { months: 24, km: 30000, defaultWarrantyMonths: 0 },
-  COOLANT: { months: 24, km: 40000, defaultWarrantyMonths: 0 },
-  TIMING_BELT: { months: 48, km: 60000, defaultWarrantyMonths: 6 },
-  AC_FILTER: { months: 12, km: 15000, defaultWarrantyMonths: 0 },
-  WIPER_BLADES: { months: 12, km: 20000, defaultWarrantyMonths: 3 },
-  HEADLIGHT_BULB: { months: 24, km: 50000, defaultWarrantyMonths: 6 },
-  OTHER_PART: { months: 12, km: 20000, defaultWarrantyMonths: 0 },
-};
+import { fetchAndSaveIntervalsForVehicle } from "./oem-scraper.service";
 
 export interface CreateServiceRecordInput {
   vehicleId: string;
@@ -72,7 +50,7 @@ function normalizeServiceParts(parts: CreateServicePartInput[]): CreateServicePa
     const expandedTypes =
       baseType === "TYRES"
         ? ["TYRES_FRONT", "TYRES_REAR"]
-        : [baseType && PART_LIFECYCLE_FALLBACK[baseType] ? baseType : "OTHER_PART"];
+        : [baseType || "OTHER_PART"];
 
     for (const partType of expandedTypes) {
       const key = [
@@ -136,16 +114,9 @@ async function getLifecycleForVehiclePart(
   }
 
   try {
-    if (!db.partReplacementInterval) {
-      const fallback =
-        PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
-      return { ...fallback, source: "FALLBACK" };
-    }
-
-    // Prisma ServicePartType has TYRES_FRONT/TYRES_REAR but not TYRES; use TYRES_FRONT for DB lookup
     const partTypeForDb =
       partType === "TYRES" ? "TYRES_FRONT" : (partType as ServicePartType);
-    const rows = await db.partReplacementInterval.findMany({
+    let rows = await db.partReplacementInterval.findMany({
       where: { partType: partTypeForDb },
     });
 
@@ -167,9 +138,48 @@ async function getLifecycleForVehiclePart(
     });
 
     if (matches.length === 0) {
-      const fallback =
-        PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
-      return { ...fallback, source: "FALLBACK" };
+      // Check if we already have ANY intervals for this make/model (excluding DEFAULT)
+      // to avoid calling AI repeatedly for part types that AI doesn't know about.
+      const existingForVehicle = make ? await db.partReplacementInterval.findFirst({
+        where: {
+          make: { equals: make, mode: "insensitive" },
+          model: model ? { equals: model, mode: "insensitive" } : undefined,
+        },
+      }) : null;
+
+      if (existingForVehicle) {
+        logger.debug({ vehicleId, make, model, partType }, "Some intervals already exist for vehicle, skipping redundant fetch for missing part type");
+      } else {
+        // Trigger OEM/AI fetch on-the-fly if no matching intervals found at all for this vehicle
+        logger.info({ vehicleId, make, model, partType }, "No DB intervals found for this vehicle, triggering OEM/AI fetch");
+        const fetchResult = await fetchAndSaveIntervalsForVehicle(vehicleId);
+        
+        if (fetchResult.saved > 0) {
+          // Retry fetch after save
+          rows = await db.partReplacementInterval.findMany({
+            where: { partType: partTypeForDb },
+          });
+          // Filter again with new rows
+          const newMatches = rows.filter((r: any) => {
+            if (r.make === "DEFAULT") return true;
+            if (!make) return r.make === "Generic";
+            if (r.make.toLowerCase() !== make.toLowerCase()) return false;
+            return true;
+          });
+          if (newMatches.length > 0) {
+            matches.push(...newMatches);
+          }
+        }
+      }
+    }
+
+    if (matches.length === 0) {
+      return { 
+        months: 12, 
+        km: 10000, 
+        defaultWarrantyMonths: 0, 
+        source: "FALLBACK" 
+      };
     }
 
     // Prefer OEM_WEBSITE (scraped from original OEM) over DEFAULT or other sources; then by specificity
@@ -191,10 +201,13 @@ async function getLifecycleForVehiclePart(
       source: best.source ?? (best.make === "DEFAULT" ? "DEFAULT" : "OEM"),
     };
   } catch (e) {
-    logger.warn({ err: e, vehicleId, partType }, "PartReplacementInterval lookup failed, using fallback");
-    const fallback =
-      PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
-    return { ...fallback, source: "FALLBACK" };
+    logger.warn({ err: e, vehicleId, partType }, "PartReplacementInterval lookup failed");
+    return { 
+      months: 12, 
+      km: 10000, 
+      defaultWarrantyMonths: 0, 
+      source: "FALLBACK" 
+    };
   }
 }
 
@@ -452,7 +465,11 @@ export const warrantyService = {
       })[0];
 
     const due: any[] = [];
-    const trackedPartTypes = Object.keys(PART_LIFECYCLE_FALLBACK);
+    const trackedPartTypes = [
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
+    ];
 
     for (const partType of trackedPartTypes) {
       let part =
@@ -693,11 +710,15 @@ export const warrantyService = {
    * For vehicle-specific intervals use getLifecycleForVehiclePart(vehicleId, partType).
    */
   getPartLifecycleInfo() {
-    return Object.entries(PART_LIFECYCLE_FALLBACK).map(([partType, lifecycle]) => ({
+    return [
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
+    ].map((partType) => ({
       partType,
-      recommendedIntervalMonths: lifecycle.months,
-      recommendedIntervalKm: lifecycle.km,
-      defaultWarrantyMonths: lifecycle.defaultWarrantyMonths,
+      recommendedIntervalMonths: 12,
+      recommendedIntervalKm: 10000,
+      defaultWarrantyMonths: 0,
     }));
   },
 

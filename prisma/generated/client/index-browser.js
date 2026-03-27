@@ -489,6 +489,21 @@ exports.Prisma.DrivingTripScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PlannedTripScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  tripId: 'tripId',
+  origin: 'origin',
+  destination: 'destination',
+  waypoints: 'waypoints',
+  vehicleType: 'vehicleType',
+  fuelType: 'fuelType',
+  result: 'result',
+  planning: 'planning',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.DrivingEventScalarFieldEnum = {
   id: 'id',
   tripId: 'tripId',
@@ -1572,6 +1587,7 @@ exports.Prisma.ModelName = {
   PartReplacementInterval: 'PartReplacementInterval',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
+  PlannedTrip: 'PlannedTrip',
   DrivingEvent: 'DrivingEvent',
   SOSRequest: 'SOSRequest',
   EmergencyContact: 'EmergencyContact',
