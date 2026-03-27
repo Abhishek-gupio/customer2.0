@@ -394,6 +394,9 @@ export const vehicleService = {
       },
       include: {
         healthScore: true,
+        telematicsDevice: {
+          select: { id: true, isActive: true }
+        }
       },
       orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
     });
@@ -413,6 +416,9 @@ export const vehicleService = {
       where: { id: vehicleId },
       include: {
         healthScore: true,
+        telematicsDevice: {
+          select: { id: true, isActive: true }
+        },
         accessList: {
           where: { customerId },
         },

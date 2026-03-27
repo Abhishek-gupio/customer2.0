@@ -22,6 +22,7 @@ export interface Vehicle {
     unloadedWeight?: string;
     manufacturingMonthYear?: string;
     healthScore?: VehicleHealthScore;
+    telematicsDevice?: { id: string; isActive: boolean };
     // AI-enriched data from Gemini RTO lookup (stored client-side, not in DB)
     rtoDetails?: RTODetails;
     // Optimistic UI flag — never sent to backend
