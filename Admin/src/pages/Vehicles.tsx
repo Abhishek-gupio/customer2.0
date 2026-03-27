@@ -9,6 +9,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import { Search, CarFront, ChevronUp, ChevronDown, ShieldCheck, ShieldAlert, BadgeInfo } from 'lucide-react';
+import CountUp from '../components/ui/CountUp/CountUp';
 import { adminApi, type AdminVehicleListItem } from '../api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -194,50 +195,54 @@ export default function Vehicles() {
 
       {/* Stats row - Horizontal scroll on mobile */}
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 custom-scrollbar-hide">
-         <Card className="flex-shrink-0 w-[80%] snap-center bg-emerald-500/[0.03] border-emerald-500/10 hover:bg-emerald-500/[0.05] transition-all md:w-auto">
-            <CardContent className="p-4 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
-                     <ShieldCheck className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500/70">Compliance</div>
-                    <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Fleet-wide Status</p>
-                  </div>
-               </div>
-               <div className="text-2xl font-black text-emerald-400 tracking-tighter">94.2%</div>
-            </CardContent>
-         </Card>
+        <Card className="flex-shrink-0 w-[80%] snap-center bg-emerald-500/[0.03] border-emerald-500/10 hover:bg-emerald-500/[0.05] transition-all md:w-auto">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500/70">Compliance</div>
+                <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Fleet-wide Status</p>
+              </div>
+            </div>
+            <div className="text-2xl font-black text-emerald-400 tracking-tighter">
+              <CountUp to={94.2} duration={1.5} formatter={(v) => `${v.toFixed(1)}%`} />
+            </div>
+          </CardContent>
+        </Card>
 
-         <Card className="flex-shrink-0 w-[80%] snap-center bg-blue-500/[0.03] border-blue-500/10 hover:bg-blue-500/[0.05] transition-all md:w-auto">
-            <CardContent className="p-4 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
-                     <CarFront className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-blue-500/70">Active</div>
-                    <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Activity Score</p>
-                  </div>
-               </div>
-               <div className="text-2xl font-black text-blue-400 tracking-tighter">88.7%</div>
-            </CardContent>
-         </Card>
+        <Card className="flex-shrink-0 w-[80%] snap-center bg-blue-500/[0.03] border-blue-500/10 hover:bg-blue-500/[0.05] transition-all md:w-auto">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                <CarFront className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-blue-500/70">Active</div>
+                <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Activity Score</p>
+              </div>
+            </div>
+            <div className="text-2xl font-black text-blue-400 tracking-tighter">
+              <CountUp to={88.7} duration={1.5} formatter={(v) => `${v.toFixed(1)}%`} />
+            </div>
+          </CardContent>
+        </Card>
 
-         <Card className="flex-shrink-0 w-[80%] snap-center bg-indigo-500/[0.03] border-indigo-500/10 hover:bg-indigo-500/[0.05] transition-all md:w-auto">
-            <CardContent className="p-4 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-                     <BadgeInfo className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-indigo-500/70">Health</div>
-                    <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Performance Grade</p>
-                  </div>
-               </div>
-               <div className="text-2xl font-black text-indigo-400 tracking-tighter">A+</div>
-            </CardContent>
-         </Card>
+        <Card className="flex-shrink-0 w-[80%] snap-center bg-indigo-500/[0.03] border-indigo-500/10 hover:bg-indigo-500/[0.05] transition-all md:w-auto">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                <BadgeInfo className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-indigo-500/70">Health</div>
+                <p className="text-[11px] text-white/40 font-medium leading-none mt-1 whitespace-nowrap">Performance Grade</p>
+              </div>
+            </div>
+            <div className="text-2xl font-black text-indigo-400 tracking-tighter">A+</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -312,8 +317,8 @@ export default function Vehicles() {
                 )}
                 {!loading &&
                   table.getRowModel().rows.map((row) => (
-                    <tr 
-                      key={row.id} 
+                    <tr
+                      key={row.id}
                       className={cn(
                         "border-b border-white/[0.07] transition-colors hover:bg-white/[0.04] group",
                         row.original.customer && "cursor-pointer"

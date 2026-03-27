@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { cn } from '../lib/cn';
+import CountUp from '../components/ui/CountUp/CountUp';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
@@ -331,7 +332,13 @@ export default function Dashboard() {
                   <span className="text-[11px] font-bold uppercase tracking-wider">Unverified</span>
                 </div>
                 <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-xl font-black text-white">{stats?.unverifiedVehiclesCount ?? 0}</span>
+                  <span className="text-xl font-black text-white">
+                    <CountUp 
+                      to={stats?.unverifiedVehiclesCount ?? 0} 
+                      duration={1} 
+                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val/1000).toFixed(1)}k` : Math.floor(val).toString()}
+                    />
+                  </span>
                   <span className="text-[10px] text-white/50 font-medium">Vehicles</span>
                 </div>
                 <Link to="/vehicles" className="absolute inset-0 outline-none" />
@@ -343,7 +350,13 @@ export default function Dashboard() {
                   <span className="text-[11px] font-bold uppercase tracking-wider">Today</span>
                 </div>
                 <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-xl font-black text-white">+{stats?.totalCustomersToday ?? 0}</span>
+                  <span className="text-xl font-black text-white">
+                    +<CountUp 
+                      to={stats?.totalCustomersToday ?? 0} 
+                      duration={1} 
+                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val/1000).toFixed(1)}k` : Math.floor(val).toString()}
+                    />
+                  </span>
                   <span className="text-[10px] text-white/50 font-medium">New Customers</span>
                 </div>
                 <Link to="/customers" className="absolute inset-0 outline-none" />
@@ -427,6 +440,13 @@ function KPICard({
     setIsMounted(true);
   }, []);
 
+  const formatValueWithShorthand = (val: number) => {
+    if (isNaN(val)) return '0';
+    if (val >= 100000) return `${(val / 100000).toFixed(2)}L`;
+    if (val >= 1000) return `${(val / 1000).toFixed(1)}k`;
+    return Math.floor(val).toLocaleString('en-IN');
+  };
+
   const colorMap = {
     emerald: {
       cardBg: 'bg-[#0a0a0a]',
@@ -463,7 +483,6 @@ function KPICard({
   };
 
   const style = colorMap[color];
-  const formattedValue = isCurrency ? formatCurrencyShorthand(Number(value)) : value;
 
   // Provide empty data points to render the chart if none exist yet.
   const displayChartData = useMemo(() => {
@@ -502,7 +521,14 @@ function KPICard({
             </h3>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-[22px] font-extrabold tracking-tight text-white leading-none">
-                {formattedValue || "0"}
+                {isCurrency && "₹"}
+                <CountUp 
+                  to={Number(value)} 
+                  separator="," 
+                  duration={1} 
+                  startWhen={true}
+                  formatter={formatValueWithShorthand}
+                />
               </span>
               {trend && (
                 <span className={cn(
@@ -526,7 +552,14 @@ function KPICard({
           <div className="flex flex-col gap-0.5 z-20 pointer-events-none pb-0.5 shrink-0">
             <div className="flex items-baseline gap-1.5">
               <span className="text-[17px] font-extrabold text-white leading-none">
-                {formattedValue || "0"}
+                {isCurrency && "₹"}
+                <CountUp 
+                  to={Number(value)} 
+                  separator="," 
+                  duration={1} 
+                  startWhen={true}
+                  formatter={formatValueWithShorthand}
+                />
               </span>
               <span className="text-[11px] font-semibold text-white/80 leading-none">
                 {title.replace('Total ', '')}
