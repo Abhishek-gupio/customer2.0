@@ -76,6 +76,17 @@ function isEndCommand(transcript: string): boolean {
   return t === 'end' || t === 'stop listening' || t === 'end session';
 }
 
+function looksLikeExpenseCommand(transcript: string): boolean {
+  const t = normalize(transcript);
+  if (!t) return false;
+
+  const hasExpenseCategory = /\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(t);
+  const hasAmount = /(?:rs\.?|rupees?|inr|₹)?\s*\d+(?:\.\d+)?/i.test(t);
+  const hasCreateVerb = /\b(add|log|create|save|spent|pay|paid|refuel|refueled|service|serviced)\b/.test(t);
+
+  return hasExpenseCategory && hasAmount && hasCreateVerb;
+}
+
 function buildOverlayPrompt(transcript: string): string {
   const trimmed = transcript.trim();
   if (!trimmed) return trimmed;
@@ -500,6 +511,9 @@ export default function HeyGupioOverlay() {
         const sosResult = Array.isArray(data.toolResults)
           ? data.toolResults.find((item: any) => item?.kind === 'sos')
           : null;
+        const expenseCreatedResult = Array.isArray(data.toolResults)
+          ? data.toolResults.find((item: any) => item?.kind === 'expense_created')
+          : null;
         if (sosResult?.sosAlertId) {
           const rootNavigation = navigation.getParent?.() ?? navigation;
           rootNavigation.navigate('ActiveSOS', {
@@ -519,8 +533,12 @@ export default function HeyGupioOverlay() {
                   primaryVehicle,
                 )
           ) || 'Done.';
+        const safeReply =
+          looksLikeExpenseCommand(transcript) && !expenseCreatedResult
+            ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
+            : reply;
         setOverlayStatus('speaking');
-        speakWithTts(reply, () => {
+        speakWithTts(safeReply, () => {
           ttsFinishRef.current = null;
           continuousModeRef.current = false;
           setOverlayStatus('idle');

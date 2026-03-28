@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 const FORCE_USE_PRODUCTION_API = false;
 
 const DEV_PORT = 9000;
-const DEV_HOST = `http://192.168.1.14:${DEV_PORT}`;
+const DEV_HOST = `http://localhost:${DEV_PORT}`;
 
 
 /** Production API base URL – no trailing slash. Used in release builds (or when FORCE_USE_PRODUCTION_API is true). */
@@ -19,7 +19,7 @@ export const AUTH_PATH = '/api/v1/auth';
 
 // Socket/realtime (e.g. notifications)
 const SOCKET_PORT = 9000;
-const DEV_SOCKET_HOST = `http://192.168.1.14:${SOCKET_PORT}`;
+const DEV_SOCKET_HOST = `http://localhost:${SOCKET_PORT}`;
 const PRODUCTION_SOCKET_BASE_URL = 'https://customerapi.gupio.tech';
 export const SOCKET_BASE_URL = (__DEV__ && !FORCE_USE_PRODUCTION_API) ? DEV_SOCKET_HOST : PRODUCTION_SOCKET_BASE_URL;
 
