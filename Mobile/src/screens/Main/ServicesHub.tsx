@@ -267,9 +267,24 @@ export default function ServicesHub() {
       
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Services Hub</Text>
-          <Text style={styles.headerSubtitle}>Explore automotive care & utilities</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+                return;
+              }
+              navigation.navigate('Home');
+            }}
+            activeOpacity={0.8}
+          >
+            <IconMC name="arrow-left" size={wp(6.2)} color="#fff" />
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.headerTitle}>Services Hub</Text>
+            <Text style={styles.headerSubtitle}>Explore automotive care & utilities</Text>
+          </View>
         </View>
         <TouchableOpacity
           style={styles.headerIcon}
@@ -414,6 +429,12 @@ const styles = StyleSheet.create({
     paddingTop: hp(4),
     paddingBottom: hp(2),
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3.5),
+    flexShrink: 1,
+  },
   headerTitle: {
     fontSize: wp(6.5),
     fontFamily: 'Outfit-Bold',
@@ -424,6 +445,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Regular',
     color: 'rgba(255,255,255,0.5)',
     marginTop: 2,
+  },
+  backButton: {
+    width: wp(13.5),
+    height: wp(13.5),
+    borderRadius: wp(4.5),
+    backgroundColor: '#181818',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   headerIcon: {
     width: wp(11),
