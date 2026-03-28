@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, ArrowRight, Clock, TrendingUp } from 'lucide-react';
-import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart } from 'recharts';
+import { Link, useNavigate } from 'react-router-dom';
+import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, ArrowRight, Clock, TrendingUp, Search, Activity, PieChart } from 'lucide-react';
+import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart, Pie, Cell, PieChart as RePieChart } from 'recharts';
 import { adminApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
@@ -12,6 +12,7 @@ import CountUp from '../components/ui/CountUp/CountUp';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<{
     customers: number;
     vehicles: number;
@@ -21,6 +22,9 @@ export default function Dashboard() {
     unverifiedVehiclesCount: number;
     totalCustomersToday: number;
     recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+    expenseCategoryBreakdown: { category: string; amount: number; count: number }[];
+    ticketPriorityDistribution: { priority: string; count: number }[];
+    vehicleHealthDistribution: { critical: number; warning: number; good: number };
     trendData?: { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[];
     databaseAvailable?: boolean;
   } | null>(null);
@@ -28,6 +32,8 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [selectedRange, setSelectedRange] = useState(7);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSegment, setActiveSegment] = useState<any>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -103,6 +109,7 @@ export default function Dashboard() {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="rounded-2xl border border-[rgba(220,53,69,0.35)] bg-[rgba(220,53,69,0.10)] p-5 text-white">
@@ -138,6 +145,16 @@ export default function Dashboard() {
           Database is temporarily unreachable. Stats below may show zeros. Check your network or database configuration.
         </div>
       )}
+
+      {/* --- DASHBOARD HEADER & QUICK ACTIONS (Local title removed) --- */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
+        <div />
+        
+        <div className="flex items-center gap-3">
+          {/* Action buttons removed per request */}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 pt-2">
         <KPICard
           title="Total Customers"
@@ -374,7 +391,7 @@ export default function Dashboard() {
                   stats.recentHighExpenses.map((exp) => (
                     <Link
                       key={exp.id}
-                      to={`/customers`} // Ideally would go to billings or specific customer
+                      to={`/customers`} 
                       className="group flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-2.5 transition hover:bg-white/[0.04] hover:border-white/[0.08]"
                     >
                       <div className="flex flex-col gap-0.5 min-w-0">
@@ -398,16 +415,282 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-
-            <Button asChild variant="secondary" className="w-full h-11 rounded-xl bg-white/5 border-white/5 hover:bg-white/10 text-white font-bold group">
-              <Link to="/customers" className="flex items-center justify-center gap-2">
-                Explore Full Data
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        {/* EXPENSE CATEGORY ANALYSIS */}
+        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <PieChart className="h-4 w-4 text-orange-400" />
+              Expense Distribution
+            </CardTitle>
+            <CardDescription>Breakdown by major categories</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[280px] relative">
+            {stats?.expenseCategoryBreakdown && stats.expenseCategoryBreakdown.length > 0 ? (
+              <div className="h-full w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RePieChart>
+                    <Pie
+                      data={stats.expenseCategoryBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={80}
+                      outerRadius={105}
+                      paddingAngle={8}
+                      dataKey="amount"
+                      onMouseEnter={(_, index) => setActiveSegment(stats.expenseCategoryBreakdown[index])}
+                      onMouseLeave={() => setActiveSegment(null)}
+                    >
+                      {stats.expenseCategoryBreakdown.map((entry, index) => {
+                        const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
+                        return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="none" />;
+                      })}
+                    </Pie>
+                    <Tooltip content={() => null} />
+                  </RePieChart>
+                </ResponsiveContainer>
+
+                {/* Fixed "Box" in the corner for hovered data */}
+                <div className={cn(
+                  "absolute top-0 right-0 p-3 rounded-2xl border border-white/10 bg-[#0c0c0c]/80 backdrop-blur-md transition-all duration-300 z-20",
+                  activeSegment ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+                )}>
+                  <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">{activeSegment?.category}</div>
+                  <div className="text-lg font-black text-white">₹{activeSegment?.amount?.toLocaleString('en-IN')}</div>
+                </div>
+
+                {/* Centered Total Indicator */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-10 text-center">
+                   <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Total</div>
+                   <div className="text-2xl font-black text-white leading-none">₹{(stats?.totalExpenses || 0).toLocaleString('en-IN')}</div>
+                   <div className="mt-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/5">
+                      <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Live Flow</span>
+                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-white/30">No categorical data</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* VEHICLE HEALTH MONITOR */}
+        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Activity className="h-4 w-4 text-emerald-400" />
+              Vehicle Health
+            </CardTitle>
+            <CardDescription>Status of currently monitored fleet</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             <div className="grid grid-cols-1 gap-2">
+                <HealthStatusRow 
+                   label="Critical Condition" 
+                   count={stats?.vehicleHealthDistribution?.critical || 0} 
+                   color="bg-red-500" 
+                   iconColor="text-red-400" 
+                />
+                <HealthStatusRow 
+                   label="Maintenance Required" 
+                   count={stats?.vehicleHealthDistribution?.warning || 0} 
+                   color="bg-amber-500" 
+                   iconColor="text-amber-400" 
+                />
+                <HealthStatusRow 
+                   label="Good Status" 
+                   count={stats?.vehicleHealthDistribution?.good || 0} 
+                   color="bg-emerald-500" 
+                   iconColor="text-emerald-400" 
+                />
+             </div>
+             
+             <div className="pt-2">
+                <div className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-3 px-1 flex items-center justify-between">
+                  <span>Priority Support Tickets</span>
+                  <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400 text-[9px]">{(stats?.ticketPriorityDistribution || []).find(p => p.priority === 'HIGH')?.count || 0} Critical</span>
+                </div>
+                <div className="space-y-2">
+                   {stats?.ticketPriorityDistribution?.length ? stats.ticketPriorityDistribution.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                         <span className="text-xs font-semibold text-white/70">{p.priority} Priority</span>
+                         <span className="text-sm font-black text-white">{p.count}</span>
+                      </div>
+                   )) : (
+                    <div className="text-[10px] text-white/30 text-center py-2">No active tickets</div>
+                   )}
+                </div>
+             </div>
+          </CardContent>
+        </Card>
+
+        {/* RECENT HIGH REVENUE/EXPENSE FEED */}
+        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-blue-400" />
+              Growth Summary
+            </CardTitle>
+            <CardDescription>Activity in the current period</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
+                <div>
+                   <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">New Signups Today</div>
+                   <div className="text-2xl font-black text-white mt-0.5">+{stats?.totalCustomersToday || 0}</div>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                   <Users className="h-5 w-5" />
+                </div>
+             </div>
+             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
+                <div>
+                   <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Pending Verification</div>
+                   <div className="text-2xl font-black text-white mt-0.5">{stats?.unverifiedVehiclesCount || 0}</div>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                   <ShieldAlert className="h-5 w-5" />
+                </div>
+             </div>
+             
+             <button 
+               onClick={() => {
+                 let iframe = document.getElementById('report-iframe') as HTMLIFrameElement;
+                 if (!iframe) {
+                   iframe = document.createElement('iframe');
+                   iframe.id = 'report-iframe';
+                   iframe.style.display = 'none';
+                   document.body.appendChild(iframe);
+                 }
+                 
+                 const html = `
+                   <html>
+                     <head>
+                       <title>Gupio Dashboard Report</title>
+                       <style>
+                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                         body { font-family: 'Inter', sans-serif; background: #fff; color: #000; padding: 40px; margin: 0; }
+                         .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px; }
+                         .logo { height: 40px; }
+                         .title { font-size: 24px; font-weight: 900; color: #000; text-transform: uppercase; margin: 0; }
+                         .meta { color: #666; font-size: 13px; margin-top: 5px; }
+                         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
+                         .card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; }
+                         .card-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+                         .card-value { font-size: 20px; font-weight: 900; color: #000; }
+                         .section-title { font-size: 14px; font-weight: 900; color: #000; text-transform: uppercase; margin: 25px 0 12px 0; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+                         .table { width: 100%; border-collapse: collapse; }
+                         .table th { text-align: left; font-size: 11px; color: #999; text-transform: uppercase; padding: 8px; border-bottom: 1px solid #f0f0f0; }
+                         .table td { padding: 8px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+                         .footer { margin-top: 40px; text-align: center; color: #ccc; font-size: 9px; border-top: 1px solid #f0f0f0; padding-top: 15px; }
+                       </style>
+                     </head>
+                     <body>
+                       <div class="header">
+                         <div>
+                           <h1 class="title">Admin Dashboard Report</h1>
+                           <div class="meta">Analysis Period: <strong>${selectedRange} Days</strong> | Date: ${new Date().toLocaleDateString()}</div>
+                         </div>
+                         <img src="/src/assets/images/logo.png" class="logo" />
+                       </div>
+
+                       <div class="grid">
+                         <div class="card">
+                           <div class="card-label">Total Customers</div>
+                           <div class="card-value">${stats?.customers}</div>
+                         </div>
+                         <div class="card">
+                           <div class="card-label">Active Fleet</div>
+                           <div class="card-value">${stats?.vehicles}</div>
+                         </div>
+                         <div class="card">
+                           <div class="card-label">Total Operating Expenses</div>
+                           <div class="card-value">₹${stats?.totalExpenses?.toLocaleString('en-IN')}</div>
+                         </div>
+                         <div class="card">
+                           <div class="card-label">Support Tickets</div>
+                           <div class="card-value">${stats?.supportTicketsOpen} Open</div>
+                         </div>
+                       </div>
+
+                       <h2 class="section-title">Fleet Health Summary</h2>
+                       <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+                         <div class="card" style="border-left: 4px solid #ef4444;">
+                           <div class="card-label">Critical</div>
+                           <div class="card-value">${stats?.vehicleHealthDistribution?.critical || 0}</div>
+                         </div>
+                         <div class="card" style="border-left: 4px solid #f59e0b;">
+                           <div class="card-label">Warning</div>
+                           <div class="card-value">${stats?.vehicleHealthDistribution?.warning || 0}</div>
+                         </div>
+                         <div class="card" style="border-left: 4px solid #10b981;">
+                           <div class="card-label">Good</div>
+                           <div class="card-value">${stats?.vehicleHealthDistribution?.good || 0}</div>
+                         </div>
+                       </div>
+
+                       <h2 class="section-title">Operating Costs Breakdown</h2>
+                       <table class="table">
+                         <thead>
+                           <tr>
+                             <th>Expense Category</th>
+                             <th>Records</th>
+                             <th>Total Amount</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+                           ${(stats?.expenseCategoryBreakdown || []).map(cat => `
+                             <tr>
+                               <td><strong>${cat.category}</strong></td>
+                               <td>${cat.count}</td>
+                               <td>₹${cat.amount.toLocaleString('en-IN')}</td>
+                             </tr>
+                           `).join('')}
+                         </tbody>
+                       </table>
+
+                       <div class="footer">
+                         Generated by Gupio Admin Terminal. This document contains confidential operational data.
+                       </div>
+                     </body>
+                   </html>
+                 `;
+
+                 const doc = iframe.contentWindow?.document || iframe.contentDocument;
+                 if (doc) {
+                   doc.open();
+                   doc.write(html);
+                   doc.close();
+                   setTimeout(() => {
+                     iframe.contentWindow?.focus();
+                     iframe.contentWindow?.print();
+                   }, 1000);
+                 }
+               }}
+               className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
+             >
+                Download Full Report
+             </button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function HealthStatusRow({ label, count, color, iconColor }: { label: string; count: number; color: string; iconColor: string }) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] group hover:bg-white/[0.04] transition-all">
+      <div className="flex items-center gap-3">
+        <div className={cn("h-2 w-2 rounded-full", color)} />
+        <span className="text-xs font-semibold text-white/80">{label}</span>
+      </div>
+      <span className={cn("text-sm font-black", iconColor)}>{count}</span>
     </div>
   );
 }
