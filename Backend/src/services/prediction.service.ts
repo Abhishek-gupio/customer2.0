@@ -1,6 +1,83 @@
 import { dbInstances } from "@repo/db-customer";
 import { logger } from "../config/logger";
 
+const parseExpiryDate = (value: unknown): Date | null => {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  if (!raw) return null;
+
+  const direct = new Date(raw);
+  if (!Number.isNaN(direct.getTime())) return direct;
+
+  // Support common Indian date formats like DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+  const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if (dmy) {
+    const day = Number(dmy[1]);
+    const month = Number(dmy[2]) - 1;
+    let year = Number(dmy[3]);
+    if (year < 100) year += 2000;
+
+    const parsed = new Date(year, month, day);
+    if (
+      !Number.isNaN(parsed.getTime()) &&
+      parsed.getFullYear() === year &&
+      parsed.getMonth() === month &&
+      parsed.getDate() === day
+    ) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
+const hasExplicitExpiryValue = (value: unknown): boolean => {
+  if (value instanceof Date) {
+    return !Number.isNaN(value.getTime());
+  }
+
+  if (typeof value !== "string") return false;
+  const raw = value.trim();
+  if (!raw) return false;
+
+  const normalized = raw.toUpperCase();
+  const placeholders = new Set([
+    "N/A",
+    "NA",
+    "NONE",
+    "NIL",
+    "UNKNOWN",
+    "NOT AVAILABLE",
+    "NOT APPLICABLE",
+    "--",
+    "-",
+  ]);
+
+  return !placeholders.has(normalized);
+};
+
+const latestExpiryByType = (
+  docs: Array<{ type: string; expiryDate: Date | null }>,
+  targetType: "INSURANCE" | "PUC",
+): Date | null => {
+  let latest: Date | null = null;
+
+  for (const doc of docs) {
+    if ((doc.type || "").toUpperCase() !== targetType) continue;
+    const expiry = parseExpiryDate(doc.expiryDate);
+    if (!expiry) continue;
+    if (!latest || expiry > latest) latest = expiry;
+  }
+
+  return latest;
+};
+
 export const predictionService = {
   /**
    * Calculates the Average Daily Running (ADR) in KM
@@ -91,6 +168,8 @@ export const predictionService = {
         id: true,
         currentOdometer: true,
         registrationDate: true,
+        insuranceUpto: true,
+        pollutionUpto: true,
         healthScore: true,
         serviceRecords: {
           orderBy: { serviceDate: "desc" },
@@ -106,7 +185,6 @@ export const predictionService = {
       documents = await (dbInstances as any).vehicleDocument.findMany({
         where: {
           vehicleId,
-          verificationStatus: "VERIFIED",
         },
         select: {
           type: true,
@@ -114,32 +192,70 @@ export const predictionService = {
         },
       });
     } catch (err) {
-      logger.warn({ err, vehicleId }, "CustomerDocument table unavailable; skipping compliance document check");
+      logger.warn({ err, vehicleId }, "VehicleDocument table unavailable; skipping compliance document check");
     }
 
     let complianceScore = 100;
     let maintenanceScore = 100;
     const explanations: string[] = [];
     const recommendations: string[] = [];
+    const penalties = {
+      insuranceExpired: 50,
+      insuranceMissing: 25,
+      pucExpired: 20,
+      pucMissing: 10,
+    };
 
     // 1. Compliance Audit (20% Weight)
+    // Priority:
+    // 1) Garage vehicle details (insuranceUpto/pollutionUpto)
+    // 2) Uploaded documents (INSURANCE/PUC)
+    // 3) If still unavailable, continue health prediction without forcing compliance penalty
     const now = new Date();
-    const activeInsurance = documents.find(
-      (d) => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now,
-    );
-    const activePUC = documents.find(
-      (d) => d.type === "PUC" && d.expiryDate && d.expiryDate > now,
-    );
+    const hasGarageInsuranceExpiry = hasExplicitExpiryValue(vehicle.insuranceUpto);
+    const hasGaragePucExpiry = hasExplicitExpiryValue(vehicle.pollutionUpto);
 
-    if (!activeInsurance) {
-      complianceScore -= 50;
-      explanations.push("Critical: Valid Insurance not found.");
+    const insuranceExpiry = hasGarageInsuranceExpiry
+      ? parseExpiryDate(vehicle.insuranceUpto)
+      : latestExpiryByType(documents, "INSURANCE");
+    const pucExpiry = hasGaragePucExpiry
+      ? parseExpiryDate(vehicle.pollutionUpto)
+      : latestExpiryByType(documents, "PUC");
+
+    if (insuranceExpiry && insuranceExpiry <= now) {
+      complianceScore -= penalties.insuranceExpired;
+      explanations.push("Critical: Insurance is expired.");
       recommendations.push("Renew insurance immediately to avoid fines.");
+    } else if (!insuranceExpiry) {
+      complianceScore -= penalties.insuranceMissing;
+      if (hasGarageInsuranceExpiry) {
+        explanations.push(
+          "Compliance: Insurance expiry exists in garage details but date format is invalid.",
+        );
+      } else {
+        explanations.push(
+          "Compliance: Insurance expiry not found in garage details or uploaded documents.",
+        );
+      }
+      recommendations.push("Add/update insurance expiry in Garage details or upload insurance document.");
     }
-    if (!activePUC) {
-      complianceScore -= 20;
-      explanations.push("Warning: Valid PUC not found.");
+
+    if (pucExpiry && pucExpiry <= now) {
+      complianceScore -= penalties.pucExpired;
+      explanations.push("Warning: PUC is expired.");
       recommendations.push("Get a pollution check done.");
+    } else if (!pucExpiry) {
+      complianceScore -= penalties.pucMissing;
+      if (hasGaragePucExpiry) {
+        explanations.push(
+          "Compliance: PUC expiry exists in garage details but date format is invalid.",
+        );
+      } else {
+        explanations.push(
+          "Compliance: PUC expiry not found in garage details or uploaded documents.",
+        );
+      }
+      recommendations.push("Add/update PUC expiry in Garage details or upload PUC document.");
     }
 
     // 2. Maintenance Audit - Age, Mileage, Service + Individual Parts (Heavily Weighted)

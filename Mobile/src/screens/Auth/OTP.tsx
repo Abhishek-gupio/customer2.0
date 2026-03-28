@@ -29,6 +29,7 @@ import { sendOtp, verifyOtp } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
 
+
 const OTP_LENGTH = 6;
 
 export default function OTP() {
@@ -254,9 +255,7 @@ export default function OTP() {
               onPress={handleResend}
               disabled={resending}
             >
-              {resending ? (
-                <ActivityIndicator color="#000" />
-              ) : (
+              {resending ? null : (
                 <Text style={styles.resendButtonText}>Resend OTP</Text>
               )}
             </TouchableOpacity>
@@ -269,13 +268,12 @@ export default function OTP() {
           onPress={handleConfirm}
           disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="#000" />
-          ) : (
+          {loading ? null : (
             <Text style={styles.confirmText}>CONFIRM</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }

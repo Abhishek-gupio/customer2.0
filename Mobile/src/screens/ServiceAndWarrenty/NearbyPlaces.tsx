@@ -20,8 +20,23 @@ import {
 } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
-import { placesService, type NearbyPlace } from '../../services/placesService';
+import { placesService, type NearbyPlace, type NearbyPlaceType } from '../../services/placesService';
 import BackButton from '../../components/BackButton';
+import FastImage from 'react-native-fast-image';
+import LinearGradient from 'react-native-linear-gradient';
+
+// Persistent cache outside component lifecycle
+let cachedNearbyData: Record<string, NearbyPlace[]> = {};
+let lastFetchCoords: { lat: number; lon: number } | null = null;
+const FETCH_THRESHOLD_KM = 50;
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 let Geolocation: any = null;
 try {
@@ -45,7 +60,8 @@ type PlaceType =
   | 'Parking'
   | 'TyreShop'
   | 'DocumentServices'
-  | 'CarSpa';
+  | 'CarSpa'
+  | 'TouristAttraction';
 
 const PLACE_LABELS: Record<string, string> = {
   FuelStations: 'Fuel Stations',
@@ -62,6 +78,7 @@ const PLACE_LABELS: Record<string, string> = {
   TyreShop: 'Tyre Shop',
   DocumentServices: 'Document Services',
   CarSpa: 'Car Spa',
+  TouristAttraction: 'Places to Visit',
 };
 
 type PlaceItem = { id: PlaceType; name: string; icon: string; iconSet: 'fa' | 'mc' };
@@ -73,10 +90,10 @@ const PLACE_ITEMS: PlaceItem[] = [
   { id: 'Hotel', name: 'Hotel', icon: 'hotel', iconSet: 'fa' },
   { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
   { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
+  { id: 'TouristAttraction', name: 'Visit', icon: 'map-marked-alt', iconSet: 'fa' },
   { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
   { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
   { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
-  { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'TyreShop', name: 'Tyre Shop', icon: 'car-tire-alert', iconSet: 'mc' },
 ];
@@ -87,8 +104,9 @@ const NEARBY_CATEGORIES: { title: string; itemIds: PlaceType[] }[] = [
   { title: 'Fuel & Charging', itemIds: ['FuelStations', 'ChargingStation'] },
   { title: 'Service & Repair', itemIds: ['Mechanics', 'CarWash', 'Towing', 'TyreShop'] },
   { title: 'Emergency & Safety', itemIds: ['Hospital', 'PoliceStation'] },
-  { title: 'Others', itemIds: ['Hotel', 'Parking', 'RTO', 'Insurance'] },
+  { title: 'Others', itemIds: ['Hotel', 'TouristAttraction', 'Parking', 'RTO'] },
 ];
+
 
 function openMapsNavigation(lat: number, lng: number, label?: string) {
   const dest = `${lat},${lng}`;
@@ -105,9 +123,7 @@ function openMapsNavigation(lat: number, lng: number, label?: string) {
   }
 }
 
-type NearbyApiType = 'gas_station' | 'electric_charging_station' | 'hospital' | 'police' | 'car_repair' | 'parking' | 'lodging';
-
-const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyApiType>> = {
+const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyPlaceType>> = {
   FuelStations: 'gas_station',
   ChargingStation: 'electric_charging_station',
   Mechanics: 'car_repair',
@@ -115,6 +131,7 @@ const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyApiType>> = {
   PoliceStation: 'police',
   Parking: 'parking',
   Hotel: 'lodging',
+  TouristAttraction: 'tourist_attraction',
 };
 
 function NearbyPlacesListScreen({
@@ -126,7 +143,7 @@ function NearbyPlacesListScreen({
   onBack: () => void;
   title: string;
   placeType: PlaceType;
-  apiType: NearbyApiType;
+  apiType: NearbyPlaceType;
 }) {
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -345,92 +362,145 @@ export default function NearbyPlaces() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const [searchQuery, setSearchQuery] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [results, setResults] = useState<Record<string, NearbyPlace[]>>(cachedNearbyData);
   
   const fromHome = route.params?.fromHome;
   const placeType = route.params?.placeType as PlaceType | undefined;
 
   const handleBack = () => {
-    if (fromHome) {
-      navigation.navigate('Home');
-    } else {
-      navigation.goBack();
+    if (fromHome) navigation.navigate('Home');
+    else navigation.goBack();
+  };
+
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === 'ios') {
+      try {
+        if (Geolocation?.requestAuthorization) {
+          const status = await Geolocation.requestAuthorization('whenInUse');
+          return status === 'granted' || status === 'authorized' || status === 'authorizedWhenInUse';
+        }
+        return true;
+      } catch { return false; }
     }
+    const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+    const has = await PermissionsAndroid.check(fine).catch(() => false);
+    if (has) return true;
+    const result = await PermissionsAndroid.request(fine);
+    return result === PermissionsAndroid.RESULTS.GRANTED;
   };
-  const title = placeType ? PLACE_LABELS[placeType] || 'Nearby' : 'Nearby Places';
-  const isBrowse = !placeType;
 
-  const onPlacePress = (id: PlaceType) => {
-    navigation.push('NearbyPlaces', { placeType: id });
-  };
-
-  const normalizedSearch = searchQuery.trim().toLowerCase();
-  const filteredCategories = NEARBY_CATEGORIES
-    .map((cat) => {
-      const filteredItemIds = cat.itemIds.filter((id) => {
-        const item = getPlaceById(id);
-        const label = PLACE_LABELS[id] || item.name;
-        return (
-          !normalizedSearch ||
-          item.name.toLowerCase().includes(normalizedSearch) ||
-          label.toLowerCase().includes(normalizedSearch) ||
-          cat.title.toLowerCase().includes(normalizedSearch)
-        );
-      });
-
-      return {
-        ...cat,
-        itemIds: filteredItemIds,
-      };
-    })
-    .filter((cat) => cat.itemIds.length > 0);
-
-  if (!isBrowse) {
-    const apiType = placeType ? PLACE_API_TYPE[placeType] : undefined;
-    if (placeType && apiType) {
-      return (
-        <NearbyPlacesListScreen
-          onBack={handleBack}
-          title={title}
-          placeType={placeType}
-          apiType={apiType}
-        />
+  const fetchLocation = (): Promise<{ lat: number; lon: number } | null> => {
+    return new Promise((resolve) => {
+      if (!Geolocation) resolve(null);
+      Geolocation.getCurrentPosition(
+        (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 15000 },
       );
+    });
+  };
+
+  const fetchAllNearby = async (coords: { lat: number; lon: number }, force = false) => {
+    // 50km threshold check
+    if (!force && lastFetchCoords) {
+      const dist = calculateDistance(coords.lat, coords.lon, lastFetchCoords.lat, lastFetchCoords.lon);
+      if (dist < FETCH_THRESHOLD_KM && Object.keys(cachedNearbyData).length > 0) {
+        setResults(cachedNearbyData);
+        return;
+      }
     }
 
+    setLoading(true);
+    try {
+      const types: NearbyPlaceType[] = ['gas_station', 'car_repair', 'lodging', 'tourist_attraction'];
+      const fetches = types.map(t => placesService.getNearby(coords.lat, coords.lon, t, 30000));
+      const res = await Promise.all(fetches);
+      
+      const newData: Record<string, NearbyPlace[]> = {};
+      types.forEach((t, i) => { newData[t] = res[i]; });
+      
+      cachedNearbyData = newData;
+      lastFetchCoords = coords;
+      setResults(newData);
+    } catch (e) {
+      console.error('Failed to fetch unified nearby places:', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const initData = async (force = false) => {
+    const permitted = await requestLocationPermission();
+    if (!permitted) return;
+    const coords = await fetchLocation();
+    if (coords) {
+      setLocation(coords);
+      await fetchAllNearby(coords, force);
+    }
+  };
+
+  useEffect(() => {
+    initData();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    initData(true);
+  };
+
+  if (placeType) {
+    const apiType = PLACE_API_TYPE[placeType];
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <BackButton onPress={handleBack} />
-          <Text style={styles.headerTitle}>{title}</Text>
-        </View>
-        <View style={styles.placeholder}>
-          <Icon name="map-marker-alt" size={wp(20)} color="#222" />
-          <Text style={styles.placeholderTitle}>Coming soon</Text>
-          <Text style={styles.placeholderText}>
-            Nearby {title.toLowerCase()} will show here. We're working on it.
-          </Text>
-        </View>
-      </SafeAreaView>
+      <NearbyPlacesListScreen
+        onBack={handleBack}
+        title={PLACE_LABELS[placeType]}
+        placeType={placeType}
+        apiType={apiType as any}
+      />
     );
   }
+
+  const trendingPlaces = [
+    ...(results.tourist_attraction || []).slice(0, 3),
+    ...(results.lodging || []).slice(0, 2)
+  ].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <BackButton onPress={handleBack} />
-        <Text style={styles.headerTitle}>{title}</Text>
+        <Text style={styles.headerTitle}>Nearby Places</Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
       >
+        {/* BANNER LIKE OTHER SCREENS */}
+        <View style={styles.heroSection}>
+          <FastImage
+            source={{ uri: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&q=80&w=1200' }}
+            style={styles.heroImage}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.85)']}
+            style={styles.heroOverlay}
+          >
+            <Text style={styles.heroTitle}>Explore Your City</Text>
+            <Text style={styles.heroSub}>Discover the best spots nearby</Text>
+          </LinearGradient>
+        </View>
+
         <View style={styles.searchWrapper}>
           <View style={styles.searchBar}>
             <Icon name="search" size={wp(4)} color="#666" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search category..."
+              placeholder="Fuel, Mechanic, Hotel..."
               placeholderTextColor="#666"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -438,44 +508,72 @@ export default function NearbyPlaces() {
           </View>
         </View>
 
-        <View style={styles.contentSection}>
-          {filteredCategories.map((cat) => (
-            <View key={cat.title} style={styles.categoryWrap}>
-              <Text style={styles.categoryTitle}>{cat.title}</Text>
-              <View style={styles.row}>
+        {/* Categories Grid */}
+        <View style={styles.gridSection}>
+          {NEARBY_CATEGORIES.map((cat) => (
+            <View key={cat.title} style={styles.categoryBlock}>
+              <Text style={styles.categoryGridTitle}>{cat.title}</Text>
+              <View style={styles.gridRow}>
                 {cat.itemIds.map((id) => {
                   const item = getPlaceById(id);
                   return (
                     <TouchableOpacity
                       key={item.id}
-                      style={styles.button}
-                      onPress={() => onPlacePress(item.id)}
+                      style={styles.gridButton}
+                      onPress={() => navigation.push('NearbyPlaces', { placeType: item.id })}
                       activeOpacity={0.7}
                     >
-                      <View style={styles.iconBox}>
-                        {item.id === 'FuelStations' || item.id === 'ChargingStation' || item.id === 'CarWash' || item.id === 'Insurance' || item.id === 'TyreShop' ? (
-                          <IconMC name={item.icon as any} size={wp(5.8)} color="#fff" />
+                      <View style={styles.gridIconBox}>
+                        {item.iconSet === 'mc' ? (
+                          <IconMC name={item.icon as any} size={wp(5.5)} color="#fff" />
                         ) : (
-                          <Icon name={item.icon as any} size={wp(5.8)} color="#fff" />
+                          <Icon name={item.icon as any} size={wp(5.2)} color="#fff" />
                         )}
                       </View>
-                      <Text style={styles.label} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.gridLabel} numberOfLines={1}>{item.name}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
             </View>
           ))}
-          {filteredCategories.length === 0 ? (
-            <View style={styles.searchEmptyWrap}>
-              <IconMC name="map-search-outline" size={wp(14)} color="#444" />
-              <Text style={styles.searchEmptyTitle}>No matching places</Text>
-              <Text style={styles.searchEmptyText}>
-                Try another search term like fuel, hospital, parking, or mechanic.
-              </Text>
-            </View>
-          ) : null}
         </View>
+
+        {loading && !refreshing && (
+          <View style={{ paddingVertical: hp(5) }}>
+            <ActivityIndicator color="#FFBF00" />
+            <Text style={styles.loadingText}>Fetching best places for you...</Text>
+          </View>
+        )}
+
+        {/* Best Places to Visit Section */}
+        {!loading && (results.tourist_attraction?.length || 0) > 0 && (
+           <View style={styles.contentSection}>
+              <Text style={styles.sectionHeading}>Places to Visit</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -wp(6) }} contentContainerStyle={{ paddingLeft: wp(6) }}>
+                {results.tourist_attraction?.slice(0, 10).map((place, idx) => (
+                  <TouchableOpacity key={place.placeId + 'visit' + idx} style={styles.visitCard} onPress={() => openMapsNavigation(place.latitude, place.longitude, place.name)}>
+                    <View style={styles.visitThumbWrap}>
+                      <FastImage
+                        source={{ uri: place.imageUrl || `https://images.unsplash.com/photo-1506461883276-594a12b11ba3?auto=format&fit=crop&q=60&w=400` }}
+                        style={styles.visitThumb}
+                        resizeMode={FastImage.resizeMode.cover}
+                      />
+                      <LinearGradient
+                        colors={['transparent', 'rgba(0,0,0,0.6)']}
+                        style={styles.visitThumbOverlay}
+                      />
+                    </View>
+                    <Text style={styles.visitName} numberOfLines={1}>{place.name}</Text>
+                    <Text style={styles.visitDist}>{place.distanceText} • ★ {place.rating?.toFixed(1) || '4.0'}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+           </View>
+        )}
+
+        
+        <View style={{ height: hp(5) }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -498,12 +596,39 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: wp(3),
   },
-  scrollContent: {
-    paddingBottom: hp(4),
+  heroSection: {
+    height: hp(22),
+    marginHorizontal: wp(5),
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: hp(2.5),
+    position: 'relative',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: wp(6),
+    justifyContent: 'flex-end',
+  },
+  heroTitle: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(6),
+    color: '#fff',
+  },
+  heroSub: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.5),
+    color: 'rgba(255,255,255,0.7)',
   },
   searchWrapper: {
     paddingHorizontal: wp(5),
-    paddingBottom: hp(2),
+    paddingBottom: hp(2.5),
   },
   searchBar: {
     flexDirection: 'row',
@@ -525,48 +650,94 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     padding: 0,
   },
-  contentSection: {
-    paddingHorizontal: wp(6),
-    paddingTop: hp(1),
+  gridSection: {
+    paddingHorizontal: wp(5),
+    marginBottom: hp(3),
   },
-  categoryWrap: {
-    marginBottom: hp(4),
+  categoryBlock: {
+    marginBottom: hp(2.5),
   },
-  categoryTitle: {
+  categoryGridTitle: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(4.2),
     color: '#aaa',
-    marginBottom: hp(2),
+    marginBottom: hp(1.5),
     paddingLeft: 2,
     letterSpacing: 0.5,
   },
-  row: {
+  gridRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: wp(4),
+    gap: wp(3),
   },
-  button: {
-    width: (wp(100) - wp(12) - wp(12)) / 4,
+  gridButton: {
+    width: (wp(100) - wp(10) - wp(9)) / 4,
     alignItems: 'center',
     marginBottom: hp(1),
   },
-  iconBox: {
+  gridIconBox: {
     width: wp(14),
     height: wp(14),
-    borderRadius: wp(4),
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#161616',
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     marginBottom: hp(1),
   },
-  label: {
-    fontSize: wp(3),
+  gridLabel: {
     fontFamily: 'Outfit-Medium',
+    fontSize: wp(3),
     color: '#fff',
     textAlign: 'center',
   },
+  contentSection: {
+    paddingHorizontal: wp(5),
+    marginBottom: hp(4),
+  },
+  sectionHeading: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(4.8),
+    color: '#fff',
+    marginBottom: hp(2),
+  },
+  visitCard: {
+    width: wp(55),
+    marginRight: wp(5),
+  },
+  visitThumbWrap: {
+    width: '100%',
+    height: hp(16),
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  visitThumb: {
+    width: '100%',
+    height: '100%',
+  },
+  visitThumbOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+  },
+  visitName: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4),
+    color: '#fff',
+    marginBottom: 2,
+  },
+  visitDist: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.2),
+    color: '#FFBF00',
+  },
+  // List screen styles
   locationPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -617,6 +788,7 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     fontFamily: 'Outfit-Medium',
     color: '#888',
+    textAlign: 'center',
   },
   emptyWrap: {
     flex: 1,
@@ -714,11 +886,11 @@ const styles = StyleSheet.create({
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(0.8),
+    gap: wp(1),
   },
   ratingText: {
-    fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.2),
     color: '#FFBF00',
   },
   navigateBtn: {
@@ -733,43 +905,5 @@ const styles = StyleSheet.create({
     fontSize: wp(3.5),
     fontFamily: 'Outfit-Black',
     color: '#000',
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: hp(10),
-  },
-  placeholderTitle: {
-    fontSize: wp(5),
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    marginTop: hp(2),
-  },
-  placeholderText: {
-    fontSize: wp(4),
-    fontFamily: 'Outfit-Medium',
-    color: '#888',
-    textAlign: 'center',
-    marginTop: hp(1),
-  },
-  searchEmptyWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(8),
-  },
-  searchEmptyTitle: {
-    fontSize: wp(4.8),
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    marginTop: hp(1.5),
-  },
-  searchEmptyText: {
-    fontSize: wp(3.7),
-    fontFamily: 'Outfit-Medium',
-    color: '#888',
-    textAlign: 'center',
-    marginTop: hp(0.8),
   },
 });

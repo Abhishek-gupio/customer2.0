@@ -5,6 +5,7 @@ import cron from "node-cron";
 import { challanService } from "./challan.service";
 import { telematicsService } from "./telematics.service";
 import * as OneSignal from '@onesignal/node-onesignal';
+import * as admin from 'firebase-admin'; // FCM
 
 // Initialize OneSignal with API keys from environment
 const configuration = OneSignal.createConfiguration({
@@ -74,6 +75,55 @@ export const notificationService = {
         const smsService = getSMSService();
         await smsService.sendSMS(payload.phoneNumber, payload.body);
       }
+
+      // 4. Firebase Cloud Messaging (FCM)
+      try {
+        if (admin.apps.length > 0) {
+          const devicesInProgress = await (dbInstances as any).customerDevice.findMany({
+            where: { customerId, deviceToken: { not: null } },
+          });
+
+          if (devicesInProgress.length > 0) {
+            const tokens = devicesInProgress.map((d: any) => d.deviceToken).filter(Boolean);
+            const fcmPayload: admin.messaging.MulticastMessage = {
+              tokens,
+              notification: {
+                title: payload.title,
+                body: payload.body,
+              },
+              data: {
+                type: payload.type,
+                link: payload.link || "",
+                metadata: JSON.stringify(payload.metadata || {}),
+              },
+              android: {
+                priority: "high",
+                notification: {
+                  sound: "default",
+                  channelId: "gupio_notifications", // Must match notification channels on Android
+                },
+              },
+            };
+
+            const response = await admin.messaging().sendEachForMulticast(fcmPayload);
+            logger.info({ customerId, successCount: response.successCount, failureCount: response.failureCount }, "Triggered FCM multicast.");
+            
+            // Cleanup invalid tokens if any (optional; usually handled by failures)
+            if (response.failureCount > 0) {
+              response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                   logger.warn({ error: resp.error, token: tokens[idx] }, "FCM delivery failed for token");
+                }
+              });
+            }
+          }
+        } else {
+          logger.debug({ customerId }, "Skipping FCM: Firebase Admin not initialized");
+        }
+      } catch (fcmError) {
+        logger.error({ fcmError, customerId }, "Failed to complete FCM delivery flow");
+      }
+
     } catch (error) {
       logger.error({ error, customerId }, "Failed to complete notification delivery flow");
     }
@@ -201,6 +251,12 @@ export const notificationService = {
     return (dbInstances as any).inAppNotification.updateMany({
       where: { id: notificationId, customerId },
       data: { isRead: true, readAt: new Date() },
+    });
+  },
+
+  async remove(customerId: string, notificationId: string) {
+    return (dbInstances as any).inAppNotification.deleteMany({
+      where: { id: notificationId, customerId },
     });
   },
 

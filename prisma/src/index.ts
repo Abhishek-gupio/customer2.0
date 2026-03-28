@@ -81,7 +81,7 @@ pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle database client', err);
 });
 
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool as any);
 const dbInstances = new PrismaClient({
   adapter,
   log: ['error', 'warn'],

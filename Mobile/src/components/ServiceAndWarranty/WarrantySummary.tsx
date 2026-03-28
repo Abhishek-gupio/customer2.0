@@ -35,22 +35,17 @@ export const WarrantySummary = ({ active, expired, health }: WarrantySummaryProp
     const pathLength = Math.PI * R;
 
     useEffect(() => {
-        let timeoutId: ReturnType<typeof setTimeout>;
         const task = InteractionManager.runAfterInteractions(() => {
-            // Delay slightly to let the FlatList finish its heavy initial render
-            timeoutId = setTimeout(() => {
-                Animated.timing(animatedProgress, {
-                    toValue: clampedHealth,
-                    duration: 1800,
-                    easing: Easing.out(Easing.cubic),
-                    useNativeDriver: false, // SVG stroke dashoffset must run on the JS thread
-                }).start();
-            }, 300);
+            Animated.timing(animatedProgress, {
+                toValue: clampedHealth,
+                duration: 1800,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: false, // SVG stroke dashoffset must run on the JS thread
+            }).start();
         });
 
         return () => {
             task.cancel();
-            clearTimeout(timeoutId);
         };
     }, [clampedHealth, animatedProgress]);
 

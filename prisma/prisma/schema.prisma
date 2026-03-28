@@ -58,6 +58,8 @@ model Customer {
   emergencyContacts EmergencyContact[]
   expenses          Expense[]
   driverExpenses    Expense[]             @relation("DriverExpenses")
+  drivingLicense    DrivingLicense?
+  fastag            FastagDocument?
   budgets           ExpenseBudget[]
   notifications     InAppNotification[]
   sosRequests       SOSRequest[]
@@ -99,6 +101,44 @@ model VehicleDocument {
 
   @@index([customerId])
   @@index([vehicleId])
+  @@schema("customer")
+}
+
+model DrivingLicense {
+  id                   String   @id @default(cuid())
+  customerId           String   @unique
+  dlNumber             String   @unique
+  fullName             String?
+  dob                  String?
+  referenceNumber      String?
+  dateOfIssue          String?
+  originalLA           String?
+  dateOfFirstIssue     String?
+  validityTransport    String?
+  validityNonTransport String?
+  registeredAddress    String?
+  rawResponse          Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  customer             Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model FastagDocument {
+  id                         String   @id @default(cuid())
+  customerId                 String   @unique
+  creditorAccountId          String
+  ifscCode                    String
+  creditorName               String?
+  transactionReferenceNumber String?
+  transactionId              String?
+  status                     String?
+  rawResponse                Json?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  customer                   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
   @@schema("customer")
 }
 

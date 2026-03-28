@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -14,6 +14,7 @@ import {
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
+import { setupNotifications } from './src/services/notification';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -65,12 +66,15 @@ function App() {
       .finally(() => {
         bootstrapAuthToRedux();
         setStorageReady(true);
+        setupNotifications().catch(err => {
+          console.error('Error during notification setup:', err);
+        });
       });
   }, []);
 
   if (!storageReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
+      <View style={styles.bootstrapLoader}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -78,8 +82,8 @@ function App() {
 
   return (
     <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.appRoot}>
+        <View style={styles.appContent}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <NavigationContainer linking={linking}>
@@ -93,5 +97,20 @@ function App() {
     </Provider>
   );
 }
+
+const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+  },
+  appContent: {
+    flex: 1,
+  },
+  bootstrapLoader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0a0a0a',
+  },
+});
 
 export default App;

@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.3.0
- * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+ * Prisma Client JS version: 7.5.0
+ * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
  */
 Prisma.prismaVersion = {
-  client: "7.3.0",
-  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
+  client: "7.5.0",
+  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -171,6 +171,38 @@ exports.Prisma.VehicleDocumentScalarFieldEnum = {
   fileContent: 'fileContent',
   fileUrl: 'fileUrl',
   mimeType: 'mimeType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DrivingLicenseScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  dlNumber: 'dlNumber',
+  fullName: 'fullName',
+  dob: 'dob',
+  referenceNumber: 'referenceNumber',
+  dateOfIssue: 'dateOfIssue',
+  originalLA: 'originalLA',
+  dateOfFirstIssue: 'dateOfFirstIssue',
+  validityTransport: 'validityTransport',
+  validityNonTransport: 'validityNonTransport',
+  registeredAddress: 'registeredAddress',
+  rawResponse: 'rawResponse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FastagDocumentScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  creditorAccountId: 'creditorAccountId',
+  ifscCode: 'ifscCode',
+  creditorName: 'creditorName',
+  transactionReferenceNumber: 'transactionReferenceNumber',
+  transactionId: 'transactionId',
+  status: 'status',
+  rawResponse: 'rawResponse',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1565,6 +1597,8 @@ exports.Prisma.ModelName = {
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
   VehicleDocument: 'VehicleDocument',
+  DrivingLicense: 'DrivingLicense',
+  FastagDocument: 'FastagDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
   VehicleCatalog: 'VehicleCatalog',

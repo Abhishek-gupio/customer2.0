@@ -208,9 +208,6 @@ const ExpenseFeed = () => {
       console.log("response", response);
       let list = extractExpenseItems(response);
 
-      // Some existing customer expenses are stored without vehicleId.
-      // If the strict vehicle-filtered API returns empty, recover by loading
-      // the full customer list and keeping rows for this vehicle or unassigned rows.
       if (resolvedVehicleId && list.length === 0) {
         const fallbackResponse = await api.get<any>('/v1/expenses');
         const fallbackItems = extractExpenseItems(fallbackResponse);
@@ -350,6 +347,20 @@ const ExpenseFeed = () => {
   );
 
   // ── Compute "Total This Month" ──
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      if (!getAndClearExpenseListRefresh()) {
+        return;
+      }
+
+      loadPrimaryVehicle().then((resolvedPrimaryVehicle) => {
+        fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [fetchExpenses, loadPrimaryVehicle]);
+
   React.useEffect(() => {
     if (rawExpenses.length === 0) {
       setTotalThisMonth(0);
@@ -924,6 +935,7 @@ const styles = StyleSheet.create({
     gap: wp(5),
   },
   card: {
+    backgroundColor: 'rgb(18, 18, 23)',
     marginHorizontal: wp(4),
     marginTop: hp(2),
     borderRadius: wp(8),

@@ -51,24 +51,29 @@ export default function NotificationPermission() {
         };
     }, []);
 
-    const checkStatus = async () => {
+    const checkStatus = async (): Promise<PermissionStatus> => {
         if (!RNAndroidNotificationListener) {
             setStatus('unknown');
-            return;
+            return 'unknown';
         }
         try {
             const result = await RNAndroidNotificationListener.getPermissionStatus();
-            setStatus((prevStatus) => {
-                // If user just came back from settings and permission is granted, enable it
-                if (pendingEnableRef.current && result === 'authorized') {
-                    setEnabled(true);
-                    setAutoExpenseEnabled(true);
-                    pendingEnableRef.current = false;
-                }
-                return result as PermissionStatus;
-            });
+            const nextStatus = result as PermissionStatus;
+            setStatus(nextStatus);
+
+            if (pendingEnableRef.current && nextStatus === 'authorized') {
+                setEnabled(true);
+                setAutoExpenseEnabled(true);
+                pendingEnableRef.current = false;
+            } else if (nextStatus !== 'authorized') {
+                pendingEnableRef.current = false;
+            }
+
+            return nextStatus;
         } catch {
             setStatus('unknown');
+            pendingEnableRef.current = false;
+            return 'unknown';
         }
     };
 
@@ -87,8 +92,17 @@ export default function NotificationPermission() {
         }
     };
 
-    const handleToggle = (val: boolean) => {
-        if (val && status !== 'authorized') {
+    const handleToggle = async (val: boolean) => {
+        if (!val) {
+            pendingEnableRef.current = false;
+            setEnabled(false);
+            setAutoExpenseEnabled(false);
+            return;
+        }
+
+        const latestStatus = await checkStatus();
+
+        if (latestStatus !== 'authorized') {
             // On many Android 13/14 devices, sideloaded APKs are blocked by "Restricted settings"
             // for high-risk permissions like Notification Access. We can't bypass it in code,
             // but we can guide the user to allow restricted settings from the app details page.
@@ -103,8 +117,10 @@ export default function NotificationPermission() {
             );
             return;
         }
-        setEnabled(val);
-        setAutoExpenseEnabled(val);
+
+        pendingEnableRef.current = false;
+        setEnabled(true);
+        setAutoExpenseEnabled(true);
     };
 
     if (Platform.OS !== 'android') {
@@ -124,7 +140,7 @@ export default function NotificationPermission() {
                     </Text>
                 </View>
                 <Switch
-                    value={enabled && status === 'authorized'}
+                    value={enabled}
                     onValueChange={handleToggle}
                     trackColor={{ false: '#555', true: '#4CAF50' }}
                     thumbColor="#fff"
@@ -141,6 +157,11 @@ export default function NotificationPermission() {
             {status === 'authorized' && enabled && (
                 <Text style={styles.activeText}>
                     ✅ Listening for bank notifications
+                </Text>
+            )}
+            {status !== 'authorized' && enabled && (
+                <Text style={styles.activeText}>
+                    Notification access is still required in settings.
                 </Text>
             )}
         </View>

@@ -351,7 +351,6 @@ export default function DocumentList() {
       if (Platform.OS === 'android') {
         // Fetch absolute URL for PDF from backend (bypasses EACCES by using system downloader)
         const pdfUrl = doc.imageUri.replace('/image', '/pdf');
-        const { Linking } = await import('react-native');
         await Linking.openURL(pdfUrl);
         setIsUploading(false);
         return;

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window');
@@ -24,7 +25,7 @@ export const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1533473359331-0
 export const INDPlate = ({ number }: { number: string }) => (
     <View style={styles.plate}>
         <View style={styles.indStrip}>
-            <View style={styles.dot} />
+            <Text style={styles.flag}>🇮🇳</Text>
             <Text style={styles.indText}>IND</Text>
         </View>
         <Text style={styles.plateNo}>{number}</Text>
@@ -44,9 +45,12 @@ export const InfoCard = ({ icon: Icon, label, value, style }: { icon: any, label
 );
 
 export const StatusCard = ({ icon: Icon, label, value, onPress, style }: { icon: any, label: string, value: string, onPress?: () => void, style?: any }) => (
-    <TouchableOpacity onPress={onPress} disabled={!onPress} style={[styles.statusCard, style]} activeOpacity={0.7}>
-        <View style={styles.statusIconBox}>
-            {Icon && <Icon size={24} color={COLORS.primary} />}
+    <TouchableOpacity onPress={onPress} disabled={!onPress} style={[styles.statusCard, style]} activeOpacity={0.8}>
+        <View style={styles.statusHeader}>
+            <View style={styles.statusIconBox}>
+                {Icon && <Icon size={20} color={COLORS.primary} />}
+            </View>
+            <ChevronRight size={16} color="#444" />
         </View>
         <View style={styles.statusContent}>
             <Text style={styles.statusLabel}>{label}</Text>
@@ -71,12 +75,12 @@ const styles = StyleSheet.create({
         height: hp('5.5%'), elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1, shadowRadius: 2
     },
-    indStrip: { backgroundColor: '#003399', width: wp('7%'), alignItems: 'center', justifyContent: 'center' },
-    dot: { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 4 },
-    indText: { color: '#FFF', fontSize: hp('1%'), fontWeight: '900' },
+    indStrip: { backgroundColor: '#003399', width: wp('8%'), alignItems: 'center', justifyContent: 'center', gap: 1 },
+    flag: { fontSize: hp('1.2%'), lineHeight: hp('1.5%') },
+    indText: { color: '#FFF', fontSize: hp('0.8%'), fontFamily: 'Outfit-Black', letterSpacing: 0.5 },
     plateNo: { 
         paddingHorizontal: wp('4%'), justifyContent: 'center', color: '#000', 
-        fontSize: hp('2.5%'), fontWeight: '800', letterSpacing: 1, textAlignVertical: 'center',
+        fontSize: hp('2.5%'), fontFamily: 'Outfit-Bold', letterSpacing: 1, textAlignVertical: 'center',
         paddingVertical: Platform.OS === 'ios' ? hp('1%') : 0
     },
     card: {
@@ -108,20 +112,23 @@ const styles = StyleSheet.create({
         color: '#AAA', fontSize: hp('1.3%'), fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit'
     },
     statusCard: {
-        flex: 1, backgroundColor: COLORS.lightBlack, paddingHorizontal: wp('5%'), paddingVertical: hp('3%'), borderRadius: 24,
-        flexDirection: 'row', alignItems: 'center', gap: wp('4%'), borderWidth: 1, borderColor: '#333'
+        flex: 1, backgroundColor: '#0D0D0E', padding: 18, borderRadius: 28,
+        borderWidth: 1, borderColor: '#1F1F1F', minHeight: 130, justifyContent: 'space-between'
+    },
+    statusHeader: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
     },
     statusIconBox: {
-        width: wp('11%'), height: wp('11%'), backgroundColor: '#000', borderRadius: wp('5.5%'),
-        alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333'
+        width: 40, height: 40, backgroundColor: '#000', borderRadius: 12,
+        alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#1F1F1F'
     },
     statusContent: {
-        flex: 1, gap: hp('0.2%')
+        marginTop: 12
     },
     statusLabel: {
-        color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Bold', textTransform: 'lowercase'
+        color: '#8E8E93', fontSize: 10, fontFamily: 'Outfit-Bold', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4
     },
     statusValue: {
-        color: COLORS.textMuted, fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', textTransform: 'uppercase'
+        color: '#FFF', fontSize: 18, fontFamily: 'Outfit-Black'
     }
 });

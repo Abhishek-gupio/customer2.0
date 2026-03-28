@@ -120,7 +120,7 @@ export const contentScraperService = {
         const fallbacks: Record<string, string> = {
             "PETROL": "https://economictimes.indiatimes.com/wealth/fuel-depot/petrol-price-in-india",
             "DIESEL": "https://economictimes.indiatimes.com/wealth/fuel-depot/diesel-price-in-india",
-            "CNG": "https://www.indiatoday.in/fuel-prices/cng-price-in-india"
+            "CNG": "https://economictimes.indiatimes.com/wealth/fuelprices/CNG"
         };
 
         const url = fallbacks[fuelType];
@@ -161,46 +161,62 @@ export const contentScraperService = {
      * Updated to return exactly 2 items as requested.
      */
     async fetchCarNews(): Promise<any[]> {
-        logger.info("🗞️ Fetching Car News from Google News RSS...");
+        logger.info("🗞️ Fetching Car News from Rushlane...");
         try {
-            const url = "https://news.google.com/rss/search?q=car+india+launch+rushlane+autocar&hl=en-IN&gl=IN&ceid=IN:en";
+            const url = "https://www.rushlane.com/feed";
             const response = await axios.get(url, { headers: BROWSER_HEADERS });
             const $ = cheerio.load(response.data, { xmlMode: true });
 
-            type RawNews = { title: string; source: string; url: string; pubDateRaw: string };
+            type RawNews = { title: string; source: string; url: string; pubDateRaw: string; image?: string };
             const raw: RawNews[] = [];
+            
             $("item").each((i, item) => {
-                if (i >= 6) return; // Keep a few items so home feed rotates more often
+                if (i >= 10) return; 
+
                 const fullTitle = $(item).find("title").text();
-                const [title, source] = fullTitle.split(" - ");
+                const link = $(item).find("link").text();
                 const pubDateRaw = $(item).find("pubDate").text();
+                const description = $(item).find("description").text();
+                
+                // Extract image from <media:content> or <img> in description
+                let image = "";
+                const mediaContent = $(item).find("media\\:content, media\\:thumbnail");
+                if (mediaContent.length > 0) {
+                    image = mediaContent.attr("url") || "";
+                }
+                
+                if (!image && description) {
+                    const imgMatch = description.match(/<img[^>]+src="([^">]+)"/);
+                    if (imgMatch) image = imgMatch[1];
+                }
+
                 raw.push({
-                    title: title.trim(),
-                    source: (source || "Auto News").trim(),
-                    url: $(item).find("link").text(),
+                    title: fullTitle.trim(),
+                    source: "Rushlane",
+                    url: link,
                     pubDateRaw,
+                    image
                 });
             });
 
             raw.sort((a, b) => {
                 const ta = new Date(a.pubDateRaw).getTime();
                 const tb = new Date(b.pubDateRaw).getTime();
-                const na = Number.isFinite(ta) ? ta : 0;
-                const nb = Number.isFinite(tb) ? tb : 0;
-                return nb - na; // newest first
+                return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
             });
 
             const news = raw.map((item, idx) => {
                 const published = new Date(item.pubDateRaw);
                 const publishedAt = Number.isFinite(published.getTime()) ? published.toISOString() : null;
                 return {
-                    id: String(idx),
+                    id: `news-${idx}-${Date.now()}`,
                     title: item.title,
                     source: item.source,
                     url: item.url,
+                    image: item.image,
                     publishedAt,
                     time: this.formatNewsTime(item.pubDateRaw),
-                    snippet: "Latest update on new car launches and automotive trends in India.",
+                    snippet: "Latest automotive updates and car launches in India.",
                 };
             });
 
@@ -296,33 +312,34 @@ export const contentScraperService = {
             // Maharashtra
             Mumbai: "Maharashtra", Pune: "Maharashtra", Nagpur: "Maharashtra", Thane: "Maharashtra", Nashik: "Maharashtra",
             // Karnataka
-            Bangalore: "Karnataka", Bengaluru: "Karnataka", Mysore: "Karnataka", Hubli: "Karnataka",
+            // Karnataka
+            Bangalore: "Karnataka", Bengaluru: "Karnataka", Mysore: "Karnataka", Hubli: "Karnataka", Mangalore: "Karnataka", Mangaluru: "Karnataka", Belgaum: "Karnataka",
             // Tamil Nadu
-            Chennai: "Tamil Nadu", Coimbatore: "Tamil Nadu", Madurai: "Tamil Nadu",
+            Chennai: "Tamil Nadu", Coimbatore: "Tamil Nadu", Madurai: "Tamil Nadu", Salem: "Tamil Nadu",
             // West Bengal
-            Kolkata: "West Bengal",
+            Kolkata: "West Bengal", Howrah: "West Bengal",
             // Telangana
-            Hyderabad: "Telangana",
+            Hyderabad: "Telangana", Warangal: "Telangana",
             // Gujarat
             Ahmedabad: "Gujarat", Surat: "Gujarat", Vadodara: "Gujarat", Rajkot: "Gujarat",
             // Rajasthan
-            Jaipur: "Rajasthan", Jodhpur: "Rajasthan", Udaipur: "Rajasthan",
+            Jaipur: "Rajasthan", Jodhpur: "Rajasthan", Udaipur: "Rajasthan", Kota: "Rajasthan",
             // Uttar Pradesh
-            Lucknow: "Uttar Pradesh", Noida: "Uttar Pradesh", Kanpur: "Uttar Pradesh", Agra: "Uttar Pradesh", Varanasi: "Uttar Pradesh",
+            Lucknow: "Uttar Pradesh", Noida: "Uttar Pradesh", "Greater Noida": "Uttar Pradesh", Kanpur: "Uttar Pradesh", Agra: "Uttar Pradesh", Varanasi: "Uttar Pradesh", Ghaziabad: "Uttar Pradesh",
             // Delhi
             Delhi: "Delhi", "New Delhi": "Delhi",
             // Haryana
-            Gurgaon: "Haryana", Gurugram: "Haryana", Faridabad: "Haryana",
+            Gurgaon: "Haryana", Gurugram: "Haryana", Faridabad: "Haryana", Ambala: "Haryana",
             // Bihar
-            Patna: "Bihar",
+            Patna: "Bihar", Gaya: "Bihar",
             // Madhya Pradesh
-            Bhopal: "Madhya Pradesh", Indore: "Madhya Pradesh",
+            Bhopal: "Madhya Pradesh", Indore: "Madhya Pradesh", Gwalior: "Madhya Pradesh",
             // Kerala
-            Kochi: "Kerala", Trivandrum: "Kerala", Thiruvananthapuram: "Kerala", Kozhikode: "Kerala",
+            Kochi: "Kerala", Trivandrum: "Kerala", Thiruvananthapuram: "Kerala", Kozhikode: "Kerala", Thrissur: "Kerala",
             // Punjab
-            Chandigarh: "Punjab", Ludhiana: "Punjab", Amritsar: "Punjab",
+            Chandigarh: "Punjab", Ludhiana: "Punjab", Amritsar: "Punjab", Jalandhar: "Punjab",
             // Andhra Pradesh
-            Visakhapatnam: "Andhra Pradesh", Vijayawada: "Andhra Pradesh",
+            Visakhapatnam: "Andhra Pradesh", Vijayawada: "Andhra Pradesh", Guntur: "Andhra Pradesh",
         };
         return map[city] || "General";
     }

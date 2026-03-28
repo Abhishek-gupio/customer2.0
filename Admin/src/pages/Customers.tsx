@@ -11,6 +11,7 @@ import {
 import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerListItem } from '../api/client';
+import logoImg from '../assets/images/logo.png';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { TableRowSkeleton } from '../components/ui/Skeleton';
@@ -59,43 +60,43 @@ export default function Customers() {
           const c = row.original;
           return (
             <div className="flex items-center gap-3 group">
-               <div className="h-9 w-9 overflow-hidden rounded-full bg-white/[0.03] ring-1 ring-white/10 group-hover:ring-[var(--accent)]/50 transition-all">
-                  {c.profilePic ? (
-                    <img src={c.profilePic} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-white/20">
-                      <UserCircle className="h-5 w-5" />
-                    </div>
-                  )}
-               </div>
-               <div>
-                  <div className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">{c.fullName || 'Unnamed User'}</div>
-                  <div className="text-[10px] text-white/40 tracking-tight">{c.phoneNumber}</div>
-               </div>
+              <div className="h-9 w-9 overflow-hidden rounded-full bg-white/[0.03] ring-1 ring-white/10 group-hover:ring-[var(--accent)]/50 transition-all">
+                {c.profilePic ? (
+                  <img src={c.profilePic} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-white/20">
+                    <UserCircle className="h-5 w-5" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">{c.fullName || 'Unnamed User'}</div>
+                <div className="text-[10px] text-white/40 tracking-tight">{c.phoneNumber}</div>
+              </div>
             </div>
           );
         },
       },
       {
-         id: 'contact',
-         header: 'Contact Info',
-         accessorFn: (r) => r.email,
-         cell: ({ row }) => (
-            <span className="text-xs text-white/60">{row.original.email || '—'}</span>
-         )
+        id: 'contact',
+        header: 'Contact Info',
+        accessorFn: (r) => r.email,
+        cell: ({ row }) => (
+          <span className="text-xs text-white/60">{row.original.email || '—'}</span>
+        )
       },
       {
         id: 'vehicles',
         header: 'Vehicles',
         accessorFn: (r) => r._count.vehicles,
         cell: ({ row }) => {
-           const count = row.original._count.vehicles;
-           return (
-              <div className="flex items-center gap-2">
-                 <div className="text-xs font-bold text-white/80">{count}</div>
-                 <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Vehicles</div>
-              </div>
-           );
+          const count = row.original._count.vehicles;
+          return (
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-bold text-white/80">{count}</div>
+              <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Vehicles</div>
+            </div>
+          );
         }
       },
       {
@@ -105,10 +106,10 @@ export default function Customers() {
         cell: ({ row }) => {
           const count = row.original._count.expenses;
           return (
-             <div className="flex items-center gap-2">
-                <div className="text-xs font-bold text-white/80">{count}</div>
-                <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Expenses</div>
-             </div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-bold text-white/80">{count}</div>
+              <div className="text-[10px] uppercase font-bold text-white/30 tracking-wider">Expenses</div>
+            </div>
           );
         },
       },
@@ -126,7 +127,7 @@ export default function Customers() {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => {
-          const { hasRole } = useAuth();
+          const { hasRole, admin } = useAuth();
           const [exporting, setExporting] = useState(false);
 
           const handleExport = async (e: React.MouseEvent) => {
@@ -136,8 +137,12 @@ export default function Customers() {
             try {
               const res = await adminApi.getCustomer(row.original.id);
               if (res.success) {
-                const html = generateCustomerExport(res.data);
-                
+                const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
+                const html = generateCustomerExport(res.data, { 
+                  showLogo: isSuperAdmin, 
+                  logoUrl: logoImg 
+                });
+
                 // Create an isolated iframe for printing
                 const iframe = document.createElement('iframe');
                 iframe.style.position = 'fixed';
@@ -147,13 +152,13 @@ export default function Customers() {
                 iframe.style.height = '0';
                 iframe.style.border = '0';
                 document.body.appendChild(iframe);
-                
+
                 const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
                 if (frameDoc) {
                   frameDoc.open();
                   frameDoc.write(html);
                   frameDoc.close();
-                  
+
                   // Wait for content to load before opening the print dialog
                   setTimeout(() => {
                     iframe.contentWindow?.focus();
@@ -307,8 +312,8 @@ export default function Customers() {
                 )}
                 {!loading &&
                   table.getRowModel().rows.map((row) => (
-                    <tr 
-                      key={row.id} 
+                    <tr
+                      key={row.id}
                       className="border-b border-white/[0.07] transition-colors hover:bg-white/[0.04] cursor-pointer"
                       onClick={() => navigate(`/customers/${row.original.id}`)}
                     >
@@ -355,7 +360,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 }
 
 
-const generateCustomerExport = (data: any) => {
+export const generateCustomerExport = (data: any, options?: { showLogo?: boolean; logoUrl?: string }) => {
   const customer = data;
   const { vehicles = [], expenses = [], supportTickets = [], documents = [], expenseSummary } = data;
   const exportDate = new Date().toLocaleDateString('en-GB');
@@ -363,18 +368,19 @@ const generateCustomerExport = (data: any) => {
   const vehicleCount = vehicles.length;
   const totalExpenses = expenseSummary?.total || 0;
   const currency = expenseSummary?.currency || 'INR';
-  
+
   const breakdown = expenseSummary?.breakdown || {};
   const activeCategories = Object.entries(breakdown)
     .filter(([_, amount]) => (amount as number) > 0)
-    .sort((a,b) => (b[1] as number) - (a[1] as number));
+    .sort((a, b) => (b[1] as number) - (a[1] as number));
 
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>${customer.fullName || 'Customer'} document</title>
+  <title></title>
+  <base href="${window.location.origin}">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1a1a; line-height: 1.5; padding: 40px; background: #fff; max-width: 900px; margin: 0 auto; }
@@ -403,12 +409,18 @@ const generateCustomerExport = (data: any) => {
     .status-active { background: #e6fcf5; color: #0ca678; }
     
     @media print {
-      body { padding: 0; }
+      @page { margin: 0; }
+      body { padding: 40px; }
       .card { border: 1px solid #eee !important; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
 <body>
+  ${options?.showLogo ? `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <img src="${options.logoUrl}" alt="Gupio Logo" style="height: 60px; object-fit: contain;">
+    </div>
+  ` : ''}
   <div class="header">
     <div class="customer-name">${customer.fullName || 'Unnamed Customer'}</div>
     <div class="meta-grid">

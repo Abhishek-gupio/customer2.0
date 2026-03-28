@@ -76,6 +76,11 @@ export const rcVerificationService = {
         })(),
         fitnessUpto: data.rc_expiry_date || data.fitness_upto,
         insuranceUpto: data.vehicle_insurance_upto || data.insurance_upto,
+        pollutionUpto:
+          data.pollution_upto ||
+          data.puc_upto ||
+          data.vehicle_pollution_upto ||
+          data.puc_expiry,
         mileage: data.mileage || 'N/A',
         color: data.vehicle_colour,
         manufacturingMonthYear: data.vehicle_manufacturing_month_year,

@@ -17,6 +17,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 type ServiceId =
   | 'PartsWarranty'
@@ -37,9 +38,11 @@ type ServiceId =
   | 'TyreShop'
   | 'DocumentServices'
   | 'CarSpa'
-  | 'TripExpense';
+  | 'TripExpense'
+  | 'DLVerification'
+  | 'Fastag';
 
-type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' };
+type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' | 'mechanic' | 'parking' | 'towing' };
 
 const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
@@ -48,18 +51,18 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'CheckChallan', name: 'Challan', icon: 'gavel', iconSet: 'fa' },
   { id: 'FuelStations', name: 'Fuel', icon: 'gas-station', iconSet: 'mc' },
   { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
+  { id: 'Mechanics', name: 'Mechanic', icon: 'mechanic', iconSet: 'mechanic' },
   { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
   { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
-  { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
+  { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
-  { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
+  { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
   { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
-  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'Insurance', 'Towing'], color: '#FFBF00' }, // Yellow
+  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
@@ -72,6 +75,7 @@ const ADS_DATA = [
     desc: 'Avoid late fees and court visits. Check your vehicle status now.',
     theme: '#fbbf24',
     icon: 'gavel',
+    iconSet: 'fa',
     target: 'CheckChallan',
   },
   {
@@ -81,6 +85,7 @@ const ADS_DATA = [
     desc: 'Tired of searching? Locate premium parking spots in seconds.',
     theme: '#60a5fa',
     icon: 'parking',
+    iconSet: 'parking',
     target: 'Parking',
   },
   {
@@ -89,7 +94,8 @@ const ADS_DATA = [
     subtitle: 'Book a Service',
     desc: 'Trusted repairs and transparent pricing for your vehicle care.',
     theme: '#94a3b8',
-    icon: 'wrench',
+    icon: 'mechanic',
+    iconSet: 'mechanic',
     target: 'Mechanics', 
   },
   {
@@ -103,7 +109,7 @@ const ADS_DATA = [
   },
 ];
 
-const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id)!;
+const getItemById = (id: ServiceId): ServiceItem => SERVICE_ITEMS.find((i) => i.id === id)!;
 
 const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
   'FuelStations',
@@ -113,20 +119,82 @@ const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
   'ChargingStation',
   'Mechanics',
   'RTO',
-  'Towing',
   'CarWash',
-  'Insurance',
   'Parking',
   'TyreShop',
   'DocumentServices',
   'CarSpa',
 ];
 
+function renderMechanicIcon(color: string, size: number, large = false) {
+  return (
+    <View style={large ? styles.mechanicIconLargeWrap : styles.mechanicIconWrap}>
+      <IconMC name="cog-outline" size={size} color={color} />
+      <View style={large ? styles.mechanicWrenchLarge : styles.mechanicWrench}>
+        <IconMC
+          name="wrench-outline"
+          size={large ? size * 0.64 : size * 0.58}
+          color={color}
+        />
+      </View>
+    </View>
+  );
+}
+
+function renderParkingIcon(color: string, size: number, large = false) {
+  return (
+    <View style={large ? styles.parkingIconLargeWrap : styles.parkingIconWrap}>
+      <IconMC name="car-outline" size={size} color={color} />
+      <View style={large ? styles.parkingBadgeLarge : styles.parkingBadge}>
+        <IconMC
+          name="alpha-p-circle-outline"
+          size={large ? size * 0.62 : size * 0.56}
+          color={color}
+        />
+      </View>
+    </View>
+  );
+}
+
+function renderTowingIcon(color: string, size: number, large = false) {
+  return (
+    <View style={large ? styles.towingIconLargeWrap : styles.towingIconWrap}>
+      <IconMC name="tow-truck" size={size} color={color} />
+    </View>
+  );
+}
+
+function renderServiceIcon(
+  item: { icon: string; iconSet: 'fa' | 'mc' | 'mechanic' | 'parking' | 'towing' },
+  color: string,
+  size: number,
+  large = false
+) {
+    if (item.iconSet === 'mechanic') {
+      return renderMechanicIcon(color, size, large);
+    }
+
+    if (item.iconSet === 'parking') {
+      return renderParkingIcon(color, size, large);
+    }
+
+    if (item.iconSet === 'towing') {
+      return renderTowingIcon(color, size, large);
+    }
+
+  if (item.iconSet === 'mc') {
+    return <IconMC name={item.icon as any} size={size} color={color} />;
+  }
+
+  return <Icon name={item.icon as any} size={size} color={color} />;
+}
+
 export default function ServicesHub() {
   const navigation = useNavigation<any>();
   const [adIndex, setAdIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [navLoading, setNavLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -143,16 +211,21 @@ export default function ServicesHub() {
   }, [adIndex]);
 
   const onServicePress = (id: string) => {
+    if (id === 'PartsWarranty' || id === 'WarrantyStatus') {
+      setNavLoading(true);
+      setTimeout(() => {
+        setNavLoading(false);
+        navigation.navigate('WarrantyStatus');
+      }, 300); // Brief transition delay for better animation feel
+      return;
+    }
+
     if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
       navigation.navigate('NearbyPlaces', { placeType: id });
       return;
     }
 
     switch (id) {
-      case 'PartsWarranty':
-      case 'WarrantyStatus':
-        navigation.navigate('WarrantyStatus');
-        break;
       case 'ServiceHistory':
         navigation.navigate('ServiceHistory');
         break;
@@ -164,6 +237,12 @@ export default function ServicesHub() {
         break;
       case 'TripExpense':
         navigation.navigate('TripExpense');
+        break;
+      case 'DLVerification':
+        navigation.navigate('DLVerification');
+        break;
+      case 'Fastag':
+        navigation.navigate('Fastag');
         break;
       default:
         break;
@@ -188,9 +267,24 @@ export default function ServicesHub() {
       
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Services Hub</Text>
-          <Text style={styles.headerSubtitle}>Explore automotive care & utilities</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+                return;
+              }
+              navigation.navigate('Home');
+            }}
+            activeOpacity={0.8}
+          >
+            <IconMC name="arrow-left" size={wp(6.2)} color="#fff" />
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.headerTitle}>Services Hub</Text>
+            <Text style={styles.headerSubtitle}>Explore automotive care & utilities</Text>
+          </View>
         </View>
         <TouchableOpacity
           style={styles.headerIcon}
@@ -258,7 +352,7 @@ export default function ServicesHub() {
                   </View>
                   <View style={styles.adRight}>
                     <View style={[styles.adIconCircle, { backgroundColor: `${item.theme}20` }]}>
-                       <Icon name={item.icon} size={wp(10)} color={item.theme} />
+                      {renderServiceIcon(item as any, item.theme, wp(10), true)}
                     </View>
                   </View>
                 </View>
@@ -294,11 +388,7 @@ export default function ServicesHub() {
                       activeOpacity={0.7}
                     >
                       <View style={styles.iconBox}>
-                        {item.iconSet === 'mc' ? (
-                          <IconMC name={item.icon as any} size={wp(5.8)} color="#fff" />
-                        ) : (
-                          <Icon name={item.icon as any} size={wp(5.8)} color="#fff" />
-                        )}
+                        {renderServiceIcon(item, '#fff', wp(5.8))}
                       </View>
                       <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
                     </TouchableOpacity>
@@ -321,6 +411,7 @@ export default function ServicesHub() {
           <Text style={styles.infoText}>More services coming soon</Text>
         </View>
       </ScrollView>
+      <LoadingSpinner visible={navLoading} />
     </SafeAreaView>
   );
 }
@@ -338,6 +429,12 @@ const styles = StyleSheet.create({
     paddingTop: hp(4),
     paddingBottom: hp(2),
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3.5),
+    flexShrink: 1,
+  },
   headerTitle: {
     fontSize: wp(6.5),
     fontFamily: 'Outfit-Bold',
@@ -348,6 +445,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Regular',
     color: 'rgba(255,255,255,0.5)',
     marginTop: 2,
+  },
+  backButton: {
+    width: wp(13.5),
+    height: wp(13.5),
+    borderRadius: wp(4.5),
+    backgroundColor: '#181818',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   headerIcon: {
     width: wp(11),
@@ -444,6 +551,60 @@ const styles = StyleSheet.create({
     width: wp(20),
     height: wp(20),
     borderRadius: wp(10),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mechanicIconWrap: {
+    width: wp(8.6),
+    height: wp(8.6),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mechanicIconLargeWrap: {
+    width: wp(11.5),
+    height: wp(11.5),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mechanicWrench: {
+    position: 'absolute',
+    transform: [{ translateX: wp(1.25) }, { translateY: -wp(1.05) }, { rotate: '-8deg' }],
+  },
+  mechanicWrenchLarge: {
+    position: 'absolute',
+    transform: [{ translateX: wp(1.65) }, { translateY: -wp(1.4) }, { rotate: '-8deg' }],
+  },
+  parkingIconWrap: {
+    width: wp(8.8),
+    height: wp(8.8),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  parkingIconLargeWrap: {
+    width: wp(11.8),
+    height: wp(11.8),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  parkingBadge: {
+    position: 'absolute',
+    top: -wp(1.4),
+    right: -wp(1.1),
+  },
+  parkingBadgeLarge: {
+    position: 'absolute',
+    top: -wp(1.8),
+    right: -wp(1.35),
+  },
+  towingIconWrap: {
+    width: wp(8.8),
+    height: wp(8.8),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  towingIconLargeWrap: {
+    width: wp(11.8),
+    height: wp(11.8),
     alignItems: 'center',
     justifyContent: 'center',
   },

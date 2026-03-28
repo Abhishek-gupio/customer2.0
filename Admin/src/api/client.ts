@@ -60,6 +60,18 @@ export const adminApi = {
       { method: 'POST', body: JSON.stringify(data) }
     ),
   me: () => api<{ admin: { id: string; email: string; role: string } }>('/v1/admin/me'),
+  forgotPassword: (email: string) =>
+    api<{ message: string; otp?: string }>('/v1/admin/auth/forgot-password', {
+      method: 'POST', body: JSON.stringify({ email }),
+    }),
+  verifyResetOtp: (email: string, otp: string) =>
+    api<{ message: string; verified: boolean }>('/v1/admin/auth/verify-reset-otp', {
+      method: 'POST', body: JSON.stringify({ email, otp }),
+    }),
+  resetPassword: (email: string, otp: string, newPassword: string) =>
+    api<{ message: string }>('/v1/admin/auth/reset-password', {
+      method: 'POST', body: JSON.stringify({ email, otp, newPassword }),
+    }),
   stats: (days: number = 7) =>
     api<{
       customers: number;
@@ -70,6 +82,9 @@ export const adminApi = {
       unverifiedVehiclesCount: number;
       totalCustomersToday: number;
       recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+      expenseCategoryBreakdown: { category: string; amount: number; count: number }[];
+      ticketPriorityDistribution: { priority: string; count: number }[];
+      vehicleHealthDistribution: { critical: number; warning: number; good: number };
       trendData?: { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[];
       databaseAvailable?: boolean;
     }>(`/v1/admin/stats?days=${days}`),

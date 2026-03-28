@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,24 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Dimensions,
   TextInput,
   FlatList,
   ActivityIndicator,
   Modal,
   Linking,
-  Image as RNImage,
+  Image,
+  Animated,
+  Easing,
+  BackHandler,
+  PermissionsAndroid,
   type ImageSourcePropType,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import LinearGradient from 'react-native-linear-gradient';
+import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -33,7 +41,7 @@ import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
-import { PermissionsAndroid } from 'react-native';
+
 import { getLastOdometerUpdate } from '../../services/storage';
 
 // GPS-based location
@@ -46,6 +54,8 @@ try {
 }
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
+const AUTO_SCROLL_INTERVAL_MS = 9000;
+const AUTO_SCROLL_RESUME_DELAY_MS = 15000;
 
 function sortCarNewsLatestFirst(list: any[]): any[] {
   return [...list].sort((a, b) => {
@@ -55,11 +65,128 @@ function sortCarNewsLatestFirst(list: any[]): any[] {
   });
 }
 
+
+
+// ─── Animated Health Display ──────────────────────────────────────────────────
+function HealthDisplay({ score }: { score: number }) {
+  const countAnim = useRef(new Animated.Value(0)).current;
+  const barAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [displayScore, setDisplayScore] = React.useState(0);
+
+  useEffect(() => {
+    countAnim.setValue(0);
+    barAnim.setValue(0);
+    fadeAnim.setValue(0);
+
+    const countListener = countAnim.addListener(({ value }) => {
+      setDisplayScore(Math.round(value));
+    });
+
+    Animated.parallel([
+      Animated.timing(countAnim, {
+        toValue: score,
+        duration: 1400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.timing(barAnim, {
+        toValue: score,
+        duration: 1500,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: false,
+      }),
+      Animated.sequence([
+        Animated.delay(1200),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    return () => { countAnim.removeListener(countListener); };
+  }, [score]);
+
+  const color = score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
+  const label = score >= 80 ? 'EXCELLENT' : score >= 50 ? 'GOOD' : 'CRITICAL';
+  const barWidth = barAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <View style={healthStyles.container}>
+      <View style={healthStyles.row}>
+        {/* Animated count-up score */}
+        <Text style={[healthStyles.score, { color }]}>
+          {displayScore}<Text style={healthStyles.scoreUnit}>%</Text>
+        </Text>
+        {/* Fade-in status pill */}
+        <Animated.View style={[healthStyles.statusPill, { opacity: fadeAnim, borderColor: `${color}55`, backgroundColor: `${color}18` }]}>
+          <Text style={[healthStyles.statusText, { color }]}>{label}</Text>
+        </Animated.View>
+      </View>
+      {/* Animated fill bar */}
+      <View style={healthStyles.barBg}>
+        <Animated.View style={[healthStyles.barFill, { width: barWidth, backgroundColor: color, shadowColor: color }]} />
+      </View>
+      <Text style={healthStyles.subLabel}>VEHICLE HEALTH</Text>
+    </View>
+  );
+}
+
+const healthStyles = StyleSheet.create({
+  container: { marginTop: hp(1.5) },
+  row: { flexDirection: 'row', alignItems: 'center', gap: wp(3), marginBottom: hp(0.8) },
+  score: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(10),
+    lineHeight: wp(11),
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  scoreUnit: { fontSize: wp(5), opacity: 0.5 },
+  statusPill: {
+    borderWidth: 1,
+    borderRadius: 50,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    alignSelf: 'center',
+  },
+  statusText: { fontFamily: 'Outfit-Black', fontSize: wp(3), letterSpacing: 1 },
+  barBg: {
+    width: wp(55),
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginBottom: hp(0.5),
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  subLabel: {
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: wp(2.2),
+    letterSpacing: 1.5,
+  },
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function Home() {
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
-  const [selectedState, setSelectedState] = useState('Kerala');
+  const [selectedState, setSelectedState] = useState('Detecting...');
   const [userLocationDisplay, setUserLocationDisplay] = useState('Detecting...');
   const [showStateModal, setShowStateModal] = useState(false);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
@@ -71,33 +198,265 @@ export default function Home() {
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [trendingNews, setTrendingNews] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ id: string; embedUrl: string; title: string } | null>(null);
+  const [isVideoDragging, setIsVideoDragging] = useState(false);
+  const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
+  const videoBaseX = useRef(new Animated.Value(0)).current;
+  const videoBaseY = useRef(new Animated.Value(0)).current;
+  const videoDragX = useRef(new Animated.Value(0)).current;
+  const videoDragY = useRef(new Animated.Value(0)).current;
+  const videoModalOffset = useRef({ x: 0, y: 0 });
+  const lastMiniVideoOffset = useRef({ x: 0, y: 0 });
+  const isVideoExpandedRef = useRef(false);
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
+  const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const windowSize = Dimensions.get('window');
+  const miniVideoCardWidth = wp(58);
+  const miniVideoCardHeight = (miniVideoCardWidth * 9) / 16 + hp(4.8);
+  const expandedVideoCardWidth = wp(88);
+  const expandedVideoCardHeight = hp(44) + hp(4.8);
+  const miniBaseLeft = Math.max(wp(2), windowSize.width - miniVideoCardWidth - wp(3));
+  const miniBaseTop = Math.max(hp(12), windowSize.height - miniVideoCardHeight - hp(13));
+  const expandedBaseLeft = Math.max(wp(4), (windowSize.width - expandedVideoCardWidth) / 2);
+  const expandedBaseTop = Math.max(hp(8), (windowSize.height - expandedVideoCardHeight) / 2);
+
+  const clampVideoOffset = useCallback((x: number, y: number, expanded: boolean) => {
+    const baseLeft = expanded ? expandedBaseLeft : miniBaseLeft;
+    const baseTop = expanded ? expandedBaseTop : miniBaseTop;
+    const cardWidth = expanded ? expandedVideoCardWidth : miniVideoCardWidth;
+    const cardHeight = expanded ? expandedVideoCardHeight : miniVideoCardHeight;
+    const minX = wp(2) - baseLeft;
+    const maxX = windowSize.width - cardWidth - wp(2) - baseLeft;
+    const minY = hp(2) - baseTop;
+    const maxY = windowSize.height - cardHeight - hp(6) - baseTop;
+
+    return {
+      x: Math.min(Math.max(x, minX), Math.max(minX, maxX)),
+      y: Math.min(Math.max(y, minY), Math.max(minY, maxY)),
+    };
+  }, [
+    expandedBaseLeft,
+    expandedBaseTop,
+    expandedVideoCardHeight,
+    expandedVideoCardWidth,
+    miniBaseLeft,
+    miniBaseTop,
+    miniVideoCardHeight,
+    miniVideoCardWidth,
+    windowSize.height,
+    windowSize.width,
+  ]);
+
+  const snapMiniVideoOffset = useCallback((x: number, y: number) => {
+    const clampedOffset = clampVideoOffset(x, y, false);
+    const minX = wp(2) - miniBaseLeft;
+    const maxX = windowSize.width - miniVideoCardWidth - wp(2) - miniBaseLeft;
+    const snapX =
+      Math.abs(clampedOffset.x - minX) < Math.abs(clampedOffset.x - maxX)
+        ? minX
+        : maxX;
+
+    return {
+      x: snapX,
+      y: clampedOffset.y,
+    };
+  }, [clampVideoOffset, miniBaseLeft, miniVideoCardWidth, windowSize.width]);
+
+  const animateVideoToOffset = useCallback((nextOffset: { x: number; y: number }) => {
+    Animated.parallel([
+      Animated.spring(videoBaseX, {
+        toValue: nextOffset.x,
+        useNativeDriver: true,
+        tension: 72,
+        friction: 10,
+      }),
+      Animated.spring(videoBaseY, {
+        toValue: nextOffset.y,
+        useNativeDriver: true,
+        tension: 72,
+        friction: 10,
+      }),
+    ]).start();
+  }, [videoBaseX, videoBaseY]);
+
+  const videoDragGestureEvent = useMemo(
+    () =>
+      Animated.event(
+        [{ nativeEvent: { translationX: videoDragX, translationY: videoDragY } }],
+        { useNativeDriver: true }
+      ),
+    [videoDragX, videoDragY]
+  );
+
+  const handleVideoGestureStateChange = useCallback((event: any) => {
+    const { nativeEvent } = event;
+    const translationX = nativeEvent.translationX ?? 0;
+    const translationY = nativeEvent.translationY ?? 0;
+
+    if (nativeEvent.state === State.BEGAN) {
+      videoBaseX.stopAnimation((value) => {
+        videoModalOffset.current.x = value;
+      });
+      videoBaseY.stopAnimation((value) => {
+        videoModalOffset.current.y = value;
+      });
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+      setIsVideoDragging(true);
+      return;
+    }
+
+    if (nativeEvent.oldState !== State.ACTIVE) {
+      return;
+    }
+
+    const nextOffset = isVideoExpandedRef.current
+      ? clampVideoOffset(
+          videoModalOffset.current.x + translationX,
+          videoModalOffset.current.y + translationY,
+          true
+        )
+      : snapMiniVideoOffset(
+          videoModalOffset.current.x + translationX,
+          videoModalOffset.current.y + translationY
+        );
+
+    videoModalOffset.current = nextOffset;
+    videoDragX.setValue(0);
+    videoDragY.setValue(0);
+    setIsVideoDragging(false);
+    animateVideoToOffset(nextOffset);
+  }, [
+    animateVideoToOffset,
+    clampVideoOffset,
+    snapMiniVideoOffset,
+    videoBaseX,
+    videoBaseY,
+    videoDragX,
+    videoDragY,
+  ]);
+
+  const toggleVideoExpanded = useCallback(() => {
+    setIsVideoDragging(false);
+
+    if (isVideoExpanded) {
+      videoModalOffset.current = lastMiniVideoOffset.current;
+      videoBaseX.setValue(lastMiniVideoOffset.current.x);
+      videoBaseY.setValue(lastMiniVideoOffset.current.y);
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+      setIsVideoExpanded(false);
+      return;
+    }
+
+    lastMiniVideoOffset.current = videoModalOffset.current;
+    videoModalOffset.current = { x: 0, y: 0 };
+    videoBaseX.setValue(0);
+    videoBaseY.setValue(0);
+    videoDragX.setValue(0);
+    videoDragY.setValue(0);
+    setIsVideoExpanded(true);
+  }, [isVideoExpanded, videoBaseX, videoBaseY, videoDragX, videoDragY]);
+
+  useEffect(() => {
+    isVideoExpandedRef.current = isVideoExpanded;
+  }, [isVideoExpanded]);
+
+  const getBannerVehicleShortName = useCallback((v: Vehicle | null): string => {
+    if (!v) return 'Vehicle';
+
+    const makeWords = (v.make || '').trim().split(/\s+/).filter(Boolean);
+    const modelWords = (v.model || '').trim().split(/\s+/).filter(Boolean);
+
+    const makeFirst = makeWords[0] || '';
+    let modelFirst = modelWords[0] || '';
+
+    // If model starts with make (e.g. "Tata Nexon"), pick next model word.
+    if (
+      makeFirst &&
+      modelFirst &&
+      makeFirst.toLowerCase() === modelFirst.toLowerCase()
+    ) {
+      modelFirst = modelWords[1] || modelFirst;
+    }
+
+    const shortName = [makeFirst, modelFirst].filter(Boolean).join(' ').trim();
+    return shortName || v.model || v.make || 'Vehicle';
+  }, []);
+
+  const pauseAutoScrollTemporarily = useCallback(() => {
+    autoScrollStoppedRef.current = true;
+    if (autoScrollResumeTimerRef.current) {
+      clearTimeout(autoScrollResumeTimerRef.current);
+    }
+    autoScrollResumeTimerRef.current = setTimeout(() => {
+      autoScrollStoppedRef.current = false;
+    }, AUTO_SCROLL_RESUME_DELAY_MS);
+  }, []);
 
   // Initial load
   useEffect(() => {
     fetchDiscoveryContent();
-    fetchUserLocation();
+    fetchUserLocationWithRetry(0);
   }, []);
 
   // Fetch fuel prices when state changes
   useEffect(() => {
-    fetchFuelPrices();
+    if (selectedState && selectedState !== 'Detecting...' && STATES.includes(selectedState)) {
+      fetchFuelPrices();
+    }
   }, [selectedState]);
+
+  useEffect(() => {
+    if (selectedVideo) {
+      videoModalOffset.current = { x: 0, y: 0 };
+      lastMiniVideoOffset.current = { x: 0, y: 0 };
+      setIsVideoExpanded(false);
+      videoBaseX.setValue(0);
+      videoBaseY.setValue(0);
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+    }
+  }, [selectedVideo, videoBaseX, videoBaseY, videoDragX, videoDragY]);
 
   useFocusEffect(
     useCallback(() => {
       fetchPrimaryVehicle();
       fetchDiscoveryContent();
     }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') {
+        return undefined;
+      }
+
+      const onBackPress = () => {
+        if (selectedVideo) {
+          setSelectedVideo(null);
+          return true;
+        }
+
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [selectedVideo])
   );
 
   // Auto-scroll carousel every 5 seconds
@@ -108,7 +467,7 @@ export default function Home() {
     const totalSlides = showOdometerSlide ? 5 : 4;
     const timer = setInterval(() => {
       if (autoScrollStoppedRef.current) return;
-      const nextIndex = (carouselIndexRef.current + 1) % 4;
+      const nextIndex = (carouselIndexRef.current + 1) % totalSlides;
       carouselIndexRef.current = nextIndex;
       setCarouselIndex(nextIndex);
       try {
@@ -119,8 +478,14 @@ export default function Home() {
       } catch (_) {
         // guard against layout-not-ready race
       }
-    }, 9000);
-    return () => clearInterval(timer);
+    }, AUTO_SCROLL_INTERVAL_MS);
+    return () => {
+      clearInterval(timer);
+      if (autoScrollResumeTimerRef.current) {
+        clearTimeout(autoScrollResumeTimerRef.current);
+        autoScrollResumeTimerRef.current = null;
+      }
+    };
   }, [showOdometerSlide]); // ← dependency added to update interval when slides change
 
   // Typewriter animation for rotating number plate placeholders
@@ -180,23 +545,29 @@ export default function Home() {
 
         // Also fetch upcoming service to show in header footer
         try {
-          const upcoming = await api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
-          const overdue = (upcoming as any).data?.find((p: any) => p.urgency === 'OVERDUE');
-          if (overdue) {
-            setServiceDueText('Overdue!');
-          } else {
-            // Find closest logic... for simplicity using first
-            const first = (upcoming as any).data?.[0];
-            if (first) {
-              const kmLeft = first.lifecycleKm - first.kmSinceReplacement;
-              setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
+          const upcoming = await api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
+          const rawData = (upcoming as any).data || upcoming;
+
+          if (Array.isArray(rawData)) {
+            const overdue = rawData.find((p: any) => p.urgency === 'OVERDUE');
+            if (overdue) {
+              setServiceDueText('Overdue!');
             } else {
-              setServiceDueText('Healthy');
+              const first = rawData[0];
+              if (first) {
+                const kmLeft = (first.lifecycleKm || 10000) - (first.kmSinceReplacement || 0);
+                setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
+              } else {
+                setServiceDueText('Healthy');
+              }
             }
+          } else {
+            console.warn('Unexpected upcoming service response format', rawData);
+            setServiceDueText('Healthy');
           }
         } catch (err) {
           console.warn('Could not fetch upcoming service for home', err);
-          setServiceDueText('N/A');
+          setServiceDueText('Checking...');
         }
       }
     } catch (error) {
@@ -275,7 +646,10 @@ export default function Home() {
     }
   };
 
-  const fetchUserLocation = async () => {
+  const [isGpsPrecise, setIsGpsPrecise] = useState(false);
+
+  const fetchUserLocationWithRetry = async (attempt = 0) => {
+    const maxAttempts = 20; // Try for ~4 minutes if needed
     try {
       setLocationLoading(true);
 
@@ -287,7 +661,7 @@ export default function Home() {
             Geolocation.getCurrentPosition(
               (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
               () => resolve(null),
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+              { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 },
             );
           });
           if (coords) {
@@ -297,44 +671,57 @@ export default function Home() {
               if (!fuelStateLockedByUserRef.current && geo.state && STATES.includes(geo.state)) {
                 setSelectedState(geo.state);
               }
+              setIsGpsPrecise(true);
+              setLocationLoading(false);
               return;
             }
           }
         }
       }
 
-      // fallback to IP
-      let geo: any = null;
-      for (const ipUrl of GEO.ipProviders) {
-        try {
-          const res = await fetch(ipUrl, { headers: { 'User-Agent': GEO.userAgent } });
-          const data = await res.json();
-          if (data?.city && data?.region) {
-            geo = data;
-            break;
-          }
-        } catch { /* ignore */ }
-      }
+      // fallback to IP (only if GPS failed and we haven't found a GPS result yet)
+      if (!isGpsPrecise) {
+        let geo: any = null;
+        for (const ipUrl of GEO.ipProviders) {
+          try {
+            const res = await fetch(ipUrl, { headers: { 'User-Agent': GEO.userAgent } });
+            const data = await res.json();
+            const region = data?.region || data?.region_name || data?.regionName;
+            if (data?.city && region) {
+              geo = { ...data, region: region };
+              break;
+            }
+          } catch { /* ignore */ }
+        }
 
-      if (geo) {
-        setUserLocationDisplay(`${geo.city}, ${geo.region}`);
-        if (!fuelStateLockedByUserRef.current) {
-          if (geo.region && STATES.includes(geo.region)) {
+        if (geo) {
+          setUserLocationDisplay(`${geo.city}, ${geo.region}`);
+          if (!fuelStateLockedByUserRef.current && geo.region && STATES.includes(geo.region)) {
             setSelectedState(geo.region);
-          } else if (geo.region_name && STATES.includes(geo.region_name)) {
-            setSelectedState(geo.region_name);
           }
         }
-      } else {
+      }
+
+      // If we don't have a GPS-precise result yet, retry
+      if (!isGpsPrecise && attempt < maxAttempts) {
+        setTimeout(() => fetchUserLocationWithRetry(attempt + 1), 10000); // Wait 10s between retries
+      } else if (!isGpsPrecise && attempt >= maxAttempts && !userLocationDisplay.includes(',')) {
         setUserLocationDisplay('Location not available');
+        setLocationLoading(false);
+      } else {
+        setLocationLoading(false);
       }
     } catch (error) {
       console.error('Location detection failed:', error);
-      setUserLocationDisplay('Location not available');
-    } finally {
-      setLocationLoading(false);
+      if (!isGpsPrecise && attempt < maxAttempts) {
+        setTimeout(() => fetchUserLocationWithRetry(attempt + 1), 10000);
+      } else {
+        setLocationLoading(false);
+      }
     }
   };
+
+  const fetchUserLocation = () => fetchUserLocationWithRetry(0);
 
   const handleProfilePress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
@@ -390,6 +777,22 @@ export default function Home() {
     }
   };
 
+  const navigateToServicesScreen = (
+    screen:
+      | 'ServicesHome'
+      | 'NearbyPlaces'
+      | 'CheckChallan'
+      | 'ServiceHistory'
+      | 'WarrantyStatus',
+    params?: any
+  ) => {
+    if (params) {
+      navigation.navigate('Services' as any, { screen, params });
+      return;
+    }
+    navigation.navigate('Services' as any, { screen });
+  };
+
   const fetchDiscoveryContent = async () => {
     try {
       setDiscoveryLoading(true);
@@ -412,11 +815,106 @@ export default function Home() {
     }
   };
 
-  const handleVideoPress = async (url: string) => {
+  /** Extract a YouTube video ID from watch, share, shorts, embed, and mobile URLs. */
+  const getYouTubeVideoId = (url: unknown): string | null => {
+    if (typeof url !== 'string') {
+      return null;
+    }
+
     try {
-      if (url) await Linking.openURL(url);
-    } catch (error) {
-      console.error('Error opening URL:', error);
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) {
+        return null;
+      }
+
+      const parsedUrl = new URL(trimmedUrl);
+      const hostname = parsedUrl.hostname.replace(/^www\./, '').replace(/^m\./, '');
+
+      if (hostname === 'youtu.be') {
+        const shortId = parsedUrl.pathname.split('/').filter(Boolean)[0] ?? '';
+        return shortId.length === 11 ? shortId : null;
+      }
+
+      const watchId = parsedUrl.searchParams.get('v');
+      if (watchId?.length === 11) {
+        return watchId;
+      }
+
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+      const pathPrefixIndex = pathSegments.findIndex((segment) =>
+        ['embed', 'shorts', 'v'].includes(segment)
+      );
+
+      if (pathPrefixIndex >= 0) {
+        const pathId = pathSegments[pathPrefixIndex + 1] ?? '';
+        return pathId.length === 11 ? pathId : null;
+      }
+
+      const fallbackMatch = trimmedUrl.match(
+        /(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|v\/|u\/\w\/))([A-Za-z0-9_-]{11})/
+      );
+      return fallbackMatch?.[1] ?? null;
+    } catch {
+      const fallbackMatch = url.trim().match(
+        /(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|v\/|u\/\w\/))([A-Za-z0-9_-]{11})/
+      );
+      return fallbackMatch?.[1] ?? null;
+    }
+  };
+
+  const buildYouTubeEmbedUrl = (videoId: string) =>
+    `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&controls=1&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&origin=${encodeURIComponent('https://gupio.in')}&widget_referrer=${encodeURIComponent('https://gupio.in/')}`;
+
+  const openYouTubeExternally = useCallback((requestUrl: string, videoId: string) => {
+    const fallbackWebUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    let externalUrl = fallbackWebUrl;
+
+    try {
+      if (
+        requestUrl.startsWith('intent://') ||
+        requestUrl.startsWith('youtube://') ||
+        requestUrl.startsWith('vnd.youtube')
+      ) {
+        externalUrl = fallbackWebUrl;
+      } else {
+        const parsedUrl = new URL(requestUrl);
+        const redirectTarget =
+          parsedUrl.searchParams.get('q') ||
+          parsedUrl.searchParams.get('u') ||
+          parsedUrl.searchParams.get('url');
+
+        if (redirectTarget) {
+          externalUrl = redirectTarget.startsWith('http')
+            ? redirectTarget
+            : `https://www.youtube.com${redirectTarget.startsWith('/') ? '' : '/'}${redirectTarget}`;
+        } else if (parsedUrl.hostname.includes('youtube-nocookie.com')) {
+          externalUrl = requestUrl.replace('youtube-nocookie.com', 'youtube.com');
+        } else if (
+          parsedUrl.hostname.includes('youtube.com') ||
+          parsedUrl.hostname.includes('youtu.be')
+        ) {
+          externalUrl = requestUrl;
+        }
+      }
+    } catch {
+      externalUrl = fallbackWebUrl;
+    }
+
+    Linking.openURL(`youtube://watch?v=${videoId}`)
+      .catch(() => Linking.openURL(externalUrl))
+      .catch(() => null);
+  }, []);
+
+  const handleVideoPress = (url: unknown, title: unknown) => {
+    const videoId = getYouTubeVideoId(url);
+    if (videoId) {
+      setSelectedVideo({
+        id: videoId,
+        embedUrl: buildYouTubeEmbedUrl(videoId),
+        title: typeof title === 'string' && title.trim() ? title : 'Trending Video',
+      });
+    } else {
+      console.warn('Unable to extract YouTube video ID for trending video:', url);
     }
   };
 
@@ -433,6 +931,7 @@ export default function Home() {
         barStyle="light-content"
         backgroundColor={Platform.OS === 'android' ? '#000000' : undefined}
       />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -440,13 +939,14 @@ export default function Home() {
       >
         {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>
+
           <FlatList
             ref={carouselRef}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onTouchStart={() => {
-              autoScrollStoppedRef.current = true;
+              pauseAutoScrollTemporarily();
             }}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
@@ -474,40 +974,43 @@ export default function Home() {
                         style={styles.primaryImageFull}
                         resizeMode={FastImage.resizeMode.cover}
                       />
-                      <View style={styles.primaryImageOverlay}>
-                        {vehicleLoading ? (
-                          <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
-                        ) : vehicle ? (
-                          <>
-                            <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
-                            <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
-                            <View style={styles.healthSection}>
-                              <Text style={styles.healthText}>
-                                {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
-                              </Text>
-                              <View style={styles.healthBarBg}>
-                                <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
+                      {/* Bottom-up gradient scrim for text legibility */}
+                      <LinearGradient
+                        colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
+                        locations={[0, 0.3, 0.65, 1]}
+                        style={styles.primaryImageOverlay}
+                      >
+                          <View style={styles.bannerBottomRow}>
+                            {/* Left: vehicle info + health */}
+                            {vehicleLoading ? (
+                              <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-end' }} />
+                            ) : vehicle ? (
+                              <View style={styles.vehicleBannerContent}>
+                                {/* Real Indian number plate */}
+                                <View style={styles.regBadge}>
+                                  <View style={styles.regIndStrip}>
+                                    <Text style={styles.regFlagEmoji}>🇮🇳</Text>
+                                    <Text style={styles.regIndText}>IND</Text>
+                                  </View>
+                                  <Text style={styles.regBadgeText}>{vehicle.registrationNumber}</Text>
+                                </View>
+                                <Text style={styles.bannerModel}>{getBannerVehicleShortName(vehicle)}</Text>
+                                <HealthDisplay score={vehicle.healthScore?.overallScore ?? 100} />
                               </View>
-                            </View>
-                          </>
-                        ) : (
-                          <View>
-                            <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
-                            <Text style={styles.headerCarModel}>Tap to get started</Text>
-                          </View>
-                        )}
+                            ) : (
+                              <View style={styles.vehicleBannerContent}>
+                                <Text style={styles.bannerMake}>My Garage</Text>
+                                <Text style={styles.bannerModel}>Add your vehicle to get started</Text>
+                              </View>
+                            )}
 
-                        <View style={styles.headerFooterOverlay}>
-                          <View style={styles.footerItem}>
-                            <Text style={styles.footerLabel}>Service due in</Text>
-                            <Text style={styles.footerValue}>{serviceDueText}</Text>
+                            {/* Right: service due chip */}
+                            <View style={styles.serviceDueChip}>
+                              <Text style={styles.serviceDueLabel}>DUE IN</Text>
+                              <Text style={styles.serviceDueValue}>{serviceDueText}</Text>
+                            </View>
                           </View>
-                          <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
-                            <Text style={styles.footerLabel}>FASTag</Text>
-                            <Text style={styles.footerValue}>₹ ---</Text>
-                          </View>
-                        </View>
-                      </View>
+                        </LinearGradient>
                     </View>
                   </View>
                 );
@@ -530,7 +1033,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <RNImage
+                        <Image
                           source={require('../../assets/images/expense_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -558,7 +1061,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <RNImage
+                        <Image
                           source={require('../../assets/images/vehicle_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -593,7 +1096,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <RNImage
+                        <Image
                           source={require('../../assets/images/insta&website_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -603,69 +1106,69 @@ export default function Home() {
                   </View>
                 );
               }
-            const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
-            const now = Date.now();
-            const weekMs = 7 * 24 * 60 * 60 * 1000;
-            const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
-            const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
+              const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
+              const now = Date.now();
+              const weekMs = 7 * 24 * 60 * 60 * 1000;
+              const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
+              const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
 
-            return (
-              <TouchableOpacity
-                style={styles.slideFull}
-                activeOpacity={0.9}
-                onPress={() => (navigation as any).navigate('Odometer')}
-              >
-                <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
-                  <View style={styles.promoLeft}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
-                      {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
-                      <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                        {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
-                      </Text>
-                    </View>
-                    
-                    {lastUpdate ? (
-                      <View>
-                        <View style={styles.odometerInfoRow}>
-                          <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
-                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                            {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                          </Text>
-                          <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
-                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                            {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                          </Text>
-                        </View>
-                        
-                        <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
-                          <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
-                            {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
-                          </Text>
-                        </View>
+              return (
+                <TouchableOpacity
+                  style={styles.slideFull}
+                  activeOpacity={0.9}
+                  onPress={() => (navigation as any).navigate('Odometer')}
+                >
+                  <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
+                    <View style={styles.promoLeft}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
+                        {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
+                        <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                          {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
+                        </Text>
                       </View>
-                    ) : (
-                      <Text style={styles.promoDesc}>
-                        Start tracking your vehicle health by updating odometer.
-                      </Text>
-                    )}
-                    
-                    <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
-                      <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
-                      <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
+
+                      {lastUpdate ? (
+                        <View>
+                          <View style={styles.odometerInfoRow}>
+                            <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
+                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                              {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                            </Text>
+                            <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
+                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                              {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            </Text>
+                          </View>
+
+                          <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
+                            <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
+                              {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : (
+                        <Text style={styles.promoDesc}>
+                          Start tracking your vehicle health by updating odometer.
+                        </Text>
+                      )}
+
+                      <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
+                        <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
+                        <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
+                      </View>
+                    </View>
+                    <View style={styles.promoRight}>
+                      <Image
+                        source={require('../../assets/images/odometer.png') as any}
+                        style={styles.adImage}
+                        resizeMode="contain"
+                      />
                     </View>
                   </View>
-                  <View style={styles.promoRight}>
-                    <RNImage
-                      source={require('../../assets/images/odometer.png') as any}
-                      style={styles.adImage}
-                      resizeMode="contain"
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
+                </TouchableOpacity>
+              );
+            }}
+          />
 
           {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
@@ -699,13 +1202,13 @@ export default function Home() {
 
         {/* NUMBER PLATE SECTION */}
         <View style={styles.numberPlateSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.numberPlateContainer}
             activeOpacity={0.8}
             onPress={() => navigation.navigate('VehicleSearch')}
           >
             <View style={styles.indContainer}>
-              <View style={styles.greenDot} />
+              <Text style={styles.flagEmoji}>🇮🇳</Text>
               <Text style={styles.indText}>IND</Text>
             </View>
             <View style={styles.numberPlatePlaceholderContainer}>
@@ -730,17 +1233,17 @@ export default function Home() {
             } else if (id === 'valet') {
               navigateToRootScreen('Valet');
             } else if (id === 'service') {
-              navigation.navigate('Services' as any, { screen: 'ServicesHome' });
+              navigateToServicesScreen('ServicesHome');
             } else if (id === 'driving') {
               navigateToRootScreen('DrivingSummary');
             } else if (id === 'nearby') {
-              navigation.navigate('Services' as any, { 
+              navigation.navigate('Services' as any, {
                 screen: 'NearbyPlaces',
                 params: { fromHome: true }
               });
             } else if (id === 'support') {
               handleHelpPress();
-            } else if (id === 'tripcost') {
+            } else if (id === 'trip_planner') {
               navigateToRootScreen('TripExpense');
             }
           }}
@@ -749,7 +1252,7 @@ export default function Home() {
         {/* INSURANCE BANNER */}
         <View style={styles.bannerSection}>
           <View style={styles.insuranceBanner}>
-            <RNImage
+            <Image
               source={require('../../assets/images/challan.png') as any}
               style={styles.bannerImage}
               resizeMode="contain"
@@ -759,7 +1262,7 @@ export default function Home() {
               <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
               <TouchableOpacity
                 style={styles.payNowButton}
-                onPress={() => navigation.navigate('Services' as any, { screen: 'CheckChallan' })}
+                onPress={() => navigateToServicesScreen('CheckChallan')}
               >
                 <Text style={styles.payNowText}>Check Now</Text>
               </TouchableOpacity>
@@ -793,8 +1296,13 @@ export default function Home() {
               {trendingVideos.map((item, index) => (
                 <TouchableOpacity
                   key={String(item?.id ?? index)}
-                  style={styles.videoCard}
-                  onPress={() => handleVideoPress(item.url)}
+                  style={[
+                    styles.videoCard,
+                    selectedVideo?.id === getYouTubeVideoId(item.url)
+                      ? styles.videoCardActive
+                      : undefined,
+                  ]}
+                  onPress={() => handleVideoPress(item.url, item.title)}
                 >
                   {item.tag ? (
                     <View style={styles.videoTag}>
@@ -808,7 +1316,11 @@ export default function Home() {
                       resizeMode={FastImage.resizeMode.cover}
                     />
                     <View style={styles.playButtonOverlay}>
-                      <MaterialIcon name="play-circle" size={50} color="#fff" />
+                      <MaterialIcon
+                        name={selectedVideo?.id === getYouTubeVideoId(item.url) ? 'pause-circle' : 'play-circle'}
+                        size={50}
+                        color="#fff"
+                      />
                     </View>
                     <Text style={styles.viewCount}>{item.views}</Text>
                   </View>
@@ -819,6 +1331,7 @@ export default function Home() {
               ))}
             </ScrollView>
           )}
+
         </View>
 
         <View style={styles.fuelSection}>
@@ -870,18 +1383,19 @@ export default function Home() {
             </View>
           ) : (
             <View style={styles.fuelContentCard}>
-              <Text style={styles.loadingText}>Unable to load fuel prices</Text>
+              <Text style={styles.loadingText}>
+                {selectedState === 'Detecting...' 
+                  ? 'Finding your city...' 
+                  : `No fuel data for ${selectedState || 'current state'}`}
+              </Text>
             </View>
           )}
         </View>
 
-        {/* TRENDING CAR NEWS */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Car News</Text>
-            {discoveryLoading ? (
-              <ActivityIndicator size="small" color="#FFBF00" />
-            ) : null}
+            <Text style={styles.sectionTitle}>Trending News</Text>
+            {discoveryLoading ? <ActivityIndicator size="small" color="#FFBF00" /> : null}
           </View>
           {discoveryLoading && trendingNews.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
@@ -892,21 +1406,44 @@ export default function Home() {
               <Text style={styles.discoveryPlaceholderText}>No news right now. Check back soon.</Text>
             </View>
           ) : (
-            trendingNews.map((news, index) => (
-              <TouchableOpacity
-                key={String(news?.id ?? index)}
-                style={styles.newsCard}
-                onPress={() => handleNewsPress(news.url)}
-              >
-                <View style={styles.newsContent}>
-                  <Text style={styles.newsTitle}>{news.title}</Text>
-                  <Text style={styles.newsSnippet} numberOfLines={1}>
-                    {news.snippet}
-                  </Text>
-                  <Text style={styles.newsTime}>{news.time}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              contentContainerStyle={styles.videoListContent}
+            >
+              {trendingNews.map((news, index) => (
+                <TouchableOpacity
+                  key={String(news?.id ?? index)}
+                  style={styles.videoCard}
+                  onPress={() => handleNewsPress(news.url)}
+                >
+                  {news.source ? (
+                    <View style={styles.videoTag}>
+                      <Text style={styles.tagText}>{news.source}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.videoThumbnail}>
+                    <FastImage
+                      source={{ uri: news.image || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800', priority: FastImage.priority.normal }}
+                      style={styles.thumbnailImage}
+                      resizeMode={FastImage.resizeMode.cover}
+                    />
+                  </View>
+                  <View style={styles.videoCardInfo}>
+                    <Text style={styles.videoCardTitle} numberOfLines={2}>
+                      {news.title}
+                    </Text>
+                    <View style={styles.videoCardFooter}>
+                      <Text style={styles.videoCardDetails}>{news.time}</Text>
+                      <View style={styles.latestBadge}>
+                        <Text style={styles.latestLabel}>LATEST</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           )}
         </View>
 
@@ -943,7 +1480,7 @@ export default function Home() {
               <Text style={styles.featureTitle}>Emergency</Text>
             </View>
           </View>
-          <RNImage
+          <Image
             source={require('../../assets/images/coming_soon.png') as any}
             style={styles.comingSoonBadge}
             resizeMode="contain"
@@ -1016,14 +1553,161 @@ export default function Home() {
         </View>
       </Modal>
 
+      {selectedVideo ? (
+        <View pointerEvents="box-none" style={styles.videoModalOverlay}>
+          <Animated.View
+            renderToHardwareTextureAndroid={true}
+            shouldRasterizeIOS={true}
+            style={[
+              styles.videoModalCard,
+              isVideoExpanded ? styles.videoModalCardExpanded : null,
+              !isVideoExpanded && isVideoDragging ? styles.videoModalCardDragging : null,
+              {
+                top: isVideoExpanded ? expandedBaseTop : miniBaseTop,
+                left: isVideoExpanded ? expandedBaseLeft : miniBaseLeft,
+                width: isVideoExpanded ? expandedVideoCardWidth : miniVideoCardWidth,
+                transform: [
+                  { translateX: Animated.add(videoBaseX, videoDragX) },
+                  { translateY: Animated.add(videoBaseY, videoDragY) },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.inlinePlayerHeader}>
+              <PanGestureHandler
+                activeOffsetX={[-4, 4]}
+                activeOffsetY={[-4, 4]}
+                avgTouches
+                onGestureEvent={videoDragGestureEvent}
+                onHandlerStateChange={handleVideoGestureStateChange}
+              >
+                <Animated.View style={styles.videoModalDragHeader}>
+                  <View style={styles.videoModalDragHandle} />
+                  <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
+                    {selectedVideo.title}
+                  </Text>
+                </Animated.View>
+              </PanGestureHandler>
+              <View style={styles.inlinePlayerActions}>
+                <TouchableOpacity
+                  style={styles.inlinePlayerClose}
+                  onPress={() => setSelectedVideo(null)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <MaterialIcon name="close" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View
+              pointerEvents={isVideoDragging ? 'none' : 'auto'}
+              style={
+                isVideoExpanded
+                  ? styles.inlinePlayerFrameExpanded
+                  : styles.inlinePlayerFrame
+              }
+            >
+              <WebView
+                key={selectedVideo.embedUrl}
+                source={{
+                  uri: selectedVideo.embedUrl,
+                  headers: {
+                    Referer: 'https://gupio.in/',
+                    Origin: 'https://gupio.in',
+                  },
+                }}
+                style={styles.inlinePlayer}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                allowsInlineMediaPlayback={true}
+                mediaPlaybackRequiresUserAction={false}
+                scrollEnabled={false}
+                originWhitelist={['*']}
+                overScrollMode="never"
+                bounces={false}
+                javaScriptCanOpenWindowsAutomatically={false}
+                setSupportMultipleWindows={false}
+                allowsFullscreenVideo={false}
+                androidLayerType="hardware"
+                onShouldStartLoadWithRequest={(request) => {
+                  const requestUrl = request.url;
+                  const lowerRequestUrl = requestUrl.toLowerCase();
+
+                  if (
+                    lowerRequestUrl.startsWith('vnd.youtube') ||
+                    lowerRequestUrl.startsWith('intent://') ||
+                    lowerRequestUrl.startsWith('youtube://')
+                  ) {
+                    openYouTubeExternally(requestUrl, selectedVideo.id);
+                    return false;
+                  }
+
+                  if (
+                    requestUrl === 'about:blank' ||
+                    requestUrl === selectedVideo.embedUrl
+                  ) {
+                    return true;
+                  }
+
+                  const isBlockedYouTubeNavigation =
+                    lowerRequestUrl.includes('youtube.com/watch') ||
+                    lowerRequestUrl.includes('youtube.com/shorts/') ||
+                    lowerRequestUrl.includes('youtube.com/live/') ||
+                    lowerRequestUrl.includes('youtube.com/channel/') ||
+                    lowerRequestUrl.includes('youtube.com/c/') ||
+                    lowerRequestUrl.includes('youtube.com/@') ||
+                    lowerRequestUrl.includes('youtube.com/results') ||
+                    lowerRequestUrl.includes('youtube.com/feed/') ||
+                    lowerRequestUrl.includes('youtube.com/playlist') ||
+                    lowerRequestUrl.includes('youtube.com/redirect') ||
+                    lowerRequestUrl.includes('youtube.com/attribution_link') ||
+                    lowerRequestUrl.includes('m.youtube.com/') ||
+                    lowerRequestUrl.includes('youtu.be/');
+
+                  if (isBlockedYouTubeNavigation) {
+                    openYouTubeExternally(requestUrl, selectedVideo.id);
+                    return false;
+                  }
+
+                  return (
+                    lowerRequestUrl.includes(`/embed/${selectedVideo.id}`) ||
+                    lowerRequestUrl.includes('youtube.com/embed/') ||
+                    lowerRequestUrl.includes('youtube-nocookie.com/embed/') ||
+                    lowerRequestUrl.includes('youtube.com/iframe_api') ||
+                    lowerRequestUrl.includes('youtube.com/s/player/') ||
+                    lowerRequestUrl.includes('youtube.com/youtubei/') ||
+                    lowerRequestUrl.includes('googlevideo.com/') ||
+                    lowerRequestUrl.includes('ytimg.com/') ||
+                    lowerRequestUrl.includes('gstatic.com/') ||
+                    lowerRequestUrl.includes('googleusercontent.com/')
+                  );
+                }}
+                onError={(e) => console.warn('Inline player error', e)}
+              />
+              <TouchableOpacity
+                style={styles.videoExpandOverlayButton}
+                onPress={toggleVideoExpanded}
+                activeOpacity={0.85}
+              >
+                <MaterialIcon
+                  name={isVideoExpanded ? 'fullscreen-exit' : 'fullscreen'}
+                  size={18}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      ) : null}
+
       <ServiceOptionsOverlay
         visible={serviceModalVisible}
         onClose={() => setServiceModalVisible(false)}
         onSelect={(screen) => {
           setServiceModalVisible(false);
-          navigation.navigate(screen);
+          navigateToServicesScreen(screen);
         }}
       />
+
     </SafeAreaView>
   );
 }
@@ -1101,104 +1785,179 @@ const styles = StyleSheet.create({
   },
   primaryImageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    paddingHorizontal: wp(6),
-    paddingTop: hp(6),
-    paddingBottom: hp(6),
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.22)',
+    // Bottom-up scrim for text legibility — handled by LinearGradient
+    justifyContent: 'flex-end',
+    paddingBottom: hp(3.5),
+    paddingHorizontal: wp(5.5),
   },
+  bannerBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  vehicleBannerContent: {
+    flex: 1,
+    marginBottom: hp(2),
+  },
+  // Authentic licence plate badge
+  regBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    marginBottom: hp(1),
+    borderWidth: 2,
+    borderColor: '#003580',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.7,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  regIndStrip: {
+    backgroundColor: '#003580',
+    paddingHorizontal: wp(1.5),
+    paddingVertical: hp(0.4),
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+  },
+  regFlagEmoji: {
+    fontSize: wp(2.8),
+    lineHeight: wp(3.2),
+  },
+  regIndText: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(2),
+    letterSpacing: 0.5,
+  },
+  regBadgeText: {
+    fontFamily: 'Outfit-Black',
+    color: '#0A0A0A',
+    fontSize: wp(4.8),
+    letterSpacing: 2.5,
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+  },
+  bannerMake: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(8),
+    letterSpacing: 0.5,
+    lineHeight: wp(8.5),
+    textShadowColor: 'rgba(0,0,0,0.95)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  bannerModel: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(8),
+    letterSpacing: 0.5,
+    lineHeight: wp(8.5),
+    marginBottom: hp(1.5),
+    textShadowColor: 'rgba(0,0,0,0.95)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  // Inline health score
+  inlineHealth: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    marginTop: hp(1.2),
+  },
+  inlineScore: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(11),
+    lineHeight: wp(12),
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  inlineScoreUnit: {
+    fontSize: wp(5),
+    opacity: 0.5,
+  },
+  inlineRight: {
+    gap: hp(0.6),
+    justifyContent: 'center',
+  },
+  inlineStatusPill: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 50,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.4),
+  },
+  inlineStatusText: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(3),
+    letterSpacing: 1,
+  },
+  inlineSubLabel: {
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: wp(2.2),
+    letterSpacing: 1.5,
+  },
+  // Service due chip (right side)
+  serviceDueChip: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(1.2),
+    borderRadius: 14,
+    marginBottom: hp(2),
+    marginLeft: wp(3),
+  },
+  serviceDueLabel: {
+    fontFamily: 'Outfit-Bold',
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: wp(2.5),
+    letterSpacing: 1.5,
+  },
+  serviceDueValue: {
+    fontFamily: 'Outfit-Black',
+    color: '#FFFFFF',
+    fontSize: wp(4),
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  // legacy / other slides
   headerFooterOverlay: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingHorizontal: wp(6),
-    paddingTop: hp(4), // Avoid top overlay
-    alignItems: 'center', // Center vertically
-  },
-  headerLeft: {
-    flex: 1.3,
-    justifyContent: 'center',
-  },
-  headerRight: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'flex-end',
   },
   headerNumberPlate: {
-    fontFamily: 'Outfit-Bold',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
-    fontSize: wp(5.5),
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontSize: wp(6),
+    letterSpacing: 2,
   },
   headerCarModel: {
     fontFamily: 'Outfit-SemiBold',
-    color: '#f4f4f4',
-    fontSize: wp(3.7),
-    fontWeight: '700',
-    marginTop: hp(0.2),
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  healthSection: {
-    marginTop: hp(1.5),
-  },
-  healthText: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(4.5),
-    fontWeight: '700',
-  },
-  healthLabel: {
-    color: '#4ade80', // Greenish
-    fontSize: wp(3.5),
-    fontWeight: '600',
-  },
-  healthBarBg: {
-    width: wp(40),
-    height: hp(0.5),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 4,
-    marginTop: hp(1),
-    overflow: 'hidden',
-  },
-  healthBarFill: {
-    height: '100%',
-    backgroundColor: '#32D74B',
-    borderRadius: 4,
-  },
-  headerFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(6),
-    paddingBottom: hp(6),
-  },
-  footerItem: {
-    justifyContent: 'center',
-  },
-  footerLabel: {
-    fontFamily: 'Outfit-Medium',
-    color: '#f1f1f1',
-    fontSize: wp(3.1),
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  footerValue: {
-    fontFamily: 'Outfit-Black',
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: wp(4),
-    marginTop: hp(0.2),
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
+  healthPillRow: { flexDirection: 'row', alignItems: 'center', gap: wp(2) },
+  healthDot: { width: 8, height: 8, borderRadius: 4 },
+  healthPillText: { fontFamily: 'Outfit-Black', color: '#FFFFFF', fontSize: wp(5) },
+  healthPillLabel: { fontFamily: 'Outfit-Bold', color: 'rgba(255,255,255,0.5)', fontSize: wp(2.8), letterSpacing: 1.5 },
+  footerItem: { justifyContent: 'center' },
+  footerLabel: { fontFamily: 'Outfit-Bold', color: 'rgba(255,255,255,0.6)', fontSize: wp(2.5), letterSpacing: 1 },
+  footerValue: { fontFamily: 'Outfit-Black', color: '#FFFFFF', fontSize: wp(4.5), marginTop: hp(0.2) },
+  healthSection: { marginTop: hp(1.5) },
+  healthText: { fontFamily: 'Outfit-Black', color: '#fff', fontSize: wp(4.5) },
+  healthLabel: { color: '#4ade80', fontSize: wp(3.5) },
   headerCarImage: {
     width: wp(40),
     height: hp(16),
@@ -1218,17 +1977,17 @@ const styles = StyleSheet.create({
     width: wp(11),
     height: wp(11),
     borderRadius: wp(5.5),
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   sosOverlayButton: {
     height: hp(4),
     paddingHorizontal: wp(3.5),
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 77, 77, 0.18)',
+    backgroundColor: 'rgba(255, 77, 77, 0.4)',
     borderWidth: 1.5,
     borderColor: '#ff4d4d',
     flexDirection: 'row',
@@ -1238,8 +1997,8 @@ const styles = StyleSheet.create({
     // Premium glow effect
     shadowColor: '#ff4d4d',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
     elevation: 8,
   },
   sosOverlayText: {
@@ -1247,6 +2006,9 @@ const styles = StyleSheet.create({
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
     marginLeft: wp(1.2),
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   /* CAROUSEL SLIDE STYLES */
@@ -1455,22 +2217,20 @@ const styles = StyleSheet.create({
   indContainer: {
     backgroundColor: '#003399',
     height: '100%',
-    paddingHorizontal: wp(2.5),
+    paddingHorizontal: wp(2),
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: hp(0.5),
+    gap: 1,
   },
-  greenDot: {
-    width: wp(1.5),
-    height: wp(1.5),
-    borderRadius: wp(0.75),
-    backgroundColor: '#4ade80',
-    marginBottom: hp(0.3),
+  flagEmoji: {
+    fontSize: wp(2.8),
+    lineHeight: wp(3.5),
   },
   indText: {
-    fontFamily: 'Outfit-Bold',
+    fontFamily: 'Outfit-Black',
     color: '#fff',
-    fontSize: wp(2.6),
+    fontSize: wp(2.2),
+    letterSpacing: 0.5,
   },
   numberPlatePlaceholderContainer: {
     flex: 1,
@@ -1663,6 +2423,41 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-SemiBold',
     padding: wp(3),
     lineHeight: hp(2.2),
+  },
+  videoCardInfo: {
+    padding: wp(3),
+    gap: hp(0.5),
+  },
+  videoCardTitle: {
+    color: '#fff',
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Bold',
+    lineHeight: wp(4.5),
+  },
+  videoCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(0.5),
+  },
+  videoCardDetails: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Medium',
+  },
+  latestBadge: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    paddingHorizontal: wp(1.5),
+    paddingVertical: hp(0.2),
+    borderRadius: 4,
+    borderWidth: 0.5,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  latestLabel: {
+    color: '#22C55E',
+    fontSize: wp(2),
+    fontFamily: 'Outfit-Black',
+    letterSpacing: 0.5,
   },
 
   /* NEWS CARDS */
@@ -1930,5 +2725,109 @@ const styles = StyleSheet.create({
     color: '#0a0a0a',
     fontSize: wp(4.5),
     fontWeight: '800',
+  },
+
+  videoModalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  videoModalCard: {
+    position: 'absolute',
+    top: hp(18),
+    left: wp(4),
+    width: wp(58),
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#050505',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    elevation: 16,
+    zIndex: 1001,
+  },
+  videoModalCardExpanded: {
+    top: hp(9),
+    left: wp(6),
+    width: wp(88),
+    borderRadius: 18,
+  },
+  videoModalCardDragging: {
+    elevation: 6,
+    shadowOpacity: 0,
+    borderColor: 'rgba(255,255,255,0.04)',
+  },
+  videoModalDragHeader: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(0.25),
+  },
+  videoModalDragHandle: {
+    width: wp(8),
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+    marginRight: wp(1.8),
+  },
+  inlinePlayerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(2.2),
+    paddingVertical: hp(0.55),
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  inlinePlayerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  inlinePlayerActionButton: {
+    padding: wp(0.5),
+  },
+  inlinePlayerTitle: {
+    flex: 1,
+    color: '#fff',
+    fontSize: wp(2.9),
+    fontFamily: 'Outfit-Medium',
+    marginRight: wp(1.2),
+  },
+  inlinePlayerClose: {
+    padding: wp(0.5),
+  },
+  inlinePlayerFrame: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#000',
+  },
+  inlinePlayerFrameExpanded: {
+    width: '100%',
+    height: hp(44),
+    backgroundColor: '#000',
+  },
+  inlinePlayer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  videoExpandOverlayButton: {
+    position: 'absolute',
+    right: wp(2),
+    bottom: hp(1),
+    width: wp(8.5),
+    height: wp(8.5),
+    borderRadius: wp(4.25),
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  /* ACTIVE VIDEO CARD (currently playing) */
+  videoCardActive: {
+    borderWidth: 2,
+    borderColor: '#FFBF00',
+    borderRadius: 12,
   },
 });

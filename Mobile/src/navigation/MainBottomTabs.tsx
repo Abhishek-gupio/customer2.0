@@ -17,7 +17,7 @@ import type { MainTabParamList } from './types';
 import Home from '../screens/Main/Home';
 import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
-import Odometer from '../screens/Main/Odometer';
+import Odometer from '../screens/Main/Odometer'; 
 import HeyGupioOverlay from '../components/HeyGupioOverlay';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
 

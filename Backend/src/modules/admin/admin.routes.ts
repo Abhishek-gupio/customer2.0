@@ -7,6 +7,11 @@ const router = Router();
 router.post("/auth/login", adminController.login);
 router.post("/auth/signup", adminController.signup);
 
+// Public forgot-password routes (no auth required)
+router.post("/auth/forgot-password", adminController.forgotPassword);
+router.post("/auth/verify-reset-otp", adminController.verifyResetOtp);
+router.post("/auth/reset-password", adminController.resetPassword);
+
 router.use(adminAuthMiddleware);
 
 router.get("/me", adminController.me);
