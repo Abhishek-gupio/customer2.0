@@ -11,6 +11,7 @@ interface Props {
   planning: PlanningState;
   onChange: (partial: Partial<PlanningState>) => void;
   tripResult?: TripExpenseResult | null;
+  selectedRouteIndex?: number;
 }
 
 type TransportCategory = 'all' | 'bikes' | 'cars' | 'cabs' | 'personal';
@@ -90,7 +91,7 @@ const buildTransportSearchUrl = (item: TransportOption, city: string) => {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 };
 
-const TransportOptions = ({ planning, onChange, tripResult }: Props) => {
+const TransportOptions = ({ planning, onChange, tripResult, selectedRouteIndex }: Props) => {
   const [rentals, setRentals] = useState<NearbyPlace[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<TransportCategory>('all');
@@ -107,7 +108,10 @@ const TransportOptions = ({ planning, onChange, tripResult }: Props) => {
   }, [tripResult]);
 
   const fetchRentals = async () => {
-    const route = tripResult?.routes?.[0];
+    const route =
+      tripResult?.routes?.[selectedRouteIndex ?? planning.selectedRouteIndex ?? 0] ||
+      tripResult?.cheapestRoute ||
+      tripResult?.routes?.[0];
     if (!route?.polyline) return;
 
     setLoading(true);

@@ -51,6 +51,7 @@ export interface PlanningState {
   stayDays: number;
   travelerType: TravelerType;
   numberOfPeople?: number;
+  selectedRouteIndex?: number;
   preferences: Preference[];
   budget: number;
   hotelBudget?: number;

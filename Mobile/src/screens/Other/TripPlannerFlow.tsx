@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { ChevronRight, ChevronLeft } from 'lucide-react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import QuickSetup from './components/QuickSetup';
 import ExplorerTabs from './components/ExplorerTabs';
 import SuccessScreen from './components/SuccessScreen';
@@ -25,18 +26,26 @@ interface Props {
   from?: string;
   to?: string;
   initialStep?: number;
+  selectedRouteIndex?: number;
   initialPlanning?: PlanningState | null;
 }
 
-const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, initialPlanning }: Props) => {
+const SAVE_DEBOUNCE_MS = 300;
+
+const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, selectedRouteIndex, initialPlanning }: Props) => {
+  const insets = useSafeAreaInsets();
   const [currentStep, setCurrentStep] = useState(initialStep ?? 0);
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSaveRef = useRef<PlanningState | null>(null);
   const [planning, setPlanning] = useState<PlanningState>({
     arrivalDate: null,
     departureDate: null,
     stayDays: 0,
     travelerType: 'solo',
+    numberOfPeople: 1,
+    selectedRouteIndex: selectedRouteIndex ?? 0,
     preferences: [],
     budget: 0,
     hotelBudget: 0,
@@ -49,20 +58,58 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
     currentStep: 0,
   });
 
+  const flushPlanningSave = () => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    if (pendingSaveRef.current) {
+      void savePlanningState(pendingSaveRef.current, tripId);
+      pendingSaveRef.current = null;
+    }
+  };
+
+  const persistPlanningState = (nextState: PlanningState, immediate: boolean = false) => {
+    pendingSaveRef.current = nextState;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    if (immediate) {
+      flushPlanningSave();
+      return;
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      flushPlanningSave();
+    }, SAVE_DEBOUNCE_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      flushPlanningSave();
+    };
+  }, [tripId]);
+
   useEffect(() => {
     if (!initialPlanning) return;
-    setPlanning(initialPlanning);
+    setPlanning({
+      ...initialPlanning,
+      selectedRouteIndex: selectedRouteIndex ?? initialPlanning.selectedRouteIndex ?? 0,
+    });
     if (initialStep !== undefined) {
       setCurrentStep(initialStep);
     }
-  }, [initialPlanning, initialStep]);
+  }, [initialPlanning, initialStep, selectedRouteIndex]);
 
   useEffect(() => {
     if (initialPlanning) return;
     (async () => {
       const saved = await loadPlanningState(tripId);
       if (saved) {
-        setPlanning(saved);
+        setPlanning({
+          ...saved,
+          selectedRouteIndex: selectedRouteIndex ?? saved.selectedRouteIndex ?? 0,
+        });
         // Only override step if initialStep wasn't provided
         if (initialStep === undefined) {
           // Map old steps (0-5) to new steps (0-2)
@@ -74,7 +121,17 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
         }
       }
     })();
-  }, [tripId, initialStep, initialPlanning]);
+  }, [tripId, initialStep, initialPlanning, selectedRouteIndex]);
+
+  useEffect(() => {
+    if (selectedRouteIndex == null) return;
+    setPlanning((prev) => {
+      if (prev.selectedRouteIndex === selectedRouteIndex) return prev;
+      const next = { ...prev, selectedRouteIndex };
+      persistPlanningState(next);
+      return next;
+    });
+  }, [selectedRouteIndex]);
 
   useEffect(() => {
     analyticsService.trackScreenView('trip_planner_flow');
@@ -98,6 +155,7 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
   });
 
   const closePlanner = (source: string) => {
+    flushPlanningSave();
     tripPlannerAnalytics.plannerExited({
       source,
       step_index: currentStep,
@@ -107,10 +165,12 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
   };
 
   const updatePlanning = (partial: Partial<PlanningState>) => {
-    // Keep currentStep in sync, but allow explicit step overrides from callers.
-    const newState = { ...planning, currentStep, ...partial };
-    setPlanning(newState);
-    savePlanningState(newState, tripId);
+    setPlanning((prev) => {
+      // Keep currentStep in sync, but allow explicit step overrides from callers.
+      const newState = { ...prev, currentStep: partial.currentStep ?? currentStep, ...partial };
+      persistPlanningState(newState);
+      return newState;
+    });
   };
 
   const handleNext = () => {
@@ -133,13 +193,15 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
     setIsSavingTrip(true);
     setSaveError(null);
     try {
+      const planningForSave = pendingSaveRef.current || planning;
+      persistPlanningState(planningForSave, true);
       if (tripResult && from && to) {
         await saveToHistory({
           id: tripId || `manual_${Date.now()}`,
           from,
           to,
           tripResult,
-          planning,
+          planning: planningForSave,
           timestamp: Date.now()
         });
       }
@@ -214,6 +276,7 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
             onChange={updatePlanning} 
             onFinish={handleFinishExplorer}
             tripResult={tripResult}
+            selectedRouteIndex={planning.selectedRouteIndex ?? selectedRouteIndex}
           />
         );
       case 2: return <SuccessScreen 
@@ -245,10 +308,10 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       {!isSuccess && (
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: Math.max(8, insets.top > 0 ? 6 : 16) }]}>
           <View style={styles.headerTop}>
             <TouchableOpacity
               onPress={handleBack}
@@ -276,6 +339,33 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
           <View style={styles.progressContainer}>
             <View style={[styles.progressBar, { width: `${progress}%` }]} />
           </View>
+          <View style={styles.stepRail}>
+            {steps.map((stepLabel, index) => {
+              const isActive = index === currentStep;
+              const isComplete = index < currentStep;
+              return (
+                <TouchableOpacity
+                  key={stepLabel}
+                  onPress={() => jumpToStep(index, 'step_rail')}
+                  style={[
+                    styles.stepPill,
+                    isActive && styles.stepPillActive,
+                    isComplete && styles.stepPillDone,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.stepPillText,
+                      isActive && styles.stepPillTextActive,
+                      isComplete && styles.stepPillTextDone,
+                    ]}
+                  >
+                    {index + 1}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       )}
 
@@ -292,7 +382,7 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
 
       {/* Footer Nav (Only for Quick Setup) */}
       {currentStep === 0 && (
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(16, insets.bottom + 8) }]}>
           {!hasSetupValues && (
             <Text style={styles.footerHint}>
               You can skip setup for now and refine details after exploring hotels and activities.
@@ -310,7 +400,7 @@ const TripPlannerFlow = ({ onClose, tripId, tripResult, from, to, initialStep, i
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -326,6 +416,41 @@ const styles = StyleSheet.create({
   closeText: { color: '#666', fontSize: 18 },
   progressContainer: { height: 4, backgroundColor: '#111', borderRadius: 2, overflow: 'hidden' },
   progressBar: { height: '100%', backgroundColor: '#FFD700' },
+  stepRail: {
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  stepPill: {
+    width: 26,
+    height: 26,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepPillActive: {
+    backgroundColor: '#FFD700',
+    borderColor: '#FFD700',
+  },
+  stepPillDone: {
+    borderColor: '#3C8F4A',
+    backgroundColor: 'rgba(50, 215, 75, 0.18)',
+  },
+  stepPillText: {
+    color: '#888',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  stepPillTextActive: {
+    color: '#000',
+  },
+  stepPillTextDone: {
+    color: '#4BD264',
+  },
   content: { flex: 1 },
   footer: { 
     position: 'absolute', 

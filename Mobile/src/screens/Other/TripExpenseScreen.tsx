@@ -191,6 +191,14 @@ export default function TripExpenseScreen() {
   }, [tripId]);
 
   useEffect(() => {
+    setPlanningData((prev) => {
+      if (!prev) return prev;
+      if (prev.selectedRouteIndex === selectedRouteIdx) return prev;
+      return { ...prev, selectedRouteIndex: selectedRouteIdx };
+    });
+  }, [selectedRouteIdx]);
+
+  useEffect(() => {
     const fetchVehicle = async () => {
       try {
         const vehicles = await vehicleService.getVehicles();
@@ -693,6 +701,8 @@ export default function TripExpenseScreen() {
     setResult(entry.tripResult);
     setPlanningData(entry.planning);
     setIsHistoryMode(false);
+    const preferredRouteIndex = entry.planning?.selectedRouteIndex ?? 0;
+    const safeRouteIndex = entry.tripResult.routes?.[preferredRouteIndex] ? preferredRouteIndex : 0;
     
     // Automatically open the planner at step 2 (Summary)
     handleOpenPlanner('history_selection', 2, !!entry.planning);
@@ -701,8 +711,8 @@ export default function TripExpenseScreen() {
       route_count: entry.tripResult?.routes?.length || 0,
     });
 
-    if (entry.tripResult.routes?.[0]?.polyline) {
-      setSelectedRouteIdx(0);
+    if (entry.tripResult.routes?.[safeRouteIndex]?.polyline) {
+      setSelectedRouteIdx(safeRouteIndex);
     }
   };
 
@@ -1474,6 +1484,7 @@ export default function TripExpenseScreen() {
             from={result?.from || ''}
             to={result?.to || ''}
             initialStep={requestedPlanningStep}
+            selectedRouteIndex={selectedRouteIdx}
             initialPlanning={planningData}
             onClose={async () => {
               setIsPlanningMode(false);

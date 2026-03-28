@@ -11,6 +11,7 @@ interface Props {
   planning: PlanningState;
   onChange: (partial: Partial<PlanningState>) => void;
   tripResult?: TripExpenseResult | null;
+  selectedRouteIndex?: number;
 }
 
 type ProviderId = 'oyo' | 'agoda' | 'booking' | 'mmt';
@@ -198,7 +199,7 @@ const getPriceTierLabel = (priceLevel?: number) => {
   return `Price tier: ${'₹'.repeat(Math.min(priceLevel, 4))}`;
 };
 
-const HotelList = ({ planning, onChange, tripResult }: Props) => {
+const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props) => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
   const [redirectingProvider, setRedirectingProvider] = useState<string | null>(null);
@@ -238,7 +239,10 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
   });
 
   const fetchHotels = async () => {
-    const route = tripResult?.routes?.[0];
+    const route =
+      tripResult?.routes?.[selectedRouteIndex ?? planning.selectedRouteIndex ?? 0] ||
+      tripResult?.cheapestRoute ||
+      tripResult?.routes?.[0];
     if (!route?.polyline) return;
 
     setLoading(true);

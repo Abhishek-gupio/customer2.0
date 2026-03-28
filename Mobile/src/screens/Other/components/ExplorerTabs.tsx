@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Hotel, Compass, Bike, CheckCircle } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HotelList from './HotelList';
 import ActivityList from './ActivityList';
 import TransportOptions from './TransportOptions';
@@ -13,12 +14,15 @@ interface Props {
   onChange: (partial: Partial<PlanningState>) => void;
   onFinish: () => void;
   tripResult?: TripExpenseResult | null;
+  selectedRouteIndex?: number;
 }
 
-const ExplorerTabs = ({ planning, onChange, onFinish, tripResult }: Props) => {
+const ExplorerTabs = ({ planning, onChange, onFinish, tripResult, selectedRouteIndex }: Props) => {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'hotels' | 'activities' | 'transport'>('hotels');
   const hasSelections = !!(planning.selectedHotelId || planning.selectedBikeId || (planning.selectedActivities?.length || 0) > 0);
   const stayDays = Math.max(planning.stayDays || 1, 1);
+  const travelerCount = Math.max(planning.numberOfPeople || 1, 1);
   const dailyBudget = planning.budget > 0 ? Math.round(planning.budget / stayDays) : 0;
   const categoryBudgetParts = [
     (planning.hotelBudget || 0) > 0 ? `Stay ₹${(planning.hotelBudget || 0).toLocaleString('en-IN')}` : null,
@@ -26,6 +30,28 @@ const ExplorerTabs = ({ planning, onChange, onFinish, tripResult }: Props) => {
     (planning.transportBudget || 0) > 0 ? `Transport ₹${(planning.transportBudget || 0).toLocaleString('en-IN')}` : null,
   ].filter((part): part is string => !!part);
   const hasCategoryBudgets = categoryBudgetParts.length > 0;
+  const activeRoute =
+    tripResult?.routes?.[selectedRouteIndex ?? planning.selectedRouteIndex ?? 0] ||
+    tripResult?.cheapestRoute ||
+    tripResult?.routes?.[0];
+  const routeCostEstimate = (activeRoute?.costs?.fuel || 0) + (activeRoute?.costs?.tollFastag || 0);
+  const stayEstimate = planning.selectedHotelDetails?.price
+    ? planning.selectedHotelDetails.price * stayDays
+    : 0;
+  const activitiesEstimate = (planning.selectedActivityDetails || []).reduce((sum, activity) => {
+    return sum + ((activity.price || 0) * travelerCount);
+  }, 0);
+  const transportBaseEstimate = planning.selectedTransportDetails?.priceVal || 0;
+  const transportEstimate =
+    planning.selectedTransportDetails?.category === 'bikes' || planning.selectedTransportDetails?.category === 'cars'
+      ? transportBaseEstimate * stayDays
+      : transportBaseEstimate;
+  const projectedTotal = routeCostEstimate + stayEstimate + activitiesEstimate + transportEstimate;
+  const effectiveBudget = planning.budget > 0
+    ? planning.budget
+    : (planning.hotelBudget || 0) + (planning.activityBudget || 0) + (planning.transportBudget || 0);
+  const budgetDelta = effectiveBudget - projectedTotal;
+  const hasEffectiveBudget = effectiveBudget > 0;
 
   const tabs = [
     { id: 'hotels', label: 'Hotels', icon: Hotel },
@@ -77,17 +103,48 @@ const ExplorerTabs = ({ planning, onChange, onFinish, tripResult }: Props) => {
 
       {/* Main Content Area */}
       <View style={styles.contentArea}>
-        {activeTab === 'hotels' && <HotelList planning={planning} onChange={onChange} tripResult={tripResult} />}
-        {activeTab === 'activities' && <ActivityList planning={planning} onChange={onChange} tripResult={tripResult} />}
-        {activeTab === 'transport' && <TransportOptions planning={planning} onChange={onChange} tripResult={tripResult} />}
+        {activeTab === 'hotels' && (
+          <HotelList
+            planning={planning}
+            onChange={onChange}
+            tripResult={tripResult}
+            selectedRouteIndex={selectedRouteIndex}
+          />
+        )}
+        {activeTab === 'activities' && (
+          <ActivityList
+            planning={planning}
+            onChange={onChange}
+            tripResult={tripResult}
+            selectedRouteIndex={selectedRouteIndex}
+          />
+        )}
+        {activeTab === 'transport' && (
+          <TransportOptions
+            planning={planning}
+            onChange={onChange}
+            tripResult={tripResult}
+            selectedRouteIndex={selectedRouteIndex}
+          />
+        )}
       </View>
 
       {/* Floating Footer */}
-      <View style={styles.floatingFooter}>
+      <View style={[styles.floatingFooter, { paddingBottom: Math.max(12, insets.bottom + 8) }]}>
         <View style={styles.footerInfo}>
            <Text style={styles.footerTotal}>
              Selected: {planning.selectedHotelId ? 1 : 0} Hotel, {planning.selectedActivities?.length || 0} Activities
            </Text>
+           <Text style={styles.footerProjection}>
+             Projected: ₹{projectedTotal.toLocaleString('en-IN')}
+           </Text>
+           {hasEffectiveBudget ? (
+             <Text style={[styles.footerHealth, budgetDelta < 0 ? styles.footerHealthOver : styles.footerHealthUnder]}>
+               {budgetDelta < 0
+                 ? `Over by ₹${Math.abs(budgetDelta).toLocaleString('en-IN')}`
+                 : `Under by ₹${budgetDelta.toLocaleString('en-IN')}`}
+             </Text>
+           ) : null}
            <Text style={styles.footerBudget}>
              {hasSelections
                ? hasCategoryBudgets
@@ -146,6 +203,10 @@ const styles = StyleSheet.create({
   },
   footerInfo: { flex: 1 },
   footerTotal: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
+  footerProjection: { color: '#E3E3E3', fontSize: 12, marginTop: 2, fontWeight: '700' },
+  footerHealth: { fontSize: 11, marginTop: 2, fontWeight: '800' },
+  footerHealthUnder: { color: '#32D74B' },
+  footerHealthOver: { color: '#FF9F0A' },
   footerBudget: { color: '#FFD700', fontSize: 12, marginTop: 2 },
   finishBtn: {
     flexDirection: 'row',

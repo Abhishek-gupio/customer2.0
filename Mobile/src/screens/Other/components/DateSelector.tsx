@@ -104,6 +104,22 @@ const DateSelector = ({ planning, onChange }: Props) => {
   const calendarDays = useMemo(() => getCalendarDays(visibleMonth), [visibleMonth]);
 
   const handleSelectCalendarDate = (date: Date) => {
+    if (pickerType === 'departure' && arrivalDate && isBefore(date, arrivalDate) && !isSameDay(date, arrivalDate)) {
+      handleDateChange(toInputDate(arrivalDate), 'departure');
+      setPickerVisible(false);
+      return;
+    }
+
+    if (pickerType === 'arrival' && departureDate && isBefore(departureDate, date)) {
+      onChange({
+        arrivalDate: toInputDate(date),
+        departureDate: toInputDate(date),
+        stayDays: 0,
+      });
+      setPickerVisible(false);
+      return;
+    }
+
     handleDateChange(toInputDate(date), pickerType);
     setPickerVisible(false);
   };
@@ -170,12 +186,19 @@ const DateSelector = ({ planning, onChange }: Props) => {
               {calendarDays.map((day) => {
                 const inMonth = isSameMonth(day, visibleMonth);
                 const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                const isDisabled =
+                  pickerType === 'departure' &&
+                  !!arrivalDate &&
+                  isBefore(day, arrivalDate) &&
+                  !isSameDay(day, arrivalDate);
                 return (
                   <TouchableOpacity
                     key={day.toISOString()}
+                    disabled={isDisabled}
                     style={[
                       styles.dayCell,
                       !inMonth && styles.dayCellOutsideMonth,
+                      isDisabled && styles.dayCellDisabled,
                       isSelected && styles.dayCellSelected,
                     ]}
                     onPress={() => handleSelectCalendarDate(day)}
@@ -184,6 +207,7 @@ const DateSelector = ({ planning, onChange }: Props) => {
                       style={[
                         styles.dayText,
                         !inMonth && styles.dayTextOutsideMonth,
+                        isDisabled && styles.dayTextDisabled,
                         isSelected && styles.dayTextSelected,
                       ]}
                     >
@@ -287,6 +311,10 @@ const styles = StyleSheet.create({
   dayCellOutsideMonth: {
     opacity: 0.35,
   },
+  dayCellDisabled: {
+    backgroundColor: '#101010',
+    opacity: 0.35,
+  },
   dayCellSelected: {
     backgroundColor: '#FFD700',
   },
@@ -297,6 +325,9 @@ const styles = StyleSheet.create({
   },
   dayTextOutsideMonth: {
     color: '#666',
+  },
+  dayTextDisabled: {
+    color: '#555',
   },
   dayTextSelected: {
     color: '#000',

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, ScrollView, ActivityIndicator, Share } from 'react-native';
 import { CheckCircle2, MapPin, Calendar, Fuel, Receipt, Hotel, Compass, Bike, Wallet, ChevronLeft } from 'lucide-react-native';
 import { PlanningState } from '../tripPlannerTypes';
 import { TripExpenseResult } from '../../../services/tripExpenseService';
@@ -48,7 +48,10 @@ const SuccessScreen = ({
     ]).start();
   }, []);
 
-  const activeRoute = tripResult?.cheapestRoute || tripResult?.routes?.[0];
+  const activeRoute =
+    tripResult?.routes?.[planning.selectedRouteIndex ?? 0] ||
+    tripResult?.cheapestRoute ||
+    tripResult?.routes?.[0];
   const fuelCost = activeRoute?.costs?.fuel || 0;
   const tollCost = activeRoute?.costs?.tollFastag || 0;
   const totalCost = fuelCost + tollCost;
@@ -69,6 +72,27 @@ const SuccessScreen = ({
   const selectedActivities = planning.selectedActivityDetails || [];
   const selectedTransport = planning.selectedTransportDetails;
   const fallbackActivityCount = planning.selectedActivities?.length || 0;
+  const previewDays = Math.min(Math.max(planning.stayDays || 1, 1), 4);
+  const primaryActivity = selectedActivities[0]?.name || (fallbackActivityCount > 0 ? 'Selected activities' : 'Local sightseeing');
+  const primaryTransport = selectedTransport?.name || 'Local transport';
+  const handleSharePlan = async () => {
+    const lines = [
+      'Trip Itinerary',
+      `${routeFrom} -> ${routeTo}`,
+      planning.arrivalDate && planning.departureDate
+        ? `Dates: ${planning.arrivalDate} to ${planning.departureDate}`
+        : 'Dates: Not set',
+      `Budget: ₹${effectiveBudget.toLocaleString('en-IN')}`,
+      `Estimated Route Cost: ₹${totalCost.toLocaleString('en-IN')}`,
+      `Hotel: ${selectedHotel?.name || 'Not selected'}`,
+      `Activities: ${selectedActivities.length > 0 ? selectedActivities.map((a) => a.name).join(', ') : `${fallbackActivityCount} selected`}`,
+      `Transport: ${selectedTransport?.name || 'Not selected'}`,
+    ];
+    await Share.share({
+      title: 'Trip Itinerary',
+      message: lines.filter(Boolean).join('\n'),
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -225,6 +249,31 @@ const SuccessScreen = ({
             </View>
           </View>
 
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Calendar size={16} color="#FFD700" />
+              <Text style={styles.sectionTitle}>Day-wise Flow</Text>
+            </View>
+            {Array.from({ length: previewDays }, (_, index) => {
+              const dayLabel = `Day ${index + 1}`;
+              const morning = index === 0
+                ? selectedHotel?.name || 'Arrival & hotel check-in'
+                : 'Breakfast and local start';
+              const evening = index === previewDays - 1
+                ? 'Wrap-up and departure prep'
+                : 'Leisure walk and dinner';
+              return (
+                <View key={dayLabel} style={styles.dayFlowCard}>
+                  <Text style={styles.dayFlowTitle}>{dayLabel}</Text>
+                  <Text style={styles.dayFlowLine}>Morning: {morning}</Text>
+                  <Text style={styles.dayFlowLine}>Afternoon: {primaryActivity}</Text>
+                  <Text style={styles.dayFlowLine}>Mobility: {primaryTransport}</Text>
+                  <Text style={styles.dayFlowLine}>Evening: {evening}</Text>
+                </View>
+              );
+            })}
+          </View>
+
         </ScrollView>
 
         <TouchableOpacity
@@ -250,6 +299,15 @@ const SuccessScreen = ({
             <Text style={styles.saveErrorText}>{saveError}</Text>
           </View>
         ) : null}
+        <TouchableOpacity
+          style={styles.shareBtn}
+          onPress={handleSharePlan}
+          accessibilityRole="button"
+          accessibilityLabel="Share trip plan"
+          accessibilityHint="Share this itinerary with friends and family"
+        >
+          <Text style={styles.shareBtnText}>Share Plan</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.exploreBtn}
@@ -324,6 +382,22 @@ const styles = StyleSheet.create({
   addonRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   addonText: { color: '#FFF', fontSize: 14, fontWeight: '500' },
   addonSubText: { color: '#8B8B8B', fontSize: 12, lineHeight: 18 },
+  dayFlowCard: {
+    backgroundColor: '#141414',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#232323',
+    padding: 10,
+    marginBottom: 8,
+  },
+  dayFlowTitle: {
+    color: '#FFD700',
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  dayFlowLine: { color: '#BBB', fontSize: 12, lineHeight: 18 },
   saveBtn: {
     backgroundColor: '#FFD700',
     height: 56,
@@ -347,6 +421,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   saveErrorText: { color: '#FFB84D', fontSize: 12, textAlign: 'center', fontWeight: '600' },
+  shareBtn: {
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    backgroundColor: '#1A1A1A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  shareBtnText: { color: '#EAEAEA', fontSize: 14, fontWeight: '700' },
   exploreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10 },
   exploreBtnText: { color: '#888', fontSize: 14, fontWeight: 'bold' },
 });

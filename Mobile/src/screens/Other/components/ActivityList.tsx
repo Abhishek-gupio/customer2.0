@@ -11,6 +11,7 @@ interface Props {
   planning: PlanningState;
   onChange: (partial: Partial<PlanningState>) => void;
   tripResult?: TripExpenseResult | null;
+  selectedRouteIndex?: number;
 }
 
 const CATEGORIES: { id: string; label: string; types: string[]; pref: Preference }[] = [
@@ -52,7 +53,7 @@ const buildActivitySearchUrl = (activity: Activity, city: string) => {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}&query_place_id=${encodeURIComponent(activity.id)}`;
 };
 
-const ActivityList = ({ planning, onChange, tripResult }: Props) => {
+const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props) => {
   const [allActivities, setAllActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -84,7 +85,10 @@ const ActivityList = ({ planning, onChange, tripResult }: Props) => {
   }, [planning.preferences, selectedCategory]);
 
   const fetchAllActivities = async () => {
-    const route = tripResult?.routes?.[0];
+    const route =
+      tripResult?.routes?.[selectedRouteIndex ?? planning.selectedRouteIndex ?? 0] ||
+      tripResult?.cheapestRoute ||
+      tripResult?.routes?.[0];
     if (!route?.polyline) return;
 
     setLoading(true);

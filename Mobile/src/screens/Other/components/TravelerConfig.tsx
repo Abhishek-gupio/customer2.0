@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { User, Users, Heart, Home } from 'lucide-react-native';
 import { PlanningState, TravelerType } from '../tripPlannerTypes';
@@ -23,13 +23,18 @@ const defaultPeopleByTravelerType: Record<TravelerType, number> = {
 };
 
 const TravelerConfig = ({ planning, onChange }: Props) => {
+  const hasAutoSeededRef = useRef(false);
+
   useEffect(() => {
+    if (hasAutoSeededRef.current) return;
     if (!planning.numberOfPeople || planning.numberOfPeople <= 0) {
+      hasAutoSeededRef.current = true;
       onChange({ numberOfPeople: defaultPeopleByTravelerType[planning.travelerType] });
     }
   }, [planning.numberOfPeople, planning.travelerType, onChange]);
 
   const handleTravelerTypeChange = (travelerType: TravelerType) => {
+    hasAutoSeededRef.current = true;
     onChange({
       travelerType,
       numberOfPeople: defaultPeopleByTravelerType[travelerType],
@@ -74,7 +79,12 @@ const TravelerConfig = ({ planning, onChange }: Props) => {
               return;
             }
             const parsed = parseInt(trimmed, 10);
-            onChange({ numberOfPeople: Number.isNaN(parsed) ? undefined : parsed });
+            onChange({ numberOfPeople: Number.isNaN(parsed) ? undefined : Math.max(1, parsed) });
+          }}
+          onBlur={() => {
+            if (!planning.numberOfPeople || planning.numberOfPeople <= 0) {
+              onChange({ numberOfPeople: defaultPeopleByTravelerType[planning.travelerType] });
+            }
           }}
         />
       </View>

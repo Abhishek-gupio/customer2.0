@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, SafeAreaView, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, SafeAreaView, Image, Linking, Alert } from 'react-native';
 import { X, History, MapPin, Fuel, Receipt, Calendar, ChevronRight, Trash2, Hotel, Compass, Bike, Wallet, Navigation } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { getHistory, deleteHistoryItem } from '../../../services/tripHistoryPersistence';
@@ -28,6 +28,23 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
   const handleDelete = async (id: string) => {
     await deleteHistoryItem(id);
     loadHistory();
+  };
+
+  const handleDeletePress = (id: string) => {
+    Alert.alert(
+      'Delete saved trip?',
+      'This saved plan will be removed from your history.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void handleDelete(id);
+          },
+        },
+      ],
+    );
   };
 
   const buildDirectionsUrl = (params: {
@@ -108,6 +125,14 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
           ) : (
             history.map((item) => {
               const destinationCity = (item.to || '').split(',')[0]?.trim() || '';
+              const routeIndex = item.planning.selectedRouteIndex ?? 0;
+              const activeRoute =
+                item.tripResult.routes?.[routeIndex] ||
+                item.tripResult.cheapestRoute ||
+                item.tripResult.routes?.[0];
+              const effectiveBudget = item.planning.budget > 0
+                ? item.planning.budget
+                : (item.planning.hotelBudget || 0) + (item.planning.activityBudget || 0) + (item.planning.transportBudget || 0);
               const selectedHotelName = item.planning.selectedHotelDetails?.name || (item.planning.selectedHotelId ? 'Hotel Added' : 'No Hotel');
               const selectedHotelMeta = item.planning.selectedHotelDetails
                 ? [
@@ -155,21 +180,21 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                         <Fuel size={13} color="#FFD700" />
                       </View>
                       <Text style={styles.statLabel}>Fuel</Text>
-                      <Text style={styles.statValue}>₹{(item.tripResult.routes?.[0]?.costs?.fuel || 0).toLocaleString()}</Text>
+                      <Text style={styles.statValue}>₹{(activeRoute?.costs?.fuel || 0).toLocaleString('en-IN')}</Text>
                     </View>
                     <View style={styles.statItem}>
                       <View style={styles.statIconWrap}>
                         <Receipt size={13} color="#FFD700" />
                       </View>
                       <Text style={styles.statLabel}>Toll</Text>
-                      <Text style={styles.statValue}>₹{(item.tripResult.routes?.[0]?.costs?.tollFastag || 0).toLocaleString()}</Text>
+                      <Text style={styles.statValue}>₹{(activeRoute?.costs?.tollFastag || 0).toLocaleString('en-IN')}</Text>
                     </View>
                     <View style={styles.statItem}>
                       <View style={styles.statIconWrap}>
                         <Wallet size={13} color="#FFD700" />
                       </View>
                       <Text style={styles.statLabel}>Budget</Text>
-                      <Text style={styles.statValue}>₹{item.planning.budget || 0}</Text>
+                      <Text style={styles.statValue}>₹{effectiveBudget.toLocaleString('en-IN')}</Text>
                     </View>
                   </View>
 
@@ -324,7 +349,7 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                   <View style={styles.cardFooter}>
                     <TouchableOpacity
                       style={styles.deleteBtn}
-                      onPress={() => handleDelete(item.id)}
+                      onPress={() => handleDeletePress(item.id)}
                     >
                       <Trash2 size={16} color="#FF453A" />
                     </TouchableOpacity>
