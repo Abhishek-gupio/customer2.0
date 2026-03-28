@@ -7,16 +7,23 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Dimensions,
   TextInput,
   FlatList,
   ActivityIndicator,
   Modal,
   Linking,
-  Image as RNImage,
+  Image,
+  Animated,
+  Easing,
+  BackHandler,
+  PermissionsAndroid,
   type ImageSourcePropType,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
+import { WebView } from 'react-native-webview';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -34,7 +41,7 @@ import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
-import { PermissionsAndroid } from 'react-native';
+
 import { getLastOdometerUpdate } from '../../services/storage';
 
 // GPS-based location
@@ -58,7 +65,7 @@ function sortCarNewsLatestFirst(list: any[]): any[] {
   });
 }
 
-import { Animated, Easing } from 'react-native';
+
 
 // ─── Animated Health Display ──────────────────────────────────────────────────
 function HealthDisplay({ score }: { score: number }) {
@@ -191,9 +198,16 @@ export default function Home() {
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [trendingNews, setTrendingNews] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ id: string; embedUrl: string; title: string } | null>(null);
+  const [isVideoDragging, setIsVideoDragging] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
+  const videoBaseX = useRef(new Animated.Value(0)).current;
+  const videoBaseY = useRef(new Animated.Value(0)).current;
+  const videoDragX = useRef(new Animated.Value(0)).current;
+  const videoDragY = useRef(new Animated.Value(0)).current;
+  const videoModalOffset = useRef({ x: 0, y: 0 });
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -202,6 +216,50 @@ export default function Home() {
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const windowSize = Dimensions.get('window');
+  const videoCardWidth = wp(92);
+  const videoCardHeight = (videoCardWidth * 9) / 16 + hp(6);
+  const maxVideoOffsetX = Math.max(0, windowSize.width - videoCardWidth - wp(4) * 2);
+  const maxVideoOffsetY = Math.max(0, windowSize.height - videoCardHeight - hp(16) - hp(10));
+
+  const clampVideoOffset = useCallback((x: number, y: number) => ({
+    x: Math.min(Math.max(x, -wp(2)), maxVideoOffsetX + wp(2)),
+    y: Math.min(Math.max(y, -hp(8)), maxVideoOffsetY),
+  }), [maxVideoOffsetX, maxVideoOffsetY]);
+
+  const onVideoDragEvent = useRef(
+    Animated.event(
+      [{ nativeEvent: { translationX: videoDragX, translationY: videoDragY } }],
+      { useNativeDriver: true }
+    )
+  ).current;
+
+  const onVideoDragStateChange = useCallback((event: { nativeEvent: { oldState: number; state: number; translationX: number; translationY: number } }) => {
+    const { oldState, state, translationX, translationY } = event.nativeEvent;
+
+    if (state === State.BEGAN || state === State.ACTIVE) {
+      setIsVideoDragging(true);
+    }
+
+    if (
+      oldState === State.ACTIVE ||
+      state === State.END ||
+      state === State.CANCELLED ||
+      state === State.FAILED
+    ) {
+      const nextOffset = clampVideoOffset(
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY
+      );
+
+      videoModalOffset.current = nextOffset;
+      videoBaseX.setValue(nextOffset.x);
+      videoBaseY.setValue(nextOffset.y);
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+      setIsVideoDragging(false);
+    }
+  }, [clampVideoOffset, videoBaseX, videoBaseY, videoDragX, videoDragY]);
 
   const getBannerVehicleShortName = useCallback((v: Vehicle | null): string => {
     if (!v) return 'Vehicle';
@@ -225,6 +283,16 @@ export default function Home() {
     return shortName || v.model || v.make || 'Vehicle';
   }, []);
 
+  const pauseAutoScrollTemporarily = useCallback(() => {
+    autoScrollStoppedRef.current = true;
+    if (autoScrollResumeTimerRef.current) {
+      clearTimeout(autoScrollResumeTimerRef.current);
+    }
+    autoScrollResumeTimerRef.current = setTimeout(() => {
+      autoScrollStoppedRef.current = false;
+    }, AUTO_SCROLL_RESUME_DELAY_MS);
+  }, []);
+
   // Initial load
   useEffect(() => {
     fetchDiscoveryContent();
@@ -238,6 +306,16 @@ export default function Home() {
     }
   }, [selectedState]);
 
+  useEffect(() => {
+    if (selectedVideo) {
+      videoModalOffset.current = { x: 0, y: 0 };
+      videoBaseX.setValue(0);
+      videoBaseY.setValue(0);
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+    }
+  }, [selectedVideo, videoBaseX, videoBaseY, videoDragX, videoDragY]);
+
   useFocusEffect(
     useCallback(() => {
       fetchPrimaryVehicle();
@@ -245,15 +323,29 @@ export default function Home() {
     }, [])
   );
 
-  const pauseAutoScrollTemporarily = useCallback(() => {
-    autoScrollStoppedRef.current = true;
-    if (autoScrollResumeTimerRef.current) {
-      clearTimeout(autoScrollResumeTimerRef.current);
-    }
-    autoScrollResumeTimerRef.current = setTimeout(() => {
-      autoScrollStoppedRef.current = false;
-    }, AUTO_SCROLL_RESUME_DELAY_MS);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') {
+        return undefined;
+      }
+
+      const onBackPress = () => {
+        if (selectedVideo) {
+          setSelectedVideo(null);
+          return true;
+        }
+
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [selectedVideo])
+  );
 
   // Auto-scroll carousel every 5 seconds
   // Use a ref to avoid stale closure & re-creating the interval on every slide,
@@ -611,11 +703,66 @@ export default function Home() {
     }
   };
 
-  const handleVideoPress = async (url: string) => {
+  /** Extract a YouTube video ID from watch, share, shorts, embed, and mobile URLs. */
+  const getYouTubeVideoId = (url: unknown): string | null => {
+    if (typeof url !== 'string') {
+      return null;
+    }
+
     try {
-      if (url) await Linking.openURL(url);
-    } catch (error) {
-      console.error('Error opening URL:', error);
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) {
+        return null;
+      }
+
+      const parsedUrl = new URL(trimmedUrl);
+      const hostname = parsedUrl.hostname.replace(/^www\./, '').replace(/^m\./, '');
+
+      if (hostname === 'youtu.be') {
+        const shortId = parsedUrl.pathname.split('/').filter(Boolean)[0] ?? '';
+        return shortId.length === 11 ? shortId : null;
+      }
+
+      const watchId = parsedUrl.searchParams.get('v');
+      if (watchId?.length === 11) {
+        return watchId;
+      }
+
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+      const pathPrefixIndex = pathSegments.findIndex((segment) =>
+        ['embed', 'shorts', 'v'].includes(segment)
+      );
+
+      if (pathPrefixIndex >= 0) {
+        const pathId = pathSegments[pathPrefixIndex + 1] ?? '';
+        return pathId.length === 11 ? pathId : null;
+      }
+
+      const fallbackMatch = trimmedUrl.match(
+        /(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|v\/|u\/\w\/))([A-Za-z0-9_-]{11})/
+      );
+      return fallbackMatch?.[1] ?? null;
+    } catch {
+      const fallbackMatch = url.trim().match(
+        /(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|v\/|u\/\w\/))([A-Za-z0-9_-]{11})/
+      );
+      return fallbackMatch?.[1] ?? null;
+    }
+  };
+
+  const buildYouTubeEmbedUrl = (videoId: string) =>
+    `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&showinfo=0&controls=1&modestbranding=1&enablejsapi=1&fs=0&origin=${encodeURIComponent('https://gupio.in')}&widget_referrer=${encodeURIComponent('https://gupio.in/')}`;
+
+  const handleVideoPress = (url: unknown, title: unknown) => {
+    const videoId = getYouTubeVideoId(url);
+    if (videoId) {
+      setSelectedVideo({
+        id: videoId,
+        embedUrl: buildYouTubeEmbedUrl(videoId),
+        title: typeof title === 'string' && title.trim() ? title : 'Trending Video',
+      });
+    } else {
+      console.warn('Unable to extract YouTube video ID for trending video:', url);
     }
   };
 
@@ -632,6 +779,7 @@ export default function Home() {
         barStyle="light-content"
         backgroundColor={Platform.OS === 'android' ? '#000000' : undefined}
       />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -639,6 +787,7 @@ export default function Home() {
       >
         {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>
+
           <FlatList
             ref={carouselRef}
             horizontal
@@ -732,7 +881,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <RNImage
+                        <Image
                           source={require('../../assets/images/expense_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -760,7 +909,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <RNImage
+                        <Image
                           source={require('../../assets/images/vehicle_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -795,7 +944,7 @@ export default function Home() {
                         </View>
                       </View>
                       <View style={styles.promoRight}>
-                        <RNImage
+                        <Image
                           source={require('../../assets/images/insta&website_AD.png') as any}
                           style={styles.adImage}
                           resizeMode="contain"
@@ -805,69 +954,69 @@ export default function Home() {
                   </View>
                 );
               }
-            const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
-            const now = Date.now();
-            const weekMs = 7 * 24 * 60 * 60 * 1000;
-            const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
-            const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
+              const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
+              const now = Date.now();
+              const weekMs = 7 * 24 * 60 * 60 * 1000;
+              const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
+              const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
 
-            return (
-              <TouchableOpacity
-                style={styles.slideFull}
-                activeOpacity={0.9}
-                onPress={() => (navigation as any).navigate('Odometer')}
-              >
-                <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
-                  <View style={styles.promoLeft}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
-                      {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
-                      <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                        {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
-                      </Text>
-                    </View>
-                    
-                    {lastUpdate ? (
-                      <View>
-                        <View style={styles.odometerInfoRow}>
-                          <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
-                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                            {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                          </Text>
-                          <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
-                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                            {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                          </Text>
-                        </View>
-                        
-                        <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
-                          <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
-                            {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
-                          </Text>
-                        </View>
+              return (
+                <TouchableOpacity
+                  style={styles.slideFull}
+                  activeOpacity={0.9}
+                  onPress={() => (navigation as any).navigate('Odometer')}
+                >
+                  <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
+                    <View style={styles.promoLeft}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
+                        {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
+                        <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                          {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
+                        </Text>
                       </View>
-                    ) : (
-                      <Text style={styles.promoDesc}>
-                        Start tracking your vehicle health by updating odometer.
-                      </Text>
-                    )}
-                    
-                    <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
-                      <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
-                      <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
+
+                      {lastUpdate ? (
+                        <View>
+                          <View style={styles.odometerInfoRow}>
+                            <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
+                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                              {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                            </Text>
+                            <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
+                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
+                              {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            </Text>
+                          </View>
+
+                          <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
+                            <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
+                              {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : (
+                        <Text style={styles.promoDesc}>
+                          Start tracking your vehicle health by updating odometer.
+                        </Text>
+                      )}
+
+                      <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
+                        <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
+                        <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
+                      </View>
+                    </View>
+                    <View style={styles.promoRight}>
+                      <Image
+                        source={require('../../assets/images/odometer.png') as any}
+                        style={styles.adImage}
+                        resizeMode="contain"
+                      />
                     </View>
                   </View>
-                  <View style={styles.promoRight}>
-                    <RNImage
-                      source={require('../../assets/images/odometer.png') as any}
-                      style={styles.adImage}
-                      resizeMode="contain"
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
+                </TouchableOpacity>
+              );
+            }}
+          />
 
           {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
@@ -901,7 +1050,7 @@ export default function Home() {
 
         {/* NUMBER PLATE SECTION */}
         <View style={styles.numberPlateSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.numberPlateContainer}
             activeOpacity={0.8}
             onPress={() => navigation.navigate('VehicleSearch')}
@@ -922,24 +1071,27 @@ export default function Home() {
         </View>
 
         <QuickServicesGrid
-          onServicePress={id => {
-            if (id === 'document') {
+          onServicePress={label => {
+            if (label === 'Document') {
               navigateToRootScreen('DocumentList');
-            } else if (id === 'garage') {
+            } else if (label === 'My Garage') {
               navigateToRootScreen('VehicleList');
-            } else if (id === 'expense') {
+            } else if (label === 'Expense') {
               navigateToRootScreen('Expenses');
-            } else if (id === 'valet') {
+            } else if (label === 'Valet') {
               navigateToRootScreen('Valet');
-            } else if (id === 'service') {
+            } else if (label === 'Service') {
               navigateToServicesScreen('ServicesHome');
-            } else if (id === 'driving') {
+            } else if (label === 'Driving') {
               navigateToRootScreen('DrivingSummary');
-            } else if (id === 'nearby') {
-              navigateToServicesScreen('NearbyPlaces', { fromHome: true });
-            } else if (id === 'support') {
+            } else if (label === 'Near By') {
+              navigation.navigate('Services' as any, {
+                screen: 'NearbyPlaces',
+                params: { fromHome: true }
+              });
+            } else if (label === 'Support') {
               handleHelpPress();
-            } else if (id === 'tripcost') {
+            } else if (label === 'tripcost') {
               navigateToRootScreen('TripExpense');
             }
           }}
@@ -948,7 +1100,7 @@ export default function Home() {
         {/* INSURANCE BANNER */}
         <View style={styles.bannerSection}>
           <View style={styles.insuranceBanner}>
-            <RNImage
+            <Image
               source={require('../../assets/images/challan.png') as any}
               style={styles.bannerImage}
               resizeMode="contain"
@@ -992,8 +1144,13 @@ export default function Home() {
               {trendingVideos.map((item, index) => (
                 <TouchableOpacity
                   key={String(item?.id ?? index)}
-                  style={styles.videoCard}
-                  onPress={() => handleVideoPress(item.url)}
+                  style={[
+                    styles.videoCard,
+                    selectedVideo?.id === getYouTubeVideoId(item.url)
+                      ? styles.videoCardActive
+                      : undefined,
+                  ]}
+                  onPress={() => handleVideoPress(item.url, item.title)}
                 >
                   {item.tag ? (
                     <View style={styles.videoTag}>
@@ -1007,7 +1164,11 @@ export default function Home() {
                       resizeMode={FastImage.resizeMode.cover}
                     />
                     <View style={styles.playButtonOverlay}>
-                      <MaterialIcon name="play-circle" size={50} color="#fff" />
+                      <MaterialIcon
+                        name={selectedVideo?.id === getYouTubeVideoId(item.url) ? 'pause-circle' : 'play-circle'}
+                        size={50}
+                        color="#fff"
+                      />
                     </View>
                     <Text style={styles.viewCount}>{item.views}</Text>
                   </View>
@@ -1018,6 +1179,7 @@ export default function Home() {
               ))}
             </ScrollView>
           )}
+
         </View>
 
         <View style={styles.fuelSection}>
@@ -1166,7 +1328,7 @@ export default function Home() {
               <Text style={styles.featureTitle}>Emergency</Text>
             </View>
           </View>
-          <RNImage
+          <Image
             source={require('../../assets/images/coming_soon.png') as any}
             style={styles.comingSoonBadge}
             resizeMode="contain"
@@ -1239,6 +1401,104 @@ export default function Home() {
         </View>
       </Modal>
 
+      {selectedVideo ? (
+        <View pointerEvents="box-none" style={styles.videoModalOverlay}>
+          <Animated.View
+            renderToHardwareTextureAndroid={true}
+            shouldRasterizeIOS={true}
+            style={[
+              styles.videoModalCard,
+              isVideoDragging ? styles.videoModalCardDragging : null,
+              {
+                transform: [
+                  { translateX: Animated.add(videoBaseX, videoDragX) },
+                  { translateY: Animated.add(videoBaseY, videoDragY) },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.inlinePlayerHeader}>
+              <PanGestureHandler
+                onGestureEvent={onVideoDragEvent}
+                onHandlerStateChange={onVideoDragStateChange}
+                activeOffsetX={[-4, 4]}
+                activeOffsetY={[-4, 4]}
+              >
+                <Animated.View style={styles.videoModalDragHeader}>
+                  <View style={styles.videoModalDragHandle} />
+                  <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
+                    {selectedVideo.title}
+                  </Text>
+                </Animated.View>
+              </PanGestureHandler>
+              <TouchableOpacity
+                style={styles.inlinePlayerClose}
+                onPress={() => setSelectedVideo(null)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcon name="close" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.inlinePlayerFrame}>
+              <WebView
+                key={selectedVideo.embedUrl}
+                source={{
+                  uri: selectedVideo.embedUrl,
+                  headers: {
+                    Referer: 'https://gupio.in/',
+                    Origin: 'https://gupio.in',
+                  },
+                }}
+                style={styles.inlinePlayer}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                allowsInlineMediaPlayback={true}
+                mediaPlaybackRequiresUserAction={false}
+                scrollEnabled={false}
+                originWhitelist={['*']}
+                overScrollMode="never"
+                bounces={false}
+                javaScriptCanOpenWindowsAutomatically={false}
+                setSupportMultipleWindows={false}
+                allowsFullscreenVideo={false}
+                androidLayerType="hardware"
+                onShouldStartLoadWithRequest={(request) => {
+                  const requestUrl = request.url;
+
+                  if (
+                    requestUrl.startsWith('vnd.youtube') ||
+                    requestUrl.startsWith('intent://') ||
+                    requestUrl.startsWith('youtube://')
+                  ) {
+                    return false;
+                  }
+
+                  if (
+                    requestUrl === 'about:blank' ||
+                    requestUrl === selectedVideo.embedUrl
+                  ) {
+                    return true;
+                  }
+
+                  return (
+                    requestUrl.includes(`/embed/${selectedVideo.id}`) ||
+                    requestUrl.includes('youtube.com/embed/') ||
+                    requestUrl.includes('youtube.com/iframe_api') ||
+                    requestUrl.includes('youtube.com/s/player/') ||
+                    requestUrl.includes('youtube.com/youtubei/') ||
+                    requestUrl.includes('googlevideo.com/') ||
+                    requestUrl.includes('ytimg.com/') ||
+                    requestUrl.includes('gstatic.com/') ||
+                    requestUrl.includes('googleusercontent.com/')
+                  );
+                }}
+                onError={(e) => console.warn('Inline player error', e)}
+              />
+            </View>
+          </Animated.View>
+        </View>
+      ) : null}
+
       <ServiceOptionsOverlay
         visible={serviceModalVisible}
         onClose={() => setServiceModalVisible(false)}
@@ -1247,6 +1507,7 @@ export default function Home() {
           navigateToServicesScreen(screen);
         }}
       />
+
     </SafeAreaView>
   );
 }
@@ -2264,5 +2525,79 @@ const styles = StyleSheet.create({
     color: '#0a0a0a',
     fontSize: wp(4.5),
     fontWeight: '800',
+  },
+
+  videoModalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  videoModalCard: {
+    position: 'absolute',
+    top: hp(16),
+    left: wp(4),
+    width: wp(92),
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#050505',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    elevation: 16,
+    zIndex: 1001,
+  },
+  videoModalCardDragging: {
+    elevation: 6,
+    shadowOpacity: 0,
+    borderColor: 'rgba(255,255,255,0.04)',
+  },
+  videoModalDragHeader: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(0.5),
+  },
+  videoModalDragHandle: {
+    width: wp(12),
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+    marginRight: wp(2.5),
+  },
+  inlinePlayerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  inlinePlayerTitle: {
+    flex: 1,
+    color: '#fff',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
+    marginRight: wp(2),
+  },
+  inlinePlayerClose: {
+    padding: wp(1),
+  },
+  inlinePlayerFrame: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#000',
+  },
+  inlinePlayer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+
+  /* ACTIVE VIDEO CARD (currently playing) */
+  videoCardActive: {
+    borderWidth: 2,
+    borderColor: '#FFBF00',
+    borderRadius: 12,
   },
 });
