@@ -27,7 +27,7 @@ import { GOOGLE_WEB_CLIENT_ID } from '../../config';
 import { login as loginApi, loginWithGoogle } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
-import LoadingSpinner from '../../components/LoadingSpinner';
+
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signin'>;
 
@@ -122,9 +122,8 @@ export default function Signin() {
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const signInResult = await GoogleSignin.signIn();
-      const idToken =
-        signInResult.data?.idToken ??
-        (await GoogleSignin.getTokens().catch(() => ({}))).idToken;
+      const tokens = await GoogleSignin.getTokens().catch(() => null);
+      const idToken = signInResult.data?.idToken ?? tokens?.idToken;
       if (!idToken) {
         if (signInResult.data?.user === null) return; // user cancelled
         throw new Error('No ID token from Google');
@@ -229,7 +228,7 @@ export default function Signin() {
           <Text style={styles.signUpText}>Sign Up</Text>
         </TouchableOpacity>
       </ScrollView>
-      <LoadingSpinner visible={loading || googleLoading} />
+
     </KeyboardAvoidingView>
   );
 }

@@ -28,7 +28,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { sendOtp, verifyOtp } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
-import LoadingSpinner from '../../components/LoadingSpinner';
+
 
 const OTP_LENGTH = 6;
 
@@ -273,7 +273,7 @@ export default function OTP() {
           )}
         </TouchableOpacity>
       </ScrollView>
-      <LoadingSpinner visible={loading || resending} />
+
     </KeyboardAvoidingView>
   );
 }
