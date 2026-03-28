@@ -2,6 +2,7 @@ import { api, doRefresh } from './api';
 import { API_BASE_URL } from '../config';
 import { getAccessToken, getPrimaryVehicleId } from './storage';
 import { vehicleService, type Vehicle } from './vehicleService';
+import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from '../utils/refreshManager';
 import { listDocuments, type DocumentResponse } from './documentService';
 import { getProfile, updateProfile, type ProfileResponse, type UpdateProfilePayload } from './profileService';
 import { googleMapsService } from './googleMapsService';
@@ -163,6 +164,25 @@ type ExpenseCreateIntent = {
     needsMoreInfoMessage?: string;
 };
 
+const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
+    const normalized = new Set<string>();
+
+    for (const partType of partTypes) {
+        const value = String(partType || '').trim().toUpperCase();
+        if (!value) continue;
+
+        if (value === 'TYRES') {
+            normalized.add('TYRES_FRONT');
+            normalized.add('TYRES_REAR');
+            continue;
+        }
+
+        normalized.add(value);
+    }
+
+    return Array.from(normalized);
+};
+
 type EmergencyIntent = {
     type: SOSType;
     message?: string;
@@ -202,7 +222,7 @@ function getEffectiveUserMessage(message: string): string {
     const trimmed = message.trim();
     if (!trimmed) return trimmed;
 
-    const match = trimmed.match(/user request:\s*([\s\S]*)$/i);
+    const match = trimmed.match(/user (?:request|message):\s*([\s\S]*)$/i);
     return match?.[1]?.trim() || trimmed;
 }
 
@@ -433,7 +453,11 @@ function isUserQuery(message: string): boolean {
 function getLocalUserFactAnswer(message: string, user: ChatUserContext | null): string | null {
     const text = getEffectiveUserMessage(message).toLowerCase();
     if (!text || !user) return null;
-    const isUpdateRequest = /(change|update|set|edit)\s+my\s+(name|email|phone|mobile|number)|update profile|edit profile/.test(text);
+    const isUpdateRequest =
+        /(change|update|set|edit)\s+my\s+(name|email|phone|mobile|number)|update profile|edit profile/.test(text) ||
+        /\bmy\s+name\s+(?:is|should\s+be)\b/.test(text) ||
+        /\bmy\s+(?:email|gmail|mail|mail id|email id)\s+(?:is|should\s+be)\b/.test(text) ||
+        /\bmy\s+(?:phone|mobile|number|phone number|mobile number)\s+(?:is|should\s+be)\b/.test(text);
     if (isUpdateRequest) return null;
 
     if (/\bwhat is my name\b|\bmy name\b|\bwho am i\b/.test(text)) {
@@ -493,7 +517,9 @@ function extractProfileUpdateIntent(message: string): ProfileUpdateIntent | null
             field: 'fullName',
             regexes: [
                 /(?:change|update|set|edit)\s+my\s+name\s+(?:to|as)\s+(.+)$/i,
+                /(?:change|update|set|edit)\s+name\s+(?:to|as)\s+(.+)$/i,
                 /my\s+name\s+(?:is|should\s+be)\s+(.+)$/i,
+                /call\s+me\s+(.+)$/i,
             ],
             formatter: (value) => `Your name has been updated to ${value}.`,
         },
@@ -689,7 +715,15 @@ function extractExpenseCreateIntent(message: string): ExpenseCreateIntent | null
     const text = getEffectiveUserMessage(message).toLowerCase();
     if (!text) return null;
 
-    if (!/(add|log|create|save)\s+.*expense|expense\s+(of|for)|spent\s+\d+/.test(text)) {
+    const hasExpenseCategory = /\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(text);
+    const hasAmount = /(?:rs\.?|rupees?|inr|₹)?\s*\d+(?:\.\d+)?/i.test(text);
+    const hasCreateVerb = /\b(add|log|create|save|spent|pay|paid|refuel|refueled|service|serviced)\b/.test(text);
+    const hasExpenseIntent =
+        /(add|log|create|save)\s+.*expense|expense\s+(of|for)|spent\s+\d+/.test(text) ||
+        /(add|log|create|save)\s+.*\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(text) ||
+        (hasExpenseCategory && hasAmount && hasCreateVerb);
+
+    if (!hasExpenseIntent) {
         return null;
     }
 
@@ -707,24 +741,28 @@ function extractExpenseCreateIntent(message: string): ExpenseCreateIntent | null
     ];
 
     const category = categoryMap.find((item) => item.regex.test(text))?.category;
-    const servicePartTypes = [
-        { regex: /\bengine oil\b|\boil change\b|\boil service\b/, partType: 'ENGINE_OIL' },
+    const servicePartTypes = normalizeSelectedPartTypes([
+        ...[
+        { regex: /\bengine oil\b|\boil change\b|\boil service\b|\bengine oil change\b/, partType: 'ENGINE_OIL' },
         { regex: /\bbattery\b/, partType: 'BATTERY' },
         { regex: /\boil filter\b/, partType: 'OIL_FILTER' },
         { regex: /\bair filter\b/, partType: 'AIR_FILTER' },
         { regex: /\bbrake pads\b|\bbrake pad\b/, partType: 'BRAKE_PADS' },
-        { regex: /\bbrake discs\b|\bbrake disc\b/, partType: 'BRAKE_DISCS' },
+        { regex: /\bbrake discs\b|\bbrake disc\b|\bdisc brake\b|\bdisc brakes\b/, partType: 'BRAKE_DISCS' },
+        { regex: /\bfront tyre\b|\bfront tires\b|\bfront tire\b|\bfront tyres\b/, partType: 'TYRES_FRONT' },
+        { regex: /\brear tyre\b|\brear tires\b|\brear tire\b|\brear tyres\b/, partType: 'TYRES_REAR' },
         { regex: /\btyres\b|\btires\b|\btyre\b|\btire\b/, partType: 'TYRES' },
-        { regex: /\bclutch\b/, partType: 'CLUTCH_PLATE' },
+        { regex: /\bclutch plate\b|\bclutch\b/, partType: 'CLUTCH_PLATE' },
         { regex: /\bspark plugs\b|\bspark plug\b/, partType: 'SPARK_PLUGS' },
         { regex: /\bcoolant\b/, partType: 'COOLANT' },
         { regex: /\btiming belt\b/, partType: 'TIMING_BELT' },
-        { regex: /\bac filter\b|\bcabin filter\b/, partType: 'AC_FILTER' },
-        { regex: /\bwiper\b/, partType: 'WIPER_BLADES' },
-        { regex: /\bheadlight\b|\bbulb\b/, partType: 'HEADLIGHT_BULB' },
+        { regex: /\bac filter\b|\bcabin filter\b|\bac service filter\b/, partType: 'AC_FILTER' },
+        { regex: /\bwiper\b|\bwiper blade\b|\bwipers\b/, partType: 'WIPER_BLADES' },
+        { regex: /\bheadlight\b|\bheadlight bulb\b|\bbulb\b/, partType: 'HEADLIGHT_BULB' },
       ]
         .filter((item) => item.regex.test(text))
-        .map((item) => item.partType);
+        .map((item) => item.partType),
+    ]);
 
     if (!amount || Number.isNaN(amount) || amount <= 0) {
         return {
@@ -739,10 +777,19 @@ function extractExpenseCreateIntent(message: string): ExpenseCreateIntent | null
         };
     }
 
+    if (category === 'SERVICE' && servicePartTypes.length === 0) {
+        return {
+            amount,
+            category,
+            needsMoreInfoMessage:
+                'Tell me which service part was updated, for example engine oil, air filter, brake pads, battery, or tyres.',
+        };
+    }
+
     return {
         amount,
         category,
-        partTypes: category === 'SERVICE' ? (servicePartTypes.length ? servicePartTypes : ['OTHER_PART']) : undefined,
+        partTypes: category === 'SERVICE' ? servicePartTypes : undefined,
     };
 }
 
@@ -1174,6 +1221,11 @@ async function tryResolveLocalExpenseCreate(
     const serviceRecord = responseData?.serviceRecord ?? null;
     const warrantySyncError = responseData?.warrantySyncError ?? null;
 
+    setExpenseListNeedsRefresh();
+    if (intent.category === 'SERVICE') {
+        setWarrantyStatusNeedsRefresh();
+    }
+
     if (
         intent.category === 'SERVICE' &&
         intent.partTypes?.length &&
@@ -1198,7 +1250,15 @@ async function tryResolveLocalExpenseCreate(
         message: `${intent.category?.charAt(0)}${intent.category?.slice(1).toLowerCase()} expense of Rs. ${intent.amount?.toLocaleString('en-IN')} added successfully.`,
         voiceUrl: null,
         contextUsed: 1,
-        toolResults: [],
+        toolResults: [
+            {
+                kind: 'expense_created',
+                category: intent.category,
+                amount: intent.amount,
+                vehicleId: vehicle.id,
+                partTypes: intent.partTypes ?? [],
+            },
+        ],
         agentSteps: [],
     };
 }
@@ -1328,7 +1388,12 @@ async function tryResolveLocalProfileUpdate(
         message: intent.confirmation,
         voiceUrl: null,
         contextUsed: 1,
-        toolResults: [],
+        toolResults: [
+            {
+                kind: 'profile_updated',
+                fields: Object.keys(intent.payload),
+            },
+        ],
         agentSteps: [],
     };
 }
@@ -1373,13 +1438,13 @@ export const chatService = {
     ): Promise<ChatResponse['data']> {
         const primaryVehicle = await getPrimaryVehicleContext();
         const userContext = await getUserContext();
-        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
-        if (localUserFactAnswer && !options?.image) {
-            return localUserFactAnswer;
-        }
         const localProfileUpdate = await tryResolveLocalProfileUpdate(message, sessionId);
         if (localProfileUpdate && !options?.image) {
             return localProfileUpdate;
+        }
+        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
+        if (localUserFactAnswer && !options?.image) {
+            return localUserFactAnswer;
         }
         const localEmergencyAlert = await tryResolveLocalEmergencyAlert(message, sessionId);
         if (localEmergencyAlert && !options?.image) {
@@ -1461,18 +1526,6 @@ export const chatService = {
     ): Promise<void> {
         const primaryVehicle = await getPrimaryVehicleContext();
         const userContext = await getUserContext();
-        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
-        if (localUserFactAnswer && !options?.image) {
-            onChunk({ type: 'session', sessionId: localUserFactAnswer.sessionId });
-            onChunk({ type: 'chunk', text: localUserFactAnswer.message });
-            onChunk({
-                type: 'done',
-                contextUsed: localUserFactAnswer.contextUsed,
-                toolResults: localUserFactAnswer.toolResults,
-                suggestedActions: localUserFactAnswer.suggestedActions,
-            });
-            return;
-        }
         const localProfileUpdate = await tryResolveLocalProfileUpdate(message, sessionId);
         if (localProfileUpdate && !options?.image) {
             onChunk({ type: 'session', sessionId: localProfileUpdate.sessionId });
@@ -1482,6 +1535,18 @@ export const chatService = {
                 contextUsed: localProfileUpdate.contextUsed,
                 toolResults: localProfileUpdate.toolResults,
                 suggestedActions: localProfileUpdate.suggestedActions,
+            });
+            return;
+        }
+        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
+        if (localUserFactAnswer && !options?.image) {
+            onChunk({ type: 'session', sessionId: localUserFactAnswer.sessionId });
+            onChunk({ type: 'chunk', text: localUserFactAnswer.message });
+            onChunk({
+                type: 'done',
+                contextUsed: localUserFactAnswer.contextUsed,
+                toolResults: localUserFactAnswer.toolResults,
+                suggestedActions: localUserFactAnswer.suggestedActions,
             });
             return;
         }

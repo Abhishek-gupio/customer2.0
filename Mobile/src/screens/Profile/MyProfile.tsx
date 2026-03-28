@@ -30,7 +30,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { useNavigation, CommonActions } from '../../lib/react-navigation-native';
+import { useNavigation, CommonActions, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { useDispatch } from 'react-redux';
@@ -191,6 +191,12 @@ export default function MyProfile() {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfile();
+    }, []),
+  );
 
   // Request location permission (Android + iOS)
   const requestLocationPermission = async (): Promise<boolean> => {

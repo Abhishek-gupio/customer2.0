@@ -43,6 +43,101 @@ interface UIMessage {
   timestamp: Date;
 }
 
+const VOICE_LOCALES = [
+  'kn-IN',
+  'te-IN',
+  'ta-IN',
+  'ml-IN',
+  'hi-IN',
+  'mr-IN',
+  'bn-IN',
+  'gu-IN',
+  'pa-IN',
+  'en-IN',
+  'en-US',
+  'en',
+] as const;
+
+function detectInputLocale(text: string): string {
+  if (!text) return 'en-IN';
+
+  const normalized = text.trim().toLowerCase();
+
+  if (/[\u0C80-\u0CFF]/.test(text)) return 'kn-IN';
+  if (/[\u0C00-\u0C7F]/.test(text)) return 'te-IN';
+  if (/[\u0B80-\u0BFF]/.test(text)) return 'ta-IN';
+  if (/[\u0D00-\u0D7F]/.test(text)) return 'ml-IN';
+  if (/[\u0980-\u09FF]/.test(text)) return 'bn-IN';
+  if (/[\u0A80-\u0AFF]/.test(text)) return 'gu-IN';
+  if (/[\u0A00-\u0A7F]/.test(text)) return 'pa-IN';
+  if (/[\u0900-\u097F]/.test(text)) return 'hi-IN';
+
+  if (
+    /\b(nanna|nimma|namma|nanage|nimage|yaake|yake|enu|yen|hegide|hegiddira|illi|alli|beku|beda|maadi|madi|madi|hogi|banni|baruthe|baralla|kannada)\b/.test(
+      normalized,
+    )
+  ) {
+    return 'kn-IN';
+  }
+
+  return 'en-IN';
+}
+
+function getSpeechLocaleForText(text: string): string {
+  return detectInputLocale(text);
+}
+
+function getLanguageLabel(locale: string): string {
+  if (locale.startsWith('hi')) return 'Hindi';
+  if (locale.startsWith('kn')) return 'Kannada';
+  if (locale.startsWith('te')) return 'Telugu';
+  if (locale.startsWith('ta')) return 'Tamil';
+  if (locale.startsWith('ml')) return 'Malayalam';
+  if (locale.startsWith('mr')) return 'Marathi';
+  if (locale.startsWith('bn')) return 'Bengali';
+  if (locale.startsWith('gu')) return 'Gujarati';
+  if (locale.startsWith('pa')) return 'Punjabi';
+  return 'English';
+}
+
+function buildLanguageAwarePrompt(message: string, locale: string): string {
+  const trimmed = message.trim();
+  if (!trimmed) return trimmed;
+
+  const language = getLanguageLabel(locale);
+  const scriptInstruction =
+    locale.startsWith('kn')
+      ? 'Reply only in Kannada. Do not reply in Hindi. Prefer Kannada script.'
+      : locale.startsWith('te')
+        ? 'Reply only in Telugu. Do not reply in Hindi. Prefer Telugu script.'
+        : locale.startsWith('ta')
+          ? 'Reply only in Tamil. Do not reply in Hindi. Prefer Tamil script.'
+          : locale.startsWith('ml')
+            ? 'Reply only in Malayalam. Do not reply in Hindi. Prefer Malayalam script.'
+            : locale.startsWith('hi')
+              ? 'Reply only in Hindi. Prefer Devanagari script.'
+              : `Reply only in natural ${language}.`;
+  return [
+    'System instruction: Reply in the same language used by the user.',
+    `If the user spoke in ${language}, answer in natural ${language}.`,
+    scriptInstruction,
+    'Do not translate the reply to English unless the user asks for English.',
+    '',
+    `User message: ${trimmed}`,
+  ].join('\n');
+}
+
+function looksLikeProfileUpdateCommand(message: string): boolean {
+  const text = message.trim().toLowerCase();
+  if (!text) return false;
+
+  return (
+    /(change|update|set|edit)\s+(my\s+)?name\s+(to|as)\s+/.test(text) ||
+    /\bmy\s+name\s+(is|should\s+be)\s+/.test(text) ||
+    /\bcall\s+me\s+/.test(text)
+  );
+}
+
 export default function AIAssistant() {
   const navigation = useNavigation();
   const rootNavigation = (navigation as any).getParent?.() ?? navigation;
@@ -68,6 +163,8 @@ export default function AIAssistant() {
   const wantsListeningRef = useRef(false);
   const voiceRetryRef = useRef(0);
   const voiceStartInFlightRef = useRef(false);
+  const lastInputLocaleRef = useRef<string>('en-IN');
+  const activeVoiceLocaleRef = useRef<string>('en-IN');
 
   const releaseChatMic = useCallback(() => {
     wantsListeningRef.current = false;
@@ -216,6 +313,16 @@ export default function AIAssistant() {
     };
   }, []);
 
+  const refreshDisplayedUserName = useCallback(async () => {
+    try {
+      const data = await getProfile();
+      const name = (data.fullName || '').trim();
+      setUserName(name);
+    } catch {
+      // no-op
+    }
+  }, []);
+
   const startVoiceRecognition = async () => {
     if (voiceStartInFlightRef.current) return;
     voiceStartInFlightRef.current = true;
@@ -227,14 +334,26 @@ export default function AIAssistant() {
         }
       } catch {}
 
-      try {
-        await Voice.start('en-IN');
-      } catch {
+      const localeIndex = Math.min(voiceRetryRef.current, VOICE_LOCALES.length - 1);
+      const fallbackLocales = [
+        VOICE_LOCALES[localeIndex],
+        ...VOICE_LOCALES.filter((_, index) => index !== localeIndex),
+      ];
+
+      let started = false;
+      for (const locale of fallbackLocales) {
         try {
-          await Voice.start('en-US');
+          await Voice.start(locale);
+          activeVoiceLocaleRef.current = locale;
+          started = true;
+          break;
         } catch {
-          await Voice.start('en');
+          continue;
         }
+      }
+
+      if (!started) {
+        throw new Error('Voice recognition failed to start.');
       }
     } finally {
       voiceStartInFlightRef.current = false;
@@ -254,6 +373,16 @@ export default function AIAssistant() {
     Voice.onSpeechEnd = () => setIsListening(false);
     Voice.onSpeechResults = (e: { value?: string[] }) => {
       const text = e?.value?.[0]?.trim();
+      if (text) {
+        const detectedLocale = detectInputLocale(text);
+        const activeLocale = activeVoiceLocaleRef.current;
+        lastInputLocaleRef.current =
+          activeLocale && !activeLocale.startsWith('en')
+            ? activeLocale
+            : detectedLocale === 'en-IN'
+              ? activeLocale
+              : detectedLocale;
+      }
       if (text) setMessage(text);
       releaseChatMic();
     };
@@ -263,7 +392,7 @@ export default function AIAssistant() {
       const message = e?.error?.message || e?.message || 'Voice recognition failed.';
       const nonFatalCodes = new Set([5, 6, 7, 8, 9, 11]);
       if (nonFatalCodes.has(Number(code)) && wantsListeningRef.current) {
-        if (voiceRetryRef.current < 2) {
+        if (voiceRetryRef.current < VOICE_LOCALES.length - 1) {
           voiceRetryRef.current += 1;
           setTimeout(() => {
             if (!wantsListeningRef.current) return;
@@ -305,7 +434,7 @@ export default function AIAssistant() {
       .then(() => {
         if (!isMounted) return;
         setTtsReady(true);
-        Tts.setDefaultLanguage('en-US').catch(() => {});
+        Tts.setDefaultLanguage('en-IN').catch(() => {});
       })
       .catch(() => {
         if (!isMounted) return;
@@ -518,6 +647,11 @@ export default function AIAssistant() {
     }
     const messageText = (text || message).trim();
     if (!messageText) return;
+    const effectiveLocale =
+      text && text !== message
+        ? detectInputLocale(messageText)
+        : lastInputLocaleRef.current || detectInputLocale(messageText);
+    const languageAwareMessage = buildLanguageAwarePrompt(messageText, effectiveLocale);
 
     const userMsg: UIMessage = {
       id: `user-${Date.now()}`,
@@ -548,14 +682,21 @@ export default function AIAssistant() {
       if (fallbackAttempted) return;
       fallbackAttempted = true;
       try {
-        const response = await chatService.sendMessage(messageText, sessionId);
+        const response = await chatService.sendMessage(languageAwareMessage, sessionId);
+        const profileUpdated = Array.isArray(response.toolResults)
+          ? response.toolResults.some((item: any) => item?.kind === 'profile_updated')
+          : false;
+        const safeResponseMessage =
+          looksLikeProfileUpdateCommand(messageText) && !profileUpdated
+            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+            : response.message;
         setSessionId(response.sessionId);
         setMessages((prev) =>
           prev.map((m) =>
             m.id === botMsgId
               ? {
                   ...m,
-                  text: response.message,
+                  text: safeResponseMessage,
                   isStreaming: false,
                   voiceUrl: response.voiceUrl,
                   toolResults: response.toolResults,
@@ -565,6 +706,9 @@ export default function AIAssistant() {
               : m,
           ),
         );
+        if (profileUpdated) {
+          refreshDisplayedUserName().catch(() => {});
+        }
       } catch {
         if (!sessionId) setSessionId(`local-${Date.now()}`);
         await streamLocalReply(botMsgId, getLocalBotReply(messageText));
@@ -581,7 +725,7 @@ export default function AIAssistant() {
       }
 
       await chatService.sendMessageStream(
-        messageText,
+        languageAwareMessage,
         sessionId,
         async (chunk: SSEChunk) => {
           switch (chunk.type) {
@@ -636,11 +780,19 @@ export default function AIAssistant() {
               break;
 
             case 'done':
+              if (Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated')) {
+                refreshDisplayedUserName().catch(() => {});
+              }
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === botMsgId
                     ? {
                         ...m,
+                        text:
+                          looksLikeProfileUpdateCommand(messageText) &&
+                          !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated'))
+                            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+                            : m.text,
                         isStreaming: false,
                         voiceUrl: chunk.voiceUrl,
                         toolResults: chunk.toolResults || m.toolResults,
@@ -689,6 +841,14 @@ export default function AIAssistant() {
       }
       Tts.stop();
       setTtsSpeakingId(msgId);
+      const detectedSpeechLocale = getSpeechLocaleForText(text);
+      const preferredSpeechLocale =
+        detectedSpeechLocale === 'en-IN' && lastInputLocaleRef.current !== 'en-IN'
+          ? lastInputLocaleRef.current
+          : detectedSpeechLocale;
+      Tts.setDefaultLanguage(preferredSpeechLocale).catch(() => {
+        Tts.setDefaultLanguage(lastInputLocaleRef.current).catch(() => {});
+      });
       Tts.speak(text);
     } else {
       Alert.alert('No Audio', 'Audio is not available for this message.');
@@ -869,8 +1029,8 @@ export default function AIAssistant() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.header}>
-          <Pressable onPress={handleNewChat} hitSlop={12} style={styles.headerBtn}>
-            <Ionicons name="add" size={20} color="#9fb3ff" />
+          <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.headerBtn}>
+            <Ionicons name="arrow-back-outline" size={22} color="#9fb3ff" />
           </Pressable>
         <View style={styles.headerCenter}>
           <Ionicons name="sparkles" size={18} color="#9fb3ff" />
@@ -882,7 +1042,7 @@ export default function AIAssistant() {
             hitSlop={12}
             style={styles.headerBtn}
           >
-            <Ionicons name="chatbubbles-outline" size={22} color="#7a8599" />
+            <Ionicons name="time-outline" size={22} color="#9fb3ff" />
           </Pressable>
         </View>
       </View>
@@ -915,9 +1075,10 @@ export default function AIAssistant() {
                         style={styles.gif}
                         resizeMode={FastImage.resizeMode.contain}
                       />
-                <Text style={styles.heroGreeting}>
-                  {userName ? `Hello ${userName} !` : 'Hello there'}
-                </Text>
+                <View style={styles.heroGreeting}>
+                  <Ionicons name="sparkles" size={18} color="#9fb3ff" />
+                  <Text style={{color: '#6f7b93',}}>{userName ? `Hello ${userName} !` : 'Hello there'}</Text>
+                </View>
                 <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
                 <View style={styles.cardGrid}>
                   {assistantCards.map((card) => (
@@ -1293,7 +1454,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroGreeting: {
-    color: '#6f7b93',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap:5,
     fontSize: 14,
   },
   heroTitle: {
