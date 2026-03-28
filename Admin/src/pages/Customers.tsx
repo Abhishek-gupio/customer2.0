@@ -11,6 +11,7 @@ import {
 import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerListItem } from '../api/client';
+import logoImg from '../assets/images/logo.png';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { TableRowSkeleton } from '../components/ui/Skeleton';
@@ -126,7 +127,7 @@ export default function Customers() {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => {
-          const { hasRole } = useAuth();
+          const { hasRole, admin } = useAuth();
           const [exporting, setExporting] = useState(false);
 
           const handleExport = async (e: React.MouseEvent) => {
@@ -136,7 +137,11 @@ export default function Customers() {
             try {
               const res = await adminApi.getCustomer(row.original.id);
               if (res.success) {
-                const html = generateCustomerExport(res.data);
+                const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
+                const html = generateCustomerExport(res.data, { 
+                  showLogo: isSuperAdmin, 
+                  logoUrl: logoImg 
+                });
 
                 // Create an isolated iframe for printing
                 const iframe = document.createElement('iframe');
@@ -355,7 +360,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 }
 
 
-const generateCustomerExport = (data: any) => {
+export const generateCustomerExport = (data: any, options?: { showLogo?: boolean; logoUrl?: string }) => {
   const customer = data;
   const { vehicles = [], expenses = [], supportTickets = [], documents = [], expenseSummary } = data;
   const exportDate = new Date().toLocaleDateString('en-GB');
@@ -374,7 +379,8 @@ const generateCustomerExport = (data: any) => {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>${customer.fullName || 'Customer'} document</title>
+  <title></title>
+  <base href="${window.location.origin}">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1a1a; line-height: 1.5; padding: 40px; background: #fff; max-width: 900px; margin: 0 auto; }
@@ -403,12 +409,18 @@ const generateCustomerExport = (data: any) => {
     .status-active { background: #e6fcf5; color: #0ca678; }
     
     @media print {
-      body { padding: 0; }
+      @page { margin: 0; }
+      body { padding: 40px; }
       .card { border: 1px solid #eee !important; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
 <body>
+  ${options?.showLogo ? `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <img src="${options.logoUrl}" alt="Gupio Logo" style="height: 60px; object-fit: contain;">
+    </div>
+  ` : ''}
   <div class="header">
     <div class="customer-name">${customer.fullName || 'Unnamed Customer'}</div>
     <div class="meta-grid">

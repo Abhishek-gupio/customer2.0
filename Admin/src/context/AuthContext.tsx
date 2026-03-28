@@ -14,6 +14,7 @@ interface AuthState {
   admin: Admin | null;
   token: string | null;
   loading: boolean;
+  isSplashScreenVisible: boolean;
 }
 
 const AuthContext = createContext<AuthState & {
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthState & {
   signup: (data: { email: string; password: string; name?: string; role?: string }) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   hasRole: (...roles: AdminRole[]) => boolean;
+  setSplashScreenVisible: (visible: boolean) => void;
 } | null>(null);
 
 const TOKEN_KEY = 'adminToken';
@@ -31,12 +33,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     admin: null,
     token: localStorage.getItem(TOKEN_KEY),
     loading: true,
+    isSplashScreenVisible: !localStorage.getItem(TOKEN_KEY), // Show splash only if NOT logged in
   });
+
+  const setSplashScreenVisible = useCallback((visible: boolean) => {
+    setState(s => ({ ...s, isSplashScreenVisible: visible }));
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ADMIN_KEY);
-    setState({ admin: null, token: null, loading: false });
+    setState({ 
+      admin: null, 
+      token: null, 
+      loading: false, 
+      isSplashScreenVisible: true // Show splash in login page after logout
+    });
   }, []);
 
   useEffect(() => {
@@ -75,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const adminTyped: Admin = { ...admin, role: admin.role as AdminRole };
     localStorage.setItem(TOKEN_KEY, accessToken);
     localStorage.setItem(ADMIN_KEY, JSON.stringify(adminTyped));
-    setState({ admin: adminTyped, token: accessToken, loading: false });
+    setState(s => ({ ...s, admin: adminTyped, token: accessToken, loading: false }));
     return { ok: true };
   }, []);
 
@@ -92,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, signup, logout, hasRole }}>
+    <AuthContext.Provider value={{ ...state, login, signup, logout, hasRole, setSplashScreenVisible }}>
       {children}
     </AuthContext.Provider>
   );
