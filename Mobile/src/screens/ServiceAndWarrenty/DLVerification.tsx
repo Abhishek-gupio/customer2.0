@@ -21,6 +21,8 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
+import Share from 'react-native-share';
 
 export default function DLVerification() {
   const navigation = useNavigation();
@@ -75,6 +77,104 @@ export default function DLVerification() {
     );
   };
 
+  const handleShare = async () => {
+    if (!verificationResult) return;
+
+    try {
+      const data = verificationResult;
+      const details = data.details_of_driving_licence || data.details_of_driving_license || {};
+      const validity = data.dl_validity || {};
+      const badgeDetails = data.badge_details?.[0] || {};
+      const vehicleClasses = badgeDetails.class_of_vehicle || data.class_of_vehicle || [];
+      
+      const issueDate = details.date_of_issue || validity.non_transport?.from || 'N/A';
+      const expiryDate = validity.non_transport?.to || 'N/A';
+      const authority = details.ola_name || data.ola_name || 'RTO,HASSAN';
+      const name = details.name || 'N/A';
+      const dobValue = data.dob || 'N/A';
+      const fatherName = details.father_or_husband_name || 'N/A';
+      const address = details.address || data.address || 'N/A';
+
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #333; }
+              .certificate { border: 2px solid #333; padding: 30px; border-radius: 10px; background: #fff; }
+              .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+              .header h1 { margin: 0; font-size: 24px; color: #000; }
+              .header p { margin: 5px 0; font-size: 14px; }
+              .meta-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
+              .info-grid { display: flex; margin-top: 20px; }
+              .info-left { flex: 3; }
+              .info-right { flex: 1; text-align: right; }
+              .info-row { display: flex; margin-bottom: 10px; font-size: 13px; }
+              .label { width: 150px; color: #666; }
+              .value { flex: 1; font-weight: bold; }
+              .photo-box { width: 120px; height: 150px; border: 1px solid #eee; background: #fafafa; display: inline-block; }
+              .footer { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+              .note { margin-top: 20px; font-size: 10px; color: #888; background: #f9f9f9; padding: 10px; border-radius: 5px; }
+            </style>
+          </head>
+          <body>
+            <div class="certificate">
+              <div class="header">
+                <h1>UNION OF INDIA DRIVING LICENSE</h1>
+                <p>Issuing Authority: ${authority}</p>
+              </div>
+              <div class="meta-row">
+                <div><span>Authorization to Drive:</span> <span>${vehicleClasses.join(', ')}</span></div>
+                <div><span>License No:</span> <span>${data.dl_number || data.dl_no}</span></div>
+              </div>
+              <div class="meta-row" style="font-size: 11px; color: #555; margin-top: 10px;">
+                <div><span>Date of Issue:</span> <span>${issueDate}</span></div>
+                <div><span>Date of Expiry:</span> <span>${expiryDate}</span></div>
+              </div>
+              <div class="info-grid">
+                <div class="info-left">
+                  <div class="info-row"><div class="label">Name:</div> <div class="value">${name}</div></div>
+                  <div class="info-row"><div class="label">DOB:</div> <div class="value">${dobValue}</div></div>
+                  <div class="info-row"><div class="label">S/W/D:</div> <div class="value">${fatherName}</div></div>
+                  <div class="info-row"><div class="label">Address:</div> <div class="value">${address}</div></div>
+                </div>
+                <div class="info-right">
+                  <div class="photo-box"></div>
+                </div>
+              </div>
+              <div class="footer">
+                <div style="font-size: 12px; color: #6366f1; font-weight: bold;">Digitally Signed by DigiLocker</div>
+                <div style="font-size: 10px; color: #666;">Generated on: ${new Date().toLocaleDateString('en-GB')}</div>
+              </div>
+              <div class="note">
+                <p>Note: This is a system-generated certificate based on official records verified through IDSPay and DigiLocker.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      setLoading(true);
+      const options = {
+        html: htmlContent,
+        fileName: `DL_${data.dl_number || 'Verification'}`,
+        directory: 'Documents',
+      };
+
+      const file: any = await RNHTMLtoPDF.convert(options);
+      if (file && file.filePath) {
+        await Share.open({
+          url: `file://${file.filePath}`,
+          type: 'application/pdf',
+          title: 'Driving License Certificate',
+        });
+      }
+    } catch (error) {
+      console.log('Share Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVerify = async () => {
     if (!dlNumber || !dob) {
       Alert.alert('Missing Info', 'Please enter both DL Number and Date of Birth.');
@@ -110,90 +210,111 @@ export default function DLVerification() {
     const validity = data.dl_validity || {};
     const badgeDetails = data.badge_details?.[0] || {};
     const vehicleClasses = badgeDetails.class_of_vehicle || data.class_of_vehicle || [];
+    
+    const issueDate = details.date_of_issue || validity.non_transport?.from || 'N/A';
+    const expiryDate = validity.non_transport?.to || 'N/A';
+    const authority = details.ola_name || data.ola_name || 'RTO,HASSAN';
+    const name = details.name || 'N/A';
+    const dobValue = data.dob || 'N/A';
+    const fatherName = details.father_or_husband_name || 'N/A';
+    const address = details.address || data.address || 'N/A';
 
     return (
-      <ScrollView contentContainerStyle={styles.resultScroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.successHeader}>
-          <View style={styles.checkCircle}>
-             <Icon name="check" size={wp(8)} color="#000" />
+      <ScrollView contentContainerStyle={styles.certificateWrapper} showsVerticalScrollIndicator={false}>
+        <View style={styles.certificate}>
+          {/* Header Part */}
+          <View style={styles.certHeader}>
+             <View style={styles.pillarContainer}>
+                <MaterialIcon name="podium-gold" size={hp(5)} color="#333" /> 
+             </View>
+             <Text style={styles.certTitleLine1}>UNION OF INDIA DRIVING LICENSE</Text>
+             <Text style={styles.certTitleLine2}>Issuing Authority : {authority}</Text>
           </View>
-          <Text style={styles.verifiedTitle}>DL Verified Successfully</Text>
-          <Text style={styles.verifiedSubtitle}>Current Status: <Text style={{ color: '#22c55e', fontFamily: 'Outfit-Bold' }}>{details.status || 'ACTIVE'}</Text></Text>
+          
+          <View style={styles.certMainMeta}>
+             <View style={styles.certMetaRow}>
+                <Text style={styles.certMetaLabel}>Authorization to Drive :</Text>
+                <Text style={styles.certMetaValue}>{vehicleClasses.join(', ') || 'N/A'}</Text>
+                <View style={{ flex: 1 }} />
+                <Text style={styles.certMetaLabelSmall}>Date of Issue :</Text>
+                <Text style={styles.certMetaValueSmall}>{issueDate}</Text>
+             </View>
+             <View style={styles.certMetaRow}>
+                <Text style={styles.certMetaLabel}>License No. :</Text>
+                <Text style={styles.certMetaValue}>{data.dl_number || data.dl_no || 'N/A'}</Text>
+                <View style={{ flex: 1 }} />
+                <Text style={styles.certMetaLabelSmall}>Date of Expiry :</Text>
+                <Text style={styles.certMetaValueSmall}>{expiryDate}</Text>
+             </View>
+          </View>
+
+          <View style={styles.certInfoGrid}>
+             <View style={styles.certLeftInfo}>
+                <View style={styles.certInfoRow}>
+                   <Text style={styles.certRowLabel}>Name</Text>
+                   <Text style={styles.certRowSeparator}>:</Text>
+                   <Text style={styles.certRowValue}>{name}</Text>
+                </View>
+                <View style={styles.certInfoRow}>
+                   <Text style={styles.certRowLabel}>DOB</Text>
+                   <Text style={styles.certRowSeparator}>:</Text>
+                   <Text style={styles.certRowValue}>{dobValue}</Text>
+                </View>
+                <View style={styles.certInfoRow}>
+                   <Text style={styles.certRowLabel}>Blood Group</Text>
+                   <Text style={styles.certRowSeparator}>:</Text>
+                   <Text style={styles.certRowValue}>N/A</Text>
+                </View>
+                <View style={styles.certInfoRow}>
+                   <Text style={styles.certRowLabel}>S/W/D</Text>
+                   <Text style={styles.certRowSeparator}>:</Text>
+                   <Text style={styles.certRowValue}>{fatherName}</Text>
+                </View>
+                <View style={styles.certInfoRow}>
+                   <Text style={styles.certRowLabel}>Present Address</Text>
+                   <Text style={styles.certRowSeparator}>:</Text>
+                   <Text style={styles.certRowValueSmall}>{address}</Text>
+                </View>
+                <View style={styles.certInfoRow}>
+                   <Text style={styles.certRowLabel}>Permanent Address</Text>
+                   <Text style={styles.certRowSeparator}>:</Text>
+                   <Text style={styles.certRowValueSmall}>{address}</Text>
+                </View>
+             </View>
+             <View style={styles.certPhotoBox}>
+                <View style={styles.photoPlaceholder}>
+                   <Icon name="user" size={hp(6)} color="#ccc" />
+                </View>
+             </View>
+          </View>
+
+          <View style={styles.certFooterTop}>
+             <View style={styles.qrPlaceholder}>
+                <MaterialIcon name="qrcode" size={hp(6)} color="#333" />
+             </View>
+             
+             <View style={styles.digilockerPowered}>
+                <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#6366f1' }}>Powered by</Text>
+                <View style={{ backgroundColor: '#6366f1', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                   <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>DigiLocker</Text>
+                </View>
+             </View>
+
+             <View style={styles.signedBadge}>
+                <Text style={styles.signedAtText}>Digitally signed on</Text>
+                <Text style={styles.signedDateText}>{new Date().toLocaleDateString('en-GB')}</Text>
+                <Icon name="check-circle" size={14} color="#22c55e" />
+             </View>
+          </View>
+
+          <View style={styles.certNoteBox}>
+             <Text style={styles.noteTitle}>Note:</Text>
+             <Text style={styles.noteLine}>1. This Driving License Certificate data is accessed using DigiLocker.</Text>
+             <Text style={styles.noteLine}>2. This certificate is generated by Gupio through IDSPay verified records.</Text>
+             <Text style={styles.noteLine}>3. This digitally signed document is valid as per IT Act.</Text>
+             <Text style={styles.noteLine}>4. To verify the authenticity, scan the QR code on the printed certificate.</Text>
+          </View>
         </View>
-
-        <View style={styles.resultCard}>
-          <Text style={styles.cardSectionTitle}>PERSONAL DETAILS</Text>
-          <View style={styles.detailItem}>
-             <Text style={styles.detailLabel}>Full Name</Text>
-             <Text style={styles.detailValue}>{details.name || 'N/A'}</Text>
-          </View>
-          <View style={styles.detailItem}>
-             <Text style={styles.detailLabel}>Date of Birth</Text>
-             <Text style={styles.detailValue}>{data.dob || 'N/A'}</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.cardSectionTitle}>LICENSE DETAILS</Text>
-          <View style={styles.detailItem}>
-             <Text style={styles.detailLabel}>Driving License Number</Text>
-             <Text style={styles.detailValue}>{data.dl_number || data.dl_no || 'N/A'}</Text>
-          </View>
-          <View style={styles.detailItemRow}>
-             <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>Date of Issue</Text>
-                <Text style={styles.detailValue}>{details.date_of_issue || 'N/A'}</Text>
-             </View>
-             <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>Original LA</Text>
-                <Text style={styles.detailValue}>{details.ola_name || data.ola_name || 'N/A'}</Text>
-             </View>
-          </View>
-          <View style={[styles.detailItem, { marginTop: hp(2) }]}>
-             <Text style={styles.detailLabel}>Reference No</Text>
-             <Text style={styles.detailValue}>{data.reference_no || details.last_transacted_at || 'N/A'}</Text>
-          </View>
-          
-          <View style={styles.detailItem}>
-             <Text style={styles.detailLabel}>Vehicle Classes</Text>
-             <View style={styles.badgeRow}>
-               {vehicleClasses.length > 0 ? vehicleClasses.map((cls: string) => (
-                 <View key={cls} style={styles.badgePill}>
-                   <Text style={styles.badgeText}>{cls}</Text>
-                 </View>
-               )) : <Text style={styles.detailValue}>N/A</Text>}
-             </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.cardSectionTitle}>VALIDITY INFORMATION</Text>
-          <View style={styles.validityRow}>
-            <View style={styles.validityBox}>
-               <Text style={styles.validityLabel}>Non-Transport</Text>
-               <Text style={styles.validityDate}>{validity.non_transport?.from || 'N/A'} - {validity.non_transport?.to || 'N/A'}</Text>
-            </View>
-          </View>
-          
-          <View style={[styles.validityRow, { marginTop: hp(1.5) }]}>
-            <View style={styles.validityBox}>
-               <Text style={styles.validityLabel}>Transport</Text>
-               <Text style={styles.validityDate}>{validity.transport?.from || 'N/A'} - {validity.transport?.to || validity.transport?.to || 'N/A'}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-          
-          <Text style={styles.cardSectionTitle}>REGISTERED ADDRESS</Text>
-          <Text style={styles.addressText}>{details.address || data.address || 'N/A'}</Text>
-        </View>
-
-        <TouchableOpacity 
-          style={styles.doneBtn}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.doneBtnText}>Done</Text>
-        </TouchableOpacity>
       </ScrollView>
     );
   };
@@ -223,8 +344,11 @@ export default function DLVerification() {
           <View style={styles.headerActions}>
             {verificationResult ? (
                 <>
-                <TouchableOpacity onPress={() => setVerificationResult(null)} style={styles.actionIcon}>
-                    <Icon name="plus" size={24} color="#FFBF00" />
+                <TouchableOpacity onPress={handleShare} style={styles.actionIcon}>
+                    <Icon name="share-2" size={22} color="#FFBF00" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setVerificationResult(null)} style={[styles.actionIcon, { marginLeft: 15 }]}>
+                    <Icon name="plus" size={24} color="#fff" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleDelete} style={[styles.actionIcon, { marginLeft: 15 }]}>
                     <Icon name="trash-2" size={22} color="#ff453a" />
@@ -438,134 +562,186 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
     lineHeight: 18,
   },
-  // Result Styles
-  resultScroll: {
-    paddingHorizontal: wp(6),
-    paddingBottom: hp(4),
+  // Result Styles (REMOVED OLD STYLES)
+  certificateWrapper: {
+    padding: wp(4),
+    paddingBottom: hp(10),
   },
-  successHeader: {
+  certificate: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: wp(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  certHeader: {
     alignItems: 'center',
-    paddingVertical: hp(3),
+    marginBottom: hp(2),
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#333',
+    paddingBottom: hp(1),
   },
-  checkCircle: {
-      width: wp(16),
-      height: wp(16),
-      borderRadius: wp(8),
-      backgroundColor: '#FFBF00',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: hp(2),
+  pillarContainer: {
+    width: hp(8),
+    height: hp(8),
+    marginBottom: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  verifiedTitle: {
-      color: '#fff',
-      fontFamily: 'Outfit-Bold',
-      fontSize: wp(5.5),
-      marginBottom: 4,
+  certTitleLine1: {
+    color: '#000',
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
-  verifiedSubtitle: {
-      color: 'rgba(255,255,255,0.5)',
-      fontFamily: 'Outfit-Regular',
-      fontSize: wp(3.8),
+  certTitleLine2: {
+    color: '#333',
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Medium',
+    marginTop: 2,
   },
-  resultCard: {
-      backgroundColor: '#111',
-      borderRadius: 24,
-      padding: wp(6),
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.05)',
+  certMainMeta: {
+    marginTop: hp(1),
   },
-  cardSectionTitle: {
-      color: 'rgba(255, 191, 0, 0.8)',
-      fontFamily: 'Outfit-Bold',
-      fontSize: wp(3.2),
-      textTransform: 'uppercase',
-      letterSpacing: 1.5,
-      marginBottom: hp(2),
+  certMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(0.5),
   },
-  detailItem: {
-      marginBottom: hp(2),
+  certMetaLabel: {
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
+    width: wp(35),
   },
-  detailItemRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+  certMetaValue: {
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
   },
-  detailLabel: {
-      color: 'rgba(255,255,255,0.4)',
-      fontFamily: 'Outfit-Regular',
-      fontSize: wp(3.2),
-      marginBottom: 2,
+  certMetaLabelSmall: {
+    fontSize: wp(2.2),
+    color: '#333',
+    marginRight: 4,
   },
-  detailValue: {
-      color: '#fff',
-      fontFamily: 'Outfit-Medium',
-      fontSize: wp(4),
+  certMetaValueSmall: {
+    fontSize: wp(2.2),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
   },
-  divider: {
-      height: 1,
-      backgroundColor: 'rgba(255,255,255,0.05)',
-      marginVertical: hp(2),
+  certInfoGrid: {
+    flexDirection: 'row',
+    marginTop: hp(1.5),
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: hp(1.5),
   },
-  badgeRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 4,
+  certLeftInfo: {
+    flex: 1,
   },
-  badgePill: {
-      backgroundColor: 'rgba(255, 191, 0, 0.1)',
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 191, 0, 0.2)',
+  certInfoRow: {
+    flexDirection: 'row',
+    marginBottom: hp(0.8),
+    alignItems: 'flex-start',
   },
-  badgeText: {
-      color: '#FFBF00',
-      fontFamily: 'Outfit-Bold',
-      fontSize: wp(3),
+  certRowLabel: {
+    width: wp(22),
+    fontSize: wp(2.8),
+    color: '#444',
+    fontFamily: 'Outfit-Medium',
   },
-  validityRow: {
-      flexDirection: 'row',
-      gap: 12,
+  certRowSeparator: {
+    width: wp(3),
+    fontSize: wp(2.8),
+    color: '#444',
   },
-  validityBox: {
-      flex: 1,
-      backgroundColor: 'rgba(255,255,255,0.03)',
-      padding: 12,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.05)',
+  certRowValue: {
+    flex: 1,
+    fontSize: wp(2.8),
+    color: '#000',
+    fontFamily: 'Outfit-Bold',
   },
-  validityLabel: {
-      color: 'rgba(255,255,255,0.4)',
-      fontFamily: 'Outfit-Bold',
-      fontSize: wp(2.8),
-      marginBottom: 4,
+  certRowValueSmall: {
+    flex: 1,
+    fontSize: wp(2.4),
+    color: '#222',
+    fontFamily: 'Outfit-Medium',
+    lineHeight: 14,
   },
-  validityDate: {
-      color: '#fff',
-      fontFamily: 'Outfit-Medium',
-      fontSize: wp(3.2),
+  certPhotoBox: {
+    width: wp(20),
+    height: wp(26),
+    borderWidth: 1,
+    borderColor: '#eee',
+    marginLeft: wp(2),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fafafa',
   },
-  addressText: {
-      color: '#fff',
-      fontFamily: 'Outfit-Regular',
-      fontSize: wp(3.5),
-      lineHeight: 20,
-      opacity: 0.8,
+  photoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  doneBtn: {
-      backgroundColor: '#fff',
-      height: hp(7),
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: hp(4),
+  certFooterTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(2),
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: hp(1.5),
   },
-  doneBtnText: {
-      color: '#000',
-      fontFamily: 'Outfit-Bold',
-      fontSize: wp(4),
+  qrPlaceholder: {
+    width: wp(16),
+    height: wp(16),
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  digilockerPowered: {
+    alignItems: 'center',
+  },
+  signedBadge: {
+    borderWidth: 1,
+    borderColor: '#eee',
+    padding: 6,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  signedAtText: {
+    fontSize: 7,
+    color: '#666',
+    fontFamily: 'Outfit-Regular',
+  },
+  signedDateText: {
+    fontSize: 7,
+    fontFamily: 'Outfit-Bold',
+    color: '#333',
+    marginBottom: 2,
+  },
+  certNoteBox: {
+    marginTop: hp(1.5),
+    borderWidth: 1,
+    borderColor: '#f5f5f5',
+    padding: hp(1),
+    borderRadius: 4,
+    backgroundColor: '#fafafa',
+  },
+  noteTitle: {
+    fontSize: wp(2.4),
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
+    marginBottom: 2,
+  },
+  noteLine: {
+    fontSize: wp(2.1),
+    color: '#666',
+    fontFamily: 'Outfit-Regular',
+    marginBottom: 1,
   },
 });

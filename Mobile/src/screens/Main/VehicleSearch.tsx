@@ -105,6 +105,12 @@ export default function VehicleSearch() {
                 autoCorrect={false}
               />
               
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearIcon}>
+                  <Ionicons name="close-circle" size={24} color="#666" />
+                </TouchableOpacity>
+              )}
+              
 
             </View>
             <Text style={styles.searchHint}>e.g. MH01AB1234, DL3C1234</Text>
@@ -261,6 +267,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     paddingHorizontal: 16,
     letterSpacing: 2,
+  },
+  clearIcon: {
+    paddingHorizontal: 12,
   },
 
   searchHint: {
