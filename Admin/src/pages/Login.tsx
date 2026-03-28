@@ -5,6 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import { adminApi } from '../api/client';
 import Particles from '../components/Particles/Particles';
 import SplitText from '../components/ui/SplitText/SplitText';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/Select';
 import './Auth.css';
 
 type View = 'main' | 'forgot_email' | 'forgot_otp' | 'forgot_reset';
@@ -366,7 +373,7 @@ export default function Login() {
           <form onSubmit={handleSignUp}>
             <SplitText
               text="Create Account"
-              className="text-[32px] md:text-[40px] font-bold text-white mb-2"
+              className="text-[32px] md:text-[40px] font-bold mb-2"
               delay={50}
               duration={1.2}
               splitType="chars"
@@ -419,11 +426,16 @@ export default function Login() {
                 {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="SUPER_ADMIN">SUPER ADMIN</option>
-              <option value="ADMIN">ADMIN</option>
-              <option value="SUPPORT">SUPPORT</option>
-            </select>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="auth-select-trigger">
+                <SelectValue placeholder="Select Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SUPER_ADMIN">SUPER ADMIN</SelectItem>
+                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="SUPPORT">SUPPORT</SelectItem>
+              </SelectContent>
+            </Select>
             {error && isRightPanelActive && <p className="error-msg">{error}</p>}
             <button type="submit" disabled={submitting}>{submitting ? 'Creating…' : 'Sign Up'}</button>
             <div className="mobile-only">
@@ -438,11 +450,12 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <SplitText
               text="Sign In"
-              className="text-[32px] md:text-[40px] font-bold text-white mb-2"
+              className="text-[32px] md:text-[40px] font-bold mb-2"
               delay={50}
               duration={1.2}
               splitType="chars"
               tag="h1"
+              textAlign="left"
             />
             <span className="auth-subtitle">Use your admin email and password</span>
             <input
@@ -508,7 +521,7 @@ export default function Login() {
 
               <SplitText
                 text="Welcome Back Admin"
-                className="text-[32px] font-bold text-white mb-2"
+                className="text-[32px] font-bold mb-2 text-white"
                 delay={50}
                 duration={1.2}
                 splitType="chars"
@@ -525,7 +538,7 @@ export default function Login() {
 
               <SplitText
                 text="Welcome Back Admin"
-                className="text-[32px] font-bold text-white mb-2"
+                className="text-[32px] font-bold mb-2 text-white"
                 delay={50}
                 duration={1.2}
                 splitType="chars"

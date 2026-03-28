@@ -82,6 +82,9 @@ export const adminApi = {
       unverifiedVehiclesCount: number;
       totalCustomersToday: number;
       recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+      expenseCategoryBreakdown: { category: string; amount: number; count: number }[];
+      ticketPriorityDistribution: { priority: string; count: number }[];
+      vehicleHealthDistribution: { critical: number; warning: number; good: number };
       trendData?: { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[];
       databaseAvailable?: boolean;
     }>(`/v1/admin/stats?days=${days}`),
