@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,12 @@ import {
   Linking,
   Image,
   Animated,
-  PanResponder,
   BackHandler,
   type ImageSourcePropType,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -137,70 +137,79 @@ export default function Home() {
     };
   }, [clampVideoOffset, miniBaseLeft, miniVideoCardWidth, windowSize.width]);
 
-  const videoModalPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onStartShouldSetPanResponderCapture: () => false,
-      onMoveShouldSetPanResponder: (_, gestureState) =>
-        (Math.abs(gestureState.dx) > 4 || Math.abs(gestureState.dy) > 4),
-      onMoveShouldSetPanResponderCapture: (_, gestureState) =>
-        (Math.abs(gestureState.dx) > 2 || Math.abs(gestureState.dy) > 2),
-      onPanResponderGrant: () => {
-        videoBaseX.stopAnimation((value) => {
-          videoModalOffset.current.x = value;
-        });
-        videoBaseY.stopAnimation((value) => {
-          videoModalOffset.current.y = value;
-        });
-        videoDragX.setValue(0);
-        videoDragY.setValue(0);
-        setIsVideoDragging(true);
-      },
-      onPanResponderMove: (_, gestureState) => {
-        videoDragX.setValue(gestureState.dx);
-        videoDragY.setValue(gestureState.dy);
-      },
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderRelease: (_, gestureState) => {
-        const nextOffset = isVideoExpandedRef.current
-          ? clampVideoOffset(
-              videoModalOffset.current.x + gestureState.dx,
-              videoModalOffset.current.y + gestureState.dy,
-              true
-            )
-          : snapMiniVideoOffset(
-              videoModalOffset.current.x + gestureState.dx,
-              videoModalOffset.current.y + gestureState.dy
-            );
+  const animateVideoToOffset = useCallback((nextOffset: { x: number; y: number }) => {
+    Animated.parallel([
+      Animated.spring(videoBaseX, {
+        toValue: nextOffset.x,
+        useNativeDriver: true,
+        tension: 72,
+        friction: 10,
+      }),
+      Animated.spring(videoBaseY, {
+        toValue: nextOffset.y,
+        useNativeDriver: true,
+        tension: 72,
+        friction: 10,
+      }),
+    ]).start();
+  }, [videoBaseX, videoBaseY]);
 
-        videoModalOffset.current = nextOffset;
-        setIsVideoDragging(false);
-        videoDragX.setValue(0);
-        videoDragY.setValue(0);
-        Animated.parallel([
-          Animated.spring(videoBaseX, {
-            toValue: nextOffset.x,
-            useNativeDriver: true,
-            tension: 75,
-            friction: 11,
-          }),
-          Animated.spring(videoBaseY, {
-            toValue: nextOffset.y,
-            useNativeDriver: true,
-            tension: 75,
-            friction: 11,
-          }),
-        ]).start();
-      },
-      onPanResponderTerminate: () => {
-        videoBaseX.setValue(videoModalOffset.current.x);
-        videoBaseY.setValue(videoModalOffset.current.y);
-        videoDragX.setValue(0);
-        videoDragY.setValue(0);
-        setIsVideoDragging(false);
-      },
-    })
-  ).current;
+  const videoDragGestureEvent = useMemo(
+    () =>
+      Animated.event(
+        [{ nativeEvent: { translationX: videoDragX, translationY: videoDragY } }],
+        { useNativeDriver: true }
+      ),
+    [videoDragX, videoDragY]
+  );
+
+  const handleVideoGestureStateChange = useCallback((event: any) => {
+    const { nativeEvent } = event;
+    const translationX = nativeEvent.translationX ?? 0;
+    const translationY = nativeEvent.translationY ?? 0;
+
+    if (nativeEvent.state === State.BEGAN) {
+      videoBaseX.stopAnimation((value) => {
+        videoModalOffset.current.x = value;
+      });
+      videoBaseY.stopAnimation((value) => {
+        videoModalOffset.current.y = value;
+      });
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+      setIsVideoDragging(true);
+      return;
+    }
+
+    if (nativeEvent.oldState !== State.ACTIVE) {
+      return;
+    }
+
+    const nextOffset = isVideoExpandedRef.current
+      ? clampVideoOffset(
+          videoModalOffset.current.x + translationX,
+          videoModalOffset.current.y + translationY,
+          true
+        )
+      : snapMiniVideoOffset(
+          videoModalOffset.current.x + translationX,
+          videoModalOffset.current.y + translationY
+        );
+
+    videoModalOffset.current = nextOffset;
+    videoDragX.setValue(0);
+    videoDragY.setValue(0);
+    setIsVideoDragging(false);
+    animateVideoToOffset(nextOffset);
+  }, [
+    animateVideoToOffset,
+    clampVideoOffset,
+    snapMiniVideoOffset,
+    videoBaseX,
+    videoBaseY,
+    videoDragX,
+    videoDragY,
+  ]);
 
   const toggleVideoExpanded = useCallback(() => {
     setIsVideoDragging(false);
@@ -1308,15 +1317,20 @@ export default function Home() {
             ]}
           >
             <View style={styles.inlinePlayerHeader}>
-              <Animated.View
-                style={styles.videoModalDragHeader}
-                {...videoModalPanResponder.panHandlers}
+              <PanGestureHandler
+                activeOffsetX={[-4, 4]}
+                activeOffsetY={[-4, 4]}
+                avgTouches
+                onGestureEvent={videoDragGestureEvent}
+                onHandlerStateChange={handleVideoGestureStateChange}
               >
-                <View style={styles.videoModalDragHandle} />
-                <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
-                  {selectedVideo.title}
-                </Text>
-              </Animated.View>
+                <Animated.View style={styles.videoModalDragHeader}>
+                  <View style={styles.videoModalDragHandle} />
+                  <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
+                    {selectedVideo.title}
+                  </Text>
+                </Animated.View>
+              </PanGestureHandler>
               <View style={styles.inlinePlayerActions}>
                 <TouchableOpacity
                   style={styles.inlinePlayerClose}
