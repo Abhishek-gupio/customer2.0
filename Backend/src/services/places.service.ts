@@ -45,8 +45,12 @@ export interface NearbyPlace {
   distanceKm: number;
   distanceText: string;
   rating: number | undefined;
+  ratingCount?: number;
   placeId: string;
   openNow?: boolean;
+  priceLevel?: number;
+  businessStatus?: string;
+  imageUrl?: string;
 }
 export interface SearchSuggestion {
   description: string;
@@ -125,8 +129,11 @@ export const placesService = {
             distanceKm: dist,
             distanceText: formatDistance(dist),
             rating: place.rating,
+            ratingCount: place.user_ratings_total,
             placeId: place.place_id || "",
             openNow: (place as any).opening_hours?.open_now,
+            priceLevel: (place as any).price_level,
+            businessStatus: (place as any).business_status,
             imageUrl,
           };
         });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { User, Users, Heart, Home } from 'lucide-react-native';
 import { PlanningState, TravelerType } from '../tripPlannerTypes';
@@ -15,7 +15,27 @@ const travelerTypes: { id: TravelerType; label: string; icon: any }[] = [
   { id: 'friends', label: 'Friends', icon: Users },
 ];
 
+const defaultPeopleByTravelerType: Record<TravelerType, number> = {
+  solo: 1,
+  couple: 2,
+  family: 3,
+  friends: 2,
+};
+
 const TravelerConfig = ({ planning, onChange }: Props) => {
+  useEffect(() => {
+    if (!planning.numberOfPeople || planning.numberOfPeople <= 0) {
+      onChange({ numberOfPeople: defaultPeopleByTravelerType[planning.travelerType] });
+    }
+  }, [planning.numberOfPeople, planning.travelerType, onChange]);
+
+  const handleTravelerTypeChange = (travelerType: TravelerType) => {
+    onChange({
+      travelerType,
+      numberOfPeople: defaultPeopleByTravelerType[travelerType],
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Who are you planning for?</Text>
@@ -27,7 +47,7 @@ const TravelerConfig = ({ planning, onChange }: Props) => {
             <TouchableOpacity
               key={item.id}
               style={[styles.card, isActive && styles.activeCard]}
-              onPress={() => onChange({ travelerType: item.id })}
+              onPress={() => handleTravelerTypeChange(item.id)}
             >
               <View style={[styles.iconBox, isActive && styles.activeIconBox]}>
                 <IconComp size={22} color={isActive ? '#000' : '#FFD700'} />
@@ -46,8 +66,16 @@ const TravelerConfig = ({ planning, onChange }: Props) => {
           keyboardType="numeric"
           placeholder="Enter count"
           placeholderTextColor="#666"
-          value={planning.numberOfPeople?.toString() || ''}
-          onChangeText={(t) => onChange({ numberOfPeople: parseInt(t) || 0 })}
+          value={planning.numberOfPeople && planning.numberOfPeople > 0 ? planning.numberOfPeople.toString() : ''}
+          onChangeText={(t) => {
+            const trimmed = t.trim();
+            if (!trimmed) {
+              onChange({ numberOfPeople: undefined });
+              return;
+            }
+            const parsed = parseInt(trimmed, 10);
+            onChange({ numberOfPeople: Number.isNaN(parsed) ? undefined : parsed });
+          }}
         />
       </View>
     </View>

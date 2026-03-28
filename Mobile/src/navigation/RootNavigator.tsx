@@ -44,6 +44,7 @@ import Alerts from '../screens/Main/Alerts';
 import ValetService from '../screens/Main/ValetService';
 import VehicleSearch from '../screens/Main/VehicleSearch';
 import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
+import TripPlannerInsightsScreen from '../screens/Other/TripPlannerInsightsScreen';
 import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -111,6 +112,7 @@ export function RootNavigator() {
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
       <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
+      <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
     </Stack.Navigator>
   );
 }

@@ -26,12 +26,13 @@ import { vehicleService, type Vehicle } from '../../services/vehicleService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decodePolyline } from '../../utils/polyline';
 import LinearGradient from 'react-native-linear-gradient';
-import { Clock, HeartPulse, Zap, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Share2, Maximize2, X, MapPin, Navigation, List, Sparkles, History } from 'lucide-react-native';
+import { Clock, HeartPulse, Zap, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Share2, Maximize2, X, MapPin, Navigation, List, Sparkles, History, BarChart3 } from 'lucide-react-native';
 import TripPlannerFlow from './TripPlannerFlow';
 import { loadPlanningState } from '../../services/tripPlannerPersistence';
 import { PlanningState } from './tripPlannerTypes';
 import TripHistoryModal from './components/TripHistoryModal';
 import { HistoryEntry } from '../../services/tripHistoryTypes';
+import { analyticsService, tripPlannerAnalytics } from '../../services/analytics';
 
 // ─── Colors (matching app dark theme) ────────────────────────────────────────
 const C = {
@@ -92,6 +93,23 @@ const getHealthAssessment = (score: number | undefined, distanceKm: number | und
       message: `Your vehicle health (${Math.round(dScore)}/100) is good for this trip. Drive safely!`
     };
   }
+};
+
+const getFirstWord = (value?: string) => {
+  if (!value) return '';
+  const parts = value.trim().split(/\s+/);
+  return parts[0] || '';
+};
+
+const getModelFirstWord = (model?: string, makeFirstWord?: string) => {
+  if (!model) return '';
+  const parts = model.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (!makeFirstWord) return parts[0];
+  const first = parts[0];
+  const isSameAsMake = first.toLowerCase() === makeFirstWord.toLowerCase();
+  if (!isSameAsMake) return first;
+  return parts[1] || '';
 };
 
 export default function TripExpenseScreen() {
@@ -157,6 +175,10 @@ export default function TripExpenseScreen() {
   }, []);
 
   useEffect(() => {
+    analyticsService.trackScreenView('trip_expense_screen');
+  }, []);
+
+  useEffect(() => {
     const fetchPlanningData = async () => {
       try {
         const data = await loadPlanningState(tripId);
@@ -217,6 +239,21 @@ export default function TripExpenseScreen() {
   const routePolyline = useMemo(() => {
     return allRoutePolylines[selectedRouteIdx]?.coords || [];
   }, [allRoutePolylines, selectedRouteIdx]);
+
+  const cheapestRouteIdx = useMemo(() => {
+    if (!result?.routes?.length) return -1;
+    return result.routes.reduce((bestIdx, route, idx, routes) => {
+      return route.costs.total < routes[bestIdx].costs.total ? idx : bestIdx;
+    }, 0);
+  }, [result]);
+
+  const fastestRouteIdx = useMemo(() => {
+    if (!result?.routes?.length) return -1;
+    const toMinutes = (route: TripRoute) => (route.duration.hours * 60) + route.duration.minutes;
+    return result.routes.reduce((bestIdx, route, idx, routes) => {
+      return toMinutes(route) < toMinutes(routes[bestIdx]) ? idx : bestIdx;
+    }, 0);
+  }, [result]);
 
   useEffect(() => {
     if (routePolyline.length > 0 && mapRef.current) {
@@ -378,28 +415,47 @@ export default function TripExpenseScreen() {
   };
 
   const handleCalculate = useCallback(async () => {
-    if (!from.trim() || !to.trim()) {
+    const trimmedFrom = from.trim();
+    const trimmedTo = to.trim();
+    const activeWaypoints = waypoints.filter(w => w.trim() !== '');
+
+    if (!trimmedFrom || !trimmedTo) {
       setError('Please enter both origin and destination');
+      tripPlannerAnalytics.calculationFailed({
+        reason: 'missing_input',
+        has_from: !!trimmedFrom,
+        has_to: !!trimmedTo,
+        waypoint_count: activeWaypoints.length,
+      });
       return;
     }
+
+    tripPlannerAnalytics.calculationStarted({
+      waypoint_count: activeWaypoints.length,
+      has_primary_vehicle: !!primaryVehicle,
+    });
+
     setLoading(true);
     setError(null);
     setResult(null);
     try {
       const data = await tripExpenseService.calculate({
-        from: from.trim(),
-        to: to.trim(),
-        waypoints: waypoints.filter(w => w.trim() !== ''),
+        from: trimmedFrom,
+        to: trimmedTo,
+        waypoints: activeWaypoints,
       });
       setResult(data);
       setSelectedRouteIdx(0);
-      
-      // Clear inputs after successful calculation as requested
-      setFrom('');
-      setTo('');
-      setWaypoints([]);
-      
-      // Also clear any open suggestions
+
+      const firstRoute = data.routes?.[0];
+      tripPlannerAnalytics.calculationSucceeded({
+        route_count: data.routes?.length || 0,
+        total_cost: firstRoute?.costs?.total || 0,
+        distance_km: firstRoute?.distance?.km || 0,
+        has_waypoints: (data.waypoints?.length || 0) > 0,
+      });
+
+      // Close suggestions once plan is generated.
       setShowFromSuggestions(false);
       setShowToSuggestions(false);
       setShowWaypointSuggestions({});
@@ -408,10 +464,14 @@ export default function TripExpenseScreen() {
       setWaypointSuggestions({});
     } catch (err: any) {
       setError(err?.message || 'Failed to calculate trip expenses');
+      tripPlannerAnalytics.calculationFailed({
+        reason: err?.message || 'calculate_failed',
+        waypoint_count: activeWaypoints.length,
+      });
     } finally {
       setLoading(false);
     }
-  }, [from, to, waypoints]);
+  }, [from, to, waypoints, primaryVehicle]);
 
   const handleRefreshTraffic = async () => {
     if (!result?.id) return;
@@ -421,16 +481,23 @@ export default function TripExpenseScreen() {
       const refreshed = await tripExpenseService.refresh(result.id);
       setResult(refreshed);
       setSelectedRouteIdx(0);
+      tripPlannerAnalytics.trafficRefresh({
+        route_count: refreshed.routes?.length || 0,
+        selected_route: 0,
+      });
     } catch (err: any) {
       console.warn('Refresh failed', err);
       setError(err?.message || 'Live traffic refresh failed');
+      tripPlannerAnalytics.trafficRefreshFailed({
+        reason: err?.message || 'refresh_failed',
+      });
     } finally {
       setRefreshing(false);
     }
   };
 
   const handleStartNavigation = () => {
-    // Use result data if inputs were cleared
+    // Prefer current input values, but always keep result fallback.
     const finalFrom = from || result?.from;
     const finalTo = to || result?.to;
     const finalWaypoints = (waypoints.length > 0 ? waypoints : result?.waypoints) || [];
@@ -446,6 +513,12 @@ export default function TripExpenseScreen() {
     if (waypointsStr) {
       url += `&waypoints=${waypointsStr}`;
     }
+
+    tripPlannerAnalytics.navigationStarted({
+      waypoint_count: activeWaypoints.length,
+      selected_route: selectedRouteIdx,
+      distance_km: selectedRoute?.distance?.km || 0,
+    });
     
     Linking.openURL(url).catch(err => {
       console.error('An error occurred', err);
@@ -457,6 +530,10 @@ export default function TripExpenseScreen() {
     if (!selectedRoute || routePolyline.length === 0) return;
     setSearchingAmenities(true);
     setAmenities([]);
+    tripPlannerAnalytics.amenitySearchStarted({
+      category,
+      route_distance_km: selectedRoute.distance?.km || 0,
+    });
     try {
       // Sample 5 points along the route to search around
       const step = Math.floor(routePolyline.length / 5);
@@ -466,7 +543,8 @@ export default function TripExpenseScreen() {
         routePolyline[Math.floor(step * 2.5)],
         routePolyline[Math.floor(step * 3.5)],
         routePolyline[Math.floor(step * 4.5)],
-      ];
+      ].filter((pt): pt is { latitude: number; longitude: number } => !!pt);
+      if (pointsToSearch.length === 0) return;
 
       const allResults: any[] = [];
       for (const pt of pointsToSearch) {
@@ -483,8 +561,15 @@ export default function TripExpenseScreen() {
       // Remove duplicates by placeId
       const unique = Array.from(new Map(allResults.map(p => [p.placeId, p])).values());
       setAmenities(unique);
+      tripPlannerAnalytics.amenitySearchResults({
+        category,
+        result_count: unique.length,
+      });
     } catch (err) {
       console.warn('Amenity search failed', err);
+      tripPlannerAnalytics.amenitySearchFailed({
+        category,
+      });
     } finally {
       setSearchingAmenities(false);
     }
@@ -493,11 +578,13 @@ export default function TripExpenseScreen() {
   const handleSharePDF = async () => {
     if (!selectedRoute) return;
     try {
+      const summaryFrom = result?.from || from;
+      const summaryTo = result?.to || to;
       const html = `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h1 style="color: #FFBF00;">Trip Cost Summary</h1>
-          <p><strong>From:</strong> ${from}</p>
-          <p><strong>To:</strong> ${to}</p>
+          <p><strong>From:</strong> ${summaryFrom}</p>
+          <p><strong>To:</strong> ${summaryTo}</p>
           <hr/>
           <h2>Total Cost: ₹${selectedRoute.costs.total}</h2>
           <p>Distance: ${selectedRoute.distance.text} | Duration: ${selectedRoute.duration.text}</p>
@@ -528,6 +615,78 @@ export default function TripExpenseScreen() {
     }
   };
 
+  const handleOpenPlanner = useCallback((source: string, step?: number, hasExistingPlanOverride?: boolean) => {
+    setRequestedPlanningStep(step);
+    setIsPlanningMode(true);
+    tripPlannerAnalytics.plannerOpened({
+      source,
+      step: step ?? 0,
+      has_existing_plan: hasExistingPlanOverride ?? !!planningData,
+      has_result: !!result,
+    });
+  }, [planningData, result]);
+
+  const handleOpenHistory = useCallback(() => {
+    setIsHistoryMode(true);
+    tripPlannerAnalytics.historyOpened({
+      has_result: !!result,
+      has_plan: !!planningData,
+    });
+  }, [planningData, result]);
+
+  const handleOpenInsights = useCallback(() => {
+    tripPlannerAnalytics.insightsOpened({
+      source: 'trip_expense_header',
+      has_result: !!result,
+      has_plan: !!planningData,
+    });
+    (navigation as any).navigate('TripPlannerInsights');
+  }, [navigation, planningData, result]);
+
+  const handleSelectRoute = useCallback((idx: number) => {
+    setSelectedRouteIdx(idx);
+    const route = result?.routes?.[idx];
+    tripPlannerAnalytics.routeChanged({
+      selected_route: idx,
+      total_routes: result?.routes?.length || 0,
+      distance_km: route?.distance?.km || 0,
+    });
+  }, [result]);
+
+  const handleToggleTraffic = useCallback(() => {
+    const nextValue = !showTraffic;
+    setShowTraffic(nextValue);
+    tripPlannerAnalytics.trafficToggle({
+      enabled: nextValue,
+      selected_route: selectedRouteIdx,
+    });
+  }, [showTraffic, selectedRouteIdx]);
+
+  const handleOpenFullMap = useCallback(() => {
+    setShowFullMap(true);
+    tripPlannerAnalytics.fullMapOpened({
+      selected_route: selectedRouteIdx,
+      has_route: !!selectedRoute,
+    });
+  }, [selectedRoute, selectedRouteIdx]);
+
+  const handleCloseFullMap = useCallback(() => {
+    setShowFullMap(false);
+    tripPlannerAnalytics.fullMapClosed({
+      selected_route: selectedRouteIdx,
+      has_route: !!selectedRoute,
+    });
+  }, [selectedRoute, selectedRouteIdx]);
+
+  const handleToggleBreakdown = useCallback(() => {
+    const nextValue = !showDetailedBreakdown;
+    setShowDetailedBreakdown(nextValue);
+    tripPlannerAnalytics.breakdownToggled({
+      expanded: nextValue,
+      selected_route: selectedRouteIdx,
+    });
+  }, [selectedRouteIdx, showDetailedBreakdown]);
+
   const handleSelectHistoryTrip = (entry: HistoryEntry) => {
     setFrom(entry.from);
     setTo(entry.to);
@@ -536,13 +695,25 @@ export default function TripExpenseScreen() {
     setIsHistoryMode(false);
     
     // Automatically open the planner at step 2 (Summary)
-    setRequestedPlanningStep(2);
-    setIsPlanningMode(true);
+    handleOpenPlanner('history_selection', 2, !!entry.planning);
+    tripPlannerAnalytics.historySelected({
+      has_planning: !!entry.planning,
+      route_count: entry.tripResult?.routes?.length || 0,
+    });
 
     if (entry.tripResult.routes?.[0]?.polyline) {
       setSelectedRouteIdx(0);
     }
   };
+
+  const hasItinerarySelections = !!(
+    planningData &&
+    (
+      planningData.selectedHotelId ||
+      (planningData.selectedActivities?.length || 0) > 0 ||
+      !!planningData.selectedBikeId
+    )
+  );
 
   return (
     <View style={s.container}>
@@ -551,17 +722,40 @@ export default function TripExpenseScreen() {
       {/* Header */}
       <View style={s.premiumHeader}>
         <View style={s.headerLeftContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={s.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            accessibilityHint="Returns to the previous screen"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <ArrowLeft size={28} color="#FFF" />
           </TouchableOpacity>
           <Text style={[s.headerTitle, { marginLeft: 8 }]}>Trip Planner</Text>
         </View>
-        <TouchableOpacity 
-          onPress={() => setIsHistoryMode(true)} 
-          style={s.historyButton}
-        >
-          <History size={24} color={C.accent} />
-        </TouchableOpacity>
+        <View style={s.headerActions}>
+          <TouchableOpacity
+            onPress={handleOpenInsights}
+            style={s.historyButton}
+            accessibilityRole="button"
+            accessibilityLabel="Open planner insights"
+            accessibilityHint="Shows trip planner funnel analytics"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <BarChart3 size={20} color={C.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={handleOpenHistory} 
+            style={s.historyButton}
+            accessibilityRole="button"
+            accessibilityLabel="Open trip history"
+            accessibilityHint="Shows your previously saved trips"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <History size={24} color={C.accent} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -595,6 +789,8 @@ export default function TripExpenseScreen() {
               onChangeText={(t: string) => handleSearch(t, 'from')}
               onFocus={() => fromSuggestions.length > 0 && setShowFromSuggestions(true)}
               returnKeyType="next"
+              accessibilityLabel="Trip origin"
+              accessibilityHint="Enter your starting location"
             />
           </View>
 
@@ -632,8 +828,16 @@ export default function TripExpenseScreen() {
                   value={wpText}
                   onChangeText={(t) => handleSearch(t, index)}
                   onFocus={() => waypointSuggestions[index]?.length > 0 && setShowWaypointSuggestions({ ...showWaypointSuggestions, [index]: true })}
+                  accessibilityLabel={`Stop ${index + 1}`}
+                  accessibilityHint="Enter an optional stop between origin and destination"
                 />
-                <TouchableOpacity onPress={() => removeWaypoint(index)} style={s.removeWpBtn}>
+                <TouchableOpacity
+                  onPress={() => removeWaypoint(index)}
+                  style={s.removeWpBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove stop ${index + 1}`}
+                  accessibilityHint="Removes this stop from your route"
+                >
                   <Text style={s.removeWpText}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -661,7 +865,13 @@ export default function TripExpenseScreen() {
 
           {/* Add Stop Button */}
           {waypoints.length < 5 && (
-            <TouchableOpacity style={s.addStopBtn} onPress={addWaypoint}>
+            <TouchableOpacity
+              style={s.addStopBtn}
+              onPress={addWaypoint}
+              accessibilityRole="button"
+              accessibilityLabel="Add stop"
+              accessibilityHint="Adds an intermediate stop to your trip"
+            >
               <Text style={s.addStopText}>+ Add Stop</Text>
             </TouchableOpacity>
           )}
@@ -680,6 +890,8 @@ export default function TripExpenseScreen() {
               onFocus={() => toSuggestions.length > 0 && setShowToSuggestions(true)}
               returnKeyType="done"
               onSubmitEditing={handleCalculate}
+              accessibilityLabel="Trip destination"
+              accessibilityHint="Enter your destination location"
             />
           </View>
 
@@ -704,6 +916,10 @@ export default function TripExpenseScreen() {
             disabled={loading}
             activeOpacity={0.85}
             style={{ marginTop: hp(2) }}
+            accessibilityRole="button"
+            accessibilityLabel="Calculate trip manifest"
+            accessibilityHint="Generates routes and estimated trip costs"
+            accessibilityState={{ disabled: loading, busy: loading }}
           >
             <LinearGradient
               colors={[C.accent, '#FFA800']}
@@ -780,6 +996,9 @@ export default function TripExpenseScreen() {
               (() => {
                 const healthStatus = getHealthAssessment(primaryVehicle.healthScore?.overallScore, selectedRoute?.distance?.km);
                 const healthPcnt = primaryVehicle.healthScore?.overallScore || 100;
+                const shortMake = getFirstWord(primaryVehicle.make);
+                const shortModel = getModelFirstWord(primaryVehicle.model, shortMake);
+                const shortVehicleName = `${shortMake} ${shortModel}`.trim() || shortMake || shortModel || 'Vehicle';
                 return (
                   <View style={[s.premiumHealthCard, { borderColor: healthStatus.color + '33' }]}>
                     <View style={s.healthHeaderRow}>
@@ -790,7 +1009,7 @@ export default function TripExpenseScreen() {
                         </Text>
                       </View>
                       <View style={s.healthCarBadge}>
-                         <Text style={s.healthCarNameText}>{primaryVehicle.make} {primaryVehicle.model}</Text>
+                         <Text style={s.healthCarNameText}>{shortVehicleName}</Text>
                       </View>
                     </View>
                     
@@ -846,7 +1065,10 @@ export default function TripExpenseScreen() {
                       s.routeTab,
                       idx === selectedRouteIdx && s.routeTabActive,
                     ]}
-                    onPress={() => setSelectedRouteIdx(idx)}
+                    onPress={() => handleSelectRoute(idx)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Select ${route.routeName || `Route ${idx + 1}`}`}
+                    accessibilityState={{ selected: idx === selectedRouteIdx }}
                   >
                     <Text
                       style={[
@@ -857,13 +1079,13 @@ export default function TripExpenseScreen() {
                     >
                       {route.routeName || `Route ${idx + 1}`}
                     </Text>
-                    {result.cheapestRoute === route && (
+                    {idx === cheapestRouteIdx && (
                       <View style={s.badge}>
                         <Text style={s.badgeText}>Cheapest</Text>
                       </View>
                     )}
-                    {result.fastestRoute === route &&
-                      result.cheapestRoute !== route && (
+                    {idx === fastestRouteIdx &&
+                      idx !== cheapestRouteIdx && (
                         <View style={[s.badge, { backgroundColor: C.orangeBg }]}>
                           <Text style={[s.badgeText, { color: C.orange }]}>
                             Fastest
@@ -922,7 +1144,7 @@ export default function TripExpenseScreen() {
                     </View>
                     <View style={s.heroCostPill}>
                       <Text style={s.heroPillLabel}>Tolls</Text>
-                      <Text style={s.heroPillValue}>₹{selectedRoute.costs.tollFastag + selectedRoute.costs.tollCash}</Text>
+                      <Text style={s.heroPillValue}>₹{selectedRoute.costs.tollFastag}</Text>
                     </View>
                   </View>
 
@@ -933,6 +1155,9 @@ export default function TripExpenseScreen() {
                       style={s.premiumNavBtn}
                       onPress={handleStartNavigation}
                       activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Start navigation"
+                      accessibilityHint="Opens Google Maps navigation for this route"
                     >
                       <Route size={18} color={C.accent} />
                       <Text style={s.premiumNavBtnText}>Start Navigation</Text>
@@ -940,9 +1165,13 @@ export default function TripExpenseScreen() {
 
                     <View style={s.heroUtilityGroup}>
                       <TouchableOpacity
-                        onPress={() => setShowTraffic(!showTraffic)}
+                        onPress={handleToggleTraffic}
                         style={[s.utilityPill, showTraffic && s.utilityPillActive]}
                         activeOpacity={0.7}
+                        accessibilityRole="button"
+                        accessibilityLabel={showTraffic ? 'Hide traffic layer' : 'Show traffic layer'}
+                        accessibilityHint="Toggles live traffic overlay on map"
+                        accessibilityState={{ selected: showTraffic }}
                       >
                          <Text style={{ fontSize: 16 }}>{showTraffic ? '🚥' : '⚪'}</Text>
                       </TouchableOpacity>
@@ -952,6 +1181,10 @@ export default function TripExpenseScreen() {
                           onPress={handleRefreshTraffic}
                           style={[s.utilityPill, refreshing && s.utilityPillDisabled]}
                           disabled={refreshing}
+                          accessibilityRole="button"
+                          accessibilityLabel="Refresh traffic"
+                          accessibilityHint="Fetches updated route traffic and timings"
+                          accessibilityState={{ disabled: refreshing, busy: refreshing }}
                         >
                           {refreshing ? (
                             <ActivityIndicator size="small" color="#000" />
@@ -982,8 +1215,11 @@ export default function TripExpenseScreen() {
                   </MapView>
                   <TouchableOpacity
                     style={s.maximizeBtn}
-                    onPress={() => setShowFullMap(true)}
+                    onPress={handleOpenFullMap}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Open full screen map"
+                    accessibilityHint="Expands map to full screen view"
                   >
                     <Maximize2 size={18} color="#FFF" />
                   </TouchableOpacity>
@@ -1008,7 +1244,10 @@ export default function TripExpenseScreen() {
                      
                      <TouchableOpacity 
                        style={s.closeMapBtn}
-                       onPress={() => setShowFullMap(false)}
+                       onPress={handleCloseFullMap}
+                       accessibilityRole="button"
+                       accessibilityLabel="Close full screen map"
+                       accessibilityHint="Returns to the trip details view"
                      >
                         <X size={24} color="#FFF" />
                      </TouchableOpacity>
@@ -1029,6 +1268,9 @@ export default function TripExpenseScreen() {
                         key={cat} 
                         style={s.amenityCapsule}
                         onPress={() => searchAlongRoute(cat === 'PitStop' ? 'Hotel' : cat)} // PitStop uses Hotel/POI for now
+                        accessibilityRole="button"
+                        accessibilityLabel={`Search ${cat} along route`}
+                        accessibilityHint="Finds nearby places along the selected route"
                       >
                         <Text style={s.amenityCapsuleText}>
                           {cat === 'FuelStations' ? '⛽ Fuel' : 
@@ -1043,11 +1285,15 @@ export default function TripExpenseScreen() {
                 </View>
 
                 {/* Expandable Breakdown Section - Premium Accordion */}
-                <View style={[s.premiumBreakdownCard, { paddingBottom: showDetailedBreakdown ? wp(5) : 0 }]}>
+                <View style={[s.premiumBreakdownCard, { paddingBottom: showDetailedBreakdown ? hp(1.2) : 0 }]}>
                   <TouchableOpacity 
                     style={s.breakdownHeader}
-                    onPress={() => setShowDetailedBreakdown(!showDetailedBreakdown)}
+                    onPress={handleToggleBreakdown}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={showDetailedBreakdown ? 'Collapse detailed manifest' : 'Expand detailed manifest'}
+                    accessibilityHint="Shows or hides detailed trip cost and toll information"
+                    accessibilityState={{ expanded: showDetailedBreakdown }}
                   >
                     <View style={s.breakdownTitleGroup}>
                        <View style={s.breakdownIconBox}>
@@ -1067,11 +1313,11 @@ export default function TripExpenseScreen() {
 
 
                   {showDetailedBreakdown && (
-                    <View style={{ marginTop: hp(2) }}>
+                    <View style={{ marginTop: hp(1.2), paddingHorizontal: wp(4.5), paddingBottom: hp(0.8) }}>
                       <View style={s.divider} />
                       
                       {/* Cost Breakdown Sub-Section */}
-                      <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginTop: hp(1) }]}>Cost Breakdown</Text>
+                      <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginTop: hp(0.6), marginBottom: hp(1.2) }]}>Cost Breakdown</Text>
                       <CostRow
                         icon="⛽"
                         label="Fuel Cost"
@@ -1106,7 +1352,7 @@ export default function TripExpenseScreen() {
                       <View style={s.divider} />
 
                       {/* Trip Details Sub-Section */}
-                      <Text style={[s.sectionTitle, { fontSize: wp(3.8) }]}>Trip Details</Text>
+                      <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginBottom: hp(1.2) }]}>Trip Details</Text>
                       <View style={s.detailsGrid}>
                         <DetailItem label="Distance" value={selectedRoute.distance.text} />
                         <DetailItem label="Duration" value={selectedRoute.duration.text} />
@@ -1124,7 +1370,7 @@ export default function TripExpenseScreen() {
                       {selectedRoute.tolls.length > 0 && (
                         <>
                           <View style={s.divider} />
-                          <Text style={[s.sectionTitle, { fontSize: wp(3.8) }]}>
+                          <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginBottom: hp(1) }]}>
                             Toll Plazas ({selectedRoute.tolls.length})
                           </Text>
                           {selectedRoute.tolls.map((toll, idx) => (
@@ -1164,17 +1410,20 @@ export default function TripExpenseScreen() {
             {result && !error && (
               <TouchableOpacity 
                 style={s.planningCtaCard}
-                onPress={() => setIsPlanningMode(true)}
+                onPress={() => handleOpenPlanner('trip_cta')}
                 activeOpacity={0.9}
+                accessibilityRole="button"
+                accessibilityLabel="Open trip itinerary planner"
+                accessibilityHint="Plan hotels, activities, and transport for this trip"
               >
                 <LinearGradient
-                  colors={planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) 
+                  colors={hasItinerarySelections
                     ? ['rgba(50, 215, 75, 0.15)', 'rgba(50, 215, 75, 0.05)']
                     : ['rgba(255, 215, 0, 0.15)', 'rgba(255, 159, 10, 0.05)']}
                   style={s.planningCtaInner}
                 >
-                  <View style={[s.iconCircle, planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) && { backgroundColor: 'rgba(50, 215, 75, 0.1)' }]}>
-                    {planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) ? (
+                  <View style={[s.iconCircle, hasItinerarySelections && { backgroundColor: 'rgba(50, 215, 75, 0.1)' }]}>
+                    {hasItinerarySelections ? (
                       <CheckCircle2 size={20} color={C.green} />
                     ) : (
                       <Sparkles size={20} color={C.accent} />
@@ -1182,20 +1431,19 @@ export default function TripExpenseScreen() {
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={s.planningCtaTitle}>
-                      {planningData && (planningData.selectedHotelId || (planningData.selectedActivities && planningData.selectedActivities.length > 0))
-                        ? 'Your Trip Itinerary is Ready!'
-                        : 'Complete Your Itinerary'}
+                      {hasItinerarySelections
+                        ? 'Itinerary Ready. Tap to Open'
+                        : 'Tap to Plan Your Itinerary'}
                     </Text>
                     <Text style={s.planningCtaSub}>
-                      {planningData && (planningData.selectedHotelId || (planningData.selectedActivities && planningData.selectedActivities.length > 0))
-                        ? `Planned: ${planningData.selectedHotelId ? '1 Hotel, ' : ''}${planningData.selectedActivities?.length || 0} Activities`
-                        : 'Plan stays, activities, and daily schedules for your destination.'}
+                      {hasItinerarySelections
+                        ? `Tap to view/edit: ${planningData?.selectedHotelId ? '1 Hotel, ' : ''}${planningData?.selectedActivities?.length || 0} Activities${planningData?.selectedBikeId ? ', 1 Transport' : ''}`
+                        : 'Tap here to add hotels, activities, and transport for this trip.'}
                     </Text>
                   </View>
-                  <View style={[s.planningCtaBadge, planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) && { backgroundColor: C.green }]}>
-                    <Text style={s.planningCtaBadgeText}>
-                      {planningData && (planningData.selectedHotelId || planningData.selectedActivities?.length > 0) ? 'READY' : 'NEW'}
-                    </Text>
+                  <View style={[s.planningCtaBadge, hasItinerarySelections && { backgroundColor: C.green }]}>
+                    <Text style={s.planningCtaBadgeText}>OPEN</Text>
+                    <ChevronRight size={14} color="#000" />
                   </View>
                 </LinearGradient>
               </TouchableOpacity>
@@ -1212,7 +1460,13 @@ export default function TripExpenseScreen() {
           animationType="slide"
           transparent={false}
           visible={isPlanningMode}
-          onRequestClose={() => setIsPlanningMode(false)}
+          onRequestClose={() => {
+            setIsPlanningMode(false);
+            setRequestedPlanningStep(undefined);
+            tripPlannerAnalytics.plannerExited({
+              source: 'modal_request_close',
+            });
+          }}
         >
           <TripPlannerFlow 
             tripId={tripId}
@@ -1220,6 +1474,7 @@ export default function TripExpenseScreen() {
             from={result?.from || ''}
             to={result?.to || ''}
             initialStep={requestedPlanningStep}
+            initialPlanning={planningData}
             onClose={async () => {
               setIsPlanningMode(false);
               setRequestedPlanningStep(undefined);
@@ -1530,12 +1785,15 @@ const s = StyleSheet.create({
   },
   planningCtaBadge: {
     backgroundColor: C.accent,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   planningCtaBadgeText: {
-    fontSize: wp(2),
+    fontSize: wp(2.3),
     fontFamily: 'Outfit-Black',
     color: '#000',
   },
@@ -1757,7 +2015,7 @@ const s = StyleSheet.create({
   },
 
   // Cost Row
-  costRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: hp(0.5) },
+  costRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: hp(0.9), paddingHorizontal: wp(1) },
   costIcon: {
     width: wp(10),
     height: wp(10),
@@ -1899,18 +2157,19 @@ const s = StyleSheet.create({
   },
 
   // Details Grid
-  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(3) },
+  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(2.6) },
   detailItem: {
     width: wp(42.5),
     backgroundColor: C.inputBg,
     borderRadius: 10,
-    padding: wp(3),
+    paddingVertical: hp(1.1),
+    paddingHorizontal: wp(3.2),
   },
   detailLabel: { fontSize: wp(2.8), fontFamily: 'Outfit-Bold', color: C.textSecondary, textTransform: 'uppercase' },
   detailValue: { fontSize: wp(3.8), fontFamily: 'Outfit-Bold', color: C.text, marginTop: hp(0.5) },
 
   // Toll Row
-  tollRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: hp(0.5) },
+  tollRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: hp(0.9), paddingHorizontal: wp(0.8) },
   tollInfo: { flex: 1 },
   tollName: { fontSize: wp(3.5), fontFamily: 'Outfit-SemiBold', color: C.text },
   tollRoad: { fontSize: wp(2.8), fontFamily: 'Outfit-Medium', color: C.textSecondary, marginTop: hp(0.3) },
@@ -2005,6 +2264,125 @@ const s = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
     color: C.textSecondary,
     marginTop: 2,
+  },
+  breakdownBody: {
+    marginTop: hp(1.2),
+    paddingHorizontal: wp(4.5),
+    gap: hp(1),
+  },
+  manifestQuickStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: C.inputBg,
+    paddingVertical: hp(0.9),
+    paddingHorizontal: wp(2.8),
+  },
+  manifestStatItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: hp(0.4),
+  },
+  manifestStatLabel: {
+    fontSize: wp(2.5),
+    fontFamily: 'Outfit-Bold',
+    color: C.textSecondary,
+    textTransform: 'uppercase',
+  },
+  manifestStatValue: {
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Bold',
+    color: C.text,
+    marginTop: hp(0.2),
+  },
+  manifestStatDivider: {
+    width: 1,
+    height: '85%',
+    backgroundColor: C.divider,
+  },
+  manifestSectionCard: {
+    backgroundColor: C.inputBg,
+    borderRadius: 14,
+    paddingHorizontal: wp(3.8),
+    paddingVertical: hp(1.3),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(1),
+  },
+  sectionTitleTight: {
+    fontSize: wp(3.7),
+    fontFamily: 'Outfit-Bold',
+    color: C.text,
+  },
+  sectionMetaPill: {
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+    backgroundColor: C.accentBg,
+    paddingHorizontal: wp(2.3),
+    paddingVertical: hp(0.35),
+    borderRadius: 999,
+  },
+  tollCard: {
+    backgroundColor: C.inputBg,
+    borderRadius: 12,
+    paddingHorizontal: wp(3.2),
+    paddingVertical: hp(1),
+    marginBottom: hp(0.8),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  tollTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tollIndexBadge: {
+    minWidth: wp(7),
+    borderRadius: 999,
+    backgroundColor: C.accentBg,
+    paddingHorizontal: wp(1.8),
+    paddingVertical: hp(0.35),
+    alignItems: 'center',
+    marginRight: wp(2),
+  },
+  tollIndexText: {
+    fontSize: wp(2.5),
+    fontFamily: 'Outfit-Bold',
+    color: C.accent,
+  },
+  tollCostRow: {
+    flexDirection: 'row',
+    gap: wp(2),
+    marginTop: hp(0.9),
+  },
+  tollCostPill: {
+    flex: 1,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 215, 0, 0.08)',
+    paddingHorizontal: wp(2.2),
+    paddingVertical: hp(0.7),
+  },
+  tollCostPillMuted: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  tollCostLabel: {
+    fontSize: wp(2.3),
+    fontFamily: 'Outfit-Bold',
+    color: C.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  tollCostLabelMuted: {
+    fontSize: wp(2.3),
+    fontFamily: 'Outfit-Bold',
+    color: C.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
 
   // Phase 3 Additions
@@ -2274,5 +2652,10 @@ const s = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 215, 0, 0.1)',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });

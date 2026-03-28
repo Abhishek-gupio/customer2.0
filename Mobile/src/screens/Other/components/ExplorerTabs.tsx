@@ -6,6 +6,7 @@ import ActivityList from './ActivityList';
 import TransportOptions from './TransportOptions';
 import { PlanningState } from '../tripPlannerTypes';
 import { TripExpenseResult } from '../../../services/tripExpenseService';
+import { tripPlannerAnalytics } from '../../../services/analytics';
 
 interface Props {
   planning: PlanningState;
@@ -16,12 +17,43 @@ interface Props {
 
 const ExplorerTabs = ({ planning, onChange, onFinish, tripResult }: Props) => {
   const [activeTab, setActiveTab] = useState<'hotels' | 'activities' | 'transport'>('hotels');
+  const hasSelections = !!(planning.selectedHotelId || planning.selectedBikeId || (planning.selectedActivities?.length || 0) > 0);
+  const stayDays = Math.max(planning.stayDays || 1, 1);
+  const dailyBudget = planning.budget > 0 ? Math.round(planning.budget / stayDays) : 0;
+  const categoryBudgetParts = [
+    (planning.hotelBudget || 0) > 0 ? `Stay ₹${(planning.hotelBudget || 0).toLocaleString('en-IN')}` : null,
+    (planning.activityBudget || 0) > 0 ? `Activities ₹${(planning.activityBudget || 0).toLocaleString('en-IN')}` : null,
+    (planning.transportBudget || 0) > 0 ? `Transport ₹${(planning.transportBudget || 0).toLocaleString('en-IN')}` : null,
+  ].filter((part): part is string => !!part);
+  const hasCategoryBudgets = categoryBudgetParts.length > 0;
 
   const tabs = [
     { id: 'hotels', label: 'Hotels', icon: Hotel },
     { id: 'activities', label: 'Activities', icon: Compass },
     { id: 'transport', label: 'Transport', icon: Bike },
   ];
+
+  const handleTabChange = (tabId: 'hotels' | 'activities' | 'transport') => {
+    setActiveTab(tabId);
+    tripPlannerAnalytics.explorerTabChanged({
+      tab_id: tabId,
+      has_hotel: !!planning.selectedHotelId,
+      activity_count: planning.selectedActivities?.length || 0,
+      has_transport: !!planning.selectedBikeId,
+    });
+  };
+
+  const handleFinish = () => {
+    tripPlannerAnalytics.explorerFinished({
+      source: 'explorer_footer_cta',
+      active_tab: activeTab,
+      has_selection: hasSelections,
+      has_hotel: !!planning.selectedHotelId,
+      activity_count: planning.selectedActivities?.length || 0,
+      has_transport: !!planning.selectedBikeId,
+    });
+    onFinish();
+  };
 
   return (
     <View style={styles.container}>
@@ -34,7 +66,7 @@ const ExplorerTabs = ({ planning, onChange, onFinish, tripResult }: Props) => {
             <TouchableOpacity
               key={tab.id}
               style={[styles.tab, isActive && styles.activeTab]}
-              onPress={() => setActiveTab(tab.id as any)}
+              onPress={() => handleTabChange(tab.id as 'hotels' | 'activities' | 'transport')}
             >
               <Icon size={16} color={isActive ? '#000' : '#888'} />
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>{tab.label}</Text>
@@ -56,11 +88,19 @@ const ExplorerTabs = ({ planning, onChange, onFinish, tripResult }: Props) => {
            <Text style={styles.footerTotal}>
              Selected: {planning.selectedHotelId ? 1 : 0} Hotel, {planning.selectedActivities?.length || 0} Activities
            </Text>
-           <Text style={styles.footerBudget}>Budget Limit: ₹{planning.budget}</Text>
+           <Text style={styles.footerBudget}>
+             {hasSelections
+               ? hasCategoryBudgets
+                 ? `Budgets: ${categoryBudgetParts.join(' | ')}`
+                 : planning.budget > 0
+                 ? `Budget: ₹${planning.budget} total (≈₹${dailyBudget}/day)`
+                 : 'No budget set. You can still review and save.'
+               : 'No add-ons yet. You can continue and edit later.'}
+           </Text>
         </View>
-        <TouchableOpacity style={styles.finishBtn} onPress={onFinish}>
+        <TouchableOpacity style={styles.finishBtn} onPress={handleFinish}>
            <CheckCircle size={18} color="#000" />
-           <Text style={styles.finishBtnText}>Review</Text>
+           <Text style={styles.finishBtnText}>{hasSelections ? 'Review Plan' : 'Skip Add-ons'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -72,7 +112,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     gap: 8,
@@ -90,7 +130,7 @@ const styles = StyleSheet.create({
   activeTab: { backgroundColor: '#FFD700' },
   tabText: { color: '#888', fontSize: 12, fontWeight: 'bold' },
   activeTabText: { color: '#000' },
-  contentArea: { flex: 1 },
+  contentArea: { flex: 1, marginTop: -6 },
   floatingFooter: {
     position: 'absolute',
     bottom: 0,

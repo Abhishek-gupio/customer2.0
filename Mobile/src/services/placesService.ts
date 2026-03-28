@@ -8,8 +8,11 @@ export interface NearbyPlace {
   distanceKm: number;
   distanceText: string;
   rating: number | undefined;
+  ratingCount?: number;
   placeId: string;
   openNow?: boolean;
+  priceLevel?: number;
+  businessStatus?: string;
   imageUrl?: string;
 }
 
