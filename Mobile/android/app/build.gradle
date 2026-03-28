@@ -15,8 +15,17 @@ if (hasGoogleServicesConfig) {
 // Disabled: Google Services plugin requires google-services.json which is not configured
 // apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
 
-// Copy react-native-vector-icons font files into the app so icons display
-apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+// Copy react-native-vector-icons font files into the app so icons display.
+// Support both local node_modules and hoisted workspace installs.
+def vectorIconsFontsGradle = file("../../node_modules/react-native-vector-icons/fonts.gradle")
+if (!vectorIconsFontsGradle.exists()) {
+    vectorIconsFontsGradle = file("../../../node_modules/react-native-vector-icons/fonts.gradle")
+}
+if (vectorIconsFontsGradle.exists()) {
+    apply from: vectorIconsFontsGradle
+} else {
+    logger.lifecycle("react-native-vector-icons/fonts.gradle not found; skipping font copy script")
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -25,13 +34,13 @@ apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
-    // root = file("../../")
+    root = file("../..")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
-    // reactNativeDir = file("../../node_modules/react-native")
+    reactNativeDir = file("../../../node_modules/react-native")
     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
     codegenDir = file("../../../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
-    // cliFile = file("../../node_modules/react-native/cli.js")
+    cliFile = file("../../../node_modules/react-native/cli.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
