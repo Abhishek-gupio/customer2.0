@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Dimensions,
   TextInput,
   FlatList,
   ActivityIndicator,
@@ -14,11 +15,11 @@ import {
   Linking,
   Image,
   Animated,
-  PanResponder,
   BackHandler,
   type ImageSourcePropType,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -67,40 +68,64 @@ export default function Home() {
   const [trendingNews, setTrendingNews] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ id: string; embedUrl: string; title: string } | null>(null);
+  const [isVideoDragging, setIsVideoDragging] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
-  const videoModalPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const videoBaseX = useRef(new Animated.Value(0)).current;
+  const videoBaseY = useRef(new Animated.Value(0)).current;
+  const videoDragX = useRef(new Animated.Value(0)).current;
+  const videoDragY = useRef(new Animated.Value(0)).current;
+  const videoModalOffset = useRef({ x: 0, y: 0 });
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const windowSize = Dimensions.get('window');
+  const videoCardWidth = wp(92);
+  const videoCardHeight = (videoCardWidth * 9) / 16 + hp(6);
+  const maxVideoOffsetX = Math.max(0, windowSize.width - videoCardWidth - wp(4) * 2);
+  const maxVideoOffsetY = Math.max(0, windowSize.height - videoCardHeight - hp(16) - hp(10));
 
-  const videoModalPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) =>
-        Math.abs(gestureState.dx) > 4 || Math.abs(gestureState.dy) > 4,
-      onMoveShouldSetPanResponderCapture: (_, gestureState) =>
-        Math.abs(gestureState.dx) > 2 || Math.abs(gestureState.dy) > 2,
-      onPanResponderGrant: () => {
-        videoModalPan.extractOffset();
-      },
-      onPanResponderMove: Animated.event(
-        [null, { dx: videoModalPan.x, dy: videoModalPan.y }],
-        { useNativeDriver: false }
-      ),
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderRelease: () => {
-        videoModalPan.flattenOffset();
-      },
-      onPanResponderTerminate: () => {
-        videoModalPan.flattenOffset();
-      },
-    })
+  const clampVideoOffset = useCallback((x: number, y: number) => ({
+    x: Math.min(Math.max(x, -wp(2)), maxVideoOffsetX + wp(2)),
+    y: Math.min(Math.max(y, -hp(8)), maxVideoOffsetY),
+  }), [maxVideoOffsetX, maxVideoOffsetY]);
+
+  const onVideoDragEvent = useRef(
+    Animated.event(
+      [{ nativeEvent: { translationX: videoDragX, translationY: videoDragY } }],
+      { useNativeDriver: true }
+    )
   ).current;
+
+  const onVideoDragStateChange = useCallback((event: { nativeEvent: { oldState: number; state: number; translationX: number; translationY: number } }) => {
+    const { oldState, state, translationX, translationY } = event.nativeEvent;
+
+    if (state === State.BEGAN || state === State.ACTIVE) {
+      setIsVideoDragging(true);
+    }
+
+    if (
+      oldState === State.ACTIVE ||
+      state === State.END ||
+      state === State.CANCELLED ||
+      state === State.FAILED
+    ) {
+      const nextOffset = clampVideoOffset(
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY
+      );
+
+      videoModalOffset.current = nextOffset;
+      videoBaseX.setValue(nextOffset.x);
+      videoBaseY.setValue(nextOffset.y);
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
+      setIsVideoDragging(false);
+    }
+  }, [clampVideoOffset, videoBaseX, videoBaseY, videoDragX, videoDragY]);
 
   // Initial load
   useEffect(() => {
@@ -115,9 +140,13 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedVideo) {
-      videoModalPan.setValue({ x: 0, y: 0 });
+      videoModalOffset.current = { x: 0, y: 0 };
+      videoBaseX.setValue(0);
+      videoBaseY.setValue(0);
+      videoDragX.setValue(0);
+      videoDragY.setValue(0);
     }
-  }, [selectedVideo, videoModalPan]);
+  }, [selectedVideo, videoBaseX, videoBaseY, videoDragX, videoDragY]);
 
   useFocusEffect(
     useCallback(() => {
@@ -1118,21 +1147,33 @@ export default function Home() {
       {selectedVideo ? (
         <View pointerEvents="box-none" style={styles.videoModalOverlay}>
           <Animated.View
+            renderToHardwareTextureAndroid={true}
+            shouldRasterizeIOS={true}
             style={[
               styles.videoModalCard,
-              { transform: videoModalPan.getTranslateTransform() },
+              isVideoDragging ? styles.videoModalCardDragging : null,
+              {
+                transform: [
+                  { translateX: Animated.add(videoBaseX, videoDragX) },
+                  { translateY: Animated.add(videoBaseY, videoDragY) },
+                ],
+              },
             ]}
           >
             <View style={styles.inlinePlayerHeader}>
-              <View
-                style={styles.videoModalDragHeader}
-                {...videoModalPanResponder.panHandlers}
+              <PanGestureHandler
+                onGestureEvent={onVideoDragEvent}
+                onHandlerStateChange={onVideoDragStateChange}
+                activeOffsetX={[-4, 4]}
+                activeOffsetY={[-4, 4]}
               >
-                <View style={styles.videoModalDragHandle} />
-                <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
-                  {selectedVideo.title}
-                </Text>
-              </View>
+                <Animated.View style={styles.videoModalDragHeader}>
+                  <View style={styles.videoModalDragHandle} />
+                  <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
+                    {selectedVideo.title}
+                  </Text>
+                </Animated.View>
+              </PanGestureHandler>
               <TouchableOpacity
                 style={styles.inlinePlayerClose}
                 onPress={() => setSelectedVideo(null)}
@@ -1163,6 +1204,7 @@ export default function Home() {
                 javaScriptCanOpenWindowsAutomatically={false}
                 setSupportMultipleWindows={false}
                 allowsFullscreenVideo={false}
+                androidLayerType="hardware"
                 onShouldStartLoadWithRequest={(request) => {
                   const requestUrl = request.url;
 
@@ -2134,6 +2176,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
     elevation: 16,
     zIndex: 1001,
+  },
+  videoModalCardDragging: {
+    elevation: 6,
+    shadowOpacity: 0,
+    borderColor: 'rgba(255,255,255,0.04)',
   },
   videoModalDragHeader: {
     flex: 1,
