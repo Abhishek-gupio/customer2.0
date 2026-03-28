@@ -21,6 +21,9 @@ buildscript {
 
 apply plugin: "com.facebook.react.rootproject"
 
+def forcedOkHttpVersion = "4.12.0"
+def forcedOkioVersion = "3.6.0"
+
 // Ensure all modules (including AsyncStorage) can resolve Maven artifacts.
 allprojects {
     repositories {
@@ -37,6 +40,27 @@ gradle.projectsLoaded {
             config.exclude group: "com.android.support", module: "support-compat"
             config.exclude group: "com.android.support", module: "support-v4"
             config.exclude group: "com.android.support", module: "versionedparcelable"
+            config.resolutionStrategy.eachDependency { details ->
+                if (details.requested.group == "com.squareup.okhttp3" &&
+                    ["okhttp", "okhttp-urlconnection", "logging-interceptor", "mockwebserver"].contains(details.requested.name)) {
+                    details.useVersion(forcedOkHttpVersion)
+                    details.because("Keep OkHttp modules on one version to avoid runtime NoClassDefFoundError in JavaNetCookieJar")
+                }
+
+                if (details.requested.group == "com.squareup.okio" &&
+                    ["okio", "okio-jvm"].contains(details.requested.name)) {
+                    details.useVersion(forcedOkioVersion)
+                    details.because("Keep Okio aligned with the forced OkHttp runtime")
+                }
+            }
+            config.resolutionStrategy.force(
+                "com.squareup.okhttp3:okhttp:${forcedOkHttpVersion}",
+                "com.squareup.okhttp3:okhttp-urlconnection:${forcedOkHttpVersion}",
+                "com.squareup.okhttp3:logging-interceptor:${forcedOkHttpVersion}",
+                "com.squareup.okhttp3:mockwebserver:${forcedOkHttpVersion}",
+                "com.squareup.okio:okio:${forcedOkioVersion}",
+                "com.squareup.okio:okio-jvm:${forcedOkioVersion}"
+            )
         }
     }
 }

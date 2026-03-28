@@ -15,11 +15,11 @@ import {
   Linking,
   Image,
   Animated,
+  PanResponder,
   BackHandler,
   type ImageSourcePropType,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -69,6 +69,7 @@ export default function Home() {
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ id: string; embedUrl: string; title: string } | null>(null);
   const [isVideoDragging, setIsVideoDragging] = useState(false);
+  const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
@@ -77,55 +78,155 @@ export default function Home() {
   const videoDragX = useRef(new Animated.Value(0)).current;
   const videoDragY = useRef(new Animated.Value(0)).current;
   const videoModalOffset = useRef({ x: 0, y: 0 });
+  const lastMiniVideoOffset = useRef({ x: 0, y: 0 });
+  const isVideoExpandedRef = useRef(false);
   const carouselRef = useRef<FlatList>(null);
   const autoScrollStoppedRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const windowSize = Dimensions.get('window');
-  const videoCardWidth = wp(92);
-  const videoCardHeight = (videoCardWidth * 9) / 16 + hp(6);
-  const maxVideoOffsetX = Math.max(0, windowSize.width - videoCardWidth - wp(4) * 2);
-  const maxVideoOffsetY = Math.max(0, windowSize.height - videoCardHeight - hp(16) - hp(10));
+  const miniVideoCardWidth = wp(58);
+  const miniVideoCardHeight = (miniVideoCardWidth * 9) / 16 + hp(4.8);
+  const expandedVideoCardWidth = wp(88);
+  const expandedVideoCardHeight = hp(44) + hp(4.8);
+  const miniBaseLeft = Math.max(wp(2), windowSize.width - miniVideoCardWidth - wp(3));
+  const miniBaseTop = Math.max(hp(12), windowSize.height - miniVideoCardHeight - hp(13));
+  const expandedBaseLeft = Math.max(wp(4), (windowSize.width - expandedVideoCardWidth) / 2);
+  const expandedBaseTop = Math.max(hp(8), (windowSize.height - expandedVideoCardHeight) / 2);
 
-  const clampVideoOffset = useCallback((x: number, y: number) => ({
-    x: Math.min(Math.max(x, -wp(2)), maxVideoOffsetX + wp(2)),
-    y: Math.min(Math.max(y, -hp(8)), maxVideoOffsetY),
-  }), [maxVideoOffsetX, maxVideoOffsetY]);
+  const clampVideoOffset = useCallback((x: number, y: number, expanded: boolean) => {
+    const baseLeft = expanded ? expandedBaseLeft : miniBaseLeft;
+    const baseTop = expanded ? expandedBaseTop : miniBaseTop;
+    const cardWidth = expanded ? expandedVideoCardWidth : miniVideoCardWidth;
+    const cardHeight = expanded ? expandedVideoCardHeight : miniVideoCardHeight;
+    const minX = wp(2) - baseLeft;
+    const maxX = windowSize.width - cardWidth - wp(2) - baseLeft;
+    const minY = hp(2) - baseTop;
+    const maxY = windowSize.height - cardHeight - hp(6) - baseTop;
 
-  const onVideoDragEvent = useRef(
-    Animated.event(
-      [{ nativeEvent: { translationX: videoDragX, translationY: videoDragY } }],
-      { useNativeDriver: true }
-    )
+    return {
+      x: Math.min(Math.max(x, minX), Math.max(minX, maxX)),
+      y: Math.min(Math.max(y, minY), Math.max(minY, maxY)),
+    };
+  }, [
+    expandedBaseLeft,
+    expandedBaseTop,
+    expandedVideoCardHeight,
+    expandedVideoCardWidth,
+    miniBaseLeft,
+    miniBaseTop,
+    miniVideoCardHeight,
+    miniVideoCardWidth,
+    windowSize.height,
+    windowSize.width,
+  ]);
+
+  const snapMiniVideoOffset = useCallback((x: number, y: number) => {
+    const clampedOffset = clampVideoOffset(x, y, false);
+    const minX = wp(2) - miniBaseLeft;
+    const maxX = windowSize.width - miniVideoCardWidth - wp(2) - miniBaseLeft;
+    const snapX =
+      Math.abs(clampedOffset.x - minX) < Math.abs(clampedOffset.x - maxX)
+        ? minX
+        : maxX;
+
+    return {
+      x: snapX,
+      y: clampedOffset.y,
+    };
+  }, [clampVideoOffset, miniBaseLeft, miniVideoCardWidth, windowSize.width]);
+
+  const videoModalPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        (Math.abs(gestureState.dx) > 4 || Math.abs(gestureState.dy) > 4),
+      onMoveShouldSetPanResponderCapture: (_, gestureState) =>
+        (Math.abs(gestureState.dx) > 2 || Math.abs(gestureState.dy) > 2),
+      onPanResponderGrant: () => {
+        videoBaseX.stopAnimation((value) => {
+          videoModalOffset.current.x = value;
+        });
+        videoBaseY.stopAnimation((value) => {
+          videoModalOffset.current.y = value;
+        });
+        videoDragX.setValue(0);
+        videoDragY.setValue(0);
+        setIsVideoDragging(true);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        videoDragX.setValue(gestureState.dx);
+        videoDragY.setValue(gestureState.dy);
+      },
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderRelease: (_, gestureState) => {
+        const nextOffset = isVideoExpandedRef.current
+          ? clampVideoOffset(
+              videoModalOffset.current.x + gestureState.dx,
+              videoModalOffset.current.y + gestureState.dy,
+              true
+            )
+          : snapMiniVideoOffset(
+              videoModalOffset.current.x + gestureState.dx,
+              videoModalOffset.current.y + gestureState.dy
+            );
+
+        videoModalOffset.current = nextOffset;
+        setIsVideoDragging(false);
+        videoDragX.setValue(0);
+        videoDragY.setValue(0);
+        Animated.parallel([
+          Animated.spring(videoBaseX, {
+            toValue: nextOffset.x,
+            useNativeDriver: true,
+            tension: 75,
+            friction: 11,
+          }),
+          Animated.spring(videoBaseY, {
+            toValue: nextOffset.y,
+            useNativeDriver: true,
+            tension: 75,
+            friction: 11,
+          }),
+        ]).start();
+      },
+      onPanResponderTerminate: () => {
+        videoBaseX.setValue(videoModalOffset.current.x);
+        videoBaseY.setValue(videoModalOffset.current.y);
+        videoDragX.setValue(0);
+        videoDragY.setValue(0);
+        setIsVideoDragging(false);
+      },
+    })
   ).current;
 
-  const onVideoDragStateChange = useCallback((event: { nativeEvent: { oldState: number; state: number; translationX: number; translationY: number } }) => {
-    const { oldState, state, translationX, translationY } = event.nativeEvent;
+  const toggleVideoExpanded = useCallback(() => {
+    setIsVideoDragging(false);
 
-    if (state === State.BEGAN || state === State.ACTIVE) {
-      setIsVideoDragging(true);
-    }
-
-    if (
-      oldState === State.ACTIVE ||
-      state === State.END ||
-      state === State.CANCELLED ||
-      state === State.FAILED
-    ) {
-      const nextOffset = clampVideoOffset(
-        videoModalOffset.current.x + translationX,
-        videoModalOffset.current.y + translationY
-      );
-
-      videoModalOffset.current = nextOffset;
-      videoBaseX.setValue(nextOffset.x);
-      videoBaseY.setValue(nextOffset.y);
+    if (isVideoExpanded) {
+      videoModalOffset.current = lastMiniVideoOffset.current;
+      videoBaseX.setValue(lastMiniVideoOffset.current.x);
+      videoBaseY.setValue(lastMiniVideoOffset.current.y);
       videoDragX.setValue(0);
       videoDragY.setValue(0);
-      setIsVideoDragging(false);
+      setIsVideoExpanded(false);
+      return;
     }
-  }, [clampVideoOffset, videoBaseX, videoBaseY, videoDragX, videoDragY]);
+
+    lastMiniVideoOffset.current = videoModalOffset.current;
+    videoModalOffset.current = { x: 0, y: 0 };
+    videoBaseX.setValue(0);
+    videoBaseY.setValue(0);
+    videoDragX.setValue(0);
+    videoDragY.setValue(0);
+    setIsVideoExpanded(true);
+  }, [isVideoExpanded, videoBaseX, videoBaseY, videoDragX, videoDragY]);
+
+  useEffect(() => {
+    isVideoExpandedRef.current = isVideoExpanded;
+  }, [isVideoExpanded]);
 
   // Initial load
   useEffect(() => {
@@ -141,6 +242,8 @@ export default function Home() {
   useEffect(() => {
     if (selectedVideo) {
       videoModalOffset.current = { x: 0, y: 0 };
+      lastMiniVideoOffset.current = { x: 0, y: 0 };
+      setIsVideoExpanded(false);
       videoBaseX.setValue(0);
       videoBaseY.setValue(0);
       videoDragX.setValue(0);
@@ -528,7 +631,47 @@ export default function Home() {
   };
 
   const buildYouTubeEmbedUrl = (videoId: string) =>
-    `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&showinfo=0&controls=1&modestbranding=1&enablejsapi=1&fs=0&origin=${encodeURIComponent('https://gupio.in')}&widget_referrer=${encodeURIComponent('https://gupio.in/')}`;
+    `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&controls=1&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&origin=${encodeURIComponent('https://gupio.in')}&widget_referrer=${encodeURIComponent('https://gupio.in/')}`;
+
+  const openYouTubeExternally = useCallback((requestUrl: string, videoId: string) => {
+    const fallbackWebUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    let externalUrl = fallbackWebUrl;
+
+    try {
+      if (
+        requestUrl.startsWith('intent://') ||
+        requestUrl.startsWith('youtube://') ||
+        requestUrl.startsWith('vnd.youtube')
+      ) {
+        externalUrl = fallbackWebUrl;
+      } else {
+        const parsedUrl = new URL(requestUrl);
+        const redirectTarget =
+          parsedUrl.searchParams.get('q') ||
+          parsedUrl.searchParams.get('u') ||
+          parsedUrl.searchParams.get('url');
+
+        if (redirectTarget) {
+          externalUrl = redirectTarget.startsWith('http')
+            ? redirectTarget
+            : `https://www.youtube.com${redirectTarget.startsWith('/') ? '' : '/'}${redirectTarget}`;
+        } else if (parsedUrl.hostname.includes('youtube-nocookie.com')) {
+          externalUrl = requestUrl.replace('youtube-nocookie.com', 'youtube.com');
+        } else if (
+          parsedUrl.hostname.includes('youtube.com') ||
+          parsedUrl.hostname.includes('youtu.be')
+        ) {
+          externalUrl = requestUrl;
+        }
+      }
+    } catch {
+      externalUrl = fallbackWebUrl;
+    }
+
+    Linking.openURL(`youtube://watch?v=${videoId}`)
+      .catch(() => Linking.openURL(externalUrl))
+      .catch(() => null);
+  }, []);
 
   const handleVideoPress = (url: unknown, title: unknown) => {
     const videoId = getYouTubeVideoId(url);
@@ -1151,8 +1294,12 @@ export default function Home() {
             shouldRasterizeIOS={true}
             style={[
               styles.videoModalCard,
-              isVideoDragging ? styles.videoModalCardDragging : null,
+              isVideoExpanded ? styles.videoModalCardExpanded : null,
+              !isVideoExpanded && isVideoDragging ? styles.videoModalCardDragging : null,
               {
+                top: isVideoExpanded ? expandedBaseTop : miniBaseTop,
+                left: isVideoExpanded ? expandedBaseLeft : miniBaseLeft,
+                width: isVideoExpanded ? expandedVideoCardWidth : miniVideoCardWidth,
                 transform: [
                   { translateX: Animated.add(videoBaseX, videoDragX) },
                   { translateY: Animated.add(videoBaseY, videoDragY) },
@@ -1161,28 +1308,33 @@ export default function Home() {
             ]}
           >
             <View style={styles.inlinePlayerHeader}>
-              <PanGestureHandler
-                onGestureEvent={onVideoDragEvent}
-                onHandlerStateChange={onVideoDragStateChange}
-                activeOffsetX={[-4, 4]}
-                activeOffsetY={[-4, 4]}
+              <Animated.View
+                style={styles.videoModalDragHeader}
+                {...videoModalPanResponder.panHandlers}
               >
-                <Animated.View style={styles.videoModalDragHeader}>
-                  <View style={styles.videoModalDragHandle} />
-                  <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
-                    {selectedVideo.title}
-                  </Text>
-                </Animated.View>
-              </PanGestureHandler>
-              <TouchableOpacity
-                style={styles.inlinePlayerClose}
-                onPress={() => setSelectedVideo(null)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <MaterialIcon name="close" size={20} color="#fff" />
-              </TouchableOpacity>
+                <View style={styles.videoModalDragHandle} />
+                <Text style={styles.inlinePlayerTitle} numberOfLines={1}>
+                  {selectedVideo.title}
+                </Text>
+              </Animated.View>
+              <View style={styles.inlinePlayerActions}>
+                <TouchableOpacity
+                  style={styles.inlinePlayerClose}
+                  onPress={() => setSelectedVideo(null)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <MaterialIcon name="close" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.inlinePlayerFrame}>
+            <View
+              pointerEvents={isVideoDragging ? 'none' : 'auto'}
+              style={
+                isVideoExpanded
+                  ? styles.inlinePlayerFrameExpanded
+                  : styles.inlinePlayerFrame
+              }
+            >
               <WebView
                 key={selectedVideo.embedUrl}
                 source={{
@@ -1207,12 +1359,14 @@ export default function Home() {
                 androidLayerType="hardware"
                 onShouldStartLoadWithRequest={(request) => {
                   const requestUrl = request.url;
+                  const lowerRequestUrl = requestUrl.toLowerCase();
 
                   if (
-                    requestUrl.startsWith('vnd.youtube') ||
-                    requestUrl.startsWith('intent://') ||
-                    requestUrl.startsWith('youtube://')
+                    lowerRequestUrl.startsWith('vnd.youtube') ||
+                    lowerRequestUrl.startsWith('intent://') ||
+                    lowerRequestUrl.startsWith('youtube://')
                   ) {
+                    openYouTubeExternally(requestUrl, selectedVideo.id);
                     return false;
                   }
 
@@ -1223,20 +1377,52 @@ export default function Home() {
                     return true;
                   }
 
+                  const isBlockedYouTubeNavigation =
+                    lowerRequestUrl.includes('youtube.com/watch') ||
+                    lowerRequestUrl.includes('youtube.com/shorts/') ||
+                    lowerRequestUrl.includes('youtube.com/live/') ||
+                    lowerRequestUrl.includes('youtube.com/channel/') ||
+                    lowerRequestUrl.includes('youtube.com/c/') ||
+                    lowerRequestUrl.includes('youtube.com/@') ||
+                    lowerRequestUrl.includes('youtube.com/results') ||
+                    lowerRequestUrl.includes('youtube.com/feed/') ||
+                    lowerRequestUrl.includes('youtube.com/playlist') ||
+                    lowerRequestUrl.includes('youtube.com/redirect') ||
+                    lowerRequestUrl.includes('youtube.com/attribution_link') ||
+                    lowerRequestUrl.includes('m.youtube.com/') ||
+                    lowerRequestUrl.includes('youtu.be/');
+
+                  if (isBlockedYouTubeNavigation) {
+                    openYouTubeExternally(requestUrl, selectedVideo.id);
+                    return false;
+                  }
+
                   return (
-                    requestUrl.includes(`/embed/${selectedVideo.id}`) ||
-                    requestUrl.includes('youtube.com/embed/') ||
-                    requestUrl.includes('youtube.com/iframe_api') ||
-                    requestUrl.includes('youtube.com/s/player/') ||
-                    requestUrl.includes('youtube.com/youtubei/') ||
-                    requestUrl.includes('googlevideo.com/') ||
-                    requestUrl.includes('ytimg.com/') ||
-                    requestUrl.includes('gstatic.com/') ||
-                    requestUrl.includes('googleusercontent.com/')
+                    lowerRequestUrl.includes(`/embed/${selectedVideo.id}`) ||
+                    lowerRequestUrl.includes('youtube.com/embed/') ||
+                    lowerRequestUrl.includes('youtube-nocookie.com/embed/') ||
+                    lowerRequestUrl.includes('youtube.com/iframe_api') ||
+                    lowerRequestUrl.includes('youtube.com/s/player/') ||
+                    lowerRequestUrl.includes('youtube.com/youtubei/') ||
+                    lowerRequestUrl.includes('googlevideo.com/') ||
+                    lowerRequestUrl.includes('ytimg.com/') ||
+                    lowerRequestUrl.includes('gstatic.com/') ||
+                    lowerRequestUrl.includes('googleusercontent.com/')
                   );
                 }}
                 onError={(e) => console.warn('Inline player error', e)}
               />
+              <TouchableOpacity
+                style={styles.videoExpandOverlayButton}
+                onPress={toggleVideoExpanded}
+                activeOpacity={0.85}
+              >
+                <MaterialIcon
+                  name={isVideoExpanded ? 'fullscreen-exit' : 'fullscreen'}
+                  size={18}
+                  color="#fff"
+                />
+              </TouchableOpacity>
             </View>
           </Animated.View>
         </View>
@@ -2166,16 +2352,22 @@ const styles = StyleSheet.create({
   },
   videoModalCard: {
     position: 'absolute',
-    top: hp(16),
+    top: hp(18),
     left: wp(4),
-    width: wp(92),
-    borderRadius: 18,
+    width: wp(58),
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#050505',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     elevation: 16,
     zIndex: 1001,
+  },
+  videoModalCardExpanded: {
+    top: hp(9),
+    left: wp(6),
+    width: wp(88),
+    borderRadius: 18,
   },
   videoModalCardDragging: {
     elevation: 6,
@@ -2187,43 +2379,67 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: hp(0.5),
+    paddingVertical: hp(0.25),
   },
   videoModalDragHandle: {
-    width: wp(12),
-    height: 4,
+    width: wp(8),
+    height: 3,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.28)',
-    marginRight: wp(2.5),
+    marginRight: wp(1.8),
   },
   inlinePlayerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(1),
+    paddingHorizontal: wp(2.2),
+    paddingVertical: hp(0.55),
     backgroundColor: '#1a1a1a',
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
+  inlinePlayerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  inlinePlayerActionButton: {
+    padding: wp(0.5),
+  },
   inlinePlayerTitle: {
     flex: 1,
     color: '#fff',
-    fontSize: wp(3.5),
+    fontSize: wp(2.9),
     fontFamily: 'Outfit-Medium',
-    marginRight: wp(2),
+    marginRight: wp(1.2),
   },
   inlinePlayerClose: {
-    padding: wp(1),
+    padding: wp(0.5),
   },
   inlinePlayerFrame: {
     width: '100%',
     aspectRatio: 16 / 9,
     backgroundColor: '#000',
   },
+  inlinePlayerFrameExpanded: {
+    width: '100%',
+    height: hp(44),
+    backgroundColor: '#000',
+  },
   inlinePlayer: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  videoExpandOverlayButton: {
+    position: 'absolute',
+    right: wp(2),
+    bottom: hp(1),
+    width: wp(8.5),
+    height: wp(8.5),
+    borderRadius: wp(4.25),
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   /* ACTIVE VIDEO CARD (currently playing) */
