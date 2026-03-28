@@ -1,13 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
-    StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid
+    StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid,
+    Animated, Easing
 } from 'react-native';
+import { useRef } from 'react';
+import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop, Path } from 'react-native-svg';
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
+import LinearGradient from 'react-native-linear-gradient';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window');
@@ -57,6 +63,8 @@ export const DetailsScreen = ({
     const [mainTab, setMainTab] = useState<MainTab>(initialTab || 'Alerts');
     const [subTab, setSubTab] = useState<SubTab>('Health');
 
+
+
     useEffect(() => {
         if (initialTab) setMainTab(initialTab);
     }, [initialTab]);
@@ -67,6 +75,43 @@ export const DetailsScreen = ({
         recommendations?: string[];
         explanations?: string[];
     } | null>(null);
+    const healthVal = healthScoreDetail?.overallScore ?? activeVehicle?.healthScore?.overallScore ?? 0;
+    const animatedHealth = useRef(new Animated.Value(0)).current;
+
+    // Semicircle Gauge Constants
+    const R = wp(36);
+    const strokeWidth = wp(4.5);
+    const padding = wp(5);
+    const svgWidth = R * 2 + padding * 2;
+    const svgHeight = R + padding * 1.5;
+    const startX = padding;
+    const startY = R + padding;
+    const endX = startX + R * 2;
+    const pathData = `M ${startX} ${startY} A ${R} ${R} 0 0 1 ${endX} ${startY}`;
+    const pathLength = Math.PI * R;
+
+    useEffect(() => {
+        Animated.timing(animatedHealth, {
+            toValue: healthVal,
+            duration: 1800,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+        }).start();
+    }, [healthVal]);
+
+    const strokeDashoffset = animatedHealth.interpolate({
+        inputRange: [0, 100],
+        outputRange: [pathLength, 0],
+    });
+
+    const getHealthStatus = (score: number) => {
+        if (score >= 80) return { label: 'EXCELLENT', color: '#22C55E', desc: 'Your vehicle is in top shape. Maintenance is up to date.' };
+        if (score >= 50) return { label: 'GOOD', color: '#F59E0B', desc: 'Some parts need your attention soon to maintain peak performance.' };
+        return { label: 'CRITICAL', color: '#EF4444', desc: 'Immediate service recommended. Essential parts are overdue.' };
+    };
+
+    const healthStatus = getHealthStatus(healthVal);
+
     const [expandWhyScore, setExpandWhyScore] = useState(false);
     const [expandNextActions, setExpandNextActions] = useState(false);
     const [rating, setRating] = useState(0);
@@ -107,6 +152,12 @@ export const DetailsScreen = ({
 
     const fetchHealthDetail = useCallback(async (vehicleId: string) => {
         try {
+            // Recalculate first so user sees the latest score and reasons.
+            await vehicleService.recalculateHealth(vehicleId);
+        } catch {
+            // Continue and fetch whatever is currently stored.
+        }
+        try {
             const data = await vehicleService.getVehicleById(vehicleId);
             const hs = data?.healthScore as typeof healthScoreDetail;
             setHealthScoreDetail(hs ?? null);
@@ -146,12 +197,10 @@ export const DetailsScreen = ({
     const handleFeedbackSubmit = () => {
         if (!rating) return;
         setIsSubmitting(true);
-        setTimeout(() => {
-            setSubmittedFeedback({ rating, text: feedback });
-            setIsSubmitting(false);
-            setRating(0);
-            setFeedback('');
-        }, 1500);
+        setSubmittedFeedback({ rating, text: feedback });
+        setIsSubmitting(false);
+        setRating(0);
+        setFeedback('');
     };
 
     const handleDeletePress = () => {
@@ -557,7 +606,7 @@ export const DetailsScreen = ({
                                 {activeVehicle.isPrimary && (
                                     <StatusCard
                                         icon={ShieldCheck}
-                                        label="warranty"
+                                        label="vehicle health"
                                         value="STATUS"
                                         style={styles.statusCardHalf}
                                         onPress={() => navigation.navigate('WarrantyStatus')}
@@ -599,6 +648,7 @@ export const DetailsScreen = ({
                                             <Text style={[styles.subTabText, subTab === st && styles.subTabTextActive]}>
                                                 {st}
                                             </Text>
+                                            {subTab === st && <View style={styles.subTabIndicator} />}
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -607,12 +657,83 @@ export const DetailsScreen = ({
                             <View style={{ gap: hp('2%') }}>
                                 {subTab === 'Health' && (
                                     <>
-                                        <View style={styles.healthScoreCard}>
-                                            <Text style={styles.healthScoreValue}>
-                                                {healthScoreDetail?.overallScore ?? activeVehicle.healthScore?.overallScore ?? '—'}
-                                            </Text>
-                                            <Text style={styles.healthScoreLabel}>/ 100 Health</Text>
-                                        </View>
+                                        <LinearGradient
+                                            colors={['#171717', '#0A0A0A']}
+                                            style={styles.healthScoreCard}
+                                        >
+                                            <View style={styles.healthHeader}>
+                                                <Text style={styles.healthTitle}>VEHICLE HEALTH SCORE</Text>
+                                                <View style={styles.liveBadge}>
+                                                    <View style={styles.livePulseContainer}>
+                                                        <View style={styles.liveDot} />
+                                                        <View style={styles.liveDotPing} />
+                                                    </View>
+                                                    <Text style={styles.liveText}>LIVE</Text>
+                                                </View>
+                                            </View>
+
+                                            <View style={styles.gaugeContainer}>
+                                                <Svg width={svgWidth} height={svgHeight}>
+                                                    <Defs>
+                                                        <SvgGradient id="gaugeTrack" x1="0" y1="0" x2="1" y2="0">
+                                                            <Stop offset="0" stopColor="#EF4444" stopOpacity="0.1" />
+                                                            <Stop offset="0.4" stopColor="#F59E0B" stopOpacity="0.1" />
+                                                            <Stop offset="1" stopColor="#22C55E" stopOpacity="0.1" />
+                                                        </SvgGradient>
+                                                        <SvgGradient id="gaugeFill" x1="0" y1="0" x2="1" y2="0">
+                                                            <Stop offset="0" stopColor="#EF4444" />
+                                                            <Stop offset="0.4" stopColor="#F59E0B" />
+                                                            <Stop offset="1" stopColor="#22C55E" />
+                                                        </SvgGradient>
+                                                    </Defs>
+                                                    <Path
+                                                        d={pathData}
+                                                        stroke="url(#gaugeTrack)"
+                                                        strokeWidth={strokeWidth}
+                                                        strokeLinecap="round"
+                                                        fill="transparent"
+                                                    />
+                                                    <AnimatedPath
+                                                        d={pathData}
+                                                        stroke="url(#gaugeFill)"
+                                                        strokeWidth={strokeWidth}
+                                                        strokeLinecap="round"
+                                                        fill="transparent"
+                                                        strokeDasharray={pathLength}
+                                                        strokeDashoffset={strokeDashoffset}
+                                                    />
+                                                </Svg>
+                                                <View style={styles.gaugeCenterText}>
+                                                    <Text style={styles.healthScoreValue}>{healthVal}</Text>
+                                                    <Text style={[styles.healthStatusLabel, { color: healthStatus.color }]}>
+                                                        {healthStatus.label}
+                                                    </Text>
+                                                </View>
+                                            </View>
+
+                                            <Text style={styles.healthDescription}>{healthStatus.desc}</Text>
+
+                                            <View style={styles.partsRow}>
+                                                <View style={styles.partStatBox}>
+                                                    <LinearGradient colors={['rgba(34, 197, 94, 0.15)', 'rgba(34, 197, 94, 0.02)']} style={styles.partIconBg}>
+                                                        <CheckCircle2 size={18} color="#22C55E" />
+                                                    </LinearGradient>
+                                                    <View>
+                                                        <Text style={styles.partNumber}>14</Text>
+                                                        <Text style={styles.partLabel}>HEALTHY PARTS</Text>
+                                                    </View>
+                                                </View>
+                                                <View style={styles.partStatBox}>
+                                                    <LinearGradient colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.02)']} style={styles.partIconBg}>
+                                                        <AlertCircle size={18} color="#EF4444" />
+                                                    </LinearGradient>
+                                                    <View>
+                                                        <Text style={[styles.partNumber, { color: '#EF4444' }]}>0</Text>
+                                                        <Text style={styles.partLabel}>PARTS DUE</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        </LinearGradient>
                                         <View style={styles.healthBasedOnCard}>
                                             <Text style={styles.healthBasedOnTitle}>What this score is based on</Text>
                                             {healthScoreDetail?.components?.some(c => c.name === 'driving' && c.score != null) ? (
@@ -633,17 +754,24 @@ export const DetailsScreen = ({
                                             <View style={styles.healthComponentsRow}>
                                                 {healthScoreDetail.components.map((c) => (
                                                     <View key={c.name} style={styles.healthComponentBox}>
+                                                        {c.name === 'maintenance' ? <Wrench size={16} color="#666" /> :
+                                                         c.name === 'driving' ? <Activity size={16} color="#666" /> :
+                                                         <Clock size={16} color="#666" />}
                                                         <Text style={styles.healthComponentLabel}>{c.label}</Text>
-                                                        <Text style={styles.healthComponentValue}>{c.score != null ? c.score : '—'}%</Text>
+                                                        <Text style={styles.healthComponentValue}>
+                                                            {c.score != null ? c.score : '—'}
+                                                            <Text style={{ fontSize: hp('1.4%'), color: '#555' }}>%</Text>
+                                                        </Text>
                                                     </View>
                                                 ))}
                                             </View>
                                         )}
-                                        {(healthScoreDetail?.scoreChangeReason || healthScoreDetail?.explanations?.length) ? (
+
+                                        {(healthScoreDetail?.scoreChangeReason || healthScoreDetail?.explanations?.length) && (
                                             <>
                                                 <TouchableOpacity
                                                     style={styles.whyScoreRow}
-                                                    onPress={() => setExpandWhyScore((v) => !v)}
+                                                    onPress={() => setExpandWhyScore(v => !v)}
                                                     activeOpacity={0.7}
                                                 >
                                                     <Info size={18} color={COLORS.primary} />
@@ -654,28 +782,31 @@ export const DetailsScreen = ({
                                                     <View style={styles.whyScoreBody}>
                                                         <Text style={styles.whyScoreText}>{healthScoreDetail?.scoreChangeReason ?? healthScoreDetail?.explanations?.[0] ?? '—'}</Text>
                                                         {healthScoreDetail?.explanations && healthScoreDetail.explanations.length > 1 && (
-                                                            healthScoreDetail.explanations.slice(1, 4).map((e: string, i: number) => (
-                                                                <Text key={i} style={styles.explanationItem}>• {e}</Text>
-                                                            ))
+                                                            <View style={{ marginTop: hp('1%'), gap: hp('0.5%') }}>
+                                                                {healthScoreDetail.explanations.slice(1, 4).map((e: string, i: number) => (
+                                                                    <Text key={i} style={styles.explanationItem}>• {e}</Text>
+                                                                ))}
+                                                            </View>
                                                         )}
                                                     </View>
                                                 )}
                                             </>
-                                        ) : null}
+                                        )}
+
                                         {healthScoreDetail?.recommendations && healthScoreDetail.recommendations.length > 0 && (
                                             <>
                                                 <TouchableOpacity
                                                     style={styles.whyScoreRow}
-                                                    onPress={() => setExpandNextActions((v) => !v)}
+                                                    onPress={() => setExpandNextActions(v => !v)}
                                                     activeOpacity={0.7}
                                                 >
-                                                    <Activity size={18} color={COLORS.primary} />
+                                                    <CheckCircle2 size={18} color={COLORS.primary} />
                                                     <Text style={styles.whyScoreLabel}>What to do next</Text>
                                                     {expandNextActions ? <ChevronUp size={18} color="#888" /> : <ChevronDown size={18} color="#888" />}
                                                 </TouchableOpacity>
                                                 {expandNextActions && (
                                                     <View style={styles.nextActionsBody}>
-                                                        {healthScoreDetail.recommendations.map((r: string, i: number) => (
+                                                        {healthScoreDetail.recommendations.map((r, i) => (
                                                             <View key={i} style={styles.nextActionItem}>
                                                                 <Text style={styles.nextActionText}>{r}</Text>
                                                             </View>
@@ -684,6 +815,7 @@ export const DetailsScreen = ({
                                                 )}
                                             </>
                                         )}
+
                                         {!healthScoreDetail && (
                                             <Text style={styles.healthLoadingHint}>Recalculate health from vehicle settings to see breakdown.</Text>
                                         )}
@@ -848,9 +980,9 @@ const styles = StyleSheet.create({
 
     // Hero Section
     heroSection: { alignItems: 'center', paddingBottom: hp('2%') },
-    heroImageFrame: { width: wp('80%'), height: hp('28%'), marginBottom: hp('-1%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroImageFrame: { width: wp('90%'), height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
     heroImage: { width: '100%', height: '100%' },
-    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase' },
+    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase', marginTop: hp('1%') },
     modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
     heroPlateBox: { marginTop: hp('1.5%') },
 
@@ -944,138 +1076,137 @@ const styles = StyleSheet.create({
     viewAllDocsText: { color: COLORS.primary, fontSize: hp('1.6%'), fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: 1.5 },
 
     // Health Score Styles
+    subTabNav: { flexDirection: 'row', paddingBottom: hp('3%'), gap: wp('2%'), justifyContent: 'center', alignItems: 'center' },
+    subTabItem: { paddingHorizontal: wp('4%'), paddingVertical: hp('1.2%'), borderRadius: 12, alignItems: 'center' },
+    subTabItemActive: { backgroundColor: 'rgba(255, 215, 0, 0.05)' },
+    subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', textTransform: 'uppercase' },
+    subTabTextActive: { color: COLORS.primary },
+    subTabIndicator: { width: 16, height: 2, backgroundColor: COLORS.primary, marginTop: 4, borderRadius: 1 },
+
+    // Health Score Styles
     healthScoreCard: {
-        backgroundColor: '#111',
-        padding: wp('6%'),
-        borderRadius: 24,
-        alignItems: 'center',
+        padding: wp(5),
+        borderRadius: 28,
         borderWidth: 1,
-        borderColor: '#222'
-    },
-    healthScoreValue: {
-        color: COLORS.primary,
-        fontSize: hp('6%'),
-        fontFamily: 'Outfit-Black'
-    },
-    healthScoreLabel: {
-        color: '#8E8E93',
-        fontSize: hp('1.8%'),
-        fontFamily: 'Outfit-Bold',
-        marginTop: hp('-0.6%')
-    },
-    healthBasedOnCard: {
-        backgroundColor: '#0A0A0A',
-        padding: wp('5%'),
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#1A1A1A'
-    },
-    healthBasedOnTitle: {
-        color: '#FFF',
-        fontSize: hp('1.8%'),
-        fontFamily: 'Outfit-Bold',
+        borderColor: 'rgba(255,255,255,0.06)',
         marginBottom: hp('1.5%')
     },
-    healthBasedOnItem: {
-        color: '#8E8E93',
-        fontSize: hp('1.5%'),
-        fontFamily: 'Outfit-Medium',
-        marginBottom: hp('0.8%')
-    },
-    healthComponentsRow: {
+    healthHeader: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: wp('3%')
-    },
-    healthComponentBox: {
-        flex: 1,
-        minWidth: wp('28%'),
-        backgroundColor: '#111',
-        padding: wp('4%'),
-        borderRadius: 16,
+        justifyContent: 'space-between',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#222'
+        marginBottom: hp(2)
     },
-    healthComponentLabel: {
-        color: '#8E8E8E',
-        fontSize: hp('1.2%'),
-        fontFamily: 'Outfit-Bold',
-        textTransform: 'uppercase',
-        marginBottom: hp('0.5%')
-    },
-    healthComponentValue: {
-        color: '#FFF',
-        fontSize: hp('2.1%'),
-        fontFamily: 'Outfit-Black'
-    },
-    whyScoreRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: wp('3%'),
-        backgroundColor: '#111',
-        padding: wp('4%'),
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#222'
-    },
-    whyScoreLabel: {
-        flex: 1,
-        color: '#FFF',
-        fontSize: hp('1.8%'),
-        fontFamily: 'Outfit-Medium'
-    },
-    whyScoreBody: {
-        backgroundColor: '#0A0A0A',
-        padding: wp('4%'),
-        borderRadius: 16,
-        marginTop: hp('-1%'),
-        borderWidth: 1,
-        borderColor: '#1A1A1A',
-        gap: hp('1%')
-    },
-    whyScoreText: {
-        color: '#FFF',
-        fontSize: hp('1.6%'),
-        fontFamily: 'Outfit-Medium',
-        lineHeight: hp('2.5%')
-    },
-    explanationItem: {
-        color: '#8E8E93',
-        fontSize: hp('1.5%'),
-        fontFamily: 'Outfit-Regular',
-        lineHeight: hp('2.3%')
-    },
-    nextActionsBody: {
-        gap: hp('1.5%'),
-        marginTop: hp('-1%')
-    },
-    nextActionItem: {
-        backgroundColor: '#0A0A0A',
-        padding: wp('4%'),
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#1A1A1A'
-    },
-    nextActionText: {
-        color: '#FFF',
-        fontSize: hp('1.6%'),
-        fontFamily: 'Outfit-Medium'
-    },
-    healthLoadingHint: {
+    healthTitle: {
         color: '#666',
-        fontSize: hp('1.5%'),
+        fontSize: 10,
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 1.5
+    },
+    liveBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+        gap: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(34, 197, 94, 0.2)'
+    },
+    livePulseContainer: { width: 8, height: 8, justifyContent: 'center', alignItems: 'center' },
+    liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E', position: 'absolute' },
+    liveDotPing: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22C55E', opacity: 0.4 },
+    liveText: { color: '#22C55E', fontSize: 10, fontFamily: 'Outfit-Bold', letterSpacing: 0.5 },
+
+    gaugeContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: hp(1)
+    },
+    gaugeCenterText: {
+        position: 'absolute',
+        bottom: wp(4),
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    healthScoreValue: {
+        color: '#FFF',
+        fontSize: wp(18),
+        fontFamily: 'Outfit-Black',
+        lineHeight: wp(18)
+    },
+    healthStatusLabel: {
+        fontSize: wp(4.5),
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 3,
+        marginTop: -hp(1)
+    },
+    healthDescription: {
+        color: '#888',
+        fontSize: 12,
         fontFamily: 'Outfit-Medium',
         textAlign: 'center',
-        marginTop: hp('2.5%')
+        lineHeight: 18,
+        marginTop: hp(2),
+        paddingHorizontal: wp(5),
+        marginBottom: hp(3)
+    },
+    partsRow: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        borderRadius: 20,
+        paddingVertical: hp(2),
+        paddingHorizontal: wp(4),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.04)',
+        gap: wp(4)
+    },
+    partStatBox: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: wp(3)
+    },
+    partIconBg: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.03)'
+    },
+    partNumber: {
+        fontSize: 18,
+        fontFamily: 'Outfit-Black',
+        color: '#FFF',
+        lineHeight: 22
+    },
+    partLabel: {
+        fontSize: 9,
+        fontFamily: 'Outfit-Bold',
+        color: '#666'
     },
 
-    // Details Sub-Tabs
-    subTabNav: { flexDirection: 'row', paddingBottom: hp('2.5%'), gap: wp('2.4%'), justifyContent: 'center' },
-    subTabItem: { paddingHorizontal: wp('3.5%'), paddingVertical: hp('1%'), borderRadius: 20, backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
-    subTabItemActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#888' },
-    subTabTextActive: { color: '#000' },
+    healthBasedOnCard: { backgroundColor: '#0A0A0A', padding: wp('5%'), borderRadius: 20, borderWidth: 1, borderColor: '#1A1A1A' },
+    healthBasedOnTitle: { color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Bold', marginBottom: hp('1.5%') },
+    healthBasedOnItem: { color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', marginBottom: hp('0.8%') },
+    healthComponentsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp('3%') },
+    healthComponentBox: {
+        flex: 1, minWidth: wp('28%'), backgroundColor: '#111', padding: wp('4.4%'), borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: '#222', gap: hp('1%')
+    },
+    healthComponentLabel: { color: '#8E8E8E', fontSize: 10, fontFamily: 'Outfit-Bold', textTransform: 'uppercase' },
+    healthComponentValue: { color: '#FFF', fontSize: hp('2.4%'), fontFamily: 'Outfit-Black' },
+    whyScoreRow: { flexDirection: 'row', alignItems: 'center', gap: wp('3%'), backgroundColor: '#111', padding: wp('4.5%'), borderRadius: 20, borderWidth: 1, borderColor: '#222', marginTop: hp('1%') },
+    whyScoreLabel: { flex: 1, color: '#FFF', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium' },
+    whyScoreBody: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: 20, marginTop: hp('-1%'), borderWidth: 1, borderColor: '#1A1A1A' },
+    whyScoreText: { color: '#FFF', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', lineHeight: hp('2.2%') },
+    explanationItem: { color: '#8E8E93', fontSize: hp('1.4%'), fontFamily: 'Outfit-Regular', lineHeight: hp('2%') },
+    nextActionsBody: { gap: hp('1%'), marginTop: hp('-1%') },
+    nextActionItem: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: 20, borderWidth: 1, borderColor: '#1A1A1A' },
+    nextActionText: { color: '#FFF', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium' },
+    healthLoadingHint: { color: '#666', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', textAlign: 'center', marginTop: hp('2.5%') },
 
     // RC Details section
     rcInfoSection: { marginTop: hp('3%'), paddingHorizontal: wp('1%') },

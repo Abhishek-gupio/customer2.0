@@ -18,8 +18,8 @@ import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import type { MainTabParamList } from '../../navigation/types';
 import { chatService, type SSEChunk, type SuggestedAction } from '../../services/chatService';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
@@ -53,7 +53,7 @@ export default function AIAssistant() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [playingVoiceUrl, setPlayingVoiceUrl] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -67,6 +67,30 @@ export default function AIAssistant() {
   const isLocalSession = sessionId?.startsWith('local-');
   const wantsListeningRef = useRef(false);
   const voiceRetryRef = useRef(0);
+  const voiceStartInFlightRef = useRef(false);
+
+  const releaseChatMic = useCallback(() => {
+    wantsListeningRef.current = false;
+    voiceRetryRef.current = 0;
+    voiceStartInFlightRef.current = false;
+    setIsListening(false);
+    setVoiceOwner(null);
+    Voice.cancel?.().catch(() => {});
+    Voice.stop?.().catch(() => {});
+  }, [setVoiceOwner]);
+
+  const takeChatMicOwnership = useCallback(async () => {
+    wantsListeningRef.current = false;
+    voiceRetryRef.current = 0;
+    voiceStartInFlightRef.current = false;
+    setIsListening(false);
+    setVoiceOwner('chat');
+    await Voice.cancel?.().catch(() => {});
+    await Voice.stop?.().catch(() => {});
+    if (typeof (Voice as any)?.destroy === 'function') {
+      await (Voice as any).destroy().catch(() => {});
+    }
+  }, [setVoiceOwner]);
 
   const [quickExpenseVisible, setQuickExpenseVisible] = useState(false);
   const [quickExpenseAmount, setQuickExpenseAmount] = useState('');
@@ -112,49 +136,39 @@ export default function AIAssistant() {
     [],
   );
 
-  const quickPrompts = useMemo(
-    () => [
-      'What’s in my garage?',
-      'Add an expense for fuel',
-      'Show upcoming service reminders',
-      'How can I upload insurance docs?',
-      'Summarize this month’s vehicle costs',
-    ],
-    [],
-  );
   const assistantCards = useMemo(
     () => [
       {
-        title: 'Vehicle Health',
-        subtitle: 'Check my car',
-        icon: 'car-sport-outline',
-        prompt: 'Check vehicle health',
-      },
-      {
-        title: 'Insurance Status',
-        subtitle: 'Policy details',
-        icon: 'shield-checkmark-outline',
-        prompt: 'Show my insurance status',
-      },
-      {
-        title: 'Monthly Expenses',
-        subtitle: 'Spending report',
+        title: 'Expenses',
+        subtitle: 'Track spending',
         icon: 'cash-outline',
-        prompt: 'Show monthly expenses',
+        prompt: 'Show my monthly expenses',
       },
       {
-        title: 'Schedule Service',
-        subtitle: 'Book service',
-        icon: 'construct-outline',
-        prompt: 'Schedule a service for my vehicle',
+        title: 'Documents',
+        subtitle: 'RC, PUC, insurance',
+        icon: 'shield-checkmark-outline',
+        prompt: 'Show my document status',
+      },
+      {
+        title: 'Reminders',
+        subtitle: 'Service and renewals',
+        icon: 'notifications-outline',
+        prompt: 'Show upcoming service reminders',
+      },
+      {
+        title: 'Support',
+        subtitle: 'Need help',
+        icon: 'help-buoy-outline',
+        prompt: 'I need help or support',
       },
     ],
     [],
   );
 
   const canSend = useMemo(
-    () => message.trim().length > 0 && !isLoading && !isStreaming,
-    [message, isLoading, isStreaming],
+    () => message.trim().length > 0 && !isStreaming,
+    [message, isStreaming],
   );
 
   useEffect(() => {
@@ -194,14 +208,27 @@ export default function AIAssistant() {
   }, []);
 
   const startVoiceRecognition = async () => {
+    if (voiceStartInFlightRef.current) return;
+    voiceStartInFlightRef.current = true;
     try {
-      await Voice.start('en-IN');
-    } catch {
       try {
-        await Voice.start('en-US');
+        await Voice.cancel().catch(() => {});
+        if (typeof (Voice as any).destroy === 'function') {
+          await (Voice as any).destroy().catch(() => {});
+        }
+      } catch {}
+
+      try {
+        await Voice.start('en-IN');
       } catch {
-        await Voice.start('en');
+        try {
+          await Voice.start('en-US');
+        } catch {
+          await Voice.start('en');
+        }
       }
+    } finally {
+      voiceStartInFlightRef.current = false;
     }
   };
 
@@ -211,15 +238,19 @@ export default function AIAssistant() {
       return;
     }
 
-    Voice.onSpeechStart = () => setIsListening(true);
+    Voice.onSpeechStart = () => {
+      voiceRetryRef.current = 0;
+      setIsListening(true);
+    };
     Voice.onSpeechEnd = () => setIsListening(false);
     Voice.onSpeechResults = (e: { value?: string[] }) => {
       const text = e?.value?.[0]?.trim();
       if (text) setMessage(text);
+      releaseChatMic();
     };
     (Voice as any).onSpeechError = (e: any) => {
+      voiceStartInFlightRef.current = false;
       const code = e?.error?.code ?? e?.code;
-      const message = e?.error?.message || e?.message || 'Voice recognition failed.';
       const nonFatalCodes = new Set([5, 6, 7, 8, 9, 11]);
       if (nonFatalCodes.has(Number(code)) && wantsListeningRef.current) {
         if (voiceRetryRef.current < 2) {
@@ -234,19 +265,26 @@ export default function AIAssistant() {
       setIsListening(false);
       setVoiceOwner(null);
       wantsListeningRef.current = false;
-      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
     };
 
     return () => {
-      Voice.stop?.().catch(() => {});
+      releaseChatMic();
       if (typeof Voice?.destroy === 'function') {
         Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => {});
       } else {
         Voice.removeAllListeners?.();
       }
-      setVoiceOwner(null);
     };
-  }, [setVoiceOwner]);
+  }, [releaseChatMic, setVoiceOwner]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      takeChatMicOwnership().catch(() => {});
+      return () => {
+        releaseChatMic();
+      };
+    }, [releaseChatMic, takeChatMicOwnership]),
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -313,32 +351,24 @@ export default function AIAssistant() {
     }
     try {
       if (isListening) {
-        wantsListeningRef.current = false;
-        voiceRetryRef.current = 0;
         await Voice.stop();
-        setIsListening(false);
-        setVoiceOwner(null);
+        releaseChatMic();
       } else {
+        if (voiceStartInFlightRef.current) return;
         wantsListeningRef.current = true;
         voiceRetryRef.current = 0;
         setVoiceOwner('chat' as any);
-        await Voice.cancel().catch(() => {});
         await startVoiceRecognition();
       }
-    } catch (e: any) {
-      setIsListening(false);
-      setVoiceOwner(null);
-      wantsListeningRef.current = false;
-      voiceRetryRef.current = 0;
-      const code = e?.error?.code ?? e?.code;
-      const message = e?.error?.message || e?.message || 'Unable to start microphone.';
-      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
+    } catch {
+      releaseChatMic();
+      return;
     }
   };
 
   const loadHistory = async (sid: string) => {
     try {
-      setIsLoading(true);
+      setIsHistoryLoading(true);
       const history = await chatService.getHistory(sid);
       const uiMessages: UIMessage[] = history.messages.map((m) => ({
         id: m.id,
@@ -355,7 +385,7 @@ export default function AIAssistant() {
     } catch (error) {
       console.error('Failed to load history:', error);
     } finally {
-      setIsLoading(false);
+      setIsHistoryLoading(false);
     }
   };
 
@@ -369,7 +399,6 @@ export default function AIAssistant() {
 
   const getLocalBotReply = (prompt: string) => {
     const text = prompt.toLowerCase();
-    const has = (k: string) => text.includes(k);
     const any = (list: string[]) => list.some((k) => text.includes(k));
 
     if (any(['engine light', 'check engine', 'mil'])) {
@@ -473,6 +502,9 @@ export default function AIAssistant() {
   };
 
   const handleSend = async (text?: string) => {
+    if (isListening || voiceOwner === 'chat') {
+      releaseChatMic();
+    }
     const messageText = (text || message).trim();
     if (!messageText) return;
 
@@ -681,34 +713,20 @@ export default function AIAssistant() {
     'Set reminder': 'notifications-outline',
     Documents: 'document-text-outline',
     Support: 'help-buoy-outline',
-    'Open challans': 'receipt-outline',
-    'My Garage': 'car-outline',
-    'Driving summary': 'speedometer-outline',
-    'Service history': 'construct-outline',
-    'Warranty & parts': 'shield-checkmark-outline',
-    Expenses: 'wallet-outline',
   };
 
-  const onActionChipPress = useCallback(
-    (action: SuggestedAction) => {
-      if (isLoading || isStreaming) return;
-      if (action.navigate?.screen) {
-        const { screen, params } = action.navigate;
-        rootNavigation.navigate(screen as keyof RootStackParamList, params as never);
-        return;
-      }
-      if (action.label === 'Log expense') {
-        setQuickExpenseAmount('');
-        setQuickExpenseCategory('FUEL');
-        setQuickExpenseVisible(true);
-      } else if (action.prompt?.trim()) {
-        handleSend(action.prompt);
-      }
-    },
-    [isLoading, isStreaming, rootNavigation],
-  );
+  const onActionChipPress = (action: SuggestedAction) => {
+    if (isStreaming) return;
+    if (action.label === 'Log expense') {
+      setQuickExpenseAmount('');
+      setQuickExpenseCategory('FUEL');
+      setQuickExpenseVisible(true);
+    } else {
+      handleSend(action.prompt);
+    }
+  };
 
-  const submitQuickExpense = useCallback(() => {
+  const submitQuickExpense = () => {
     const amount = quickExpenseAmount.trim().replace(/[^0-9.]/g, '');
     if (!amount || Number.isNaN(Number(amount))) {
       Alert.alert('Invalid amount', 'Please enter a valid number.');
@@ -718,7 +736,7 @@ export default function AIAssistant() {
     setQuickExpenseVisible(false);
     setQuickExpenseAmount('');
     handleSend(prompt);
-  }, [quickExpenseAmount, quickExpenseCategory]);
+  };
 
   const renderMessage = ({ item }: { item: UIMessage }) => {
     const isUser = item.sender === 'user';
@@ -754,7 +772,7 @@ export default function AIAssistant() {
           {item.agentSteps && item.agentSteps.length > 0 && (
             <View style={styles.toolBadge}>
               <Ionicons name="git-branch-outline" size={12} color="#65d9a5" />
-              <Text style={[styles.toolBadgeText, { color: '#65d9a5' }]}>
+              <Text style={[styles.toolBadgeText, styles.toolBadgeTextSuccess]}>
                 {item.agentSteps.length} reasoning step{item.agentSteps.length > 1 ? 's' : ''}
               </Text>
             </View>
@@ -767,15 +785,11 @@ export default function AIAssistant() {
                   <Pressable
                     key={action.label}
                     onPress={() => onActionChipPress(action)}
-                    style={[styles.actionChip, (isLoading || isStreaming) && styles.actionChipDisabled]}
+                    style={[styles.actionChip, isStreaming && styles.actionChipDisabled]}
                     hitSlop={6}
-                    disabled={isLoading || isStreaming}
+                    disabled={isStreaming}
                     accessibilityLabel={action.label}
-                    accessibilityHint={
-                      action.navigate
-                        ? `Opens ${action.navigate.screen}`
-                        : `Asks AI: ${action.prompt || action.label}`
-                    }
+                    accessibilityHint={`Asks AI: ${action.prompt}`}
                   >
                     <Ionicons
                       name={(actionChipIcon[action.label] || 'ellipse-outline') as any}
@@ -841,14 +855,14 @@ export default function AIAssistant() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.header}>
-        <Ionicons name="sparkles" size={18} color="#9fb3ff" />
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Gupio AI</Text>
-        </View>
-        <View style={styles.headerActions}>
           <Pressable onPress={handleNewChat} hitSlop={12} style={styles.headerBtn}>
             <Ionicons name="add" size={20} color="#9fb3ff" />
           </Pressable>
+        <View style={styles.headerCenter}>
+          <Ionicons name="sparkles" size={18} color="#9fb3ff" />
+          <Text style={styles.headerTitle}>Gupio AI</Text>
+        </View>
+        <View style={styles.headerActions}>
           <Pressable
             onPress={() => (rootNavigation as any).navigate('ChatSessions')}
             hitSlop={12}
@@ -864,6 +878,12 @@ export default function AIAssistant() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
+        {isHistoryLoading && (
+          <View style={styles.historyLoadingBar}>
+            <ActivityIndicator size="small" color="#9fb3ff" />
+            <Text style={styles.historyLoadingText}>Loading conversation...</Text>
+          </View>
+        )}
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -875,76 +895,34 @@ export default function AIAssistant() {
           renderItem={renderMessage}
           onContentSizeChange={scrollToBottom}
           ListEmptyComponent={
-            isLoading ? (
-              <View style={styles.emptyContainer}>
-                <ActivityIndicator color="#9fb3ff" size="large" />
-                <Text>Loading conversation...</Text>
-              </View>
-            ) : (
-              <View style={styles.emptyContainer}>
-                      <FastImage
-                        source={require('../../assets/images/giphy.gif') as any}
-                        style={styles.gif}
-                        resizeMode={FastImage.resizeMode.contain}
-                      />
-                {/* <View style={styles.heroOrb}>
-                  <View style={styles.heroRingOuter}>
-                    <View style={styles.heroRingInner}>
-                      <View style={styles.heroCore} />
+            <View style={styles.emptyContainer}>
+                    <FastImage
+                      source={require('../../assets/images/index.gif') as any}
+                      style={styles.gif}
+                      resizeMode={FastImage.resizeMode.contain}
+                    />
+              <Text style={styles.heroGreeting}>
+                {userName ? `Hello ${userName} !` : 'Hello there'}
+              </Text>
+              <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
+              <View style={styles.cardGrid}>
+                {assistantCards.map((card) => (
+                  <Pressable
+                    key={card.title}
+                    onPress={() => handleSend(card.prompt)}
+                    style={styles.card}
+                  >
+                    <View style={styles.cardIconWrap}>
+                      <Ionicons name={card.icon as any} size={20} color="#a8b7ff" />
                     </View>
-                  </View>
-                </View> */}
-                <Text style={styles.heroGreeting}>
-                  {userName ? `Hello ${userName} !` : 'Hello there'}
-                </Text>
-                <Text style={styles.heroTitle}>How can I help{'\n'}you today?</Text>
-                <View style={styles.cardGrid}>
-                  {assistantCards.map((card) => (
-                    <Pressable
-                      key={card.title}
-                      onPress={() => handleSend(card.prompt)}
-                      style={styles.card}
-                    >
-                      <View style={styles.cardIconWrap}>
-                        <Ionicons name={card.icon as any} size={20} color="#a8b7ff" />
-                      </View>
-                      <Text style={styles.cardTitle}>{card.title}</Text>
-                      <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <View style={styles.promptRow}>
-                  {quickPrompts.map((prompt) => (
-                    <Pressable
-                      key={prompt}
-                      onPress={() => handleSend(prompt)}
-                      style={styles.promptChip}
-                    >
-                      <Text style={styles.promptChipText}>{prompt}</Text>
-                    </Pressable>
-                  ))}
-                </View>
+                    <Text style={styles.cardTitle}>{card.title}</Text>
+                    <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
+                  </Pressable>
+                ))}
               </View>
-            )
+            </View>
           }
         />
-
-        <View style={styles.inputBar}>
-          <View style={styles.inputTopRow}>
-            <Text style={styles.inputHint}>
-              {isListening ? 'Listening… speak now' : 'Type or use voice to chat'}
-            </Text>
-            <View style={[styles.voicePill, isListening && styles.voicePillActive]}>
-              <Ionicons
-                name={isListening ? 'mic' : 'mic-outline'}
-                size={12}
-                color={isListening ? '#061018' : '#9fb3ff'}
-              />
-              <Text style={[styles.voicePillText, isListening && styles.voicePillTextActive]}>
-                {isListening ? 'Voice On' : 'Voice'}
-              </Text>
-            </View>
-          </View>
           <View style={styles.inputContainer}>
             <TextInput
               value={message}
@@ -985,7 +963,7 @@ export default function AIAssistant() {
               )}
             </Pressable>
           </View>
-        </View>
+        {/* </View> */}
       </KeyboardAvoidingView>
 
       <Modal
@@ -1060,8 +1038,7 @@ export default function AIAssistant() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#101010',
-    // paddingBottom: 45,
+    backgroundColor: '#000000',
     paddingTop: 24,
   },
   flex: { flex: 1 },
@@ -1083,7 +1060,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#111b2e',
   },
   headerCenter: {
-    left:22,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -1098,14 +1074,26 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '700',
+  },
+  historyLoadingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#0a1324',
+    borderBottomWidth: 1,
+    borderBottomColor: '#111b2e',
+  },
+  historyLoadingText: {
+    color: '#9fb3ff',
+    fontSize: 12,
   },
 
   listContent: {
     paddingHorizontal: 12,
-    // paddingTop: 12,
-    // paddingBottom: 15,
     flexGrow: 1,
   },
   messageBubbleRow: {
@@ -1171,6 +1159,9 @@ const styles = StyleSheet.create({
   toolBadgeText: {
     color: '#9fb3ff',
     fontSize: 12,
+  },
+  toolBadgeTextSuccess: {
+    color: '#65d9a5',
   },
 
   actionChipsRow: {
@@ -1302,50 +1293,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: -6,
-    // paddingHorizontal: 24,
-  },
-  heroOrb: {
-    width: 180,
-    height: 180,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  heroRingOuter: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: '#151b2a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 12,
-  },
-  heroRingInner: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: '#1a2336',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#23304d',
-  },
-  heroCore: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
-    backgroundColor: '#7b879f',
-    opacity: 0.9,
   },
   heroGreeting: {
     color: '#6f7b93',
     fontSize: 14,
-    // marginTop: 1,
   },
   heroTitle: {
     color: '#ffffff',
@@ -1364,7 +1315,8 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '48%',
-    backgroundColor: '#0e1628',
+    backgroundColor: '#060d1b',
+    // backgroundColor: 'rgb(18, 18, 23)',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1417,7 +1369,6 @@ const styles = StyleSheet.create({
 
   inputBar: {
     paddingHorizontal: 12,
-    // paddingBottom: 8,
     paddingTop: 4,
     borderTopWidth: 1,
     borderTopColor: '#464d5f',
@@ -1462,22 +1413,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#0d1a30',
     borderRadius: 24,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#464d5f',
-    // paddingBottom:25,
     justifyContent:'center',
-    // alignItems: 'center',
+    marginHorizontal:12,
   },
   input: {
     flex: 1,
     color: '#fff',
     fontSize: 15,
-    // maxHeight: 10,
-    // minHeight: 36,
     marginRight: 8,
     paddingVertical: 4,
+    paddingHorizontal:6,
   },
   sendBtn: {
     width: 34,
@@ -1504,5 +1453,6 @@ const styles = StyleSheet.create({
     gif: {
     width: 200,
     height: 200,
+    top:-20
   },
 });

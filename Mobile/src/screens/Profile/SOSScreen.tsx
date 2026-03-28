@@ -225,15 +225,6 @@ const SOSScreen = () => {
 
   // Map UI logic removed since using react-native-maps directly
 
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#FFD700" />
-        <Text style={styles.loaderText}>Initializing Secure SOS...</Text>
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -259,6 +250,12 @@ const SOSScreen = () => {
           </View>
         )}
       </View>
+      {loading ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFD700" />
+          <Text style={styles.loadingBannerText}>Initializing Secure SOS...</Text>
+        </View>
+      ) : null}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Map Section */}
@@ -513,6 +510,20 @@ const styles = StyleSheet.create({
     color: '#FFD700',
     fontSize: 16,
     fontFamily: 'Outfit-Bold',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    zIndex: 10,
+  },
+  loadingBannerText: {
+    color: '#FFD700',
+    fontSize: wp(3.4),
+    fontFamily: 'Outfit-Medium',
+    marginTop: hp(1.2),
+    textAlign: 'center',
   },
   header: {
     flexDirection: "row",

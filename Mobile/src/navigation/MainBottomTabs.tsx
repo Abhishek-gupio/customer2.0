@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(11),
   },
   centerButtonIconWrap: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFillObject,  
     alignItems: 'center',
     justifyContent: 'center',
   },

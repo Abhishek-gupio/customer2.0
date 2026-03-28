@@ -137,8 +137,11 @@ export default function Odometer() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#FFBF00" />
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <ActivityIndicator size="large" color="#FFBF00" />
+          <Text style={styles.loadingHint}>Loading your vehicle...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -294,6 +297,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingTop: hp(2),
     paddingBottom: hp(1),
+  },
+  loadingHint: {
+    marginTop: hp(1.2),
+    color: '#888',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
   },
   headerGradient: {
     paddingHorizontal: wp(6),

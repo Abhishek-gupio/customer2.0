@@ -86,17 +86,14 @@ const TransportOptions = ({ planning, onChange, tripResult }: Props) => {
     return matchesCategory && matchesBudget;
   });
 
-  if (loading) {
-    return (
-      <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#FFD700" />
-        <Text style={styles.emptyText}>Finding rental providers near your destination...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFD700" />
+          <Text style={styles.loadingText}>Finding rental providers near your destination...</Text>
+        </View>
+      ) : null}
       <View style={styles.catHeader}>
         <Text style={styles.label}>Explore Categories</Text>
         <FlatList
@@ -167,10 +164,24 @@ const TransportOptions = ({ planning, onChange, tripResult }: Props) => {
       </View>
     </View>
   );
-};
+  };
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+  },
   catHeader: { marginBottom: 20 },
   catList: { paddingRight: 20 },
   catChip: {

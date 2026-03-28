@@ -15,7 +15,7 @@ const SERVICES = [
   { id: 'document', icon: 'file-alt', label: 'Documents' },
   { id: 'expense', icon: 'wallet', label: 'Expenses' },
   { id: 'valet', icon: 'parking', label: 'Valet Parking' },
-  // { id: 'tripcost', icon: 'map-signs', label: 'Trip Planner' },
+  { id: 'tripcost', icon: 'map-signs', label: 'Trip Planner' },
 ];
 
 type QuickServicesGridProps = {

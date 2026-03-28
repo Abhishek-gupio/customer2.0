@@ -119,7 +119,16 @@ export const WarrantyStatus = () => {
         setLoading(false);
         return;
       }
-      setVehicle(primary);
+      let latestPrimary = primary;
+      try {
+        // Keep health score fresh whenever this screen opens.
+        await vehicleService.recalculateHealth(primary.id);
+        const refreshed = await vehicleService.getVehicleById(primary.id);
+        if (refreshed) latestPrimary = refreshed;
+      } catch {
+        // Non-blocking: continue with the current primary data if recalc fails.
+      }
+      setVehicle(latestPrimary);
 
       // Refresh OEM manual intervals for primary vehicle (fire-and-forget) so part intervals match OEM e.g. 60k km for tyres
       api.post('/v1/expenses/warranty/primary/refresh-oem').catch(() => {});
@@ -156,7 +165,7 @@ export const WarrantyStatus = () => {
           lifecycleKm: item.lifecycleKm,
           lifecycleMonths: item.lifecycleMonths,
           lastReplacedAt: item.lastReplacedAt,
-          currentOdo: primary.currentOdometer,
+          currentOdo: latestPrimary.currentOdometer,
           overdueByKm: item.overdueByKm,
           intervalSource: item.intervalSource,
         };
@@ -318,35 +327,41 @@ export const WarrantyStatus = () => {
           </View>
         </View>
       </View>
-
-      <FlatList
-        ListHeaderComponent={
-          <View style={{ marginBottom: 15 }}>
-            <WarrantySummary
-              active={summary.active}
-              expired={summary.expired}
-              health={vehicle?.healthScore?.overallScore ?? 0}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFBF00" />
+          <Text style={styles.loadingBarText}>Loading vehicle health details...</Text>
+        </View>
+      ) : (
+        <FlatList
+          ListHeaderComponent={
+            <View style={{ marginBottom: 15 }}>
+              <WarrantySummary
+                active={summary.active}
+                expired={summary.expired}
+                health={vehicle?.healthScore?.overallScore ?? 0}
+              />
+            </View>
+          }
+          data={parts}
+          keyExtractor={item => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
+          }
+          renderItem={({ item }) => (
+            <PartStatusCard
+              {...item}
+              onPressHistory={() =>
+                navigation.navigate('ServiceHistory', { selectedPartType: item.id })
+              }
+              onPressUpdate={() => openUpdateModal(item)}
             />
-          </View>
-        }
-        data={parts}
-        keyExtractor={item => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
-        }
-        renderItem={({ item }) => (
-          <PartStatusCard
-            {...item}
-            onPressHistory={() =>
-              navigation.navigate('ServiceHistory', { selectedPartType: item.id })
-            }
-            onPressUpdate={() => openUpdateModal(item)}
-          />
-        )}
-        style={styles.list}
-      />
+          )}
+          style={styles.list}
+        />
+      )}
 
       <Modal transparent visible={isUpdateModalVisible} animationType="fade" statusBarTranslucent>
         <Pressable style={styles.modalBackdrop} onPress={closeUpdateModal}>
@@ -430,6 +445,19 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingBottom: hp(2),
     backgroundColor: '#000',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+  },
+  loadingBarText: {
+    color: '#b5b5b5',
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Medium',
+    textAlign: 'center',
+    marginTop: hp(1.4),
   },
   header: {
     flexDirection: 'row',

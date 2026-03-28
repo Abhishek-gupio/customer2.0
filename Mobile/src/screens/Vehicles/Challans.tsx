@@ -297,7 +297,10 @@ const styles = StyleSheet.create({
         color: '#FFF', fontSize: hp('2.4%'), fontFamily: 'Outfit-Black'
     },
     loaderBox: {
-        paddingVertical: hp('10%'), alignItems: 'center', gap: hp('2%')
+        minHeight: hp('55%'),
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: hp('2%'),
     },
     loaderText: {
         color: '#8E8E93', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium'

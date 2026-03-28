@@ -139,4 +139,27 @@ export const adminController = {
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.send(buffer);
   }),
+
+  forgotPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email || typeof email !== "string") throw AppError.badRequest("Email is required");
+    const data = await adminService.forgotPassword(email);
+    success(res, data);
+  }),
+
+  verifyResetOtp: asyncHandler(async (req: Request, res: Response) => {
+    const { email, otp } = req.body;
+    if (!email || !otp) throw AppError.badRequest("Email and OTP are required");
+    const data = await adminService.verifyForgotPasswordOtp(email, otp);
+    success(res, data);
+  }),
+
+  resetPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) throw AppError.badRequest("Email, OTP, and new password are required");
+    if (newPassword.length < 8) throw AppError.badRequest("Password must be at least 8 characters");
+    const data = await adminService.resetPassword(email, otp, newPassword);
+    success(res, data);
+  }),
 };
+

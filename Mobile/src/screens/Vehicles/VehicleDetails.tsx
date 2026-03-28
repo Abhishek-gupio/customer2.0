@@ -278,7 +278,6 @@ const VehicleDetails = ({ navigation, route }: any) => {
   const handleInvite = async (phone: string, role: 'Editor' | 'Viewer' | 'Driver') => {
     setIsSharingLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
       const newUser: VehicleUser = {
         id: Date.now(),
         name: 'New User',
@@ -297,7 +296,6 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
   const handleRevoke = async (userId: number) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
       setAccessList(prev => prev.filter(user => user.id !== userId));
       Alert.alert('Success', 'Access revoked successfully');
     } catch (error) {

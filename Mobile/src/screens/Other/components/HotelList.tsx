@@ -96,8 +96,8 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
   const handleBooking = (providerId: string, hotel: Hotel) => {
     setRedirectingProvider(providerId);
     setRedirectingHotelId(hotel.id);
-    
-    setTimeout(async () => {
+
+    (async () => {
       const provider = PROVIDERS.find(p => p.id === providerId);
       if (provider) {
         const url = provider.getBaseUrl(hotel.name, destinationCity);
@@ -106,12 +106,15 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
         } catch (e) {
           console.error('Failed to open booking URL', e);
         } finally {
-            setRedirectingProvider(null);
-            setRedirectingHotelId(null);
+          setRedirectingProvider(null);
+          setRedirectingHotelId(null);
         }
+      } else {
+        setRedirectingProvider(null);
+        setRedirectingHotelId(null);
       }
-    }, 1200);
-    
+    })();
+
     onChange({ selectedHotelId: hotel.id });
   };
 
@@ -235,17 +238,14 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#FFD700" />
-        <Text style={styles.emptyText}>Expanding search radius to 20km...{"\n"}Finding all available deals.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFD700" />
+          <Text style={styles.loadingText}>Expanding search radius to 20km and finding deals...</Text>
+        </View>
+      ) : null}
       {renderSortBar()}
       <FlatList
         data={sortedHotels}
@@ -253,6 +253,13 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
+        ListEmptyComponent={
+          loading ? null : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No hotel options found for this destination.</Text>
+            </View>
+          )
+        }
       />
     </View>
   );
@@ -260,6 +267,20 @@ const HotelList = ({ planning, onChange, tripResult }: Props) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+  },
   sortBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',

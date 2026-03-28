@@ -126,17 +126,14 @@ const ActivityList = ({ planning, onChange, tripResult }: Props) => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#FFD700" />
-        <Text style={styles.emptyText}>Exploring local area...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFD700" />
+          <Text style={styles.loadingText}>Exploring local area...</Text>
+        </View>
+      ) : null}
       <View style={styles.catHeader}>
         <Text style={styles.label}>Explore Categories</Text>
         <FlatList
@@ -178,6 +175,20 @@ const ActivityList = ({ planning, onChange, tripResult }: Props) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+  },
   catHeader: { marginBottom: 20 },
   catList: { paddingRight: 20 },
   catChip: {

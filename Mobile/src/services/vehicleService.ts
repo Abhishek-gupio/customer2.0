@@ -22,6 +22,7 @@ export interface Vehicle {
     unloadedWeight?: string;
     manufacturingMonthYear?: string;
     healthScore?: VehicleHealthScore;
+    telematicsDevice?: { id: string; isActive: boolean };
     // AI-enriched data from Gemini RTO lookup (stored client-side, not in DB)
     rtoDetails?: RTODetails;
     // Optimistic UI flag — never sent to backend
@@ -142,6 +143,42 @@ const RTO_PLATE_REGEX = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/;
 export const isValidIndianPlate = (plate: string): boolean =>
     RTO_PLATE_REGEX.test(plate.toUpperCase().replace(/\s/g, ''));
 
+const normalizeVehicleHealthScore = (vehicle: Vehicle): Vehicle => {
+    const hs = vehicle?.healthScore as (VehicleHealthScore & { recommendations?: string[] }) | undefined;
+    if (!hs || typeof hs.overallScore !== 'number') return vehicle;
+
+    // Fallback guard: if backend returns ~100 while explanations mention compliance issues,
+    // adjust displayed score so UI doesn't misleadingly show perfect health.
+    if (hs.overallScore < 99) return vehicle;
+
+    const explanations = Array.isArray(hs.explanations) ? hs.explanations : [];
+    const recommendations = Array.isArray(hs.recommendations) ? hs.recommendations : [];
+    const textBlob = `${explanations.join(' ')} ${recommendations.join(' ')}`.toLowerCase();
+
+    const insuranceExpired = /insurance\s+is\s+expired|valid\s+insurance\s+not\s+found/.test(textBlob);
+    const insuranceMissing = /insurance\s+expiry\s+not\s+found|renew\s+insurance/.test(textBlob);
+    const pucExpired = /puc\s+is\s+expired|valid\s+puc\s+not\s+found/.test(textBlob);
+    const pucMissing = /puc\s+expiry\s+not\s+found|pollution\s+check/.test(textBlob);
+
+    let penalty = 0;
+    if (insuranceExpired) penalty += 50;
+    else if (insuranceMissing) penalty += 25;
+
+    if (pucExpired) penalty += 20;
+    else if (pucMissing) penalty += 10;
+
+    if (penalty === 0) return vehicle;
+
+    const adjustedScore = Math.max(0, Math.round(hs.overallScore - penalty));
+    return {
+        ...vehicle,
+        healthScore: {
+            ...hs,
+            overallScore: adjustedScore,
+        },
+    };
+};
+
 // ─── Gemini Config ────────────────────────────────────────────────────────────
 
 // ─── Vehicle Service ──────────────────────────────────────────────────────────
@@ -158,13 +195,15 @@ export const vehicleService = {
 
     getVehicles: async (): Promise<Vehicle[]> => {
         const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicles');
-        return response.data || [];
+        const list = response.data || [];
+        return list.map(normalizeVehicleHealthScore);
     },
 
     getVehicleById: async (id: string): Promise<Vehicle> => {
         const response = await api.get<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`);
         const raw = response as unknown as { data?: Vehicle; success?: boolean };
-        return raw?.data ?? (response as unknown as Vehicle);
+        const vehicle = raw?.data ?? (response as unknown as Vehicle);
+        return normalizeVehicleHealthScore(vehicle);
     },
 
     getVehicleAssets: async (vehicleId: string): Promise<VehicleAssets> => {

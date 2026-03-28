@@ -33,7 +33,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1533473359331-0135ef1b
 const INDPlate = ({ number }: { number: string }) => (
     <View style={styles.plate}>
         <View style={styles.indStrip}>
-            <View style={styles.dot} />
+            <Text style={styles.flag}>🇮🇳</Text>
             <Text style={styles.indText}>IND</Text>
         </View>
         <Text style={styles.plateNo}>{number}</Text>
@@ -115,7 +115,7 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
                     <Text style={styles.inputLabel}>Enter Vehicle Number</Text>
                     <View style={styles.plateInputContainer}>
                         <View style={[styles.indStrip, { borderRadius: 4 }]}>
-                            <View style={styles.dot} />
+                            <Text style={styles.flag}>🇮🇳</Text>
                             <Text style={styles.indText}>IND</Text>
                         </View>
                         <TextInput
@@ -244,12 +244,10 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
     const handleFeedbackSubmit = () => {
         if (!rating) return;
         setIsSubmitting(true);
-        setTimeout(() => {
-            setSubmittedFeedback({ rating, text: feedback });
-            setIsSubmitting(false);
-            setRating(0);
-            setFeedback('');
-        }, 1500);
+        setSubmittedFeedback({ rating, text: feedback });
+        setIsSubmitting(false);
+        setRating(0);
+        setFeedback('');
     };
 
     return (
@@ -478,49 +476,78 @@ export default function GupioGarageApp() {
         }
     };
 
-    if (initialLoading) {
-        return (
-            <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-            </View>
-        );
+    let content: React.ReactNode = null;
+    if (vehicles.length === 0 && screen === 'GARAGE' && !initialLoading) {
+        content = <AddVehicleScreen isFirst={true} onDone={handleAdd} />;
+    } else {
+        switch (screen) {
+            case 'GARAGE':
+                content = (
+                    <GarageScreen
+                        vehicles={vehicles}
+                        onAdd={() => setScreen('ADD')}
+                        onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }}
+                        onDelete={handleDelete}
+                    />
+                );
+                break;
+            case 'ADD':
+                content = <AddVehicleScreen onBack={() => setScreen('GARAGE')} onDone={handleAdd} />;
+                break;
+            case 'DETAILS':
+                content = (
+                    <DetailsScreen
+                        vehicles={vehicles}
+                        activeVehicle={activeVehicle}
+                        setActiveVehicle={setActiveVehicle}
+                        onBack={() => setScreen('GARAGE')}
+                        onAddNew={() => setScreen('ADD')}
+                        onDelete={handleDelete}
+                    />
+                );
+                break;
+            default:
+                content = null;
+                break;
+        }
     }
 
-    if (vehicles.length === 0 && screen === 'GARAGE') {
-        return <AddVehicleScreen isFirst={true} onDone={handleAdd} />;
-    }
-
-    switch (screen) {
-        case 'GARAGE':
-            return <GarageScreen vehicles={vehicles} onAdd={() => setScreen('ADD')} onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }} onDelete={handleDelete} />;
-        case 'ADD':
-            return <AddVehicleScreen onBack={() => setScreen('GARAGE')} onDone={handleAdd} />;
-        case 'DETAILS':
-            return (
-                <DetailsScreen
-                    vehicles={vehicles}
-                    activeVehicle={activeVehicle}
-                    setActiveVehicle={setActiveVehicle}
-                    onBack={() => setScreen('GARAGE')}
-                    onAddNew={() => setScreen('ADD')}
-                    onDelete={handleDelete}
-                />
-            );
-        default:
-            return null;
-    }
+    return (
+        <View style={styles.screen}>
+            {initialLoading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <Text style={styles.loadingText}>Loading garage data...</Text>
+                </View>
+            ) : null}
+            {content}
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
+    loadingContainer: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.background,
+        zIndex: 10,
+    },
+    loadingText: {
+        color: '#b5b5b5',
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 8,
+    },
     header: { padding: 24, paddingTop: 48, minHeight: 80 },
     backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
 
     // Plate
     plate: { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 6, alignSelf: 'center', borderWidth: 1, borderColor: '#DDD', overflow: 'hidden' },
-    indStrip: { backgroundColor: '#003399', padding: 4, alignItems: 'center', justifyContent: 'center' },
-    dot: { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 2 },
-    indText: { color: '#FFF', fontSize: 6, fontFamily: 'Outfit-Bold' },
+    indStrip: { backgroundColor: '#003399', paddingHorizontal: 4, paddingVertical: 6, alignItems: 'center', justifyContent: 'center', gap: 1 },
+    flag: { fontSize: 8, lineHeight: 10 },
+    indText: { color: '#FFF', fontSize: 6, fontFamily: 'Outfit-Black', letterSpacing: 0.5 },
     plateNo: { paddingHorizontal: 16, paddingVertical: 6, color: '#000', fontSize: 18, fontFamily: 'Outfit-Bold', letterSpacing: 2 },
 
     // Info Card
@@ -575,10 +602,10 @@ const styles = StyleSheet.create({
     tabPillText: { fontSize: 12, fontFamily: 'Outfit-Bold', color: '#888' },
     detailHero: { alignItems: 'center', paddingHorizontal: 24, marginTop: 20 },
     heroImgBox: { width: '100%', height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    heroFallbackFrame: { width: 280, height: 230, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroFallbackFrame: { width: '90%', height: 230, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden', backgroundColor: '#0B0B0B' },
     heroFallbackImage: { width: '100%', height: '100%' },
     heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderRadius: 150 },
-    detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', fontStyle: 'italic', textAlign: 'center' },
+    detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', fontStyle: 'italic', textAlign: 'center', marginTop: 12 },
     horizVehicleList: { paddingHorizontal: 24, paddingVertical: 24, gap: 16, alignItems: 'center' },
     addMiniBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(255, 215, 0, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)', alignItems: 'center', justifyContent: 'center' },
     miniAvatarWrap: { width: 68, height: 68, borderRadius: 34, padding: 4, borderWidth: 2, borderColor: 'transparent', backgroundColor: COLORS.surface },

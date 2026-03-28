@@ -105,13 +105,7 @@ export default function VehicleSearch() {
                 autoCorrect={false}
               />
               
-              <TouchableOpacity 
-                style={[styles.searchActionBtn, { opacity: isValidPlate ? 1 : 0.5 }]} 
-                disabled={!isValidPlate}
-                onPress={() => {}}
-              >
-                <MaterialIcon name="magnify" size={26} color="#fff" />
-              </TouchableOpacity>
+
             </View>
             <Text style={styles.searchHint}>e.g. MH01AB1234, DL3C1234</Text>
           </View>
@@ -268,15 +262,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     letterSpacing: 2,
   },
-  searchActionBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    backgroundColor: '#000',
-    marginRight: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   searchHint: {
     color: '#555',
     fontSize: wp(3.2),
