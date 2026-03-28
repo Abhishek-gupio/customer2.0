@@ -1,20 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, type ImageSourcePropType } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import QuickServiceButton from './QuickServiceButton';
 
-const SERVICES = [
+const DrivingIcon = require('../assets/images/driving_behavior.png') as any;
+
+interface ServiceItem {
+  icon: string | ImageSourcePropType;
+  label: string;
+}
+
+const SERVICES: ServiceItem[] = [
   { icon: 'wrench', label: 'Service' },
   { icon: 'map-marker-alt', label: 'Near By' },
-  { icon: 'tachometer-alt', label: 'Driving' },
+  { icon: DrivingIcon, label: 'Driving' },
   { icon: 'comments', label: 'Support' },
   { icon: 'car', label: 'My Garage' },
   { icon: 'file-alt', label: 'Document' },
   { icon: 'wallet', label: 'Expense' },
-  { icon: 'parking', label: 'Valet' },
+  { icon: 'key', label: 'Valet' },
 ];
 
 type QuickServicesGridProps = {

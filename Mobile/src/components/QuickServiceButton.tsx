@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, type ImageSourcePropType } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -7,12 +7,14 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
 type QuickServiceButtonProps = {
-  icon: string;
+  icon: string | ImageSourcePropType;
   label: string;
   onPress?: () => void;
 };
 
 export default function QuickServiceButton({ icon, label, onPress }: QuickServiceButtonProps) {
+  const isImageIcon = typeof icon !== 'string';
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -20,7 +22,11 @@ export default function QuickServiceButton({ icon, label, onPress }: QuickServic
       onPress={onPress}
     >
       <View style={styles.iconBox}>
-        <Icon name={icon} size={wp(5.5)} color="#fff" />
+        {isImageIcon ? (
+          <Image source={icon} style={styles.imageIcon} resizeMode="contain" />
+        ) : (
+          <Icon name={icon as string} size={wp(5.5)} color="#fff" />
+        )}
       </View>
       <Text style={styles.label} numberOfLines={1}>{label}</Text>
     </TouchableOpacity>
@@ -42,6 +48,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(0.8),
+  },
+  imageIcon: {
+    width: wp(9),
+    height: wp(9),
   },
   label: {
     fontSize: wp(3),

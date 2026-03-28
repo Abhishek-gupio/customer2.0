@@ -8,6 +8,8 @@ import {
   FlatList,
   ScrollView,
   TextInput,
+  Image,
+  type ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -17,6 +19,8 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
+
+const MechanicIcon = require('../../assets/images/mechanic_icon.png') as any;
 
 type ServiceId =
   | 'PartsWarranty'
@@ -38,7 +42,7 @@ type ServiceId =
   | 'DocumentServices'
   | 'CarSpa';
 
-type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' };
+type ServiceItem = { id: ServiceId; name: string; icon: string | ImageSourcePropType; iconSet: 'fa' | 'mc' | 'img' };
 
 const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'PartsWarranty', name: 'Warranty', icon: 'shield-alt', iconSet: 'fa' },
@@ -47,7 +51,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'CheckChallan', name: 'Challan', icon: 'gavel', iconSet: 'fa' },
   { id: 'FuelStations', name: 'Fuel', icon: 'gas-station', iconSet: 'mc' },
   { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
+  { id: 'Mechanics', name: 'Mechanic', icon: MechanicIcon, iconSet: 'img' },
   { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
   { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
   { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
@@ -69,6 +73,7 @@ const ADS_DATA = [
     desc: 'Avoid late fees and court visits. Check your vehicle status now.',
     theme: '#fbbf24',
     icon: 'gavel',
+    iconSet: 'fa',
     target: 'CheckChallan',
   },
   {
@@ -78,6 +83,7 @@ const ADS_DATA = [
     desc: 'Tired of searching? Locate premium parking spots in seconds.',
     theme: '#60a5fa',
     icon: 'parking',
+    iconSet: 'fa',
     target: 'Parking',
   },
   {
@@ -86,7 +92,8 @@ const ADS_DATA = [
     subtitle: 'Book a Service',
     desc: 'Trusted repairs and transparent pricing for your vehicle care.',
     theme: '#94a3b8',
-    icon: 'wrench',
+    icon: MechanicIcon,
+    iconSet: 'img',
     target: 'Mechanics', 
   },
   {
@@ -96,11 +103,12 @@ const ADS_DATA = [
     desc: 'Keep track of your parts and warranty status with smart alerts.',
     theme: '#4ade80',
     icon: 'shield-alt',
+    iconSet: 'fa',
     target: 'WarrantyStatus',
   },
 ];
 
-const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id)!;
+const getItemById = (id: ServiceId): ServiceItem => SERVICE_ITEMS.find((i) => i.id === id)!;
 
 const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
   'FuelStations',
@@ -252,7 +260,16 @@ export default function ServicesHub() {
                   </View>
                   <View style={styles.adRight}>
                     <View style={[styles.adIconCircle, { backgroundColor: `${item.theme}20` }]}>
-                       <Icon name={item.icon} size={wp(10)} color={item.theme} />
+                       {item.iconSet === 'img' ? (
+                         <Image 
+                           source={item.icon as any} 
+                           style={{ width: wp(10), height: wp(10) }} 
+                           resizeMode="contain" 
+                           tintColor={item.theme} 
+                         />
+                       ) : (
+                         <Icon name={item.icon as any} size={wp(10)} color={item.theme} />
+                       )}
                     </View>
                   </View>
                 </View>
@@ -290,6 +307,12 @@ export default function ServicesHub() {
                       <View style={styles.iconBox}>
                         {item.iconSet === 'mc' ? (
                           <IconMC name={item.icon as any} size={wp(5.8)} color="#fff" />
+                        ) : item.iconSet === 'img' ? (
+                          <Image 
+                            source={item.icon as any} 
+                            style={{ width: wp(9), height: wp(9) }} 
+                            resizeMode="contain" 
+                          />
                         ) : (
                           <Icon name={item.icon as any} size={wp(5.8)} color="#fff" />
                         )}
