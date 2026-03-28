@@ -512,23 +512,125 @@
 @media (max-width: 768px) {
   .auth-body .container {
     width: 95%;
-    min-height: 90vh;
+    min-height: auto;
+    height: auto;
     flex-direction: column;
-    padding: 20px;
+    padding: 24px 12px;
+    overflow: visible;
+    background: rgba(255, 255, 255, 0.9); /* Solid white glass on mobile for black text */
   }
 
   .auth-body .overlay-container {
     display: none;
   }
 
-  .auth-body .form-container {
+  /* Scale headers for mobile */
+  .auth-body h1 {
+    font-size: 28px !important;
+    margin-bottom: 8px;
+  }
+
+  .auth-body .auth-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  /* Form Containers on Mobile - Natural flow for better height management */
+  .auth-body .container:not(.forgot-container) .form-container {
     width: 100% !important;
-    position: relative;
-    transform: none !important;
+    position: relative !important;
+    top: auto;
+    left: auto !important;
+    height: auto !important;
+    display: none; /* Hide both by default, show active */
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    padding: 0;
+  }
+
+  .auth-body .sign-in-container {
+    display: flex !important;
     opacity: 1 !important;
+    z-index: 5;
   }
 
   .auth-body .sign-up-container {
-    display: none;
+    display: none !important;
+    opacity: 0 !important;
+    z-index: 1;
   }
+
+  /* Active state switching on mobile using display: block/none to prevent overlap */
+  .auth-body .container.right-panel-active .sign-in-container {
+    display: none !important;
+  }
+
+  .auth-body .container.right-panel-active .sign-up-container {
+    display: flex !important;
+    opacity: 1 !important;
+    z-index: 5;
+  }
+
+  .auth-body form {
+    padding: 12px;
+    max-width: 100%;
+  }
+
+  /* Forgot Password Container Fix */
+  .auth-body .forgot-container {
+    width: 95% !important;
+    min-height: auto !important;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.95) !important;
+    position: relative !important;
+    margin: auto;
+    overflow: visible;
+  }
+
+  .auth-body .forgot-container .form-container {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+    transform: none !important;
+    display: flex !important;
+  }
+
+  /* Text Contrast - User wants black on white/grey glass */
+  .auth-body h1 {
+    color: black !important;
+    text-shadow: none;
+  }
+
+  .auth-body .auth-subtitle {
+    color: #333 !important;
+  }
+
+  /* But keep forgot flow text dark if background is light */
+  .auth-body .forgot-container h1,
+  .auth-body .forgot-container p,
+  .auth-body .forgot-container span,
+  .auth-body .forgot-container a {
+    color: #000 !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+    margin-top: 20px;
+    justify-content: center;
+    font-size: 14px;
+    color: black;
+    /* White for better visibility on dark bg */
+    gap: 5px;
+  }
+
+  .mobile-only a {
+    color: black !important;
+    text-decoration: underline;
+  }
+}
+
+/* Default state for mobile utilities */
+.mobile-only {
+  display: none;
 }
