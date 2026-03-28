@@ -16,11 +16,10 @@ const config = {
   projectRoot,
   watchFolders: [monorepoRoot],
   resolver: {
-    disableHierarchicalLookup: true,
     nodeModulesPaths: [appNodeModules, rootNodeModules],
     extraNodeModules: {
-      react: path.resolve(appNodeModules, 'react'),
-      'react-native': path.resolve(appNodeModules, 'react-native'),
+      react: path.resolve(rootNodeModules, 'react'),
+      'react-native': path.resolve(rootNodeModules, 'react-native'),
     },
     unstable_enableSymlinks: true,
     unstable_enablePackageExports: true,
