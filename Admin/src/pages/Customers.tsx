@@ -17,6 +17,7 @@ import { Button } from '../components/ui/Button';
 import { TableRowSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { cn } from '../lib/cn';
+import { formatDate } from '../lib/dateUtils';
 
 const PAGE_SIZE = 20;
 
@@ -119,7 +120,7 @@ export default function Customers() {
         accessorFn: (r) => new Date(r.createdAt).getTime(),
         cell: ({ row }) => (
           <span className="text-[11px] text-white/40">
-            {new Date(row.original.createdAt).toLocaleDateString()}
+            {formatDate(row.original.createdAt)}
           </span>
         ),
       },
@@ -363,8 +364,8 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 export const generateCustomerExport = (data: any, options?: { showLogo?: boolean; logoUrl?: string }) => {
   const customer = data;
   const { vehicles = [], expenses = [], supportTickets = [], documents = [], expenseSummary } = data;
-  const exportDate = new Date().toLocaleDateString('en-GB');
-  const joinDate = new Date(customer.createdAt).toLocaleDateString('en-GB');
+  const exportDate = formatDate(new Date());
+  const joinDate = formatDate(customer.createdAt);
   const vehicleCount = vehicles.length;
   const totalExpenses = expenseSummary?.total || 0;
   const currency = expenseSummary?.currency || 'INR';
@@ -471,7 +472,7 @@ export const generateCustomerExport = (data: any, options?: { showLogo?: boolean
       <tbody>
         ${expenses.map((e: any) => `
           <tr>
-            <td>${new Date(e.date).toLocaleDateString('en-GB')}</td>
+            <td>${formatDate(e.date)}</td>
             <td><span class="badge">${e.category}</span></td>
             <td>${e.merchantName || '—'}</td>
             <td><strong>${currency} ${e.amount.toLocaleString()}</strong></td>
@@ -520,7 +521,7 @@ export const generateCustomerExport = (data: any, options?: { showLogo?: boolean
           <tr>
             <td>${d.type}</td>
             <td>${d.documentNumber || '—'}</td>
-            <td>${d.expiryDate ? new Date(d.expiryDate).toLocaleDateString('en-GB') : '—'}</td>
+            <td>${d.expiryDate ? formatDate(d.expiryDate) : '—'}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -544,7 +545,7 @@ export const generateCustomerExport = (data: any, options?: { showLogo?: boolean
             <td>${t.subject}</td>
             <td>${t.category}</td>
             <td><span class="badge">${t.status}</span></td>
-            <td>${new Date(t.createdAt).toLocaleDateString('en-GB')}</td>
+            <td>${formatDate(t.createdAt)}</td>
           </tr>
         `).join('')}
       </tbody>

@@ -108,19 +108,19 @@
 
 @media (max-width: 768px) {
   .splash-brand-section {
-    margin-top: -10%;
+    margin-top: -25%;
   }
 
   .splash-logo-wrap {
-    margin-top: -120px;
+    margin-top: -150px;
   }
 
   .splash-logo-image {
-    max-width: 280px;
+    max-width: 220px;
   }
 
   .splash-car-section {
-    bottom: 20%;
+    bottom: 35%;
   }
 
   .splash-car-image {
