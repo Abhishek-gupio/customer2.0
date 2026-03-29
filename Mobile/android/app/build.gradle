@@ -1,5 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "org.jetbrains.kotlin.plugin.compose"
 apply plugin: "com.facebook.react"
 
 def hasGoogleServicesConfig =
@@ -139,10 +140,18 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.release
+            if (project.hasProperty('MYAPP_RELEASE_STORE_FILE') && file(MYAPP_RELEASE_STORE_FILE).exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+
+    buildFeatures {
+        compose true
     }
 }
 
@@ -154,9 +163,17 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    // Keep the packaged OkHttp runtime aligned across Firebase, React Native, and other Android SDKs.
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
+    implementation("com.squareup.okio:okio:3.6.0")
+    implementation("com.squareup.okio:okio-jvm:3.6.0")
     implementation("com.facebook.fresco:animated-gif:3.6.0")
     // Damoov Telematics SDK – trip recording and upload to Datahub
-    implementation("com.telematicssdk:tracking:3.2.0")
+    implementation("com.telematicssdk:tracking:3.2.0") {
+        exclude group: "com.squareup.okhttp3"
+        exclude group: "com.squareup.okio"
+    }
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -165,6 +182,18 @@ dependencies {
     }
 
     implementation project(':react-native-share')
+
+    // Firebase BoM and Analytics (Step 3)
+    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
+
+    // Jetpack Compose Dependencies (Required for DotLottie)
+    def compose_version = "1.7.5"
+    implementation("androidx.compose.runtime:runtime:$compose_version")
+    implementation("androidx.compose.ui:ui:$compose_version")
+    implementation("androidx.compose.foundation:foundation:$compose_version")
+    implementation("androidx.compose.material:material:$compose_version")
 }
 
 // Fix: React Native's generateReactNativeEntryPoint uses default "com.mobile". We use com.mobile1.

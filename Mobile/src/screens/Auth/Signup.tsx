@@ -23,6 +23,7 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { signup as signupApi } from '../../services/authService';
 
+
 type SignupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 
 export default function Signup() {
@@ -147,14 +148,8 @@ export default function Signup() {
             onPress={handleSubmit}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <>
-                <Text style={styles.submitText}>Submit</Text>
-                <Icon name="arrow-right" size={wp(5)} color="#000" />
-              </>
-            )}
+            <Text style={styles.submitText}>Submit</Text>
+            <Icon name="arrow-right" size={wp(5)} color="#000" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -167,6 +162,7 @@ export default function Signup() {
           <Text style={styles.signInText}>Sign In</Text>
         </TouchableOpacity>
       </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }

@@ -1,25 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, type ImageSourcePropType } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import QuickServiceButton from './QuickServiceButton';
 
-const SERVICES = [
-  { id: 'service', icon: 'wrench', label: 'Services' },
-  { id: 'nearby', icon: 'map-marker-alt', label: 'Nearby Map' },
-  { id: 'driving', icon: 'tachometer-alt', label: 'Trips Log' },
+const DrivingIcon = require('../assets/images/driving_behavior.jpg') as any;
+
+interface ServiceItem {
+  id: string;
+  icon: string | ImageSourcePropType;
+  label: string;
+}
+
+const SERVICES: ServiceItem[] = [
+  { id: 'service', icon: 'wrench', label: 'Service' },
+  { id: 'nearby', icon: 'map-marker-alt', label: 'Near By' },
+  { id: 'driving', icon: DrivingIcon, label: 'Driving' },
   { id: 'support', icon: 'comments', label: 'Support' },
   { id: 'garage', icon: 'car', label: 'My Garage' },
-  { id: 'document', icon: 'file-alt', label: 'Documents' },
-  { id: 'expense', icon: 'wallet', label: 'Expenses' },
-  { id: 'valet', icon: 'parking', label: 'Valet Parking' },
-  { id: 'tripcost', icon: 'map-signs', label: 'Trip Planner' },
+  { id: 'document', icon: 'file-alt', label: 'Document' },
+  { id: 'expense', icon: 'wallet', label: 'Expense' },
+  { id: 'valet', icon: 'key', label: 'Valet' },
+  { id: 'trip_planner', icon: 'map-signs', label: 'Trip Planner' },
 ];
 
 type QuickServicesGridProps = {
-  onServicePress?: (label: string) => void;
+  onServicePress?: (id: string) => void;
 };
 
 export default function QuickServicesGrid({ onServicePress }: QuickServicesGridProps) {

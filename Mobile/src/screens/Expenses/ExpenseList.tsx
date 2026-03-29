@@ -348,6 +348,20 @@ const ExpenseFeed = () => {
 
   // ── Compute "Total This Month" ──
   React.useEffect(() => {
+    const timer = setInterval(() => {
+      if (!getAndClearExpenseListRefresh()) {
+        return;
+      }
+
+      loadPrimaryVehicle().then((resolvedPrimaryVehicle) => {
+        fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [fetchExpenses, loadPrimaryVehicle]);
+
+  React.useEffect(() => {
     if (rawExpenses.length === 0) {
       setTotalThisMonth(0);
       return;

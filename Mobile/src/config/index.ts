@@ -7,6 +7,7 @@ const FORCE_USE_PRODUCTION_API = true;
 const DEV_PORT = 9000;
 const DEV_HOST = `http://localhost:${DEV_PORT}`;
 
+
 /** Production API base URL – no trailing slash. Used in release builds (or when FORCE_USE_PRODUCTION_API is true). */
 const PRODUCTION_API_BASE_URL = 'https://customerapi.gupio.tech';
 
@@ -17,7 +18,7 @@ export const API_BASE_URL = _base.replace(/\/$/, '');
 export const AUTH_PATH = '/api/v1/auth';
 
 // Socket/realtime (e.g. notifications)
-const SOCKET_PORT = 3000;
+const SOCKET_PORT = 9000;
 const DEV_SOCKET_HOST = `http://localhost:${SOCKET_PORT}`;
 const PRODUCTION_SOCKET_BASE_URL = 'https://customerapi.gupio.tech';
 export const SOCKET_BASE_URL = (__DEV__ && !FORCE_USE_PRODUCTION_API) ? DEV_SOCKET_HOST : PRODUCTION_SOCKET_BASE_URL;

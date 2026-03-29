@@ -40,6 +40,8 @@ export type RootStackParamList = {
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
   TripExpense: undefined;
+  DLVerification: undefined;
+  Fastag: undefined;
   TripPlannerInsights: undefined;
 };
 

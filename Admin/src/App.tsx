@@ -7,6 +7,8 @@ import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
 import Tickets from './pages/Tickets';
 import Vehicles from './pages/Vehicles';
+import CinematicSplashScreen from './components/CinematicSplashScreen';
+import { AnimatePresence } from 'motion/react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -22,8 +24,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { isSplashScreenVisible, setSplashScreenVisible } = useAuth();
+
   return (
-    <Routes>
+    <>
+      <AnimatePresence>
+        {isSplashScreenVisible && (
+          <CinematicSplashScreen onComplete={() => setSplashScreenVisible(false)} />
+        )}
+      </AnimatePresence>
+      <Routes>
       <Route path="/login" element={<Login />} />
       <Route
         path="/"
@@ -41,5 +51,6 @@ export default function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }

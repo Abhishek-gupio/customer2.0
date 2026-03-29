@@ -349,7 +349,19 @@ export const adminDashboardService = {
 
     try {
       const expenseFallback = { _sum: { amount: 0 as number }, _count: 0 };
-      const [customers, vehicles, expenses, supportTicketsOpen, trendData, unverifiedVehiclesCount, totalCustomersToday, recentHighExpenses] = await Promise.all([
+      const [
+        customers, 
+        vehicles, 
+        expenses, 
+        supportTicketsOpen, 
+        trendData, 
+        unverifiedVehiclesCount, 
+        totalCustomersToday, 
+        recentHighExpenses,
+        expenseCategoryBreakdown,
+        ticketPriorityDistribution,
+        healthScores
+      ] = await Promise.all([
         dbInstances.customer.count(),
         dbInstances.customerVehicle.count(),
         db.expense
@@ -369,7 +381,33 @@ export const adminDashboardService = {
               include: { customer: { select: { fullName: true } } },
             }).catch(() => [])
           : Promise.resolve([]),
+        db.expense
+          ? db.expense.groupBy({
+              by: ['category'],
+              _sum: { amount: true },
+              _count: true,
+            }).catch(() => [])
+          : Promise.resolve([]),
+        db.supportTicket
+          ? db.supportTicket.groupBy({
+              by: ['priority'],
+              where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
+              _count: true,
+            }).catch(() => [])
+          : Promise.resolve([]),
+        dbInstances.vehicleHealthScore.findMany({
+          select: { overallScore: true }
+        }).catch(() => []),
       ]);
+
+      // Process health distribution
+      const healthDist = { critical: 0, warning: 0, good: 0 };
+      healthScores.forEach((h: { overallScore: number }) => {
+        if (h.overallScore < 50) healthDist.critical++;
+        else if (h.overallScore < 80) healthDist.warning++;
+        else healthDist.good++;
+      });
+
       return {
         customers,
         vehicles,
@@ -380,6 +418,16 @@ export const adminDashboardService = {
         unverifiedVehiclesCount,
         totalCustomersToday,
         recentHighExpenses,
+        expenseCategoryBreakdown: expenseCategoryBreakdown.map((b: any) => ({
+          category: b.category,
+          amount: b._sum.amount || 0,
+          count: b._count
+        })),
+        ticketPriorityDistribution: ticketPriorityDistribution.map((b: any) => ({
+          priority: b.priority,
+          count: b._count
+        })),
+        vehicleHealthDistribution: healthDist,
         databaseAvailable: true,
       };
     } catch (err) {

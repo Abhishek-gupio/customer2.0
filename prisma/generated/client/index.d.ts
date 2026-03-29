@@ -39,6 +39,16 @@ export type CustomerDevice = $Result.DefaultSelection<Prisma.$CustomerDevicePayl
  */
 export type VehicleDocument = $Result.DefaultSelection<Prisma.$VehicleDocumentPayload>
 /**
+ * Model DrivingLicense
+ * 
+ */
+export type DrivingLicense = $Result.DefaultSelection<Prisma.$DrivingLicensePayload>
+/**
+ * Model FastagDocument
+ * 
+ */
+export type FastagDocument = $Result.DefaultSelection<Prisma.$FastagDocumentPayload>
+/**
  * Model DigiLockerConnection
  * 
  */
@@ -1161,7 +1171,9 @@ export const VehicleStatus: typeof $Enums.VehicleStatus
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
- * const prisma = new PrismaClient()
+ * const prisma = new PrismaClient({
+ *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+ * })
  * // Fetch zero or more Users
  * const users = await prisma.user.findMany()
  * ```
@@ -1182,7 +1194,9 @@ export class PrismaClient<
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
-   * const prisma = new PrismaClient()
+   * const prisma = new PrismaClient({
+   *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+   * })
    * // Fetch zero or more Users
    * const users = await prisma.user.findMany()
    * ```
@@ -1262,7 +1276,7 @@ export class PrismaClient<
    * ])
    * ```
    * 
-   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
    */
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
@@ -1321,6 +1335,26 @@ export class PrismaClient<
     * ```
     */
   get vehicleDocument(): Prisma.VehicleDocumentDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.drivingLicense`: Exposes CRUD operations for the **DrivingLicense** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DrivingLicenses
+    * const drivingLicenses = await prisma.drivingLicense.findMany()
+    * ```
+    */
+  get drivingLicense(): Prisma.DrivingLicenseDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fastagDocument`: Exposes CRUD operations for the **FastagDocument** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more FastagDocuments
+    * const fastagDocuments = await prisma.fastagDocument.findMany()
+    * ```
+    */
+  get fastagDocument(): Prisma.FastagDocumentDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.digiLockerConnection`: Exposes CRUD operations for the **DigiLockerConnection** model.
@@ -2061,8 +2095,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 7.3.0
-   * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+   * Prisma Client JS version: 7.5.0
+   * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
    */
   export type PrismaVersion = {
     client: string
@@ -2450,6 +2484,8 @@ export namespace Prisma {
     Customer: 'Customer',
     CustomerDevice: 'CustomerDevice',
     VehicleDocument: 'VehicleDocument',
+    DrivingLicense: 'DrivingLicense',
+    FastagDocument: 'FastagDocument',
     DigiLockerConnection: 'DigiLockerConnection',
     CustomerVehicle: 'CustomerVehicle',
     VehicleCatalog: 'VehicleCatalog',
@@ -2534,7 +2570,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2905,6 +2941,154 @@ export namespace Prisma {
           count: {
             args: Prisma.VehicleDocumentCountArgs<ExtArgs>
             result: $Utils.Optional<VehicleDocumentCountAggregateOutputType> | number
+          }
+        }
+      }
+      DrivingLicense: {
+        payload: Prisma.$DrivingLicensePayload<ExtArgs>
+        fields: Prisma.DrivingLicenseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DrivingLicenseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DrivingLicenseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>
+          }
+          findFirst: {
+            args: Prisma.DrivingLicenseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DrivingLicenseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>
+          }
+          findMany: {
+            args: Prisma.DrivingLicenseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>[]
+          }
+          create: {
+            args: Prisma.DrivingLicenseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>
+          }
+          createMany: {
+            args: Prisma.DrivingLicenseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DrivingLicenseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>[]
+          }
+          delete: {
+            args: Prisma.DrivingLicenseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>
+          }
+          update: {
+            args: Prisma.DrivingLicenseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>
+          }
+          deleteMany: {
+            args: Prisma.DrivingLicenseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DrivingLicenseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DrivingLicenseUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>[]
+          }
+          upsert: {
+            args: Prisma.DrivingLicenseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DrivingLicensePayload>
+          }
+          aggregate: {
+            args: Prisma.DrivingLicenseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDrivingLicense>
+          }
+          groupBy: {
+            args: Prisma.DrivingLicenseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DrivingLicenseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DrivingLicenseCountArgs<ExtArgs>
+            result: $Utils.Optional<DrivingLicenseCountAggregateOutputType> | number
+          }
+        }
+      }
+      FastagDocument: {
+        payload: Prisma.$FastagDocumentPayload<ExtArgs>
+        fields: Prisma.FastagDocumentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.FastagDocumentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.FastagDocumentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>
+          }
+          findFirst: {
+            args: Prisma.FastagDocumentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.FastagDocumentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>
+          }
+          findMany: {
+            args: Prisma.FastagDocumentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>[]
+          }
+          create: {
+            args: Prisma.FastagDocumentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>
+          }
+          createMany: {
+            args: Prisma.FastagDocumentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.FastagDocumentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>[]
+          }
+          delete: {
+            args: Prisma.FastagDocumentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>
+          }
+          update: {
+            args: Prisma.FastagDocumentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>
+          }
+          deleteMany: {
+            args: Prisma.FastagDocumentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.FastagDocumentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.FastagDocumentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>[]
+          }
+          upsert: {
+            args: Prisma.FastagDocumentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FastagDocumentPayload>
+          }
+          aggregate: {
+            args: Prisma.FastagDocumentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateFastagDocument>
+          }
+          groupBy: {
+            args: Prisma.FastagDocumentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<FastagDocumentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.FastagDocumentCountArgs<ExtArgs>
+            result: $Utils.Optional<FastagDocumentCountAggregateOutputType> | number
           }
         }
       }
@@ -8127,6 +8311,8 @@ export namespace Prisma {
     customer?: CustomerOmit
     customerDevice?: CustomerDeviceOmit
     vehicleDocument?: VehicleDocumentOmit
+    drivingLicense?: DrivingLicenseOmit
+    fastagDocument?: FastagDocumentOmit
     digiLockerConnection?: DigiLockerConnectionOmit
     customerVehicle?: CustomerVehicleOmit
     vehicleCatalog?: VehicleCatalogOmit
@@ -10168,6 +10354,11 @@ export namespace Prisma {
      * Skip the first `n` Users.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Users.
+     */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
@@ -11202,6 +11393,11 @@ export namespace Prisma {
      * Skip the first `n` AdminUsers.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminUsers.
+     */
     distinct?: AdminUserScalarFieldEnum | AdminUserScalarFieldEnum[]
   }
 
@@ -11588,6 +11784,8 @@ export namespace Prisma {
     emergencyContacts?: boolean | Customer$emergencyContactsArgs<ExtArgs>
     expenses?: boolean | Customer$expensesArgs<ExtArgs>
     driverExpenses?: boolean | Customer$driverExpensesArgs<ExtArgs>
+    drivingLicense?: boolean | Customer$drivingLicenseArgs<ExtArgs>
+    fastag?: boolean | Customer$fastagArgs<ExtArgs>
     budgets?: boolean | Customer$budgetsArgs<ExtArgs>
     notifications?: boolean | Customer$notificationsArgs<ExtArgs>
     sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
@@ -11640,6 +11838,8 @@ export namespace Prisma {
     emergencyContacts?: boolean | Customer$emergencyContactsArgs<ExtArgs>
     expenses?: boolean | Customer$expensesArgs<ExtArgs>
     driverExpenses?: boolean | Customer$driverExpensesArgs<ExtArgs>
+    drivingLicense?: boolean | Customer$drivingLicenseArgs<ExtArgs>
+    fastag?: boolean | Customer$fastagArgs<ExtArgs>
     budgets?: boolean | Customer$budgetsArgs<ExtArgs>
     notifications?: boolean | Customer$notificationsArgs<ExtArgs>
     sosRequests?: boolean | Customer$sosRequestsArgs<ExtArgs>
@@ -11662,6 +11862,8 @@ export namespace Prisma {
       emergencyContacts: Prisma.$EmergencyContactPayload<ExtArgs>[]
       expenses: Prisma.$ExpensePayload<ExtArgs>[]
       driverExpenses: Prisma.$ExpensePayload<ExtArgs>[]
+      drivingLicense: Prisma.$DrivingLicensePayload<ExtArgs> | null
+      fastag: Prisma.$FastagDocumentPayload<ExtArgs> | null
       budgets: Prisma.$ExpenseBudgetPayload<ExtArgs>[]
       notifications: Prisma.$InAppNotificationPayload<ExtArgs>[]
       sosRequests: Prisma.$SOSRequestPayload<ExtArgs>[]
@@ -12080,6 +12282,8 @@ export namespace Prisma {
     emergencyContacts<T extends Customer$emergencyContactsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$emergencyContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmergencyContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     expenses<T extends Customer$expensesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     driverExpenses<T extends Customer$driverExpensesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$driverExpensesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    drivingLicense<T extends Customer$drivingLicenseArgs<ExtArgs> = {}>(args?: Subset<T, Customer$drivingLicenseArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    fastag<T extends Customer$fastagArgs<ExtArgs> = {}>(args?: Subset<T, Customer$fastagArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     budgets<T extends Customer$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExpenseBudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notifications<T extends Customer$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InAppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sosRequests<T extends Customer$sosRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sosRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SOSRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12319,6 +12523,11 @@ export namespace Prisma {
      * Skip the first `n` Customers.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Customers.
+     */
     distinct?: CustomerScalarFieldEnum | CustomerScalarFieldEnum[]
   }
 
@@ -12695,6 +12904,44 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ExpenseScalarFieldEnum | ExpenseScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.drivingLicense
+   */
+  export type Customer$drivingLicenseArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    where?: DrivingLicenseWhereInput
+  }
+
+  /**
+   * Customer.fastag
+   */
+  export type Customer$fastagArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    where?: FastagDocumentWhereInput
   }
 
   /**
@@ -13739,6 +13986,11 @@ export namespace Prisma {
      * Skip the first `n` CustomerDevices.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerDevices.
+     */
     distinct?: CustomerDeviceScalarFieldEnum | CustomerDeviceScalarFieldEnum[]
   }
 
@@ -14883,6 +15135,11 @@ export namespace Prisma {
      * Skip the first `n` VehicleDocuments.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleDocuments.
+     */
     distinct?: VehicleDocumentScalarFieldEnum | VehicleDocumentScalarFieldEnum[]
   }
 
@@ -15117,6 +15374,2332 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: VehicleDocumentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DrivingLicense
+   */
+
+  export type AggregateDrivingLicense = {
+    _count: DrivingLicenseCountAggregateOutputType | null
+    _min: DrivingLicenseMinAggregateOutputType | null
+    _max: DrivingLicenseMaxAggregateOutputType | null
+  }
+
+  export type DrivingLicenseMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    dlNumber: string | null
+    fullName: string | null
+    dob: string | null
+    referenceNumber: string | null
+    dateOfIssue: string | null
+    originalLA: string | null
+    dateOfFirstIssue: string | null
+    validityTransport: string | null
+    validityNonTransport: string | null
+    registeredAddress: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DrivingLicenseMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    dlNumber: string | null
+    fullName: string | null
+    dob: string | null
+    referenceNumber: string | null
+    dateOfIssue: string | null
+    originalLA: string | null
+    dateOfFirstIssue: string | null
+    validityTransport: string | null
+    validityNonTransport: string | null
+    registeredAddress: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DrivingLicenseCountAggregateOutputType = {
+    id: number
+    customerId: number
+    dlNumber: number
+    fullName: number
+    dob: number
+    referenceNumber: number
+    dateOfIssue: number
+    originalLA: number
+    dateOfFirstIssue: number
+    validityTransport: number
+    validityNonTransport: number
+    registeredAddress: number
+    rawResponse: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DrivingLicenseMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    dlNumber?: true
+    fullName?: true
+    dob?: true
+    referenceNumber?: true
+    dateOfIssue?: true
+    originalLA?: true
+    dateOfFirstIssue?: true
+    validityTransport?: true
+    validityNonTransport?: true
+    registeredAddress?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DrivingLicenseMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    dlNumber?: true
+    fullName?: true
+    dob?: true
+    referenceNumber?: true
+    dateOfIssue?: true
+    originalLA?: true
+    dateOfFirstIssue?: true
+    validityTransport?: true
+    validityNonTransport?: true
+    registeredAddress?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DrivingLicenseCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    dlNumber?: true
+    fullName?: true
+    dob?: true
+    referenceNumber?: true
+    dateOfIssue?: true
+    originalLA?: true
+    dateOfFirstIssue?: true
+    validityTransport?: true
+    validityNonTransport?: true
+    registeredAddress?: true
+    rawResponse?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DrivingLicenseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DrivingLicense to aggregate.
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DrivingLicenses to fetch.
+     */
+    orderBy?: DrivingLicenseOrderByWithRelationInput | DrivingLicenseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DrivingLicenseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DrivingLicenses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DrivingLicenses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DrivingLicenses
+    **/
+    _count?: true | DrivingLicenseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DrivingLicenseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DrivingLicenseMaxAggregateInputType
+  }
+
+  export type GetDrivingLicenseAggregateType<T extends DrivingLicenseAggregateArgs> = {
+        [P in keyof T & keyof AggregateDrivingLicense]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDrivingLicense[P]>
+      : GetScalarType<T[P], AggregateDrivingLicense[P]>
+  }
+
+
+
+
+  export type DrivingLicenseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DrivingLicenseWhereInput
+    orderBy?: DrivingLicenseOrderByWithAggregationInput | DrivingLicenseOrderByWithAggregationInput[]
+    by: DrivingLicenseScalarFieldEnum[] | DrivingLicenseScalarFieldEnum
+    having?: DrivingLicenseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DrivingLicenseCountAggregateInputType | true
+    _min?: DrivingLicenseMinAggregateInputType
+    _max?: DrivingLicenseMaxAggregateInputType
+  }
+
+  export type DrivingLicenseGroupByOutputType = {
+    id: string
+    customerId: string
+    dlNumber: string
+    fullName: string | null
+    dob: string | null
+    referenceNumber: string | null
+    dateOfIssue: string | null
+    originalLA: string | null
+    dateOfFirstIssue: string | null
+    validityTransport: string | null
+    validityNonTransport: string | null
+    registeredAddress: string | null
+    rawResponse: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: DrivingLicenseCountAggregateOutputType | null
+    _min: DrivingLicenseMinAggregateOutputType | null
+    _max: DrivingLicenseMaxAggregateOutputType | null
+  }
+
+  type GetDrivingLicenseGroupByPayload<T extends DrivingLicenseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DrivingLicenseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DrivingLicenseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DrivingLicenseGroupByOutputType[P]>
+            : GetScalarType<T[P], DrivingLicenseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DrivingLicenseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    dlNumber?: boolean
+    fullName?: boolean
+    dob?: boolean
+    referenceNumber?: boolean
+    dateOfIssue?: boolean
+    originalLA?: boolean
+    dateOfFirstIssue?: boolean
+    validityTransport?: boolean
+    validityNonTransport?: boolean
+    registeredAddress?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["drivingLicense"]>
+
+  export type DrivingLicenseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    dlNumber?: boolean
+    fullName?: boolean
+    dob?: boolean
+    referenceNumber?: boolean
+    dateOfIssue?: boolean
+    originalLA?: boolean
+    dateOfFirstIssue?: boolean
+    validityTransport?: boolean
+    validityNonTransport?: boolean
+    registeredAddress?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["drivingLicense"]>
+
+  export type DrivingLicenseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    dlNumber?: boolean
+    fullName?: boolean
+    dob?: boolean
+    referenceNumber?: boolean
+    dateOfIssue?: boolean
+    originalLA?: boolean
+    dateOfFirstIssue?: boolean
+    validityTransport?: boolean
+    validityNonTransport?: boolean
+    registeredAddress?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["drivingLicense"]>
+
+  export type DrivingLicenseSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    dlNumber?: boolean
+    fullName?: boolean
+    dob?: boolean
+    referenceNumber?: boolean
+    dateOfIssue?: boolean
+    originalLA?: boolean
+    dateOfFirstIssue?: boolean
+    validityTransport?: boolean
+    validityNonTransport?: boolean
+    registeredAddress?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DrivingLicenseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "dlNumber" | "fullName" | "dob" | "referenceNumber" | "dateOfIssue" | "originalLA" | "dateOfFirstIssue" | "validityTransport" | "validityNonTransport" | "registeredAddress" | "rawResponse" | "createdAt" | "updatedAt", ExtArgs["result"]["drivingLicense"]>
+  export type DrivingLicenseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type DrivingLicenseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type DrivingLicenseIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $DrivingLicensePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DrivingLicense"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      dlNumber: string
+      fullName: string | null
+      dob: string | null
+      referenceNumber: string | null
+      dateOfIssue: string | null
+      originalLA: string | null
+      dateOfFirstIssue: string | null
+      validityTransport: string | null
+      validityNonTransport: string | null
+      registeredAddress: string | null
+      rawResponse: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["drivingLicense"]>
+    composites: {}
+  }
+
+  type DrivingLicenseGetPayload<S extends boolean | null | undefined | DrivingLicenseDefaultArgs> = $Result.GetResult<Prisma.$DrivingLicensePayload, S>
+
+  type DrivingLicenseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DrivingLicenseFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DrivingLicenseCountAggregateInputType | true
+    }
+
+  export interface DrivingLicenseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DrivingLicense'], meta: { name: 'DrivingLicense' } }
+    /**
+     * Find zero or one DrivingLicense that matches the filter.
+     * @param {DrivingLicenseFindUniqueArgs} args - Arguments to find a DrivingLicense
+     * @example
+     * // Get one DrivingLicense
+     * const drivingLicense = await prisma.drivingLicense.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DrivingLicenseFindUniqueArgs>(args: SelectSubset<T, DrivingLicenseFindUniqueArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DrivingLicense that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DrivingLicenseFindUniqueOrThrowArgs} args - Arguments to find a DrivingLicense
+     * @example
+     * // Get one DrivingLicense
+     * const drivingLicense = await prisma.drivingLicense.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DrivingLicenseFindUniqueOrThrowArgs>(args: SelectSubset<T, DrivingLicenseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DrivingLicense that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseFindFirstArgs} args - Arguments to find a DrivingLicense
+     * @example
+     * // Get one DrivingLicense
+     * const drivingLicense = await prisma.drivingLicense.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DrivingLicenseFindFirstArgs>(args?: SelectSubset<T, DrivingLicenseFindFirstArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DrivingLicense that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseFindFirstOrThrowArgs} args - Arguments to find a DrivingLicense
+     * @example
+     * // Get one DrivingLicense
+     * const drivingLicense = await prisma.drivingLicense.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DrivingLicenseFindFirstOrThrowArgs>(args?: SelectSubset<T, DrivingLicenseFindFirstOrThrowArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DrivingLicenses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DrivingLicenses
+     * const drivingLicenses = await prisma.drivingLicense.findMany()
+     * 
+     * // Get first 10 DrivingLicenses
+     * const drivingLicenses = await prisma.drivingLicense.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const drivingLicenseWithIdOnly = await prisma.drivingLicense.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DrivingLicenseFindManyArgs>(args?: SelectSubset<T, DrivingLicenseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DrivingLicense.
+     * @param {DrivingLicenseCreateArgs} args - Arguments to create a DrivingLicense.
+     * @example
+     * // Create one DrivingLicense
+     * const DrivingLicense = await prisma.drivingLicense.create({
+     *   data: {
+     *     // ... data to create a DrivingLicense
+     *   }
+     * })
+     * 
+     */
+    create<T extends DrivingLicenseCreateArgs>(args: SelectSubset<T, DrivingLicenseCreateArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DrivingLicenses.
+     * @param {DrivingLicenseCreateManyArgs} args - Arguments to create many DrivingLicenses.
+     * @example
+     * // Create many DrivingLicenses
+     * const drivingLicense = await prisma.drivingLicense.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DrivingLicenseCreateManyArgs>(args?: SelectSubset<T, DrivingLicenseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DrivingLicenses and returns the data saved in the database.
+     * @param {DrivingLicenseCreateManyAndReturnArgs} args - Arguments to create many DrivingLicenses.
+     * @example
+     * // Create many DrivingLicenses
+     * const drivingLicense = await prisma.drivingLicense.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DrivingLicenses and only return the `id`
+     * const drivingLicenseWithIdOnly = await prisma.drivingLicense.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DrivingLicenseCreateManyAndReturnArgs>(args?: SelectSubset<T, DrivingLicenseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DrivingLicense.
+     * @param {DrivingLicenseDeleteArgs} args - Arguments to delete one DrivingLicense.
+     * @example
+     * // Delete one DrivingLicense
+     * const DrivingLicense = await prisma.drivingLicense.delete({
+     *   where: {
+     *     // ... filter to delete one DrivingLicense
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DrivingLicenseDeleteArgs>(args: SelectSubset<T, DrivingLicenseDeleteArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DrivingLicense.
+     * @param {DrivingLicenseUpdateArgs} args - Arguments to update one DrivingLicense.
+     * @example
+     * // Update one DrivingLicense
+     * const drivingLicense = await prisma.drivingLicense.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DrivingLicenseUpdateArgs>(args: SelectSubset<T, DrivingLicenseUpdateArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DrivingLicenses.
+     * @param {DrivingLicenseDeleteManyArgs} args - Arguments to filter DrivingLicenses to delete.
+     * @example
+     * // Delete a few DrivingLicenses
+     * const { count } = await prisma.drivingLicense.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DrivingLicenseDeleteManyArgs>(args?: SelectSubset<T, DrivingLicenseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DrivingLicenses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DrivingLicenses
+     * const drivingLicense = await prisma.drivingLicense.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DrivingLicenseUpdateManyArgs>(args: SelectSubset<T, DrivingLicenseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DrivingLicenses and returns the data updated in the database.
+     * @param {DrivingLicenseUpdateManyAndReturnArgs} args - Arguments to update many DrivingLicenses.
+     * @example
+     * // Update many DrivingLicenses
+     * const drivingLicense = await prisma.drivingLicense.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DrivingLicenses and only return the `id`
+     * const drivingLicenseWithIdOnly = await prisma.drivingLicense.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DrivingLicenseUpdateManyAndReturnArgs>(args: SelectSubset<T, DrivingLicenseUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DrivingLicense.
+     * @param {DrivingLicenseUpsertArgs} args - Arguments to update or create a DrivingLicense.
+     * @example
+     * // Update or create a DrivingLicense
+     * const drivingLicense = await prisma.drivingLicense.upsert({
+     *   create: {
+     *     // ... data to create a DrivingLicense
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DrivingLicense we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DrivingLicenseUpsertArgs>(args: SelectSubset<T, DrivingLicenseUpsertArgs<ExtArgs>>): Prisma__DrivingLicenseClient<$Result.GetResult<Prisma.$DrivingLicensePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DrivingLicenses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseCountArgs} args - Arguments to filter DrivingLicenses to count.
+     * @example
+     * // Count the number of DrivingLicenses
+     * const count = await prisma.drivingLicense.count({
+     *   where: {
+     *     // ... the filter for the DrivingLicenses we want to count
+     *   }
+     * })
+    **/
+    count<T extends DrivingLicenseCountArgs>(
+      args?: Subset<T, DrivingLicenseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DrivingLicenseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DrivingLicense.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DrivingLicenseAggregateArgs>(args: Subset<T, DrivingLicenseAggregateArgs>): Prisma.PrismaPromise<GetDrivingLicenseAggregateType<T>>
+
+    /**
+     * Group by DrivingLicense.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DrivingLicenseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DrivingLicenseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DrivingLicenseGroupByArgs['orderBy'] }
+        : { orderBy?: DrivingLicenseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DrivingLicenseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDrivingLicenseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DrivingLicense model
+   */
+  readonly fields: DrivingLicenseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DrivingLicense.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DrivingLicenseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DrivingLicense model
+   */
+  interface DrivingLicenseFieldRefs {
+    readonly id: FieldRef<"DrivingLicense", 'String'>
+    readonly customerId: FieldRef<"DrivingLicense", 'String'>
+    readonly dlNumber: FieldRef<"DrivingLicense", 'String'>
+    readonly fullName: FieldRef<"DrivingLicense", 'String'>
+    readonly dob: FieldRef<"DrivingLicense", 'String'>
+    readonly referenceNumber: FieldRef<"DrivingLicense", 'String'>
+    readonly dateOfIssue: FieldRef<"DrivingLicense", 'String'>
+    readonly originalLA: FieldRef<"DrivingLicense", 'String'>
+    readonly dateOfFirstIssue: FieldRef<"DrivingLicense", 'String'>
+    readonly validityTransport: FieldRef<"DrivingLicense", 'String'>
+    readonly validityNonTransport: FieldRef<"DrivingLicense", 'String'>
+    readonly registeredAddress: FieldRef<"DrivingLicense", 'String'>
+    readonly rawResponse: FieldRef<"DrivingLicense", 'Json'>
+    readonly createdAt: FieldRef<"DrivingLicense", 'DateTime'>
+    readonly updatedAt: FieldRef<"DrivingLicense", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DrivingLicense findUnique
+   */
+  export type DrivingLicenseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * Filter, which DrivingLicense to fetch.
+     */
+    where: DrivingLicenseWhereUniqueInput
+  }
+
+  /**
+   * DrivingLicense findUniqueOrThrow
+   */
+  export type DrivingLicenseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * Filter, which DrivingLicense to fetch.
+     */
+    where: DrivingLicenseWhereUniqueInput
+  }
+
+  /**
+   * DrivingLicense findFirst
+   */
+  export type DrivingLicenseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * Filter, which DrivingLicense to fetch.
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DrivingLicenses to fetch.
+     */
+    orderBy?: DrivingLicenseOrderByWithRelationInput | DrivingLicenseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DrivingLicenses.
+     */
+    cursor?: DrivingLicenseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DrivingLicenses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DrivingLicenses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DrivingLicenses.
+     */
+    distinct?: DrivingLicenseScalarFieldEnum | DrivingLicenseScalarFieldEnum[]
+  }
+
+  /**
+   * DrivingLicense findFirstOrThrow
+   */
+  export type DrivingLicenseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * Filter, which DrivingLicense to fetch.
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DrivingLicenses to fetch.
+     */
+    orderBy?: DrivingLicenseOrderByWithRelationInput | DrivingLicenseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DrivingLicenses.
+     */
+    cursor?: DrivingLicenseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DrivingLicenses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DrivingLicenses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DrivingLicenses.
+     */
+    distinct?: DrivingLicenseScalarFieldEnum | DrivingLicenseScalarFieldEnum[]
+  }
+
+  /**
+   * DrivingLicense findMany
+   */
+  export type DrivingLicenseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * Filter, which DrivingLicenses to fetch.
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DrivingLicenses to fetch.
+     */
+    orderBy?: DrivingLicenseOrderByWithRelationInput | DrivingLicenseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DrivingLicenses.
+     */
+    cursor?: DrivingLicenseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DrivingLicenses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DrivingLicenses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DrivingLicenses.
+     */
+    distinct?: DrivingLicenseScalarFieldEnum | DrivingLicenseScalarFieldEnum[]
+  }
+
+  /**
+   * DrivingLicense create
+   */
+  export type DrivingLicenseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DrivingLicense.
+     */
+    data: XOR<DrivingLicenseCreateInput, DrivingLicenseUncheckedCreateInput>
+  }
+
+  /**
+   * DrivingLicense createMany
+   */
+  export type DrivingLicenseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DrivingLicenses.
+     */
+    data: DrivingLicenseCreateManyInput | DrivingLicenseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DrivingLicense createManyAndReturn
+   */
+  export type DrivingLicenseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * The data used to create many DrivingLicenses.
+     */
+    data: DrivingLicenseCreateManyInput | DrivingLicenseCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DrivingLicense update
+   */
+  export type DrivingLicenseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DrivingLicense.
+     */
+    data: XOR<DrivingLicenseUpdateInput, DrivingLicenseUncheckedUpdateInput>
+    /**
+     * Choose, which DrivingLicense to update.
+     */
+    where: DrivingLicenseWhereUniqueInput
+  }
+
+  /**
+   * DrivingLicense updateMany
+   */
+  export type DrivingLicenseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DrivingLicenses.
+     */
+    data: XOR<DrivingLicenseUpdateManyMutationInput, DrivingLicenseUncheckedUpdateManyInput>
+    /**
+     * Filter which DrivingLicenses to update
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * Limit how many DrivingLicenses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DrivingLicense updateManyAndReturn
+   */
+  export type DrivingLicenseUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * The data used to update DrivingLicenses.
+     */
+    data: XOR<DrivingLicenseUpdateManyMutationInput, DrivingLicenseUncheckedUpdateManyInput>
+    /**
+     * Filter which DrivingLicenses to update
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * Limit how many DrivingLicenses to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DrivingLicense upsert
+   */
+  export type DrivingLicenseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DrivingLicense to update in case it exists.
+     */
+    where: DrivingLicenseWhereUniqueInput
+    /**
+     * In case the DrivingLicense found by the `where` argument doesn't exist, create a new DrivingLicense with this data.
+     */
+    create: XOR<DrivingLicenseCreateInput, DrivingLicenseUncheckedCreateInput>
+    /**
+     * In case the DrivingLicense was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DrivingLicenseUpdateInput, DrivingLicenseUncheckedUpdateInput>
+  }
+
+  /**
+   * DrivingLicense delete
+   */
+  export type DrivingLicenseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+    /**
+     * Filter which DrivingLicense to delete.
+     */
+    where: DrivingLicenseWhereUniqueInput
+  }
+
+  /**
+   * DrivingLicense deleteMany
+   */
+  export type DrivingLicenseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DrivingLicenses to delete
+     */
+    where?: DrivingLicenseWhereInput
+    /**
+     * Limit how many DrivingLicenses to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DrivingLicense without action
+   */
+  export type DrivingLicenseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DrivingLicense
+     */
+    select?: DrivingLicenseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DrivingLicense
+     */
+    omit?: DrivingLicenseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DrivingLicenseInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model FastagDocument
+   */
+
+  export type AggregateFastagDocument = {
+    _count: FastagDocumentCountAggregateOutputType | null
+    _min: FastagDocumentMinAggregateOutputType | null
+    _max: FastagDocumentMaxAggregateOutputType | null
+  }
+
+  export type FastagDocumentMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    creditorAccountId: string | null
+    ifscCode: string | null
+    creditorName: string | null
+    transactionReferenceNumber: string | null
+    transactionId: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FastagDocumentMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    creditorAccountId: string | null
+    ifscCode: string | null
+    creditorName: string | null
+    transactionReferenceNumber: string | null
+    transactionId: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FastagDocumentCountAggregateOutputType = {
+    id: number
+    customerId: number
+    creditorAccountId: number
+    ifscCode: number
+    creditorName: number
+    transactionReferenceNumber: number
+    transactionId: number
+    status: number
+    rawResponse: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type FastagDocumentMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    creditorAccountId?: true
+    ifscCode?: true
+    creditorName?: true
+    transactionReferenceNumber?: true
+    transactionId?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FastagDocumentMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    creditorAccountId?: true
+    ifscCode?: true
+    creditorName?: true
+    transactionReferenceNumber?: true
+    transactionId?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FastagDocumentCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    creditorAccountId?: true
+    ifscCode?: true
+    creditorName?: true
+    transactionReferenceNumber?: true
+    transactionId?: true
+    status?: true
+    rawResponse?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type FastagDocumentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FastagDocument to aggregate.
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FastagDocuments to fetch.
+     */
+    orderBy?: FastagDocumentOrderByWithRelationInput | FastagDocumentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: FastagDocumentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FastagDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FastagDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned FastagDocuments
+    **/
+    _count?: true | FastagDocumentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: FastagDocumentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: FastagDocumentMaxAggregateInputType
+  }
+
+  export type GetFastagDocumentAggregateType<T extends FastagDocumentAggregateArgs> = {
+        [P in keyof T & keyof AggregateFastagDocument]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFastagDocument[P]>
+      : GetScalarType<T[P], AggregateFastagDocument[P]>
+  }
+
+
+
+
+  export type FastagDocumentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FastagDocumentWhereInput
+    orderBy?: FastagDocumentOrderByWithAggregationInput | FastagDocumentOrderByWithAggregationInput[]
+    by: FastagDocumentScalarFieldEnum[] | FastagDocumentScalarFieldEnum
+    having?: FastagDocumentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: FastagDocumentCountAggregateInputType | true
+    _min?: FastagDocumentMinAggregateInputType
+    _max?: FastagDocumentMaxAggregateInputType
+  }
+
+  export type FastagDocumentGroupByOutputType = {
+    id: string
+    customerId: string
+    creditorAccountId: string
+    ifscCode: string
+    creditorName: string | null
+    transactionReferenceNumber: string | null
+    transactionId: string | null
+    status: string | null
+    rawResponse: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: FastagDocumentCountAggregateOutputType | null
+    _min: FastagDocumentMinAggregateOutputType | null
+    _max: FastagDocumentMaxAggregateOutputType | null
+  }
+
+  type GetFastagDocumentGroupByPayload<T extends FastagDocumentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FastagDocumentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof FastagDocumentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], FastagDocumentGroupByOutputType[P]>
+            : GetScalarType<T[P], FastagDocumentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type FastagDocumentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    creditorAccountId?: boolean
+    ifscCode?: boolean
+    creditorName?: boolean
+    transactionReferenceNumber?: boolean
+    transactionId?: boolean
+    status?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["fastagDocument"]>
+
+  export type FastagDocumentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    creditorAccountId?: boolean
+    ifscCode?: boolean
+    creditorName?: boolean
+    transactionReferenceNumber?: boolean
+    transactionId?: boolean
+    status?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["fastagDocument"]>
+
+  export type FastagDocumentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    creditorAccountId?: boolean
+    ifscCode?: boolean
+    creditorName?: boolean
+    transactionReferenceNumber?: boolean
+    transactionId?: boolean
+    status?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["fastagDocument"]>
+
+  export type FastagDocumentSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    creditorAccountId?: boolean
+    ifscCode?: boolean
+    creditorName?: boolean
+    transactionReferenceNumber?: boolean
+    transactionId?: boolean
+    status?: boolean
+    rawResponse?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type FastagDocumentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "creditorAccountId" | "ifscCode" | "creditorName" | "transactionReferenceNumber" | "transactionId" | "status" | "rawResponse" | "createdAt" | "updatedAt", ExtArgs["result"]["fastagDocument"]>
+  export type FastagDocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type FastagDocumentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type FastagDocumentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $FastagDocumentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "FastagDocument"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      creditorAccountId: string
+      ifscCode: string
+      creditorName: string | null
+      transactionReferenceNumber: string | null
+      transactionId: string | null
+      status: string | null
+      rawResponse: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["fastagDocument"]>
+    composites: {}
+  }
+
+  type FastagDocumentGetPayload<S extends boolean | null | undefined | FastagDocumentDefaultArgs> = $Result.GetResult<Prisma.$FastagDocumentPayload, S>
+
+  type FastagDocumentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FastagDocumentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FastagDocumentCountAggregateInputType | true
+    }
+
+  export interface FastagDocumentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['FastagDocument'], meta: { name: 'FastagDocument' } }
+    /**
+     * Find zero or one FastagDocument that matches the filter.
+     * @param {FastagDocumentFindUniqueArgs} args - Arguments to find a FastagDocument
+     * @example
+     * // Get one FastagDocument
+     * const fastagDocument = await prisma.fastagDocument.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FastagDocumentFindUniqueArgs>(args: SelectSubset<T, FastagDocumentFindUniqueArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one FastagDocument that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FastagDocumentFindUniqueOrThrowArgs} args - Arguments to find a FastagDocument
+     * @example
+     * // Get one FastagDocument
+     * const fastagDocument = await prisma.fastagDocument.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FastagDocumentFindUniqueOrThrowArgs>(args: SelectSubset<T, FastagDocumentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first FastagDocument that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentFindFirstArgs} args - Arguments to find a FastagDocument
+     * @example
+     * // Get one FastagDocument
+     * const fastagDocument = await prisma.fastagDocument.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FastagDocumentFindFirstArgs>(args?: SelectSubset<T, FastagDocumentFindFirstArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first FastagDocument that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentFindFirstOrThrowArgs} args - Arguments to find a FastagDocument
+     * @example
+     * // Get one FastagDocument
+     * const fastagDocument = await prisma.fastagDocument.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FastagDocumentFindFirstOrThrowArgs>(args?: SelectSubset<T, FastagDocumentFindFirstOrThrowArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more FastagDocuments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FastagDocuments
+     * const fastagDocuments = await prisma.fastagDocument.findMany()
+     * 
+     * // Get first 10 FastagDocuments
+     * const fastagDocuments = await prisma.fastagDocument.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const fastagDocumentWithIdOnly = await prisma.fastagDocument.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends FastagDocumentFindManyArgs>(args?: SelectSubset<T, FastagDocumentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a FastagDocument.
+     * @param {FastagDocumentCreateArgs} args - Arguments to create a FastagDocument.
+     * @example
+     * // Create one FastagDocument
+     * const FastagDocument = await prisma.fastagDocument.create({
+     *   data: {
+     *     // ... data to create a FastagDocument
+     *   }
+     * })
+     * 
+     */
+    create<T extends FastagDocumentCreateArgs>(args: SelectSubset<T, FastagDocumentCreateArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many FastagDocuments.
+     * @param {FastagDocumentCreateManyArgs} args - Arguments to create many FastagDocuments.
+     * @example
+     * // Create many FastagDocuments
+     * const fastagDocument = await prisma.fastagDocument.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends FastagDocumentCreateManyArgs>(args?: SelectSubset<T, FastagDocumentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many FastagDocuments and returns the data saved in the database.
+     * @param {FastagDocumentCreateManyAndReturnArgs} args - Arguments to create many FastagDocuments.
+     * @example
+     * // Create many FastagDocuments
+     * const fastagDocument = await prisma.fastagDocument.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many FastagDocuments and only return the `id`
+     * const fastagDocumentWithIdOnly = await prisma.fastagDocument.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends FastagDocumentCreateManyAndReturnArgs>(args?: SelectSubset<T, FastagDocumentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a FastagDocument.
+     * @param {FastagDocumentDeleteArgs} args - Arguments to delete one FastagDocument.
+     * @example
+     * // Delete one FastagDocument
+     * const FastagDocument = await prisma.fastagDocument.delete({
+     *   where: {
+     *     // ... filter to delete one FastagDocument
+     *   }
+     * })
+     * 
+     */
+    delete<T extends FastagDocumentDeleteArgs>(args: SelectSubset<T, FastagDocumentDeleteArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one FastagDocument.
+     * @param {FastagDocumentUpdateArgs} args - Arguments to update one FastagDocument.
+     * @example
+     * // Update one FastagDocument
+     * const fastagDocument = await prisma.fastagDocument.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends FastagDocumentUpdateArgs>(args: SelectSubset<T, FastagDocumentUpdateArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more FastagDocuments.
+     * @param {FastagDocumentDeleteManyArgs} args - Arguments to filter FastagDocuments to delete.
+     * @example
+     * // Delete a few FastagDocuments
+     * const { count } = await prisma.fastagDocument.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends FastagDocumentDeleteManyArgs>(args?: SelectSubset<T, FastagDocumentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FastagDocuments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FastagDocuments
+     * const fastagDocument = await prisma.fastagDocument.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends FastagDocumentUpdateManyArgs>(args: SelectSubset<T, FastagDocumentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FastagDocuments and returns the data updated in the database.
+     * @param {FastagDocumentUpdateManyAndReturnArgs} args - Arguments to update many FastagDocuments.
+     * @example
+     * // Update many FastagDocuments
+     * const fastagDocument = await prisma.fastagDocument.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more FastagDocuments and only return the `id`
+     * const fastagDocumentWithIdOnly = await prisma.fastagDocument.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends FastagDocumentUpdateManyAndReturnArgs>(args: SelectSubset<T, FastagDocumentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one FastagDocument.
+     * @param {FastagDocumentUpsertArgs} args - Arguments to update or create a FastagDocument.
+     * @example
+     * // Update or create a FastagDocument
+     * const fastagDocument = await prisma.fastagDocument.upsert({
+     *   create: {
+     *     // ... data to create a FastagDocument
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FastagDocument we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FastagDocumentUpsertArgs>(args: SelectSubset<T, FastagDocumentUpsertArgs<ExtArgs>>): Prisma__FastagDocumentClient<$Result.GetResult<Prisma.$FastagDocumentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of FastagDocuments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentCountArgs} args - Arguments to filter FastagDocuments to count.
+     * @example
+     * // Count the number of FastagDocuments
+     * const count = await prisma.fastagDocument.count({
+     *   where: {
+     *     // ... the filter for the FastagDocuments we want to count
+     *   }
+     * })
+    **/
+    count<T extends FastagDocumentCountArgs>(
+      args?: Subset<T, FastagDocumentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FastagDocumentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a FastagDocument.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends FastagDocumentAggregateArgs>(args: Subset<T, FastagDocumentAggregateArgs>): Prisma.PrismaPromise<GetFastagDocumentAggregateType<T>>
+
+    /**
+     * Group by FastagDocument.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FastagDocumentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends FastagDocumentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FastagDocumentGroupByArgs['orderBy'] }
+        : { orderBy?: FastagDocumentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, FastagDocumentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFastagDocumentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the FastagDocument model
+   */
+  readonly fields: FastagDocumentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FastagDocument.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FastagDocumentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the FastagDocument model
+   */
+  interface FastagDocumentFieldRefs {
+    readonly id: FieldRef<"FastagDocument", 'String'>
+    readonly customerId: FieldRef<"FastagDocument", 'String'>
+    readonly creditorAccountId: FieldRef<"FastagDocument", 'String'>
+    readonly ifscCode: FieldRef<"FastagDocument", 'String'>
+    readonly creditorName: FieldRef<"FastagDocument", 'String'>
+    readonly transactionReferenceNumber: FieldRef<"FastagDocument", 'String'>
+    readonly transactionId: FieldRef<"FastagDocument", 'String'>
+    readonly status: FieldRef<"FastagDocument", 'String'>
+    readonly rawResponse: FieldRef<"FastagDocument", 'Json'>
+    readonly createdAt: FieldRef<"FastagDocument", 'DateTime'>
+    readonly updatedAt: FieldRef<"FastagDocument", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * FastagDocument findUnique
+   */
+  export type FastagDocumentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * Filter, which FastagDocument to fetch.
+     */
+    where: FastagDocumentWhereUniqueInput
+  }
+
+  /**
+   * FastagDocument findUniqueOrThrow
+   */
+  export type FastagDocumentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * Filter, which FastagDocument to fetch.
+     */
+    where: FastagDocumentWhereUniqueInput
+  }
+
+  /**
+   * FastagDocument findFirst
+   */
+  export type FastagDocumentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * Filter, which FastagDocument to fetch.
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FastagDocuments to fetch.
+     */
+    orderBy?: FastagDocumentOrderByWithRelationInput | FastagDocumentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FastagDocuments.
+     */
+    cursor?: FastagDocumentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FastagDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FastagDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FastagDocuments.
+     */
+    distinct?: FastagDocumentScalarFieldEnum | FastagDocumentScalarFieldEnum[]
+  }
+
+  /**
+   * FastagDocument findFirstOrThrow
+   */
+  export type FastagDocumentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * Filter, which FastagDocument to fetch.
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FastagDocuments to fetch.
+     */
+    orderBy?: FastagDocumentOrderByWithRelationInput | FastagDocumentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FastagDocuments.
+     */
+    cursor?: FastagDocumentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FastagDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FastagDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FastagDocuments.
+     */
+    distinct?: FastagDocumentScalarFieldEnum | FastagDocumentScalarFieldEnum[]
+  }
+
+  /**
+   * FastagDocument findMany
+   */
+  export type FastagDocumentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * Filter, which FastagDocuments to fetch.
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FastagDocuments to fetch.
+     */
+    orderBy?: FastagDocumentOrderByWithRelationInput | FastagDocumentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing FastagDocuments.
+     */
+    cursor?: FastagDocumentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FastagDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FastagDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FastagDocuments.
+     */
+    distinct?: FastagDocumentScalarFieldEnum | FastagDocumentScalarFieldEnum[]
+  }
+
+  /**
+   * FastagDocument create
+   */
+  export type FastagDocumentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a FastagDocument.
+     */
+    data: XOR<FastagDocumentCreateInput, FastagDocumentUncheckedCreateInput>
+  }
+
+  /**
+   * FastagDocument createMany
+   */
+  export type FastagDocumentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many FastagDocuments.
+     */
+    data: FastagDocumentCreateManyInput | FastagDocumentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * FastagDocument createManyAndReturn
+   */
+  export type FastagDocumentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * The data used to create many FastagDocuments.
+     */
+    data: FastagDocumentCreateManyInput | FastagDocumentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * FastagDocument update
+   */
+  export type FastagDocumentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a FastagDocument.
+     */
+    data: XOR<FastagDocumentUpdateInput, FastagDocumentUncheckedUpdateInput>
+    /**
+     * Choose, which FastagDocument to update.
+     */
+    where: FastagDocumentWhereUniqueInput
+  }
+
+  /**
+   * FastagDocument updateMany
+   */
+  export type FastagDocumentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update FastagDocuments.
+     */
+    data: XOR<FastagDocumentUpdateManyMutationInput, FastagDocumentUncheckedUpdateManyInput>
+    /**
+     * Filter which FastagDocuments to update
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * Limit how many FastagDocuments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FastagDocument updateManyAndReturn
+   */
+  export type FastagDocumentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * The data used to update FastagDocuments.
+     */
+    data: XOR<FastagDocumentUpdateManyMutationInput, FastagDocumentUncheckedUpdateManyInput>
+    /**
+     * Filter which FastagDocuments to update
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * Limit how many FastagDocuments to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * FastagDocument upsert
+   */
+  export type FastagDocumentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the FastagDocument to update in case it exists.
+     */
+    where: FastagDocumentWhereUniqueInput
+    /**
+     * In case the FastagDocument found by the `where` argument doesn't exist, create a new FastagDocument with this data.
+     */
+    create: XOR<FastagDocumentCreateInput, FastagDocumentUncheckedCreateInput>
+    /**
+     * In case the FastagDocument was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FastagDocumentUpdateInput, FastagDocumentUncheckedUpdateInput>
+  }
+
+  /**
+   * FastagDocument delete
+   */
+  export type FastagDocumentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
+    /**
+     * Filter which FastagDocument to delete.
+     */
+    where: FastagDocumentWhereUniqueInput
+  }
+
+  /**
+   * FastagDocument deleteMany
+   */
+  export type FastagDocumentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FastagDocuments to delete
+     */
+    where?: FastagDocumentWhereInput
+    /**
+     * Limit how many FastagDocuments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * FastagDocument without action
+   */
+  export type FastagDocumentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FastagDocument
+     */
+    select?: FastagDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FastagDocument
+     */
+    omit?: FastagDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FastagDocumentInclude<ExtArgs> | null
   }
 
 
@@ -16051,6 +18634,11 @@ export namespace Prisma {
      * Skip the first `n` DigiLockerConnections.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DigiLockerConnections.
+     */
     distinct?: DigiLockerConnectionScalarFieldEnum | DigiLockerConnectionScalarFieldEnum[]
   }
 
@@ -17506,6 +20094,11 @@ export namespace Prisma {
      * Skip the first `n` CustomerVehicles.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerVehicles.
+     */
     distinct?: CustomerVehicleScalarFieldEnum | CustomerVehicleScalarFieldEnum[]
   }
 
@@ -18805,6 +21398,11 @@ export namespace Prisma {
      * Skip the first `n` VehicleCatalogs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleCatalogs.
+     */
     distinct?: VehicleCatalogScalarFieldEnum | VehicleCatalogScalarFieldEnum[]
   }
 
@@ -19991,6 +22589,11 @@ export namespace Prisma {
      * Skip the first `n` VehicleAssets.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleAssets.
+     */
     distinct?: VehicleAssetScalarFieldEnum | VehicleAssetScalarFieldEnum[]
   }
 
@@ -21083,6 +23686,11 @@ export namespace Prisma {
      * Skip the first `n` OdometerLogs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OdometerLogs.
+     */
     distinct?: OdometerLogScalarFieldEnum | OdometerLogScalarFieldEnum[]
   }
 
@@ -22275,6 +24883,11 @@ export namespace Prisma {
      * Skip the first `n` Challans.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Challans.
+     */
     distinct?: ChallanScalarFieldEnum | ChallanScalarFieldEnum[]
   }
 
@@ -23354,6 +25967,11 @@ export namespace Prisma {
      * Skip the first `n` VehicleAccesses.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleAccesses.
+     */
     distinct?: VehicleAccessScalarFieldEnum | VehicleAccessScalarFieldEnum[]
   }
 
@@ -24532,6 +27150,11 @@ export namespace Prisma {
      * Skip the first `n` VehicleHealthScores.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleHealthScores.
+     */
     distinct?: VehicleHealthScoreScalarFieldEnum | VehicleHealthScoreScalarFieldEnum[]
   }
 
@@ -25664,6 +28287,11 @@ export namespace Prisma {
      * Skip the first `n` InAppNotifications.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InAppNotifications.
+     */
     distinct?: InAppNotificationScalarFieldEnum | InAppNotificationScalarFieldEnum[]
   }
 
@@ -26754,6 +29382,11 @@ export namespace Prisma {
      * Skip the first `n` ChatSessions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatSessions.
+     */
     distinct?: ChatSessionScalarFieldEnum | ChatSessionScalarFieldEnum[]
   }
 
@@ -27845,6 +30478,11 @@ export namespace Prisma {
      * Skip the first `n` ChatMessages.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatMessages.
+     */
     distinct?: ChatMessageScalarFieldEnum | ChatMessageScalarFieldEnum[]
   }
 
@@ -28881,6 +31519,11 @@ export namespace Prisma {
      * Skip the first `n` DocumentEmbeddings.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DocumentEmbeddings.
+     */
     distinct?: DocumentEmbeddingScalarFieldEnum | DocumentEmbeddingScalarFieldEnum[]
   }
 
@@ -30009,6 +32652,11 @@ export namespace Prisma {
      * Skip the first `n` ChatAnalytics.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatAnalytics.
+     */
     distinct?: ChatAnalyticsScalarFieldEnum | ChatAnalyticsScalarFieldEnum[]
   }
 
@@ -31331,6 +33979,11 @@ export namespace Prisma {
      * Skip the first `n` Expenses.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Expenses.
+     */
     distinct?: ExpenseScalarFieldEnum | ExpenseScalarFieldEnum[]
   }
 
@@ -32517,6 +35170,11 @@ export namespace Prisma {
      * Skip the first `n` ExpenseBudgets.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ExpenseBudgets.
+     */
     distinct?: ExpenseBudgetScalarFieldEnum | ExpenseBudgetScalarFieldEnum[]
   }
 
@@ -33626,6 +36284,11 @@ export namespace Prisma {
      * Skip the first `n` FuelPriceCaches.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FuelPriceCaches.
+     */
     distinct?: FuelPriceCacheScalarFieldEnum | FuelPriceCacheScalarFieldEnum[]
   }
 
@@ -34630,6 +37293,11 @@ export namespace Prisma {
      * Skip the first `n` DiscoveryContents.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DiscoveryContents.
+     */
     distinct?: DiscoveryContentScalarFieldEnum | DiscoveryContentScalarFieldEnum[]
   }
 
@@ -35795,6 +38463,11 @@ export namespace Prisma {
      * Skip the first `n` ServiceRecords.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ServiceRecords.
+     */
     distinct?: ServiceRecordScalarFieldEnum | ServiceRecordScalarFieldEnum[]
   }
 
@@ -37023,6 +39696,11 @@ export namespace Prisma {
      * Skip the first `n` ServiceParts.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ServiceParts.
+     */
     distinct?: ServicePartScalarFieldEnum | ServicePartScalarFieldEnum[]
   }
 
@@ -38187,6 +40865,11 @@ export namespace Prisma {
      * Skip the first `n` PartReplacementIntervals.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PartReplacementIntervals.
+     */
     distinct?: PartReplacementIntervalScalarFieldEnum | PartReplacementIntervalScalarFieldEnum[]
   }
 
@@ -39269,6 +41952,11 @@ export namespace Prisma {
      * Skip the first `n` TelematicsDevices.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TelematicsDevices.
+     */
     distinct?: TelematicsDeviceScalarFieldEnum | TelematicsDeviceScalarFieldEnum[]
   }
 
@@ -40527,6 +43215,11 @@ export namespace Prisma {
      * Skip the first `n` DrivingTrips.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DrivingTrips.
+     */
     distinct?: DrivingTripScalarFieldEnum | DrivingTripScalarFieldEnum[]
   }
 
@@ -41688,6 +44381,11 @@ export namespace Prisma {
      * Skip the first `n` PlannedTrips.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlannedTrips.
+     */
     distinct?: PlannedTripScalarFieldEnum | PlannedTripScalarFieldEnum[]
   }
 
@@ -42844,6 +45542,11 @@ export namespace Prisma {
      * Skip the first `n` DrivingEvents.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DrivingEvents.
+     */
     distinct?: DrivingEventScalarFieldEnum | DrivingEventScalarFieldEnum[]
   }
 
@@ -44001,6 +46704,11 @@ export namespace Prisma {
      * Skip the first `n` SOSRequests.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SOSRequests.
+     */
     distinct?: SOSRequestScalarFieldEnum | SOSRequestScalarFieldEnum[]
   }
 
@@ -45145,6 +47853,11 @@ export namespace Prisma {
      * Skip the first `n` EmergencyContacts.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmergencyContacts.
+     */
     distinct?: EmergencyContactScalarFieldEnum | EmergencyContactScalarFieldEnum[]
   }
 
@@ -46261,6 +48974,11 @@ export namespace Prisma {
      * Skip the first `n` SupportTickets.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SupportTickets.
+     */
     distinct?: SupportTicketScalarFieldEnum | SupportTicketScalarFieldEnum[]
   }
 
@@ -47356,6 +50074,11 @@ export namespace Prisma {
      * Skip the first `n` TicketMessages.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TicketMessages.
+     */
     distinct?: TicketMessageScalarFieldEnum | TicketMessageScalarFieldEnum[]
   }
 
@@ -48452,6 +51175,11 @@ export namespace Prisma {
      * Skip the first `n` FAQS.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FAQS.
+     */
     distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
   }
 
@@ -49495,6 +52223,11 @@ export namespace Prisma {
      * Skip the first `n` BankAccountDetails.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BankAccountDetails.
+     */
     distinct?: BankAccountDetailsScalarFieldEnum | BankAccountDetailsScalarFieldEnum[]
   }
 
@@ -51169,6 +53902,11 @@ export namespace Prisma {
      * Skip the first `n` Clients.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Clients.
+     */
     distinct?: ClientScalarFieldEnum | ClientScalarFieldEnum[]
   }
 
@@ -52606,6 +55344,11 @@ export namespace Prisma {
      * Skip the first `n` ClientNotifications.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ClientNotifications.
+     */
     distinct?: ClientNotificationScalarFieldEnum | ClientNotificationScalarFieldEnum[]
   }
 
@@ -53681,6 +56424,11 @@ export namespace Prisma {
      * Skip the first `n` ContactForms.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContactForms.
+     */
     distinct?: ContactFormScalarFieldEnum | ContactFormScalarFieldEnum[]
   }
 
@@ -54795,6 +57543,11 @@ export namespace Prisma {
      * Skip the first `n` public_Customers.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of public_Customers.
+     */
     distinct?: Public_CustomerScalarFieldEnum | Public_CustomerScalarFieldEnum[]
   }
 
@@ -55943,6 +58696,11 @@ export namespace Prisma {
      * Skip the first `n` CustomerRequests.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerRequests.
+     */
     distinct?: CustomerRequestScalarFieldEnum | CustomerRequestScalarFieldEnum[]
   }
 
@@ -57122,6 +59880,11 @@ export namespace Prisma {
      * Skip the first `n` Documents.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Documents.
+     */
     distinct?: DocumentScalarFieldEnum | DocumentScalarFieldEnum[]
   }
 
@@ -58190,6 +60953,11 @@ export namespace Prisma {
      * Skip the first `n` HelpSupports.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of HelpSupports.
+     */
     distinct?: HelpSupportScalarFieldEnum | HelpSupportScalarFieldEnum[]
   }
 
@@ -59376,6 +62144,11 @@ export namespace Prisma {
      * Skip the first `n` Invoices.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Invoices.
+     */
     distinct?: InvoiceScalarFieldEnum | InvoiceScalarFieldEnum[]
   }
 
@@ -60550,6 +63323,11 @@ export namespace Prisma {
      * Skip the first `n` InvoiceItems.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InvoiceItems.
+     */
     distinct?: InvoiceItemScalarFieldEnum | InvoiceItemScalarFieldEnum[]
   }
 
@@ -61694,6 +64472,11 @@ export namespace Prisma {
      * Skip the first `n` LeaveRequests.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LeaveRequests.
+     */
     distinct?: LeaveRequestScalarFieldEnum | LeaveRequestScalarFieldEnum[]
   }
 
@@ -62766,6 +65549,11 @@ export namespace Prisma {
      * Skip the first `n` OperatorClientAssignments.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OperatorClientAssignments.
+     */
     distinct?: OperatorClientAssignmentScalarFieldEnum | OperatorClientAssignmentScalarFieldEnum[]
   }
 
@@ -63837,6 +66625,11 @@ export namespace Prisma {
      * Skip the first `n` ParkingSlots.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSlots.
+     */
     distinct?: ParkingSlotScalarFieldEnum | ParkingSlotScalarFieldEnum[]
   }
 
@@ -65068,6 +67861,11 @@ export namespace Prisma {
      * Skip the first `n` Payments.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Payments.
+     */
     distinct?: PaymentScalarFieldEnum | PaymentScalarFieldEnum[]
   }
 
@@ -66257,6 +69055,11 @@ export namespace Prisma {
      * Skip the first `n` PaymentAuditLogs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PaymentAuditLogs.
+     */
     distinct?: PaymentAuditLogScalarFieldEnum | PaymentAuditLogScalarFieldEnum[]
   }
 
@@ -67463,6 +70266,11 @@ export namespace Prisma {
      * Skip the first `n` PaymentTransactions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PaymentTransactions.
+     */
     distinct?: PaymentTransactionScalarFieldEnum | PaymentTransactionScalarFieldEnum[]
   }
 
@@ -68825,6 +71633,11 @@ export namespace Prisma {
      * Skip the first `n` Pickups.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Pickups.
+     */
     distinct?: PickupScalarFieldEnum | PickupScalarFieldEnum[]
   }
 
@@ -70045,6 +72858,11 @@ export namespace Prisma {
      * Skip the first `n` RazorpayOrders.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RazorpayOrders.
+     */
     distinct?: RazorpayOrderScalarFieldEnum | RazorpayOrderScalarFieldEnum[]
   }
 
@@ -71103,6 +73921,11 @@ export namespace Prisma {
      * Skip the first `n` RazorpayWebhookLogs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RazorpayWebhookLogs.
+     */
     distinct?: RazorpayWebhookLogScalarFieldEnum | RazorpayWebhookLogScalarFieldEnum[]
   }
 
@@ -72253,6 +75076,11 @@ export namespace Prisma {
      * Skip the first `n` Refunds.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Refunds.
+     */
     distinct?: RefundScalarFieldEnum | RefundScalarFieldEnum[]
   }
 
@@ -73457,6 +76285,11 @@ export namespace Prisma {
      * Skip the first `n` SelfParkings.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SelfParkings.
+     */
     distinct?: SelfParkingScalarFieldEnum | SelfParkingScalarFieldEnum[]
   }
 
@@ -74765,6 +77598,11 @@ export namespace Prisma {
      * Skip the first `n` ShiftAttendances.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ShiftAttendances.
+     */
     distinct?: ShiftAttendanceScalarFieldEnum | ShiftAttendanceScalarFieldEnum[]
   }
 
@@ -76292,6 +79130,11 @@ export namespace Prisma {
      * Skip the first `n` Sites.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Sites.
+     */
     distinct?: SiteScalarFieldEnum | SiteScalarFieldEnum[]
   }
 
@@ -77522,6 +80365,11 @@ export namespace Prisma {
      * Skip the first `n` SiteAssigneds.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SiteAssigneds.
+     */
     distinct?: SiteAssignedScalarFieldEnum | SiteAssignedScalarFieldEnum[]
   }
 
@@ -78681,6 +81529,11 @@ export namespace Prisma {
      * Skip the first `n` Tickets.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Tickets.
+     */
     distinct?: TicketScalarFieldEnum | TicketScalarFieldEnum[]
   }
 
@@ -79808,6 +82661,11 @@ export namespace Prisma {
      * Skip the first `n` TicketComments.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TicketComments.
+     */
     distinct?: TicketCommentScalarFieldEnum | TicketCommentScalarFieldEnum[]
   }
 
@@ -81267,6 +84125,11 @@ export namespace Prisma {
      * Skip the first `n` public_Users.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of public_Users.
+     */
     distinct?: Public_UserScalarFieldEnum | Public_UserScalarFieldEnum[]
   }
 
@@ -82711,6 +85574,11 @@ export namespace Prisma {
      * Skip the first `n` Vehicles.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Vehicles.
+     */
     distinct?: VehicleScalarFieldEnum | VehicleScalarFieldEnum[]
   }
 
@@ -83862,6 +86730,11 @@ export namespace Prisma {
      * Skip the first `n` admin_email_verifications.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of admin_email_verifications.
+     */
     distinct?: Admin_email_verificationsScalarFieldEnum | Admin_email_verificationsScalarFieldEnum[]
   }
 
@@ -84946,6 +87819,11 @@ export namespace Prisma {
      * Skip the first `n` admin_password_resets.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of admin_password_resets.
+     */
     distinct?: Admin_password_resetsScalarFieldEnum | Admin_password_resetsScalarFieldEnum[]
   }
 
@@ -86191,6 +89069,11 @@ export namespace Prisma {
      * Skip the first `n` admins.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of admins.
+     */
     distinct?: AdminsScalarFieldEnum | AdminsScalarFieldEnum[]
   }
 
@@ -87422,6 +90305,11 @@ export namespace Prisma {
      * Skip the first `n` approval_logs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of approval_logs.
+     */
     distinct?: Approval_logsScalarFieldEnum | Approval_logsScalarFieldEnum[]
   }
 
@@ -88506,6 +91394,11 @@ export namespace Prisma {
      * Skip the first `n` client_email_verifications.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of client_email_verifications.
+     */
     distinct?: Client_email_verificationsScalarFieldEnum | Client_email_verificationsScalarFieldEnum[]
   }
 
@@ -89590,6 +92483,11 @@ export namespace Prisma {
      * Skip the first `n` client_password_resets.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of client_password_resets.
+     */
     distinct?: Client_password_resetsScalarFieldEnum | Client_password_resetsScalarFieldEnum[]
   }
 
@@ -90682,6 +93580,11 @@ export namespace Prisma {
      * Skip the first `n` customer_fcm_tokens.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of customer_fcm_tokens.
+     */
     distinct?: Customer_fcm_tokensScalarFieldEnum | Customer_fcm_tokensScalarFieldEnum[]
   }
 
@@ -91725,6 +94628,11 @@ export namespace Prisma {
      * Skip the first `n` departments.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of departments.
+     */
     distinct?: DepartmentsScalarFieldEnum | DepartmentsScalarFieldEnum[]
   }
 
@@ -92857,6 +95765,11 @@ export namespace Prisma {
      * Skip the first `n` fcm_tokens.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of fcm_tokens.
+     */
     distinct?: Fcm_tokensScalarFieldEnum | Fcm_tokensScalarFieldEnum[]
   }
 
@@ -93909,6 +96822,11 @@ export namespace Prisma {
      * Skip the first `n` permissions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of permissions.
+     */
     distinct?: PermissionsScalarFieldEnum | PermissionsScalarFieldEnum[]
   }
 
@@ -94978,6 +97896,11 @@ export namespace Prisma {
      * Skip the first `n` role_permissions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of role_permissions.
+     */
     distinct?: Role_permissionsScalarFieldEnum | Role_permissionsScalarFieldEnum[]
   }
 
@@ -96141,6 +99064,11 @@ export namespace Prisma {
      * Skip the first `n` roles.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of roles.
+     */
     distinct?: RolesScalarFieldEnum | RolesScalarFieldEnum[]
   }
 
@@ -96508,6 +99436,44 @@ export namespace Prisma {
   };
 
   export type VehicleDocumentScalarFieldEnum = (typeof VehicleDocumentScalarFieldEnum)[keyof typeof VehicleDocumentScalarFieldEnum]
+
+
+  export const DrivingLicenseScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    dlNumber: 'dlNumber',
+    fullName: 'fullName',
+    dob: 'dob',
+    referenceNumber: 'referenceNumber',
+    dateOfIssue: 'dateOfIssue',
+    originalLA: 'originalLA',
+    dateOfFirstIssue: 'dateOfFirstIssue',
+    validityTransport: 'validityTransport',
+    validityNonTransport: 'validityNonTransport',
+    registeredAddress: 'registeredAddress',
+    rawResponse: 'rawResponse',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DrivingLicenseScalarFieldEnum = (typeof DrivingLicenseScalarFieldEnum)[keyof typeof DrivingLicenseScalarFieldEnum]
+
+
+  export const FastagDocumentScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    creditorAccountId: 'creditorAccountId',
+    ifscCode: 'ifscCode',
+    creditorName: 'creditorName',
+    transactionReferenceNumber: 'transactionReferenceNumber',
+    transactionId: 'transactionId',
+    status: 'status',
+    rawResponse: 'rawResponse',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type FastagDocumentScalarFieldEnum = (typeof FastagDocumentScalarFieldEnum)[keyof typeof FastagDocumentScalarFieldEnum]
 
 
   export const DigiLockerConnectionScalarFieldEnum: {
@@ -97838,6 +100804,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'DigiLockerStatus'
    */
   export type EnumDigiLockerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DigiLockerStatus'>
@@ -97876,20 +100856,6 @@ export namespace Prisma {
    * Reference to a field of type 'VehicleAssetType[]'
    */
   export type ListEnumVehicleAssetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VehicleAssetType[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Json'
-   */
-  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-  /**
-   * Reference to a field of type 'QueryMode'
-   */
-  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -98707,6 +101673,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactListRelationFilter
     expenses?: ExpenseListRelationFilter
     driverExpenses?: ExpenseListRelationFilter
+    drivingLicense?: XOR<DrivingLicenseNullableScalarRelationFilter, DrivingLicenseWhereInput> | null
+    fastag?: XOR<FastagDocumentNullableScalarRelationFilter, FastagDocumentWhereInput> | null
     budgets?: ExpenseBudgetListRelationFilter
     notifications?: InAppNotificationListRelationFilter
     sosRequests?: SOSRequestListRelationFilter
@@ -98732,6 +101700,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactOrderByRelationAggregateInput
     expenses?: ExpenseOrderByRelationAggregateInput
     driverExpenses?: ExpenseOrderByRelationAggregateInput
+    drivingLicense?: DrivingLicenseOrderByWithRelationInput
+    fastag?: FastagDocumentOrderByWithRelationInput
     budgets?: ExpenseBudgetOrderByRelationAggregateInput
     notifications?: InAppNotificationOrderByRelationAggregateInput
     sosRequests?: SOSRequestOrderByRelationAggregateInput
@@ -98760,6 +101730,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactListRelationFilter
     expenses?: ExpenseListRelationFilter
     driverExpenses?: ExpenseListRelationFilter
+    drivingLicense?: XOR<DrivingLicenseNullableScalarRelationFilter, DrivingLicenseWhereInput> | null
+    fastag?: XOR<FastagDocumentNullableScalarRelationFilter, FastagDocumentWhereInput> | null
     budgets?: ExpenseBudgetListRelationFilter
     notifications?: InAppNotificationListRelationFilter
     sosRequests?: SOSRequestListRelationFilter
@@ -98952,6 +101924,196 @@ export namespace Prisma {
     mimeType?: StringNullableWithAggregatesFilter<"VehicleDocument"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"VehicleDocument"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"VehicleDocument"> | Date | string
+  }
+
+  export type DrivingLicenseWhereInput = {
+    AND?: DrivingLicenseWhereInput | DrivingLicenseWhereInput[]
+    OR?: DrivingLicenseWhereInput[]
+    NOT?: DrivingLicenseWhereInput | DrivingLicenseWhereInput[]
+    id?: StringFilter<"DrivingLicense"> | string
+    customerId?: StringFilter<"DrivingLicense"> | string
+    dlNumber?: StringFilter<"DrivingLicense"> | string
+    fullName?: StringNullableFilter<"DrivingLicense"> | string | null
+    dob?: StringNullableFilter<"DrivingLicense"> | string | null
+    referenceNumber?: StringNullableFilter<"DrivingLicense"> | string | null
+    dateOfIssue?: StringNullableFilter<"DrivingLicense"> | string | null
+    originalLA?: StringNullableFilter<"DrivingLicense"> | string | null
+    dateOfFirstIssue?: StringNullableFilter<"DrivingLicense"> | string | null
+    validityTransport?: StringNullableFilter<"DrivingLicense"> | string | null
+    validityNonTransport?: StringNullableFilter<"DrivingLicense"> | string | null
+    registeredAddress?: StringNullableFilter<"DrivingLicense"> | string | null
+    rawResponse?: JsonNullableFilter<"DrivingLicense">
+    createdAt?: DateTimeFilter<"DrivingLicense"> | Date | string
+    updatedAt?: DateTimeFilter<"DrivingLicense"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type DrivingLicenseOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    dlNumber?: SortOrder
+    fullName?: SortOrderInput | SortOrder
+    dob?: SortOrderInput | SortOrder
+    referenceNumber?: SortOrderInput | SortOrder
+    dateOfIssue?: SortOrderInput | SortOrder
+    originalLA?: SortOrderInput | SortOrder
+    dateOfFirstIssue?: SortOrderInput | SortOrder
+    validityTransport?: SortOrderInput | SortOrder
+    validityNonTransport?: SortOrderInput | SortOrder
+    registeredAddress?: SortOrderInput | SortOrder
+    rawResponse?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type DrivingLicenseWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    customerId?: string
+    dlNumber?: string
+    AND?: DrivingLicenseWhereInput | DrivingLicenseWhereInput[]
+    OR?: DrivingLicenseWhereInput[]
+    NOT?: DrivingLicenseWhereInput | DrivingLicenseWhereInput[]
+    fullName?: StringNullableFilter<"DrivingLicense"> | string | null
+    dob?: StringNullableFilter<"DrivingLicense"> | string | null
+    referenceNumber?: StringNullableFilter<"DrivingLicense"> | string | null
+    dateOfIssue?: StringNullableFilter<"DrivingLicense"> | string | null
+    originalLA?: StringNullableFilter<"DrivingLicense"> | string | null
+    dateOfFirstIssue?: StringNullableFilter<"DrivingLicense"> | string | null
+    validityTransport?: StringNullableFilter<"DrivingLicense"> | string | null
+    validityNonTransport?: StringNullableFilter<"DrivingLicense"> | string | null
+    registeredAddress?: StringNullableFilter<"DrivingLicense"> | string | null
+    rawResponse?: JsonNullableFilter<"DrivingLicense">
+    createdAt?: DateTimeFilter<"DrivingLicense"> | Date | string
+    updatedAt?: DateTimeFilter<"DrivingLicense"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id" | "customerId" | "dlNumber">
+
+  export type DrivingLicenseOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    dlNumber?: SortOrder
+    fullName?: SortOrderInput | SortOrder
+    dob?: SortOrderInput | SortOrder
+    referenceNumber?: SortOrderInput | SortOrder
+    dateOfIssue?: SortOrderInput | SortOrder
+    originalLA?: SortOrderInput | SortOrder
+    dateOfFirstIssue?: SortOrderInput | SortOrder
+    validityTransport?: SortOrderInput | SortOrder
+    validityNonTransport?: SortOrderInput | SortOrder
+    registeredAddress?: SortOrderInput | SortOrder
+    rawResponse?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DrivingLicenseCountOrderByAggregateInput
+    _max?: DrivingLicenseMaxOrderByAggregateInput
+    _min?: DrivingLicenseMinOrderByAggregateInput
+  }
+
+  export type DrivingLicenseScalarWhereWithAggregatesInput = {
+    AND?: DrivingLicenseScalarWhereWithAggregatesInput | DrivingLicenseScalarWhereWithAggregatesInput[]
+    OR?: DrivingLicenseScalarWhereWithAggregatesInput[]
+    NOT?: DrivingLicenseScalarWhereWithAggregatesInput | DrivingLicenseScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DrivingLicense"> | string
+    customerId?: StringWithAggregatesFilter<"DrivingLicense"> | string
+    dlNumber?: StringWithAggregatesFilter<"DrivingLicense"> | string
+    fullName?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    dob?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    referenceNumber?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    dateOfIssue?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    originalLA?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    dateOfFirstIssue?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    validityTransport?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    validityNonTransport?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    registeredAddress?: StringNullableWithAggregatesFilter<"DrivingLicense"> | string | null
+    rawResponse?: JsonNullableWithAggregatesFilter<"DrivingLicense">
+    createdAt?: DateTimeWithAggregatesFilter<"DrivingLicense"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DrivingLicense"> | Date | string
+  }
+
+  export type FastagDocumentWhereInput = {
+    AND?: FastagDocumentWhereInput | FastagDocumentWhereInput[]
+    OR?: FastagDocumentWhereInput[]
+    NOT?: FastagDocumentWhereInput | FastagDocumentWhereInput[]
+    id?: StringFilter<"FastagDocument"> | string
+    customerId?: StringFilter<"FastagDocument"> | string
+    creditorAccountId?: StringFilter<"FastagDocument"> | string
+    ifscCode?: StringFilter<"FastagDocument"> | string
+    creditorName?: StringNullableFilter<"FastagDocument"> | string | null
+    transactionReferenceNumber?: StringNullableFilter<"FastagDocument"> | string | null
+    transactionId?: StringNullableFilter<"FastagDocument"> | string | null
+    status?: StringNullableFilter<"FastagDocument"> | string | null
+    rawResponse?: JsonNullableFilter<"FastagDocument">
+    createdAt?: DateTimeFilter<"FastagDocument"> | Date | string
+    updatedAt?: DateTimeFilter<"FastagDocument"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type FastagDocumentOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    creditorAccountId?: SortOrder
+    ifscCode?: SortOrder
+    creditorName?: SortOrderInput | SortOrder
+    transactionReferenceNumber?: SortOrderInput | SortOrder
+    transactionId?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
+    rawResponse?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+  }
+
+  export type FastagDocumentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    customerId?: string
+    AND?: FastagDocumentWhereInput | FastagDocumentWhereInput[]
+    OR?: FastagDocumentWhereInput[]
+    NOT?: FastagDocumentWhereInput | FastagDocumentWhereInput[]
+    creditorAccountId?: StringFilter<"FastagDocument"> | string
+    ifscCode?: StringFilter<"FastagDocument"> | string
+    creditorName?: StringNullableFilter<"FastagDocument"> | string | null
+    transactionReferenceNumber?: StringNullableFilter<"FastagDocument"> | string | null
+    transactionId?: StringNullableFilter<"FastagDocument"> | string | null
+    status?: StringNullableFilter<"FastagDocument"> | string | null
+    rawResponse?: JsonNullableFilter<"FastagDocument">
+    createdAt?: DateTimeFilter<"FastagDocument"> | Date | string
+    updatedAt?: DateTimeFilter<"FastagDocument"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id" | "customerId">
+
+  export type FastagDocumentOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    creditorAccountId?: SortOrder
+    ifscCode?: SortOrder
+    creditorName?: SortOrderInput | SortOrder
+    transactionReferenceNumber?: SortOrderInput | SortOrder
+    transactionId?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
+    rawResponse?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: FastagDocumentCountOrderByAggregateInput
+    _max?: FastagDocumentMaxOrderByAggregateInput
+    _min?: FastagDocumentMinOrderByAggregateInput
+  }
+
+  export type FastagDocumentScalarWhereWithAggregatesInput = {
+    AND?: FastagDocumentScalarWhereWithAggregatesInput | FastagDocumentScalarWhereWithAggregatesInput[]
+    OR?: FastagDocumentScalarWhereWithAggregatesInput[]
+    NOT?: FastagDocumentScalarWhereWithAggregatesInput | FastagDocumentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"FastagDocument"> | string
+    customerId?: StringWithAggregatesFilter<"FastagDocument"> | string
+    creditorAccountId?: StringWithAggregatesFilter<"FastagDocument"> | string
+    ifscCode?: StringWithAggregatesFilter<"FastagDocument"> | string
+    creditorName?: StringNullableWithAggregatesFilter<"FastagDocument"> | string | null
+    transactionReferenceNumber?: StringNullableWithAggregatesFilter<"FastagDocument"> | string | null
+    transactionId?: StringNullableWithAggregatesFilter<"FastagDocument"> | string | null
+    status?: StringNullableWithAggregatesFilter<"FastagDocument"> | string | null
+    rawResponse?: JsonNullableWithAggregatesFilter<"FastagDocument">
+    createdAt?: DateTimeWithAggregatesFilter<"FastagDocument"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"FastagDocument"> | Date | string
   }
 
   export type DigiLockerConnectionWhereInput = {
@@ -105364,6 +108526,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -105389,6 +108553,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -105414,6 +108580,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -105439,6 +108607,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -105648,6 +108818,228 @@ export namespace Prisma {
     fileContent?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DrivingLicenseCreateInput = {
+    id?: string
+    dlNumber: string
+    fullName?: string | null
+    dob?: string | null
+    referenceNumber?: string | null
+    dateOfIssue?: string | null
+    originalLA?: string | null
+    dateOfFirstIssue?: string | null
+    validityTransport?: string | null
+    validityNonTransport?: string | null
+    registeredAddress?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutDrivingLicenseInput
+  }
+
+  export type DrivingLicenseUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    dlNumber: string
+    fullName?: string | null
+    dob?: string | null
+    referenceNumber?: string | null
+    dateOfIssue?: string | null
+    originalLA?: string | null
+    dateOfFirstIssue?: string | null
+    validityTransport?: string | null
+    validityNonTransport?: string | null
+    registeredAddress?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DrivingLicenseUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dlNumber?: StringFieldUpdateOperationsInput | string
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    dob?: NullableStringFieldUpdateOperationsInput | string | null
+    referenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    originalLA?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfFirstIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    validityTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    validityNonTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    registeredAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutDrivingLicenseNestedInput
+  }
+
+  export type DrivingLicenseUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    dlNumber?: StringFieldUpdateOperationsInput | string
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    dob?: NullableStringFieldUpdateOperationsInput | string | null
+    referenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    originalLA?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfFirstIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    validityTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    validityNonTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    registeredAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DrivingLicenseCreateManyInput = {
+    id?: string
+    customerId: string
+    dlNumber: string
+    fullName?: string | null
+    dob?: string | null
+    referenceNumber?: string | null
+    dateOfIssue?: string | null
+    originalLA?: string | null
+    dateOfFirstIssue?: string | null
+    validityTransport?: string | null
+    validityNonTransport?: string | null
+    registeredAddress?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DrivingLicenseUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dlNumber?: StringFieldUpdateOperationsInput | string
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    dob?: NullableStringFieldUpdateOperationsInput | string | null
+    referenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    originalLA?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfFirstIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    validityTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    validityNonTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    registeredAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DrivingLicenseUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    dlNumber?: StringFieldUpdateOperationsInput | string
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    dob?: NullableStringFieldUpdateOperationsInput | string | null
+    referenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    originalLA?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfFirstIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    validityTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    validityNonTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    registeredAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FastagDocumentCreateInput = {
+    id?: string
+    creditorAccountId: string
+    ifscCode: string
+    creditorName?: string | null
+    transactionReferenceNumber?: string | null
+    transactionId?: string | null
+    status?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutFastagInput
+  }
+
+  export type FastagDocumentUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    creditorAccountId: string
+    ifscCode: string
+    creditorName?: string | null
+    transactionReferenceNumber?: string | null
+    transactionId?: string | null
+    status?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FastagDocumentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    creditorAccountId?: StringFieldUpdateOperationsInput | string
+    ifscCode?: StringFieldUpdateOperationsInput | string
+    creditorName?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionReferenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutFastagNestedInput
+  }
+
+  export type FastagDocumentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    creditorAccountId?: StringFieldUpdateOperationsInput | string
+    ifscCode?: StringFieldUpdateOperationsInput | string
+    creditorName?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionReferenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FastagDocumentCreateManyInput = {
+    id?: string
+    customerId: string
+    creditorAccountId: string
+    ifscCode: string
+    creditorName?: string | null
+    transactionReferenceNumber?: string | null
+    transactionId?: string | null
+    status?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FastagDocumentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    creditorAccountId?: StringFieldUpdateOperationsInput | string
+    ifscCode?: StringFieldUpdateOperationsInput | string
+    creditorName?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionReferenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FastagDocumentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    creditorAccountId?: StringFieldUpdateOperationsInput | string
+    ifscCode?: StringFieldUpdateOperationsInput | string
+    creditorName?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionReferenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -112978,6 +116370,16 @@ export namespace Prisma {
     none?: ExpenseWhereInput
   }
 
+  export type DrivingLicenseNullableScalarRelationFilter = {
+    is?: DrivingLicenseWhereInput | null
+    isNot?: DrivingLicenseWhereInput | null
+  }
+
+  export type FastagDocumentNullableScalarRelationFilter = {
+    is?: FastagDocumentWhereInput | null
+    isNot?: FastagDocumentWhereInput | null
+  }
+
   export type ExpenseBudgetListRelationFilter = {
     every?: ExpenseBudgetWhereInput
     some?: ExpenseBudgetWhereInput
@@ -113237,6 +116639,147 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedBytesNullableFilter<$PrismaModel>
     _max?: NestedBytesNullableFilter<$PrismaModel>
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type DrivingLicenseCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    dlNumber?: SortOrder
+    fullName?: SortOrder
+    dob?: SortOrder
+    referenceNumber?: SortOrder
+    dateOfIssue?: SortOrder
+    originalLA?: SortOrder
+    dateOfFirstIssue?: SortOrder
+    validityTransport?: SortOrder
+    validityNonTransport?: SortOrder
+    registeredAddress?: SortOrder
+    rawResponse?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DrivingLicenseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    dlNumber?: SortOrder
+    fullName?: SortOrder
+    dob?: SortOrder
+    referenceNumber?: SortOrder
+    dateOfIssue?: SortOrder
+    originalLA?: SortOrder
+    dateOfFirstIssue?: SortOrder
+    validityTransport?: SortOrder
+    validityNonTransport?: SortOrder
+    registeredAddress?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DrivingLicenseMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    dlNumber?: SortOrder
+    fullName?: SortOrder
+    dob?: SortOrder
+    referenceNumber?: SortOrder
+    dateOfIssue?: SortOrder
+    originalLA?: SortOrder
+    dateOfFirstIssue?: SortOrder
+    validityTransport?: SortOrder
+    validityNonTransport?: SortOrder
+    registeredAddress?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
+  export type FastagDocumentCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    creditorAccountId?: SortOrder
+    ifscCode?: SortOrder
+    creditorName?: SortOrder
+    transactionReferenceNumber?: SortOrder
+    transactionId?: SortOrder
+    status?: SortOrder
+    rawResponse?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FastagDocumentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    creditorAccountId?: SortOrder
+    ifscCode?: SortOrder
+    creditorName?: SortOrder
+    transactionReferenceNumber?: SortOrder
+    transactionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FastagDocumentMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    creditorAccountId?: SortOrder
+    ifscCode?: SortOrder
+    creditorName?: SortOrder
+    transactionReferenceNumber?: SortOrder
+    transactionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type EnumDigiLockerStatusFilter<$PrismaModel = never> = {
@@ -113669,29 +117212,6 @@ export namespace Prisma {
   export type OdometerLogSumOrderByAggregateInput = {
     reading?: SortOrder
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type ChallanCountOrderByAggregateInput = {
     id?: SortOrder
@@ -113745,32 +117265,6 @@ export namespace Prisma {
 
   export type ChallanSumOrderByAggregateInput = {
     amount?: SortOrder
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type EnumAccessRoleFilter<$PrismaModel = never> = {
@@ -118212,6 +121706,18 @@ export namespace Prisma {
     connect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
   }
 
+  export type DrivingLicenseCreateNestedOneWithoutCustomerInput = {
+    create?: XOR<DrivingLicenseCreateWithoutCustomerInput, DrivingLicenseUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: DrivingLicenseCreateOrConnectWithoutCustomerInput
+    connect?: DrivingLicenseWhereUniqueInput
+  }
+
+  export type FastagDocumentCreateNestedOneWithoutCustomerInput = {
+    create?: XOR<FastagDocumentCreateWithoutCustomerInput, FastagDocumentUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: FastagDocumentCreateOrConnectWithoutCustomerInput
+    connect?: FastagDocumentWhereUniqueInput
+  }
+
   export type ExpenseBudgetCreateNestedManyWithoutCustomerInput = {
     create?: XOR<ExpenseBudgetCreateWithoutCustomerInput, ExpenseBudgetUncheckedCreateWithoutCustomerInput> | ExpenseBudgetCreateWithoutCustomerInput[] | ExpenseBudgetUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ExpenseBudgetCreateOrConnectWithoutCustomerInput | ExpenseBudgetCreateOrConnectWithoutCustomerInput[]
@@ -118307,6 +121813,18 @@ export namespace Prisma {
     connectOrCreate?: ExpenseCreateOrConnectWithoutDriverInput | ExpenseCreateOrConnectWithoutDriverInput[]
     createMany?: ExpenseCreateManyDriverInputEnvelope
     connect?: ExpenseWhereUniqueInput | ExpenseWhereUniqueInput[]
+  }
+
+  export type DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput = {
+    create?: XOR<DrivingLicenseCreateWithoutCustomerInput, DrivingLicenseUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: DrivingLicenseCreateOrConnectWithoutCustomerInput
+    connect?: DrivingLicenseWhereUniqueInput
+  }
+
+  export type FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput = {
+    create?: XOR<FastagDocumentCreateWithoutCustomerInput, FastagDocumentUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: FastagDocumentCreateOrConnectWithoutCustomerInput
+    connect?: FastagDocumentWhereUniqueInput
   }
 
   export type ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput = {
@@ -118457,6 +121975,26 @@ export namespace Prisma {
     update?: ExpenseUpdateWithWhereUniqueWithoutDriverInput | ExpenseUpdateWithWhereUniqueWithoutDriverInput[]
     updateMany?: ExpenseUpdateManyWithWhereWithoutDriverInput | ExpenseUpdateManyWithWhereWithoutDriverInput[]
     deleteMany?: ExpenseScalarWhereInput | ExpenseScalarWhereInput[]
+  }
+
+  export type DrivingLicenseUpdateOneWithoutCustomerNestedInput = {
+    create?: XOR<DrivingLicenseCreateWithoutCustomerInput, DrivingLicenseUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: DrivingLicenseCreateOrConnectWithoutCustomerInput
+    upsert?: DrivingLicenseUpsertWithoutCustomerInput
+    disconnect?: DrivingLicenseWhereInput | boolean
+    delete?: DrivingLicenseWhereInput | boolean
+    connect?: DrivingLicenseWhereUniqueInput
+    update?: XOR<XOR<DrivingLicenseUpdateToOneWithWhereWithoutCustomerInput, DrivingLicenseUpdateWithoutCustomerInput>, DrivingLicenseUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type FastagDocumentUpdateOneWithoutCustomerNestedInput = {
+    create?: XOR<FastagDocumentCreateWithoutCustomerInput, FastagDocumentUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: FastagDocumentCreateOrConnectWithoutCustomerInput
+    upsert?: FastagDocumentUpsertWithoutCustomerInput
+    disconnect?: FastagDocumentWhereInput | boolean
+    delete?: FastagDocumentWhereInput | boolean
+    connect?: FastagDocumentWhereUniqueInput
+    update?: XOR<XOR<FastagDocumentUpdateToOneWithWhereWithoutCustomerInput, FastagDocumentUpdateWithoutCustomerInput>, FastagDocumentUncheckedUpdateWithoutCustomerInput>
   }
 
   export type ExpenseBudgetUpdateManyWithoutCustomerNestedInput = {
@@ -118651,6 +122189,26 @@ export namespace Prisma {
     deleteMany?: ExpenseScalarWhereInput | ExpenseScalarWhereInput[]
   }
 
+  export type DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput = {
+    create?: XOR<DrivingLicenseCreateWithoutCustomerInput, DrivingLicenseUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: DrivingLicenseCreateOrConnectWithoutCustomerInput
+    upsert?: DrivingLicenseUpsertWithoutCustomerInput
+    disconnect?: DrivingLicenseWhereInput | boolean
+    delete?: DrivingLicenseWhereInput | boolean
+    connect?: DrivingLicenseWhereUniqueInput
+    update?: XOR<XOR<DrivingLicenseUpdateToOneWithWhereWithoutCustomerInput, DrivingLicenseUpdateWithoutCustomerInput>, DrivingLicenseUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput = {
+    create?: XOR<FastagDocumentCreateWithoutCustomerInput, FastagDocumentUncheckedCreateWithoutCustomerInput>
+    connectOrCreate?: FastagDocumentCreateOrConnectWithoutCustomerInput
+    upsert?: FastagDocumentUpsertWithoutCustomerInput
+    disconnect?: FastagDocumentWhereInput | boolean
+    delete?: FastagDocumentWhereInput | boolean
+    connect?: FastagDocumentWhereUniqueInput
+    update?: XOR<XOR<FastagDocumentUpdateToOneWithWhereWithoutCustomerInput, FastagDocumentUpdateWithoutCustomerInput>, FastagDocumentUncheckedUpdateWithoutCustomerInput>
+  }
+
   export type ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<ExpenseBudgetCreateWithoutCustomerInput, ExpenseBudgetUncheckedCreateWithoutCustomerInput> | ExpenseBudgetCreateWithoutCustomerInput[] | ExpenseBudgetUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ExpenseBudgetCreateOrConnectWithoutCustomerInput | ExpenseBudgetCreateOrConnectWithoutCustomerInput[]
@@ -118789,6 +122347,34 @@ export namespace Prisma {
     delete?: CustomerVehicleWhereInput | boolean
     connect?: CustomerVehicleWhereUniqueInput
     update?: XOR<XOR<CustomerVehicleUpdateToOneWithWhereWithoutDocumentsInput, CustomerVehicleUpdateWithoutDocumentsInput>, CustomerVehicleUncheckedUpdateWithoutDocumentsInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutDrivingLicenseInput = {
+    create?: XOR<CustomerCreateWithoutDrivingLicenseInput, CustomerUncheckedCreateWithoutDrivingLicenseInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutDrivingLicenseInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutDrivingLicenseNestedInput = {
+    create?: XOR<CustomerCreateWithoutDrivingLicenseInput, CustomerUncheckedCreateWithoutDrivingLicenseInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutDrivingLicenseInput
+    upsert?: CustomerUpsertWithoutDrivingLicenseInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutDrivingLicenseInput, CustomerUpdateWithoutDrivingLicenseInput>, CustomerUncheckedUpdateWithoutDrivingLicenseInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutFastagInput = {
+    create?: XOR<CustomerCreateWithoutFastagInput, CustomerUncheckedCreateWithoutFastagInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutFastagInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutFastagNestedInput = {
+    create?: XOR<CustomerCreateWithoutFastagInput, CustomerUncheckedCreateWithoutFastagInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutFastagInput
+    upsert?: CustomerUpsertWithoutFastagInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutFastagInput, CustomerUpdateWithoutFastagInput>, CustomerUncheckedUpdateWithoutFastagInput>
   }
 
   export type CustomerCreateNestedOneWithoutDigilockerInput = {
@@ -122918,6 +126504,29 @@ export namespace Prisma {
     _min?: NestedBytesNullableFilter<$PrismaModel>
     _max?: NestedBytesNullableFilter<$PrismaModel>
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumDigiLockerStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.DigiLockerStatus | EnumDigiLockerStatusFieldRefInput<$PrismaModel>
@@ -123005,29 +126614,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
-  }
-  export type NestedJsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedEnumAccessRoleFilter<$PrismaModel = never> = {
@@ -124267,6 +127853,76 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DrivingLicenseCreateWithoutCustomerInput = {
+    id?: string
+    dlNumber: string
+    fullName?: string | null
+    dob?: string | null
+    referenceNumber?: string | null
+    dateOfIssue?: string | null
+    originalLA?: string | null
+    dateOfFirstIssue?: string | null
+    validityTransport?: string | null
+    validityNonTransport?: string | null
+    registeredAddress?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DrivingLicenseUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    dlNumber: string
+    fullName?: string | null
+    dob?: string | null
+    referenceNumber?: string | null
+    dateOfIssue?: string | null
+    originalLA?: string | null
+    dateOfFirstIssue?: string | null
+    validityTransport?: string | null
+    validityNonTransport?: string | null
+    registeredAddress?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DrivingLicenseCreateOrConnectWithoutCustomerInput = {
+    where: DrivingLicenseWhereUniqueInput
+    create: XOR<DrivingLicenseCreateWithoutCustomerInput, DrivingLicenseUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type FastagDocumentCreateWithoutCustomerInput = {
+    id?: string
+    creditorAccountId: string
+    ifscCode: string
+    creditorName?: string | null
+    transactionReferenceNumber?: string | null
+    transactionId?: string | null
+    status?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FastagDocumentUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    creditorAccountId: string
+    ifscCode: string
+    creditorName?: string | null
+    transactionReferenceNumber?: string | null
+    transactionId?: string | null
+    status?: string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FastagDocumentCreateOrConnectWithoutCustomerInput = {
+    where: FastagDocumentWhereUniqueInput
+    create: XOR<FastagDocumentCreateWithoutCustomerInput, FastagDocumentUncheckedCreateWithoutCustomerInput>
+  }
+
   export type ExpenseBudgetCreateWithoutCustomerInput = {
     id?: string
     category: $Enums.ExpenseCategory
@@ -124742,6 +128398,88 @@ export namespace Prisma {
     data: XOR<ExpenseUpdateManyMutationInput, ExpenseUncheckedUpdateManyWithoutDriverInput>
   }
 
+  export type DrivingLicenseUpsertWithoutCustomerInput = {
+    update: XOR<DrivingLicenseUpdateWithoutCustomerInput, DrivingLicenseUncheckedUpdateWithoutCustomerInput>
+    create: XOR<DrivingLicenseCreateWithoutCustomerInput, DrivingLicenseUncheckedCreateWithoutCustomerInput>
+    where?: DrivingLicenseWhereInput
+  }
+
+  export type DrivingLicenseUpdateToOneWithWhereWithoutCustomerInput = {
+    where?: DrivingLicenseWhereInput
+    data: XOR<DrivingLicenseUpdateWithoutCustomerInput, DrivingLicenseUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type DrivingLicenseUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dlNumber?: StringFieldUpdateOperationsInput | string
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    dob?: NullableStringFieldUpdateOperationsInput | string | null
+    referenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    originalLA?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfFirstIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    validityTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    validityNonTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    registeredAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DrivingLicenseUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dlNumber?: StringFieldUpdateOperationsInput | string
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    dob?: NullableStringFieldUpdateOperationsInput | string | null
+    referenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    originalLA?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfFirstIssue?: NullableStringFieldUpdateOperationsInput | string | null
+    validityTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    validityNonTransport?: NullableStringFieldUpdateOperationsInput | string | null
+    registeredAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FastagDocumentUpsertWithoutCustomerInput = {
+    update: XOR<FastagDocumentUpdateWithoutCustomerInput, FastagDocumentUncheckedUpdateWithoutCustomerInput>
+    create: XOR<FastagDocumentCreateWithoutCustomerInput, FastagDocumentUncheckedCreateWithoutCustomerInput>
+    where?: FastagDocumentWhereInput
+  }
+
+  export type FastagDocumentUpdateToOneWithWhereWithoutCustomerInput = {
+    where?: FastagDocumentWhereInput
+    data: XOR<FastagDocumentUpdateWithoutCustomerInput, FastagDocumentUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type FastagDocumentUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    creditorAccountId?: StringFieldUpdateOperationsInput | string
+    ifscCode?: StringFieldUpdateOperationsInput | string
+    creditorName?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionReferenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FastagDocumentUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    creditorAccountId?: StringFieldUpdateOperationsInput | string
+    ifscCode?: StringFieldUpdateOperationsInput | string
+    creditorName?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionReferenceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    rawResponse?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ExpenseBudgetUpsertWithWhereUniqueWithoutCustomerInput = {
     where: ExpenseBudgetWhereUniqueInput
     update: XOR<ExpenseBudgetUpdateWithoutCustomerInput, ExpenseBudgetUncheckedUpdateWithoutCustomerInput>
@@ -124947,6 +128685,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -124971,6 +128711,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -125011,6 +128753,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -125035,6 +128779,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -125059,6 +128805,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -125083,6 +128831,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -125210,6 +128960,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -125234,6 +128986,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -125335,6 +129089,246 @@ export namespace Prisma {
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
   }
 
+  export type CustomerCreateWithoutDrivingLicenseInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutDrivingLicenseInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutDrivingLicenseInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutDrivingLicenseInput, CustomerUncheckedCreateWithoutDrivingLicenseInput>
+  }
+
+  export type CustomerUpsertWithoutDrivingLicenseInput = {
+    update: XOR<CustomerUpdateWithoutDrivingLicenseInput, CustomerUncheckedUpdateWithoutDrivingLicenseInput>
+    create: XOR<CustomerCreateWithoutDrivingLicenseInput, CustomerUncheckedCreateWithoutDrivingLicenseInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutDrivingLicenseInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutDrivingLicenseInput, CustomerUncheckedUpdateWithoutDrivingLicenseInput>
+  }
+
+  export type CustomerUpdateWithoutDrivingLicenseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutDrivingLicenseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerCreateWithoutFastagInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutFastagInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutFastagInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutFastagInput, CustomerUncheckedCreateWithoutFastagInput>
+  }
+
+  export type CustomerUpsertWithoutFastagInput = {
+    update: XOR<CustomerUpdateWithoutFastagInput, CustomerUncheckedUpdateWithoutFastagInput>
+    create: XOR<CustomerCreateWithoutFastagInput, CustomerUncheckedCreateWithoutFastagInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutFastagInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutFastagInput, CustomerUncheckedUpdateWithoutFastagInput>
+  }
+
+  export type CustomerUpdateWithoutFastagInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutFastagInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
   export type CustomerCreateWithoutDigilockerInput = {
     id?: string
     phoneNumber: string
@@ -125351,6 +129345,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -125375,6 +129371,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -125415,6 +129413,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -125439,6 +129439,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -125539,6 +129541,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -125563,6 +129567,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -125912,6 +129918,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -125936,6 +129944,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -126652,6 +130662,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -126676,6 +130688,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -126803,6 +130817,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -126827,6 +130843,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -127124,6 +131142,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
@@ -127148,6 +131168,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
@@ -127188,6 +131210,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
@@ -127212,6 +131236,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
@@ -127261,6 +131287,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -127285,6 +131313,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -127353,6 +131383,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -127377,6 +131409,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -127457,6 +131491,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -127481,6 +131517,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -127510,6 +131548,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -127534,6 +131574,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -127661,6 +131703,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -127685,6 +131729,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -127720,6 +131766,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -127744,6 +131792,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -127862,6 +131912,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
@@ -127886,6 +131938,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
@@ -127926,6 +131980,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
@@ -127950,6 +132006,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
@@ -128728,6 +132786,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -128752,6 +132812,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -128792,6 +132854,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -128816,6 +132880,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -128936,6 +133002,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
@@ -128960,6 +133028,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
@@ -129000,6 +133070,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
@@ -129024,6 +133096,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
@@ -129047,6 +133121,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -129071,6 +133147,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -129111,6 +133189,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -129135,6 +133215,8 @@ export namespace Prisma {
     digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
@@ -129160,6 +133242,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
@@ -129184,6 +133268,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
     expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
     driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
     budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
     notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
@@ -129250,6 +133336,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
@@ -129274,6 +133362,8 @@ export namespace Prisma {
     emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
     expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
     driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
     budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
     notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput

@@ -1,22 +1,29 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "mock-firebase-project",
-    "storage_bucket": "mock-firebase-project.appspot.com"
+    "project_number": "592539335447",
+    "project_id": "push-notification-for-customer",
+    "storage_bucket": "push-notification-for-customer.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:1234567890abcdef123456",
+        "mobilesdk_app_id": "1:592539335447:android:77475fe05b8e49818f1552",
         "android_client_info": {
           "package_name": "com.mobile1"
         }
       },
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA1234567890abcdefghijklmnopqrstuv"
+          "current_key": "AIzaSyA0BEeLA8_-0UVEjkxGBopnmtjCkiJIx1Q"
         }
-      ]
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
-  ]
+  ],
+  "configuration_version": "1"
 }

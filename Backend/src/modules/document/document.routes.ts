@@ -28,6 +28,14 @@ router.post("/check-image-quality", upload.single("file"), documentController.ch
 router.post("/", upload.single("file"), documentController.upload);
 router.get("/expiring", documentController.getExpiring);
 router.get("/", documentController.list);
+router.post("/verify-dl", documentController.verifyDL);
+router.get("/get-dl", documentController.getDL);
+router.delete("/delete-dl", documentController.deleteDL);
+
+router.post("/verify-fastag", documentController.verifyFastag);
+router.get("/get-fastag", documentController.getFastag);
+router.delete("/delete-fastag", documentController.deleteFastag);
+
 router.get("/:id", documentController.getById);
 router.post("/:id/verify", documentController.verify);
 router.delete("/:id", documentController.delete);

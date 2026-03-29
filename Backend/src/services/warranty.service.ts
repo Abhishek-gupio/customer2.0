@@ -583,7 +583,7 @@ export const warrantyService = {
     // Calculate Average Daily Running (ADR) to predict future dates
     const adr = await this.calculateAverageDailyRunning(vehicleId);
 
-    return due.map((d) => {
+    const dueWithPredictions = due.map((d) => {
       // If we have ADR and it's a KM-based due, predict the date
       if (adr > 0 && d.kmSinceReplacement < d.lifecycleKm) {
         const kmRemaining = d.lifecycleKm - d.kmSinceReplacement;
@@ -605,6 +605,29 @@ export const warrantyService = {
         d.predictionReason = `Overdue by KM (Usage: ~${Math.round(adr)} km/day)`;
       }
       return d;
+    });
+
+    // Final Deduplication: Only one entry per partType (keep the most urgent)
+    const finalMap = new Map<string, any>();
+    for (const d of dueWithPredictions) {
+      const existing = finalMap.get(d.partType);
+      if (!existing) {
+        finalMap.set(d.partType, d);
+        continue;
+      }
+      // If candidate is OVERDUE but existing is not, prefer candidate
+      if (d.urgency === "OVERDUE" && existing.urgency !== "OVERDUE") {
+        finalMap.set(d.partType, d);
+      }
+    }
+
+    return Array.from(finalMap.values()).sort((a, b) => {
+      const order: Record<string, number> = {
+        OVERDUE: 0,
+        DUE_BY_KM: 1,
+        DUE_SOON: 2,
+      };
+      return (order[a.urgency] || 3) - (order[b.urgency] || 3);
     });
   },
 

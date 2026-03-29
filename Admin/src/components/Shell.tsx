@@ -333,9 +333,6 @@ export default function Shell() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffffff05] border border-[#ffffff10]">
-                  <div className="h-2 w-2 rounded-full bg-[#00f2ff] shadow-[0_0_8px_#00f2ff]" />
-                </div>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -376,7 +373,7 @@ export default function Shell() {
           </div>
 
           {/* Modal Card */}
-          <div className="relative w-full max-w-[440px] bg-[#0c0c0c]/80 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out flex flex-col items-center text-center">
+          <div className="relative w-full max-w-[360px] bg-[#0c0c0c]/90 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out flex flex-col items-center text-center">
             {/* Close Button */}
             <button 
               onClick={() => setShowLogoutConfirm(false)}
@@ -386,36 +383,36 @@ export default function Shell() {
             </button>
 
             {/* Warning Icon with Glow */}
-            <div className="relative mb-8">
+            <div className="relative mb-5">
               <div className="absolute inset-0 bg-red-500/20 blur-2xl rounded-full" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-red-500/20 to-red-500/5 border border-red-500/20">
-                <AlertTriangle className="h-10 w-10 text-red-500" />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500/20 to-red-500/5 border border-red-500/20">
+                <AlertTriangle className="h-7 w-7 text-red-500" />
               </div>
             </div>
 
             {/* Content */}
-            <h3 className="text-[28px] font-black tracking-tight text-white mb-3">
+            <h3 className="text-[22px] font-black tracking-tight text-white mb-1.5">
               Confirm Logout
             </h3>
-            <p className="text-[16px] text-zinc-400 font-medium leading-relaxed mb-10 max-w-[280px]">
+            <p className="text-[14px] text-zinc-400 font-medium leading-relaxed mb-8 max-w-[240px]">
               Are you sure you want to end your current session?
             </p>
 
             {/* Actions */}
-            <div className="flex flex-col w-full gap-3">
+            <div className="flex flex-col w-full gap-2.5">
               <button
                 onClick={confirmLogout}
-                className="group relative flex h-[56px] w-full items-center justify-center overflow-hidden rounded-2xl bg-white font-bold text-black transition-all hover:bg-red-500 hover:text-white active:scale-[0.98]"
+                className="group relative flex h-[48px] w-full items-center justify-center overflow-hidden rounded-xl bg-white font-bold text-black transition-all hover:bg-red-500 hover:text-white active:scale-[0.98]"
               >
                 <div className="relative z-10 flex items-center gap-2">
-                  <LogOut className="h-5 w-5" />
-                  <span>Sign Out</span>
+                  <LogOut className="h-4 w-4" />
+                  <span className="text-sm">Sign Out</span>
                 </div>
               </button>
               
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex h-[56px] w-full items-center justify-center rounded-2xl bg-white/5 border border-white/10 font-bold text-white hover:bg-white/10 transition-all active:scale-[0.98]"
+                className="flex h-[48px] w-full items-center justify-center rounded-xl bg-white/5 border border-white/10 font-bold text-white hover:bg-white/10 transition-all active:scale-[0.98] text-sm"
               >
                 Cancel
               </button>

@@ -124,7 +124,8 @@
   font-weight: 500;
   line-height: 1.6;
   margin: 0 0 32px;
-  color: rgba(0, 0, 0, 0.6);
+  color: inherit;
+  opacity: 0.7;
 }
 
 .auth-body .auth-subtitle {
@@ -155,7 +156,8 @@
 }
 
 .auth-body input,
-.auth-body select {
+.auth-body select,
+.auth-select-trigger {
   background: rgba(0, 0, 0, 0.05) !important;
   border: 1px solid rgba(0, 0, 0, 0.1) !important;
   padding: 16px 20px;
@@ -166,6 +168,8 @@
   color: #000 !important;
   font-size: 16px !important;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
 }
 
 .auth-body input::placeholder {
@@ -190,7 +194,8 @@
 }
 
 .auth-body input:focus,
-.auth-body select:focus {
+.auth-body select:focus,
+.auth-select-trigger:focus {
   background: rgba(0, 0, 0, 0.08) !important;
   border-color: rgba(0, 0, 0, 0.2) !important;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.05) !important;
@@ -512,23 +517,122 @@
 @media (max-width: 768px) {
   .auth-body .container {
     width: 95%;
-    min-height: 90vh;
+    min-height: 620px !important; /* Increase height to fit all fields + buttons comfortably */
+    height: auto;
     flex-direction: column;
-    padding: 20px;
+    padding: 24px 16px;
+    background: #ffffff !important; /* Solid white for maximum contrast */
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    display: flex !important;
+    overflow: visible !important;
+    justify-content: center;
+    align-items: center !important; /* Center form panels */
   }
 
+  /* Hide overlay entirely on mobile */
   .auth-body .overlay-container {
-    display: none;
+    display: none !important;
   }
 
+  /* Base state for all form containers on mobile: hidden */
   .auth-body .form-container {
+    display: none !important;
     width: 100% !important;
-    position: relative;
-    transform: none !important;
+    position: relative !important;
+    top: auto !important;
+    left: 0 !important; /* Force no-offset */
+    margin: 0 auto !important;
+    height: auto !important;
     opacity: 1 !important;
+    visibility: visible !important;
+    padding: 0 !important;
+    text-align: center;
   }
 
+  /* Force display: flex for the active panel */
+  .auth-body .sign-in-container,
   .auth-body .sign-up-container {
-    display: none;
+    left: 0 !important;
+    transform: none !important;
   }
+
+  .auth-body .sign-in-container,
+  .auth-body .forgot-container .form-container {
+    display: flex !important;
+  }
+
+  .auth-body .container.right-panel-active .sign-in-container {
+    display: none !important;
+  }
+
+  .auth-body .container.right-panel-active .sign-up-container {
+    display: flex !important;
+  }
+
+  .auth-body form {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; /* Force input wrappers to center */
+    margin: 0 auto;
+  }
+
+  /* Force all text inside forms to be black */
+  .auth-body h1, 
+  .auth-body p, 
+  .auth-body span, 
+  .auth-body a, 
+  .auth-body label,
+  .auth-body .text-white,
+  .auth-body .split-parent h1 {
+    color: #000000 !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Optimized inputs/select for mobile height & width */
+  .auth-body input, 
+  .auth-body select,
+  .auth-select-trigger {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: #000 !important;
+    height: 52px !important; /* Slightly taller for better touch */
+    margin: 8px 0 !important; /* Consistent spacing */
+    padding: 0 20px !important;
+    font-size: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    outline: none !important;
+    border-radius: 14px !important; /* More premium rounded look */
+  }
+
+  /* Ensure portals aren't shifted by parent transitions */
+  .auth-body .form-container * {
+    transition: none !important;
+  }
+
+  /* Show the mobile link to switch panels */
+  .mobile-only {
+    display: flex !important;
+    margin-top: 24px;
+    font-size: 14px;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  .mobile-only a {
+    text-decoration: underline;
+    font-weight: 700;
+  }
+}
+
+/* Default state for mobile utilities */
+.mobile-only {
+  display: none;
 }

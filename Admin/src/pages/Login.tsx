@@ -5,6 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import { adminApi } from '../api/client';
 import Particles from '../components/Particles/Particles';
 import SplitText from '../components/ui/SplitText/SplitText';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/Select';
 import './Auth.css';
 
 type View = 'main' | 'forgot_email' | 'forgot_otp' | 'forgot_reset';
@@ -177,7 +184,7 @@ export default function Login() {
             {/* Step 1: Email */}
             {view === 'forgot_email' && (
               <form onSubmit={handleForgotSubmitEmail} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.05)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
                   <Mail size={32} strokeWidth={1.5} color="#000" />
                 </div>
                 <SplitText
@@ -213,7 +220,7 @@ export default function Login() {
             {/* Step 2: OTP */}
             {view === 'forgot_otp' && (
               <form onSubmit={handleForgotVerifyOtp} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.05)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
                   <ShieldCheck size={32} strokeWidth={1.5} color="#000" />
                 </div>
                 <SplitText
@@ -253,7 +260,7 @@ export default function Login() {
             {/* Step 3: New password */}
             {view === 'forgot_reset' && (
               <form onSubmit={handleForgotReset} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.05)', padding: '12px', borderRadius: '50%', marginBottom: '12px' }}>
                   <Lock size={32} strokeWidth={1.5} color="#000" />
                 </div>
                 <SplitText
@@ -366,7 +373,7 @@ export default function Login() {
           <form onSubmit={handleSignUp}>
             <SplitText
               text="Create Account"
-              className="text-[40px] font-bold text-white mb-2"
+              className="text-[32px] md:text-[40px] font-bold mb-2"
               delay={50}
               duration={1.2}
               splitType="chars"
@@ -419,13 +426,22 @@ export default function Login() {
                 {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="SUPER_ADMIN">SUPER ADMIN</option>
-              <option value="ADMIN">ADMIN</option>
-              <option value="SUPPORT">SUPPORT</option>
-            </select>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="auth-select-trigger">
+                <SelectValue placeholder="Select Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SUPER_ADMIN">SUPER ADMIN</SelectItem>
+                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="SUPPORT">SUPPORT</SelectItem>
+              </SelectContent>
+            </Select>
             {error && isRightPanelActive && <p className="error-msg">{error}</p>}
             <button type="submit" disabled={submitting}>{submitting ? 'Creating…' : 'Sign Up'}</button>
+            <div className="mobile-only">
+              <span>Already have an account?</span>
+              <a href="#" onClick={(e) => { e.preventDefault(); setIsRightPanelActive(false); }}>Sign In</a>
+            </div>
           </form>
         </div>
 
@@ -434,11 +450,12 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <SplitText
               text="Sign In"
-              className="text-[40px] font-bold text-white mb-2"
+              className="text-[32px] md:text-[40px] font-bold mb-2"
               delay={50}
               duration={1.2}
               splitType="chars"
               tag="h1"
+              textAlign="left"
             />
             <span className="auth-subtitle">Use your admin email and password</span>
             <input
@@ -489,6 +506,10 @@ export default function Login() {
             </a>
             {error && !isRightPanelActive && <p className="error-msg">{error}</p>}
             <button type="submit" disabled={submitting}>{submitting ? 'Signing in…' : 'Sign In'}</button>
+            <div className="mobile-only">
+              <span>Don't have an account?</span>
+              <a href="#" onClick={(e) => { e.preventDefault(); setIsRightPanelActive(true); }}>Sign Up</a>
+            </div>
           </form>
 
         </div>
@@ -500,7 +521,7 @@ export default function Login() {
 
               <SplitText
                 text="Welcome Back Admin"
-                className="text-[32px] font-bold text-white mb-2"
+                className="text-[32px] font-bold mb-2 text-white"
                 delay={50}
                 duration={1.2}
                 splitType="chars"
@@ -517,7 +538,7 @@ export default function Login() {
 
               <SplitText
                 text="Welcome Back Admin"
-                className="text-[32px] font-bold text-white mb-2"
+                className="text-[32px] font-bold mb-2 text-white"
                 delay={50}
                 duration={1.2}
                 splitType="chars"

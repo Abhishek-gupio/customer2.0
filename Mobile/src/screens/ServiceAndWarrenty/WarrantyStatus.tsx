@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
@@ -32,9 +33,10 @@ import {
   setWarrantyStatusNeedsRefresh,
 } from '../../utils/refreshManager';
 import BackButton from '../../components/BackButton';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import type { RootStackParamList } from '../../navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { getPartTypeLabel } from '../../constants/partTypes';
+import { PART_TYPE_OPTIONS, getPartTypeLabel } from '../../constants/partTypes';
 
 interface PartData {
   id: string;
@@ -63,6 +65,25 @@ interface PartData {
 const OEM_WARNING_EXCLUDED_PART_TYPES = new Set(["OTHER_PART"]);
 const OEM_INTERVAL_SOURCES = new Set(["OEM_WEBSITE", "OEM"]);
 
+const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
+  const normalized = new Set<string>();
+
+  for (const partType of partTypes) {
+    const value = String(partType || '').trim().toUpperCase();
+    if (!value) continue;
+
+    if (value === 'TYRES') {
+      normalized.add('TYRES_FRONT');
+      normalized.add('TYRES_REAR');
+      continue;
+    }
+
+    normalized.add(value);
+  }
+
+  return Array.from(normalized);
+};
+
 export const WarrantyStatus = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(true);
@@ -76,6 +97,8 @@ export const WarrantyStatus = () => {
   const [updateOdometer, setUpdateOdometer] = useState('');
   const [updateDate, setUpdateDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [updateNotes, setUpdateNotes] = useState('');
+  const [selectedPartTypes, setSelectedPartTypes] = useState<string[]>([]);
+  const [showPartPicker, setShowPartPicker] = useState(false);
   const [savingUpdate, setSavingUpdate] = useState(false);
 
   const getPartIcon = (type: string) => {
@@ -189,6 +212,7 @@ export const WarrantyStatus = () => {
 
   const openUpdateModal = (part: PartData) => {
     setSelectedPart(part);
+    setSelectedPartTypes([part.id]);
     setUpdateAmount('');
     setUpdateOdometer(vehicle?.currentOdometer ? String(vehicle.currentOdometer) : '');
     setUpdateDate(new Date().toISOString().slice(0, 10));
@@ -201,6 +225,8 @@ export const WarrantyStatus = () => {
   const closeUpdateModal = () => {
     setIsUpdateModalVisible(false);
     setSelectedPart(null);
+    setSelectedPartTypes([]);
+    setShowPartPicker(false);
     setUpdateAmount('');
     setUpdateOdometer('');
     setUpdateDate(new Date().toISOString().slice(0, 10));
@@ -212,8 +238,15 @@ export const WarrantyStatus = () => {
       return;
     }
 
+    const normalizedPartTypes = normalizeSelectedPartTypes(selectedPartTypes);
+
     const parsedAmount = Number(updateAmount);
     const parsedOdometer = Number(updateOdometer);
+
+    if (normalizedPartTypes.length === 0) {
+      Alert.alert('Missing parts', 'Select at least one part to update.');
+      return;
+    }
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       Alert.alert('Invalid amount', 'Enter a valid part cost.');
@@ -246,19 +279,22 @@ export const WarrantyStatus = () => {
         date: parsedDate.toISOString(),
         source: 'MANUAL',
         odometerReading: parsedOdometer,
-        parts: [
-          {
-            partType: selectedPart.id,
-            cost: parsedAmount,
-          },
-        ],
+        parts: normalizedPartTypes.map((partType) => ({
+          partType,
+          cost: parsedAmount,
+        })),
       });
 
       setExpenseListNeedsRefresh();
       setWarrantyStatusNeedsRefresh();
       closeUpdateModal();
       await fetchData();
-      Alert.alert('Success', `${selectedPart.title} updated successfully.`);
+      Alert.alert(
+        'Success',
+        normalizedPartTypes.length === 1
+          ? `${getPartTypeLabel(normalizedPartTypes[0])} updated successfully.`
+          : `${normalizedPartTypes.length} parts updated successfully.`,
+      );
     } catch (error: any) {
       console.error('Part update failed:', error);
       Alert.alert('Error', error?.message || 'Failed to update part.');
@@ -289,7 +325,15 @@ export const WarrantyStatus = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (!vehicle && !loading) {
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safe, { justifyContent: 'center' }]}>
+        <LoadingSpinner visible={true} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!vehicle) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
@@ -364,12 +408,41 @@ export const WarrantyStatus = () => {
               <View style={styles.modalHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalTitle}>Update Part</Text>
-                  <Text style={styles.modalSubtitle}>{selectedPart?.title || ''}</Text>
+                  <Text style={styles.modalSubtitle}>
+                    {selectedPartTypes.length > 0
+                      ? PART_TYPE_OPTIONS
+                          .filter((part) => selectedPartTypes.includes(part.value))
+                          .map((part) => part.label)
+                          .join(', ')
+                      : selectedPart?.title || ''}
+                  </Text>
                 </View>
                 <TouchableOpacity onPress={closeUpdateModal} disabled={savingUpdate}>
                   <Icon name="times" size={wp(5)} color="#fff" />
                 </TouchableOpacity>
               </View>
+
+              <Text style={styles.inputLabel}>Parts Serviced</Text>
+              <TouchableOpacity
+                style={styles.selectorInput}
+                onPress={() => setShowPartPicker(true)}
+                disabled={savingUpdate}
+              >
+                <Text
+                  style={[
+                    styles.selectorInputText,
+                    selectedPartTypes.length === 0 && styles.selectorPlaceholderText,
+                  ]}
+                >
+                  {selectedPartTypes.length > 0
+                    ? PART_TYPE_OPTIONS
+                        .filter((part) => selectedPartTypes.includes(part.value))
+                        .map((part) => part.label)
+                        .join(', ')
+                    : 'Select parts'}
+                </Text>
+                <Icon name="chevron-down" size={wp(3.5)} color="#999" />
+              </TouchableOpacity>
 
               <Text style={styles.inputLabel}>Part Cost</Text>
               <TextInput
@@ -415,14 +488,57 @@ export const WarrantyStatus = () => {
                 onPress={handlePartUpdate}
                 disabled={savingUpdate}
               >
-                {savingUpdate ? (
-                  <ActivityIndicator color="#000" />
-                ) : (
+                {savingUpdate ? null : (
                   <Text style={styles.updateButtonText}>Save Update</Text>
                 )}
               </TouchableOpacity>
             </Pressable>
           </KeyboardAvoidingView>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={showPartPicker} animationType="fade" statusBarTranslucent>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowPartPicker(false)}>
+          <Pressable style={styles.partPickerPanel} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.partPickerTitle}>Select Parts</Text>
+            <ScrollView style={styles.partPickerScroll} showsVerticalScrollIndicator={false}>
+              {PART_TYPE_OPTIONS.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={[
+                    styles.partPickerItem,
+                    selectedPartTypes.includes(item.value) && styles.partPickerItemSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedPartTypes((prev) =>
+                      prev.includes(item.value)
+                        ? prev.filter((value) => value !== item.value)
+                        : [...prev, item.value],
+                    );
+                  }}
+                >
+                  <Text style={styles.partPickerItemText}>
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.partPickerActions}>
+              <TouchableOpacity
+                style={styles.partPickerActionButton}
+                onPress={() => setSelectedPartTypes(selectedPart ? [selectedPart.id] : [])}
+              >
+                <Text style={styles.partPickerActionText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.partPickerActionButton}
+                onPress={() => setShowPartPicker(false)}
+              >
+                <Text style={styles.partPickerActionText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </SafeAreaView>
@@ -558,9 +674,84 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.5),
     marginBottom: hp(1.8),
   },
+  selectorInput: {
+    backgroundColor: '#0f0f0f',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: wp(4),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.7),
+    marginBottom: hp(1.8),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: wp(3),
+  },
+  selectorInputText: {
+    flex: 1,
+    color: '#fff',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Regular',
+  },
+  selectorPlaceholderText: {
+    color: '#666',
+  },
   notesInput: {
     minHeight: hp(10),
     textAlignVertical: 'top',
+  },
+  partPickerPanel: {
+    width: '100%',
+    maxWidth: wp(90),
+    maxHeight: hp(65),
+    backgroundColor: '#151515',
+    borderRadius: wp(6),
+    padding: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  partPickerTitle: {
+    color: '#fff',
+    fontSize: wp(4.8),
+    fontFamily: 'Outfit-Bold',
+    marginBottom: hp(1.5),
+  },
+  partPickerScroll: {
+    maxHeight: hp(45),
+  },
+  partPickerItem: {
+    paddingVertical: hp(1.6),
+    paddingHorizontal: wp(4),
+    borderRadius: wp(3.5),
+    backgroundColor: '#0f0f0f',
+    marginBottom: hp(1),
+  },
+  partPickerItemSelected: {
+    borderWidth: 1,
+    borderColor: '#FFBF00',
+    backgroundColor: 'rgba(255,191,0,0.12)',
+  },
+  partPickerItemText: {
+    color: '#fff',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Medium',
+  },
+  partPickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: wp(3),
+    marginTop: hp(1),
+  },
+  partPickerActionButton: {
+    backgroundColor: '#242424',
+    borderRadius: wp(3.5),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
+  },
+  partPickerActionText: {
+    color: '#fff',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
   },
   updateButton: {
     backgroundColor: '#FFBF00',

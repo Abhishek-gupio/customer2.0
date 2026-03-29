@@ -22,6 +22,7 @@
     "@react-native-documents/picker": "^12.0.1",
     "@react-native-firebase/analytics": "^23.8.6",
     "@react-native-firebase/app": "^23.8.6",
+    "@react-native-firebase/messaging": "^23.8.8",
     "@react-native-firebase/perf": "^23.8.6",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "@react-native-voice/voice": "^3.2.4",
