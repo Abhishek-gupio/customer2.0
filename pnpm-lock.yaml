@@ -2323,12 +2323,6 @@ packages:
       react: 19.2.0
       react-native: '*'
 
-  '@lottiefiles/dotlottie-react-native@0.7.4':
-    resolution: {integrity: sha512-PZHqt/F5q+NpMnNgdRF6uok1kqEprHghFAsepQkQxVpXvKTdJnjWrVIB2cCZDNzRsWe9XcMYVFiWEqglZMO9dg==}
-    peerDependencies:
-      react: 18.3.1
-      react-native: '*'
-
   '@lottiefiles/dotlottie-react@0.18.7':
     resolution: {integrity: sha512-aEUS3GR7U3ldT74Xt4l1pPz5KfY4IOXM30e4LMChXH2qNcwy3PZdoT7i44jf+vV+qgEffXshAAepVAZD6XZmTw==}
     peerDependencies:
@@ -11206,7 +11200,13 @@ snapshots:
     transitivePeerDependencies:
       - ws
 
-  '@lottiefiles/dotlottie-react@0.18.7(react@18.3.1)':
+  '@lottiefiles/dotlottie-react-native@0.7.4(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      '@lottiefiles/dotlottie-react': 0.18.7(react@19.2.0)
+      react: 19.2.0
+      react-native: 0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)
+
+  '@lottiefiles/dotlottie-react@0.18.7(react@19.2.0)':
     dependencies:
       '@lottiefiles/dotlottie-web': 0.67.0
       react: 19.2.0

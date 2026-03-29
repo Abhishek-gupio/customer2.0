@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, SafeAreaView, Image, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Image, Linking, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, History, MapPin, Fuel, Receipt, Calendar, ChevronRight, Trash2, Hotel, Compass, Bike, Wallet, Navigation } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { getHistory, deleteHistoryItem } from '../../../services/tripHistoryPersistence';

@@ -1243,7 +1243,7 @@ export default function Home() {
               });
             } else if (id === 'support') {
               handleHelpPress();
-            } else if (id === 'trip_planner') {
+            } else if (id === 'tripcost' || id === 'trip_planner') {
               navigateToRootScreen('TripExpense');
             }
           }}
