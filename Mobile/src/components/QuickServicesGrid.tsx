@@ -6,7 +6,7 @@ import {
 } from 'react-native-responsive-screen';
 import QuickServiceButton from './QuickServiceButton';
 
-const DrivingIcon = require('../assets/images/driving_behavior.png') as any;
+const DrivingIcon = require('../assets/images/driving_behavior.jpg') as any;
 
 interface ServiceItem {
   id: string;
