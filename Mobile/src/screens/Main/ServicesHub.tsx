@@ -55,7 +55,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
   { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
   { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
-  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
+  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'parking' },
   { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
@@ -129,14 +129,11 @@ const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
 function renderMechanicIcon(color: string, size: number, large = false) {
   return (
     <View style={large ? styles.mechanicIconLargeWrap : styles.mechanicIconWrap}>
-      <IconMC name="cog-outline" size={size} color={color} />
-      <View style={large ? styles.mechanicWrenchLarge : styles.mechanicWrench}>
-        <IconMC
-          name="wrench-outline"
-          size={large ? size * 0.64 : size * 0.58}
-          color={color}
-        />
-      </View>
+      <IconMC
+        name="account-wrench-outline"
+        size={large ? size * 1.22 : size * 1.12}
+        color={color}
+      />
     </View>
   );
 }
@@ -144,11 +141,17 @@ function renderMechanicIcon(color: string, size: number, large = false) {
 function renderParkingIcon(color: string, size: number, large = false) {
   return (
     <View style={large ? styles.parkingIconLargeWrap : styles.parkingIconWrap}>
-      <IconMC name="car-outline" size={size} color={color} />
-      <View style={large ? styles.parkingBadgeLarge : styles.parkingBadge}>
+      <View style={large ? styles.parkingMarkerLarge : styles.parkingMarker}>
         <IconMC
           name="alpha-p-circle-outline"
-          size={large ? size * 0.62 : size * 0.56}
+          size={large ? size * 0.94 : size * 0.86}
+          color={color}
+        />
+      </View>
+      <View style={large ? styles.parkingCarLarge : styles.parkingCar}>
+        <IconMC
+          name="car-outline"
+          size={large ? size * 0.94 : size * 0.86}
           color={color}
         />
       </View>
@@ -221,7 +224,7 @@ export default function ServicesHub() {
     }
 
     if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
-      navigation.navigate('NearbyPlaces', { placeType: id });
+      navigation.push('NearbyPlaces', { placeType: id });
       return;
     }
 
@@ -566,14 +569,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mechanicWrench: {
-    position: 'absolute',
-    transform: [{ translateX: wp(1.25) }, { translateY: -wp(1.05) }, { rotate: '-8deg' }],
-  },
-  mechanicWrenchLarge: {
-    position: 'absolute',
-    transform: [{ translateX: wp(1.65) }, { translateY: -wp(1.4) }, { rotate: '-8deg' }],
-  },
   parkingIconWrap: {
     width: wp(8.8),
     height: wp(8.8),
@@ -586,15 +581,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  parkingBadge: {
+  parkingMarker: {
     position: 'absolute',
-    top: -wp(1.4),
-    right: -wp(1.1),
+    top: -wp(0.7),
+    alignSelf: 'center',
+    zIndex: 0,
+    transform: [{ translateX: -wp(0.35) }],
   },
-  parkingBadgeLarge: {
+  parkingMarkerLarge: {
     position: 'absolute',
-    top: -wp(1.8),
-    right: -wp(1.35),
+    top: -wp(0.95),
+    alignSelf: 'center',
+    zIndex: 0,
+    transform: [{ translateX: -wp(0.45) }],
+  },
+  parkingCar: {
+    position: 'absolute',
+    bottom: -wp(0.65),
+    alignSelf: 'center',
+    zIndex: 1,
+  },
+  parkingCarLarge: {
+    position: 'absolute',
+    bottom: -wp(0.9),
+    alignSelf: 'center',
+    zIndex: 1,
   },
   towingIconWrap: {
     width: wp(8.8),
