@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { cn } from '../lib/cn';
 import CountUp from '../components/ui/CountUp/CountUp';
+import { formatDate } from '../lib/dateUtils';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
@@ -399,7 +400,7 @@ export default function Dashboard() {
                           {exp.customer?.fullName || 'Unknown Customer'}
                         </span>
                         <span className="text-[10px] text-white/40">
-                          {new Date(exp.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          {formatDate(exp.date)}
                         </span>
                       </div>
                       <div className="text-right shrink-0">
@@ -467,10 +468,6 @@ export default function Dashboard() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-10 text-center">
                    <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Total</div>
                    <div className="text-2xl font-black text-white leading-none">₹{(stats?.totalExpenses || 0).toLocaleString('en-IN')}</div>
-                   <div className="mt-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/5">
-                      <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Live Flow</span>
-                   </div>
                 </div>
               </div>
             ) : (
@@ -594,7 +591,7 @@ export default function Dashboard() {
                        <div class="header">
                          <div>
                            <h1 class="title">Admin Dashboard Report</h1>
-                           <div class="meta">Analysis Period: <strong>${selectedRange} Days</strong> | Date: ${new Date().toLocaleDateString()}</div>
+                           <div class="meta">Analysis Period: <strong>${selectedRange} Days</strong> | Date: ${formatDate(new Date())}</div>
                          </div>
                          <img src="/src/assets/images/logo.png" class="logo" />
                        </div>

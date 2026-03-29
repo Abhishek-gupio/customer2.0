@@ -298,6 +298,7 @@ export interface SupportTicketListItem {
   category: TicketCategory;
   createdAt: string;
   updatedAt: string;
+  resolvedAt?: string;
   customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
   _count: { messages: number };
 }

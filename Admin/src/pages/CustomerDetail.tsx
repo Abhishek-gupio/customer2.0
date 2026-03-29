@@ -25,6 +25,7 @@ import { adminApi, type CustomerDetail as CustomerDetailType, type AdminVehicleD
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/cn';
+import { formatDate, formatDateTime, formatTime } from '../lib/dateUtils';
 
 // --- TYPES ---
 type ExpenseRow = {
@@ -163,7 +164,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
             <KV label="Fuel" value={v.fuelType} />
             <KV label="Type" value={v.vehicleType} />
             <KV label="Odometer" value={v.currentOdometer != null ? `${v.currentOdometer} km` : null} />
-            <KV label="Reg. date" value={v.registrationDate ? new Date(v.registrationDate).toLocaleDateString() : null} />
+            <KV label="Reg. date" value={formatDate(v.registrationDate)} />
             <KV label="RC verified" value={v.rcVerified ? 'Yes' : 'No'} />
             <KV label="Chassis" value={v.chassisNumber} />
             <KV label="Engine" value={v.engineNumber} />
@@ -184,7 +185,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
                 <KV label="Maintenance" value={health.maintenanceScore} />
                 <KV label="Driving" value={health.drivingScore} />
                 <div className="col-span-2 md:col-span-5">
-                  <KV label="Next due" value={health.nextDueDate ? new Date(health.nextDueDate).toLocaleDateString() : null} />
+                  <KV label="Next due" value={formatDate(health.nextDueDate)} />
                 </div>
               </div>
             ) : (
@@ -206,7 +207,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
                     <span className="ml-2 text-white/60">{c.violationType}</span>
                   </div>
                   <div className="text-sm text-white/70">
-                    ₹{c.amount} · {c.status} · {new Date(c.date!).toLocaleDateString()}
+                    ₹{c.amount} · {c.status} · {formatDate(c.date)}
                     {c.location ? ` · ${c.location}` : ''}
                   </div>
                 </div>
@@ -225,7 +226,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
                 <div key={d.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
                   <span className="font-medium">{d.type}</span>
                   <span className="text-sm text-white/60">
-                    {d.verificationStatus ?? '—'} {d.expiryDate ? `· Exp ${new Date(d.expiryDate).toLocaleDateString()}` : ''}
+                    {d.verificationStatus ?? '—'} {d.expiryDate ? `· Exp ${formatDate(d.expiryDate)}` : ''}
                     {d.documentNumber ? ` · ${d.documentNumber}` : ''}
                   </span>
                 </div>
@@ -243,7 +244,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
               odometerLogs.map((o) => (
                 <div key={o.id} className="flex justify-between text-sm">
                   <span>{o.reading.toLocaleString()} km</span>
-                  <span className="text-white/60">{new Date(o.date).toLocaleDateString()}</span>
+                  <span className="text-white/60">{formatDate(o.date)}</span>
                 </div>
               ))
             )}
@@ -261,7 +262,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
                   <div className="flex flex-wrap justify-between gap-2">
                     <span className="font-medium">{sr.serviceType}</span>
                     <span className="text-sm text-white/60">
-                      {sr.garageName ?? '—'} · {new Date(sr.serviceDate).toLocaleDateString()}
+                      {sr.garageName ?? '—'} · {formatDate(sr.serviceDate)}
                     </span>
                   </div>
                   {sr.notes && <div className="mt-1 text-sm text-white/60">{sr.notes}</div>}
@@ -279,7 +280,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
                 <KV label="Instance" value={telematics.instanceId} />
                 <KV label="Platform" value={telematics.platform} />
                 <KV label="Active" value={telematics.isActive ? 'Yes' : 'No'} />
-                <KV label="Last sync" value={telematics.lastSyncAt ? new Date(telematics.lastSyncAt).toLocaleString() : null} />
+                <KV label="Last sync" value={formatDateTime(telematics.lastSyncAt)} />
               </div>
             ) : (
               <div className="text-sm text-white/50">No telematics device.</div>
@@ -311,7 +312,7 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
             ) : (
               drivingTrips.map((t) => (
                 <div key={t.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2 text-sm last:border-0 last:pb-0">
-                  <span>{new Date(t.startTime).toLocaleString()} → {new Date(t.endTime).toLocaleTimeString()}</span>
+                  <span>{formatDateTime(t.startTime)} → {formatTime(t.endTime)}</span>
                   <span className="text-white/70">
                     {t.distanceKm} km · {Math.round(t.durationMin)} min · Safety {t.safetyScore}
                   </span>
@@ -342,7 +343,7 @@ function DocumentViewer({ doc, onClose }: { doc: AdminVehicleDocument; onClose: 
                 {doc.expiryDate && (
                   <>
                     <span className="text-white/10">•</span>
-                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Expires: {new Date(doc.expiryDate).toLocaleDateString()}</span>
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Expires: {formatDate(doc.expiryDate)}</span>
                   </>
                 )}
               </div>
@@ -542,7 +543,7 @@ export default function CustomerDetail() {
                   </div>
                   <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
                     <div className="text-xs font-semibold text-white/50">Registration Date</div>
-                    <div className="mt-2 font-semibold text-white">{new Date(customer.createdAt).toLocaleString()}</div>
+                    <div className="mt-2 font-semibold text-white">{formatDateTime(customer.createdAt)}</div>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -703,7 +704,7 @@ export default function CustomerDetail() {
                           {e.category}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs font-medium text-white/30">{e.date ? new Date(e.date).toLocaleString() : 'N/A'}</div>
+                      <div className="mt-1 text-xs font-medium text-white/30">{formatDateTime(e.date)}</div>
                     </div>
                   ))
               ) : (
