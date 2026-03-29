@@ -106,52 +106,22 @@ export async function uploadDocument(params: UploadDocumentParams): Promise<Docu
   if (params.vehicleId) formData.append('vehicleId', params.vehicleId);
   if (params.documentNumber) formData.append('documentNumber', params.documentNumber);
 
-  const token = getAccessToken();
-  if (!token) {
-    console.warn('No access token found for document upload');
-    throw new Error('You are not logged in. Please sign in again.');
-  }
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    Accept: 'application/json',
-  };
-  // Debug: log token (remove in production)
-  if (__DEV__) console.log('UploadDocument: using token', token);
-
-  const res = await fetch(DOCUMENTS_URL, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error?.message || data?.message || 'Upload failed');
-  return data.data ?? data;
+  const res = await api.upload<any>('/v1/documents', formData);
+  return res.data ?? res;
 }
 
 export async function listDocuments(): Promise<DocumentResponse[]> {
-  const res = await fetch(DOCUMENTS_URL, { headers: authHeaders() });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || 'Failed to fetch documents');
-  return data.data ?? [];
+  const res = await api.get<any>('/v1/documents');
+  return res.data ?? [];
 }
 
 export async function getDocument(id: string): Promise<DocumentResponse> {
-  const res = await fetch(`${DOCUMENTS_URL}/${id}`, { headers: authHeaders() });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || 'Document not found');
-  return data.data ?? data;
+  const res = await api.get<any>(`/v1/documents/${id}`);
+  return res.data ?? res;
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  const res = await fetch(`${DOCUMENTS_URL}/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error((data as any)?.message || 'Failed to delete');
-  }
+  await api.delete(`/v1/documents/${id}`);
 }
 
 export async function syncDigiLocker(client_id?: string): Promise<any> {

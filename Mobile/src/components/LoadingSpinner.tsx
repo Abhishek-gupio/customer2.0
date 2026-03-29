@@ -47,12 +47,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             style={styles.lottie}
           />
         )}
-        <ActivityIndicator 
-          size="large" 
-          color="#FFBF00" 
-          style={StyleSheet.absoluteFill} 
-          animating={!isMounted} // Shown during the initial mount delay
-        />
       </View>
     </View>
   );

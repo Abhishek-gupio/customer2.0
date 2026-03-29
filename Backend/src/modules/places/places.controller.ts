@@ -25,7 +25,7 @@ export const placesController = {
     const lngStr = (req.query.longitude ?? req.query.lng) as string | undefined;
     const type = (req.query.type ?? "gas_station") as string;
     const radius = Math.min(
-      15000,
+      25000,
       Math.max(500, parseInt((req.query.radius as string) || "10000", 10) || 10000),
     );
 

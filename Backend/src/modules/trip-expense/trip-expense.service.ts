@@ -485,7 +485,7 @@ export const tripExpenseService = {
    * Refresh traffic and toll data for an existing trip
    */
   async refreshTripTraffic(tripId: string, customerId: string): Promise<TripExpenseResult> {
-    const trip = await (dbInstances as any).plannedTrip.findUnique({
+    const trip = await (dbInstances as any).plannedTrip.findFirst({
       where: { id: tripId, customerId },
     });
     if (!trip) throw AppError.notFound("Trip not found");

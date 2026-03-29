@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
@@ -21,8 +22,9 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
+import { generatePDF as RNGeneratePDF } from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
+import RNFS from 'react-native-fs';
 
 export default function DLVerification() {
   const navigation = useNavigation();
@@ -77,11 +79,13 @@ export default function DLVerification() {
     );
   };
 
-  const handleShare = async () => {
-    if (!verificationResult) return;
+  const createDLDocument = async () => {
+    if (!verificationResult || loading) return null;
 
     try {
+      setLoading(true);
       const data = verificationResult;
+      // ... same logic as before ...
       const details = data.details_of_driving_licence || data.details_of_driving_license || {};
       const validity = data.dl_validity || {};
       const badgeDetails = data.badge_details?.[0] || {};
@@ -104,6 +108,8 @@ export default function DLVerification() {
               .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
               .header h1 { margin: 0; font-size: 24px; color: #000; }
               .header p { margin: 5px 0; font-size: 14px; }
+              .header .logo-container { text-align: center; margin-bottom: 10px; }
+              .header .logo { width: 60px; height: 60px; object-fit: contain; }
               .meta-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
               .info-grid { display: flex; margin-top: 20px; }
               .info-left { flex: 3; }
@@ -119,6 +125,9 @@ export default function DLVerification() {
           <body>
             <div class="certificate">
               <div class="header">
+                <div class="logo-container">
+                   <img src="https://gupio.io/assets/images/indian_lion.png" class="logo" />
+                </div>
                 <h1>UNION OF INDIA DRIVING LICENSE</h1>
                 <p>Issuing Authority: ${authority}</p>
               </div>
@@ -153,27 +162,44 @@ export default function DLVerification() {
         </html>
       `;
 
-      setLoading(true);
       const options = {
         html: htmlContent,
-        fileName: `DL_${data.dl_number || 'Verification'}`,
-        directory: 'Documents',
+        fileName: `DL_${data.dl_number || 'Verification'}_${Date.now()}`,
+        // directory: 'Documents', // Removed to avoid EACCES on Android 11+
       };
 
-      const file: any = await RNHTMLtoPDF.convert(options);
-      if (file && file.filePath) {
-        await Share.open({
-          url: `file://${file.filePath}`,
-          type: 'application/pdf',
-          title: 'Driving License Certificate',
-        });
-      }
+      const file = await RNGeneratePDF(options);
+      return file?.filePath;
     } catch (error) {
-      console.log('Share Error:', error);
+      console.log('PDF Generation Error:', error);
+      return null;
     } finally {
       setLoading(false);
     }
   };
+
+  const handleShare = async () => {
+    if (loading) return;
+    const filePath = await createDLDocument();
+    if (filePath) {
+      const sharePath = filePath.startsWith('file://') ? filePath : `file://${filePath}`;
+      try {
+        await Share.open({
+          url: sharePath,
+          type: 'application/pdf',
+          title: 'Share Driving License',
+        });
+      } catch (err: any) {
+        if (err.message !== 'User did not share') {
+          console.log('Share error:', err);
+          Alert.alert('Share Failed', 'Unable to open share sheet.');
+        }
+      }
+    } else {
+      Alert.alert('Error', 'Could not generate certificate PDF.');
+    }
+  };
+
 
   const handleVerify = async () => {
     if (!dlNumber || !dob) {
@@ -225,7 +251,11 @@ export default function DLVerification() {
           {/* Header Part */}
           <View style={styles.certHeader}>
              <View style={styles.pillarContainer}>
-                <MaterialIcon name="podium-gold" size={hp(5)} color="#333" /> 
+                <Image 
+                  source={require('../../assets/images/indian_lion.png') as any} 
+                  style={{ width: wp(12), height: wp(12) }} 
+                  resizeMode="contain" 
+                />
              </View>
              <Text style={styles.certTitleLine1}>UNION OF INDIA DRIVING LICENSE</Text>
              <Text style={styles.certTitleLine2}>Issuing Authority : {authority}</Text>
@@ -344,15 +374,27 @@ export default function DLVerification() {
           <View style={styles.headerActions}>
             {verificationResult ? (
                 <>
-                <TouchableOpacity onPress={handleShare} style={styles.actionIcon}>
-                    <Icon name="share-2" size={22} color="#FFBF00" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setVerificationResult(null)} style={[styles.actionIcon, { marginLeft: 15 }]}>
-                    <Icon name="plus" size={24} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete} style={[styles.actionIcon, { marginLeft: 15 }]}>
-                    <Icon name="trash-2" size={22} color="#ff453a" />
-                </TouchableOpacity>
+                 <TouchableOpacity 
+                   onPress={handleShare} 
+                   style={[styles.actionIcon, loading && styles.disabledActionIcon]}
+                   disabled={loading}
+                 >
+                     <Icon name="share-2" size={22} color={loading ? "#444" : "#FFBF00"} />
+                 </TouchableOpacity>
+                 <TouchableOpacity 
+                   onPress={() => setVerificationResult(null)} 
+                   style={[styles.actionIcon, { marginLeft: 15 }]}
+                   disabled={loading}
+                 >
+                     <Icon name="plus" size={24} color={loading ? "#444" : "#fff"} />
+                 </TouchableOpacity>
+                 <TouchableOpacity 
+                   onPress={handleDelete} 
+                   style={[styles.actionIcon, { marginLeft: 15 }]}
+                   disabled={loading}
+                 >
+                     <Icon name="trash-2" size={22} color={loading ? "#444" : "#ff453a"} />
+                 </TouchableOpacity>
                 </>
             ) : null}
           </View>
@@ -463,6 +505,9 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
       padding: 5,
+  },
+  disabledActionIcon: {
+      opacity: 0.5,
   },
   loaderCenter: {
       flex: 1,

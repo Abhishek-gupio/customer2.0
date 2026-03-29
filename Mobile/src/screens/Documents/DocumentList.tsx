@@ -45,6 +45,7 @@ import { fetchDocuments, addDocumentFromResponse, toDocItem, removeDocumentAsync
 import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
+import { getAccessToken } from '../../services/storage';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -198,30 +199,47 @@ export default function DocumentList() {
 
   const createPDFFromDocuments = async (docs: any[], fileName?: string) => {
     try {
-      const fetchImageAsBase64 = async (uri: string) => {
-        try {
-          // If it's a remote URL, we need to download it or fetch as base64
-          if (uri.startsWith('http')) {
-            const tempPath = `${RNFS.CachesDirectoryPath}/temp_image_${Date.now()}.jpg`;
-            const downloadResult = await RNFS.downloadFile({
-              fromUrl: uri,
-              toFile: tempPath,
-            }).promise;
-            
-            if (downloadResult.statusCode === 200) {
-              const base64 = await RNFS.readFile(tempPath, 'base64');
-              await RNFS.unlink(tempPath);
-              return `data:image/jpeg;base64,${base64}`;
+      const fetchImageAsBase64 = async (uri: string, retries = 2) => {
+        if (!uri) return '';
+        
+        for (let i = 0; i <= retries; i++) {
+          try {
+            // If it's a remote URL, we need to download it with Auth headers
+            if (uri.startsWith('http')) {
+              const token = getAccessToken();
+              // Use a truly unique temporary path for each attempt
+              const tempPath = `${RNFS.CachesDirectoryPath}/pdf_tmp_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
+              
+              const downloadResult = await RNFS.downloadFile({
+                fromUrl: uri,
+                toFile: tempPath,
+                connectionTimeout: 15000,
+                readTimeout: 15000,
+              }).promise;
+              
+              if (downloadResult.statusCode === 200) {
+                const base64 = await RNFS.readFile(tempPath, 'base64');
+                await RNFS.unlink(tempPath).catch(() => {});
+                return `data:image/jpeg;base64,${base64}`;
+              } else {
+                 throw new Error(`Status ${downloadResult.statusCode}`);
+              }
+            } else {
+              // Local file
+              const cleanPath = uri.replace('file://', '');
+              if (await RNFS.exists(cleanPath)) {
+                const base64 = await RNFS.readFile(cleanPath, 'base64');
+                return `data:image/jpeg;base64,${base64}`;
+              }
+              return uri;
             }
-          } else if (uri.startsWith('file://')) {
-            const base64 = await RNFS.readFile(uri.replace('file://', ''), 'base64');
-            return `data:image/jpeg;base64,${base64}`;
+          } catch (e) {
+            console.error(`Attempt ${i+1} failed for ${uri}:`, e);
+            if (i === retries) return uri; // Return original URI as fallback
+            await new Promise(r => setTimeout(r, 1000)); // Wait before retry
           }
-          return uri;
-        } catch (e) {
-          console.error('Error fetching image as base64:', e);
-          return uri;
         }
+        return uri;
       };
 
       const pagesHtml = await Promise.all(docs.map(async (doc) => {
@@ -576,9 +594,9 @@ export default function DocumentList() {
         )}
 
         <View style={styles.gloveboxGrid}>
-          <DocumentSlot label="reg certificate" type="RC" />
-          <DocumentSlot label="insurance policy" type="Insurance" />
-          <DocumentSlot label="puc certificate" type="PUC" />
+          <DocumentSlot label="RC Front" type="RC" />
+          <DocumentSlot label="Insurance" type="Insurance" />
+          <DocumentSlot label="PUC" type="PUC" />
         </View>
 
         {/* Your Personal Documents */}
@@ -587,35 +605,7 @@ export default function DocumentList() {
         </View>
 
         <View style={styles.personalGrid}>
-          <View style={[styles.slotContainer, { width: '100%', alignItems: 'flex-start' }]}>
-            <TouchableOpacity
-              style={[styles.slotBox, { width: '30%', aspectRatio: 1.2 }]}
-              onPress={() => {
-                const doc = getDocByType('DL');
-                if (doc) {
-                   setViewingDoc(doc);
-                   setShowViewerModal(true);
-                } else {
-                   setSelectedDocType('DL');
-                   setShowSourceModal(true);
-                }
-              }}
-            >
-              {getDocByType('DL') ? (
-                <View style={styles.imageWrapper}>
-                  <Image 
-                    source={{ uri: getDocByType('DL')?.imageUri }} 
-                    style={styles.slotImage} 
-                    resizeMode="cover"
-                    onError={(e) => console.log('DL Image Load Error:', e.nativeEvent.error)}
-                  />
-                </View>
-              ) : (
-                <Plus size={24} color="#333" />
-              )}
-            </TouchableOpacity>
-            <Text style={styles.slotLabel}>driving license</Text>
-          </View>
+           <DocumentSlot label="Driving License" type="DL" />
         </View>
 
         <View style={styles.quickActions}>
@@ -833,8 +823,8 @@ const styles = StyleSheet.create({
   viewDetailsBtn: { paddingVertical: 4 },
   viewDetailsText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Medium', borderBottomWidth: 1, borderBottomColor: '#FFF' },
 
-  gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  personalGrid: { flexDirection: 'row', gap: 12 },
+  gloveboxGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  personalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
 
   slotContainer: { width: (width - 72) / 3, gap: 12 },
   slotBox: { width: '100%', aspectRatio: 1, backgroundColor: '#0A0A0A', borderRadius: 14, borderWidth: 1, borderColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
