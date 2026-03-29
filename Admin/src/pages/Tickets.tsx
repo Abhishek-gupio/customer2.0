@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
 import { getSocket } from '../lib/socket';
+import { formatDate, formatTime } from '../lib/dateUtils';
 
 export default function Tickets() {
   const { admin } = useAuth();
@@ -175,7 +176,10 @@ export default function Tickets() {
                 </div>
                 <p className="text-[12px] text-white/50 line-clamp-1 mt-1 font-medium">{t.customer?.fullName || t.customer?.phoneNumber}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-[11px] text-white/30 font-semibold uppercase tracking-wider"><Clock className="h-3 w-3" />{new Date(t.updatedAt).toLocaleDateString()}</div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-white/30 font-semibold uppercase tracking-wider">
+                    <Clock className="h-3 w-3" />
+                    {activeTab === 'CLOSED' ? `Resolved: ${formatDate(t.updatedAt)}` : formatDate(t.createdAt)}
+                  </div>
                   <div className="flex items-center gap-1 text-[11px] text-white/40 bg-white/5 px-2 py-0.5 rounded-full"><MessageSquare className="h-3 w-3" />{t._count.messages}</div>
                 </div>
               </button>
@@ -225,7 +229,13 @@ export default function Tickets() {
                   return (
                     <div key={msg.id} className={cn("flex flex-col animate-in fade-in slide-in-from-bottom-2", isMe ? "items-end" : "items-start")}>
                       <div className={cn("max-w-[80%] rounded-2xl px-5 py-3.5 text-sm font-medium leading-relaxed shadow-xl", isMe ? "bg-white text-black rounded-tr-none" : "bg-white/[0.05] border border-white/[0.08] text-white rounded-tl-none")}>{msg.content}</div>
-                      <div className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30">{isMe ? 'SUPPORT' : 'CUSTOMER'}<span>•</span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30">
+                        {isMe ? 'SUPPORT' : 'CUSTOMER'}
+                        <span>•</span>
+                        {formatTime(msg.createdAt)}
+                        <span className="mx-1">•</span>
+                        {formatDate(msg.createdAt)}
+                      </div>
                     </div>
                   );
                 })
@@ -318,16 +328,15 @@ export default function Tickets() {
                   </tr>
                 ) : (
                   filteredTickets.map((t) => {
-                    const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
                     return (
                       <tr
                         key={t.id}
                         className={cn(
                           "group transition-colors",
-                          isSuperAdmin ? "cursor-default opacity-80" : "cursor-pointer hover:bg-white/[0.02]",
+                          "cursor-pointer hover:bg-white/[0.02]",
                           selectedTicketId === t.id && "bg-white/[0.05]"
                         )}
-                        onClick={() => !isSuperAdmin && handleTicketSelect(t.id)}
+                        onClick={() => handleTicketSelect(t.id)}
                       >
                         <td className="px-6 py-5">
                           <div className="flex flex-col">
@@ -381,7 +390,9 @@ export default function Tickets() {
                           </div>
                         </td>
                         <td className="px-6 py-5">
-                          <span className="text-[11px] text-white/40 font-semibold">{new Date(t.createdAt).toLocaleDateString()}</span>
+                          <span className="text-[11px] text-white/40 font-semibold">
+                            {activeTab === 'CLOSED' ? formatDate(t.updatedAt) : formatDate(t.createdAt)}
+                          </span>
                         </td>
                       </tr>
                     );
@@ -453,7 +464,8 @@ export default function Tickets() {
                           <div className="mt-2.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 mx-4 opacity-70 group-hover/msg:opacity-100 transition-opacity">
                             {isMe ? 'OPERATOR' : 'CLIENT'}
                             <span className="opacity-40">•</span>
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatTime(msg.createdAt)}
+                            <span className="opacity-40 ml-1">•</span> {formatDate(msg.createdAt)}
                           </div>
                         </div>
                       );
@@ -466,7 +478,7 @@ export default function Tickets() {
 
             {/* Compact Management Interface */}
             <div className="p-6 bg-black/60 border-t border-white/[0.1] backdrop-blur-3xl shrink-0">
-              {admin?.role === 'ADMIN' ? (
+              {(admin?.role as string === 'ADMIN' || admin?.role as string === 'SUPER_ADMIN') ? (
                 <div className="flex flex-col items-center gap-4">
                   {(activeTicket?.status === 'RESOLVED' || activeTicket?.status === 'CLOSED') && (
                     <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500/60 transition-all">
@@ -482,7 +494,7 @@ export default function Tickets() {
                     </div>
                   </div>
                 </div>
-              ) : (admin?.role !== 'SUPER_ADMIN' && (activeTicket?.status === 'RESOLVED' || activeTicket?.status === 'CLOSED')) ? (
+              ) : (admin?.role as string !== 'SUPER_ADMIN' && (activeTicket?.status === 'RESOLVED' || activeTicket?.status === 'CLOSED')) ? (
                 <div className="flex flex-col items-center justify-center py-6 text-emerald-500/40 gap-4">
                   <div className="h-12 w-12 rounded-full border border-emerald-500/20 flex items-center justify-center bg-emerald-500/5">
                     <CheckCircle2 className="h-6 w-6 opacity-60" />
