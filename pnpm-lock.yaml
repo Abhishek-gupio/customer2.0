@@ -13,7 +13,7 @@ overrides:
 
 patchedDependencies:
   '@react-native-voice/voice@3.2.4':
-    hash: fcqxx3jgrww7xfvohg7nlqemqe
+    hash: uqiigv2533zuu5nyamq2jbds4y
     path: patches/@react-native-voice__voice@3.2.4.patch
   react-native-tts@4.1.1:
     hash: wmsqw4gtfflojlp2xjpln7eh6m
@@ -366,7 +366,7 @@ importers:
         version: 16.1.2(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       '@react-native-voice/voice':
         specifier: ^3.2.4
-        version: 3.2.4(patch_hash=fcqxx3jgrww7xfvohg7nlqemqe)(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))
+        version: 3.2.4(patch_hash=uqiigv2533zuu5nyamq2jbds4y)(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))
       '@react-native/codegen':
         specifier: ^0.83.1
         version: 0.83.4(@babel/core@7.29.0)
@@ -11920,7 +11920,7 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)
 
-  '@react-native-voice/voice@3.2.4(patch_hash=fcqxx3jgrww7xfvohg7nlqemqe)(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))':
+  '@react-native-voice/voice@3.2.4(patch_hash=uqiigv2533zuu5nyamq2jbds4y)(react-native@0.83.1(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))':
     dependencies:
       '@expo/config-plugins': 2.0.4
       invariant: 2.2.4

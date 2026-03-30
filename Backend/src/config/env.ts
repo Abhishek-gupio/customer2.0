@@ -10,8 +10,10 @@ const envSchema = z.object({
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
   CORS_ORIGIN: z.string().default("*"),
-  /** Max requests per IP per 15 min. Increase if API docs / Try it out burns limit (e.g. 300). */
+  /** Max requests per window (global API limiter). */
   RATE_LIMIT_MAX: z.coerce.number().default(300),
+  /** Global API limiter window in milliseconds (default 15 minutes). */
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z
     .string()
