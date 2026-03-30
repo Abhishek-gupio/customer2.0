@@ -36,6 +36,8 @@ type AsyncStorageModule = {
   multiGet: (keys: readonly string[]) => Promise<Array<[string, string | null]>>;
 };
 
+type MmkvRuntimeStatus = 'ready' | 'missing-native-module' | 'missing-sync-hook' | 'missing-install';
+
 let storage: StorageImpl;
 let storageBackend: 'mmkv' | 'async-auth' | 'memory' = 'memory';
 let mmkvLoadError: unknown = null;
@@ -43,6 +45,23 @@ let asyncStorageLoadError: unknown = null;
 
 const authAsyncCache: Record<string, string> = {};
 const miscMem: Record<string, string> = {};
+
+function getMmkvRuntimeStatus(): MmkvRuntimeStatus {
+  try {
+    const { NativeModules } = require('react-native') as {
+      NativeModules?: { MMKV?: { install?: unknown } };
+    };
+    const mmkvModule = NativeModules?.MMKV;
+    if (mmkvModule == null) return 'missing-native-module';
+    if ((globalThis as { nativeCallSyncHook?: unknown }).nativeCallSyncHook == null) {
+      return 'missing-sync-hook';
+    }
+    if (mmkvModule.install == null) return 'missing-install';
+    return 'ready';
+  } catch {
+    return 'missing-native-module';
+  }
+}
 
 function getAsyncStorage(): AsyncStorageModule | null {
   try {
@@ -56,7 +75,18 @@ function getAsyncStorage(): AsyncStorageModule | null {
   }
 }
 
+const mmkvRuntimeStatus = getMmkvRuntimeStatus();
+
 try {
+  if (mmkvRuntimeStatus !== 'ready') {
+    throw new Error(
+      mmkvRuntimeStatus === 'missing-sync-hook'
+        ? 'MMKV requires synchronous native calls (JSI), which are unavailable in the current JS runtime.'
+        : mmkvRuntimeStatus === 'missing-install'
+          ? 'MMKV native install hook is unavailable.'
+          : 'MMKV native module is unavailable.',
+    );
+  }
   const MMKV = (require('react-native-mmkv') as { MMKV: new () => StorageImpl }).MMKV;
   storage = new MMKV();
   storageBackend = 'mmkv';
@@ -107,12 +137,17 @@ try {
       : asyncStorageLoadError instanceof Error
         ? `${asyncStorageLoadError.name}: ${asyncStorageLoadError.message}`
         : String(asyncStorageLoadError);
-    console.warn(`[storage] MMKV unavailable. ${mmkvMsg}`);
-    console.warn(
-      asyncStorage
-        ? `[storage] ${asyncMsg}`
-        : `[storage] AsyncStorage unavailable; using in-memory storage only. ${asyncMsg}`,
-    );
+    const isExpectedDevFallback = mmkvRuntimeStatus === 'missing-sync-hook' && asyncStorage != null;
+    if (isExpectedDevFallback) {
+      console.log('[storage] Using AsyncStorage auth fallback because MMKV requires on-device JSI.');
+    } else {
+      console.warn(`[storage] MMKV unavailable. ${mmkvMsg}`);
+      console.warn(
+        asyncStorage
+          ? `[storage] ${asyncMsg}`
+          : `[storage] AsyncStorage unavailable; using in-memory storage only. ${asyncMsg}`,
+      );
+    }
   }
 }
 
