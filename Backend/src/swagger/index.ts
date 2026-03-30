@@ -15,6 +15,10 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
+        url: "https://customerapi.gupio.tech",
+        description: "Production server",
+      },
+      {
         url: `http://localhost:${env.PORT}`,
         description: "Development server",
       },
