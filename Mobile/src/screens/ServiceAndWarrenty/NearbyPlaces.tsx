@@ -125,6 +125,7 @@ function openMapsNavigation(lat: number, lng: number, label?: string) {
 
 const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyPlaceType>> = {
   FuelStations: 'gas_station',
+  CarWash: 'car_wash',
   ChargingStation: 'electric_charging_station',
   Mechanics: 'car_repair',
   Hospital: 'hospital',
@@ -453,7 +454,7 @@ export default function NearbyPlaces() {
   };
 
   if (placeType) {
-    const apiType = PLACE_API_TYPE[placeType];
+    const apiType = PLACE_API_TYPE[placeType] ?? (placeType === 'CarWash' ? 'car_wash' : 'gas_station');
     return (
       <NearbyPlacesListScreen
         onBack={handleBack}

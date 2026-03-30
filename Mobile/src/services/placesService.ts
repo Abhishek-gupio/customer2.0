@@ -18,6 +18,7 @@ export interface NearbyPlace {
 
 export type NearbyPlaceType =
   | 'gas_station'
+  | 'car_wash'
   | 'electric_charging_station'
   | 'hospital'
   | 'police'
