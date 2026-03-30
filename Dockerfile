@@ -8,6 +8,7 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY Backend/package.json ./Backend/package.json
 COPY prisma/package.json  ./prisma/package.json
+COPY patches/ ./patches/
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source files
@@ -34,6 +35,7 @@ COPY --from=builder /app/pnpm-workspace.yaml   ./pnpm-workspace.yaml
 COPY --from=builder /app/pnpm-lock.yaml        ./pnpm-lock.yaml
 COPY --from=builder /app/Backend/package.json  ./Backend/package.json
 COPY --from=builder /app/prisma/package.json   ./prisma/package.json
+COPY --from=builder /app/patches/              ./patches/
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Copy built output
