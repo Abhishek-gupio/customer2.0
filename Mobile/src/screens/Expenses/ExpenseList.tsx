@@ -7,6 +7,8 @@ import {
   RefreshControl,
   Modal,
   Pressable,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -345,6 +347,33 @@ const ExpenseFeed = () => {
       };
     }, [fetchExpenses, loadPrimaryVehicle])
   );
+
+  React.useEffect(() => {
+    let currentAppState: AppStateStatus = AppState.currentState;
+
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      const wasBackgrounded =
+        currentAppState === 'background' || currentAppState === 'inactive';
+
+      currentAppState = nextAppState;
+
+      if (nextAppState !== 'active' || !wasBackgrounded) {
+        return;
+      }
+
+      loadPrimaryVehicle()
+        .then((resolvedPrimaryVehicle) => {
+          fetchExpenses(resolvedPrimaryVehicle?.id ?? vehicleIdRef.current ?? null);
+        })
+        .catch((error) => {
+          console.error('Failed to refresh expenses on app resume:', error);
+        });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [fetchExpenses, loadPrimaryVehicle]);
 
   // ── Compute "Total This Month" ──
   React.useEffect(() => {

@@ -224,6 +224,7 @@ const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
 
 export function getAutoExpenseEnabled(): boolean {
   const s = storage.getString(AUTO_EXPENSE_ENABLED_KEY);
+  if (s == null || s === '') return true;
   return s === 'true';
 }
 
