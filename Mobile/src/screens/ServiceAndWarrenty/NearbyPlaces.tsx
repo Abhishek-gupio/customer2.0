@@ -133,6 +133,12 @@ const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyPlaceType>> = {
   Parking: 'parking',
   Hotel: 'lodging',
   TouristAttraction: 'tourist_attraction',
+  TyreShop: 'car_repair',
+  Towing: 'car_repair',
+  CarSpa: 'car_wash',
+  RTO: 'local_government_office',
+  DocumentServices: 'local_government_office',
+  Insurance: 'insurance_agency',
 };
 
 function NearbyPlacesListScreen({

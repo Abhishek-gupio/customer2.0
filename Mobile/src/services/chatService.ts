@@ -661,7 +661,10 @@ function getLocalVehicleFactAnswer(
 ): VehicleFactAnswer | null {
     const text = getEffectiveUserMessage(message).toLowerCase();
     if (!text || !vehicle) return null;
-    if (/(add|log|create|save)\s+.*expense|expense\s+(of|for)|spent\s+\d+/.test(text)) {
+    const looksLikeExpenseIntent =
+        /(add|log|create|save)\s+.*expense|expense\s+(of|for)|spent\s+\d+/.test(text) ||
+        /(add|log|create|save|spent|pay|paid|refuel|refueled)\s+.*\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(text);
+    if (looksLikeExpenseIntent) {
         return null;
     }
 
@@ -1447,10 +1450,6 @@ export const chatService = {
         if (localProfileUpdate && !options?.image) {
             return localProfileUpdate;
         }
-        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
-        if (localUserFactAnswer && !options?.image) {
-            return localUserFactAnswer;
-        }
         const localEmergencyAlert = await tryResolveLocalEmergencyAlert(message, sessionId);
         if (localEmergencyAlert && !options?.image) {
             return localEmergencyAlert;
@@ -1466,6 +1465,10 @@ export const chatService = {
         const localExpenseCreate = await tryResolveLocalExpenseCreate(message, sessionId, primaryVehicle);
         if (localExpenseCreate && !options?.image) {
             return localExpenseCreate;
+        }
+        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
+        if (localUserFactAnswer && !options?.image) {
+            return localUserFactAnswer;
         }
         const localVehicleCount = await tryResolveLocalVehicleCountAnswer(message, sessionId);
         if (localVehicleCount && !options?.image) {
@@ -1543,18 +1546,6 @@ export const chatService = {
             });
             return;
         }
-        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
-        if (localUserFactAnswer && !options?.image) {
-            onChunk({ type: 'session', sessionId: localUserFactAnswer.sessionId });
-            onChunk({ type: 'chunk', text: localUserFactAnswer.message });
-            onChunk({
-                type: 'done',
-                contextUsed: localUserFactAnswer.contextUsed,
-                toolResults: localUserFactAnswer.toolResults,
-                suggestedActions: localUserFactAnswer.suggestedActions,
-            });
-            return;
-        }
         const localEmergencyAlert = await tryResolveLocalEmergencyAlert(message, sessionId);
         if (localEmergencyAlert && !options?.image) {
             onChunk({ type: 'session', sessionId: localEmergencyAlert.sessionId });
@@ -1600,6 +1591,18 @@ export const chatService = {
                 contextUsed: localExpenseCreate.contextUsed,
                 toolResults: localExpenseCreate.toolResults,
                 suggestedActions: localExpenseCreate.suggestedActions,
+            });
+            return;
+        }
+        const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
+        if (localUserFactAnswer && !options?.image) {
+            onChunk({ type: 'session', sessionId: localUserFactAnswer.sessionId });
+            onChunk({ type: 'chunk', text: localUserFactAnswer.message });
+            onChunk({
+                type: 'done',
+                contextUsed: localUserFactAnswer.contextUsed,
+                toolResults: localUserFactAnswer.toolResults,
+                suggestedActions: localUserFactAnswer.suggestedActions,
             });
             return;
         }
