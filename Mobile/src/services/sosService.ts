@@ -24,6 +24,8 @@ export interface NearbyHelpItem {
     placeId?: string;
     name?: string;
     address?: string;
+    type?: string;
+    phoneNumber?: string;
     location?: { lat: number; lng: number };
 }
 

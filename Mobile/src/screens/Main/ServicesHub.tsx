@@ -39,22 +39,31 @@ type ServiceId =
   | 'CarSpa'
   | 'TripExpense';
 
-type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' };
+type ServiceAvailability = 'direct' | 'nearby';
+
+type ServiceItem = {
+  id: ServiceId;
+  name: string;
+  icon: string;
+  iconSet: 'fa' | 'mc';
+  availability: ServiceAvailability;
+  helperText: string;
+};
 
 const SERVICE_ITEMS: ServiceItem[] = [
-  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
-  { id: 'ServiceHistory', name: 'History', icon: 'history', iconSet: 'fa' },
-  { id: 'NearbyPlaces', name: 'Nearby', icon: 'map-marker-alt', iconSet: 'fa' },
-  { id: 'CheckChallan', name: 'Challan', icon: 'gavel', iconSet: 'fa' },
-  { id: 'FuelStations', name: 'Fuel', icon: 'gas-station', iconSet: 'mc' },
-  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
-  { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
-  { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
-  { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
-  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
-  { id: 'Insurance', name: 'Insurance', icon: 'shield-check', iconSet: 'mc' },
-  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
+  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa', availability: 'direct', helperText: 'Dedicated health screen' },
+  { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa', availability: 'direct', helperText: 'Past service records' },
+  { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa', availability: 'direct', helperText: 'Explore around you' },
+  { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa', availability: 'direct', helperText: 'Check dues instantly' },
+  { id: 'FuelStations', name: 'Fuel Nearby', icon: 'gas-station', iconSet: 'mc', availability: 'nearby', helperText: 'Live places around you' },
+  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc', availability: 'nearby', helperText: 'Live places around you' },
+  { id: 'Mechanics', name: 'Mechanics', icon: 'wrench', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby help only' },
+  { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc', availability: 'nearby', helperText: 'Nearby help only' },
+  { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby office search' },
+  { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby help only' },
+  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby spots only' },
+  { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc', availability: 'nearby', helperText: 'Nearby offices only' },
+  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa', availability: 'direct', helperText: 'Planner and estimate' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
@@ -77,17 +86,17 @@ const ADS_DATA = [
   {
     id: '2',
     title: 'Smart Parking',
-    subtitle: 'Find Spots Nearby',
-    desc: 'Tired of searching? Locate premium parking spots in seconds.',
+    subtitle: 'Nearby parking',
+    desc: 'See parking options around you and jump straight into directions.',
     theme: '#60a5fa',
     icon: 'parking',
     target: 'Parking',
   },
   {
     id: '3',
-    title: 'Expert Mechanics',
-    subtitle: 'Book a Service',
-    desc: 'Trusted repairs and transparent pricing for your vehicle care.',
+    title: 'Nearby Mechanics',
+    subtitle: 'Quick local help',
+    desc: 'Browse mechanics around you when you need service support fast.',
     theme: '#94a3b8',
     icon: 'wrench',
     target: 'Mechanics', 
@@ -104,6 +113,8 @@ const ADS_DATA = [
 ];
 
 const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id)!;
+const DIRECT_SERVICE_COUNT = SERVICE_ITEMS.filter((item) => item.availability === 'direct').length;
+const NEARBY_SERVICE_COUNT = SERVICE_ITEMS.filter((item) => item.availability === 'nearby').length;
 
 const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
   'FuelStations',
@@ -227,6 +238,21 @@ export default function ServicesHub() {
       ) : null}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.readinessCard}>
+          <Text style={styles.readinessTitle}>What is ready today</Text>
+          <Text style={styles.readinessBody}>
+            Direct services open a full workflow. Nearby services use your live location to show real places around you, so we are not over-promising unfinished flows.
+          </Text>
+          <View style={styles.readinessLegendRow}>
+            <View style={[styles.readinessPill, styles.directPill]}>
+              <Text style={[styles.readinessPillText, styles.directPillText]}>{DIRECT_SERVICE_COUNT} direct</Text>
+            </View>
+            <View style={[styles.readinessPill, styles.nearbyPill]}>
+              <Text style={[styles.readinessPillText, styles.nearbyPillText]}>{NEARBY_SERVICE_COUNT} nearby</Text>
+            </View>
+          </View>
+        </View>
+
         {/* Ad Carousel */}
         <View style={styles.adsWrapper}>
           <FlatList
@@ -301,6 +327,22 @@ export default function ServicesHub() {
                         )}
                       </View>
                       <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
+                      <View
+                        style={[
+                          styles.serviceMetaPill,
+                          item.availability === 'direct' ? styles.directServicePill : styles.nearbyServicePill,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.serviceMetaText,
+                            item.availability === 'direct' ? styles.directServiceText : styles.nearbyServiceText,
+                          ]}
+                        >
+                          {item.availability === 'direct' ? 'Direct' : 'Nearby'}
+                        </Text>
+                      </View>
+                      <Text style={styles.helperText} numberOfLines={2}>{item.helperText}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -318,7 +360,7 @@ export default function ServicesHub() {
 
         <View style={styles.infoRow}>
           <Icon name="info-circle" size={wp(3)} color="#444" />
-          <Text style={styles.infoText}>More services coming soon</Text>
+          <Text style={styles.infoText}>Location-based services show nearby options; more guided flows are still rolling out.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -361,6 +403,58 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: hp(4),
+  },
+  readinessCard: {
+    marginHorizontal: wp(5),
+    marginBottom: hp(2),
+    padding: wp(5),
+    borderRadius: 20,
+    backgroundColor: '#111418',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  readinessTitle: {
+    fontSize: wp(4.6),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  readinessBody: {
+    marginTop: hp(1),
+    color: 'rgba(255,255,255,0.65)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.3),
+    lineHeight: hp(2.2),
+  },
+  readinessLegendRow: {
+    flexDirection: 'row',
+    gap: wp(2.5),
+    marginTop: hp(1.8),
+  },
+  readinessPill: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.7),
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  readinessPillText: {
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  directPill: {
+    backgroundColor: 'rgba(74,222,128,0.12)',
+    borderColor: 'rgba(74,222,128,0.35)',
+  },
+  directPillText: {
+    color: '#4ade80',
+  },
+  nearbyPill: {
+    backgroundColor: 'rgba(96,165,250,0.12)',
+    borderColor: 'rgba(96,165,250,0.35)',
+  },
+  nearbyPillText: {
+    color: '#60a5fa',
   },
   searchWrap: {
     paddingHorizontal: wp(6),
@@ -505,6 +599,41 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
     color: '#fff',
     textAlign: 'center',
+  },
+  serviceMetaPill: {
+    marginTop: hp(0.8),
+    paddingHorizontal: wp(2.3),
+    paddingVertical: hp(0.35),
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  directServicePill: {
+    backgroundColor: 'rgba(74,222,128,0.12)',
+    borderColor: 'rgba(74,222,128,0.35)',
+  },
+  nearbyServicePill: {
+    backgroundColor: 'rgba(96,165,250,0.12)',
+    borderColor: 'rgba(96,165,250,0.35)',
+  },
+  serviceMetaText: {
+    fontSize: wp(2.4),
+    fontFamily: 'Outfit-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+  },
+  directServiceText: {
+    color: '#4ade80',
+  },
+  nearbyServiceText: {
+    color: '#60a5fa',
+  },
+  helperText: {
+    marginTop: hp(0.5),
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: wp(2.5),
+    fontFamily: 'Outfit-Regular',
+    textAlign: 'center',
+    lineHeight: hp(1.7),
   },
   infoRow: {
     flexDirection: 'row',

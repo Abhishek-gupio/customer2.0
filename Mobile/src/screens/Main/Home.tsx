@@ -36,6 +36,8 @@ import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
 import { PermissionsAndroid } from 'react-native';
 import { getLastOdometerUpdate } from '../../services/storage';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchDocuments } from '../../store/slices/documentsSlice';
 
 // GPS-based location
 let Geolocation: any = null;
@@ -57,6 +59,19 @@ function sortCarNewsLatestFirst(list: any[]): any[] {
     return tb - ta;
   });
 }
+
+type TimelineItem = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: string;
+  iconSet: 'fa' | 'mc' | 'ion';
+  accent: string;
+  badge: string;
+  cta: string;
+  onPress: () => void;
+};
 
 import { Animated, Easing } from 'react-native';
 
@@ -176,6 +191,8 @@ const healthStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  const documents = useAppSelector((state) => state.documents.documents);
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
@@ -188,6 +205,12 @@ export default function Home() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [vehicleLoading, setVehicleLoading] = useState(true);
   const [serviceDueText, setServiceDueText] = useState('Checking...');
+  const [serviceAlertCount, setServiceAlertCount] = useState(0);
+  const [serviceDueSoonCount, setServiceDueSoonCount] = useState(0);
+  const [monthlySpendTotal, setMonthlySpendTotal] = useState<number | null>(null);
+  const [monthlyExpenseCount, setMonthlyExpenseCount] = useState(0);
+  const [expenseAlertCount, setExpenseAlertCount] = useState(0);
+  const [expenseHeadline, setExpenseHeadline] = useState('Track monthly spend and smart alerts.');
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [trendingNews, setTrendingNews] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
@@ -195,6 +218,7 @@ export default function Home() {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
   const carouselRef = useRef<FlatList>(null);
+  const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
@@ -229,7 +253,8 @@ export default function Home() {
   useEffect(() => {
     fetchDiscoveryContent();
     fetchUserLocationWithRetry(0);
-  }, []);
+    dispatch(fetchDocuments());
+  }, [dispatch]);
 
   // Fetch fuel prices when state changes
   useEffect(() => {
@@ -240,9 +265,10 @@ export default function Home() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchPrimaryVehicle();
+      fetchPrimaryVehicleRef.current?.();
       fetchDiscoveryContent();
-    }, [])
+      dispatch(fetchDocuments());
+    }, [dispatch])
   );
 
   const pauseAutoScrollTemporarily = useCallback(() => {
@@ -321,6 +347,72 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, []);
 
+  const fetchExpenseHighlights = async (vehicleId?: string) => {
+    try {
+      const [expenseResponse, insightsResponse] = await Promise.allSettled([
+        api.get<any>(vehicleId ? `/v1/expenses?vehicleId=${vehicleId}` : '/v1/expenses'),
+        api.get<any>('/v1/expenses/insights'),
+      ]);
+
+      const expensePayload =
+        expenseResponse.status === 'fulfilled'
+          ? (expenseResponse.value as any)?.data ?? expenseResponse.value
+          : null;
+      const expenseItems =
+        expensePayload?.expenses ??
+        expensePayload?.data?.expenses ??
+        expensePayload?.data ??
+        [];
+      const normalizedExpenses = Array.isArray(expenseItems) ? expenseItems : [];
+      const currentDate = new Date();
+      const currentMonthExpenses = normalizedExpenses.filter((item: any) => {
+        const expenseDate = new Date(item?.date);
+        return (
+          !Number.isNaN(expenseDate.getTime()) &&
+          expenseDate.getMonth() === currentDate.getMonth() &&
+          expenseDate.getFullYear() === currentDate.getFullYear()
+        );
+      });
+
+      const currentMonthTotal = currentMonthExpenses.reduce((sum: number, item: any) => {
+        const amount = typeof item?.amount === 'number' ? item.amount : Number(item?.amount || 0);
+        return Number.isFinite(amount) ? sum + amount : sum;
+      }, 0);
+
+      setMonthlySpendTotal(currentMonthTotal);
+      setMonthlyExpenseCount(currentMonthExpenses.length);
+
+      const insightsPayload =
+        insightsResponse.status === 'fulfilled'
+          ? (insightsResponse.value as any)?.data ?? insightsResponse.value
+          : null;
+      const smartTips = Array.isArray(insightsPayload?.smartTips)
+        ? insightsPayload.smartTips
+        : Array.isArray(insightsPayload?.weeklyDigest?.tips)
+          ? insightsPayload.weeklyDigest.tips
+          : [];
+      const flaggedTips = smartTips.filter((tip: string) =>
+        /(up|review|consider|over|high|cut|spend|fuel)/i.test(tip)
+      );
+
+      setExpenseAlertCount(flaggedTips.length);
+
+      if (smartTips[0]) {
+        setExpenseHeadline(String(smartTips[0]).replace(/[^\x20-\x7E\u20B9]/g, '').trim() || 'Smart spend insight available.');
+      } else if (currentMonthExpenses.length > 0) {
+        setExpenseHeadline(`${currentMonthExpenses.length} expense${currentMonthExpenses.length === 1 ? '' : 's'} recorded this month.`);
+      } else {
+        setExpenseHeadline('No expenses recorded this month yet.');
+      }
+    } catch (error) {
+      console.warn('Could not fetch expense highlights for home', error);
+      setMonthlySpendTotal(null);
+      setMonthlyExpenseCount(0);
+      setExpenseAlertCount(0);
+      setExpenseHeadline('Track monthly spend and smart alerts.');
+    }
+  };
+
   const fetchPrimaryVehicle = async () => {
     try {
       setVehicleLoading(true);
@@ -346,6 +438,10 @@ export default function Home() {
 
           if (Array.isArray(rawData)) {
             const overdue = rawData.find((p: any) => p.urgency === 'OVERDUE');
+            const overdueCount = rawData.filter((p: any) => p.urgency === 'OVERDUE').length;
+            const dueSoonCount = rawData.filter((p: any) => p.urgency === 'DUE_SOON' || p.urgency === 'UPCOMING').length;
+            setServiceAlertCount(overdueCount);
+            setServiceDueSoonCount(dueSoonCount);
             if (overdue) {
               setServiceDueText('Overdue!');
             } else {
@@ -360,11 +456,24 @@ export default function Home() {
           } else {
             console.warn('Unexpected upcoming service response format', rawData);
             setServiceDueText('Healthy');
+            setServiceAlertCount(0);
+            setServiceDueSoonCount(0);
           }
         } catch (err) {
           console.warn('Could not fetch upcoming service for home', err);
           setServiceDueText('Checking...');
+          setServiceAlertCount(0);
+          setServiceDueSoonCount(0);
         }
+
+        fetchExpenseHighlights(primary.id);
+      } else {
+        setVehicle(null);
+        setServiceDueText('Add vehicle');
+        setServiceAlertCount(0);
+        setServiceDueSoonCount(0);
+        setShowOdometerSlide(false);
+        fetchExpenseHighlights();
       }
     } catch (error) {
       console.error('Error fetching primary vehicle:', error);
@@ -372,6 +481,7 @@ export default function Home() {
       setVehicleLoading(false);
     }
   };
+  fetchPrimaryVehicleRef.current = fetchPrimaryVehicle;
 
   const fetchFuelPrices = async () => {
     try {
@@ -626,6 +736,188 @@ export default function Home() {
       console.error('Error opening URL:', error);
     }
   };
+
+  const openAiAssistant = (userMessage?: string) => {
+    if (userMessage) {
+      (navigation as any).navigate('AIAssistant', { userMessage });
+      return;
+    }
+    (navigation as any).navigate('AIAssistant');
+  };
+
+  const lastOdometerUpdate = vehicle?.id ? getLastOdometerUpdate(vehicle.id) : null;
+  const currentTimeMs = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const odometerAgeDays = lastOdometerUpdate ? Math.floor((currentTimeMs - lastOdometerUpdate) / dayMs) : null;
+  const odometerSummary = !lastOdometerUpdate
+    ? 'No reading saved yet. Keeping odometer updated improves health and expense accuracy.'
+    : odometerAgeDays === 0
+      ? 'Odometer was updated today. Keep logging consistently to sharpen insights.'
+      : `Last reading was ${odometerAgeDays} day${odometerAgeDays === 1 ? '' : 's'} ago.`;
+
+  const healthScore = vehicle?.healthScore?.overallScore ?? null;
+  const fuelSummary = fuelPrices
+    ? `Petrol ₹${fuelPrices.petrol} • Diesel ₹${fuelPrices.diesel}${fuelPrices.cng ? ` • CNG ₹${fuelPrices.cng}` : ''}`
+    : selectedState === 'Detecting...'
+      ? 'We are finding fuel prices for your current state.'
+      : `Fuel prices for ${selectedState} will appear here when available.`;
+  const requiredDocumentTypes = ['RC', 'Insurance', 'PUC', 'DL'];
+  const requiredDocumentLabels: Record<string, string> = {
+    RC: 'RC',
+    Insurance: 'insurance',
+    PUC: 'PUC',
+    DL: 'license',
+  };
+  const requiredDocuments = requiredDocumentTypes.map((type) => documents.find((doc) => doc.type === type));
+  const missingDocumentTypes = requiredDocumentTypes.filter((type) => !documents.find((doc) => doc.type === type));
+  const documentsNeedingReview = requiredDocuments.filter((doc) => doc && doc.status !== 'verified');
+  const documentBadge = missingDocumentTypes.length > 0
+    ? `${missingDocumentTypes.length} missing`
+    : documentsNeedingReview.length > 0
+      ? `${documentsNeedingReview.length} review`
+      : 'Ready';
+  const documentAccent = missingDocumentTypes.length > 0
+    ? '#f59e0b'
+    : documentsNeedingReview.length > 0
+      ? '#fb7185'
+      : '#22c55e';
+  const documentTitle = missingDocumentTypes.length > 0
+    ? 'Complete your glovebox'
+    : documentsNeedingReview.length > 0
+      ? 'Review document expiry'
+      : 'Documents look healthy';
+  const documentSummary = missingDocumentTypes.length > 0
+    ? `Add ${missingDocumentTypes
+      .slice(0, 2)
+      .map((type) => requiredDocumentLabels[type])
+      .join(' and ')} so you have the essentials for daily driving.`
+    : documentsNeedingReview.length > 0
+      ? 'One or more stored documents are expiring or expired. Review them before your next trip.'
+      : 'RC, insurance, PUC and license are already stored in your glovebox.';
+  const serviceBadge = serviceAlertCount > 0
+    ? `${serviceAlertCount} overdue`
+    : serviceDueSoonCount > 0
+      ? `${serviceDueSoonCount} due soon`
+      : vehicle ? 'Live' : 'Start here';
+  const serviceAccent = serviceAlertCount > 0
+    ? '#fb7185'
+    : serviceDueSoonCount > 0
+      ? '#f59e0b'
+      : '#4ade80';
+  const serviceTitle = vehicle
+    ? serviceAlertCount > 0
+      ? `${serviceAlertCount} service alert${serviceAlertCount === 1 ? '' : 's'}`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} parts need attention`
+        : `${healthScore ?? 100}% health score`
+    : 'Add your first vehicle';
+  const serviceSummary = vehicle
+    ? serviceAlertCount > 0
+      ? `${serviceAlertCount} part${serviceAlertCount === 1 ? '' : 's'} are overdue. Open health to review the most urgent replacements.`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} part${serviceDueSoonCount === 1 ? '' : 's'} are due soon. Your next checkpoint is ${serviceDueText}.`
+        : `Your next service checkpoint is ${serviceDueText}.`
+    : 'Connect your vehicle to unlock service, trip and document insights.';
+  const spendTitle = monthlySpendTotal !== null
+    ? `₹${Math.round(monthlySpendTotal).toLocaleString('en-IN')} this month`
+    : 'Track every rupee';
+  const spendBadge = expenseAlertCount > 0
+    ? `${expenseAlertCount} alert${expenseAlertCount === 1 ? '' : 's'}`
+    : monthlyExpenseCount > 0
+      ? 'Monthly spend'
+      : 'Cost view';
+  const spendAccent = expenseAlertCount > 0 ? '#f59e0b' : '#60a5fa';
+  const spendSummary = monthlySpendTotal !== null && monthlyExpenseCount > 0
+    ? `${expenseHeadline} ${fuelSummary}`
+    : expenseHeadline;
+
+  const ownershipTimelineItems: TimelineItem[] = [
+    {
+      id: 'health',
+      eyebrow: vehicle ? 'Vehicle health' : 'Garage setup',
+      title: serviceTitle,
+      description: serviceSummary,
+      icon: vehicle ? 'shield-check' : 'car-plus',
+      iconSet: 'mc',
+      accent: serviceAccent,
+      badge: serviceBadge,
+      cta: vehicle ? 'Open health' : 'Go to garage',
+      onPress: () => vehicle ? navigateToRootScreen('WarrantyStatus') : navigateToRootScreen('VehicleList'),
+    },
+    {
+      id: 'documents',
+      eyebrow: 'Document readiness',
+      title: documentTitle,
+      description: documentSummary,
+      icon: 'file-document-check-outline',
+      iconSet: 'mc',
+      accent: documentAccent,
+      badge: documentBadge,
+      cta: 'Open glovebox',
+      onPress: () => navigateToRootScreen('DocumentList'),
+    },
+    {
+      id: 'odometer',
+      eyebrow: 'Daily upkeep',
+      title: !lastOdometerUpdate
+        ? 'Update odometer'
+        : odometerAgeDays && odometerAgeDays > 7
+          ? 'Odometer is stale'
+          : 'Keep readings fresh',
+      description: odometerSummary,
+      icon: 'speedometer-outline',
+      iconSet: 'ion',
+      accent: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? '#f59e0b' : '#38bdf8',
+      badge: !lastOdometerUpdate ? 'Missing' : odometerAgeDays === 0 ? 'Updated today' : `${odometerAgeDays ?? 0}d ago`,
+      cta: 'Update reading',
+      onPress: () => (navigation as any).navigate('Odometer'),
+    },
+    {
+      id: 'costs',
+      eyebrow: 'Running costs',
+      title: spendTitle,
+      description: spendSummary,
+      icon: 'wallet',
+      iconSet: 'fa',
+      accent: spendAccent,
+      badge: fuelLoading ? 'Updating' : spendBadge,
+      cta: 'Open expenses',
+      onPress: () => navigateToRootScreen('Expenses'),
+    },
+    {
+      id: 'trip',
+      eyebrow: 'Trip ready',
+      title: 'Plan the next drive',
+      description: userLocationDisplay.includes(',')
+        ? `Estimate route costs, stops and trip spend around ${userLocationDisplay}.`
+        : 'Build a route budget before your next long drive.',
+      icon: 'map-search-outline',
+      iconSet: 'mc',
+      accent: '#a78bfa',
+      badge: 'Planner',
+      cta: 'Plan trip',
+      onPress: () => navigateToRootScreen('TripExpense'),
+    },
+    {
+      id: 'ai',
+      eyebrow: 'AI copilot',
+      title: 'Ask what needs attention',
+      description: vehicle
+        ? `Get a quick summary for your ${getBannerVehicleShortName(vehicle)} with service, spend and support suggestions.`
+        : 'Use AI to set up your garage, expenses and support faster.',
+      icon: 'sparkles',
+      iconSet: 'mc',
+      accent: '#22d3ee',
+      badge: 'Action ready',
+      cta: 'Open AI',
+      onPress: () => openAiAssistant(
+        vehicle
+          ? `Give me a quick ownership summary for my ${getBannerVehicleShortName(vehicle)} and tell me what I should do next.`
+          : 'Help me set up my garage and tell me the first three things I should complete in the app.'
+      ),
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -944,6 +1236,57 @@ export default function Home() {
             }
           }}
         />
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Ownership Timeline</Text>
+              <Text style={styles.sectionSubtitle}>Recommended next steps without changing your current flow.</Text>
+            </View>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.timelineScrollContent}
+          >
+            {ownershipTimelineItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.9}
+                style={styles.timelineCard}
+                onPress={item.onPress}
+              >
+                <LinearGradient
+                  colors={[`${item.accent}2A`, 'rgba(255,255,255,0.02)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.timelineCardGlow}
+                />
+                <View style={styles.timelineCardTopRow}>
+                  <View style={[styles.timelineIconWrap, { backgroundColor: `${item.accent}20` }]}>
+                    {item.iconSet === 'fa' ? (
+                      <Icon name={item.icon} size={wp(4.8)} color={item.accent} />
+                    ) : item.iconSet === 'ion' ? (
+                      <Ionicons name={item.icon as any} size={wp(5.2)} color={item.accent} />
+                    ) : (
+                      <MaterialIcon name={item.icon} size={wp(5.2)} color={item.accent} />
+                    )}
+                  </View>
+                  <View style={[styles.timelineBadge, { borderColor: `${item.accent}55`, backgroundColor: `${item.accent}14` }]}>
+                    <Text style={[styles.timelineBadgeText, { color: item.accent }]}>{item.badge}</Text>
+                  </View>
+                </View>
+                <Text style={styles.timelineEyebrow}>{item.eyebrow}</Text>
+                <Text style={styles.timelineCardTitle}>{item.title}</Text>
+                <Text style={styles.timelineDescription}>{item.description}</Text>
+                <View style={styles.timelineActionRow}>
+                  <Text style={[styles.timelineActionText, { color: item.accent }]}>{item.cta}</Text>
+                  <MaterialIcon name="chevron-right" size={18} color={item.accent} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* INSURANCE BANNER */}
         <View style={styles.bannerSection}>
@@ -1276,6 +1619,83 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     color: '#FFFFFF',
     fontSize: wp(5),
+  },
+  sectionSubtitle: {
+    marginTop: hp(0.5),
+    color: 'rgba(255,255,255,0.58)',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+  },
+  timelineScrollContent: {
+    paddingRight: wp(5),
+  },
+  timelineCard: {
+    width: wp(74),
+    minHeight: hp(22),
+    marginRight: wp(3.5),
+    padding: wp(4.5),
+    borderRadius: 22,
+    backgroundColor: '#0d1117',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  timelineCardGlow: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  timelineCardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(1.8),
+  },
+  timelineIconWrap: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timelineBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: wp(2.6),
+    paddingVertical: hp(0.5),
+  },
+  timelineBadgeText: {
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(2.8),
+  },
+  timelineEyebrow: {
+    color: 'rgba(255,255,255,0.58)',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(3),
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: hp(0.8),
+  },
+  timelineCardTitle: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(5.2),
+    lineHeight: hp(3.2),
+    marginBottom: hp(1),
+  },
+  timelineDescription: {
+    color: 'rgba(255,255,255,0.72)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.5),
+    lineHeight: hp(2.2),
+  },
+  timelineActionRow: {
+    marginTop: 'auto',
+    paddingTop: hp(2),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timelineActionText: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.8),
   },
   discoveryPlaceholder: {
     paddingVertical: hp(2),

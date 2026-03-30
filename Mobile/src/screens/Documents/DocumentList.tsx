@@ -41,16 +41,75 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
-import { fetchDocuments, addDocumentFromResponse, toDocItem, removeDocumentAsync } from '../../store/slices/documentsSlice';
+import {
+  fetchDocuments,
+  addDocumentFromResponse,
+  toDocItem,
+  removeDocumentAsync,
+  type DocumentItem,
+} from '../../store/slices/documentsSlice';
 import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
-import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
+import { uploadDocument, connectDigiLocker } from '../../services/documentService';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
 const BikeImage = require('../../assets/images/bike.png');
+const REQUIRED_DOCS = [
+  { type: 'RC', label: 'reg certificate' },
+  { type: 'Insurance', label: 'insurance policy' },
+  { type: 'PUC', label: 'puc certificate' },
+  { type: 'DL', label: 'driving license' },
+] as const;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
+
+function formatDocDate(date?: string | null): string {
+  if (!date) return 'No expiry found';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return 'No expiry found';
+  return parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function getDocumentStatusMeta(doc?: DocumentItem | null) {
+  if (!doc) {
+    return {
+      label: 'Missing',
+      caption: 'Tap to add',
+      tone: '#A1A1AA',
+      bg: 'rgba(255,255,255,0.06)',
+      border: 'rgba(255,255,255,0.08)',
+    };
+  }
+
+  if (doc.status === 'expired') {
+    return {
+      label: 'Expired',
+      caption: `Expired ${formatDocDate(doc.expiryDate)}`,
+      tone: '#FB7185',
+      bg: 'rgba(251,113,133,0.14)',
+      border: 'rgba(251,113,133,0.35)',
+    };
+  }
+
+  if (doc.status === 'expiring') {
+    return {
+      label: 'Expiring',
+      caption: `Due ${formatDocDate(doc.expiryDate)}`,
+      tone: '#F59E0B',
+      bg: 'rgba(245,158,11,0.14)',
+      border: 'rgba(245,158,11,0.35)',
+    };
+  }
+
+  return {
+    label: doc.verificationStatus === 'VERIFIED' ? 'Verified' : 'Stored',
+    caption: doc.expiryDate ? `Valid till ${formatDocDate(doc.expiryDate)}` : 'Ready in glovebox',
+    tone: '#22C55E',
+    bg: 'rgba(34,197,94,0.14)',
+    border: 'rgba(34,197,94,0.35)',
+  };
+}
 
 export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
@@ -351,7 +410,6 @@ export default function DocumentList() {
       if (Platform.OS === 'android') {
         // Fetch absolute URL for PDF from backend (bypasses EACCES by using system downloader)
         const pdfUrl = doc.imageUri.replace('/image', '/pdf');
-        const { Linking } = await import('react-native');
         await Linking.openURL(pdfUrl);
         setIsUploading(false);
         return;
@@ -377,11 +435,41 @@ export default function DocumentList() {
     return documents.find(d => d.type === type);
   };
 
-  const requiredDocTypes = ['RC', 'Insurance', 'PUC', 'DL'];
+  const requiredDocTypes = REQUIRED_DOCS.map(doc => doc.type);
   const uploadedDocsCount = documents.filter(d => requiredDocTypes.includes(d.type)).length;
   const MAX_DOCS = 4;
   const totalDocs = Math.min(uploadedDocsCount, MAX_DOCS);
   const progressPercent = Math.round((totalDocs / MAX_DOCS) * 100);
+  const requiredDocuments = REQUIRED_DOCS.map(({ type, label }) => ({
+    type,
+    label,
+    document: getDocByType(type),
+  }));
+  const missingRequiredDocs = requiredDocuments.filter(item => !item.document);
+  const expiredRequiredDocs = requiredDocuments.filter(item => item.document?.status === 'expired');
+  const expiringRequiredDocs = requiredDocuments.filter(item => item.document?.status === 'expiring');
+  const healthyRequiredDocs = requiredDocuments.filter(item => item.document?.status === 'verified');
+
+  const openDocumentFlow = (type: string) => {
+    setSelectedDocType(type);
+    setShowSourceModal(true);
+  };
+
+  const handlePriorityAction = () => {
+    if (missingRequiredDocs[0]) {
+      openDocumentFlow(missingRequiredDocs[0].type);
+      return;
+    }
+
+    const attentionDoc = expiredRequiredDocs[0]?.document || expiringRequiredDocs[0]?.document;
+    if (attentionDoc) {
+      setViewingDoc(attentionDoc);
+      setShowViewerModal(true);
+      return;
+    }
+
+    handleConnectDigiLocker();
+  };
 
   const handleDeleteDoc = async (id: string, type: string) => {
     Alert.alert(
@@ -410,31 +498,12 @@ export default function DocumentList() {
       setIsUploading(true);
       const res = await connectDigiLocker();
       setIsUploading(false);
+      if (res?.url && res?.client_id) {
+        navigation.navigate('DigiLockerKYC', { url: res.url, client_id: res.client_id });
+        return;
+      }
       if (res?.url) {
         await Linking.openURL(res.url);
-        // After opening, we can show a prompt to sync once they are done
-        Alert.alert(
-          'DigiLocker Started',
-          'Once you complete the verification in your browser, tap "Sync" to update your documents.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Sync Now', 
-              onPress: async () => {
-                setIsUploading(true);
-                try {
-                  await syncDigiLocker(res.client_id);
-                  dispatch(fetchDocuments());
-                  Alert.alert('Success', 'Documents updated!');
-                } catch (err) {
-                  Alert.alert('Error', 'Sync failed. Please try again.');
-                } finally {
-                  setIsUploading(false);
-                }
-              } 
-            }
-          ]
-        );
       }
     } catch (error: any) {
       setIsUploading(false);
@@ -444,6 +513,7 @@ export default function DocumentList() {
 
   const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
     const doc = getDocByType(type);
+    const statusMeta = getDocumentStatusMeta(doc);
     return (
       <View style={styles.slotContainer}>
         <TouchableOpacity
@@ -472,6 +542,10 @@ export default function DocumentList() {
           )}
         </TouchableOpacity>
         <Text style={styles.slotLabel}>{label}</Text>
+        <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
+          <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
+        </View>
+        <Text style={styles.slotHint}>{statusMeta.caption}</Text>
       </View>
     );
   };
@@ -512,6 +586,65 @@ export default function DocumentList() {
         <View style={styles.trustBadge}>
           <ShieldCheck size={14} color="#00C853" />
           <Text style={styles.trustText}>100% safe and secure</Text>
+        </View>
+
+        <View style={styles.healthOverviewRow}>
+          <View style={styles.healthMetricCard}>
+            <Text style={styles.healthMetricValue}>{healthyRequiredDocs.length}</Text>
+            <Text style={styles.healthMetricLabel}>Ready now</Text>
+          </View>
+          <View style={styles.healthMetricCard}>
+            <Text style={[styles.healthMetricValue, styles.healthMetricWarning]}>
+              {expiringRequiredDocs.length + expiredRequiredDocs.length}
+            </Text>
+            <Text style={styles.healthMetricLabel}>Need review</Text>
+          </View>
+          <View style={styles.healthMetricCard}>
+            <Text style={styles.healthMetricValue}>{missingRequiredDocs.length}</Text>
+            <Text style={styles.healthMetricLabel}>Missing</Text>
+          </View>
+        </View>
+
+        <View style={styles.nextActionCard}>
+          <View style={styles.nextActionHeader}>
+            <Text style={styles.nextActionTitle}>Document health</Text>
+            <Text style={styles.nextActionCaption}>
+              {missingRequiredDocs.length > 0
+                ? `${missingRequiredDocs.length} document${missingRequiredDocs.length === 1 ? '' : 's'} still missing`
+                : expiringRequiredDocs.length + expiredRequiredDocs.length > 0
+                  ? 'A few documents need attention soon'
+                  : 'Your glovebox is in good shape'}
+            </Text>
+          </View>
+
+          {missingRequiredDocs.length > 0 ? (
+            <Text style={styles.nextActionBody}>
+              Add {missingRequiredDocs.slice(0, 2).map(item => item.label).join(' and ')} to complete your core document set.
+            </Text>
+          ) : expiredRequiredDocs.length + expiringRequiredDocs.length > 0 ? (
+            <Text style={styles.nextActionBody}>
+              Review expiry dates and keep renewal documents ready before your next drive.
+            </Text>
+          ) : (
+            <Text style={styles.nextActionBody}>
+              Everything important is stored. Linking DigiLocker can still make future refreshes easier.
+            </Text>
+          )}
+
+          <View style={styles.nextActionButtons}>
+            <TouchableOpacity style={styles.nextActionPrimaryBtn} onPress={handlePriorityAction}>
+              <Text style={styles.nextActionPrimaryText}>
+                {missingRequiredDocs.length > 0
+                  ? `Add ${missingRequiredDocs[0].label}`
+                  : expiredRequiredDocs.length + expiringRequiredDocs.length > 0
+                    ? 'Review document'
+                    : 'Link DigiLocker'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.nextActionSecondaryBtn} onPress={handleConnectDigiLocker}>
+              <Text style={styles.nextActionSecondaryText}>Sync official docs</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* DigiLocker Banner */}
@@ -616,6 +749,20 @@ export default function DocumentList() {
               )}
             </TouchableOpacity>
             <Text style={styles.slotLabel}>driving license</Text>
+            <View
+              style={[
+                styles.slotStatusBadge,
+                {
+                  backgroundColor: getDocumentStatusMeta(getDocByType('DL')).bg,
+                  borderColor: getDocumentStatusMeta(getDocByType('DL')).border,
+                },
+              ]}
+            >
+              <Text style={[styles.slotStatusText, { color: getDocumentStatusMeta(getDocByType('DL')).tone }]}>
+                {getDocumentStatusMeta(getDocByType('DL')).label}
+              </Text>
+            </View>
+            <Text style={styles.slotHint}>{getDocumentStatusMeta(getDocByType('DL')).caption}</Text>
           </View>
         </View>
 
@@ -798,6 +945,93 @@ const styles = StyleSheet.create({
 
   trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   trustText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#00C853', fontWeight: '600' },
+  healthOverviewRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
+  healthMetricCard: {
+    flex: 1,
+    backgroundColor: '#0D0D0D',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  healthMetricValue: {
+    color: '#FFF',
+    fontSize: 24,
+    fontFamily: 'Outfit-Bold',
+  },
+  healthMetricWarning: {
+    color: '#F59E0B',
+  },
+  healthMetricLabel: {
+    marginTop: 4,
+    color: '#8E8E93',
+    fontSize: 11,
+    fontFamily: 'Outfit-Medium',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  nextActionCard: {
+    marginTop: 18,
+    backgroundColor: '#0E1218',
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#1B2230',
+  },
+  nextActionHeader: {
+    marginBottom: 10,
+  },
+  nextActionTitle: {
+    color: '#FFF',
+    fontSize: 17,
+    fontFamily: 'Outfit-Bold',
+  },
+  nextActionCaption: {
+    marginTop: 4,
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontFamily: 'Outfit-Medium',
+  },
+  nextActionBody: {
+    color: '#D1D5DB',
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: 'Outfit-Regular',
+  },
+  nextActionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  nextActionPrimaryBtn: {
+    flex: 1,
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nextActionPrimaryText: {
+    color: '#111827',
+    fontSize: 13,
+    fontFamily: 'Outfit-Bold',
+  },
+  nextActionSecondaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#2B3648',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  nextActionSecondaryText: {
+    color: '#E5E7EB',
+    fontSize: 13,
+    fontFamily: 'Outfit-Bold',
+  },
 
   // DigiLocker Banner
   digiBanner: { backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginTop: 32 },
@@ -840,6 +1074,28 @@ const styles = StyleSheet.create({
   slotContainer: { width: (width - 72) / 3, gap: 12 },
   slotBox: { width: '100%', aspectRatio: 1, backgroundColor: '#0A0A0A', borderRadius: 14, borderWidth: 1, borderColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
   slotLabel: { fontSize: 11, fontFamily: 'Outfit-Medium', color: '#8E8E93', textTransform: 'lowercase', textAlign: 'center' },
+  slotStatusBadge: {
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: -4,
+  },
+  slotStatusText: {
+    fontSize: 10,
+    fontFamily: 'Outfit-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  slotHint: {
+    fontSize: 10,
+    fontFamily: 'Outfit-Regular',
+    color: '#666',
+    textAlign: 'center',
+    marginTop: -6,
+    lineHeight: 14,
+  },
 
   quickActions: { marginTop: 40, gap: 12 },
   actionBtn: {
