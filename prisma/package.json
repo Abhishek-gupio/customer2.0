@@ -17,18 +17,18 @@
         "prisma:studio": "prisma studio",
         "db:up:local": "bash ../scripts/db-start.sh",
         "db:migrate": "prisma migrate dev",
-        "build": "tsc -p tsconfig.json && node -e \"require('fs').cpSync('generated', 'dist/generated', {recursive: true})\""
+        "build": "pnpm prisma:generate && tsc -p tsconfig.json && node -e \"require('fs').cpSync('generated', 'dist/generated', {recursive: true, force: true})\""
     },
     "devDependencies": {
-        "@prisma/client": "^7.3.0",
-        "@prisma/client-runtime-utils": "^7.4.0",
+        "@prisma/client": "7.6.0",
+        "@prisma/client-runtime-utils": "7.6.0",
         "@types/node": "^24.7.1",
         "@types/pg": "^8.16.0",
-        "prisma": "^7.3.0",
+        "prisma": "7.6.0",
         "typescript": "^5.9.2"
     },
     "dependencies": {
-        "@prisma/adapter-pg": "^7.3.0",
+        "@prisma/adapter-pg": "7.6.0",
         "dotenv": "^17.2.4",
         "pg": "^8.18.0"
     }

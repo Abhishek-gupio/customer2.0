@@ -16,8 +16,17 @@ if (hasGoogleServicesConfig) {
 // Disabled: Google Services plugin requires google-services.json which is not configured
 // apply plugin: "com.google.gms.google-services" // Required for Firebase Cloud Messaging
 
-// Copy react-native-vector-icons font files into the app so icons display
-apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+// Copy react-native-vector-icons font files into the app so icons display.
+// Support both local node_modules and hoisted workspace installs.
+def vectorIconsFontsGradle = file("../../node_modules/react-native-vector-icons/fonts.gradle")
+if (!vectorIconsFontsGradle.exists()) {
+    vectorIconsFontsGradle = file("../../../node_modules/react-native-vector-icons/fonts.gradle")
+}
+if (vectorIconsFontsGradle.exists()) {
+    apply from: vectorIconsFontsGradle
+} else {
+    logger.lifecycle("react-native-vector-icons/fonts.gradle not found; skipping font copy script")
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -26,13 +35,13 @@ apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
-    // root = file("../../")
+    root = file("../..")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
-    // reactNativeDir = file("../../node_modules/react-native")
+    reactNativeDir = file("../../../node_modules/react-native")
     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
     codegenDir = file("../../../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
-    // cliFile = file("../../node_modules/react-native/cli.js")
+    cliFile = file("../../../node_modules/react-native/cli.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -187,6 +196,10 @@ dependencies {
 // Fix: React Native's generateReactNativeEntryPoint uses default "com.mobile". We use com.mobile1.
 // Patch the generated file before every Java compile so it always has the correct package.
 def entryPointFile = file("${buildDir}/generated/autolinking/src/main/java/com/facebook/react/ReactNativeApplicationEntryPoint.java")
+def autolinkingCmakeFile = file("${buildDir}/generated/autolinking/src/main/jni/Android-autolinking.cmake")
+def autolinkingCppFile = file("${buildDir}/generated/autolinking/src/main/jni/autolinking.cpp")
+def autolinkingStubCppFile = file("${buildDir}/generated/autolinking/src/main/jni/autolink_stub.cpp")
+
 tasks.register("patchEntryPointPackage") {
     doLast {
         if (entryPointFile.exists()) {
@@ -194,9 +207,143 @@ tasks.register("patchEntryPointPackage") {
         }
     }
 }
+
+tasks.register("patchAutolinkingCmake") {
+    doLast {
+        if (!autolinkingCmakeFile.exists()) {
+            return
+        }
+
+        if (!autolinkingStubCppFile.parentFile.exists()) {
+            autolinkingStubCppFile.parentFile.mkdirs()
+        }
+        if (!autolinkingStubCppFile.exists()) {
+            autolinkingStubCppFile.text = "void react_native_autolink_stub() {}\n"
+        }
+
+        Set<String> skippedLibraries = new LinkedHashSet<>()
+        def patchedLines = []
+        def inAutolinkedLibraries = false
+
+        autolinkingCmakeFile.eachLine { line ->
+            def matcher = (line =~ /^add_subdirectory\("([^"]+)"\s+([^)]+)\)$/)
+            if (matcher.matches()) {
+                def sourceDir = matcher[0][1]
+                def buildTarget = matcher[0][2]
+                def codegenLibrary = ("react_codegen_" + buildTarget.replace("_autolinked_build", "")).toString()
+
+                if (file(sourceDir).exists()) {
+                    patchedLines << line
+                } else {
+                    skippedLibraries << codegenLibrary
+                    patchedLines << "message(STATUS \"Skipping missing autolinked JNI dir: ${sourceDir}\")"
+                }
+                return
+            }
+
+            if (line.trim() == "set(AUTOLINKED_LIBRARIES") {
+                inAutolinkedLibraries = true
+                patchedLines << line
+                return
+            }
+
+            if (inAutolinkedLibraries) {
+                if (line.trim() == ")") {
+                    inAutolinkedLibraries = false
+                    patchedLines << line
+                    return
+                }
+
+                def libName = line.trim().toString()
+                if (!libName || !skippedLibraries.contains(libName)) {
+                    patchedLines << line
+                }
+                return
+            }
+
+            patchedLines << line
+        }
+
+        def placeholderLines = skippedLibraries.collect { "add_library(${it} STATIC \"${autolinkingStubCppFile.absolutePath.replace('\\', '/')}\")" }
+        def insertionIndex = patchedLines.findIndexOf { it.trim() == 'set(REACTNATIVE_MERGED_SO true)' }
+        if (insertionIndex >= 0 && !placeholderLines.isEmpty()) {
+            patchedLines.addAll(insertionIndex + 1, [''] + placeholderLines + [''])
+        }
+
+        autolinkingCmakeFile.text = patchedLines.join(System.lineSeparator()) + System.lineSeparator()
+    }
+}
+
+tasks.register("patchAutolinkingCpp") {
+    doLast {
+        if (!autolinkingCppFile.exists()) {
+            return
+        }
+
+        def repoRoot = project.rootProject.projectDir.parentFile.parentFile
+        Set<String> missingModuleHeaders = new LinkedHashSet<>()
+        def keepLine = { line ->
+            def moduleIncludeMatcher = (line =~ /^#include <([A-Za-z0-9_]+)\.h>$/)
+            if (!moduleIncludeMatcher.matches()) {
+                return true
+            }
+
+            def headerName = "${moduleIncludeMatcher[0][1]}.h"
+            def matches = fileTree(dir: repoRoot, includes: ["node_modules/**/${headerName}"]).files
+            if (!matches.isEmpty()) {
+                return true
+            }
+
+            missingModuleHeaders << moduleIncludeMatcher[0][1].toString()
+            return false
+        }
+
+        def patchedLines = []
+        def skipModuleBlock = false
+        def skipComponentBlock = false
+
+        autolinkingCppFile.eachLine { line ->
+            if (!keepLine(line)) {
+                return
+            }
+
+            def moduleProviderMatcher = (line =~ /^\s*auto module_([A-Za-z0-9_]+) = ([A-Za-z0-9_]+)_ModuleProvider\(moduleName, params\);$/)
+            if (moduleProviderMatcher.matches() && missingModuleHeaders.contains(moduleProviderMatcher[0][2].toString())) {
+                skipModuleBlock = true
+                return
+            }
+
+            if (skipModuleBlock) {
+                if (line.trim() == "}") {
+                    skipModuleBlock = false
+                }
+                return
+            }
+
+            def componentMatcher = (line =~ /^\s*providerRegistry->add\(concreteComponentDescriptorProvider<([A-Za-z0-9_]+)>\(\)\);$/)
+            if (componentMatcher.matches()) {
+                def descriptorName = componentMatcher[0][1].toString()
+                def headerName = "${descriptorName}.h"
+                def matches = fileTree(dir: repoRoot, includes: ["node_modules/**/${headerName}"]).files
+                if (matches.isEmpty()) {
+                    return
+                }
+            }
+
+            patchedLines << line
+        }
+
+        autolinkingCppFile.text = patchedLines.join(System.lineSeparator()) + System.lineSeparator()
+    }
+}
+
 tasks.configureEach { task ->
     if (task.name == "compileDebugJavaWithJavac" || task.name == "compileReleaseJavaWithJavac") {
         task.dependsOn("patchEntryPointPackage")
+    }
+    if (task.name.startsWith("externalNativeBuild") || task.name.startsWith("configureCMake") || task.name.startsWith("buildCMake")) {
+        task.dependsOn("patchAutolinkingCmake")
+        task.dependsOn("patchAutolinkingCpp")
     }
 }
 
