@@ -7,20 +7,20 @@ This doc explains where rate limits apply and how to avoid or fix "rate limit" /
 ## 1. Global API rate limit (express-rate-limit)
 
 - **Where:** All routes except `/health`, `/health/detailed`, and **`/api-docs`** (Swagger UI + spec).
-- **Rule:** `RATE_LIMIT_MAX` requests per 15 minutes **per user or per IP**:
+- **Rule:** `RATE_LIMIT_MAX` requests per `RATE_LIMIT_WINDOW_MS` **per user or per IP**:
   - **Authenticated requests** (valid `Authorization: Bearer <token>`): limit is **per user** (customer or admin ID from JWT). Each user has their own quota.
   - **Unauthenticated requests** (login, send OTP, etc.): limit is **per IP**.
-- **Env:** `RATE_LIMIT_MAX` (default 300).
+- **Env:** `RATE_LIMIT_MAX` (default 300), `RATE_LIMIT_WINDOW_MS` (default 900000 = 15 min).
 - **Response:** HTTP 429 when exceeded.
 
 **Why the "full system" seemed to stop after using API docs:**
 
-- Browsing https://customerapi.gupio.tech/api-docs/ loads the page and spec; each "Try it out" sends a request to `/api/v1/...`. All of these used to count. After ~100 requests in 15 min, **every** request from that IP got 429, so the API looked completely down for that user.
-- **Now:** Loading `/api-docs` and `/api-docs.json` is **skipped** so the docs page doesn’t burn the limit. Health checks are also skipped. Default limit is 300 so normal use + some "Try it out" calls don’t hit the limit as quickly.
+- Browsing https://customerapi.gupio.tech/api-docs/ loads the page and spec; each "Try it out" sends a request to `/api/v1/...`. All of these used to count. With strict settings (for example 100/15 min), **every** request from that IP got 429, so the API looked completely down for that user.
+- **Now:** Loading `/api-docs` and `/api-docs.json` is **skipped** so the docs page doesn’t burn the limit. Health checks are also skipped. Default is 300/15 min, and you can tune both max and window.
 
 **What to do:**
 
-- Set `RATE_LIMIT_MAX` in production if needed (e.g. 500). Requests from Swagger "Try it out" still count toward the limit; only the docs page/spec load is excluded.
+- Set `RATE_LIMIT_MAX` and `RATE_LIMIT_WINDOW_MS` in production based on traffic (example: `100` + `60000` for 100/minute). Requests from Swagger "Try it out" still count toward the limit; only the docs page/spec load is excluded.
 
 ---
 
@@ -84,7 +84,7 @@ This doc explains where rate limits apply and how to avoid or fix "rate limit" /
 
 | Source        | Config / env              | Skip / reduce triggers                          |
 |---------------|---------------------------|--------------------------------------------------|
-| Global API    | `RATE_LIMIT_MAX` (default 300) | Per **user** (when Bearer token) or per **IP** (when no token); health + `/api-docs` skipped |
+| Global API    | `RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW_MS` (default 300 / 900000ms) | Per **user** (when Bearer token) or per **IP** (when no token); health + `/api-docs` skipped |
 | OTP           | `OTP_RATE_LIMIT_WINDOW_SEC` | Throttle "Resend OTP" in UI                    |
 | Damoov        | Backoff 2 h after 429     | Single hourly job; avoid duplicate syncs        |
 | Gemini        | Google quota              | 429 returned with clear message; increase quota |

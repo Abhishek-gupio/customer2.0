@@ -5,7 +5,8 @@ import cron from "node-cron";
 import { challanService } from "./challan.service";
 import { telematicsService } from "./telematics.service";
 import * as OneSignal from '@onesignal/node-onesignal';
-import * as admin from 'firebase-admin'; // FCM
+import { getMessaging } from "../config/firebase";
+import type { FirebaseMulticastMessage } from "../utils/firebaseAdmin";
 
 // Initialize OneSignal with API keys from environment
 const configuration = OneSignal.createConfiguration({
@@ -78,43 +79,50 @@ export const notificationService = {
 
       // 4. Firebase Cloud Messaging (FCM)
       try {
-        if (admin.apps.length > 0) {
+        const messaging = getMessaging();
+
+        if (messaging) {
           const devicesInProgress = await (dbInstances as any).customerDevice.findMany({
             where: { customerId, deviceToken: { not: null } },
           });
 
           if (devicesInProgress.length > 0) {
-            const tokens = devicesInProgress.map((d: any) => d.deviceToken).filter(Boolean);
-            const fcmPayload: admin.messaging.MulticastMessage = {
-              tokens,
-              notification: {
-                title: payload.title,
-                body: payload.body,
-              },
-              data: {
-                type: payload.type,
-                link: payload.link || "",
-                metadata: JSON.stringify(payload.metadata || {}),
-              },
-              android: {
-                priority: "high",
-                notification: {
-                  sound: "default",
-                  channelId: "gupio_notifications", // Must match notification channels on Android
-                },
-              },
-            };
+            const tokens = devicesInProgress
+              .map((device: { deviceToken: string | null }) => device.deviceToken)
+              .filter((token: string | null): token is string => Boolean(token));
 
-            const response = await admin.messaging().sendEachForMulticast(fcmPayload);
-            logger.info({ customerId, successCount: response.successCount, failureCount: response.failureCount }, "Triggered FCM multicast.");
-            
-            // Cleanup invalid tokens if any (optional; usually handled by failures)
-            if (response.failureCount > 0) {
-              response.responses.forEach((resp, idx) => {
-                if (!resp.success) {
-                   logger.warn({ error: resp.error, token: tokens[idx] }, "FCM delivery failed for token");
-                }
-              });
+            if (tokens.length > 0) {
+              const fcmPayload: FirebaseMulticastMessage = {
+                tokens,
+                notification: {
+                  title: payload.title,
+                  body: payload.body,
+                },
+                data: {
+                  type: payload.type,
+                  link: payload.link || "",
+                  metadata: JSON.stringify(payload.metadata || {}),
+                },
+                android: {
+                  priority: "high",
+                  notification: {
+                    sound: "default",
+                    channelId: "gupio_notifications", // Must match notification channels on Android
+                  },
+                },
+              };
+
+              const response = await messaging.sendEachForMulticast(fcmPayload);
+              logger.info({ customerId, successCount: response.successCount, failureCount: response.failureCount }, "Triggered FCM multicast.");
+
+              // Cleanup invalid tokens if any (optional; usually handled by failures)
+              if (response.failureCount > 0) {
+                response.responses.forEach((resp, idx) => {
+                  if (!resp.success) {
+                     logger.warn({ error: resp.error, token: tokens[idx] }, "FCM delivery failed for token");
+                  }
+                });
+              }
             }
           }
         } else {

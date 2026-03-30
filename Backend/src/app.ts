@@ -54,7 +54,7 @@ import { getRedis } from "./config/redis";
 const redis = getRedis();
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
   max: env.RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,

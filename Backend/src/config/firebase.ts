@@ -1,13 +1,21 @@
-import * as admin from 'firebase-admin';
-import { logger } from './logger';
+import { logger } from "./logger";
+import {
+  loadFirebaseAdmin,
+  type FirebaseMessaging,
+} from "../utils/firebaseAdmin";
 
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
   : undefined;
 
-let isInitialized = false;
+const admin = loadFirebaseAdmin();
+let isInitialized = Boolean(admin?.apps.length);
 
-if (serviceAccount || process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+if (!admin) {
+  logger.warn(
+    "firebase-admin package not installed. Push notifications via FCM will be disabled.",
+  );
+} else if (!isInitialized && (serviceAccount || process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
   try {
     admin.initializeApp({
       credential: serviceAccount ? admin.credential.cert(serviceAccount) : admin.credential.applicationDefault(),
@@ -17,11 +25,11 @@ if (serviceAccount || process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   } catch (error) {
     logger.error({ error }, "Failed to initialize Firebase Admin");
   }
-} else {
+} else if (!isInitialized) {
   logger.warn("Firebase credentials missing (FIREBASE_SERVICE_ACCOUNT_JSON). Push notifications via FCM will be disabled.");
 }
 
-export const getMessaging = () => {
-  if (!isInitialized) return null;
+export const getMessaging = (): FirebaseMessaging | null => {
+  if (!admin || !isInitialized) return null;
   return admin.messaging();
 };
