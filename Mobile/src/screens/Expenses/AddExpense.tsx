@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -36,6 +36,46 @@ import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
 import { VoiceOwnerContext } from "../../context/VoiceOwnerContext";
 
+type ReceiptAsset = { uri?: string; type?: string; fileName?: string };
+
+const SUPPORTED_RECEIPT_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+function inferMimeTypeFromName(nameOrUri?: string) {
+  const value = (nameOrUri || "").toLowerCase();
+  if (value.endsWith(".png")) return "image/png";
+  if (value.endsWith(".webp")) return "image/webp";
+  if (value.endsWith(".jpg") || value.endsWith(".jpeg")) return "image/jpeg";
+  if (value.endsWith(".heic")) return "image/heic";
+  if (value.endsWith(".heif")) return "image/heif";
+  return "image/jpeg";
+}
+
+function normalizeReceiptAsset(asset: ReceiptAsset) {
+  const uri = asset.uri || "";
+  const rawType = (asset.type || "").toLowerCase();
+  const inferredType = inferMimeTypeFromName(asset.fileName || uri);
+  const detectedType =
+    !rawType || rawType === "application/octet-stream" || rawType === "image/*"
+      ? inferredType
+      : rawType === "image/jpg"
+        ? "image/jpeg"
+        : rawType;
+  const isUnsupportedAppleFormat = detectedType === "image/heic" || detectedType === "image/heif";
+  const type = isUnsupportedAppleFormat ? detectedType : detectedType || "image/jpeg";
+  const extension =
+    type === "image/png" ? "png" : type === "image/webp" ? "webp" : "jpg";
+  const fileName =
+    asset.fileName && /\.[a-z0-9]+$/i.test(asset.fileName)
+      ? asset.fileName
+      : `receipt_${Date.now()}.${extension}`;
+
+  return { uri, type, fileName, detectedType };
+}
+
 // Option A: device STT → send text only (fast, no upload). User picks default language.
 const VOICE_LANGUAGES: { label: string; locale: string }[] = [
   { label: "Auto (device language)", locale: "" },
@@ -52,7 +92,7 @@ const VOICE_LANGUAGES: { label: string; locale: string }[] = [
 
 export default function AddExpenseScreen() {
   const navigation = useNavigation();
-  const { setVoiceOwner } = useContext(VoiceOwnerContext);
+  const { voiceOwner, setVoiceOwner } = useContext(VoiceOwnerContext);
   const [showManual, setShowManual] = useState(false);
   const [manualInitialData, setManualInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -64,6 +104,68 @@ export default function AddExpenseScreen() {
   const [reviewSource, setReviewSource] = useState<"RECEIPT" | "VOICE">("RECEIPT");
   const [voiceLanguageIndex, setVoiceLanguageIndexState] = useState(() => getVoiceLanguageIndex());
   const [showVoiceLangPicker, setShowVoiceLangPicker] = useState(false);
+  const voiceStartInFlightRef = useRef(false);
+  const voiceResultHandledRef = useRef(false);
+  const voiceCleanupRef = useRef(false);
+  const voiceBusyRetryRef = useRef(0);
+  const voicePartialTextRef = useRef("");
+  const voiceEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearVoiceEndTimeout = () => {
+    if (voiceEndTimeoutRef.current) {
+      clearTimeout(voiceEndTimeoutRef.current);
+      voiceEndTimeoutRef.current = null;
+    }
+  };
+
+  const releaseVoiceSession = async () => {
+    clearVoiceEndTimeout();
+    voiceStartInFlightRef.current = false;
+    voiceCleanupRef.current = true;
+    setIsRecording(false);
+    try {
+      if (typeof (Voice as any)?.stop === "function") {
+        await (Voice as any).stop().catch(() => {});
+      }
+      if (typeof (Voice as any)?.cancel === "function") {
+        await (Voice as any).cancel().catch(() => {});
+      }
+    } catch (_) {}
+    setVoiceOwner(null);
+    setTimeout(() => {
+      voiceCleanupRef.current = false;
+    }, 350);
+  };
+
+  const getPreferredVoiceLocales = () => {
+    const locales: string[] = [];
+    const preferredLocale =
+      voiceLanguageIndex > 0 && VOICE_LANGUAGES[voiceLanguageIndex]?.locale
+        ? VOICE_LANGUAGES[voiceLanguageIndex].locale
+        : "";
+    if (preferredLocale) locales.push(preferredLocale);
+    try {
+      const deviceLocale = (DeviceInfo as any).getDeviceLocale?.();
+      if (deviceLocale && typeof deviceLocale === "string") {
+        locales.push(deviceLocale.replace("_", "-"));
+      }
+    } catch (_) {}
+    locales.push("en-IN", "en-US");
+    return [...new Set(locales.filter(Boolean))];
+  };
+
+  const handleCapturedSpeech = (speechText: string) => {
+    const normalizedText = speechText.trim();
+    if (!normalizedText || voiceResultHandledRef.current) return;
+    voiceResultHandledRef.current = true;
+    clearVoiceEndTimeout();
+    voicePartialTextRef.current = normalizedText;
+    setVoiceText(normalizedText);
+    setIsRecording(false);
+    setVoiceOwner(null);
+    void processVoiceCommand(normalizedText);
+    void releaseVoiceSession();
+  };
 
   // Voice: only check availability on mount. Handlers are set when user taps "Add by Voice" so Hey Gupio can keep the mic until then.
   useEffect(() => {
@@ -71,9 +173,12 @@ export default function AddExpenseScreen() {
     else setVoiceAvailable(true);
     return () => {
       // Release mic when leaving screen so Hey Gupio can listen again (do not destroy – shared with Hey Gupio)
+      clearVoiceEndTimeout();
       try {
-        if (typeof Voice?.stop === "function") Voice.stop();
+        if (typeof (Voice as any)?.stop === "function") (Voice as any).stop();
+        if (typeof (Voice as any)?.cancel === "function") (Voice as any).cancel();
       } catch (_) {}
+      voiceStartInFlightRef.current = false;
       setVoiceOwner(null);
     };
   }, [setVoiceOwner]);
@@ -163,15 +268,30 @@ export default function AddExpenseScreen() {
     }
   };
 
-  const uploadAndParseReceipt = async (asset: { uri?: string; type?: string; fileName?: string }) => {
-    if (!asset.uri) return;
+  const uploadAndParseReceipt = async (asset: ReceiptAsset) => {
+    const normalizedAsset = normalizeReceiptAsset(asset);
+    if (!normalizedAsset.uri) return;
+    if (normalizedAsset.detectedType === "image/heic" || normalizedAsset.detectedType === "image/heif") {
+      Alert.alert(
+        "Unsupported receipt format",
+        "This receipt photo is in HEIC format. Please retake it as JPG/PNG or choose a compatible image from gallery.",
+      );
+      return;
+    }
+    if (!SUPPORTED_RECEIPT_MIME_TYPES.has(normalizedAsset.type)) {
+      Alert.alert(
+        "Unsupported receipt format",
+        "Please use a JPG, PNG, or WebP image for receipt scanning.",
+      );
+      return;
+    }
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append('file', {
-        uri: asset.uri,
-        type: asset.type || 'image/jpeg',
-        name: asset.fileName || 'receipt.jpg',
+        uri: normalizedAsset.uri,
+        type: normalizedAsset.type,
+        name: normalizedAsset.fileName,
       } as any);
 
       const res = await api.upload<any>('/v1/expenses/parse/receipt?dryRun=true', formData);
@@ -208,8 +328,12 @@ export default function AddExpenseScreen() {
         Alert.alert("Scan Failed", result.error?.message || "Could not read receipt. Please try again or enter manually.");
       }
     } catch (e: any) {
-      const msg = e?.message ?? "";
+      const msg = String(e?.message ?? "").trim();
       const isParseFailed = msg.includes("Could not detect expense amount");
+      const isReceiptMismatch =
+        /does not look like a receipt|please scan a receipt or bill/i.test(msg);
+      const isAiNotConfigured = /ai not configured|gemini|not configured/i.test(msg);
+      const isTooLarge = /request entity too large|payload too large|file too large|413/i.test(msg);
       if (isParseFailed) {
         Alert.alert(
           "Couldn't Read Amount",
@@ -219,8 +343,14 @@ export default function AddExpenseScreen() {
             { text: "Enter Manually", onPress: () => { setScannedData(null); setShowReviewer(false); setShowManual(true); } },
           ]
         );
+      } else if (isReceiptMismatch) {
+        Alert.alert("Not a receipt", "Please upload a clear receipt or bill photo.");
+      } else if (isAiNotConfigured) {
+        Alert.alert("Receipt scanning unavailable", "Receipt scanning is not configured on the server right now.");
+      } else if (isTooLarge) {
+        Alert.alert("Receipt too large", "Please retake the receipt a bit closer or use a smaller JPG/PNG image.");
       } else {
-        Alert.alert("Upload Error", msg || "Failed to upload receipt");
+        Alert.alert("Receipt Scan Error", msg || "Could not scan this receipt. Try a clearer JPG or PNG image.");
       }
     } finally {
       setLoading(false);
@@ -260,14 +390,18 @@ export default function AddExpenseScreen() {
     try {
       const response = await (launchCamera as any)({
         mediaType: "photo",
-        quality: 0.5,
+        quality: 0.7,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        selectionLimit: 1,
+        assetRepresentationMode: "compatible",
       });
       if (response.errorCode) {
         Alert.alert("Camera Error", response.errorMessage || "Could not capture image.");
         return;
       }
       if (!response.didCancel && response.assets?.[0]) {
-        const asset = response.assets[0];
+        const asset = normalizeReceiptAsset(response.assets[0]);
         setLoading(true);
         const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || "image/jpeg");
         if (result.ok) {
@@ -301,14 +435,18 @@ export default function AddExpenseScreen() {
     try {
       const response = await (launchImageLibrary as any)({
         mediaType: "photo",
-        quality: 0.5,
+        quality: 0.7,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        selectionLimit: 1,
+        assetRepresentationMode: "compatible",
       });
       if (response.errorCode) {
         Alert.alert("Error", response.errorMessage || "Could not pick image.");
         return;
       }
       if (!response.didCancel && response.assets?.[0]) {
-        const asset = response.assets[0];
+        const asset = normalizeReceiptAsset(response.assets[0]);
         setLoading(true);
         const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || "image/jpeg");
         if (result.ok) {
@@ -358,6 +496,11 @@ export default function AddExpenseScreen() {
       Alert.alert("Voice Not Available", "Please use manual entry or scan bills instead.");
       return;
     }
+    if (voiceStartInFlightRef.current) return;
+    if (voiceOwner && voiceOwner !== "addExpense" && voiceOwner !== "heyGupio") {
+      Alert.alert("Mic In Use", "Another feature is using the microphone right now.");
+      return;
+    }
     try {
       if (Platform.OS === "android") {
         const hasPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
@@ -381,25 +524,63 @@ export default function AddExpenseScreen() {
         Alert.alert("Voice Not Available", "Use manual entry or scan bills.");
         return;
       }
+      voiceStartInFlightRef.current = true;
+      voiceResultHandledRef.current = false;
+      voiceCleanupRef.current = false;
+      voiceBusyRetryRef.current = 0;
+      voicePartialTextRef.current = "";
+      clearVoiceEndTimeout();
       // Claim mic so Hey Gupio stops listening, then stop any current session
       setVoiceOwner("addExpense");
+      await new Promise((resolve) => setTimeout(resolve, 250));
       try {
+        await (Voice as any).cancel?.().catch(() => {});
         if (typeof Voice.stop === "function") await Voice.stop();
+        await (Voice as any).destroy?.().catch(() => {});
+        (Voice as any).removeAllListeners?.();
       } catch (_) {}
       setVoiceText("");
 
-      // Set our handlers only while we own the mic (Hey Gupio will re-register when we release)
-      Voice.onSpeechStart = () => setIsRecording(true);
-      Voice.onSpeechEnd = () => setIsRecording(false);
-      Voice.onSpeechResults = (results: { value?: string[] }) => {
-        if (results?.value?.length) {
-          const speechText = results.value[0];
-          setVoiceText(speechText);
-          processVoiceCommand(speechText);
+      // Set our handlers only while we own the mic.
+      Voice.onSpeechStart = () => {
+        clearVoiceEndTimeout();
+        voiceStartInFlightRef.current = false;
+        voiceCleanupRef.current = false;
+        voiceBusyRetryRef.current = 0;
+        setIsRecording(true);
+      };
+      (Voice as any).onSpeechPartialResults = (results: { value?: string[] }) => {
+        const partialText = results?.value?.find((item) => item?.trim())?.trim();
+        if (!partialText || voiceResultHandledRef.current) return;
+        if (partialText.length >= voicePartialTextRef.current.length) {
+          voicePartialTextRef.current = partialText;
+          setVoiceText(partialText);
         }
       };
-      (Voice as any).onSpeechError = (error: any) => {
+      Voice.onSpeechEnd = () => {
         setIsRecording(false);
+        clearVoiceEndTimeout();
+        voiceEndTimeoutRef.current = setTimeout(() => {
+          if (voiceResultHandledRef.current) return;
+          const fallbackText = voicePartialTextRef.current.trim();
+          if (fallbackText.length >= 2) {
+            handleCapturedSpeech(fallbackText);
+            return;
+          }
+          void releaseVoiceSession();
+          Alert.alert(
+            "Couldn't hear you",
+            "We didn't catch any speech. Try again closer to the mic and say amount, category, and date.",
+          );
+        }, 900);
+      };
+      Voice.onSpeechResults = (results: { value?: string[] }) => {
+        const speechText = results?.value?.find((item) => item?.trim())?.trim();
+        if (speechText) handleCapturedSpeech(speechText);
+      };
+      (Voice as any).onSpeechError = (error: any) => {
+        clearVoiceEndTimeout();
+        voiceStartInFlightRef.current = false;
         const rawMsg =
           typeof error?.error?.message === "string"
             ? error.error.message
@@ -407,17 +588,38 @@ export default function AddExpenseScreen() {
             ? error.message
             : String(error?.error || error || "");
         const msg = rawMsg.toLowerCase();
+        const code = Number(error?.error?.code ?? error?.code);
         console.log("Speech Error:", rawMsg);
+        const isExpectedCleanupError =
+          voiceCleanupRef.current || voiceResultHandledRef.current;
+        if (
+          isExpectedCleanupError &&
+          (msg.includes("cancel") || msg.includes("stopped") || msg.includes("busy") || code === 5 || code === 8)
+        ) {
+          return;
+        }
+
+        const fallbackText = voicePartialTextRef.current.trim();
+        if (
+          !voiceResultHandledRef.current &&
+          fallbackText.length >= 2 &&
+          (msg.includes("no match") || msg.includes("timeout") || msg.includes("didn't understand") || code === 6 || code === 7)
+        ) {
+          handleCapturedSpeech(fallbackText);
+          return;
+        }
 
         // Common benign cases: no speech / user canceled / no match / low confidence
         if (
           msg.includes("no speech") ||
           msg.includes("no match") ||
           msg.includes("timeout") ||
+          msg.includes("cancel") ||
           msg.includes("didn't understand") ||
           msg.startsWith("7/") || // 7/No match on some devices
           msg.startsWith("11/") // 11/Didn't understand, please try again.
         ) {
+          void releaseVoiceSession();
           Alert.alert(
             "Couldn’t hear you",
             "We didn’t catch any speech. Try again closer to the mic and speak clearly.",
@@ -427,6 +629,7 @@ export default function AddExpenseScreen() {
 
         // Permission / privacy
         if (msg.includes("permission") || msg.includes("denied") || msg.includes("record audio")) {
+          void releaseVoiceSession();
           Alert.alert(
             "Microphone blocked",
             "Microphone permission is off. Please enable it in system settings for this app.",
@@ -434,8 +637,22 @@ export default function AddExpenseScreen() {
           return;
         }
 
+        if (msg.includes("busy")) {
+          if (voiceBusyRetryRef.current < 1) {
+            voiceBusyRetryRef.current += 1;
+            setTimeout(() => {
+              startVoiceRecording().catch(() => {});
+            }, 450);
+            return;
+          }
+          void releaseVoiceSession();
+          Alert.alert("Microphone busy", "Please wait a moment and try again.");
+          return;
+        }
+
         // Recognizer / engine not present on device
         if (msg.includes("recognizer not present") || msg.includes("service not available") || msg.includes("not available")) {
+          void releaseVoiceSession();
           Alert.alert(
             "Voice not available",
             "This device doesn’t have a working speech recognizer. Please use manual entry or scan receipt.",
@@ -444,55 +661,34 @@ export default function AddExpenseScreen() {
         }
 
         // Fallback: generic error
+        void releaseVoiceSession();
         Alert.alert(
           "Voice Error",
           rawMsg || "There was a problem with voice recognition. Please try again or use manual entry.",
         );
       };
 
-      // Use saved default language (or Auto = device locale)
-      let locale = "en-US";
-      if (voiceLanguageIndex > 0 && VOICE_LANGUAGES[voiceLanguageIndex]?.locale) {
-        locale = VOICE_LANGUAGES[voiceLanguageIndex].locale;
-      } else {
+      let started = false;
+      for (const locale of getPreferredVoiceLocales()) {
         try {
-          const deviceLocale = (DeviceInfo as any).getDeviceLocale?.();
-          if (deviceLocale && typeof deviceLocale === "string") locale = deviceLocale.replace("_", "-");
-        } catch (_) { }
+          await Voice.start(locale);
+          started = true;
+          break;
+        } catch (_) {
+          continue;
+        }
       }
-
-      try {
-        await Voice.start(locale);
-      } catch (nativeErr: any) {
-        if (locale !== "en-US") {
-          try {
-            await Voice.start("en-US");
-          } catch (_) {
-            throw nativeErr;
-          }
-        } else throw nativeErr;
-      }
+      if (!started) throw new Error("Voice recognition failed to start.");
       setIsRecording(true);
-      Alert.alert(
-        "Voice",
-        `Speak your expense in ${VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "your language"} (amount, category, date).`,
-        [{ text: "Stop", onPress: stopVoiceRecording }]
-      );
     } catch (e: any) {
-      setIsRecording(false);
-      setVoiceAvailable(false);
+      await releaseVoiceSession();
       Alert.alert("Voice Error", e?.message ?? "Try again or use manual entry.");
     }
   };
 
   const stopVoiceRecording = async () => {
-    setIsRecording(false);
-    if (Voice && typeof Voice.stop === "function") {
-      try {
-        await Voice.stop();
-      } catch (_) {}
-    }
-    setVoiceOwner(null);
+    voiceResultHandledRef.current = true;
+    await releaseVoiceSession();
   };
 
   return (
@@ -532,6 +728,16 @@ export default function AddExpenseScreen() {
               {VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "Auto"} ▼
             </Text>
           </TouchableOpacity>
+
+          {voiceAvailable && (
+            <Text style={styles.voiceStatusText}>
+              {isRecording
+                ? `Listening in ${VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "Auto"}. Say amount, category, and date.`
+                : voiceText
+                  ? `Last voice input: ${voiceText}`
+                  : "Say something like 500 rupees fuel today."}
+            </Text>
+          )}
 
           <ActionCard
             icon="create-outline"
@@ -724,6 +930,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  voiceStatusText: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 13,
+    textAlign: "center",
+    marginTop: -4,
+    marginBottom: 14,
+    paddingHorizontal: 16,
+    lineHeight: 18,
   },
   langPickerBackdrop: {
     flex: 1,
