@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, ArrowRight, Clock, TrendingUp, Search, Activity, PieChart } from 'lucide-react';
+import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, Clock, TrendingUp, Activity, PieChart } from 'lucide-react';
 import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart, Pie, Cell, PieChart as RePieChart } from 'recharts';
 import { adminApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -10,10 +10,12 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { cn } from '../lib/cn';
 import CountUp from '../components/ui/CountUp/CountUp';
 import { formatDate } from '../lib/dateUtils';
+import { pdf } from '@react-pdf/renderer';
+import { DashboardReport } from '../components/reports/DashboardReport';
+import logoImg from '../assets/images/logo.png';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<{
     customers: number;
     vehicles: number;
@@ -33,7 +35,6 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [selectedRange, setSelectedRange] = useState(7);
   const [isMounted, setIsMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<any>(null);
 
   useEffect(() => {
@@ -446,7 +447,7 @@ export default function Dashboard() {
                       onMouseEnter={(_, index) => setActiveSegment(stats.expenseCategoryBreakdown[index])}
                       onMouseLeave={() => setActiveSegment(null)}
                     >
-                      {stats.expenseCategoryBreakdown.map((entry, index) => {
+                      {stats.expenseCategoryBreakdown.map((_, index) => {
                         const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
                         return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="none" />;
                       })}
@@ -555,124 +556,25 @@ export default function Dashboard() {
                 </div>
              </div>
              
-             <button 
-               onClick={() => {
-                 let iframe = document.getElementById('report-iframe') as HTMLIFrameElement;
-                 if (!iframe) {
-                   iframe = document.createElement('iframe');
-                   iframe.id = 'report-iframe';
-                   iframe.style.display = 'none';
-                   document.body.appendChild(iframe);
-                 }
-                 
-                 const html = `
-                   <html>
-                     <head>
-                       <title>Gupio Dashboard Report</title>
-                       <style>
-                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-                         body { font-family: 'Inter', sans-serif; background: #fff; color: #000; padding: 40px; margin: 0; }
-                         .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px; }
-                         .logo { height: 40px; }
-                         .title { font-size: 24px; font-weight: 900; color: #000; text-transform: uppercase; margin: 0; }
-                         .meta { color: #666; font-size: 13px; margin-top: 5px; }
-                         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
-                         .card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; }
-                         .card-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
-                         .card-value { font-size: 20px; font-weight: 900; color: #000; }
-                         .section-title { font-size: 14px; font-weight: 900; color: #000; text-transform: uppercase; margin: 25px 0 12px 0; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
-                         .table { width: 100%; border-collapse: collapse; }
-                         .table th { text-align: left; font-size: 11px; color: #999; text-transform: uppercase; padding: 8px; border-bottom: 1px solid #f0f0f0; }
-                         .table td { padding: 8px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
-                         .footer { margin-top: 40px; text-align: center; color: #ccc; font-size: 9px; border-top: 1px solid #f0f0f0; padding-top: 15px; }
-                       </style>
-                     </head>
-                     <body>
-                       <div class="header">
-                         <div>
-                           <h1 class="title">Admin Dashboard Report</h1>
-                           <div class="meta">Analysis Period: <strong>${selectedRange} Days</strong> | Date: ${formatDate(new Date())}</div>
-                         </div>
-                         <img src="/src/assets/images/logo.png" class="logo" />
-                       </div>
-
-                       <div class="grid">
-                         <div class="card">
-                           <div class="card-label">Total Customers</div>
-                           <div class="card-value">${stats?.customers}</div>
-                         </div>
-                         <div class="card">
-                           <div class="card-label">Active Fleet</div>
-                           <div class="card-value">${stats?.vehicles}</div>
-                         </div>
-                         <div class="card">
-                           <div class="card-label">Total Operating Expenses</div>
-                           <div class="card-value">₹${stats?.totalExpenses?.toLocaleString('en-IN')}</div>
-                         </div>
-                         <div class="card">
-                           <div class="card-label">Support Tickets</div>
-                           <div class="card-value">${stats?.supportTicketsOpen} Open</div>
-                         </div>
-                       </div>
-
-                       <h2 class="section-title">Fleet Health Summary</h2>
-                       <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
-                         <div class="card" style="border-left: 4px solid #ef4444;">
-                           <div class="card-label">Critical</div>
-                           <div class="card-value">${stats?.vehicleHealthDistribution?.critical || 0}</div>
-                         </div>
-                         <div class="card" style="border-left: 4px solid #f59e0b;">
-                           <div class="card-label">Warning</div>
-                           <div class="card-value">${stats?.vehicleHealthDistribution?.warning || 0}</div>
-                         </div>
-                         <div class="card" style="border-left: 4px solid #10b981;">
-                           <div class="card-label">Good</div>
-                           <div class="card-value">${stats?.vehicleHealthDistribution?.good || 0}</div>
-                         </div>
-                       </div>
-
-                       <h2 class="section-title">Operating Costs Breakdown</h2>
-                       <table class="table">
-                         <thead>
-                           <tr>
-                             <th>Expense Category</th>
-                             <th>Records</th>
-                             <th>Total Amount</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           ${(stats?.expenseCategoryBreakdown || []).map(cat => `
-                             <tr>
-                               <td><strong>${cat.category}</strong></td>
-                               <td>${cat.count}</td>
-                               <td>₹${cat.amount.toLocaleString('en-IN')}</td>
-                             </tr>
-                           `).join('')}
-                         </tbody>
-                       </table>
-
-                       <div class="footer">
-                         Generated by Gupio Admin Terminal. This document contains confidential operational data.
-                       </div>
-                     </body>
-                   </html>
-                 `;
-
-                 const doc = iframe.contentWindow?.document || iframe.contentDocument;
-                 if (doc) {
-                   doc.open();
-                   doc.write(html);
-                   doc.close();
-                   setTimeout(() => {
-                     iframe.contentWindow?.focus();
-                     iframe.contentWindow?.print();
-                   }, 1000);
-                 }
-               }}
-               className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
-             >
-                Download Full Report
-             </button>
+              <button 
+                onClick={async () => {
+                  const blob = await pdf(
+                    <DashboardReport stats={stats} selectedRange={selectedRange} logoUrl={logoImg} />
+                  ).toBlob();
+                  
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `Gupio_Dashboard_Report_${selectedRange}D.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                }}
+                className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
+              >
+                 Download Full Report
+              </button>
           </CardContent>
         </Card>
       </div>
