@@ -18,6 +18,8 @@ import { TableRowSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { cn } from '../lib/cn';
 import { formatDate } from '../lib/dateUtils';
+import { pdf } from '@react-pdf/renderer';
+import { CustomerPDF } from '../components/reports/CustomerReport';
 
 const PAGE_SIZE = 20;
 
@@ -139,34 +141,27 @@ export default function Customers() {
               const res = await adminApi.getCustomer(row.original.id);
               if (res.success) {
                 const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
-                const html = generateCustomerExport(res.data, { 
-                  showLogo: isSuperAdmin, 
-                  logoUrl: logoImg 
-                });
+                
+                // Generate PDF Blob
+                const blob = await pdf(
+                  <CustomerPDF 
+                    customer={res.data} 
+                    options={{ 
+                      showLogo: isSuperAdmin, 
+                      logoUrl: logoImg 
+                    }} 
+                  />
+                ).toBlob();
 
-                // Create an isolated iframe for printing
-                const iframe = document.createElement('iframe');
-                iframe.style.position = 'fixed';
-                iframe.style.right = '0';
-                iframe.style.bottom = '0';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
-                document.body.appendChild(iframe);
-
-                const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
-                if (frameDoc) {
-                  frameDoc.open();
-                  frameDoc.write(html);
-                  frameDoc.close();
-
-                  // Wait for content to load before opening the print dialog
-                  setTimeout(() => {
-                    iframe.contentWindow?.focus();
-                    iframe.contentWindow?.print();
-                    document.body.removeChild(iframe);
-                  }, 500);
-                }
+                // Trigger Download
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Gupio_Report_${(res.data.fullName || res.data.phoneNumber || res.data.id).replace(/\s+/g, '_')}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
               }
             } catch (err) {
               console.error('Export failed:', err);
