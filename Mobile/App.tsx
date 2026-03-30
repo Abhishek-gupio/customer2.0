@@ -59,17 +59,32 @@ function App() {
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    hydrateAuthFromPersistedStorage()
-      .catch(() => {
+    let isActive = true;
+    let cleanupNotifications: (() => void) | undefined;
+
+    const bootstrap = async () => {
+      try {
+        await hydrateAuthFromPersistedStorage();
+      } catch {
         /* keep going; MMKV path still works */
-      })
-      .finally(() => {
+      } finally {
         bootstrapAuthToRedux();
+        if (!isActive) return;
         setStorageReady(true);
-        setupNotifications().catch(err => {
+        try {
+          cleanupNotifications = await setupNotifications();
+        } catch (err) {
           console.error('Error during notification setup:', err);
-        });
-      });
+        }
+      }
+    };
+
+    void bootstrap();
+
+    return () => {
+      isActive = false;
+      cleanupNotifications?.();
+    };
   }, []);
 
   if (!storageReady) {

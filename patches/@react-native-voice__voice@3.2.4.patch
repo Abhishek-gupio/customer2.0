@@ -83,7 +83,7 @@ index 8fce879dcf7a0d92209550aebde7be63b0aba530..2f23f86a2733b126d3f22931297e28f7
 +    tasks.findByName('packageReleaseResources')?.dependsOn(tasks.findByName('generateReleaseResValues'))
 +}
 diff --git a/android/src/main/java/com/wenkesj/voice/VoiceModule.java b/android/src/main/java/com/wenkesj/voice/VoiceModule.java
-index f22833ee4ab674c94d23af731f41c3c4d330298b..b1d10b1873e37cf49c5c5f28df015957ae1b7fd9 100644
+index f22833ee4ab674c94d23af731f41c3c4d330298b..c17ff3c940dfb7a0cb3fbd70ee43bd31eb749042 100644
 --- a/android/src/main/java/com/wenkesj/voice/VoiceModule.java
 +++ b/android/src/main/java/com/wenkesj/voice/VoiceModule.java
 @@ -146,7 +146,7 @@ public class VoiceModule extends ReactContextBaseJavaModule implements Recogniti
@@ -95,3 +95,66 @@ index f22833ee4ab674c94d23af731f41c3c4d330298b..b1d10b1873e37cf49c5c5f28df015957
    }
  
    @ReactMethod
+@@ -237,6 +237,16 @@ public class VoiceModule extends ReactContextBaseJavaModule implements Recogniti
+   public void isRecognizing(Callback callback) {
+     callback.invoke(isRecognizing);
+   }
++
++  @ReactMethod
++  public void addListener(String eventName) {
++    // Required for NativeEventEmitter on newer React Native versions.
++  }
++
++  @ReactMethod
++  public void removeListeners(Integer count) {
++    // Required for NativeEventEmitter on newer React Native versions.
++  }
+ 
+   private void sendEvent(String eventName, @Nullable WritableMap params) {
+     this.reactContext
+diff --git a/dist/index.js b/dist/index.js
+index 2fec01f7f2339910ebf3989f42b3ba1f6b13fdfe..4f38da89a35107897374ff0ebea31746ee8e4da3 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -6,8 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ const react_native_1 = require("react-native");
+ const invariant_1 = __importDefault(require("invariant"));
+ const Voice = react_native_1.NativeModules.Voice;
++if (Voice != null) {
++    Voice.addListener !== null && Voice.addListener !== void 0 ? Voice.addListener : (Voice.addListener = () => { });
++    Voice.removeListeners !== null && Voice.removeListeners !== void 0 ? Voice.removeListeners : (Voice.removeListeners = () => { });
++}
+ // NativeEventEmitter is only availabe on React Native platforms, so this conditional is used to avoid import conflicts in the browser/server
+-const voiceEmitter = react_native_1.Platform.OS !== 'web' ? new react_native_1.NativeEventEmitter(Voice) : null;
++const voiceEmitter = react_native_1.Platform.OS !== 'web' && Voice != null ? new react_native_1.NativeEventEmitter(Voice) : null;
+ class RCTVoice {
+     constructor() {
+         this._loaded = false;
+diff --git a/src/index.ts b/src/index.ts
+index 68bf20e4362dd42f52a054d3fd2442a2467ed72e..c9b32a7602f2464ef1a7845b5eb88fd90af42710 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -11,10 +11,20 @@ import {
+   SpeechVolumeChangeEvent,
+ } from './VoiceModuleTypes';
+ 
+-const Voice = NativeModules.Voice as VoiceModule;
++const Voice = NativeModules.Voice as
++  | (VoiceModule & {
++      addListener?: (eventType: string) => void;
++      removeListeners?: (count: number) => void;
++    })
++  | undefined;
++
++if (Voice != null) {
++  Voice.addListener ??= () => {};
++  Voice.removeListeners ??= () => {};
++}
+ 
+ // NativeEventEmitter is only availabe on React Native platforms, so this conditional is used to avoid import conflicts in the browser/server
+ const voiceEmitter =
+-  Platform.OS !== 'web' ? new NativeEventEmitter(Voice) : null;
++  Platform.OS !== 'web' && Voice != null ? new NativeEventEmitter(Voice) : null;
+ type SpeechEvent = keyof SpeechEvents;
+ 
+ class RCTVoice {
