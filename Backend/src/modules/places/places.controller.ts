@@ -5,6 +5,7 @@ import { placesService, type NearbyPlaceType } from "../../services/places.servi
 
 const VALID_TYPES: NearbyPlaceType[] = [
   "gas_station",
+  "car_wash",
   "electric_charging_station",
   "hospital",
   "police",
@@ -17,13 +18,15 @@ const VALID_TYPES: NearbyPlaceType[] = [
   "restaurant",
   "car_rental",
   "bicycle_store",
+  "insurance_agency",
+  "local_government_office",
 ];
 
 export const placesController = {
   getNearby: asyncHandler(async (req: Request, res: Response) => {
     const latStr = (req.query.latitude ?? req.query.lat) as string | undefined;
     const lngStr = (req.query.longitude ?? req.query.lng) as string | undefined;
-    const type = (req.query.type ?? "gas_station") as string;
+    const type = req.query.type as string | undefined;
     const radius = Math.min(
       25000,
       Math.max(500, parseInt((req.query.radius as string) || "10000", 10) || 10000),
@@ -45,9 +48,21 @@ export const placesController = {
       });
     }
 
-    const placeType = (VALID_TYPES.includes(type as NearbyPlaceType)
-      ? type
-      : "gas_station") as NearbyPlaceType;
+    if (!type) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "Place type is required" },
+      });
+    }
+
+    if (!VALID_TYPES.includes(type as NearbyPlaceType)) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "Requested place type is not available" },
+      });
+    }
+
+    const placeType = type as NearbyPlaceType;
 
     const places = await placesService.getNearbyPlaces(
       latitude,

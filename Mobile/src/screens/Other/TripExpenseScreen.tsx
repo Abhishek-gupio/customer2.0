@@ -132,6 +132,13 @@ export default function TripExpenseScreen() {
 
   const [result, setResult] = useState<TripExpenseResult | null>(null);
   const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
+  const [garageVehicles, setGarageVehicles] = useState<Vehicle[]>([]);
+  const [garageCostByVehicle, setGarageCostByVehicle] = useState<Record<string, {
+    total: number;
+    fuel: number;
+    tollFastag: number;
+  }>>({});
+  const [isComparingGarageCosts, setIsComparingGarageCosts] = useState(false);
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
   const [amenities, setAmenities] = useState<any[]>([]);
   const [searchingAmenities, setSearchingAmenities] = useState(false);
@@ -202,6 +209,7 @@ export default function TripExpenseScreen() {
     const fetchVehicle = async () => {
       try {
         const vehicles = await vehicleService.getVehicles();
+        setGarageVehicles(vehicles.filter((v) => v.isActive !== false));
         const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
         if (primary) {
           setPrimaryVehicle(primary);
@@ -230,9 +238,109 @@ export default function TripExpenseScreen() {
   }, [from, to, waypoints]);
 
   const searchTimeout = useRef<any>(null);
+  const compareRequestIdRef = useRef(0);
   const selectedRoute: TripRoute | null =
     result?.routes?.[selectedRouteIdx] ?? null;
   const mapRef = useRef<MapView>(null);
+
+  const vehicleTripComparisons = useMemo(() => {
+    if (!selectedRoute) return [];
+
+    return garageVehicles
+      .map((vehicle) => {
+        const backendCost = garageCostByVehicle[vehicle.id];
+        const totalCost = backendCost?.total;
+        const score = vehicle.healthScore?.overallScore;
+        const healthLabel =
+          typeof score !== 'number'
+            ? 'Unknown'
+            : score >= 80
+              ? 'Good'
+              : score >= 60
+                ? 'Warning'
+                : 'Critical';
+        const healthColor =
+          healthLabel === 'Good'
+            ? C.green
+            : healthLabel === 'Warning'
+              ? C.orange
+              : healthLabel === 'Critical'
+                ? C.red
+                : C.textSecondary;
+
+        return {
+          vehicle,
+          totalCost,
+          hasBackendCost: typeof totalCost === 'number',
+          healthLabel,
+          healthColor,
+          healthScore: typeof score === 'number' ? Math.round(score) : null,
+        };
+      })
+      .sort((a, b) => {
+        if (!a.hasBackendCost && !b.hasBackendCost) return 0;
+        if (!a.hasBackendCost) return 1;
+        if (!b.hasBackendCost) return -1;
+        return (a.totalCost || 0) - (b.totalCost || 0);
+      });
+  }, [garageVehicles, garageCostByVehicle, selectedRoute]);
+
+  useEffect(() => {
+    const trimmedFrom = from.trim();
+    const trimmedTo = to.trim();
+    const activeWaypoints = waypoints.filter((w) => w.trim() !== '');
+    if (!result || !trimmedFrom || !trimmedTo || garageVehicles.length === 0) {
+      setGarageCostByVehicle({});
+      return;
+    }
+
+    const requestId = ++compareRequestIdRef.current;
+    setIsComparingGarageCosts(true);
+
+    (async () => {
+      const comparisons = await Promise.all(
+        garageVehicles.map(async (vehicle) => {
+          try {
+            const compareResult = await tripExpenseService.calculate({
+              from: trimmedFrom,
+              to: trimmedTo,
+              waypoints: activeWaypoints,
+              vehicleId: vehicle.id,
+            });
+            const routeForIndex =
+              compareResult.routes?.[selectedRouteIdx] ??
+              compareResult.routes?.[0];
+            return {
+              vehicleId: vehicle.id,
+              cost: routeForIndex
+                ? {
+                    total: routeForIndex.costs.total,
+                    fuel: routeForIndex.costs.fuel,
+                    tollFastag: routeForIndex.costs.tollFastag,
+                  }
+                : null,
+            };
+          } catch (e) {
+            return { vehicleId: vehicle.id, cost: null };
+          }
+        })
+      );
+
+      if (compareRequestIdRef.current !== requestId) return;
+
+      const nextMap: Record<string, { total: number; fuel: number; tollFastag: number }> = {};
+      comparisons.forEach((row) => {
+        if (row.cost) nextMap[row.vehicleId] = row.cost;
+      });
+      setGarageCostByVehicle(nextMap);
+      setIsComparingGarageCosts(false);
+    })().catch(() => {
+      if (compareRequestIdRef.current === requestId) {
+        setGarageCostByVehicle({});
+        setIsComparingGarageCosts(false);
+      }
+    });
+  }, [result, from, to, waypoints, garageVehicles, selectedRouteIdx]);
 
   const allRoutePolylines = useMemo(() => {
     if (!result?.routes) return [];
@@ -1000,6 +1108,43 @@ export default function TripExpenseScreen() {
                 </View>
               </View>
             </View>
+
+            {vehicleTripComparisons.length > 0 && (
+              <View style={s.garageCompareCard}>
+                <View style={s.premiumRouteHeader}>
+                  <BarChart3 size={18} color={C.accent} />
+                  <Text style={s.premiumRouteTitle}>Vehicles In Garage</Text>
+                </View>
+                <Text style={s.garageCompareHint}>
+                  Compare estimated trip cost and health to choose the best vehicle.
+                </Text>
+                {isComparingGarageCosts && (
+                  <Text style={s.garageCompareLoading}>Refreshing live backend cost for each vehicle...</Text>
+                )}
+                {vehicleTripComparisons.map((item, idx) => {
+                  const vehicleName = `${item.vehicle.make || ''} ${item.vehicle.model || ''}`.trim() || item.vehicle.registrationNumber;
+                  return (
+                    <View key={item.vehicle.id} style={s.garageVehicleRow}>
+                      <View style={s.garageVehicleInfo}>
+                        <Text style={s.garageVehicleName}>
+                          {idx === 0 && item.hasBackendCost ? 'Best Cost • ' : ''}{vehicleName}
+                        </Text>
+                        <Text style={s.garageVehicleSub}>{item.vehicle.registrationNumber}</Text>
+                      </View>
+                      <View style={s.garageVehicleMeta}>
+                        <Text style={s.garageVehicleCostLabel}>Estimated Cost</Text>
+                        <Text style={s.garageVehicleCost}>
+                          {item.hasBackendCost ? `₹${(item.totalCost || 0).toLocaleString('en-IN')}` : 'Cost N/A'}
+                        </Text>
+                        <Text style={[s.garageVehicleHealth, { color: item.healthColor }]}>
+                          {item.healthLabel}{item.healthScore != null ? ` (${item.healthScore})` : ''}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
  
             {/* Vehicle Health Check (Premium Match) - Relocated below Current Route */}
             {primaryVehicle && (
@@ -1643,6 +1788,68 @@ const s = StyleSheet.create({
   },
   routeTimeline: {
     paddingLeft: wp(1),
+  },
+  garageCompareCard: {
+    backgroundColor: C.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    padding: wp(4.5),
+    marginBottom: hp(2),
+  },
+  garageCompareHint: {
+    color: C.textSecondary,
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Medium',
+    marginBottom: hp(1.5),
+  },
+  garageCompareLoading: {
+    color: C.textMuted,
+    fontSize: wp(2.9),
+    fontFamily: 'Outfit-Medium',
+    marginBottom: hp(1.2),
+  },
+  garageVehicleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#171717',
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 12,
+    paddingHorizontal: wp(3.2),
+    paddingVertical: hp(1.1),
+    marginBottom: hp(1),
+  },
+  garageVehicleInfo: { flex: 1, paddingRight: 8 },
+  garageVehicleName: {
+    color: C.text,
+    fontSize: wp(3.4),
+    fontFamily: 'Outfit-Bold',
+  },
+  garageVehicleSub: {
+    color: C.textSecondary,
+    fontSize: wp(2.9),
+    fontFamily: 'Outfit-Medium',
+    marginTop: 2,
+  },
+  garageVehicleMeta: { alignItems: 'flex-end' },
+  garageVehicleCostLabel: {
+    color: C.textSecondary,
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Medium',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  garageVehicleCost: {
+    color: C.accent,
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Bold',
+  },
+  garageVehicleHealth: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    marginTop: 2,
   },
   timelineItem: {
     flexDirection: 'row',

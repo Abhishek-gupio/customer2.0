@@ -24,6 +24,7 @@ function distanceKm(
 
 export type NearbyPlaceType = 
   | "gas_station" 
+  | "car_wash"
   | "electric_charging_station" 
   | "hospital" 
   | "police" 
@@ -35,7 +36,9 @@ export type NearbyPlaceType =
   | "museum"
   | "restaurant"
   | "car_rental"
-  | "bicycle_store";
+  | "bicycle_store"
+  | "insurance_agency"
+  | "local_government_office";
 
 export interface NearbyPlace {
   name: string;
@@ -63,6 +66,7 @@ const PLACE_TYPE_MAP: Record<string, { type?: string; keyword?: string; keywordF
   // For fuel, we want to explicitly target petrol pumps via keyword only.
   // We do NOT send type=gas_station so that results are purely "petrol pump" matches.
   gas_station: { keyword: "petrol pump" },
+  car_wash: { keyword: "car wash" },
   electric_charging_station: { type: "electric_charging_station" },
   hospital: { keyword: "hospital" },
   police: { keyword: "police station" },
@@ -75,6 +79,9 @@ const PLACE_TYPE_MAP: Record<string, { type?: string; keyword?: string; keywordF
   restaurant: { type: "restaurant" },
   car_rental: { type: "car_rental" },
   bicycle_store: { type: "bicycle_store" },
+  insurance_agency: { type: "insurance_agency" },
+  // In India, RTO offices are best approximated via local government offices.
+  local_government_office: { type: "local_government_office", keywordFallback: "RTO office" },
 };
 
 function formatDistance(km: number): string {

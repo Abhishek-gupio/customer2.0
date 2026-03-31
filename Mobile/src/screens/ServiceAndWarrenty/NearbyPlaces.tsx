@@ -457,6 +457,7 @@ export default function NearbyPlaces() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const mapRef = useRef<MapView | null>(null);
+  const cacheRef = useRef<Record<string, { ts: number; data: NearbyPlace[] }>>({});
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -466,6 +467,8 @@ export default function NearbyPlaces() {
   
   const fromHome = route.params?.fromHome;
   const placeType = route.params?.placeType as PlaceType | undefined;
+  const MAP_RADIUS_METERS = 15000;
+  const MAP_CACHE_TTL_MS = 10 * 60 * 1000;
 
   const handleBack = () => {
     if (fromHome) navigation.navigate('Home');
@@ -517,19 +520,42 @@ export default function NearbyPlaces() {
     });
   };
 
-  const fetchServicesForMap = async (coords: { lat: number; lon: number }, services: PlaceType[]) => {
+  const getCacheKey = (service: PlaceType, coords: { lat: number; lon: number }) =>
+    `${service}:${coords.lat.toFixed(3)}:${coords.lon.toFixed(3)}:${MAP_RADIUS_METERS}`;
+
+  const fetchOneServiceForMap = async (
+    coords: { lat: number; lon: number },
+    service: PlaceType,
+    force = false,
+  ) => {
+    const apiType = PLACE_API_TYPE[service];
+    if (!apiType) {
+      setMapResults((prev) => ({ ...prev, [service]: [] }));
+      return;
+    }
+
+    const cacheKey = getCacheKey(service, coords);
+    const cached = cacheRef.current[cacheKey];
+    const fresh = cached && Date.now() - cached.ts < MAP_CACHE_TTL_MS;
+    if (!force && fresh) {
+      setMapResults((prev) => ({ ...prev, [service]: cached.data }));
+      return;
+    }
+
+    const list = await placesService.getNearby(coords.lat, coords.lon, apiType, MAP_RADIUS_METERS);
+    cacheRef.current[cacheKey] = { ts: Date.now(), data: list };
+    setMapResults((prev) => ({ ...prev, [service]: list }));
+  };
+
+  const fetchServicesForMap = async (
+    coords: { lat: number; lon: number },
+    services: PlaceType[],
+    force = false,
+  ) => {
     if (services.length === 0) return;
     setLoading(true);
     try {
-      const next: Record<PlaceType, NearbyPlace[]> = { ...mapResults } as Record<PlaceType, NearbyPlace[]>;
-      await Promise.all(
-        services.map(async (service) => {
-          const apiType = PLACE_API_TYPE[service] ?? 'gas_station';
-          const list = await placesService.getNearby(coords.lat, coords.lon, apiType as NearbyPlaceType, 15000);
-          next[service] = list;
-        }),
-      );
-      setMapResults(next);
+      await Promise.all(services.map((service) => fetchOneServiceForMap(coords, service, force)));
     } catch (e) {
       console.error('Failed to fetch map services:', e);
     } finally {
@@ -544,7 +570,7 @@ export default function NearbyPlaces() {
     const coords = await fetchLocation();
     if (coords) {
       setLocation(coords);
-      await fetchServicesForMap(coords, selectedServices);
+      await fetchServicesForMap(coords, selectedServices, force);
     }
   };
 
@@ -563,8 +589,8 @@ export default function NearbyPlaces() {
       ? selectedServices.filter((item) => item !== service)
       : [...selectedServices, service];
     setSelectedServices(nextServices);
-    if (!location || nextServices.length === 0) return;
-    await fetchServicesForMap(location, nextServices);
+    if (!location || nextServices.length === 0 || exists) return;
+    await fetchServicesForMap(location, [service]);
   };
 
   const mapMarkers = selectedServices.flatMap((service) =>
@@ -572,13 +598,30 @@ export default function NearbyPlaces() {
   );
 
   if (placeType) {
-    const apiType = PLACE_API_TYPE[placeType] ?? (placeType === 'CarWash' ? 'car_wash' : 'gas_station');
+    const apiType = PLACE_API_TYPE[placeType];
+    if (!apiType) {
+      return (
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.header}>
+            <BackButton onPress={handleBack} />
+            <Text style={styles.headerTitle}>Nearby Places</Text>
+          </View>
+          <View style={styles.emptyWrap}>
+            <IconMC name="map-search" size={wp(18)} color="#444" />
+            <Text style={styles.emptyTitle}>Not available</Text>
+            <Text style={styles.emptyText}>
+              This place type is not available right now.
+            </Text>
+          </View>
+        </SafeAreaView>
+      );
+    }
     return (
       <NearbyPlacesListScreen
         onBack={handleBack}
         title={PLACE_LABELS[placeType]}
         placeType={placeType}
-        apiType={apiType as any}
+        apiType={apiType}
       />
     );
   }
