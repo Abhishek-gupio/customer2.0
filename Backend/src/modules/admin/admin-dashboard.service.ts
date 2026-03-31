@@ -119,6 +119,9 @@ export const adminDashboardService = {
     page?: number;
     limit?: number;
     search?: string;
+    type?: string;
+    healthStatus?: string;
+    verificationStatus?: string;
     role: AdminRole;
   }) {
     const page = Math.max(1, params.page ?? 1);
@@ -126,6 +129,28 @@ export const adminDashboardService = {
     const skip = (page - 1) * limit;
 
     const where: any = {};
+    if (params.type) {
+      where.vehicleType = params.type;
+    }
+
+    if (params.healthStatus) {
+      if (params.healthStatus === 'critical') {
+        where.healthScore = { overallScore: { lt: 50 } };
+      } else if (params.healthStatus === 'warning') {
+        where.healthScore = { overallScore: { gte: 50, lt: 80 } };
+      } else if (params.healthStatus === 'good') {
+        where.healthScore = { overallScore: { gte: 80 } };
+      }
+    }
+
+    if (params.verificationStatus) {
+      if (params.verificationStatus === 'verified') {
+        where.rcVerified = true;
+      } else if (params.verificationStatus === 'unverified') {
+        where.rcVerified = false;
+      }
+    }
+    
     if (params.search?.trim()) {
       const q = `%${params.search.trim()}%`;
       where.OR = [
@@ -147,6 +172,7 @@ export const adminDashboardService = {
           customer: {
             select: { id: true, fullName: true, phoneNumber: true, email: true },
           },
+          healthScore: true,
           _count: { select: { challans: true, documents: true, expenses: true } },
         },
       }),
@@ -253,12 +279,12 @@ export const adminDashboardService = {
         }))
       ),
     ]);
-    
+
     // Calculate full expense breakdown for export
     const totalExpenseAmount = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     const categories = ["FUEL", "TOLL", "PARKING", "SERVICE", "INSURANCE", "CHALLAN", "EMI", "OTHER"];
     const breakdown: Record<string, number> = {};
-    
+
     categories.forEach(cat => {
       breakdown[cat.toLowerCase()] = expenses
         .filter(e => e.category === cat)
@@ -314,11 +340,11 @@ export const adminDashboardService = {
     }
 
     const readableUrl = await storageService.ensureReadableUrl(doc.fileUrl, 3600, `attachment; filename="${doc.type.replace(/\s+/g, '_')}_${doc.id.slice(0, 8)}"`);
-    
+
     // If it's already a signed URL with query params, we can just return the URL or stream it.
     // Streaming is safer for forcing download.
     const response = await axios.get(readableUrl, { responseType: "arraybuffer" });
-    
+
     return {
       buffer: Buffer.from(response.data),
       mimeType: (response.headers["content-type"] as string) || doc.mimeType || "application/octet-stream",
@@ -350,13 +376,14 @@ export const adminDashboardService = {
     try {
       const expenseFallback = { _sum: { amount: 0 as number }, _count: 0 };
       const [
-        customers, 
-        vehicles, 
-        expenses, 
-        supportTicketsOpen, 
-        trendData, 
-        unverifiedVehiclesCount, 
-        totalCustomersToday, 
+        customers,
+        vehicles,
+        expenses,
+        supportTicketsOpen,
+        trendData,
+        unverifiedVehiclesCount,
+        verifiedVehiclesCount,
+        totalCustomersToday,
         recentHighExpenses,
         expenseCategoryBreakdown,
         ticketPriorityDistribution,
@@ -372,28 +399,29 @@ export const adminDashboardService = {
           : Promise.resolve(0),
         this.getTrendData(db, days),
         dbInstances.customerVehicle.count({ where: { rcVerified: false } }),
+        dbInstances.customerVehicle.count({ where: { rcVerified: true } }),
         dbInstances.customer.count({ where: { createdAt: { gte: today } } }),
         db.expense
           ? db.expense.findMany({
-              where: { amount: { gt: 1000 } },
-              take: 3,
-              orderBy: { date: "desc" },
-              include: { customer: { select: { fullName: true } } },
-            }).catch(() => [])
+            where: { amount: { gt: 1000 } },
+            take: 3,
+            orderBy: { date: "desc" },
+            include: { customer: { select: { fullName: true } } },
+          }).catch(() => [])
           : Promise.resolve([]),
         db.expense
           ? db.expense.groupBy({
-              by: ['category'],
-              _sum: { amount: true },
-              _count: true,
-            }).catch(() => [])
+            by: ['category'],
+            _sum: { amount: true },
+            _count: true,
+          }).catch(() => [])
           : Promise.resolve([]),
         db.supportTicket
           ? db.supportTicket.groupBy({
-              by: ['priority'],
-              where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
-              _count: true,
-            }).catch(() => [])
+            by: ['priority'],
+            where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
+            _count: true,
+          }).catch(() => [])
           : Promise.resolve([]),
         dbInstances.vehicleHealthScore.findMany({
           select: { overallScore: true }
@@ -416,6 +444,7 @@ export const adminDashboardService = {
         supportTicketsOpen: Number(supportTicketsOpen),
         trendData,
         unverifiedVehiclesCount,
+        verifiedVehiclesCount,
         totalCustomersToday,
         recentHighExpenses,
         expenseCategoryBreakdown: expenseCategoryBreakdown.map((b: any) => ({
@@ -443,7 +472,7 @@ export const adminDashboardService = {
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const periods: { dayStart: Date; dayEnd: Date; dateStr: string; label: string }[] = [];
-    
+
     for (let i = daysToFetch - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
@@ -451,13 +480,13 @@ export const adminDashboardService = {
       const dayEnd = new Date(d);
       dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
       const dateStr = `${dayStart.getUTCFullYear()}-${String(dayStart.getUTCMonth() + 1).padStart(2, "0")}-${String(dayStart.getUTCDate()).padStart(2, "0")}`;
-      
+
       // If fetching many days, use month + day for label (e.g. "Oct 12") instead of just weekday
       let label = dayLabels[dayStart.getUTCDay()];
       if (daysToFetch > 7) {
         label = `${monthNames[dayStart.getUTCMonth()]} ${dayStart.getUTCDate()}`;
       }
-      
+
       periods.push({ dayStart, dayEnd, dateStr, label });
     }
     const results = await Promise.all(
@@ -472,10 +501,10 @@ export const adminDashboardService = {
             ? db.supportTicket.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }).catch(() => 0)
             : Promise.resolve(0),
         ]);
-        return { 
-          date: dateStr, 
-          label, 
-          customers: custCount, 
+        return {
+          date: dateStr,
+          label,
+          customers: custCount,
           vehicles: vehicleCount,
           expenseAmount: Math.round((expSum as number) * 100) / 100,
           tickets: ticketCount
@@ -483,5 +512,28 @@ export const adminDashboardService = {
       })
     );
     return results;
+  },
+  /** Delete one or more customers. SUPER_ADMIN only. */
+  async deleteCustomers(customerIds: string[]) {
+    if (!customerIds.length) return { count: 0 };
+
+    // Prisma handle cascading deletes for most related models.
+    const result = await dbInstances.customer.deleteMany({
+      where: { id: { in: customerIds } }
+    });
+
+    return { count: result.count };
+  },
+
+  /** Update customer profile data. SUPER_ADMIN only. */
+  async updateCustomer(id: string, data: { fullName?: string; email?: string; phoneNumber?: string }) {
+    return dbInstances.customer.update({
+      where: { id },
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+      },
+    });
   },
 };

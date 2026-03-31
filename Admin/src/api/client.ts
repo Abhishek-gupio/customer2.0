@@ -120,16 +120,29 @@ export const adminApi = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
-  listVehicles: (params?: { page?: number; limit?: number; search?: string }) => {
+  listVehicles: (params?: { page?: number; limit?: number; search?: string; type?: string; healthStatus?: string; verificationStatus?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
     if (params?.limit) sp.set('limit', String(params.limit));
     if (params?.search) sp.set('search', params.search);
+    if (params?.type) sp.set('type', params.type);
+    if (params?.healthStatus) sp.set('healthStatus', params.healthStatus);
+    if (params?.verificationStatus) sp.set('verificationStatus', params.verificationStatus);
     const q = sp.toString();
     return api<{ data: AdminVehicleListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
       `/v1/admin/vehicles${q ? `?${q}` : ''}`
     );
   },
+  deleteCustomers: (customerIds: string[]) =>
+    api<{ count: number }>(`/v1/admin/customers`, {
+      method: 'DELETE',
+      body: JSON.stringify({ customerIds }),
+    }),
+  updateCustomer: (id: string, data: { fullName?: string; email?: string; phoneNumber?: string }) =>
+    api<any>(`/v1/admin/customers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
 
 export interface CustomerListItem {
@@ -330,5 +343,6 @@ export interface AdminVehicleListItem {
   isActive: boolean;
   createdAt: string;
   customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
+  healthScore?: AdminVehicleHealthScore | null;
   _count: { challans: number; documents: number; expenses: number };
 }

@@ -8,7 +8,7 @@ import {
   useReactTable,
   flexRender,
 } from '@tanstack/react-table';
-import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2 } from 'lucide-react';
+import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2, CheckSquare, Square, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerListItem } from '../api/client';
 import logoImg from '../assets/images/logo.png';
@@ -20,6 +20,9 @@ import { cn } from '../lib/cn';
 import { formatDate } from '../lib/dateUtils';
 import { pdf } from '@react-pdf/renderer';
 import { CustomerPDF } from '../components/reports/CustomerReport';
+import { ConfirmationModal } from '../components/ui/ConfirmationModal';
+import LoadingScreen from '../components/LoadingScreen/LoadingScreen';
+
 
 const PAGE_SIZE = 20;
 
@@ -34,6 +37,14 @@ export default function Customers() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
+  const { admin, hasRole } = useAuth();
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
 
   const debouncedSearch = useDebouncedValue(search, 250);
 
@@ -49,12 +60,64 @@ export default function Customers() {
     return () => {
       ignore = true;
     };
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, refreshKey]);
 
   const rows = useMemo(() => data?.data ?? [], [data]);
 
   const columns = useMemo<ColumnDef<CustomerListItem>[]>(
     () => [
+      ...(isSelectionMode
+        ? [
+          {
+            id: 'select',
+            header: () => (
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const allIds = rows.map((r) => r.id);
+                    if (selectedIds.size === allIds.length) {
+                      setSelectedIds(new Set());
+                    } else {
+                      setSelectedIds(new Set(allIds));
+                    }
+                  }}
+                  className="p-1 hover:bg-white/5 rounded transition-colors"
+                >
+                  {selectedIds.size === rows.length && rows.length > 0 ? (
+                    <CheckSquare className="h-4 w-4 text-[var(--accent)]" />
+                  ) : (
+                    <Square className="h-4 w-4 text-white/20" />
+                  )}
+                </button>
+              </div>
+            ),
+            cell: ({ row }: any) => (
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newSelected = new Set(selectedIds);
+                    if (newSelected.has(row.original.id)) {
+                      newSelected.delete(row.original.id);
+                    } else {
+                      newSelected.add(row.original.id);
+                    }
+                    setSelectedIds(newSelected);
+                  }}
+                  className="p-1 hover:bg-white/5 rounded transition-colors"
+                >
+                  {selectedIds.has(row.original.id) ? (
+                    <CheckSquare className="h-4 w-4 text-[var(--accent)]" />
+                  ) : (
+                    <Square className="h-4 w-4 text-white/20" />
+                  )}
+                </button>
+              </div>
+            ),
+          },
+        ]
+        : []),
       {
         id: 'customer',
         header: 'Customer',
@@ -130,7 +193,6 @@ export default function Customers() {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => {
-          const { hasRole, admin } = useAuth();
           const [exporting, setExporting] = useState(false);
 
           const handleExport = async (e: React.MouseEvent) => {
@@ -141,15 +203,15 @@ export default function Customers() {
               const res = await adminApi.getCustomer(row.original.id);
               if (res.success) {
                 const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
-                
+
                 // Generate PDF Blob
                 const blob = await pdf(
-                  <CustomerPDF 
-                    customer={res.data} 
-                    options={{ 
-                      showLogo: isSuperAdmin, 
-                      logoUrl: logoImg 
-                    }} 
+                  <CustomerPDF
+                    customer={res.data}
+                    options={{
+                      showLogo: isSuperAdmin,
+                      logoUrl: logoImg
+                    }}
                   />
                 ).toBlob();
 
@@ -193,7 +255,7 @@ export default function Customers() {
         },
       },
     ],
-    []
+    [isSelectionMode, selectedIds, rows, admin, hasRole]
   );
 
   const table = useReactTable({
@@ -205,6 +267,33 @@ export default function Customers() {
     getSortedRowModel: getSortedRowModel(),
   });
 
+  const handleDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await adminApi.deleteCustomers(Array.from(selectedIds));
+      if (res.success) {
+        // Refresh data
+        setPage(1);
+        setIsSelectionMode(false);
+        setSelectedIds(new Set());
+        setShowDeleteConfirm(false);
+        setRefreshKey(prev => prev + 1);
+      } else {
+        setError(res.error.message);
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      setError('An unexpected error occurred during deletion.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex-1 min-h-0 flex flex-col space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -213,6 +302,53 @@ export default function Customers() {
           <p className="text-sm text-white/60">Search and manage user profiles and their associated activity</p>
         </div>
         <div className="flex items-center gap-2">
+          {isSuperAdmin && (
+            <div className="flex items-center gap-2 mr-2">
+              {isSelectionMode ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"
+                    onClick={handleDelete}
+                    disabled={selectedIds.size === 0 || isDeleting}
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete ({selectedIds.size})
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-11 px-4 rounded-2xl bg-white/5 hover:bg-white/10"
+                    onClick={() => {
+                      setIsSelectionMode(false);
+                      setSelectedIds(new Set());
+                    }}
+                    disabled={isDeleting}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-11 px-4 rounded-2xl bg-white/5 hover:bg-white/10"
+                  onClick={() => setIsSelectionMode(true)}
+                >
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Select
+                </Button>
+              )}
+            </div>
+          )}
           <div className="relative w-full max-w-[420px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
             <input
@@ -342,6 +478,20 @@ export default function Customers() {
           )}
         </CardContent>
       </Card>
+
+      {isDeleting && <LoadingScreen />}
+
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        description={`Are you sure you want to delete ${selectedIds.size} selected customer(s)? This action is irreversible and all associated data will be lost.`}
+        confirmLabel={isDeleting ? 'Deleting...' : 'Delete Customers'}
+        confirmIcon={Trash2}
+        confirmVariant="danger"
+        isProcessing={isDeleting}
+      />
     </div>
   );
 }
