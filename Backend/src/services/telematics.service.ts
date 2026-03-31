@@ -1055,7 +1055,12 @@ export const telematicsService = {
           );
           return;
         }
-        if (error.response?.status === 404) {
+        if (error.response?.status === 403) {
+          logger.warn(
+            { deviceId: device.id, instanceId: device.instanceId },
+            "Damoov returned 403 Forbidden (access denied or inactive user)"
+          );
+        } else if (error.response?.status === 404) {
           logger.warn(
             { deviceId: device.id, instanceId: device.instanceId },
             "Device not found in Damoov Datahub (user hasn't driven yet)"
