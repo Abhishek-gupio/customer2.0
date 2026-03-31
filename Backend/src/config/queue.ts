@@ -3,6 +3,7 @@ import { env } from "./env";
 import { logger } from "./logger";
 
 const redisUrl = env.REDIS_URL;
+const allowQueuesInDev = env.NODE_ENV !== "development";
 let redisConfig:
   | {
       host: string;
@@ -27,7 +28,11 @@ if (redisUrl) {
   }
 }
 
-export const isQueueEnabled = redisConfig !== null;
+export const isQueueEnabled = redisConfig !== null && allowQueuesInDev;
+
+if (redisConfig && !allowQueuesInDev) {
+  logger.info("BullMQ queues disabled in development; Redis-backed background jobs are skipped.");
+}
 
 // Queue Definitions
 export const QUEUE_NAMES = {

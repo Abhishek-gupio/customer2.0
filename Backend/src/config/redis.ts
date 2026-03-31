@@ -3,56 +3,81 @@ import { env } from "./env";
 import { logger } from "./logger";
 
 let redis: Redis | null = null;
+let redisReady = false;
+let redisConnecting = false;
 let redisErrorLogged = false;
+
+function ensureRedisClient(): void {
+  const url = env.REDIS_URL;
+  if (!url || redis) return;
+
+  redis = new Redis(url, {
+    maxRetriesPerRequest: 1,
+    lazyConnect: true,
+    retryStrategy(times) {
+      if (times > 3) return null;
+      return Math.min(times * 200, 2000);
+    },
+    enableReadyCheck: true,
+    enableOfflineQueue: false,
+  });
+
+  redis.on("error", () => {
+    redisReady = false;
+    if (!redisErrorLogged) {
+      logger.warn("Redis unreachable; using in-memory fallback for OTP/locks");
+      redisErrorLogged = true;
+    }
+  });
+
+  redis.on("ready", () => {
+    redisReady = true;
+    redisConnecting = false;
+    redisErrorLogged = false;
+    logger.info("Redis connected");
+  });
+
+  redis.on("close", () => {
+    redisReady = false;
+    redisConnecting = false;
+  });
+
+  redis.on("end", () => {
+    redisReady = false;
+    redisConnecting = false;
+  });
+
+  if (!redisConnecting) {
+    redisConnecting = true;
+    redis.connect().catch(() => {
+      redisReady = false;
+      redisConnecting = false;
+      if (!redisErrorLogged) {
+        logger.warn("Redis connect failed; using in-memory fallback for OTP/locks");
+        redisErrorLogged = true;
+      }
+    });
+  }
+}
 
 /**
  * Get Redis client. Returns null if REDIS_URL is not set (e.g. dev without Redis).
  * Callers should handle null (e.g. use in-memory fallback for OTP).
  */
 export function getRedis(): Redis | null {
-  if (redis !== null) return redis;
   const url = env.REDIS_URL;
   if (!url || url === "") {
     // Fully silent: do not log or connect if REDIS_URL is not set
     return null;
   }
   try {
-    redis = new Redis(url, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-      retryStrategy(times) {
-        if (times > 3) return null;
-        return Math.min(times * 200, 2000);
-      },
-      enableReadyCheck: false,
-      enableOfflineQueue: true, // queue commands when disconnected so refresh/auth don't throw
-    });
-
-    redis.on("error", (err) => {
-      if (!redisErrorLogged) {
-        // Only log once per session if REDIS_URL is set
-        logger.warn("Redis unreachable; using in-memory fallback for OTP/locks");
-        redisErrorLogged = true;
-      }
-    });
-
-    redis.on("connect", () => {
-      redisErrorLogged = false;
-      logger.info("Redis connected");
-    });
-
-    redis.connect().catch((err) => {
-      if (!redisErrorLogged) {
-        logger.warn("Redis connect failed; using in-memory fallback for OTP/locks");
-        redisErrorLogged = true;
-      }
-      // Do NOT call redis.quit() here, just set redis to null
-      redis = null;
-    });
-
-    return redis;
-  } catch (err) {
+    ensureRedisClient();
+    return redisReady ? redis : null;
+  } catch {
     logger.warn("Redis initialization failed; using in-memory fallback");
+    redisReady = false;
+    redisConnecting = false;
+    redis = null;
     return null;
   }
 }
@@ -62,8 +87,10 @@ export function getRedis(): Redis | null {
  */
 export async function closeRedis(): Promise<void> {
   if (redis) {
-    await redis.quit();
+    await redis.quit().catch(() => {});
     redis = null;
+    redisReady = false;
+    redisConnecting = false;
     logger.info("Redis disconnected");
   }
 }

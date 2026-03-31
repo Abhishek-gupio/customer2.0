@@ -2,16 +2,25 @@ import { Platform } from 'react-native';
 
 // ─── API ─────────────────────────────────────────────────────────────────
 /** Set to true to use production API even when running in dev (Metro). Use for testing prod. */
-const FORCE_USE_PRODUCTION_API = true;
+const FORCE_USE_PRODUCTION_API = false;
+/** Set to true when testing on a real phone connected to the same Wi-Fi as your backend machine. */
+const USE_LAN_FOR_DEV = false;
 
 const DEV_PORT = 9000;
-const DEV_HOST = `http://localhost:${DEV_PORT}`;
+const LOCAL_LAN_HOST = `http://192.168.1.100:${DEV_PORT}`; // Replace with your computer's IP when testing on a real phone.
+const DEV_HOST =
+  Platform.OS === 'android'
+    ? `http://10.0.2.2:${DEV_PORT}`
+    : `http://localhost:${DEV_PORT}`;
+const DEV_HOST_FOR_DEVICE = LOCAL_LAN_HOST;
 
 
 /** Production API base URL – no trailing slash. Used in release builds (or when FORCE_USE_PRODUCTION_API is true). */
 const PRODUCTION_API_BASE_URL = 'https://customerapi.gupio.tech';
 
-const _base = (__DEV__ && !FORCE_USE_PRODUCTION_API) ? DEV_HOST : PRODUCTION_API_BASE_URL;
+const _base = (__DEV__ && !FORCE_USE_PRODUCTION_API)
+  ? (USE_LAN_FOR_DEV ? DEV_HOST_FOR_DEVICE : DEV_HOST)
+  : PRODUCTION_API_BASE_URL;
 /** Base URL for API (no trailing slash). In dev uses local host; in release or when forced, uses production. */
 export const API_BASE_URL = _base.replace(/\/$/, '');
 
@@ -19,9 +28,14 @@ export const AUTH_PATH = '/api/v1/auth';
 
 // Socket/realtime (e.g. notifications)
 const SOCKET_PORT = 9000;
-const DEV_SOCKET_HOST = `http://localhost:${SOCKET_PORT}`;
+const DEV_SOCKET_HOST =
+  Platform.OS === 'android'
+    ? `http://10.0.2.2:${SOCKET_PORT}`
+    : `http://localhost:${SOCKET_PORT}`;
 const PRODUCTION_SOCKET_BASE_URL = 'https://customerapi.gupio.tech';
-export const SOCKET_BASE_URL = (__DEV__ && !FORCE_USE_PRODUCTION_API) ? DEV_SOCKET_HOST : PRODUCTION_SOCKET_BASE_URL;
+export const SOCKET_BASE_URL = (__DEV__ && !FORCE_USE_PRODUCTION_API)
+  ? (USE_LAN_FOR_DEV ? LOCAL_LAN_HOST.replace(`:${DEV_PORT}`, `:${SOCKET_PORT}`) : DEV_SOCKET_HOST)
+  : PRODUCTION_SOCKET_BASE_URL;
 
 /** Build absolute URL for a path (e.g. /uploads/foo or uploads/foo). Use for profile pics, documents, receipts. */
 export function getAbsoluteUrl(path: string | null | undefined): string {
