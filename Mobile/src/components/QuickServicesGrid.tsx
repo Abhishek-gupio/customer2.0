@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, type ImageSourcePropType } from 'react-native';
+import { View, StyleSheet, type ImageSourcePropType } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import QuickServiceButton from './QuickServiceButton';
 
-const DrivingIcon = require('../assets/images/driving_behavior.jpg') as any;
+const DrivingIcon = require('../assets/images/driving_icon.jpg') as any;
 
 interface ServiceItem {
   id: string;

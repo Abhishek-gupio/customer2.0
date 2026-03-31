@@ -286,8 +286,9 @@ export default function DrivingSummary({ navigation }: any) {
                 {/* HERO BANNER */}
                 <View style={styles.heroBanner}>
                     <FastImage
-                      source={{ uri: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=1200' }}
+                      source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
                       style={styles.heroImage}
+                      resizeMode={FastImage.resizeMode.cover}
                     />
                     <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} style={styles.heroOverlay}>
                        <Text style={styles.heroTitle}>Smart Insights</Text>
