@@ -254,6 +254,88 @@ export const DetailsScreen = ({
     };
 
     // ── Document Actions ──
+    const generateRCPDF = async () => {
+        try {
+            const dateStr = new Date().toLocaleDateString('en-GB');
+            const html = `
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: 'Helvetica', sans-serif; padding: 40px; background: #fff; color: #000; }
+                            .cert { border: 2px solid #333; padding: 30px; border-radius: 10px; }
+                            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+                            .header img { width: 60px; margin-bottom: 10px; }
+                            .header h1 { margin: 0; font-size: 20px; text-transform: uppercase; }
+                            .header p { margin: 5px 0; font-size: 12px; color: #666; }
+                            .meta-grid { display: flex; flex-wrap: wrap; margin-bottom: 20px; }
+                            .meta-item { width: 50%; margin-bottom: 15px; }
+                            .label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; }
+                            .value { font-size: 13px; font-weight: bold; margin-top: 2px; }
+                            .info-table { width: 100%; border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 30px; }
+                            .info-row { display: flex; margin-bottom: 10px; font-size: 12px; }
+                            .info-label { width: 150px; color: #444; font-weight: bold; }
+                            .info-value { flex: 1; font-weight: 800; }
+                            .footer { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #eee; padding-top: 20px; }
+                            .note { font-size: 10px; color: #6366f1; font-weight: bold; }
+                            .signature { border: 1px solid #eee; padding: 8px; border-radius: 4px; font-size: 9px; text-align: center; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="cert">
+                            <div class="header">
+                                <img src="https://gupio.io/assets/images/indian_lion.png" />
+                                <h1>UNION OF INDIA REGISTRATION CERTIFICATE</h1>
+                                <p>Issuing Authority: ${activeVehicle?.rtoDetails?.rto || 'Transport Department'}</p>
+                            </div>
+                            <div class="meta-grid">
+                                <div class="meta-item">
+                                    <div class="label">Registration No:</div>
+                                    <div class="value">${activeVehicle?.registrationNumber}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Registration Date:</div>
+                                    <div class="value">${activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Chassis No:</div>
+                                    <div class="value">${activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Engine No:</div>
+                                    <div class="value">${activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div class="info-table">
+                                <div class="info-row"><div class="info-label">Owner Name:</div> <div class="info-value">${activeVehicle?.rtoDetails?.ownerName || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Make / Model:</div> <div class="info-value">${activeVehicle?.make || activeVehicle?.rtoDetails?.make || 'N/A'} / ${activeVehicle?.model || activeVehicle?.rtoDetails?.model || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Vehicle Class:</div> <div class="info-value">${activeVehicle?.rtoDetails?.vehicleClass || activeVehicle?.vehicleType || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Fuel Type / Norms:</div> <div class="info-value">${activeVehicle?.fuelType || activeVehicle?.rtoDetails?.fuelType || 'N/A'} (Norms: ${activeVehicle?.rtoDetails?.fuelNorms || 'N/A'})</div></div>
+                                <div class="info-row"><div class="info-label">Color:</div> <div class="info-value">${activeVehicle?.color || activeVehicle?.rtoDetails?.color || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Manufacturing:</div> <div class="info-value">${activeVehicle?.manufacturingMonthYear || activeVehicle?.rtoDetails?.manufacturingMonthYear || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Valid Up To / RC Expiry:</div> <div class="info-value">${activeVehicle?.rtoDetails?.fitnessUpto || 'N/A'}</div></div>
+                            </div>
+                            <div class="footer">
+                                <div class="note">Powered by DigiLocker</div>
+                                <div class="signature">
+                                    Digitally signed on ${dateStr}<br/>Verified by Gupio
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+            `;
+            const options = {
+                html: html,
+                fileName: `RC_${activeVehicle?.registrationNumber}_${Date.now()}`,
+            };
+            const file = await convertToPDF(options);
+            return file?.filePath;
+        } catch (error) {
+            console.error('RC PDF Gen Error:', error);
+            return null;
+        }
+    };
+
     const createPDFFromImage = async (doc: any) => {
         try {
             let base64Data = '';
@@ -299,10 +381,25 @@ export const DetailsScreen = ({
     };
 
     const handleShareDoc = async (doc: any) => {
-        if (!doc?.imageUri) return;
         try {
             setIsProcessing(true);
-            const pdfPath = await createPDFFromImage(doc);
+            const isRC = doc?.type?.toUpperCase() === 'RC' || doc?.type?.toLowerCase() === 'reg certificate';
+            let pdfPath: string | null = '';
+            
+            if (isRC) {
+                pdfPath = await generateRCPDF();
+            } else {
+                if (!doc?.imageUri) {
+                    setIsProcessing(false);
+                    return;
+                }
+                pdfPath = await createPDFFromImage(doc);
+            }
+
+            if (!pdfPath) {
+                setIsProcessing(false);
+                return;
+            }
             
             // Generate a clean temp path in cache with .pdf extension
             const cleanFileName = `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
@@ -898,10 +995,15 @@ export const DetailsScreen = ({
                                                     const doc = getDocByType('reg certificate');
                                                     if (doc) {
                                                         setViewingDoc(doc);
-                                                        setShowViewerModal(true);
                                                     } else {
-                                                        navigation.navigate('DocumentList');
+                                                        // Pass a formal DB-only reference if no image exists
+                                                        setViewingDoc({ 
+                                                            type: 'RC', 
+                                                            isFormalOnly: true,
+                                                            registrationNumber: activeVehicle.registrationNumber 
+                                                        });
                                                     }
+                                                    setShowViewerModal(true);
                                                 }}
                                             >
                                                 <FileText size={14} color="#FFF" />
@@ -988,7 +1090,7 @@ export const DetailsScreen = ({
                         minimumZoomScale={1}
                         bouncesZoom={true}
                     >
-                        {viewingDoc?.type === 'reg certificate' ? (
+                        {viewingDoc?.type?.toUpperCase() === 'RC' || viewingDoc?.type?.toLowerCase() === 'reg certificate' ? (
                             <View style={styles.formalCertContainer}>
                                 <View style={styles.formalCert}>
                                     <View style={styles.formalCertHeader}>
@@ -1000,23 +1102,23 @@ export const DetailsScreen = ({
 
                                     <View style={styles.formalCertMeta}>
                                         <View style={styles.formalCertMetaRow}>
-                                            <View style={styles.formalCertMetaCol}>
+                                            <View style={{ flex: 1 }}>
                                                 <Text style={styles.formalCertMetaLabel}>Registration No:</Text>
                                                 <Text style={styles.formalCertMetaValue}>{activeVehicle?.registrationNumber}</Text>
                                             </View>
-                                            <View style={styles.formalCertMetaCol}>
-                                                <Text style={styles.formalCertMetaLabel}>Registration Date:</Text>
-                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</Text>
+                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                <Text style={styles.formalCertMetaLabelSmall}>Reg Date:</Text>
+                                                <Text style={styles.formalCertMetaValueSmall}>{activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</Text>
                                             </View>
                                         </View>
                                         <View style={styles.formalCertMetaRow}>
-                                            <View style={styles.formalCertMetaCol}>
+                                            <View style={{ flex: 1 }}>
                                                 <Text style={styles.formalCertMetaLabel}>Chassis No:</Text>
                                                 <Text style={styles.formalCertMetaValue}>{activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</Text>
                                             </View>
-                                            <View style={styles.formalCertMetaCol}>
-                                                <Text style={styles.formalCertMetaLabel}>Engine No:</Text>
-                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
+                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                <Text style={styles.formalCertMetaLabelSmall}>Engine No:</Text>
+                                                <Text style={styles.formalCertMetaValueSmall}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
                                             </View>
                                         </View>
                                     </View>
@@ -1028,14 +1130,29 @@ export const DetailsScreen = ({
                                             <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.ownerName || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Make / Model</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.make || activeVehicle?.rtoDetails?.make || 'N/A'} / {activeVehicle?.model || activeVehicle?.rtoDetails?.model || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Vehicle Class</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
                                             <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.vehicleClass || activeVehicle?.vehicleType || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
-                                            <Text style={styles.formalCertLabel}>Fuel Type</Text>
+                                            <Text style={styles.formalCertLabel}>Fuel / Norms</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.fuelType || activeVehicle?.rtoDetails?.fuelType || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.fuelType || activeVehicle?.rtoDetails?.fuelType || 'N/A'} ({activeVehicle?.rtoDetails?.fuelNorms || 'N/A'})</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Engine No</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Chassis No</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Color</Text>
@@ -1043,9 +1160,14 @@ export const DetailsScreen = ({
                                             <Text style={styles.formalCertValue}>{activeVehicle?.color || activeVehicle?.rtoDetails?.color || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Mfg Date</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.manufacturingMonthYear || activeVehicle?.rtoDetails?.manufacturingMonthYear || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Valid Up To</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.fitnessUpto || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.fitnessUpto || 'RC EXPIRED'}</Text>
                                         </View>
                                     </View>
 
@@ -1554,32 +1676,39 @@ const styles = StyleSheet.create({
         elevation: 15
     },
     formalCertHeader: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20
+        marginBottom: 20,
+        position: 'relative',
+        paddingBottom: 25
     },
     formalLionLogo: {
-        width: wp('14%'),
-        height: wp('14%'),
-        marginBottom: 10
+        width: wp('12%'),
+        height: wp('12%'),
+        marginRight: 15
+    },
+    formalTitleCol: {
+        flex: 1
     },
     formalCertTitle: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#000',
         fontFamily: 'Outfit-Bold',
-        textAlign: 'center',
         textTransform: 'uppercase'
     },
     formalCertSubtitle: {
-        fontSize: 10,
+        fontSize: 9,
         color: '#666',
         fontFamily: 'Outfit-Medium',
-        marginTop: 4
+        marginTop: 2
     },
     formalCertDivider: {
-        width: '100%',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         height: 2,
-        backgroundColor: '#333',
-        marginTop: 15
+        backgroundColor: '#333'
     },
     formalCertMeta: {
         marginBottom: 20
@@ -1587,86 +1716,103 @@ const styles = StyleSheet.create({
     formalCertMetaRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 12
-    },
-    formalCertMetaCol: {
-        flex: 1
+        marginBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+        paddingBottom: 5
     },
     formalCertMetaLabel: {
-        fontSize: 10,
+        fontSize: 9,
         color: '#666',
-        fontFamily: 'Outfit-Bold',
+        fontFamily: 'Outfit-Medium',
         textTransform: 'uppercase'
     },
     formalCertMetaValue: {
-        fontSize: 12,
+        fontSize: 11,
         color: '#000',
         fontFamily: 'Outfit-Black',
-        marginTop: 2
+        marginTop: 1
+    },
+    formalCertMetaLabelSmall: {
+        fontSize: 8,
+        color: '#666',
+        fontFamily: 'Outfit-Medium'
+    },
+    formalCertMetaValueSmall: {
+        fontSize: 10,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
     },
     formalCertInfoGrid: {
-        borderTopWidth: 1,
-        borderTopColor: '#EEE',
-        paddingTop: 15,
-        marginBottom: 25,
-        gap: 8
+        paddingTop: 5,
+        marginBottom: 25
+    },
+    formalCertInfoLayout: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    formalCertCols: {
+        flex: 1,
+        gap: 12
     },
     formalCertRow: {
         flexDirection: 'row',
         alignItems: 'flex-start'
     },
     formalCertLabel: {
-        width: wp('28%'),
-        fontSize: 11,
+        width: wp('22%'),
+        fontSize: 10,
         color: '#444',
         fontFamily: 'Outfit-Bold'
     },
     formalCertSep: {
-        width: 15,
-        fontSize: 11,
+        width: 12,
+        fontSize: 10,
         color: '#444'
     },
     formalCertValue: {
         flex: 1,
-        fontSize: 11,
+        fontSize: 10,
         color: '#000',
         fontFamily: 'Outfit-Black'
     },
     formalCertFooter: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: '#EEE',
+        borderTopColor: '#F0F0F0',
         paddingTop: 15
     },
     formalCertNoteBox: {
         alignItems: 'flex-end',
-        gap: 8
+        gap: 6
     },
     formalCertPowered: {
-        fontSize: 10,
+        fontSize: 9,
         color: '#6366F1',
-        fontFamily: 'Outfit-Bold'
+        fontFamily: 'Outfit-Black',
+        textTransform: 'uppercase'
     },
     formalCertSignedBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
         borderWidth: 1,
-        borderColor: '#EEE',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4
+        borderColor: '#22C55E',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        backgroundColor: '#F0FDF4'
     },
     formalCertSignedText: {
         fontSize: 8,
-        color: '#666',
+        color: '#166534',
         fontFamily: 'Outfit-Medium'
     },
     formalCertSignedDate: {
         fontSize: 8,
-        color: '#000',
-        fontFamily: 'Outfit-Bold'
+        color: '#166534',
+        fontFamily: 'Outfit-Black'
     }
 });
