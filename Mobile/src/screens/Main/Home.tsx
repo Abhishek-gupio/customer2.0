@@ -827,6 +827,16 @@ export default function Home() {
     navigation.navigate('Services' as any, { screen });
   };
 
+  const navigateToGarageTab = useCallback(() => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Main', { screen: 'my_garage' });
+      return;
+    }
+
+    navigation.navigate('my_garage' as any);
+  }, [navigation]);
+
   const fetchDiscoveryContent = async () => {
     try {
       setDiscoveryLoading(true);
@@ -1000,8 +1010,15 @@ export default function Home() {
                   : fallbackHeroImage;
 
               if (item === 'vehicle') {
+                const isAddVehicleBanner = !vehicleLoading && !vehicle;
+
                 return (
-                  <View style={styles.slideFull}>
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={isAddVehicleBanner ? 0.92 : 1}
+                    disabled={!isAddVehicleBanner}
+                    onPress={navigateToGarageTab}
+                  >
                     <View style={styles.primaryImageWrap}>
                       <FastImage
                         source={heroImageSource as any}
@@ -1046,7 +1063,7 @@ export default function Home() {
                           </View>
                         </LinearGradient>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               }
               if (item === 'expenses') {
