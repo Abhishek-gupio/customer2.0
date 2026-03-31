@@ -26,6 +26,8 @@ import {
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -69,6 +71,25 @@ export const DetailsScreen = ({
     useEffect(() => {
         if (initialTab) setMainTab(initialTab);
     }, [initialTab]);
+
+    const [statusModal, setStatusModal] = useState({
+        visible: false,
+        type: 'success' as 'success' | 'delete' | 'error',
+        title: '',
+        message: '',
+    });
+    const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+        setStatusModal({ visible: true, type, title, message });
+    };
+
+    const [confirmModal, setConfirmModal] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'default' as 'default' | 'logout' | 'delete',
+        confirmText: 'Confirm',
+        onConfirm: () => { }
+    });
     const [healthScoreDetail, setHealthScoreDetail] = useState<{
         overallScore?: number;
         scoreChangeReason?: string;
@@ -178,10 +199,18 @@ export const DetailsScreen = ({
     }, [activeVehicle?.id, activeVehicle?.imageUrl]);
 
     if (!activeVehicle) return null;
-
-    // rtoDetails comes from the Gemini lookup, merged into the vehicle object
-    // by AddVehicleScreen → onDone → GupioGarageApp state.
-    const rto = activeVehicle.rtoDetails || activeVehicle;
+    
+    // rto refers to the combined data from the DB record and the supplemental RTO lookup.
+    // We prioritize top-level activeVehicle fields as they come from the production DB.
+    const rto = { 
+        ...activeVehicle.rtoDetails, 
+        ...activeVehicle,
+        // Ensure shared field names are handled if they differ
+        ownerName: activeVehicle.ownerName || activeVehicle.rtoDetails?.ownerName,
+        rto: activeVehicle.rto || activeVehicle.rtoDetails?.rto,
+        vehicleClass: activeVehicle.vehicleClass || activeVehicle.rtoDetails?.vehicleClass,
+        fitnessUpto: activeVehicle.fitnessUpto || activeVehicle.rtoDetails?.fitnessUpto
+    };
 
     // Hero image source: use absolute URL if available, else fallback to local assets
     const heroUri = activeVehicle.imageUrl ? getAbsoluteUrl(activeVehicle.imageUrl) : null;
@@ -198,14 +227,17 @@ export const DetailsScreen = ({
     };
 
     const handleDeletePress = () => {
-        Alert.alert(
-            'Remove Vehicle',
-            `Remove ${activeVehicle.registrationNumber} from your garage?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Remove', style: 'destructive', onPress: () => onDelete(activeVehicle.id) },
-            ]
-        );
+        setConfirmModal({
+            visible: true,
+            title: 'Remove Vehicle',
+            message: `Remove ${activeVehicle.registrationNumber} from your garage?`,
+            type: 'delete',
+            confirmText: 'Remove',
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, visible: false }));
+                onDelete(activeVehicle.id);
+            }
+        });
     };
 
     const openShare = async () => {
@@ -306,13 +338,14 @@ export const DetailsScreen = ({
                                 </div>
                             </div>
                             <div class="info-table">
-                                <div class="info-row"><div class="info-label">Owner Name:</div> <div class="info-value">${activeVehicle?.rtoDetails?.ownerName || 'N/A'}</div></div>
-                                <div class="info-row"><div class="info-label">Make / Model:</div> <div class="info-value">${activeVehicle?.make || activeVehicle?.rtoDetails?.make || 'N/A'} / ${activeVehicle?.model || activeVehicle?.rtoDetails?.model || 'N/A'}</div></div>
-                                <div class="info-row"><div class="info-label">Vehicle Class:</div> <div class="info-value">${activeVehicle?.rtoDetails?.vehicleClass || activeVehicle?.vehicleType || 'N/A'}</div></div>
-                                <div class="info-row"><div class="info-label">Fuel Type / Norms:</div> <div class="info-value">${activeVehicle?.fuelType || activeVehicle?.rtoDetails?.fuelType || 'N/A'} (Norms: ${activeVehicle?.rtoDetails?.fuelNorms || 'N/A'})</div></div>
-                                <div class="info-row"><div class="info-label">Color:</div> <div class="info-value">${activeVehicle?.color || activeVehicle?.rtoDetails?.color || 'N/A'}</div></div>
-                                <div class="info-row"><div class="info-label">Manufacturing:</div> <div class="info-value">${activeVehicle?.manufacturingMonthYear || activeVehicle?.rtoDetails?.manufacturingMonthYear || 'N/A'}</div></div>
-                                <div class="info-row"><div class="info-label">Valid Up To / RC Expiry:</div> <div class="info-value">${activeVehicle?.rtoDetails?.fitnessUpto || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Owner Name:</div> <div class="info-value">${rto.ownerName || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Make / Model:</div> <div class="info-value">${activeVehicle.make || rto.make || 'N/A'} / ${activeVehicle.model || rto.model || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Vehicle Type / Class:</div> <div class="info-value">${activeVehicle.vehicleType || (rto as any).vehicleType || 'N/A'} (${rto.vehicleClass || 'N/A'})</div></div>
+                                <div class="info-row"><div class="info-label">RTO Office:</div> <div class="info-value">${rto.rto || 'Transport Department'}</div></div>
+                                <div class="info-row"><div class="info-label">Fuel Norms:</div> <div class="info-value">${activeVehicle.fuelNorms || rto.fuelNorms || activeVehicle.fuelType || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Color:</div> <div class="info-value">${activeVehicle.color || rto.color || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Manufacturing:</div> <div class="info-value">${activeVehicle.manufacturingMonthYear || rto.manufacturingMonthYear || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">RC EXPIRED:</div> <div class="info-value">${rto.fitnessUpto || 'N/A'}</div></div>
                             </div>
                             <div class="footer">
                                 <div class="note">Powered by DigiLocker</div>
@@ -438,7 +471,7 @@ export const DetailsScreen = ({
             if (msg.includes('User did not share') || msg.toLowerCase().includes('cancel') || msg.includes('dismissed')) {
                 return;
             }
-            Alert.alert('Error', 'Could not share document as PDF. Please try again.');
+            showStatus('Error', 'Could not share document as PDF. Please try again.', 'error');
             console.error('Share Error:', error);
         }
     };
@@ -473,34 +506,31 @@ export const DetailsScreen = ({
             }
 
             setIsProcessing(false);
-            Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
+            showStatus('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
         } catch (error: any) {
             setIsProcessing(false);
-            Alert.alert('Error', error.message || 'Could not download document as PDF');
+            showStatus('Error', error.message || 'Could not download document as PDF', 'error');
         }
     };
 
     const handleDeleteDoc = async (id: string, type: string) => {
-        Alert.alert(
-            'Delete Document',
-            `Are you sure you want to delete your ${type}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await dispatch(removeDocumentAsync(id)).unwrap();
-                            setShowViewerModal(false);
-                            Alert.alert('Success', `${type} deleted successfully`);
-                        } catch (err: any) {
-                            Alert.alert('Error', err.message || 'Failed to delete');
-                        }
-                    }
+        setConfirmModal({
+            visible: true,
+            title: 'Delete Document',
+            message: `Are you sure you want to delete your ${type}?`,
+            type: 'delete',
+            confirmText: 'Delete',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, visible: false }));
+                try {
+                    await dispatch(removeDocumentAsync(id)).unwrap();
+                    setShowViewerModal(false);
+                    showStatus('Success', `${type} deleted successfully`);
+                } catch (err: any) {
+                    showStatus('Error', err.message || 'Failed to delete', 'error');
                 }
-            ]
-        );
+            }
+        });
     };
 
     // ── Helper: alert status badge ───────────────────────────────────────────
@@ -913,7 +943,7 @@ export const DetailsScreen = ({
 
                                 {subTab === 'Owner' && (
                                     <>
-                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Unknown'} />
+                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || (rto as any)?.owner_name || 'Unknown'} />
                                         <InfoCard icon={Building} label="RTO" value={rto?.rto || 'N/A'} />
                                     </>
                                 )}
@@ -930,7 +960,7 @@ export const DetailsScreen = ({
                                         
                                         {/* Merged 'More' details */}
                                         <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
-                                        <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
+                                        <InfoCard icon={Clock} label="RC EXPIRED" value={rto?.fitnessUpto || (rto as any)?.rc_expiry_date || 'N/A'} />
                                         {(rto?.fuelNorms || activeVehicle.fuelNorms) && (
                                             <InfoCard icon={Info} label="Fuel Norms" value={rto?.fuelNorms || activeVehicle.fuelNorms} />
                                         )}
@@ -973,19 +1003,19 @@ export const DetailsScreen = ({
                                             <View style={styles.certInfoGrid}>
                                                 <View style={styles.certRow}>
                                                     <Text style={styles.certLabel}>OWNER</Text>
-                                                    <Text style={styles.certValue}>{rto?.ownerName || 'PENDING'}</Text>
+                                                    <Text style={styles.certValue}>{rto.ownerName || 'PENDING'}</Text>
                                                 </View>
                                                 <View style={styles.certRow}>
                                                     <Text style={styles.certLabel}>CLASS</Text>
-                                                    <Text style={styles.certValue}>{rto?.vehicleClass || activeVehicle.vehicleType || 'N/A'}</Text>
+                                                    <Text style={styles.certValue}>{rto.vehicleClass || activeVehicle.vehicleType || 'N/A'}</Text>
                                                 </View>
                                                 <View style={styles.certRow}>
-                                                    <Text style={styles.certLabel}>VALID UNTIL</Text>
-                                                    <Text style={styles.certValue}>{rto?.fitnessUpto || 'N/A'}</Text>
+                                                    <Text style={styles.certLabel}>RC EXPIRED</Text>
+                                                    <Text style={styles.certValue}>{rto.fitnessUpto || 'N/A'}</Text>
                                                 </View>
                                                 <View style={styles.certRow}>
                                                     <Text style={styles.certLabel}>ISSUING AUTHORITY</Text>
-                                                    <Text style={styles.certValue}>{rto?.rto || 'LOCAL RTO'}</Text>
+                                                    <Text style={styles.certValue}>{rto.rto || 'LOCAL RTO'}</Text>
                                                 </View>
                                             </View>
 
@@ -1127,47 +1157,57 @@ export const DetailsScreen = ({
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Owner Name</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.ownerName || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{rto.ownerName || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Make / Model</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.make || activeVehicle?.rtoDetails?.make || 'N/A'} / {activeVehicle?.model || activeVehicle?.rtoDetails?.model || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.make || rto.make || 'N/A'} / {activeVehicle.model || rto.model || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Vehicle Type</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.vehicleType || (rto as any).vehicleType || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Vehicle Class</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.vehicleClass || activeVehicle?.vehicleType || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{rto.vehicleClass || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
-                                            <Text style={styles.formalCertLabel}>Fuel / Norms</Text>
+                                            <Text style={styles.formalCertLabel}>RTO Name</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.fuelType || activeVehicle?.rtoDetails?.fuelType || 'N/A'} ({activeVehicle?.rtoDetails?.fuelNorms || 'N/A'})</Text>
+                                            <Text style={styles.formalCertValue}>{rto.rto || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Fuel Norms</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.fuelNorms || rto.fuelNorms || activeVehicle.fuelType || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Engine No</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.engineNumber || rto.engineNumber || rto.engineNo || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Chassis No</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.chassisNumber || rto.chassisNumber || rto.chassisNo || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Color</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.color || activeVehicle?.rtoDetails?.color || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.color || rto.color || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
                                             <Text style={styles.formalCertLabel}>Mfg Date</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.manufacturingMonthYear || activeVehicle?.rtoDetails?.manufacturingMonthYear || 'N/A'}</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.manufacturingMonthYear || rto.manufacturingMonthYear || 'N/A'}</Text>
                                         </View>
                                         <View style={styles.formalCertRow}>
-                                            <Text style={styles.formalCertLabel}>Valid Up To</Text>
+                                            <Text style={styles.formalCertLabel}>RC EXPIRED</Text>
                                             <Text style={styles.formalCertSep}>:</Text>
-                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.fitnessUpto || 'RC EXPIRED'}</Text>
+                                            <Text style={styles.formalCertValue}>{rto.fitnessUpto || 'N/A'}</Text>
                                         </View>
                                     </View>
 
@@ -1216,6 +1256,24 @@ export const DetailsScreen = ({
                     <ActivityIndicator size="large" color={COLORS.primary} />
                 </View>
             )}
+
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
+
+            <ConfirmModal
+                visible={confirmModal.visible}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                confirmText={confirmModal.confirmText}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+            />
         </SafeAreaView>
     );
 };

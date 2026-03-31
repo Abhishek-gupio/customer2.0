@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
+import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
@@ -136,6 +137,16 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     lat?: number;
     lng?: number;
   } | null>(null);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const fetchVehicles = async () => {
     try {
@@ -342,7 +353,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       if (date && date.trim().length > 0) {
         const parsed = parseManualDate(date);
         if (!parsed) {
-          Alert.alert("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).");
+          showStatus("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).", "error");
           setLoading(false);
           return;
         }
@@ -458,12 +469,12 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         const warrantySyncText = warrantySyncError
           ? `\n\nWarranty status was not updated: ${warrantySyncError}`
           : "";
-        Alert.alert("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
+        showStatus("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
         if (onSuccess) onSuccess();
       }, 300);
     } catch (error: any) {
       console.error("Add Expense Error:", error);
-      Alert.alert("Error", error?.message || "Failed to add expense");
+      showStatus("Error", error?.message || "Failed to add expense", "error");
     } finally {
       setLoading(false);
     }
@@ -756,6 +767,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
           </Pressable>
         </Pressable>
       </Modal>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </>
   );
 }

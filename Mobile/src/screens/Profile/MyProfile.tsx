@@ -40,6 +40,8 @@ import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type 
 import { getAbsoluteUrl } from '../../config';
 import { googleMapsService } from '../../services/googleMapsService';
 import BackButton from '../../components/BackButton';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 
 // GPS-based location (same pattern as SOSButton)
 let Geolocation: any = null;
@@ -102,25 +104,43 @@ export default function MyProfile() {
   const [avatarModal, setAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [infoModal, setInfoModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'default' as 'default' | 'delete' | 'logout',
+    onConfirm: () => { },
+  });
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
+
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logoutStorage();
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Signin' }],
-            })
-          );
-        },
-      },
-    ]);
+    setConfirmModal({
+      visible: true,
+      title: 'Logout',
+      message: 'Are you sure you want to logout? You will need to sign in again to access your garage.',
+      type: 'logout',
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        logoutStorage();
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Signin' }],
+          })
+        );
+      }
+    });
   };
 
   const handleMenuPress = (route?: keyof RootStackParamList, onPress?: () => void) => {
@@ -327,7 +347,7 @@ export default function MyProfile() {
       setStats(statsData);
       fetchUserLocation();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch profile');
+      showStatus('Error', error.message || 'Failed to fetch profile', 'error');
     } finally {
       setLoading(false);
     }
@@ -377,7 +397,7 @@ export default function MyProfile() {
 
       mapProfileData(updated);
       setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      showStatus('Profile Updated', 'Your changes have been saved successfully.');
     } catch (error: any) {
       let errorMessage = error.response?.data?.message || error.message || 'Could not save changes';
       if (Array.isArray(errorMessage)) {
@@ -385,7 +405,7 @@ export default function MyProfile() {
       } else if (typeof errorMessage === 'object') {
         errorMessage = JSON.stringify(errorMessage);
       }
-      Alert.alert('Update Failed', errorMessage);
+      showStatus('Update Failed', errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -449,9 +469,9 @@ export default function MyProfile() {
       setAvatarModal(false);
       const updated = await updateProfile({ profilePic: avatarUrl });
       mapProfileData(updated);
-      mapProfileData(updated);
+      showStatus('Avatar Set', 'Your new avatar has been applied.');
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to set avatar');
+      showStatus('Error', err.message || 'Failed to set avatar', 'error');
     } finally {
       setSaving(false);
     }
@@ -460,37 +480,32 @@ export default function MyProfile() {
   const handleDeleteProfilePic = async () => {
     setProfilePicModal(false);
     if (!currentPic) return;
-    Alert.alert(
-      'Remove Profile Picture',
-      'Are you sure you want to remove your profile picture?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setSaving(true);
-              const updated = await updateProfile({ profilePic: '' });
-              mapProfileData(updated);
-              mapProfileData(updated);
-              Alert.alert('Success', 'Profile picture removed!');
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to remove picture');
-            } finally {
-              setSaving(false);
-            }
-          },
-        },
-      ]
-    );
+    setConfirmModal({
+      visible: true,
+      title: 'Remove Picture',
+      message: 'Are you sure you want to remove your profile picture?',
+      type: 'delete',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        try {
+          setSaving(true);
+          const updated = await updateProfile({ profilePic: '' });
+          mapProfileData(updated);
+          showStatus('Removed', 'Profile picture removed successfully.');
+        } catch (err: any) {
+          showStatus('Error', err.message || 'Failed to remove picture', 'error');
+        } finally {
+          setSaving(false);
+        }
+      }
+    });
   };
 
   const processImageResult = async (result: any) => {
     if (result.didCancel) return;
 
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'An error occurred while picking the image');
+      showStatus('Error', result.errorMessage || 'An error occurred while picking the image', 'error');
       return;
     }
 
@@ -512,17 +527,18 @@ export default function MyProfile() {
             } as any);
             const updated = await uploadProfilePicture(formData);
             mapProfileData(updated);
-            Alert.alert('Success', 'Profile picture updated!');
+            showStatus('Picture Updated', 'Your profile photo has been updated.');
           } catch (err: any) {
             const isNetworkError =
               err?.message?.toLowerCase().includes('network') ||
               err?.code === 'ECONNREFUSED' ||
               err?.code === 'ERR_NETWORK';
-            Alert.alert(
+            showStatus(
               'Upload Failed',
               isNetworkError
                 ? 'Could not upload photo. Please check your internet connection and try again.'
                 : err.message || 'Failed to update picture',
+              'error'
             );
           } finally {
             setSaving(false);
@@ -612,7 +628,6 @@ export default function MyProfile() {
         </GestureHandlerRootView>
       </Modal>
 
-      {/* ── Profile Picture Bottom Sheet Modal ── */}
       <Modal
         visible={profilePicModal}
         transparent
@@ -621,63 +636,66 @@ export default function MyProfile() {
         statusBarTranslucent
       >
         <TouchableWithoutFeedback onPress={() => setProfilePicModal(false)}>
-          <View style={styles.bottomSheetOverlay}>
+          <View style={styles.premiumModalOverlay}>
             <TouchableWithoutFeedback>
-              <View style={styles.bottomSheet}>
-                {/* Header */}
-                <View style={styles.bottomSheetHeader}>
-                  <TouchableOpacity
-                    onPress={() => setProfilePicModal(false)}
-                    activeOpacity={0.7}
-                    style={styles.bottomSheetHeaderBtn}
-                  >
-                    <MaterialIcon name="close" size={24} color="#fff" />
-                  </TouchableOpacity>
-                  <Text style={[styles.bottomSheetTitle, { fontFamily: 'Outfit-Bold' }]}>Profile picture</Text>
-                  <TouchableOpacity
-                    onPress={handleDeleteProfilePic}
-                    activeOpacity={0.7}
-                    style={styles.bottomSheetHeaderBtn}
-                  >
-                    <MaterialIcon name="delete-outline" size={24} color="#fff" />
+              <View style={styles.premiumModalContent}>
+                <View style={styles.premiumModalHeader}>
+                  <Text style={styles.premiumModalTitle}>Profile Picture</Text>
+                  <TouchableOpacity onPress={() => setProfilePicModal(false)} style={styles.premiumCloseBtn}>
+                    <MaterialIcon name="close" size={24} color="#666" />
                   </TouchableOpacity>
                 </View>
 
-                {/* Options */}
-                <View style={styles.bottomSheetOptions}>
+                <View style={styles.premiumOptions}>
                   <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
+                    style={styles.premiumOption}
                     onPress={handleCameraOption}
                   >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-camera" size={22} color="#FFFFFF" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(255, 191, 0, 0.1)' }]}>
+                      <MaterialIcon name="photo-camera" size={22} color="#FFBF00" />
                     </View>
-                    <Text style={styles.bottomSheetOptionText}>Camera</Text>
+                    <Text style={styles.premiumOptionText}>Take Photo</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
+                    style={styles.premiumOption}
                     onPress={handleGalleryOption}
                   >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-library" size={22} color="#FFFFFF" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
+                      <MaterialIcon name="photo-library" size={22} color="#2196F3" />
                     </View>
-                    <Text style={styles.bottomSheetOptionText}>Gallery</Text>
+                    <Text style={styles.premiumOptionText}>Choose from Gallery</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
+                    style={styles.premiumOption}
                     onPress={handleAvatarOption}
                   >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#FFFFFF" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
+                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#4CAF50" />
                     </View>
-                    <Text style={styles.bottomSheetOptionText}>Avatar</Text>
+                    <Text style={styles.premiumOptionText}>Pick an Avatar</Text>
                   </TouchableOpacity>
+
+                  {currentPic && (
+                    <TouchableOpacity
+                      style={[styles.premiumOption, { borderColor: 'rgba(255, 69, 58, 0.3)' }]}
+                      onPress={handleDeleteProfilePic}
+                    >
+                      <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
+                        <MaterialIcon name="delete-outline" size={22} color="#FF453A" />
+                      </View>
+                      <Text style={[styles.premiumOptionText, { color: '#FF453A' }]}>Remove Photo</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
+
+                <TouchableOpacity
+                  style={styles.premiumCancelBtn}
+                  onPress={() => setProfilePicModal(false)}
+                >
+                  <Text style={styles.premiumCancelText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -1039,6 +1057,26 @@ export default function MyProfile() {
 
         <View style={{ height: hp(10) }} />
       </ScrollView>
+
+      {/* ── Status Feedback Modal (Success/Delete/Error) ── */}
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
+
+      {/* ── Confirmation Modal (Logout/Delete) ── */}
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+        confirmText={confirmModal.type === 'logout' ? 'Logout' : 'Remove'}
+      />
     </SafeAreaView>
   );
 }
@@ -1809,9 +1847,82 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   modalCloseText: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(4),
     color: '#fff',
+    fontSize: wp(4),
+  },
+
+  // Premium Modal Styles
+  premiumModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  premiumModalContent: {
+    backgroundColor: '#121212',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  premiumModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  premiumModalTitle: {
+    fontSize: 22,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  premiumCloseBtn: {
+    padding: 4,
+  },
+  premiumOptions: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  premiumOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0A0A0A',
+    padding: 18,
+    borderRadius: 16,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  premiumOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumOptionText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  premiumCancelBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+  },
+  premiumCancelText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#888',
+  },
+
+  confirmConfirmText: {
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
   },
 });
 

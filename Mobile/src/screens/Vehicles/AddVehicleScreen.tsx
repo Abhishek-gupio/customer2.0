@@ -4,6 +4,7 @@ import {
     StyleSheet, Dimensions, ActivityIndicator, Alert,
     KeyboardAvoidingView, Platform
 } from 'react-native';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import {
     ArrowLeft, ArrowRight, Car, Bike, Check, Calendar, Hash, Type,
     ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
@@ -28,18 +29,24 @@ const VEHICLE_TYPES = ['CAR', 'BIKE'];
 export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationNumber }: AddVehicleScreenProps) => {
     const [step, setStep] = useState<Step>('INPUT');
     const [loading, setLoading] = useState(false);
+    const [statusModal, setStatusModal] = useState({
+        visible: false,
+        type: 'success' as 'success' | 'delete' | 'error',
+        title: '',
+        message: '',
+    });
+    const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+        setStatusModal({ visible: true, type, title, message });
+    };
     const [form, setForm] = useState({
         registrationNumber: '',
         make: '',
         model: '',
-        variant: '',
-        year: '',
         fuelType: 'PETROL' as const,
         vehicleType: 'CAR' as 'CAR' | 'BIKE',
         registrationDate: '',
         chassisNumber: '',
         engineNumber: '',
-        currentOdometer: '',
         rtoDetails: null as any,
     });
 
@@ -64,7 +71,6 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                 chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
                 engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
                 registrationDate: rtoData.regDate || rtoData.registrationDate || '',
-                year: rtoData.year ? String(rtoData.year) : prev.year,
                 rtoDetails: rtoData,
             }));
             setStep('CONFIRM');
@@ -82,7 +88,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
 
     const handleProceedToConfirm = () => {
         if (!form.registrationNumber || !form.make || !form.model) {
-            Alert.alert("Required Fields", "Please fill Registration Number, Brand, and Model.");
+            showStatus("Required Fields", "Please fill Registration Number, Brand, and Model.", "error");
             return;
         }
         setStep('CONFIRM');
@@ -95,11 +101,8 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                 registrationNumber: form.registrationNumber.toUpperCase().replace(/\s/g, ''),
                 make: form.make,
                 model: form.model,
-                variant: form.variant,
-                year: form.year ? Number(form.year) : undefined,
                 fuelType: form.fuelType,
                 vehicleType: form.vehicleType,
-                currentOdometer: form.currentOdometer ? Number(form.currentOdometer) : undefined,
                 registrationDate: form.registrationDate ? new Date(form.registrationDate).toISOString() : undefined,
                 chassisNumber: form.chassisNumber,
                 engineNumber: form.engineNumber,
@@ -111,7 +114,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
             onDone(result);
         } catch (error: any) {
             console.error('[AddVehicleScreen] handleSave error:', error);
-            Alert.alert('Error', error?.message || 'Failed to save vehicle.');
+            showStatus('Error', error?.message || 'Failed to save vehicle.', 'error');
         } finally {
             setLoading(false);
         }
@@ -191,7 +194,6 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                                     chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
                                                     engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
                                                     registrationDate: rtoData.regDate || rtoData.registrationDate || '',
-                                                    year: rtoData.year ? String(rtoData.year) : prev.year,
                                                     rtoDetails: rtoData,
                                                 }));
                                                 setStep('CONFIRM');
@@ -231,13 +233,13 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                 <Divider />
                                 <ConfirmRow label="BRAND & MODEL" value={`${form.make} ${form.model}` || '—'} />
                                 <Divider />
-                                <ConfirmRow label="VARIANT" value={form.variant || '—'} />
+                                <ConfirmRow label="RTO" value={form.rtoDetails?.rto || '—'} />
                                 <Divider />
-                                <ConfirmRow label="YEAR" value={form.year || '—'} />
+                                <ConfirmRow label="RC EXPIRED" value={form.rtoDetails?.fitnessUpto || form.rtoDetails?.rc_expiry_date || '—'} />
+                                <Divider />
+                                <ConfirmRow label="VEHICLE CLASS" value={form.rtoDetails?.vehicleClass || '—'} />
                                 <Divider />
                                 <ConfirmRow label="FUEL TYPE" value={form.fuelType || '—'} />
-                                <Divider />
-                                <ConfirmRow label="CURRENT ODOMETER" value={form.currentOdometer ? `${form.currentOdometer} KM` : '—'} />
                                 <Divider />
                                 <ConfirmRow label="REGISTRATION DATE" value={form.registrationDate || 'NOT PROVIDED'} />
                                 <Divider />
@@ -281,6 +283,14 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                     <View style={{ height: 40 }} />
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
         </View>
     );
 };

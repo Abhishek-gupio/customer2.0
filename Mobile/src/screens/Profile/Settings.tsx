@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -37,23 +38,21 @@ interface MenuItem {
 export default function Settings() {
   const navigation = useNavigation<SettingsNavProp>();
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logoutStorage();
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Signin' }],
-            })
-          );
-        },
-      },
-    ]);
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    logoutStorage();
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Signin' }],
+      })
+    );
   };
 
   const handleMenuPress = (item: MenuItem) => {
@@ -172,6 +171,16 @@ export default function Settings() {
 
         <View style={{ height: hp(4) }} />
       </ScrollView>
+
+      <ConfirmModal
+        visible={showLogoutConfirm}
+        title="Logout"
+        message="Are you sure you want to logout? You will need to sign in again to access your account."
+        type="logout"
+        confirmText="Logout"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </SafeAreaView>
   );
 }

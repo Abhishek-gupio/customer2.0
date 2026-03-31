@@ -11,7 +11,9 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
+import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse } from "date-fns";
@@ -55,6 +57,17 @@ export default function ReceiptReviewer({
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+    onClose: () => { },
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success', onClose?: () => void) => {
+    setStatusModal({ visible: true, type, title, message, onClose: onClose || (() => { }) });
+  };
 
   const fetchVehicles = async () => {
     try {
@@ -132,7 +145,7 @@ export default function ReceiptReviewer({
 
   const handleSave = async () => {
     if (!isValid) {
-      Alert.alert("Invalid amount", "Please enter a valid positive amount.");
+      showStatus("Invalid amount", "Please enter a valid positive amount.", "error");
       return;
     }
 
@@ -169,14 +182,14 @@ export default function ReceiptReviewer({
 
       onClose();
       setTimeout(() => {
-        Alert.alert("Success", "Expense saved successfully");
-        if (onSuccess) onSuccess();
+        showStatus("Success", "Expense saved successfully", "success", onSuccess);
       }, 300);
     } catch (error: any) {
       console.error("ReceiptReviewer save error:", error);
-      Alert.alert(
+      showStatus(
         "Error",
         error?.error?.message ?? error?.message ?? "Failed to save expense",
+        "error"
       );
     } finally {
       setLoading(false);
@@ -197,47 +210,49 @@ export default function ReceiptReviewer({
             <Pressable style={styles.panel} onPress={() => { }}>
               <View style={styles.header}>
                 <Text style={styles.title}>{title}</Text>
-                <TouchableOpacity onPress={onClose}>
-                  <Ionicons name="close" size={22} color="#fff" />
+                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                  <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
               </View>
 
-              <Label text="Vehicle" />
-              <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+              <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+                <Label text="Vehicle" />
+                <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+                  <Input
+                    value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
+                    icon="chevron-down"
+                    editable={false}
+                  />
+                </TouchableOpacity>
+
+                <Label text="Category" />
+                <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
+                  <Input value={category} icon="chevron-down" editable={false} />
+                </TouchableOpacity>
+
+                <Label text="Amount" />
                 <Input
-                  value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
-                  icon="chevron-down"
-                  editable={false}
+                  placeholder="₹ 0"
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
                 />
-              </TouchableOpacity>
 
-              <Label text="Category" />
-              <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
-                <Input value={category} icon="chevron-down" editable={false} />
-              </TouchableOpacity>
+                <Label text="Description" />
+                <Input
+                  placeholder="Enter description"
+                  value={description}
+                  onChangeText={setDescription}
+                />
 
-              <Label text="Amount" />
-              <Input
-                placeholder="₹ 0"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-              />
-
-              <Label text="Description" />
-              <Input
-                placeholder="Enter description"
-                value={description}
-                onChangeText={setDescription}
-              />
-
-              <Label text="Date" />
-              <Input
-                placeholder="dd-mm-yyyy"
-                value={date}
-                onChangeText={setDate}
-                icon="calendar-outline"
-              />
+                <Label text="Date" />
+                <Input
+                  placeholder="dd-mm-yyyy"
+                  value={date}
+                  onChangeText={setDate}
+                  icon="calendar-outline"
+                />
+              </ScrollView>
 
               <TouchableOpacity
                 style={[
@@ -253,7 +268,7 @@ export default function ReceiptReviewer({
                   <Text
                     style={[styles.saveText, isValid && styles.saveTextActive]}
                   >
-                    Save
+                    Save Review
                   </Text>
                 )}
               </TouchableOpacity>
@@ -261,6 +276,17 @@ export default function ReceiptReviewer({
           </KeyboardAvoidingView>
         </Pressable>
       </Modal>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => {
+          setStatusModal(prev => ({ ...prev, visible: false }));
+          statusModal.onClose();
+        }}
+      />
 
       <Modal transparent visible={showVehiclePicker} animationType="fade">
         <Pressable
@@ -357,71 +383,96 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 420,
     marginHorizontal: 16,
-    backgroundColor: "rgba(28,28,28,0.95)",
-    borderRadius: 28,
-    padding: 20,
+    backgroundColor: "#1C1C1E",
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 24,
   },
   title: {
     color: "#fff",
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 22,
+    fontFamily: "Outfit-Bold",
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scroll: {
+    maxHeight: 450,
   },
   label: {
-    color: "#aaa",
-    marginBottom: 6,
+    color: "#8E8E93",
+    fontSize: 13,
+    fontFamily: "Outfit-Medium",
+    marginBottom: 8,
+    marginLeft: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   input: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 20,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    height: 48,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    marginBottom: 16,
+    height: 56,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
   inputText: {
     color: "#fff",
     flex: 1,
+    fontSize: 16,
+    fontFamily: "Outfit-Regular",
   },
   saveBtn: {
-    marginTop: 10,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#555",
+    marginTop: 12,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#2C2C2E",
     justifyContent: "center",
     alignItems: "center",
-    opacity: 0.5,
   },
   saveBtnActive: {
-    backgroundColor: "#4CAF50",
-    opacity: 1,
+    backgroundColor: "#10B981",
   },
   saveText: {
-    color: "#aaa",
-    fontSize: 16,
+    color: "#4B5563",
+    fontSize: 17,
+    fontFamily: "Outfit-Bold",
   },
   saveTextActive: {
     color: "#fff",
-    fontWeight: "600",
   },
   categoryPanel: {
-    backgroundColor: "rgba(28,28,28,0.98)",
-    borderRadius: 20,
-    paddingVertical: 8,
-    width: "80%",
+    backgroundColor: "#1C1C1E",
+    borderRadius: 24,
+    paddingVertical: 12,
+    width: "85%",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   categoryItem: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.05)",
   },
   categoryText: {
     color: "#fff",
     fontSize: 16,
+    fontFamily: "Outfit-Medium",
   },
 });

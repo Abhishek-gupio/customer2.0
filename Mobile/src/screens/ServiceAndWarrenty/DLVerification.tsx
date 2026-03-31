@@ -16,6 +16,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import { useNavigation } from '../../lib/react-navigation-native';
 import { api } from '../../services/api';
 import {
@@ -25,7 +27,6 @@ import {
 import { generatePDF as RNGeneratePDF } from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
-
 export default function DLVerification() {
   const navigation = useNavigation();
   const [dlNumber, setDlNumber] = useState('');
@@ -33,6 +34,24 @@ export default function DLVerification() {
   const [loading, setLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
+
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'default' as 'default' | 'logout' | 'delete',
+    confirmText: 'Confirm',
+    onConfirm: () => { }
+  });
 
   useEffect(() => {
     fetchExistingDL();
@@ -56,27 +75,25 @@ export default function DLVerification() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Remove License',
-      'Are you sure you want to remove this driving license record?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete('/v1/documents/delete-dl');
-              setVerificationResult(null);
-              setDlNumber('');
-              setDob('');
-            } catch (e) {
-              Alert.alert('Error', 'Failed to delete license');
-            }
-          }
+    setConfirmModal({
+      visible: true,
+      title: 'Remove License',
+      message: 'Are you sure you want to remove this driving license record?',
+      type: 'delete',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        try {
+          await api.delete('/v1/documents/delete-dl');
+          setVerificationResult(null);
+          setDlNumber('');
+          setDob('');
+          showStatus('Success', 'License removed successfully');
+        } catch (e) {
+          showStatus('Error', 'Failed to delete license', 'error');
         }
-      ]
-    );
+      }
+    });
   };
 
   const createDLDocument = async () => {
@@ -85,7 +102,6 @@ export default function DLVerification() {
     try {
       setLoading(true);
       const data = verificationResult;
-      // ... same logic as before ...
       const details = data.details_of_driving_licence || data.details_of_driving_license || {};
       const validity = data.dl_validity || {};
       const badgeDetails = data.badge_details?.[0] || {};
@@ -165,13 +181,13 @@ export default function DLVerification() {
       const options = {
         html: htmlContent,
         fileName: `DL_${data.dl_number || 'Verification'}_${Date.now()}`,
-        // directory: 'Documents', // Removed to avoid EACCES on Android 11+
       };
 
       const file = await RNGeneratePDF(options);
       return file?.filePath;
-    } catch (error) {
-      console.log('PDF Generation Error:', error);
+    } catch (e: any) {
+      setLoading(false);
+      showStatus('Error', e.message || 'Could not generate certificate PDF.', 'error');
       return null;
     } finally {
       setLoading(false);
@@ -179,37 +195,26 @@ export default function DLVerification() {
   };
 
   const handleShare = async () => {
-    if (loading) return;
-    const filePath = await createDLDocument();
-    if (filePath) {
-      const sharePath = filePath.startsWith('file://') ? filePath : `file://${filePath}`;
-      try {
-        await Share.open({
-          url: sharePath,
-          type: 'application/pdf',
-          title: 'Share Driving License',
-        });
-      } catch (err: any) {
-        if (err.message !== 'User did not share') {
-          console.log('Share error:', err);
-          Alert.alert('Share Failed', 'Unable to open share sheet.');
-        }
-      }
-    } else {
-      Alert.alert('Error', 'Could not generate certificate PDF.');
+    const path = await createDLDocument();
+    if (!path) return;
+    try {
+      await Share.open({
+        url: `file://${path}`,
+        type: 'application/pdf',
+      });
+    } catch (e: any) {
+      showStatus('Share Failed', 'Unable to open share sheet.', 'error');
     }
   };
 
-
   const handleVerify = async () => {
     if (!dlNumber || !dob) {
-      Alert.alert('Missing Info', 'Please enter both DL Number and Date of Birth.');
+      showStatus('Missing Info', 'Please enter both DL Number and Date of Birth.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      // Clean dlNumber from spaces
       const cleanDl = dlNumber.replace(/\s/g, '');
       const response: any = await api.post('/v1/documents/verify-dl', {
         dlNumber: cleanDl,
@@ -221,7 +226,7 @@ export default function DLVerification() {
       }
     } catch (error: any) {
       console.error('DL Verification Error:', error);
-      Alert.alert('Verification Failed', error.message || 'Unable to verify DL. Please check the details and try again.');
+      showStatus('Verification Failed', error.message || 'Unable to verify DL. Please check the details and try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -231,7 +236,6 @@ export default function DLVerification() {
     if (!verificationResult) return null;
 
     const data = verificationResult;
-    // Map details carefully (sometimes keys might differ slightly)
     const details = data.details_of_driving_licence || data.details_of_driving_license || {};
     const validity = data.dl_validity || {};
     const badgeDetails = data.badge_details?.[0] || {};
@@ -248,7 +252,6 @@ export default function DLVerification() {
     return (
       <ScrollView contentContainerStyle={styles.certificateWrapper} showsVerticalScrollIndicator={false}>
         <View style={styles.certificate}>
-          {/* Header Part */}
           <View style={styles.certHeader}>
              <View style={styles.pillarContainer}>
                 <Image 
@@ -468,6 +471,23 @@ export default function DLVerification() {
           </ScrollView>
         )}
       </KeyboardAvoidingView>
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
+
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }

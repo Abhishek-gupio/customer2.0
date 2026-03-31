@@ -15,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import { useNavigation } from '../../lib/react-navigation-native';
 import { api } from '../../services/api';
 import {
@@ -30,6 +32,24 @@ export default function Fastag() {
   const [loading, setLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
+
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'default' as 'default' | 'logout' | 'delete',
+    confirmText: 'Confirm',
+    onConfirm: () => { }
+  });
 
   useEffect(() => {
     fetchExistingFastag();
@@ -54,32 +74,30 @@ export default function Fastag() {
   const handleBack = () => navigation.goBack();
 
   const handleDelete = async () => {
-    Alert.alert(
-      'Delete Verification',
-      'Are you sure you want to delete this verified Fastag profile?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete('/v1/documents/delete-fastag');
-              setVerificationResult(null);
-              setAccountNumber('');
-              setIfscCode('');
-            } catch (error) {
-              console.error('Delete failed:', error);
-            }
-          }
+    setConfirmModal({
+      visible: true,
+      title: 'Delete Verification',
+      message: 'Are you sure you want to delete this verified Fastag profile?',
+      type: 'delete',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        try {
+          await api.delete('/v1/documents/delete-fastag');
+          setVerificationResult(null);
+          setAccountNumber('');
+          setIfscCode('');
+          showStatus('Deleted', 'Fastag profile removed successfully');
+        } catch (error) {
+          showStatus('Error', 'Failed to delete Fastag profile', 'error');
         }
-      ]
-    );
+      }
+    });
   };
 
   const handleVerify = async () => {
     if (!accountNumber || !ifscCode) {
-      Alert.alert('Missing Info', 'Please enter both Account Number and IFSC Code');
+      showStatus('Missing Info', 'Please enter both Account Number and IFSC Code', 'error');
       return;
     }
 
@@ -92,12 +110,12 @@ export default function Fastag() {
 
       if (response.success) {
         setVerificationResult(response.data);
+        showStatus('Success', 'Account verified successfully');
       } else {
-        Alert.alert('Verification Failed', response.message || 'Unable to verify account');
+        showStatus('Verification Failed', response.message || 'Unable to verify account', 'error');
       }
     } catch (error: any) {
-      if (__DEV__) console.log('Fastag Verification Failed:', error.message || error);
-      Alert.alert('Verification Failed', error.message || 'System error during verification');
+      showStatus('Verification Failed', error.message || 'System error during verification', 'error');
     } finally {
       setLoading(false);
     }
@@ -271,6 +289,23 @@ export default function Fastag() {
           </ScrollView>
         )}
       </KeyboardAvoidingView>
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
+
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }

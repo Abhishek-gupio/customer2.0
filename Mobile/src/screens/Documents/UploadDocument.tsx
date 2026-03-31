@@ -24,6 +24,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import StatusModal from '../../components/common/Modals/StatusModal';
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation } from '../../lib/react-navigation-native';
@@ -59,6 +60,15 @@ export default function UploadDocument() {
   const [qualityHints, setQualityHints] = useState<string[]>([]);
   const [pendingImageAsset, setPendingImageAsset] = useState<{ uri: string; fileName?: string; type?: string } | null>(null);
   const [previewError, setPreviewError] = useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   useEffect(() => {
     fetchPrimaryVehicle();
@@ -145,7 +155,7 @@ export default function UploadDocument() {
     } catch (e: unknown) {
       const err = e as { code?: string };
       if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
-        Alert.alert('Error', 'Could not pick file');
+        showStatus('Error', 'Could not pick file', 'error');
       }
     }
   };
@@ -183,7 +193,7 @@ export default function UploadDocument() {
     if (Platform.OS === 'android') {
       const hasPermission = await requestAndroidPermissions();
       if (!hasPermission) {
-        Alert.alert('Permission needed', 'Camera and photo library access are required.');
+        showStatus('Permission needed', 'Camera and photo library access are required.', 'error');
         return;
       }
     }
@@ -199,7 +209,7 @@ export default function UploadDocument() {
         });
       }
     } catch {
-      Alert.alert('Error', 'Could not pick image');
+      showStatus('Error', 'Could not pick image', 'error');
     }
   };
 
@@ -207,7 +217,7 @@ export default function UploadDocument() {
     if (Platform.OS === 'android') {
       const hasPermission = await requestAndroidPermissions();
       if (!hasPermission) {
-        Alert.alert('Permission needed', 'Camera access is required.');
+        showStatus('Permission needed', 'Camera access is required.', 'error');
         return;
       }
     }
@@ -223,17 +233,17 @@ export default function UploadDocument() {
         });
       }
     } catch {
-      Alert.alert('Error', 'Could not take photo');
+      showStatus('Error', 'Could not take photo', 'error');
     }
   };
 
   const handleUpload = async () => {
     if (!docType) {
-      Alert.alert('Required', 'Please select document type');
+      showStatus('Required', 'Please select document type', 'error');
       return;
     }
     if (!fileInfo) {
-      Alert.alert('Required', 'Please add a document (tap to upload)');
+      showStatus('Required', 'Please add a document (tap to upload)', 'error');
       return;
     }
 
@@ -248,11 +258,10 @@ export default function UploadDocument() {
       });
 
       dispatch(addDocumentFromResponse(toDocItem(result)));
-      Alert.alert('Success', 'Document uploaded successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showStatus('Success', 'Document uploaded successfully');
+      setTimeout(() => navigation.goBack(), 1500);
     } catch (err: any) {
-      Alert.alert('Upload Failed', err.message || 'Something went wrong');
+      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
     } finally {
       setUploading(false);
     }
@@ -555,10 +564,17 @@ export default function UploadDocument() {
         <View style={StyleSheet.absoluteFill} pointerEvents="box-only">
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <ActivityIndicator size="large" color="#FFBF00" />
-            <Text style={{ color: '#fff', marginTop: hp(2) }}>Checking image quality…</Text>
+            <Text style={{ color: '#fff', marginTop: hp(2), fontFamily: 'Outfit-Regular' }}>Checking image quality…</Text>
           </View>
         </View>
       )}
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
