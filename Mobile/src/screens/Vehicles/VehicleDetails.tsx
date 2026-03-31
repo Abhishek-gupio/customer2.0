@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -27,6 +28,7 @@ import { launchCamera } from 'react-native-image-picker';
 import Share, { VehicleUser } from './Share';
 import { vehicleService } from '../../services/vehicleService';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -107,6 +109,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [isOdoModalVisible, setIsOdoModalVisible] = useState(false);
+  const [isSavingOdometer, setIsSavingOdometer] = useState(false);
   const [odoInput, setOdoInput] = useState('');
   const [expandWhyScore, setExpandWhyScore] = useState(false);
   const [expandNextActions, setExpandNextActions] = useState(false);
@@ -209,17 +212,17 @@ const VehicleDetails = ({ navigation, route }: any) => {
   });
 
   const handleManualOdometerSubmit = async () => {
-    if (!vehicle.id || !odoInput) return;
-    setIsOdoModalVisible(false);
-    setIsRecalculating(true);
+    if (!vehicle.id || !odoInput || isSavingOdometer) return;
+    setIsSavingOdometer(true);
     try {
       await vehicleService.addOdometer(vehicle.id, { reading: parseInt(odoInput, 10) });
       await fetchVehicleDetails();
       setOdoInput('');
+      setIsOdoModalVisible(false);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update odometer manually');
     } finally {
-      setIsRecalculating(false);
+      setIsSavingOdometer(false);
     }
   };
 
@@ -276,6 +279,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
   };
 
   const handleInvite = async (phone: string, role: 'Editor' | 'Viewer' | 'Driver') => {
+    if (isSharingLoading) return;
     setIsSharingLoading(true);
     try {
       const newUser: VehicleUser = {
@@ -295,11 +299,15 @@ const VehicleDetails = ({ navigation, route }: any) => {
   };
 
   const handleRevoke = async (userId: number) => {
+    if (isSharingLoading) return;
+    setIsSharingLoading(true);
     try {
       setAccessList(prev => prev.filter(user => user.id !== userId));
       Alert.alert('Success', 'Access revoked successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to revoke access');
+    } finally {
+      setIsSharingLoading(false);
     }
   };
 
@@ -697,12 +705,21 @@ const VehicleDetails = ({ navigation, route }: any) => {
         visible={isOdoModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setIsOdoModalVisible(false)}
+        onRequestClose={() => {
+          if (!isSavingOdometer) {
+            setIsOdoModalVisible(false);
+          }
+        }}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setIsOdoModalVisible(false)}
+          onPress={() => {
+            if (!isSavingOdometer) {
+              setIsOdoModalVisible(false);
+            }
+          }}
+          disabled={isSavingOdometer}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -721,16 +738,27 @@ const VehicleDetails = ({ navigation, route }: any) => {
                   keyboardType="numeric"
                   value={odoInput}
                   onChangeText={setOdoInput}
+                  editable={!isSavingOdometer}
                 />
 
-                <TouchableOpacity
-                  style={[styles.modalSubmitBtn, !odoInput && styles.modalSubmitBtnDisabled]}
+                {isSavingOdometer ? (
+                  <View style={styles.modalSavingRow}>
+                    <ActivityIndicator size="small" color="#FFBF00" />
+                    <Text style={styles.modalSavingText}>Updating odometer...</Text>
+                  </View>
+                ) : null}
+
+                <LoaderButton
+                  title="Update Odometer"
+                  loading={isSavingOdometer}
+                  loadingTitle="Updating..."
                   onPress={handleManualOdometerSubmit}
                   disabled={!odoInput}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.modalSubmitText}>Save Reading</Text>
-                </TouchableOpacity>
+                  style={[
+                    styles.modalSubmitBtn,
+                    !odoInput && styles.modalSubmitBtnDisabled,
+                  ]}
+                />
 
                 <View style={styles.dividerRow}>
                   <View style={styles.dividerLine} />
@@ -739,8 +767,12 @@ const VehicleDetails = ({ navigation, route }: any) => {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.modalAiBtn}
+                  style={[
+                    styles.modalAiBtn,
+                    isSavingOdometer && styles.modalAiBtnDisabled,
+                  ]}
                   onPress={handleCameraOdometer}
+                  disabled={isSavingOdometer}
                   activeOpacity={0.8}
                 >
                   <FontAwesome5 name="camera" size={wp(4)} color="#FFBF00" />
@@ -1068,6 +1100,18 @@ const styles = StyleSheet.create({
   modalSubmitBtnDisabled: {
     backgroundColor: '#333',
   },
+  modalSavingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: hp(1.5),
+    gap: wp(2),
+  },
+  modalSavingText: {
+    color: '#FFBF00',
+    fontSize: wp(3.6),
+    fontWeight: '600',
+  },
   modalSubmitText: {
     color: '#000',
     fontSize: wp(4),
@@ -1099,6 +1143,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     borderWidth: 1,
     borderColor: 'rgba(255,191,0,0.2)',
+  },
+  modalAiBtnDisabled: {
+    opacity: 0.5,
   },
   modalAiText: {
     color: '#FFBF00',

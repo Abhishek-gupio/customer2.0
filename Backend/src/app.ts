@@ -10,6 +10,8 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 import { apiRoutes } from "./routes";
 import { digilockerController } from "./modules/document/digilocker.controller";
 import { setupSwagger } from "./swagger";
+import { RedisStore } from "rate-limit-redis";
+import { getRedis, getRedisStatus } from "./config/redis";
 
 /** Rate limit key: per user when JWT present, else per IP. */
 function rateLimitKey(req: Request): string {
@@ -48,9 +50,6 @@ app.use(compression());
 // Static files for local storage fallback
 app.use("/uploads", express.static(env.UPLOAD_DIR));
 
-import { RedisStore } from "rate-limit-redis";
-import { getRedis } from "./config/redis";
-
 const redis = getRedis();
 
 const limiter = rateLimit({
@@ -65,6 +64,7 @@ const limiter = rateLimit({
         sendCommand: (...args: string[]) => redis.call(...args),
       })
     : undefined,
+  passOnStoreError: true,
   validate: { default: false },
   skip: (req) => {
     // Don't count health checks so load balancers don't burn the limit
@@ -95,8 +95,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.get("/health/detailed", async (_req: Request, res: Response) => {
   try {
     const db = env.DATABASE_URL ? "ok" : "not_configured";
-    const redisModule = await import("./config/redis");
-    const redis = (await redisModule.getRedis()) ? "ok" : "not_configured";
+    const redis = getRedisStatus();
     
     // Test actual DB query
     const { dbInstances } = await import("@repo/db-customer");

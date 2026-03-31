@@ -1280,7 +1280,10 @@ export default function Home() {
           </View>
           {discoveryLoading && trendingVideos.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
-              <Text style={styles.discoveryPlaceholderText}>Loading videos…</Text>
+              <View style={styles.discoveryLoadingRow}>
+                <ActivityIndicator size="small" color="#FFBF00" />
+                <Text style={styles.discoveryPlaceholderText}>Loading videos…</Text>
+              </View>
             </View>
           ) : trendingVideos.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
@@ -1399,7 +1402,10 @@ export default function Home() {
           </View>
           {discoveryLoading && trendingNews.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
-              <Text style={styles.discoveryPlaceholderText}>Loading news…</Text>
+              <View style={styles.discoveryLoadingRow}>
+                <ActivityIndicator size="small" color="#FFBF00" />
+                <Text style={styles.discoveryPlaceholderText}>Loading news…</Text>
+              </View>
             </View>
           ) : trendingNews.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
@@ -1745,6 +1751,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
+  },
+  discoveryLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
   },
   discoveryPlaceholderText: {
     color: '#888',

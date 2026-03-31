@@ -33,6 +33,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { addDocumentFromResponse, toDocItem } from '../../store/slices/documentsSlice';
 import { uploadDocument, checkImageQuality } from '../../services/documentService';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 
 type UploadDocNavProp = NativeStackNavigationProp<RootStackParamList, 'UploadDocument'>;
 
@@ -59,6 +60,7 @@ export default function UploadDocument() {
   const [qualityHints, setQualityHints] = useState<string[]>([]);
   const [pendingImageAsset, setPendingImageAsset] = useState<{ uri: string; fileName?: string; type?: string } | null>(null);
   const [previewError, setPreviewError] = useState(false);
+  const isBusy = uploading || qualityCheckLoading;
 
   useEffect(() => {
     fetchPrimaryVehicle();
@@ -123,10 +125,12 @@ export default function UploadDocument() {
   };
 
   const handleTapToUpload = () => {
+    if (isBusy) return;
     setShowSourceModal(true);
   };
 
   const handlePickDocument = async () => {
+    if (isBusy) return;
     try {
       const res = await pickDocument({
         type: [docTypes.pdf, docTypes.images],
@@ -180,6 +184,7 @@ export default function UploadDocument() {
   };
 
   const handlePickImage = async () => {
+    if (isBusy) return;
     if (Platform.OS === 'android') {
       const hasPermission = await requestAndroidPermissions();
       if (!hasPermission) {
@@ -204,6 +209,7 @@ export default function UploadDocument() {
   };
 
   const handleTakePhoto = async () => {
+    if (isBusy) return;
     if (Platform.OS === 'android') {
       const hasPermission = await requestAndroidPermissions();
       if (!hasPermission) {
@@ -228,6 +234,7 @@ export default function UploadDocument() {
   };
 
   const handleUpload = async () => {
+    if (isBusy) return;
     if (!docType) {
       Alert.alert('Required', 'Please select document type');
       return;
@@ -296,6 +303,7 @@ export default function UploadDocument() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.selectInput}
+          disabled={isBusy}
           onPress={() => setShowTypeDropdown(!showTypeDropdown)}
         >
           <Text style={docType ? styles.selectText : styles.selectPlaceholder}>
@@ -360,8 +368,9 @@ export default function UploadDocument() {
         {/* Tap to Upload / Preview */}
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.uploadArea}
+          style={[styles.uploadArea, isBusy && styles.uploadAreaDisabled]}
           onPress={handleTapToUpload}
+          disabled={isBusy}
         >
           {fileInfo && isImage ? (
             previewError ? (
@@ -416,7 +425,7 @@ export default function UploadDocument() {
           <View style={styles.fileNameRow}>
             <Icon name="paperclip" size={wp(3.5)} color="#FFBF00" />
             <Text style={styles.fileNameSmall} numberOfLines={1}>{fileInfo.name}</Text>
-            <TouchableOpacity onPress={() => setFileInfo(null)} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => setFileInfo(null)} activeOpacity={0.7} disabled={isBusy}>
               <Icon name="times-circle" size={wp(4)} color="#666" />
             </TouchableOpacity>
           </View>
@@ -431,21 +440,14 @@ export default function UploadDocument() {
         </View>
 
         {/* Upload Button */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.submitBtn, uploading && styles.submitBtnDisabled]}
+        <LoaderButton
+          title="Upload"
+          loading={uploading}
+          loadingTitle="Uploading..."
           onPress={handleUpload}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <ActivityIndicator color="#000" size="small" />
-          ) : (
-            <>
-              <Text style={styles.submitBtnText}>Upload</Text>
-              <Icon name="arrow-right" size={wp(4)} color="#000" />
-            </>
-          )}
-        </TouchableOpacity>
+          disabled={qualityCheckLoading}
+          style={[styles.submitBtn, uploading && styles.submitBtnDisabled]}
+        />
       </ScrollView>
 
       {/* Source Selection Modal */}
@@ -453,15 +455,23 @@ export default function UploadDocument() {
         visible={showSourceModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowSourceModal(false)}
+        onRequestClose={() => {
+          if (!isBusy) {
+            setShowSourceModal(false);
+          }
+        }}
       >
-        <TouchableWithoutFeedback onPress={() => setShowSourceModal(false)}>
+        <TouchableWithoutFeedback onPress={() => {
+          if (!isBusy) {
+            setShowSourceModal(false);
+          }
+        }}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Choose Source</Text>
-                  <TouchableOpacity onPress={() => setShowSourceModal(false)}>
+                  <TouchableOpacity onPress={() => setShowSourceModal(false)} disabled={isBusy}>
                     <Icon name="times" size={wp(5)} color="#888" />
                   </TouchableOpacity>
                 </View>
@@ -470,6 +480,7 @@ export default function UploadDocument() {
                   <TouchableOpacity
                     style={styles.modalOption}
                     onPress={() => { setShowSourceModal(false); void handleTakePhoto(); }}
+                    disabled={isBusy}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
                       <Icon name="camera" size={wp(5)} color="#4CAF50" />
@@ -480,6 +491,7 @@ export default function UploadDocument() {
                   <TouchableOpacity
                     style={styles.modalOption}
                     onPress={() => { setShowSourceModal(false); void handlePickImage(); }}
+                    disabled={isBusy}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
                       <Icon name="images" size={wp(5)} color="#2196F3" />
@@ -490,6 +502,7 @@ export default function UploadDocument() {
                   <TouchableOpacity
                     style={styles.modalOption}
                     onPress={() => { setShowSourceModal(false); handlePickDocument(); }}
+                    disabled={isBusy}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
                       <Icon name="file-pdf" size={wp(5)} color="#FF9800" />
@@ -501,6 +514,7 @@ export default function UploadDocument() {
                 <TouchableOpacity
                   style={styles.modalCancelBtn}
                   onPress={() => setShowSourceModal(false)}
+                  disabled={isBusy}
                 >
                   <Text style={styles.modalCancelText}>Cancel</Text>
                 </TouchableOpacity>
@@ -653,6 +667,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,191,0,0.25)',
     borderStyle: 'dashed',
     overflow: 'hidden',
+  },
+  uploadAreaDisabled: {
+    opacity: 0.6,
   },
   uploadIconWrap: {
     width: wp(18),

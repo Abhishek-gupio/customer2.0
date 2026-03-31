@@ -11,7 +11,6 @@ import {
   Platform,
   PermissionsAndroid,
   Alert,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -22,6 +21,7 @@ import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 import { googleMapsService } from "../../services/googleMapsService";
+import LoaderButton from "../../components/Button";
 
 let Geolocation: any = null;
 try {
@@ -473,7 +473,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     <>
 
       <Modal transparent visible={visible} animationType="fade">
-        <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={styles.backdrop} onPress={() => { if (!loading) onClose(); }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%", alignItems: "center" }}
@@ -482,13 +482,13 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
               <View style={styles.header}>
                 <Text style={styles.title}>Add Manual Entry</Text>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity onPress={onClose} disabled={loading}>
                   <Ionicons name="close" size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
 
               <Label text="Vehicle" />
-              <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+              <TouchableOpacity onPress={() => setShowVehiclePicker(true)} disabled={loading}>
                 <Input
                   value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
                   icon="chevron-down"
@@ -497,14 +497,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
               </TouchableOpacity>
 
               <Label text="Category" />
-              <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
+              <TouchableOpacity onPress={() => setShowCategoryPicker(true)} disabled={loading}>
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
 
               {(category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other') && (
                 <>
                   <Label text="Part Serviced" />
-                  <TouchableOpacity onPress={() => setShowPartPicker(true)}>
+                  <TouchableOpacity onPress={() => setShowPartPicker(true)} disabled={loading}>
                     <Input
                       value={
                         selectedPartTypes.length > 0
@@ -528,6 +528,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"
+                editable={!loading}
               />
 
               <Label text="Odometer Reading (km)" />
@@ -536,6 +537,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={odometer}
                 onChangeText={setOdometer}
                 keyboardType="numeric"
+                editable={!loading}
               />
 
 
@@ -544,6 +546,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 placeholder="Enter description"
                 value={description}
                 onChangeText={setDescription}
+                editable={!loading}
               />
 
               <Label text="Place (Google Maps)" />
@@ -554,6 +557,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                   setPlaceSearch(text);
                   setSelectedPlace(null);
                 }}
+                editable={!loading}
               />
 
 
@@ -563,23 +567,19 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={date}
                 onChangeText={setDate}
                 icon="calendar-outline"
-                onIconPress={openDatePicker}
+                onIconPress={loading ? undefined : openDatePicker}
+                editable={!loading}
               />
 
 
-              <TouchableOpacity
-                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
-                disabled={!isValid || loading}
+              <LoaderButton
+                title="Save Entry"
+                loading={loading}
+                loadingTitle="Saving..."
                 onPress={handleSave}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.saveText, isValid && styles.saveTextActive]}>
-                    Save Entry
-                  </Text>
-                )}
-              </TouchableOpacity>
+                disabled={!isValid}
+                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
+              />
             </Pressable>
           </KeyboardAvoidingView>
         </Pressable>

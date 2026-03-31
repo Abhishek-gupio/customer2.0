@@ -21,6 +21,8 @@ export default function GupioGarageApp() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [activeVehicle, setActiveVehicle] = useState<Vehicle | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
+    const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
 
     const fetchVehicles = useCallback(async () => {
         try {
@@ -60,7 +62,9 @@ export default function GupioGarageApp() {
     }, []);
 
     const handleDelete = useCallback(async (id: string) => {
+        if (deletingVehicleId || settingPrimaryId) return;
         try {
+            setDeletingVehicleId(id);
             await vehicleService.deleteVehicle(id);
             const remaining = vehicles.filter(v => v.id !== id);
             setVehicles(remaining);
@@ -75,11 +79,15 @@ export default function GupioGarageApp() {
         } catch (error) {
             console.error('[GupioGarageApp] deleteVehicle error:', error);
             Alert.alert('Error', 'Failed to delete vehicle.');
+        } finally {
+            setDeletingVehicleId(null);
         }
-    }, [vehicles]);
+    }, [deletingVehicleId, settingPrimaryId, vehicles]);
 
     const handleSetPrimary = useCallback(async (id: string) => {
+        if (settingPrimaryId || deletingVehicleId) return;
         try {
+            setSettingPrimaryId(id);
             const updated = await vehicleService.setPrimaryVehicle(id);
             setVehicles(prev => prev.map(v => ({
                 ...v,
@@ -92,8 +100,10 @@ export default function GupioGarageApp() {
         } catch (error) {
             console.error('[GupioGarageApp] setPrimaryVehicle error:', error);
             Alert.alert('Error', 'Failed to set primary vehicle.');
+        } finally {
+            setSettingPrimaryId(null);
         }
-    }, []);
+    }, [deletingVehicleId, settingPrimaryId]);
 
     // 2. Render
     let content: React.ReactNode = null;
@@ -128,6 +138,8 @@ export default function GupioGarageApp() {
                     onAddNew={() => setScreen('ADD')}
                     onDelete={handleDelete}
                     onSetPrimary={handleSetPrimary}
+                    deletingVehicleId={deletingVehicleId}
+                    settingPrimaryId={settingPrimaryId}
                 />
             );
             break;
