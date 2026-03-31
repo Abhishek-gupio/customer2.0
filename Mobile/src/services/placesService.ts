@@ -16,20 +16,26 @@ export interface NearbyPlace {
   imageUrl?: string;
 }
 
-export type NearbyPlaceType =
-  | 'gas_station'
-  | 'electric_charging_station'
-  | 'hospital'
-  | 'police'
-  | 'car_repair'
-  | 'parking'
-  | 'lodging'
-  | 'tourist_attraction'
-  | 'park'
-  | 'museum'
-  | 'restaurant'
-  | 'car_rental'
-  | 'bicycle_store';
+export const NEARBY_PLACE_TYPES = [
+  'gas_station',
+  'car_wash',
+  'electric_charging_station',
+  'hospital',
+  'police',
+  'car_repair',
+  'parking',
+  'lodging',
+  'tourist_attraction',
+  'park',
+  'museum',
+  'restaurant',
+  'car_rental',
+  'bicycle_store',
+  'insurance_agency',
+  'local_government_office',
+] as const;
+
+export type NearbyPlaceType = typeof NEARBY_PLACE_TYPES[number];
 
 interface NearbyResponse {
   success?: boolean;
