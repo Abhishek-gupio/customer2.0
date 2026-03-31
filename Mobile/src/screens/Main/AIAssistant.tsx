@@ -417,23 +417,28 @@ export default function AIAssistant() {
 
   useEffect(() => {
     let isMounted = true;
-    Tts.setDucking(true);
-    Tts.setDefaultRate(0.5, true);
-    Tts.setDefaultPitch(1.05);
+    try {
+      Tts.setDefaultRate(0.5);
+      Tts.setDefaultPitch(1.05);
+    } catch (e) {
+      console.warn('TTS defaults error:', e);
+    }
     Tts.getInitStatus()
       .then(() => {
         if (!isMounted) return;
         setTtsReady(true);
         Tts.setDefaultLanguage('en-IN').catch(() => {});
+        // Tts.setDucking(true); // Temporarily disabling due to iOS bridge error with Objective-C BOOL
       })
-      .catch(() => {
+      .catch((err) => {
         if (!isMounted) return;
+        console.warn('TTS init error:', err);
         setTtsReady(false);
       });
 
     return () => {
       isMounted = false;
-      Tts.stop();
+      try { Tts.stop(); } catch (e) {}
     };
   }, []);
 
