@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { Plus, Trash2, ChevronRight, Car, Clock } from 'lucide-react-native';
 import { COLORS, FALLBACK_IMAGE } from '../../../components/Vehicles/VehicleUI';
 import { Vehicle } from '../../../services/vehicleService';
+import { FlashList } from '@shopify/flash-list';
 
 type GarageListScreenProps = {
     vehicles: Vehicle[];
@@ -50,75 +51,78 @@ export const GarageListScreen = ({ vehicles, onAdd, onSelect, onDelete }: Garage
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}>
-                <View style={styles.statsCard}>
-                    <View style={[styles.statBox, { borderRightWidth: 1, borderRightColor: COLORS.border }]}>
-                        <Text style={styles.statVal}>{vehicles.length}</Text>
-                        <Text style={styles.statLabel}>TOTAL</Text>
-                    </View>
-                    <View style={styles.statBox}>
-                        <Text style={[styles.statVal, { color: COLORS.success }]}>{avgHealth}%</Text>
-                        <Text style={styles.statLabel}>AVG HEALTH</Text>
-                    </View>
-                </View>
+            <FlashList
+                data={vehicles}
+                keyExtractor={(v) => v.id}
+                estimatedItemSize={124}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
+                ListHeaderComponent={
+                    <>
+                        <View style={styles.statsCard}>
+                            <View style={[styles.statBox, { borderRightWidth: 1, borderRightColor: COLORS.border }]}>
+                                <Text style={styles.statVal}>{vehicles.length}</Text>
+                                <Text style={styles.statLabel}>TOTAL</Text>
+                            </View>
+                            <View style={styles.statBox}>
+                                <Text style={[styles.statVal, { color: COLORS.success }]}>{avgHealth}%</Text>
+                                <Text style={styles.statLabel}>AVG HEALTH</Text>
+                            </View>
+                        </View>
 
-                <Text style={styles.sectionTitle}>YOUR VEHICLES</Text>
+                        <Text style={styles.sectionTitle}>YOUR VEHICLES</Text>
+                    </>
+                }
+                renderItem={({ item: v }: { item: Vehicle }) => (
+                    <TouchableOpacity
+                        style={[
+                            styles.vehicleListCard,
+                            v.__optimistic && styles.vehicleListCardOptimistic
+                        ]}
+                        onPress={() => !v.__optimistic && onSelect(v)}
+                        activeOpacity={v.__optimistic ? 1 : 0.7}
+                    >
+                        <View style={styles.listImgBox}>
+                            <Image
+                                source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }}
+                                style={StyleSheet.absoluteFill}
+                                resizeMode="cover"
+                                onError={() => {}}
+                            />
+                            {v.__optimistic && (
+                                <View style={styles.pendingBadge}>
+                                    <Clock size={10} color={COLORS.primary} />
+                                </View>
+                            )}
+                        </View>
 
-                <View style={{ gap: 16 }}>
-                    {vehicles.map((v: Vehicle) => (
-                        <TouchableOpacity
-                            key={v.id}
-                            style={[
-                                styles.vehicleListCard,
-                                // Dim the card while optimistic save is in-flight
-                                v.__optimistic && styles.vehicleListCardOptimistic
-                            ]}
-                            onPress={() => !v.__optimistic && onSelect(v)}
-                            activeOpacity={v.__optimistic ? 1 : 0.7}
-                        >
-                            <View style={styles.listImgBox}>
-                                <Image
-                                    source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }}
-                                    style={StyleSheet.absoluteFill}
-                                    resizeMode="cover"
-                                    onError={() => {}}
-                                />
-                                {/* Pending badge for optimistic entries */}
-                                {v.__optimistic && (
-                                    <View style={styles.pendingBadge}>
-                                        <Clock size={10} color={COLORS.primary} />
+                        <View style={{ flex: 1 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Text style={styles.listTitle}>{v.registrationNumber}</Text>
+                                {v.isPrimary && (
+                                    <View style={styles.primaryBadge}>
+                                        <Text style={styles.primaryText}>PRIMARY</Text>
                                     </View>
                                 )}
                             </View>
+                            <Text style={styles.listSub} numberOfLines={1}>
+                                {v.__optimistic ? 'Saving...' : (v.model || v.make || 'Unknown Model')}
+                            </Text>
+                        </View>
 
-                            <View style={{ flex: 1 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <Text style={styles.listTitle}>{v.registrationNumber}</Text>
-                                    {v.isPrimary && (
-                                        <View style={styles.primaryBadge}>
-                                            <Text style={styles.primaryText}>PRIMARY</Text>
-                                        </View>
-                                    )}
-                                </View>
-                                <Text style={styles.listSub} numberOfLines={1}>
-                                    {v.__optimistic ? 'Saving...' : (v.model || v.make || 'Unknown Model')}
-                                </Text>
-                            </View>
+                        {!v.__optimistic && (
+                            <TouchableOpacity
+                                onPress={() => handleDeletePress(v)}
+                                style={styles.delBtn}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            >
+                                <Trash2 size={20} color="#FF453A" />
+                            </TouchableOpacity>
+                        )}
 
-                            {!v.__optimistic && (
-                                <TouchableOpacity
-                                    onPress={() => handleDeletePress(v)}
-                                    style={styles.delBtn}
-                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                                >
-                                    <Trash2 size={20} color="#FF453A" />
-                                </TouchableOpacity>
-                            )}
-
-                            <ChevronRight size={20} color={v.__optimistic ? '#333' : '#666'} />
-                        </TouchableOpacity>
-                    ))}
-
+                        <ChevronRight size={20} color={v.__optimistic ? '#333' : '#666'} />
+                    </TouchableOpacity>
+                )}
+                ListFooterComponent={
                     <TouchableOpacity onPress={onAdd} style={styles.addNewCard}>
                         <View style={styles.addNewIcon}>
                             <Plus size={32} color={COLORS.primary} />
@@ -128,8 +132,8 @@ export const GarageListScreen = ({ vehicles, onAdd, onSelect, onDelete }: Garage
                             <Text style={styles.addNewSub}>Register another</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
-            </ScrollView>
+                }
+            />
         </View>
     );
 };

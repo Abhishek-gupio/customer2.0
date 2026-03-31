@@ -12,6 +12,7 @@ import {
   PermissionsAndroid,
   Alert,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -401,8 +402,10 @@ function NearbyPlacesListScreen({
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.fuelListContent}
+        <FlashList
+          data={places}
+          keyExtractor={(item) => item.placeId || item.name}
+          estimatedItemSize={92}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -411,9 +414,9 @@ function NearbyPlacesListScreen({
               tintColor="#FFBF00"
             />
           }
-        >
-          {places.map((place) => (
-            <View key={place.placeId || place.name} style={styles.fuelCard}>
+          contentContainerStyle={styles.fuelListContent}
+          renderItem={({ item: place }) => (
+            <View style={styles.fuelCard}>
               <View style={styles.fuelCardLeft}>
                 <View style={styles.fuelCardIconWrap}>
                    <Icon name="map-pin" size={wp(5)} color="#FFBF00" />
@@ -446,8 +449,8 @@ function NearbyPlacesListScreen({
                 <Text style={styles.navigateBtnText}>GO</Text>
               </TouchableOpacity>
             </View>
-          ))}
-        </ScrollView>
+          )}
+        />
       )}
     </SafeAreaView>
   );

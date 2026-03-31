@@ -21,6 +21,7 @@ import {
   type ImageSourcePropType,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import { FlashList } from '@shopify/flash-list';
 import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -1619,12 +1620,14 @@ export default function Home() {
               <Text style={styles.sectionSubtitle}>Suggested next actions for your vehicle.</Text>
             </View>
           </View>
-          <ScrollView
+          <FlashList
             horizontal
+            data={sortedOwnershipTimelineItems}
+            estimatedItemSize={wp(78)}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.timelineScrollContent}
-          >
-            {sortedOwnershipTimelineItems.map((item, index) => (
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => (
               <Animated.View
                 key={item.id}
                 style={{
@@ -1697,8 +1700,8 @@ export default function Home() {
                   </View>
                 </TouchableOpacity>
               </Animated.View>
-            ))}
-          </ScrollView>
+            )}
+          />
         </View>
 
         {/* INSURANCE BANNER */}

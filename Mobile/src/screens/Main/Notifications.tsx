@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { io, Socket } from 'socket.io-client';
 import { api } from '../../services/api';
+import { FlashList } from '@shopify/flash-list';
 
 interface AppNotification {
     id: string;
@@ -22,6 +23,10 @@ export const NotificationsScreen = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(true);
+    const sortedNotifications = useMemo(
+        () => [...notifications].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+        [notifications]
+    );
 
     useEffect(() => {
         if (!user?.id) return;
@@ -70,16 +75,16 @@ export const NotificationsScreen = () => {
         }
     };
 
-    const markAsRead = async (id: string) => {
+    const markAsRead = useCallback(async (id: string) => {
         try {
             await api.patch(`/v1/notifications/${id}/read`);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
         } catch (error) {
             console.error("Failed to mark as read:", error);
         }
-    };
+    }, []);
 
-    const renderItem = ({ item }: { item: AppNotification }) => (
+    const renderItem = useCallback(({ item }: { item: AppNotification }) => (
         <TouchableOpacity
             style={[styles.notificationCard, !item.isRead && styles.unreadCard]}
             onPress={() => !item.isRead && markAsRead(item.id)}
@@ -91,7 +96,7 @@ export const NotificationsScreen = () => {
             </View>
             <Text style={styles.body}>{item.body}</Text>
         </TouchableOpacity>
-    );
+    ), [markAsRead]);
 
     if (!user?.id) {
         return (
@@ -114,11 +119,13 @@ export const NotificationsScreen = () => {
 
     return (
         <View style={styles.container}>
-            <FlatList
-                data={notifications}
+            <FlashList
+                data={sortedNotifications}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContainer}
+                estimatedItemSize={96}
+                showsVerticalScrollIndicator={false}
                 ListEmptyComponent={loading ? null : <Text style={styles.emptyText}>No notifications yet.</Text>}
             />
         </View>
