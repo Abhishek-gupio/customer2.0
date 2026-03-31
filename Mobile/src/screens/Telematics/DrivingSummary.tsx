@@ -752,11 +752,17 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit-Black',
         fontSize: wp(6),
         color: '#fff',
+        textShadowColor: 'rgba(0,0,0,0.45)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 6,
     },
     heroSub: {
         fontFamily: 'Outfit-Medium',
         fontSize: wp(3.2),
-        color: 'rgba(255,255,255,0.6)',
+        color: 'rgba(255,255,255,0.86)',
+        textShadowColor: 'rgba(0,0,0,0.35)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
     },
     mainScoreSection: {
         paddingHorizontal: wp(5),

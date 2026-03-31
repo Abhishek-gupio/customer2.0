@@ -1161,11 +1161,11 @@ export default function Home() {
                         style={styles.promoBackgroundOverlay}
                       >
                         <View style={styles.promoBackgroundContent}>
-                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Smarter</Text>
+                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
                           <Text style={styles.promoTitle}>Driving Behavior</Text>
-                          <Text style={styles.promoDesc}>Track your driving score, review recent trips, and spot safer habits faster.</Text>
+                          <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
                           <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Insights</Text>
+                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
                             <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
                           </View>
                         </View>
@@ -1195,11 +1195,11 @@ export default function Home() {
                         style={styles.promoBackgroundOverlay}
                       >
                         <View style={styles.promoBackgroundContent}>
-                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Travel Smart</Text>
+                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
                           <Text style={styles.promoTitle}>Trip Planner</Text>
-                          <Text style={styles.promoDesc}>Plan routes, estimate costs, and get journey-ready insights before you head out.</Text>
+                          <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
                           <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Plan Trip</Text>
+                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
                             <MaterialIcon name="chevron-right" size={18} color="#34D399" />
                           </View>
                         </View>
@@ -2201,13 +2201,19 @@ const styles = StyleSheet.create({
     fontSize: wp(5.5),
     fontFamily: 'Outfit-Black',
     marginBottom: hp(1.5),
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   promoDesc: {
-    color: '#ccc',
+    color: 'rgba(255,255,255,0.88)',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Regular',
     lineHeight: hp(2),
     marginBottom: hp(2),
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   promoButtons: {
     flexDirection: 'row',
