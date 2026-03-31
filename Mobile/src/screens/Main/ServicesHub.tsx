@@ -42,37 +42,30 @@ type ServiceId =
   | 'DLVerification'
   | 'Fastag';
 
-type ServiceAvailability = 'direct' | 'nearby';
-
 type ServiceItem = {
   id: ServiceId;
   name: string;
   icon: string;
   iconSet: 'fa' | 'mc';
-  availability: ServiceAvailability;
-  helperText: string;
 };
 
 const SERVICE_ITEMS: ServiceItem[] = [
-  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa', availability: 'direct', helperText: 'Dedicated health screen' },
-  { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa', availability: 'direct', helperText: 'Past service records' },
-  { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa', availability: 'direct', helperText: 'Explore around you' },
-  { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa', availability: 'direct', helperText: 'Check dues instantly' },
-  { id: 'FuelStations', name: 'Fuel Nearby', icon: 'gas-station', iconSet: 'mc', availability: 'nearby', helperText: 'Live places around you' },
-  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc', availability: 'nearby', helperText: 'Live places around you' },
-  { id: 'Mechanics', name: 'Mechanics', icon: 'wrench', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby help only' },
-  { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc', availability: 'nearby', helperText: 'Nearby help only' },
-  { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby office search' },
-  { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby help only' },
-  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa', availability: 'nearby', helperText: 'Nearby spots only' },
-  { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc', availability: 'nearby', helperText: 'Nearby offices only' },
-  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa', availability: 'direct', helperText: 'Planner and estimate' },
+  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
+  { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa' },
+  { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa' },
+  { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa' },
+  { id: 'FuelStations', name: 'Fuel Nearby', icon: 'gas-station', iconSet: 'mc' },
+  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
+  { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa' },
+  { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa' },
+  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
+  { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
+  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
-  { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
 
@@ -118,37 +111,7 @@ const ADS_DATA = [
   },
 ];
 
-const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id)!;
-const DIRECT_SERVICE_COUNT = SERVICE_ITEMS.filter((item) => item.availability === 'direct').length;
-const NEARBY_SERVICE_COUNT = SERVICE_ITEMS.filter((item) => item.availability === 'nearby').length;
-
-const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
-  'FuelStations',
-  'Hospital',
-  'PoliceStation',
-  'Hotel',
-  'ChargingStation',
-  'Mechanics',
-  'RTO',
-  'CarWash',
-  'Parking',
-  'TyreShop',
-  'DocumentServices',
-  'CarSpa',
-];
-
-function renderMechanicIcon(color: string, size: number, large = false) {
-  return (
-    <View style={large ? styles.mechanicIconLargeWrap : styles.mechanicIconWrap}>
-      <IconMC
-        name="account-wrench-outline"
-        size={large ? size * 1.22 : size * 1.12}
-        color={color}
-      />
-    </View>
-  );
-}
-
+const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id);
 function renderParkingIcon(color: string, size: number, large = false) {
   return (
     <View style={large ? styles.parkingIconLargeWrap : styles.parkingIconWrap}>
@@ -184,17 +147,13 @@ function renderServiceIcon(
   size: number,
   large = false
 ) {
-    if (item.iconSet === 'mechanic') {
-      return renderMechanicIcon(color, size, large);
-    }
+  if (item.iconSet === 'parking') {
+    return renderParkingIcon(color, size, large);
+  }
 
-    if (item.iconSet === 'parking') {
-      return renderParkingIcon(color, size, large);
-    }
-
-    if (item.iconSet === 'towing') {
-      return renderTowingIcon(color, size, large);
-    }
+  if (item.iconSet === 'towing') {
+    return renderTowingIcon(color, size, large);
+  }
 
   if (item.iconSet === 'mc') {
     return <IconMC name={item.icon as any} size={size} color={color} />;
@@ -234,11 +193,6 @@ export default function ServicesHub() {
       return;
     }
 
-    if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
-      navigation.push('NearbyPlaces', { placeType: id });
-      return;
-    }
-
     switch (id) {
       case 'ServiceHistory':
         navigation.navigate('ServiceHistory');
@@ -267,6 +221,7 @@ export default function ServicesHub() {
   const filteredCategories = CATEGORIES.map((cat) => {
     const filteredIds = cat.itemIds.filter((id) => {
       const item = getItemById(id);
+      if (!item) return false;
       return (
         item.name.toLowerCase().includes(normalizedSearch) ||
         cat.title.toLowerCase().includes(normalizedSearch)
@@ -335,21 +290,6 @@ export default function ServicesHub() {
       ) : null}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.readinessCard}>
-          <Text style={styles.readinessTitle}>What is ready today</Text>
-          <Text style={styles.readinessBody}>
-            Direct services open a full workflow. Nearby services use your live location to show real places around you, so we are not over-promising unfinished flows.
-          </Text>
-          <View style={styles.readinessLegendRow}>
-            <View style={[styles.readinessPill, styles.directPill]}>
-              <Text style={[styles.readinessPillText, styles.directPillText]}>{DIRECT_SERVICE_COUNT} direct</Text>
-            </View>
-            <View style={[styles.readinessPill, styles.nearbyPill]}>
-              <Text style={[styles.readinessPillText, styles.nearbyPillText]}>{NEARBY_SERVICE_COUNT} nearby</Text>
-            </View>
-          </View>
-        </View>
-
         {/* Ad Carousel */}
         <View style={styles.adsWrapper}>
           <FlatList
@@ -409,38 +349,23 @@ export default function ServicesHub() {
               <View style={styles.row}>
                 {cat.itemIds.map((id) => {
                   const item = getItemById(id);
+                  if (!item) return null;
                   return (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={styles.button}
-                      onPress={() => onServicePress(item.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.iconBox}>
-                        {renderServiceIcon(item, '#fff', wp(5.8))}
-                      </View>
-                      <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
-                      <View
-                        style={[
-                          styles.serviceMetaPill,
-                          item.availability === 'direct' ? styles.directServicePill : styles.nearbyServicePill,
-                        ]}
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.button}
+                        onPress={() => onServicePress(item.id)}
+                        activeOpacity={0.7}
                       >
-                        <Text
-                          style={[
-                            styles.serviceMetaText,
-                            item.availability === 'direct' ? styles.directServiceText : styles.nearbyServiceText,
-                          ]}
-                        >
-                          {item.availability === 'direct' ? 'Direct' : 'Nearby'}
-                        </Text>
-                      </View>
-                      <Text style={styles.helperText} numberOfLines={2}>{item.helperText}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                        <View style={styles.iconBox}>
+                          {renderServiceIcon(item, '#fff', wp(5.8))}
+                        </View>
+                        <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
           ))}
           {normalizedSearch && filteredCategories.length === 0 ? (
             <View style={styles.emptySearchState}>
@@ -451,9 +376,24 @@ export default function ServicesHub() {
           ) : null}
         </View>
 
+        <TouchableOpacity
+          style={styles.nearbyLauncher}
+          activeOpacity={0.9}
+          onPress={() => onServicePress('NearbyPlaces')}
+        >
+          <View style={styles.nearbyLauncherIcon}>
+            <IconMC name="map-search" size={wp(6)} color="#fff" />
+          </View>
+          <View style={styles.nearbyLauncherTextWrap}>
+            <Text style={styles.nearbyLauncherTitle}>Nearby</Text>
+            <Text style={styles.nearbyLauncherText}>Open all nearby screens and place search</Text>
+          </View>
+          <IconMC name="chevron-right" size={wp(5.5)} color="rgba(255,255,255,0.7)" />
+        </TouchableOpacity>
+
         <View style={styles.infoRow}>
           <Icon name="info-circle" size={wp(3)} color="#444" />
-          <Text style={styles.infoText}>Location-based services show nearby options; more guided flows are still rolling out.</Text>
+          <Text style={styles.infoText}>This hub now shows only direct services that are ready to use.</Text>
         </View>
       </ScrollView>
       <LoadingSpinner visible={navLoading} />
@@ -514,57 +454,40 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: hp(4),
   },
-  readinessCard: {
+  nearbyLauncher: {
     marginHorizontal: wp(5),
     marginBottom: hp(2),
-    padding: wp(5),
-    borderRadius: 20,
-    backgroundColor: '#111418',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    borderRadius: 18,
+    backgroundColor: '#12161d',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-  },
-  readinessTitle: {
-    fontSize: wp(4.6),
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-  },
-  readinessBody: {
-    marginTop: hp(1),
-    color: 'rgba(255,255,255,0.65)',
-    fontFamily: 'Outfit-Regular',
-    fontSize: wp(3.3),
-    lineHeight: hp(2.2),
-  },
-  readinessLegendRow: {
     flexDirection: 'row',
-    gap: wp(2.5),
-    marginTop: hp(1.8),
+    alignItems: 'center',
+    gap: wp(3),
   },
-  readinessPill: {
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.7),
-    borderRadius: 999,
-    borderWidth: 1,
+  nearbyLauncherIcon: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
-  readinessPillText: {
-    fontSize: wp(3),
+  nearbyLauncherTextWrap: {
+    flex: 1,
+  },
+  nearbyLauncherTitle: {
+    color: '#fff',
     fontFamily: 'Outfit-Bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    fontSize: wp(4.5),
   },
-  directPill: {
-    backgroundColor: 'rgba(74,222,128,0.12)',
-    borderColor: 'rgba(74,222,128,0.35)',
-  },
-  directPillText: {
-    color: '#4ade80',
-  },
-  nearbyPill: {
-    backgroundColor: 'rgba(96,165,250,0.12)',
-    borderColor: 'rgba(96,165,250,0.35)',
-  },
-  nearbyPillText: {
-    color: '#60a5fa',
+  nearbyLauncherText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.1),
+    marginTop: hp(0.3),
   },
   searchWrap: {
     paddingHorizontal: wp(6),
@@ -648,18 +571,6 @@ const styles = StyleSheet.create({
     width: wp(20),
     height: wp(20),
     borderRadius: wp(10),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mechanicIconWrap: {
-    width: wp(8.6),
-    height: wp(8.6),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mechanicIconLargeWrap: {
-    width: wp(11.5),
-    height: wp(11.5),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -771,41 +682,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
     color: '#fff',
     textAlign: 'center',
-  },
-  serviceMetaPill: {
-    marginTop: hp(0.8),
-    paddingHorizontal: wp(2.3),
-    paddingVertical: hp(0.35),
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  directServicePill: {
-    backgroundColor: 'rgba(74,222,128,0.12)',
-    borderColor: 'rgba(74,222,128,0.35)',
-  },
-  nearbyServicePill: {
-    backgroundColor: 'rgba(96,165,250,0.12)',
-    borderColor: 'rgba(96,165,250,0.35)',
-  },
-  serviceMetaText: {
-    fontSize: wp(2.4),
-    fontFamily: 'Outfit-Bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.7,
-  },
-  directServiceText: {
-    color: '#4ade80',
-  },
-  nearbyServiceText: {
-    color: '#60a5fa',
-  },
-  helperText: {
-    marginTop: hp(0.5),
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: wp(2.5),
-    fontFamily: 'Outfit-Regular',
-    textAlign: 'center',
-    lineHeight: hp(1.7),
   },
   infoRow: {
     flexDirection: 'row',

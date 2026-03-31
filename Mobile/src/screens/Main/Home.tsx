@@ -77,6 +77,9 @@ type TimelineItem = {
   accent: string;
   badge: string;
   cta: string;
+  stage: 'Now' | 'Next' | 'Later';
+  priority: 'urgent' | 'normal' | 'good';
+  priorityScore: number;
   onPress: () => void;
 };
 
@@ -238,12 +241,14 @@ export default function Home() {
   const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timelineEntranceAnim = useRef(new Animated.Value(0)).current;
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const windowSize = Dimensions.get('window');
+  const bannerWidth = windowSize.width;
   const miniVideoCardWidth = wp(58);
   const miniVideoCardHeight = (miniVideoCardWidth * 9) / 16 + hp(4.8);
   const expandedVideoCardWidth = wp(88);
@@ -488,17 +493,35 @@ export default function Home() {
   // Auto-scroll carousel every 5 seconds
   // Use a ref to avoid stale closure & re-creating the interval on every slide,
   // which caused IllegalStateException from conflicting Animated frame timestamps.
+  const bannerSlides = useMemo(() => (showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]), [showOdometerSlide]);
   const carouselIndexRef = useRef(0);
+  const handleBannerMomentumEnd = useCallback((e: any) => {
+    const layoutWidth = e?.nativeEvent?.layoutMeasurement?.width || bannerWidth;
+    const offsetX = e?.nativeEvent?.contentOffset?.x || 0;
+    const rawIndex = Math.round(offsetX / layoutWidth);
+    const index = Math.max(0, Math.min(rawIndex, bannerSlides.length - 1));
+    carouselIndexRef.current = index;
+    setCarouselIndex(index);
+  }, [bannerSlides.length, bannerWidth]);
+
   useEffect(() => {
-    const totalSlides = showOdometerSlide ? 5 : 4;
+    const maxIndex = bannerSlides.length - 1;
+    if (carouselIndexRef.current <= maxIndex) return;
+    carouselIndexRef.current = 0;
+    setCarouselIndex(0);
+    carouselRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [bannerSlides.length]);
+
+  useEffect(() => {
+    const totalSlides = bannerSlides.length;
+    if (totalSlides <= 1) return;
     const timer = setInterval(() => {
       if (autoScrollStoppedRef.current) return;
       const nextIndex = (carouselIndexRef.current + 1) % totalSlides;
       carouselIndexRef.current = nextIndex;
-      setCarouselIndex(nextIndex);
       try {
-        carouselRef.current?.scrollToIndex({
-          index: nextIndex,
+        carouselRef.current?.scrollToOffset({
+          offset: nextIndex * bannerWidth,
           animated: true,
         });
       } catch (_) {
@@ -512,7 +535,7 @@ export default function Home() {
         autoScrollResumeTimerRef.current = null;
       }
     };
-  }, [showOdometerSlide]); // ← dependency added to update interval when slides change
+  }, [bannerSlides.length, bannerWidth]);
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
@@ -1141,6 +1164,9 @@ export default function Home() {
       accent: serviceAccent,
       badge: serviceBadge,
       cta: vehicle ? 'Open health' : 'Go to garage',
+      stage: serviceAlertCount > 0 ? 'Now' : serviceDueSoonCount > 0 ? 'Next' : 'Later',
+      priority: serviceAlertCount > 0 ? 'urgent' : serviceDueSoonCount > 0 ? 'normal' : 'good',
+      priorityScore: serviceAlertCount > 0 ? 100 : serviceDueSoonCount > 0 ? 80 : 40,
       onPress: () => vehicle ? navigateToRootScreen('WarrantyStatus') : navigateToRootScreen('VehicleList'),
     },
     {
@@ -1153,6 +1179,9 @@ export default function Home() {
       accent: documentAccent,
       badge: documentBadge,
       cta: 'Open glovebox',
+      stage: missingDocumentTypes.length > 0 ? 'Now' : documentsNeedingReview.length > 0 ? 'Next' : 'Later',
+      priority: missingDocumentTypes.length > 0 ? 'urgent' : documentsNeedingReview.length > 0 ? 'normal' : 'good',
+      priorityScore: missingDocumentTypes.length > 0 ? 90 : documentsNeedingReview.length > 0 ? 75 : 35,
       onPress: () => navigateToRootScreen('DocumentList'),
     },
     {
@@ -1169,6 +1198,9 @@ export default function Home() {
       accent: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? '#f59e0b' : '#38bdf8',
       badge: !lastOdometerUpdate ? 'Missing' : odometerAgeDays === 0 ? 'Updated today' : `${odometerAgeDays ?? 0}d ago`,
       cta: 'Update reading',
+      stage: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'Now' : 'Later',
+      priority: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'urgent' : 'good',
+      priorityScore: !lastOdometerUpdate ? 92 : (odometerAgeDays !== null && odometerAgeDays > 7) ? 88 : 28,
       onPress: () => (navigation as any).navigate('Odometer'),
     },
     {
@@ -1181,6 +1213,9 @@ export default function Home() {
       accent: spendAccent,
       badge: fuelLoading ? 'Updating' : spendBadge,
       cta: 'Open expenses',
+      stage: expenseAlertCount > 0 ? 'Now' : monthlyExpenseCount > 0 ? 'Next' : 'Later',
+      priority: expenseAlertCount > 0 ? 'urgent' : monthlyExpenseCount > 0 ? 'normal' : 'good',
+      priorityScore: expenseAlertCount > 0 ? 85 : monthlyExpenseCount > 0 ? 60 : 25,
       onPress: () => navigateToRootScreen('Expenses'),
     },
     {
@@ -1195,6 +1230,9 @@ export default function Home() {
       accent: '#a78bfa',
       badge: 'Planner',
       cta: 'Plan trip',
+      stage: 'Later',
+      priority: 'normal',
+      priorityScore: 20,
       onPress: () => navigateToRootScreen('TripExpense'),
     },
     {
@@ -1209,6 +1247,9 @@ export default function Home() {
       accent: '#22d3ee',
       badge: 'Action ready',
       cta: 'Open AI',
+      stage: 'Next',
+      priority: 'normal',
+      priorityScore: 50,
       onPress: () => openAiAssistant(
         vehicle
           ? `Give me a quick ownership summary for my ${getBannerVehicleShortName(vehicle)} and tell me what I should do next.`
@@ -1216,6 +1257,23 @@ export default function Home() {
       ),
     },
   ];
+
+  const sortedOwnershipTimelineItems = useMemo(
+    () => [...ownershipTimelineItems].sort((a, b) => b.priorityScore - a.priorityScore),
+    [ownershipTimelineItems]
+  );
+
+  const recommendedTimelineItemId = sortedOwnershipTimelineItems[0]?.id;
+
+  useEffect(() => {
+    timelineEntranceAnim.setValue(0);
+    Animated.timing(timelineEntranceAnim, {
+      toValue: 1,
+      duration: 550,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [timelineEntranceAnim, recommendedTimelineItemId]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -1236,16 +1294,29 @@ export default function Home() {
             ref={carouselRef}
             horizontal
             pagingEnabled
+            decelerationRate="fast"
+            snapToInterval={bannerWidth}
+            snapToAlignment="start"
+            disableIntervalMomentum
+            bounces={false}
+            getItemLayout={(_, index) => ({
+              length: bannerWidth,
+              offset: bannerWidth * index,
+              index,
+            })}
+            onScrollToIndexFailed={(info) => {
+              carouselRef.current?.scrollToOffset({
+                offset: info.index * bannerWidth,
+                animated: true,
+              });
+            }}
+            initialNumToRender={1}
+            maxToRenderPerBatch={2}
+            windowSize={3}
             showsHorizontalScrollIndicator={false}
-            onTouchStart={() => {
-              pauseAutoScrollTemporarily();
-            }}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
-              carouselIndexRef.current = index;
-              setCarouselIndex(index);
-            }}
-            data={showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]}
+            onScrollBeginDrag={pauseAutoScrollTemporarily}
+            onMomentumScrollEnd={handleBannerMomentumEnd}
+            data={bannerSlides}
             keyExtractor={(item) => item.toString()}
             renderItem={({ item }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
@@ -1259,7 +1330,7 @@ export default function Home() {
 
               if (item === 0) {
                 return (
-                  <View style={styles.slideFull}>
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
                     <View style={styles.primaryImageWrap}>
                       <FastImage
                         source={heroImageSource as any}
@@ -1310,7 +1381,7 @@ export default function Home() {
               if (item === 1) {
                 return (
                   <TouchableOpacity
-                    style={styles.slideFull}
+                    style={[styles.slideFull, { width: bannerWidth }]}
                     activeOpacity={0.9}
                     onPress={() => navigateToRootScreen('Expenses')}
                   >
@@ -1338,7 +1409,7 @@ export default function Home() {
               if (item === 2) {
                 return (
                   <TouchableOpacity
-                    style={styles.slideFull}
+                    style={[styles.slideFull, { width: bannerWidth }]}
                     activeOpacity={0.9}
                     onPress={() => setServiceModalVisible(true)}
                   >
@@ -1365,7 +1436,7 @@ export default function Home() {
               }
               if (item === 3) {
                 return (
-                  <View style={styles.slideFull}>
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
                     <View style={styles.promoSlide}>
                       <View style={styles.promoLeft}>
                         <Text style={styles.promoSubtitle}>Stay Connected</Text>
@@ -1406,7 +1477,7 @@ export default function Home() {
 
               return (
                 <TouchableOpacity
-                  style={styles.slideFull}
+                  style={[styles.slideFull, { width: bannerWidth }]}
                   activeOpacity={0.9}
                   onPress={() => (navigation as any).navigate('Odometer')}
                 >
@@ -1464,7 +1535,7 @@ export default function Home() {
 
           {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
-            {(showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]).map((i) => (
+            {bannerSlides.map((i) => (
               <View
                 key={i}
                 style={[
@@ -1545,7 +1616,7 @@ export default function Home() {
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionTitle}>Ownership Timeline</Text>
-              <Text style={styles.sectionSubtitle}>Recommended next steps without changing your current flow.</Text>
+              <Text style={styles.sectionSubtitle}>Suggested next actions for your vehicle.</Text>
             </View>
           </View>
           <ScrollView
@@ -1553,41 +1624,79 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.timelineScrollContent}
           >
-            {ownershipTimelineItems.map((item) => (
-              <TouchableOpacity
+            {sortedOwnershipTimelineItems.map((item, index) => (
+              <Animated.View
                 key={item.id}
-                activeOpacity={0.9}
-                style={styles.timelineCard}
-                onPress={item.onPress}
+                style={{
+                  opacity: timelineEntranceAnim.interpolate({
+                    inputRange: [0, 0.35 + index * 0.1, 1],
+                    outputRange: [0, 0, 1],
+                    extrapolate: 'clamp',
+                  }),
+                  transform: [
+                    {
+                      translateY: timelineEntranceAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [16 + index * 2, 0],
+                      }),
+                    },
+                  ],
+                }}
               >
-                <LinearGradient
-                  colors={[`${item.accent}2A`, 'rgba(255,255,255,0.02)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.timelineCardGlow}
-                />
-                <View style={styles.timelineCardTopRow}>
-                  <View style={[styles.timelineIconWrap, { backgroundColor: `${item.accent}20` }]}>
-                    {item.iconSet === 'fa' ? (
-                      <Icon name={item.icon} size={wp(4.8)} color={item.accent} />
-                    ) : item.iconSet === 'ion' ? (
-                      <Ionicons name={item.icon as any} size={wp(5.2)} color={item.accent} />
-                    ) : (
-                      <MaterialIcon name={item.icon} size={wp(5.2)} color={item.accent} />
-                    )}
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  style={[
+                    styles.timelineCard,
+                    item.priority === 'urgent' ? styles.timelineCardUrgent : item.priority === 'good' ? styles.timelineCardGood : undefined,
+                  ]}
+                  onPress={item.onPress}
+                >
+                  <LinearGradient
+                    colors={[`${item.accent}2A`, 'rgba(255,255,255,0.02)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.timelineCardGlow}
+                  />
+                  <View style={styles.timelineCardInner}>
+                    <View style={styles.timelineMainContent}>
+                      <View style={styles.timelineCardTopRow}>
+                        <View style={[styles.timelineIconWrap, { backgroundColor: `${item.accent}20` }]}>
+                          {item.iconSet === 'fa' ? (
+                            <Icon name={item.icon} size={wp(4.8)} color={item.accent} />
+                          ) : item.iconSet === 'ion' ? (
+                            <Ionicons name={item.icon as any} size={wp(5.2)} color={item.accent} />
+                          ) : (
+                            <MaterialIcon name={item.icon} size={wp(5.2)} color={item.accent} />
+                          )}
+                        </View>
+                        <View style={styles.timelineTopChips}>
+                          <View style={[styles.timelineBadge, { borderColor: `${item.accent}55`, backgroundColor: `${item.accent}14` }]}>
+                            <Text numberOfLines={1} style={[styles.timelineBadgeText, { color: item.accent }]}>{item.badge}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      <View style={styles.timelineMetaRow}>
+                        <Text numberOfLines={1} style={styles.timelineEyebrow}>{item.eyebrow}</Text>
+                        <View style={[styles.timelineStagePill, item.stage === 'Now' ? styles.timelineStageNow : item.stage === 'Next' ? styles.timelineStageNext : styles.timelineStageLater]}>
+                          <Text numberOfLines={1} style={styles.timelineStageText}>
+                            {item.id === recommendedTimelineItemId ? 'Now • Top' : item.stage}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.timelineBody}>
+                        <Text numberOfLines={2} style={styles.timelineCardTitle}>{item.title}</Text>
+                        <Text numberOfLines={2} style={styles.timelineDescription}>{item.description}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.timelineActionRow}>
+                      <View style={[styles.timelineActionPill, { borderColor: `${item.accent}80` }]}>
+                        <Text numberOfLines={1} style={styles.timelineActionText}>{item.cta}</Text>
+                        <MaterialIcon name="chevron-right" size={16} color={item.accent} />
+                      </View>
+                    </View>
                   </View>
-                  <View style={[styles.timelineBadge, { borderColor: `${item.accent}55`, backgroundColor: `${item.accent}14` }]}>
-                    <Text style={[styles.timelineBadgeText, { color: item.accent }]}>{item.badge}</Text>
-                  </View>
-                </View>
-                <Text style={styles.timelineEyebrow}>{item.eyebrow}</Text>
-                <Text style={styles.timelineCardTitle}>{item.title}</Text>
-                <Text style={styles.timelineDescription}>{item.description}</Text>
-                <View style={styles.timelineActionRow}>
-                  <Text style={[styles.timelineActionText, { color: item.accent }]}>{item.cta}</Text>
-                  <MaterialIcon name="chevron-right" size={18} color={item.accent} />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </Animated.View>
             ))}
           </ScrollView>
         </View>
@@ -2082,8 +2191,8 @@ const styles = StyleSheet.create({
     fontSize: wp(5),
   },
   sectionSubtitle: {
-    marginTop: hp(0.5),
-    color: 'rgba(255,255,255,0.58)',
+    marginTop: hp(0.35),
+    color: 'rgba(255,255,255,0.62)',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Regular',
   },
@@ -2092,14 +2201,29 @@ const styles = StyleSheet.create({
   },
   timelineCard: {
     width: wp(74),
-    minHeight: hp(22),
+    height: Math.max(hp(26.5), 238),
     marginRight: wp(3.5),
-    padding: wp(4.5),
     borderRadius: 22,
     backgroundColor: '#0d1117',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
+    justifyContent: 'flex-start',
+  },
+  timelineCardInner: {
+    flex: 1,
+    paddingTop: wp(4),
+    paddingHorizontal: wp(4),
+    paddingBottom: wp(4),
+  },
+  timelineMainContent: {
+    flex: 1,
+  },
+  timelineCardUrgent: {
+    borderColor: 'rgba(245, 158, 11, 0.45)',
+  },
+  timelineCardGood: {
+    borderColor: 'rgba(74, 222, 128, 0.35)',
   },
   timelineCardGlow: {
     ...StyleSheet.absoluteFillObject,
@@ -2107,8 +2231,8 @@ const styles = StyleSheet.create({
   timelineCardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(1.8),
+    alignItems: 'flex-start',
+    marginBottom: hp(1),
   },
   timelineIconWrap: {
     width: wp(12),
@@ -2120,43 +2244,105 @@ const styles = StyleSheet.create({
   timelineBadge: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: wp(2.6),
-    paddingVertical: hp(0.5),
+    paddingHorizontal: wp(2.3),
+    paddingVertical: hp(0.35),
+    maxWidth: wp(28),
+  },
+  timelineTopChips: {
+    alignItems: 'flex-end',
+    maxWidth: wp(28),
   },
   timelineBadgeText: {
     fontFamily: 'Outfit-SemiBold',
-    fontSize: wp(2.8),
+    fontSize: wp(2.6),
+    flexShrink: 1,
+  },
+  timelineMetaRow: {
+    marginBottom: hp(0.55),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: wp(2),
+    minHeight: hp(2.2),
+  },
+  timelineBody: {
+    flexGrow: 1,
+    minHeight: 0,
+    justifyContent: 'flex-start',
+    paddingBottom: hp(0.8),
   },
   timelineEyebrow: {
     color: 'rgba(255,255,255,0.58)',
     fontFamily: 'Outfit-SemiBold',
-    fontSize: wp(3),
+    fontSize: wp(2.8),
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: hp(0.8),
+    flexShrink: 1,
+  },
+  timelineStagePill: {
+    borderRadius: 999,
+    paddingHorizontal: wp(1.8),
+    paddingVertical: hp(0.4),
+    maxWidth: wp(24),
+  },
+  timelineStageNow: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  timelineStageNext: {
+    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+  },
+  timelineStageLater: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  timelineStageText: {
+    color: '#fff',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(2.5),
   },
   timelineCardTitle: {
     color: '#fff',
     fontFamily: 'Outfit-Bold',
-    fontSize: wp(5.2),
-    lineHeight: hp(3.2),
-    marginBottom: hp(1),
+    fontSize: wp(4.5),
+    lineHeight: hp(2.55),
+    marginBottom: hp(0.4),
+    minHeight: hp(2.55) * 2,
+    textAlignVertical: 'top',
   },
   timelineDescription: {
     color: 'rgba(255,255,255,0.72)',
     fontFamily: 'Outfit-Regular',
-    fontSize: wp(3.5),
-    lineHeight: hp(2.2),
+    fontSize: wp(3.05),
+    lineHeight: hp(1.8),
+    minHeight: hp(1.8) * 2,
+    marginBottom: hp(0.2),
+    textAlignVertical: 'top',
   },
   timelineActionRow: {
-    marginTop: 'auto',
-    paddingTop: hp(2),
+    marginTop: hp(1.4),
+    paddingTop: hp(1.1),
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: hp(4.3),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.10)',
+  },
+  timelineActionPill: {
+    borderWidth: 1.2,
+    borderRadius: 12,
+    paddingHorizontal: wp(3.2),
+    paddingVertical: hp(0.75),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   timelineActionText: {
     fontFamily: 'Outfit-Bold',
-    fontSize: wp(3.8),
+    fontSize: wp(3.2),
+    marginRight: wp(0.8),
+    flexShrink: 1,
+    color: '#FFFFFF',
   },
   discoveryPlaceholder: {
     paddingVertical: hp(2),
