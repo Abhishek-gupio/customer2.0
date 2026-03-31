@@ -41,6 +41,7 @@ import { fetchDocuments, removeDocumentAsync } from '../../store/slices/document
 
 const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
 const BikeImage = require('../../assets/images/bike.png') as any;
+const IndianLion = require('../../assets/images/indian_lion.png') as any;
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];
@@ -987,7 +988,81 @@ export const DetailsScreen = ({
                         minimumZoomScale={1}
                         bouncesZoom={true}
                     >
-                        {viewingDoc?.imageUri ? (
+                        {viewingDoc?.type === 'reg certificate' ? (
+                            <View style={styles.formalCertContainer}>
+                                <View style={styles.formalCert}>
+                                    <View style={styles.formalCertHeader}>
+                                        <Image source={IndianLion} style={styles.formalLionLogo} resizeMode="contain" />
+                                        <Text style={styles.formalCertTitle}>UNION OF INDIA REGISTRATION CERTIFICATE</Text>
+                                        <Text style={styles.formalCertSubtitle}>Issuing Authority: {activeVehicle?.rtoDetails?.rto || 'Transport Department'}</Text>
+                                        <View style={styles.formalCertDivider} />
+                                    </View>
+
+                                    <View style={styles.formalCertMeta}>
+                                        <View style={styles.formalCertMetaRow}>
+                                            <View style={styles.formalCertMetaCol}>
+                                                <Text style={styles.formalCertMetaLabel}>Registration No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.registrationNumber}</Text>
+                                            </View>
+                                            <View style={styles.formalCertMetaCol}>
+                                                <Text style={styles.formalCertMetaLabel}>Registration Date:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.formalCertMetaRow}>
+                                            <View style={styles.formalCertMetaCol}>
+                                                <Text style={styles.formalCertMetaLabel}>Chassis No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</Text>
+                                            </View>
+                                            <View style={styles.formalCertMetaCol}>
+                                                <Text style={styles.formalCertMetaLabel}>Engine No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.formalCertInfoGrid}>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Owner Name</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.ownerName || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Vehicle Class</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.vehicleClass || activeVehicle?.vehicleType || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Fuel Type</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.fuelType || activeVehicle?.rtoDetails?.fuelType || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Color</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.color || activeVehicle?.rtoDetails?.color || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Valid Up To</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle?.rtoDetails?.fitnessUpto || 'N/A'}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.formalCertFooter}>
+                                        <MaterialCommunityIcons name="qrcode" size={70} color="#333" />
+                                        <View style={styles.formalCertNoteBox}>
+                                            <Text style={styles.formalCertPowered}>Powered by DigiLocker</Text>
+                                            <View style={styles.formalCertSignedBadge}>
+                                                <Text style={styles.formalCertSignedText}>Digitally signed on</Text>
+                                                <Text style={styles.formalCertSignedDate}>{new Date().toLocaleDateString('en-GB')}</Text>
+                                                <CheckCircle2 size={12} color="#22C55E" />
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : viewingDoc?.imageUri ? (
                             <Image
                                 source={{ uri: viewingDoc.imageUri }}
                                 style={styles.fullImage}
@@ -1460,5 +1535,138 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontFamily: 'Outfit-Medium',
         marginTop: 2
+    },
+
+    // Formal Certificate Styles
+    formalCertContainer: {
+        width: wp('92%'),
+        padding: 5,
+        alignSelf: 'center'
+    },
+    formalCert: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+        elevation: 15
+    },
+    formalCertHeader: {
+        alignItems: 'center',
+        marginBottom: 20
+    },
+    formalLionLogo: {
+        width: wp('14%'),
+        height: wp('14%'),
+        marginBottom: 10
+    },
+    formalCertTitle: {
+        fontSize: 16,
+        color: '#000',
+        fontFamily: 'Outfit-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase'
+    },
+    formalCertSubtitle: {
+        fontSize: 10,
+        color: '#666',
+        fontFamily: 'Outfit-Medium',
+        marginTop: 4
+    },
+    formalCertDivider: {
+        width: '100%',
+        height: 2,
+        backgroundColor: '#333',
+        marginTop: 15
+    },
+    formalCertMeta: {
+        marginBottom: 20
+    },
+    formalCertMetaRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 12
+    },
+    formalCertMetaCol: {
+        flex: 1
+    },
+    formalCertMetaLabel: {
+        fontSize: 10,
+        color: '#666',
+        fontFamily: 'Outfit-Bold',
+        textTransform: 'uppercase'
+    },
+    formalCertMetaValue: {
+        fontSize: 12,
+        color: '#000',
+        fontFamily: 'Outfit-Black',
+        marginTop: 2
+    },
+    formalCertInfoGrid: {
+        borderTopWidth: 1,
+        borderTopColor: '#EEE',
+        paddingTop: 15,
+        marginBottom: 25,
+        gap: 8
+    },
+    formalCertRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start'
+    },
+    formalCertLabel: {
+        width: wp('28%'),
+        fontSize: 11,
+        color: '#444',
+        fontFamily: 'Outfit-Bold'
+    },
+    formalCertSep: {
+        width: 15,
+        fontSize: 11,
+        color: '#444'
+    },
+    formalCertValue: {
+        flex: 1,
+        fontSize: 11,
+        color: '#000',
+        fontFamily: 'Outfit-Black'
+    },
+    formalCertFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#EEE',
+        paddingTop: 15
+    },
+    formalCertNoteBox: {
+        alignItems: 'flex-end',
+        gap: 8
+    },
+    formalCertPowered: {
+        fontSize: 10,
+        color: '#6366F1',
+        fontFamily: 'Outfit-Bold'
+    },
+    formalCertSignedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        borderWidth: 1,
+        borderColor: '#EEE',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4
+    },
+    formalCertSignedText: {
+        fontSize: 8,
+        color: '#666',
+        fontFamily: 'Outfit-Medium'
+    },
+    formalCertSignedDate: {
+        fontSize: 8,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
     }
 });
