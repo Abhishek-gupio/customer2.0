@@ -8,7 +8,7 @@ import {
   useReactTable,
   flexRender,
 } from '@tanstack/react-table';
-import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2, CheckSquare, Square, Trash2, X } from 'lucide-react';
+import { Search, Users, ChevronUp, ChevronDown, UserCircle, FileDown, Loader2, CheckSquare, Square, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerListItem } from '../api/client';
 import logoImg from '../assets/images/logo.png';
@@ -38,7 +38,6 @@ export default function Customers() {
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
   const { admin, hasRole } = useAuth();
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -66,7 +65,7 @@ export default function Customers() {
 
   const columns = useMemo<ColumnDef<CustomerListItem>[]>(
     () => [
-      ...(isSelectionMode
+      ...(isSuperAdmin
         ? [
           {
             id: 'select',
@@ -255,7 +254,7 @@ export default function Customers() {
         },
       },
     ],
-    [isSelectionMode, selectedIds, rows, admin, hasRole]
+    [selectedIds, rows, admin, hasRole]
   );
 
   const table = useReactTable({
@@ -279,7 +278,6 @@ export default function Customers() {
       if (res.success) {
         // Refresh data
         setPage(1);
-        setIsSelectionMode(false);
         setSelectedIds(new Set());
         setShowDeleteConfirm(false);
         setRefreshKey(prev => prev + 1);
@@ -304,47 +302,22 @@ export default function Customers() {
         <div className="flex items-center gap-2">
           {isSuperAdmin && (
             <div className="flex items-center gap-2 mr-2">
-              {isSelectionMode ? (
-                <>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"
-                    onClick={handleDelete}
-                    disabled={selectedIds.size === 0 || isDeleting}
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete ({selectedIds.size})
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="h-11 px-4 rounded-2xl bg-white/5 hover:bg-white/10"
-                    onClick={() => {
-                      setIsSelectionMode(false);
-                      setSelectedIds(new Set());
-                    }}
-                    disabled={isDeleting}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                </>
-              ) : (
+              {selectedIds.size > 0 && (
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="h-11 px-4 rounded-2xl bg-white/5 hover:bg-white/10"
-                  onClick={() => setIsSelectionMode(true)}
+                  className="h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
                 >
-                  <CheckSquare className="h-4 w-4 mr-2" />
-                  Select
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete ({selectedIds.size})
+                    </>
+                  )}
                 </Button>
               )}
             </div>
