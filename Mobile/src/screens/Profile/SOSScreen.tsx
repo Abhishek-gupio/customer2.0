@@ -12,18 +12,86 @@ import {
   Image,
   ActivityIndicator,
   Linking,
+  Platform,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { sosService, type EmergencyContact, type SOSType } from '../../services/sosService';
+import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../../services/sosService';
 import { googleMapsService } from '../../services/googleMapsService';
 import { getProfile } from '../../services/profileService';
 import { getAbsoluteUrl } from '../../config';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Removed Geolocation logic
+
+const SOS_TYPE_OPTIONS: SOSType[] = ['MEDICAL', 'POLICE', 'FIRE', 'ACCIDENT', 'MECHANICAL'];
+
+const INCIDENT_GUIDES: Record<SOSType, { title: string; steps: string[] }> = {
+  MEDICAL: {
+    title: 'Medical response',
+    steps: [
+      'Trigger SOS and keep the phone unlocked so responders can reach you.',
+      'Call an ambulance if the patient needs immediate transport.',
+      'Share your live location with a trusted contact and stay visible.',
+    ],
+  },
+  POLICE: {
+    title: 'Police support',
+    steps: [
+      'Trigger SOS first so your trusted contacts get your location immediately.',
+      'Move to a safer public area if you can do so without escalating risk.',
+      'Call police and keep note of landmarks or vehicle details around you.',
+    ],
+  },
+  FIRE: {
+    title: 'Fire response',
+    steps: [
+      'Get clear of smoke and heat before doing anything else.',
+      'Trigger SOS so your contacts know your exact position.',
+      'Call the fire service and warn anyone nearby if it is safe.',
+    ],
+  },
+  ACCIDENT: {
+    title: 'Accident support',
+    steps: [
+      'Trigger SOS and share your live location with family or support.',
+      'Call emergency services if anyone is injured or traffic is unsafe.',
+      'Stay visible, move to the shoulder if possible, and wait for help.',
+    ],
+  },
+  MECHANICAL: {
+    title: 'Breakdown help',
+    steps: [
+      'Trigger SOS if you are stranded in an unsafe area or at night.',
+      'Share your location with a trusted contact before you step out.',
+      'Use nearby help and map actions to find the fastest response option.',
+    ],
+  },
+  OTHER: {
+    title: 'Emergency support',
+    steps: [
+      'Trigger SOS to alert your trusted contacts immediately.',
+      'Share your live location so someone can track where you are.',
+      'Use the quickest call option that matches the situation.',
+    ],
+  },
+};
+
+function openLocationInMaps(latitude: number, longitude: number, label: string) {
+  const destination = `${latitude},${longitude}`;
+  const encodedLabel = encodeURIComponent(label);
+  const url = Platform.OS === 'ios'
+    ? `https://maps.apple.com/?ll=${destination}&q=${encodedLabel}`
+    : `geo:${destination}?q=${destination}(${encodedLabel})`;
+
+  Linking.openURL(url).catch(() => {
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${destination}`).catch(() => {});
+  });
+}
 
 const SOSScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -36,40 +104,22 @@ const SOSScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [triggering, setTriggering] = useState<boolean>(false);
   const [sosType, setSosType] = useState<SOSType>('OTHER');
-  const [nearbyHelp, setNearbyHelp] = useState<any[]>([]);
+  const [nearbyHelp, setNearbyHelp] = useState<NearbyHelpItem[]>([]);
   const [searchingHelp, setSearchingHelp] = useState<boolean>(false);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string>('');
 
   // Animation Refs
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Map Ref
   const mapRef = useRef<MapView>(null);
   const locationInterval = useRef<NodeJS.Timeout | null>(null);
+  const primaryContact = contacts[0] || null;
+  const incidentGuide = INCIDENT_GUIDES[sosType] || INCIDENT_GUIDES.OTHER;
 
   // Initialize
-  useEffect(() => {
-    fetchInitialData();
-    startPulse();
-    startLocationTracking();
-    
-    return () => {
-      if (locationInterval.current) {
-        clearInterval(locationInterval.current);
-      }
-    };
-  }, []);
-
-  // Fetch Nearby help whenever type or first location is set
-  useEffect(() => {
-    if (location) {
-      fetchNearbyHelp();
-    }
-  }, [sosType, location?.latitude]);
-
-  const fetchInitialData = async () => {
+  const fetchInitialData = React.useCallback(async () => {
     try {
       const [contactList, activeSOS, profileData] = await Promise.all([
         sosService.getContacts(),
@@ -99,9 +149,9 @@ const SOSScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigation]);
 
-  const fetchNearbyHelp = async () => {
+  const fetchNearbyHelp = React.useCallback(async () => {
     if (!location || searchingHelp) return;
     setSearchingHelp(true);
     try {
@@ -111,7 +161,7 @@ const SOSScreen = () => {
       
       // Animate map to show bounds if needed
       if (mapRef.current && results.length > 0 && location) {
-        const coords = results.filter((r: any) => r.location).map((r: any) => ({
+        const coords = results.filter((r) => r.location).map((r) => ({
             latitude: r.location.lat,
             longitude: r.location.lng,
         }));
@@ -127,9 +177,9 @@ const SOSScreen = () => {
     } finally {
       setSearchingHelp(false);
     }
-  };
+  }, [location, searchingHelp, sosType]);
 
-  const fetchAccurateLocation = async () => {
+  const fetchAccurateLocation = React.useCallback(async () => {
     try {
       const coords = await googleMapsService.getCurrentLocation();
       setLocation(coords);
@@ -148,25 +198,44 @@ const SOSScreen = () => {
     } catch (error) {
       console.log('Location Error:', error);
     }
-  };
+  }, []);
 
-  const startLocationTracking = () => {
+  const startLocationTracking = React.useCallback(() => {
     fetchAccurateLocation();
     
     // Auto update every 30 seconds
     locationInterval.current = setInterval(() => {
       fetchAccurateLocation();
     }, 30000);
-  };
+  }, [fetchAccurateLocation]);
 
-  const startPulse = () => {
+  const startPulse = React.useCallback(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.2, duration: 1500, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
       ])
     ).start();
-  };
+  }, [pulseAnim]);
+
+  useEffect(() => {
+    fetchInitialData();
+    startPulse();
+    startLocationTracking();
+    
+    return () => {
+      if (locationInterval.current) {
+        clearInterval(locationInterval.current);
+      }
+    };
+  }, [fetchInitialData, startLocationTracking, startPulse]);
+
+  // Fetch Nearby help whenever type or first location is set
+  useEffect(() => {
+    if (location) {
+      fetchNearbyHelp();
+    }
+  }, [fetchNearbyHelp, location]);
 
   const handleTriggerSOS = async () => {
     console.log('[SOSScreen] SOS Trigger Pressed');
@@ -223,6 +292,46 @@ const SOSScreen = () => {
     Linking.openURL('tel:101');
   };
 
+  const handleCallPrimaryContact = () => {
+    if (!primaryContact?.phoneNumber) {
+      Alert.alert('No Contact Ready', 'Add an emergency contact in your profile to use this shortcut.');
+      return;
+    }
+    Linking.openURL(`tel:${primaryContact.phoneNumber}`);
+  };
+
+  const handleShareLocation = async () => {
+    if (!location) {
+      Alert.alert('Location Pending', 'Please wait until your live location is available.');
+      return;
+    }
+
+    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`;
+    try {
+      await Share.share({
+        message: `${message}\n\nEmergency type: ${sosType}\nLocation: ${address}\n${mapUrl}`,
+      });
+    } catch {
+      // Ignore user cancel
+    }
+  };
+
+  const handleOpenCurrentLocation = () => {
+    if (!location) {
+      Alert.alert('Location Pending', 'We are still fetching your current location.');
+      return;
+    }
+    openLocationInMaps(location.latitude, location.longitude, address || 'My Location');
+  };
+
+  const handleOpenNearbyResource = (item: NearbyHelpItem) => {
+    if (!item?.location) {
+      Alert.alert(item?.name || 'Nearby resource', item?.address || 'Location details are not available yet.');
+      return;
+    }
+    openLocationInMaps(item.location.lat, item.location.lng, item.name || 'Nearby Help');
+  };
+
   // Map UI logic removed since using react-native-maps directly
 
   return (
@@ -235,7 +344,9 @@ const SOSScreen = () => {
           </TouchableOpacity>
           <View style={styles.headerTitleGroup}>
             <Text style={styles.title}>EMERGENCY SOS</Text>
-            <Text style={styles.subTitle}>Ready to assist 24/7</Text>
+            <Text style={styles.subTitle}>
+              {profileName ? `${profileName.split(' ')[0]}, support is ready 24/7` : 'Ready to assist 24/7'}
+            </Text>
           </View>
         </View>
         {/* Profile Photo */}
@@ -292,9 +403,9 @@ const SOSScreen = () => {
                ))}
              </MapView>
           ) : (
-             <View style={{flex:1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111'}}>
+             <View style={styles.locationPendingWrap}>
                  <ActivityIndicator size="small" color="#FFD700" />
-                 <Text style={{color: '#fff', marginTop: 10}}>Getting accurate location...</Text>
+                 <Text style={styles.locationPendingText}>Getting accurate location...</Text>
              </View>
           )}
           <View style={styles.heroBadge}>
@@ -318,7 +429,7 @@ const SOSScreen = () => {
 
           {/* Dynamic SOS Trigger */}
           <View style={styles.sosRing}>
-            <Animated.View style={[styles.pulseRing, { transform: [{ scale: pulseAnim }], opacity: 0.3 }]} />
+            <Animated.View style={[styles.pulseRing, styles.pulseRingVisible, { transform: [{ scale: pulseAnim }] }]} />
             <View style={styles.sosOuter}>
                <TouchableOpacity
                 style={[styles.sosButton, triggering && styles.sosButtonDisabled]}
@@ -333,24 +444,72 @@ const SOSScreen = () => {
           <Text style={styles.hint}>{triggering ? 'Contacting Emergency Services' : 'Tap to trigger emergency support'}</Text>
         </View>
 
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Incident Mode</Text>
+            <Text style={styles.sectionMeta}>{incidentGuide.title}</Text>
+          </View>
+
+          <View style={styles.readinessRow}>
+            <View style={styles.readinessChip}>
+              <Text style={styles.readinessValue}>{contacts.length}</Text>
+              <Text style={styles.readinessLabel}>contacts ready</Text>
+            </View>
+            <View style={styles.readinessChip}>
+              <Text style={styles.readinessValue}>{nearbyHelp.length}</Text>
+              <Text style={styles.readinessLabel}>nearby options</Text>
+            </View>
+            <View style={styles.readinessChip}>
+              <Text style={styles.readinessValue}>{location ? 'Live' : '...'}</Text>
+              <Text style={styles.readinessLabel}>location lock</Text>
+            </View>
+          </View>
+
+          <View style={styles.incidentActionRow}>
+            <TouchableOpacity style={styles.incidentActionBtn} onPress={handleShareLocation}>
+              <Ionicons name="share-social" size={18} color="#FFD700" />
+              <Text style={styles.incidentActionText}>Share location</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.incidentActionBtn} onPress={handleOpenCurrentLocation}>
+              <Ionicons name="map" size={18} color="#FFD700" />
+              <Text style={styles.incidentActionText}>Open map</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.incidentActionBtn} onPress={handleCallPrimaryContact}>
+              <Ionicons name="call" size={18} color="#FFD700" />
+              <Text style={styles.incidentActionText}>Call contact</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.guideList}>
+            {incidentGuide.steps.map((step, index) => (
+              <View key={`${sosType}-${index}`} style={styles.guideItem}>
+                <View style={styles.guideIndex}>
+                  <Text style={styles.guideIndexText}>{index + 1}</Text>
+                </View>
+                <Text style={styles.guideText}>{step}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
         {/* Quick Actions */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Quick Call Actions</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <View style={styles.quickActionRow}>
             <TouchableOpacity style={styles.quickActionButton} onPress={handleCallPolice}>
-              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+              <View style={[styles.quickActionIcon, styles.quickActionIconPolice]}>
                 <Ionicons name="shield" size={24} color="#3b82f6" />
               </View>
               <Text style={styles.quickActionText}>Police</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.quickActionButton} onPress={handleCallAmbulance}>
-              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
+              <View style={[styles.quickActionIcon, styles.quickActionIconAmbulance]}>
                 <Ionicons name="medkit" size={24} color="#ef4444" />
               </View>
               <Text style={styles.quickActionText}>Ambulance</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.quickActionButton} onPress={handleCallFire}>
-              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(249, 115, 22, 0.2)' }]}>
+              <View style={[styles.quickActionIcon, styles.quickActionIconFire]}>
                 <Ionicons name="flame" size={24} color="#f97316" />
               </View>
               <Text style={styles.quickActionText}>Fire</Text>
@@ -375,7 +534,7 @@ const SOSScreen = () => {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Select Assistance Type</Text>
           <View style={styles.typeGrid}>
-            {(['MEDICAL', 'POLICE', 'FIRE', 'ACCIDENT', 'MECHANICAL'] as SOSType[]).map((type) => (
+            {SOS_TYPE_OPTIONS.map((type) => (
               <TouchableOpacity
                 key={type}
                 style={[styles.typeButton, sosType === type && styles.typeButtonActive]}
@@ -395,7 +554,7 @@ const SOSScreen = () => {
         {/* Nearby Resources Section */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Nearby Resources (OSM)</Text>
+            <Text style={styles.sectionTitle}>Nearby Response Resources</Text>
             {searchingHelp && <ActivityIndicator size="small" color="#FFD700" />}
           </View>
 
@@ -407,15 +566,16 @@ const SOSScreen = () => {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.nearbyScroll}>
               {nearbyHelp.map((item) => (
                 <TouchableOpacity 
-                   key={item.id} 
+                   key={item.placeId || `${item.name || 'resource'}-${item.address || 'unknown-address'}`} 
                    style={styles.nearbyItem}
-                   onPress={() => Alert.alert(item.name, `${item.type.toUpperCase()}\nLocation pinned on map.`)}
+                   onPress={() => handleOpenNearbyResource(item)}
                 >
                   <View style={[styles.nearbyIcon, { backgroundColor: getNearbyColor(item.type) }]}>
                     <Ionicons name={getNearbyIcon(item.type)} size={20} color="#fff" />
                   </View>
                   <Text style={styles.nearbyName} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.nearbyType}>{item.type.toUpperCase()}</Text>
+                  <Text style={styles.nearbyType}>{(item.type || 'help').toUpperCase()}</Text>
+                  <Text style={styles.nearbyMeta}>Open route</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -426,7 +586,7 @@ const SOSScreen = () => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Emergency Contacts</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('HelpSupport')}>
+            <TouchableOpacity onPress={() => navigation.navigate('MyProfile')}>
               <Text style={styles.sectionMeta}>MANAGE</Text>
             </TouchableOpacity>
           </View>
@@ -443,17 +603,22 @@ const SOSScreen = () => {
                   <Text style={styles.contactName}>{contact.name}</Text>
                   <Text style={styles.contactMeta}>{contact.phoneNumber}</Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={styles.contactActionRow}>
                    <Ionicons 
                     name="call" 
                     size={18} 
                     color="rgba(255, 255, 255, 0.4)" 
-                    onPress={() => Alert.alert('Call', `Calling ${contact.phoneNumber}...`)} 
+                    onPress={() => Linking.openURL(`tel:${contact.phoneNumber}`)} 
                   />
                   <Ionicons 
                     name="mail" 
                     size={18} 
                     color={contact.email ? "#FFD700" : "rgba(255, 255, 255, 0.2)"} 
+                    onPress={() => {
+                      if (contact.email) {
+                        Linking.openURL(`mailto:${contact.email}?subject=Emergency Update`);
+                      }
+                    }}
                   />
                 </View>
               </View>
@@ -476,7 +641,7 @@ const getIconForType = (type: SOSType) => {
   }
 };
 
-const getNearbyColor = (type: string) => {
+const getNearbyColor = (type?: string) => {
   switch (type) {
     case 'hospital': return '#ef4444';
     case 'police': return '#3b82f6';
@@ -485,7 +650,7 @@ const getNearbyColor = (type: string) => {
   }
 };
 
-const getNearbyIcon = (type: string) => {
+const getNearbyIcon = (type?: string) => {
   switch (type) {
     case 'hospital': return 'medkit';
     case 'police': return 'shield';
@@ -594,6 +759,16 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  locationPendingWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#111',
+  },
+  locationPendingText: {
+    color: '#fff',
+    marginTop: 10,
+  },
   heroCard: {
     backgroundColor: "rgba(255, 255, 255, 0.04)",
     marginHorizontal: wp(5),
@@ -659,6 +834,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFD700',
   },
+  pulseRingVisible: {
+    opacity: 0.3,
+  },
   sosOuter: {
     width: 150,
     height: 150,
@@ -723,6 +901,91 @@ const styles = StyleSheet.create({
     color: "#FFD700",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
+  },
+  quickActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  readinessRow: {
+    flexDirection: 'row',
+    gap: wp(2.2),
+  },
+  readinessChip: {
+    flex: 1,
+    backgroundColor: '#111',
+    borderRadius: wp(4),
+    paddingVertical: hp(1.4),
+    paddingHorizontal: wp(2.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  readinessValue: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.4),
+    textAlign: 'center',
+  },
+  readinessLabel: {
+    color: 'rgba(255,255,255,0.45)',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(2.7),
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginTop: hp(0.5),
+    letterSpacing: 0.5,
+  },
+  incidentActionRow: {
+    flexDirection: 'row',
+    gap: wp(2),
+    marginTop: hp(2),
+  },
+  incidentActionBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(255,215,0,0.06)',
+    borderRadius: wp(4),
+    paddingVertical: hp(1.4),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,215,0,0.15)',
+    gap: hp(0.6),
+  },
+  incidentActionText: {
+    color: '#FFD700',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(2.8),
+    textAlign: 'center',
+  },
+  guideList: {
+    marginTop: hp(2.2),
+    gap: hp(1.2),
+  },
+  guideItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  guideIndex: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,215,0,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(3),
+    marginTop: 1,
+  },
+  guideIndexText: {
+    color: '#FFD700',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(2.9),
+  },
+  guideText: {
+    flex: 1,
+    color: 'rgba(255,255,255,0.78)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.2),
+    lineHeight: hp(2.1),
   },
   input: {
     backgroundColor: "#111",
@@ -794,6 +1057,12 @@ const styles = StyleSheet.create({
     fontSize: wp(2.6),
     marginTop: 2,
   },
+  nearbyMeta: {
+    color: '#FFD700',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(2.6),
+    marginTop: hp(0.7),
+  },
   contactItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -821,6 +1090,10 @@ const styles = StyleSheet.create({
   contactInfo: {
     flex: 1,
   },
+  contactActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   contactName: {
     color: "#fff",
     fontFamily: 'Outfit-Bold',
@@ -847,6 +1120,15 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  quickActionIconPolice: {
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+  },
+  quickActionIconAmbulance: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  quickActionIconFire: {
+    backgroundColor: 'rgba(249, 115, 22, 0.2)',
   },
   quickActionText: {
     color: '#fff',
