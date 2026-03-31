@@ -22,7 +22,7 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash
+    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash, ChevronRight
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
@@ -54,7 +54,7 @@ type DetailsScreenProps = {
 };
 
 type MainTab = 'Alerts' | 'Details';
-type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'More';
+type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Documents';
 
 export const DetailsScreen = ({
     vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, initialTab
@@ -182,17 +182,10 @@ export const DetailsScreen = ({
     // by AddVehicleScreen → onDone → GupioGarageApp state.
     const rto = activeVehicle.rtoDetails || activeVehicle;
 
-    // Hero image source
-    const fallbackHeroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
-    const heroImageSource = !heroError && activeVehicle.imageUrl ? { uri: activeVehicle.imageUrl } : fallbackHeroSrc;
-    // Hero image source: use activeVehicle.imageUrl if available, fallback to local assets
+    // Hero image source: use absolute URL if available, else fallback to local assets
     const heroUri = activeVehicle.imageUrl ? getAbsoluteUrl(activeVehicle.imageUrl) : null;
-    const heroSrc = heroUri 
-        ? { uri: heroUri } 
-        : (activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage);
-
-    // If hero error occurred, fallback to local
-    const displayHeroSrc = heroError ? (activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) : heroSrc;
+    const fallbackSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    const heroImageSource = (!heroError && heroUri) ? { uri: heroUri } : fallbackSrc;
 
     const handleFeedbackSubmit = () => {
         if (!rating) return;
@@ -594,21 +587,19 @@ export const DetailsScreen = ({
                 <View style={styles.sectionPad}>
                     {mainTab === 'Alerts' ? (
                         <>
-                            {/* ── Status Grid (Challans & PUCC) ── */}
-                            <View style={styles.statusGrid}>
+                            {/* ── Status List (Challans & Health) ── */}
+                            <View style={styles.statusVerticalStack}>
                                 <StatusCard
                                     icon={FileText}
-                                    label="challans"
-                                    value="CHECK NOW"
-                                    style={activeVehicle.isPrimary ? styles.statusCardHalf : styles.statusCardFull}
+                                    label="TRAFFIC CHALLANS"
+                                    value="Check your pending fines"
                                     onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
                                 {activeVehicle.isPrimary && (
                                     <StatusCard
                                         icon={ShieldCheck}
-                                        label="vehicle health"
-                                        value="STATUS"
-                                        style={styles.statusCardHalf}
+                                        label="VEHICLE HEALTH"
+                                        value="Detailed health report"
                                         onPress={() => navigation.navigate('WarrantyStatus')}
                                     />
                                 )}
@@ -639,7 +630,7 @@ export const DetailsScreen = ({
                         <View>
                             <View style={{ alignItems: 'center' }}>
                                 <View style={styles.subTabNav}>
-                                     {(['Health', 'Owner', 'Vehicle', 'More'] as SubTab[]).map(st => (
+                                    {(['Health', 'Owner', 'Vehicle', 'Documents'] as SubTab[]).map(st => (
                                         <TouchableOpacity
                                             key={st}
                                             onPress={() => setSubTab(st)}
@@ -838,17 +829,10 @@ export const DetailsScreen = ({
                                         <InfoCard icon={Droplets} label="Fuel Type" value={rto?.fuelType || activeVehicle.fuelType || 'Petrol'} />
                                         <InfoCard icon={Droplets} label="Color" value={rto?.color ?? activeVehicle.color ?? 'N/A'} />
                                         <InfoCard icon={Weight} label="Unladen Weight" value={rto?.unloadedWeight ?? activeVehicle.unloadedWeight ?? 'N/A'} />
-                                    </>
-                                )}
-                                {subTab === 'More' && (
-                                    <>
-                                        <InfoCard icon={Tag} label="Registration Number" value={rto?.registrationNumber || activeVehicle.registrationNumber || 'N/A'} />
+                                        
+                                        {/* Merged 'More' details */}
                                         <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
                                         <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
-                                        {(rto?.pollutionUpto || activeVehicle.pollutionUpto) && (
-                                            <InfoCard icon={ShieldCheck} label="PUC Upto" value={rto?.pollutionUpto || activeVehicle.pollutionUpto} />
-                                        )}
                                         {(rto?.fuelNorms || activeVehicle.fuelNorms) && (
                                             <InfoCard icon={Info} label="Fuel Norms" value={rto?.fuelNorms || activeVehicle.fuelNorms} />
                                         )}
@@ -866,6 +850,85 @@ export const DetailsScreen = ({
                                         )}
                                         <InfoCard icon={Calendar} label="Manufacturing Date" value={rto?.manufacturingMonthYear || activeVehicle.manufacturingMonthYear || 'N/A'} />
                                     </>
+                                )}
+                                {subTab === 'Documents' && (
+                                    <View style={styles.documentsTab}>
+                                        {/* RC Mini Certificate (Production Style) */}
+                                        <View style={styles.certificate}>
+                                            <View style={styles.certHeader}>
+                                                <View style={styles.certHeaderTitleCol}>
+                                                    <Text style={styles.certTitleLine1}>UNION OF INDIA</Text>
+                                                    <Text style={styles.certTitleLine2}>REGISTRATION CERTIFICATE (RC)</Text>
+                                                </View>
+                                                <TouchableOpacity onPress={() => handleShareDoc(getDocByType('reg certificate'))} style={styles.certShareBtn}>
+                                                    <Share2 size={16} color={COLORS.primary} />
+                                                </TouchableOpacity>
+                                            </View>
+                                            
+                                            <View style={styles.certPlateRow}>
+                                                <Text style={styles.certPlateText}>{activeVehicle.registrationNumber}</Text>
+                                                <View style={styles.certStatusBadge}>
+                                                   <Text style={styles.certStatusText}>{rto?.rcStatus || 'ACTIVE'}</Text>
+                                                </View>
+                                            </View>
+
+                                            <View style={styles.certInfoGrid}>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>OWNER</Text>
+                                                    <Text style={styles.certValue}>{rto?.ownerName || 'PENDING'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>CLASS</Text>
+                                                    <Text style={styles.certValue}>{rto?.vehicleClass || activeVehicle.vehicleType || 'N/A'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>VALID UNTIL</Text>
+                                                    <Text style={styles.certValue}>{rto?.fitnessUpto || 'N/A'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>ISSUING AUTHORITY</Text>
+                                                    <Text style={styles.certValue}>{rto?.rto || 'LOCAL RTO'}</Text>
+                                                </View>
+                                            </View>
+
+                                            <TouchableOpacity 
+                                                style={styles.certViewDetailsBtn}
+                                                onPress={() => {
+                                                    const doc = getDocByType('reg certificate');
+                                                    if (doc) {
+                                                        setViewingDoc(doc);
+                                                        setShowViewerModal(true);
+                                                    } else {
+                                                        navigation.navigate('DocumentList');
+                                                    }
+                                                }}
+                                            >
+                                                <FileText size={14} color="#FFF" />
+                                                <Text style={styles.certViewDetailsText}>VIEW ORIGINAL DOCUMENT</Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        {/* Other Docs List */}
+                                        <View style={styles.otherDocsList}>
+                                            <Text style={styles.subSectionTitle}>OTHER DOCUMENTS</Text>
+                                            <TouchableOpacity style={styles.otherDocRow} onPress={() => navigation.navigate('DocumentList')}>
+                                                <ShieldCheck size={20} color="#8E8E93" />
+                                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                                    <Text style={styles.otherDocLabel}>Insurance Policy</Text>
+                                                    <Text style={styles.otherDocValue}>{rto?.insuranceUpto || 'Not Available'}</Text>
+                                                </View>
+                                                <ChevronRight size={18} color="#444" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.otherDocRow} onPress={() => navigation.navigate('DocumentList')}>
+                                                <Droplets size={20} color="#8E8E93" />
+                                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                                    <Text style={styles.otherDocLabel}>PUC Certificate</Text>
+                                                    <Text style={styles.otherDocValue}>{rto?.pollutionUpto || 'Not Available'}</Text>
+                                                </View>
+                                                <ChevronRight size={18} color="#444" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
                                 )}
                             </View>
                         </View>
@@ -979,8 +1042,8 @@ const styles = StyleSheet.create({
     tabPillText: { fontSize: hp('1.5%'), fontFamily: 'Outfit-Black', color: '#888' },
 
     // Hero Section
-    heroSection: { alignItems: 'center', paddingBottom: hp('2%') },
-    heroImageFrame: { width: wp('90%'), height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroSection: { alignItems: 'center', paddingBottom: hp('2%'), paddingHorizontal: wp('6%') },
+    heroImageFrame: { width: '100%', height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
     heroImage: { width: '100%', height: '100%' },
     brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase', marginTop: hp('1%') },
     modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
@@ -1045,20 +1108,10 @@ const styles = StyleSheet.create({
     sectionPad: { paddingHorizontal: wp('6%'), paddingTop: hp('2.5%') },
     sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: hp('2%') },
 
-    // Status Boxes
-    statusGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        gap: wp('3%')
-    },
-    statusCardHalf: {
-        width: width < 380 ? '100%' : '48.5%',
-        minHeight: hp('12%')
-    },
-    statusCardFull: {
-        width: '100%',
-        minHeight: hp('12%')
+    // Status List Stack
+    statusVerticalStack: {
+        flexDirection: 'column',
+        gap: hp('1.5%')
     },
     statusBox: {
         flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: 24,
@@ -1270,5 +1323,142 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999
+    },
+
+    // Documents Tab Styles
+    documentsTab: {
+        gap: hp('2%')
+    },
+    certificate: {
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5
+    },
+    certHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+        paddingBottom: 12
+    },
+    certHeaderTitleCol: {
+        flex: 1
+    },
+    certTitleLine1: {
+        fontSize: 10,
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 2
+    },
+    certTitleLine2: {
+        fontSize: 14,
+        color: '#000',
+        fontFamily: 'Outfit-Black',
+        marginTop: 2
+    },
+    certShareBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    certPlateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F8F8F8',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16
+    },
+    certPlateText: {
+        fontSize: 18,
+        color: '#000',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 1
+    },
+    certStatusBadge: {
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4
+    },
+    certStatusText: {
+        fontSize: 10,
+        color: '#2E7D32',
+        fontFamily: 'Outfit-Bold'
+    },
+    certInfoGrid: {
+        gap: 8,
+        marginBottom: 20
+    },
+    certRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    certLabel: {
+        fontSize: 10,
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Bold'
+    },
+    certValue: {
+        fontSize: 12,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
+    },
+    certViewDetailsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000',
+        paddingVertical: 12,
+        borderRadius: 8,
+        gap: 8
+    },
+    certViewDetailsText: {
+        color: '#FFF',
+        fontSize: 10,
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 1
+    },
+    otherDocsList: {
+        marginTop: hp('2%'),
+        gap: 12
+    },
+    subSectionTitle: {
+        fontSize: 12,
+        fontFamily: 'Outfit-Bold',
+        color: '#8E8E93',
+        letterSpacing: 1,
+        marginBottom: 4
+    },
+    otherDocRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.surface,
+        padding: 16,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border
+    },
+    otherDocLabel: {
+        color: '#FFF',
+        fontSize: 14,
+        fontFamily: 'Outfit-Bold'
+    },
+    otherDocValue: {
+        color: '#8E8E93',
+        fontSize: 11,
+        fontFamily: 'Outfit-Medium',
+        marginTop: 2
     }
 });
