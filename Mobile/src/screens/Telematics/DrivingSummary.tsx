@@ -286,8 +286,9 @@ export default function DrivingSummary({ navigation }: any) {
                 {/* HERO BANNER */}
                 <View style={styles.heroBanner}>
                     <FastImage
-                      source={{ uri: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=1200' }}
+                      source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
                       style={styles.heroImage}
+                      resizeMode={FastImage.resizeMode.cover}
                     />
                     <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} style={styles.heroOverlay}>
                        <Text style={styles.heroTitle}>Smart Insights</Text>
@@ -751,11 +752,17 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit-Black',
         fontSize: wp(6),
         color: '#fff',
+        textShadowColor: 'rgba(0,0,0,0.45)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 6,
     },
     heroSub: {
         fontFamily: 'Outfit-Medium',
         fontSize: wp(3.2),
-        color: 'rgba(255,255,255,0.6)',
+        color: 'rgba(255,255,255,0.86)',
+        textShadowColor: 'rgba(0,0,0,0.35)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
     },
     mainScoreSection: {
         paddingHorizontal: wp(5),

@@ -56,6 +56,14 @@ try {
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 const AUTO_SCROLL_INTERVAL_MS = 9000;
 const AUTO_SCROLL_RESUME_DELAY_MS = 15000;
+type HomeCarouselSlide =
+  | 'vehicle'
+  | 'expenses'
+  | 'services'
+  | 'social'
+  | 'drivingBehavior'
+  | 'tripPlanner'
+  | 'odometer';
 
 function sortCarNewsLatestFirst(list: any[]): any[] {
   return [...list].sort((a, b) => {
@@ -219,6 +227,22 @@ export default function Home() {
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const carouselSlides = useMemo<HomeCarouselSlide[]>(() => {
+    const slides: HomeCarouselSlide[] = [
+      'vehicle',
+      'expenses',
+      'services',
+      'social',
+      'drivingBehavior',
+      'tripPlanner',
+    ];
+
+    if (showOdometerSlide) {
+      slides.push('odometer');
+    }
+
+    return slides;
+  }, [showOdometerSlide]);
   const windowSize = Dimensions.get('window');
   const miniVideoCardWidth = wp(58);
   const miniVideoCardHeight = (miniVideoCardWidth * 9) / 16 + hp(4.8);
@@ -464,7 +488,7 @@ export default function Home() {
   // which caused IllegalStateException from conflicting Animated frame timestamps.
   const carouselIndexRef = useRef(0);
   useEffect(() => {
-    const totalSlides = showOdometerSlide ? 5 : 4;
+    const totalSlides = showOdometerSlide ? 7 : 6;
     const timer = setInterval(() => {
       if (autoScrollStoppedRef.current) return;
       const nextIndex = (carouselIndexRef.current + 1) % totalSlides;
@@ -487,6 +511,16 @@ export default function Home() {
       }
     };
   }, [showOdometerSlide]); // ← dependency added to update interval when slides change
+
+  useEffect(() => {
+    if (carouselIndexRef.current < carouselSlides.length) {
+      return;
+    }
+
+    const nextIndex = Math.max(0, carouselSlides.length - 1);
+    carouselIndexRef.current = nextIndex;
+    setCarouselIndex(nextIndex);
+  }, [carouselSlides.length]);
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
@@ -793,6 +827,16 @@ export default function Home() {
     navigation.navigate('Services' as any, { screen });
   };
 
+  const navigateToGarageTab = useCallback(() => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Main', { screen: 'my_garage' });
+      return;
+    }
+
+    navigation.navigate('my_garage' as any);
+  }, [navigation]);
+
   const fetchDiscoveryContent = async () => {
     try {
       setDiscoveryLoading(true);
@@ -953,8 +997,8 @@ export default function Home() {
               carouselIndexRef.current = index;
               setCarouselIndex(index);
             }}
-            data={showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]}
-            keyExtractor={(item) => item.toString()}
+            data={carouselSlides}
+            keyExtractor={(item) => item}
             renderItem={({ item }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
               const fallbackHeroImage = (vehicle?.vehicleType === 'BIKE'
@@ -965,9 +1009,16 @@ export default function Home() {
                   ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
                   : fallbackHeroImage;
 
-              if (item === 0) {
+              if (item === 'vehicle') {
+                const isAddVehicleBanner = !vehicleLoading && !vehicle;
+
                 return (
-                  <View style={styles.slideFull}>
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={isAddVehicleBanner ? 0.92 : 1}
+                    disabled={!isAddVehicleBanner}
+                    onPress={navigateToGarageTab}
+                  >
                     <View style={styles.primaryImageWrap}>
                       <FastImage
                         source={heroImageSource as any}
@@ -1012,10 +1063,10 @@ export default function Home() {
                           </View>
                         </LinearGradient>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               }
-              if (item === 1) {
+              if (item === 'expenses') {
                 return (
                   <TouchableOpacity
                     style={styles.slideFull}
@@ -1043,7 +1094,7 @@ export default function Home() {
                   </TouchableOpacity>
                 );
               }
-              if (item === 2) {
+              if (item === 'services') {
                 return (
                   <TouchableOpacity
                     style={styles.slideFull}
@@ -1071,7 +1122,7 @@ export default function Home() {
                   </TouchableOpacity>
                 );
               }
-              if (item === 3) {
+              if (item === 'social') {
                 return (
                   <View style={styles.slideFull}>
                     <View style={styles.promoSlide}>
@@ -1104,6 +1155,74 @@ export default function Home() {
                       </View>
                     </View>
                   </View>
+                );
+              }
+              if (item === 'drivingBehavior') {
+                return (
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => navigateToRootScreen('DrivingSummary')}
+                  >
+                    <View style={styles.slideFull}>
+                      <FastImage
+                        source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
+                        style={styles.promoBackgroundImage}
+                        resizeMode={FastImage.resizeMode.cover}
+                      />
+                      <LinearGradient
+                        colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
+                        locations={[0, 0.5, 1]}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.promoBackgroundOverlay}
+                      >
+                        <View style={styles.promoBackgroundContent}>
+                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
+                          <Text style={styles.promoTitle}>Driving Behavior</Text>
+                          <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }
+              if (item === 'tripPlanner') {
+                return (
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => navigateToRootScreen('TripExpense')}
+                  >
+                    <View style={styles.slideFull}>
+                      <FastImage
+                        source={require('../../assets/images/trip_planner_banner.png') as any}
+                        style={styles.promoBackgroundImage}
+                        resizeMode={FastImage.resizeMode.cover}
+                      />
+                      <LinearGradient
+                        colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
+                        locations={[0, 0.5, 1]}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.promoBackgroundOverlay}
+                      >
+                        <View style={styles.promoBackgroundContent}>
+                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
+                          <Text style={styles.promoTitle}>Trip Planner</Text>
+                          <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#34D399" />
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
                 );
               }
               const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
@@ -1172,7 +1291,7 @@ export default function Home() {
 
           {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
-            {(showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]).map((i) => (
+            {carouselSlides.map((_, i) => (
               <View
                 key={i}
                 style={[
@@ -2038,6 +2157,54 @@ const styles = StyleSheet.create({
     width: wp(35),
     height: hp(18),
   },
+  promoBackgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    transform: [{ scale: 1.02 }],
+  },
+  promoBackgroundOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(4),
+  },
+  promoBackgroundContent: {
+    maxWidth: '55%',
+  },
+  featureVisualCard: {
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(8),
+    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    overflow: 'hidden',
+  },
+  featureVisualGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  featureVisualImage: {
+    width: '100%',
+    height: '100%',
+  },
+  drivingPromoSubtitle: {
+    color: '#60A5FA',
+  },
+  drivingPromoActionText: {
+    color: '#60A5FA',
+  },
+  drivingFeatureVisualCard: {
+    borderColor: 'rgba(96,165,250,0.26)',
+  },
+  tripPlannerPromoSubtitle: {
+    color: '#34D399',
+  },
+  tripPlannerPromoActionText: {
+    color: '#34D399',
+  },
+  tripPlannerFeatureVisualCard: {
+    borderColor: 'rgba(52,211,153,0.26)',
+  },
   promoSubtitle: {
     color: '#aaa',
     fontSize: wp(3.5),
@@ -2051,13 +2218,19 @@ const styles = StyleSheet.create({
     fontSize: wp(5.5),
     fontFamily: 'Outfit-Black',
     marginBottom: hp(1.5),
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   promoDesc: {
-    color: '#ccc',
+    color: 'rgba(255,255,255,0.88)',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Regular',
     lineHeight: hp(2),
     marginBottom: hp(2),
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   promoButtons: {
     flexDirection: 'row',
