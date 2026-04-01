@@ -40,6 +40,7 @@ import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type 
 import { getAbsoluteUrl } from '../../config';
 import { googleMapsService } from '../../services/googleMapsService';
 import BackButton from '../../components/BackButton';
+import { getQueuedActionSummary } from '../../services/offlineMutationQueue';
 import LoaderButton from '../../components/Button';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
@@ -124,6 +125,8 @@ export default function MyProfile() {
   };
 
   const dispatch = useDispatch();
+  const queuedSummary = getQueuedActionSummary();
+  const queuedTotal = queuedSummary.documentUploads + queuedSummary.expenseCreates;
 
   const handleLogout = () => {
     setConfirmModal({
@@ -967,6 +970,7 @@ export default function MyProfile() {
               <Text style={styles.profileName}>{profile.fullName?.toUpperCase() || 'USER'}</Text>
               <Text style={styles.memberSinceText}>Member since {profile.memberSince.split(' ').pop()}</Text>
             </View>
+
           </View>
         </View>
 
@@ -1040,6 +1044,15 @@ export default function MyProfile() {
               color="#FFBF00"
               bgColor="rgba(255, 191, 0, 0.1)"
               borderColor="#FFBF00"
+            />
+            <MenuRow
+              icon="sync-alt"
+              label="Sync Queue"
+              onPress={() => handleMenuPress('SyncQueue')}
+              color="#4ADE80"
+              bgColor="rgba(74, 222, 128, 0.1)"
+              borderColor="#4ADE80"
+              badgeCount={queuedTotal}
             />
             <MenuRow
               icon="sign-out-alt"
@@ -1288,7 +1301,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-
   /* ── Personal Info Card ── */
   infoCard: {
     backgroundColor: '#121212',
@@ -1519,6 +1531,21 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
     color: '#fff',
+  },
+  menuBadge: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFBF00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  menuBadgeText: {
+    color: '#000',
+    fontFamily: 'Outfit-Black',
+    fontSize: 11,
   },
 
   /* ── Modals & Previews ── */
@@ -1923,7 +1950,7 @@ const styles = StyleSheet.create({
 });
 
 /* ── Menu Row Sub-component with Animation ── */
-function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borderColor = "rgba(255,255,255,0.1)", isLast = false }: any) {
+function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borderColor = "rgba(255,255,255,0.1)", isLast = false, badgeCount = 0 }: any) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -1956,6 +1983,11 @@ function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borde
           <Icon name={icon} size={wp(4.2)} color={color} />
         </View>
         <Text style={[styles.menuLabel, label === 'Logout' && { color: '#F44336' }]}>{label}</Text>
+        {badgeCount > 0 ? (
+          <View style={styles.menuBadge}>
+            <Text style={styles.menuBadgeText}>{badgeCount}</Text>
+          </View>
+        ) : null}
         <Icon name="chevron-right" size={wp(3)} color="#333" />
       </Animated.View>
     </TouchableOpacity>

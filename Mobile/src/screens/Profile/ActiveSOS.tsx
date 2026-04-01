@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, ScrollView, Linking, Platform, Animated, Easing } from 'react-native'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Linking, Platform, Animated, Easing, Share } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -9,21 +9,98 @@ import { RootStackParamList } from '../../navigation/types';
 import { sosService, type EmergencyContact, type NearbyHelpItem } from '../../services/sosService';
 import LoaderButton from '../../components/Button';
 
+function getEmergencyNumber(type: string) {
+  switch (type) {
+    case 'MEDICAL':
+      return { number: '102', label: 'AMBULANCE' };
+    case 'FIRE':
+      return { number: '101', label: 'FIRE' };
+    case 'POLICE':
+      return { number: '100', label: 'POLICE' };
+    default:
+      return { number: '112', label: 'EMERGENCY' };
+  }
+}
+
+function getIncidentChecklist(type: string): string[] {
+  switch (type) {
+    case 'MEDICAL':
+      return [
+        'Keep the patient visible and easy to reach for responders.',
+        'Share your live location with a family member or nearby support.',
+        'Have any medical details ready when the ambulance calls back.',
+      ];
+    case 'FIRE':
+      return [
+        'Stay clear of smoke and moving traffic while you wait.',
+        'Keep your phone available for responder callbacks.',
+        'Use nearby help to guide anyone assisting you to the right spot.',
+      ];
+    case 'POLICE':
+      return [
+        'Stay in a well-lit public area if moving is safe.',
+        'Keep landmarks, vehicle details, or suspect info noted down.',
+        'Share your live location with a trusted contact now.',
+      ];
+    default:
+      return [
+        'Stay where responders can find you quickly and safely.',
+        'Keep sharing updates with your trusted contact if conditions change.',
+        'Use the map or nearby help cards if you need to guide support in.',
+      ];
+  }
+}
+
+function openLocationInMaps(lat: number, lon: number, label: string) {
+  const destination = `${lat},${lon}`;
+  const encodedLabel = encodeURIComponent(label);
+  const url = Platform.select({
+    ios: `https://maps.apple.com/?ll=${destination}&q=${encodedLabel}`,
+    android: `geo:${destination}?q=${destination}(${encodedLabel})`,
+    default: `https://www.google.com/maps/search/?api=1&query=${destination}`,
+  });
+
+  if (!url) return;
+  Linking.openURL(url).catch(() => {
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${destination}`).catch(() => {});
+  });
+}
+
 const ActiveSOS = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'ActiveSOS'>>();
   const { sosId, type, lat, lon } = route.params;
 
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
-   const [nearbyHelp, setNearbyHelp] = useState<NearbyHelpItem[]>([]);
-   const [loading, setLoading] = useState(false);
-   const [resolving, setResolving] = useState(false);
-   const [humanAddress, setHumanAddress] = useState<string | null>(null);
+  const [nearbyHelp, setNearbyHelp] = useState<NearbyHelpItem[]>([]);
+  const [resolving, setResolving] = useState(false);
+  const [humanAddress, setHumanAddress] = useState<string | null>(null);
 
   // Animations
   const glowAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(hp(5))).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  const loadData = React.useCallback(async () => {
+    try {
+      const [contactList, helpList, activeSOS] = await Promise.all([
+        sosService.getContacts(),
+        sosService.getNearbyHelp(lat, lon, type as any),
+        sosService.getActiveSOS(),
+      ]);
+      setContacts(contactList);
+      setNearbyHelp(helpList.slice(0, 3));
+      if (activeSOS?.address) {
+        setHumanAddress(activeSOS.address);
+      }
+    } catch {
+      Alert.alert(
+        "Connection Error",
+        "Unable to load nearby help or contacts. Please check your internet connection.",
+        [{ text: "Retry", onPress: loadData }, { text: "OK" }]
+      );
+    }
+  }, [lat, lon, type]);
 
   useEffect(() => {
     // Glow pulse animation
@@ -60,32 +137,7 @@ const ActiveSOS = () => {
     ]).start();
 
     loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [contactList, helpList, activeSOS] = await Promise.all([
-        sosService.getContacts(),
-        sosService.getNearbyHelp(lat, lon, type as any),
-        sosService.getActiveSOS(),
-      ]);
-      setContacts(contactList);
-      setNearbyHelp(helpList.slice(0, 3));
-      if (activeSOS?.address) {
-        setHumanAddress(activeSOS.address);
-      }
-    } catch (error: any) {
-      console.log('Error loading active SOS data:', error);
-      Alert.alert(
-        "Connection Error",
-        "Unable to load nearby help or contacts. Please check your internet connection.",
-        [{ text: "Retry", onPress: loadData }, { text: "OK" }]
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [glowAnim, slideAnim, opacityAnim, loadData]);
 
   const handleResolve = async () => {
     Alert.alert(
@@ -101,7 +153,7 @@ const ActiveSOS = () => {
             try {
               await sosService.resolveSOS(sosId);
               navigation.replace('SOS');
-            } catch (error: any) {
+            } catch {
               Alert.alert("Error", "Could not resolve SOS. Please try again.");
             } finally {
               setResolving(false);
@@ -113,6 +165,24 @@ const ActiveSOS = () => {
   };
 
   const makeCall = (number: string) => Linking.openURL(`tel:${number}`);
+  const primaryContact = contacts[0] || null;
+  const emergencyCall = getEmergencyNumber(type);
+  const checklist = getIncidentChecklist(type);
+
+  const shareLiveLocation = async () => {
+    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+    try {
+      await Share.share({
+        message: `Active SOS alert (${type}). Current location: ${humanAddress || `${lat.toFixed(4)}, ${lon.toFixed(4)}`}\n${mapUrl}`,
+      });
+    } catch {
+      // Ignore cancellation
+    }
+  };
+
+  const openCurrentLocation = () => {
+    openLocationInMaps(lat, lon, humanAddress || 'Active SOS location');
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -143,6 +213,53 @@ const ActiveSOS = () => {
         <View style={styles.content}>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Incident actions</Text>
+              <View style={styles.statusBadge}>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusText}>Live alert</Text>
+              </View>
+            </View>
+
+            <View style={styles.actionGrid}>
+              <TouchableOpacity style={styles.actionCard} onPress={shareLiveLocation}>
+                <Ionicons name="share-social" size={20} color="#FF4F00" />
+                <Text style={styles.actionCardText}>Share live location</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionCard} onPress={openCurrentLocation}>
+                <Ionicons name="map" size={20} color="#FF4F00" />
+                <Text style={styles.actionCardText}>Open in maps</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionCard}
+                onPress={() => {
+                  if (primaryContact?.phoneNumber) {
+                    makeCall(primaryContact.phoneNumber);
+                  } else {
+                    Alert.alert('No Contact Ready', 'No emergency contact is available to call right now.');
+                  }
+                }}
+              >
+                <Ionicons name="call" size={20} color="#FF4F00" />
+                <Text style={styles.actionCardText}>
+                  {primaryContact ? `Call ${primaryContact.name.split(' ')[0]}` : 'Call contact'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.checklistWrap}>
+              {checklist.map((item, index) => (
+                <View key={`${type}-${index}`} style={styles.checklistItem}>
+                  <View style={styles.checkBadge}>
+                    <Text style={styles.checkBadgeText}>{index + 1}</Text>
+                  </View>
+                  <Text style={styles.checklistText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Alerted Contacts</Text>
               <View style={styles.statusBadge}>
                 <View style={styles.statusDot} />
@@ -150,7 +267,7 @@ const ActiveSOS = () => {
               </View>
             </View>
             
-            {contacts.map((contact, index) => (
+            {contacts.map((contact) => (
               <View key={contact.id} style={styles.contactItem}>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactName}>{contact.name}</Text>
@@ -168,17 +285,13 @@ const ActiveSOS = () => {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Nearby Help</Text>
-            {nearbyHelp.map((item, index) => (
+            {nearbyHelp.map((item) => (
               <TouchableOpacity 
-                key={index} 
+                key={item.placeId || `${item.name || 'help'}-${item.address || 'unknown-address'}`}
                 style={styles.helpItem}
                 onPress={() => {
                   if (item.location) {
-                    const url = Platform.select({
-                      ios: `maps://?q=${item.name}&ll=${item.location.lat},${item.location.lng}`,
-                      android: `geo:${item.location.lat},${item.location.lng}?q=${item.location.lat},${item.location.lng}(${item.name})`,
-                    });
-                    if (url) Linking.openURL(url);
+                    openLocationInMaps(item.location.lat, item.location.lng, item.name || 'Nearby Help');
                   }
                 }}
               >
@@ -209,10 +322,10 @@ const ActiveSOS = () => {
 
           <TouchableOpacity 
             style={styles.policeButton} 
-            onPress={() => makeCall('100')}
+            onPress={() => makeCall(emergencyCall.number)}
           >
-            <Ionicons name="call" size={20} color="#fff" style={{marginRight: 8}} />
-            <Text style={styles.policeText}>CALL POLICE</Text>
+            <Ionicons name="call" size={20} color="#fff" style={styles.footerCallIcon} />
+            <Text style={styles.policeText}>CALL {emergencyCall.label}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -307,6 +420,59 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     color: '#fff',
   },
+  actionGrid: {
+    flexDirection: 'row',
+    gap: wp(2.5),
+  },
+  actionCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255,79,0,0.08)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,79,0,0.18)',
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  actionCardText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Outfit-Medium',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  checklistWrap: {
+    marginTop: hp(2.2),
+    gap: hp(1.2),
+  },
+  checklistItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  checkBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,79,0,0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 1,
+  },
+  checkBadgeText: {
+    color: '#FF4F00',
+    fontSize: 12,
+    fontFamily: 'Outfit-Bold',
+  },
+  checklistText: {
+    flex: 1,
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 13,
+    fontFamily: 'Outfit-Regular',
+    lineHeight: 19,
+  },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -394,6 +560,12 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: wp(6),
     marginTop: hp(2),
+  },
+  resolveIcon: {
+    marginRight: 10,
+  },
+  footerCallIcon: {
+    marginRight: 8,
   },
   resolveButton: {
     backgroundColor: '#22c55e',

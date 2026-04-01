@@ -21,6 +21,8 @@ import {
   type ImageSourcePropType,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,10 +41,13 @@ import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
+import { getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
 
 import { getLastOdometerUpdate } from '../../services/storage';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchDocuments } from '../../store/slices/documentsSlice';
 
 // GPS-based location
 let Geolocation: any = null;
@@ -56,6 +61,10 @@ try {
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 const AUTO_SCROLL_INTERVAL_MS = 9000;
 const AUTO_SCROLL_RESUME_DELAY_MS = 15000;
+const HOME_LOCATION_CACHE_KEY = 'cache:home:location';
+const HOME_FUEL_CACHE_PREFIX = 'cache:home:fuel:';
+const HOME_PRIMARY_VEHICLE_CACHE_KEY = 'cache:home:primaryVehicle';
+const HOME_CACHE_TTL_MS = 10 * 60 * 1000;
 type HomeCarouselSlide =
   | 'vehicle'
   | 'expenses'
@@ -72,6 +81,22 @@ function sortCarNewsLatestFirst(list: any[]): any[] {
     return tb - ta;
   });
 }
+
+type TimelineItem = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: string;
+  iconSet: 'fa' | 'mc' | 'ion';
+  accent: string;
+  badge: string;
+  cta: string;
+  stage: 'Now' | 'Next' | 'Later';
+  priority: 'urgent' | 'normal' | 'good';
+  priorityScore: number;
+  onPress: () => void;
+};
 
 
 
@@ -191,6 +216,8 @@ const healthStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  const documents = useAppSelector((state) => state.documents.documents);
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
@@ -200,9 +227,15 @@ export default function Home() {
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [fuelLoading, setFuelLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(() => getStaleCachedValue<Vehicle>(HOME_PRIMARY_VEHICLE_CACHE_KEY));
   const [vehicleLoading, setVehicleLoading] = useState(true);
   const [serviceDueText, setServiceDueText] = useState('Checking...');
+  const [serviceAlertCount, setServiceAlertCount] = useState(0);
+  const [serviceDueSoonCount, setServiceDueSoonCount] = useState(0);
+  const [monthlySpendTotal, setMonthlySpendTotal] = useState<number | null>(null);
+  const [monthlyExpenseCount, setMonthlyExpenseCount] = useState(0);
+  const [expenseAlertCount, setExpenseAlertCount] = useState(0);
+  const [expenseHeadline, setExpenseHeadline] = useState('Track monthly spend and smart alerts.');
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [trendingNews, setTrendingNews] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
@@ -220,8 +253,10 @@ export default function Home() {
   const lastMiniVideoOffset = useRef({ x: 0, y: 0 });
   const isVideoExpandedRef = useRef(false);
   const carouselRef = useRef<FlatList>(null);
+  const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timelineEntranceAnim = useRef(new Animated.Value(0)).current;
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
@@ -244,6 +279,7 @@ export default function Home() {
     return slides;
   }, [showOdometerSlide]);
   const windowSize = Dimensions.get('window');
+  const bannerWidth = windowSize.width;
   const miniVideoCardWidth = wp(58);
   const miniVideoCardHeight = (miniVideoCardWidth * 9) / 16 + hp(4.8);
   const expandedVideoCardWidth = wp(88);
@@ -431,7 +467,8 @@ export default function Home() {
   useEffect(() => {
     fetchDiscoveryContent();
     fetchUserLocationWithRetry(0);
-  }, []);
+    dispatch(fetchDocuments());
+  }, [dispatch]);
 
   // Fetch fuel prices when state changes
   useEffect(() => {
@@ -454,9 +491,10 @@ export default function Home() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchPrimaryVehicle();
+      fetchPrimaryVehicleRef.current?.();
       fetchDiscoveryContent();
-    }, [])
+      dispatch(fetchDocuments());
+    }, [dispatch])
   );
 
   useFocusEffect(
@@ -483,26 +521,42 @@ export default function Home() {
     }, [selectedVideo])
   );
 
-  // Auto-scroll carousel every 5 seconds
-  // Use a ref to avoid stale closure & re-creating the interval on every slide,
-  // which caused IllegalStateException from conflicting Animated frame timestamps.
   const carouselIndexRef = useRef(0);
+
+  const handleBannerMomentumEnd = useCallback((e: any) => {
+    const layoutWidth = e?.nativeEvent?.layoutMeasurement?.width || bannerWidth;
+    const offsetX = e?.nativeEvent?.contentOffset?.x || 0;
+    const rawIndex = Math.round(offsetX / layoutWidth);
+    const index = Math.max(0, Math.min(rawIndex, carouselSlides.length - 1));
+    carouselIndexRef.current = index;
+    setCarouselIndex(index);
+  }, [carouselSlides.length, bannerWidth]);
+
   useEffect(() => {
-    const totalSlides = showOdometerSlide ? 7 : 6;
+    const maxIndex = carouselSlides.length - 1;
+    if (carouselIndexRef.current <= maxIndex) return;
+    carouselIndexRef.current = 0;
+    setCarouselIndex(0);
+    carouselRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [carouselSlides.length]);
+
+  useEffect(() => {
+    const totalSlides = carouselSlides.length;
+    if (totalSlides <= 1) return;
     const timer = setInterval(() => {
       if (autoScrollStoppedRef.current) return;
       const nextIndex = (carouselIndexRef.current + 1) % totalSlides;
       carouselIndexRef.current = nextIndex;
-      setCarouselIndex(nextIndex);
       try {
-        carouselRef.current?.scrollToIndex({
-          index: nextIndex,
+        carouselRef.current?.scrollToOffset({
+          offset: nextIndex * bannerWidth,
           animated: true,
         });
       } catch (_) {
         // guard against layout-not-ready race
       }
     }, AUTO_SCROLL_INTERVAL_MS);
+
     return () => {
       clearInterval(timer);
       if (autoScrollResumeTimerRef.current) {
@@ -510,7 +564,7 @@ export default function Home() {
         autoScrollResumeTimerRef.current = null;
       }
     };
-  }, [showOdometerSlide]); // ← dependency added to update interval when slides change
+  }, [carouselSlides.length, bannerWidth, showOdometerSlide]);
 
   useEffect(() => {
     if (carouselIndexRef.current < carouselSlides.length) {
@@ -559,14 +613,86 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, []);
 
+  const fetchExpenseHighlights = async (vehicleId?: string) => {
+    try {
+      const [expenseResponse, insightsResponse] = await Promise.allSettled([
+        api.get<any>(vehicleId ? `/v1/expenses?vehicleId=${vehicleId}` : '/v1/expenses'),
+        api.get<any>('/v1/expenses/insights'),
+      ]);
+
+      const expensePayload =
+        expenseResponse.status === 'fulfilled'
+          ? (expenseResponse.value as any)?.data ?? expenseResponse.value
+          : null;
+      const expenseItems =
+        expensePayload?.expenses ??
+        expensePayload?.data?.expenses ??
+        expensePayload?.data ??
+        [];
+      const normalizedExpenses = Array.isArray(expenseItems) ? expenseItems : [];
+      const currentDate = new Date();
+      const currentMonthExpenses = normalizedExpenses.filter((item: any) => {
+        const expenseDate = new Date(item?.date);
+        return (
+          !Number.isNaN(expenseDate.getTime()) &&
+          expenseDate.getMonth() === currentDate.getMonth() &&
+          expenseDate.getFullYear() === currentDate.getFullYear()
+        );
+      });
+
+      const currentMonthTotal = currentMonthExpenses.reduce((sum: number, item: any) => {
+        const amount = typeof item?.amount === 'number' ? item.amount : Number(item?.amount || 0);
+        return Number.isFinite(amount) ? sum + amount : sum;
+      }, 0);
+
+      setMonthlySpendTotal(currentMonthTotal);
+      setMonthlyExpenseCount(currentMonthExpenses.length);
+
+      const insightsPayload =
+        insightsResponse.status === 'fulfilled'
+          ? (insightsResponse.value as any)?.data ?? insightsResponse.value
+          : null;
+      const smartTips = Array.isArray(insightsPayload?.smartTips)
+        ? insightsPayload.smartTips
+        : Array.isArray(insightsPayload?.weeklyDigest?.tips)
+          ? insightsPayload.weeklyDigest.tips
+          : [];
+      const flaggedTips = smartTips.filter((tip: string) =>
+        /(up|review|consider|over|high|cut|spend|fuel)/i.test(tip)
+      );
+
+      setExpenseAlertCount(flaggedTips.length);
+
+      if (smartTips[0]) {
+        setExpenseHeadline(String(smartTips[0]).replace(/[^\x20-\x7E\u20B9]/g, '').trim() || 'Smart spend insight available.');
+      } else if (currentMonthExpenses.length > 0) {
+        setExpenseHeadline(`${currentMonthExpenses.length} expense${currentMonthExpenses.length === 1 ? '' : 's'} recorded this month.`);
+      } else {
+        setExpenseHeadline('No expenses recorded this month yet.');
+      }
+    } catch (error) {
+      console.warn('Could not fetch expense highlights for home', error);
+      setMonthlySpendTotal(null);
+      setMonthlyExpenseCount(0);
+      setExpenseAlertCount(0);
+      setExpenseHeadline('Track monthly spend and smart alerts.');
+    }
+  };
+
   const fetchPrimaryVehicle = async () => {
     try {
       setVehicleLoading(true);
+      const cachedPrimary = getCachedValue<Vehicle>(HOME_PRIMARY_VEHICLE_CACHE_KEY);
+      if (cachedPrimary) {
+        setVehicle(cachedPrimary);
+      }
+
       const vehicles = await vehicleService.getVehicles();
       const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
 
       if (primary) {
         setVehicle(primary);
+        setCachedValue(HOME_PRIMARY_VEHICLE_CACHE_KEY, primary, HOME_CACHE_TTL_MS);
         // Show odometer reminder slider ONLY if not updated in the last 24 hours
         const lastUpdate = getLastOdometerUpdate(primary.id);
         const now = Date.now();
@@ -584,6 +710,10 @@ export default function Home() {
 
           if (Array.isArray(rawData)) {
             const overdue = rawData.find((p: any) => p.urgency === 'OVERDUE');
+            const overdueCount = rawData.filter((p: any) => p.urgency === 'OVERDUE').length;
+            const dueSoonCount = rawData.filter((p: any) => p.urgency === 'DUE_SOON' || p.urgency === 'UPCOMING').length;
+            setServiceAlertCount(overdueCount);
+            setServiceDueSoonCount(dueSoonCount);
             if (overdue) {
               setServiceDueText('Overdue!');
             } else {
@@ -598,35 +728,63 @@ export default function Home() {
           } else {
             console.warn('Unexpected upcoming service response format', rawData);
             setServiceDueText('Healthy');
+            setServiceAlertCount(0);
+            setServiceDueSoonCount(0);
           }
         } catch (err) {
           console.warn('Could not fetch upcoming service for home', err);
           setServiceDueText('Checking...');
+          setServiceAlertCount(0);
+          setServiceDueSoonCount(0);
         }
+
+        fetchExpenseHighlights(primary.id);
+      } else {
+        setVehicle(null);
+        setServiceDueText('Add vehicle');
+        setServiceAlertCount(0);
+        setServiceDueSoonCount(0);
+        setShowOdometerSlide(false);
+        fetchExpenseHighlights();
       }
     } catch (error) {
       console.error('Error fetching primary vehicle:', error);
+      const stalePrimary = getStaleCachedValue<Vehicle>(HOME_PRIMARY_VEHICLE_CACHE_KEY);
+      if (stalePrimary) {
+        setVehicle(stalePrimary);
+      }
     } finally {
       setVehicleLoading(false);
     }
   };
+  fetchPrimaryVehicleRef.current = fetchPrimaryVehicle;
 
   const fetchFuelPrices = async () => {
     try {
       setFuelLoading(true);
+      const cacheKey = `${HOME_FUEL_CACHE_PREFIX}${selectedState}`;
+      const cachedFuel = getCachedValue<{ petrol: number; diesel: number; cng?: number }>(cacheKey);
+      if (cachedFuel) {
+        setFuelPrices(cachedFuel);
+      }
       const res = await api.get<any>(`/v1/fuel/state?name=${selectedState}`);
       const data = (res as any).data || res;
       if (data && (data.PETROL || data.petrol)) {
-        setFuelPrices({
+        const nextFuel = {
           petrol: data.PETROL || data.petrol,
           diesel: data.DIESEL || data.diesel,
           cng: data.CNG || data.cng
-        });
+        };
+        setFuelPrices(nextFuel);
+        setCachedValue(cacheKey, nextFuel, HOME_CACHE_TTL_MS);
       } else {
         console.warn('No fuel data available for', selectedState);
       }
     } catch (error) {
       console.error('Error fetching fuel prices:', error);
+      const cacheKey = `${HOME_FUEL_CACHE_PREFIX}${selectedState}`;
+      const staleFuel = getStaleCachedValue<{ petrol: number; diesel: number; cng?: number }>(cacheKey);
+      if (staleFuel) setFuelPrices(staleFuel);
     } finally {
       setFuelLoading(false);
     }
@@ -659,6 +817,8 @@ export default function Home() {
 
   const reverseGeocode = async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
     try {
+      const cachedLocation = getCachedValue<{ display: string; state: string }>(HOME_LOCATION_CACHE_KEY);
+      if (cachedLocation) return cachedLocation;
       const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
       const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
       const res = await fetch(url, {
@@ -674,8 +834,12 @@ export default function Home() {
       const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
       const display = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || 'Unknown Location';
 
-      return { display, state: addr.state || '' };
+      const nextLocation = { display, state: addr.state || '' };
+      setCachedValue(HOME_LOCATION_CACHE_KEY, nextLocation, HOME_CACHE_TTL_MS);
+      return nextLocation;
     } catch {
+      const staleLocation = getStaleCachedValue<{ display: string; state: string }>(HOME_LOCATION_CACHE_KEY);
+      if (staleLocation) return staleLocation;
       return null;
     }
   };
@@ -969,6 +1133,223 @@ export default function Home() {
       console.error('Error opening URL:', error);
     }
   };
+
+  const openAiAssistant = (userMessage?: string) => {
+    if (userMessage) {
+      (navigation as any).navigate('AIAssistant', { userMessage });
+      return;
+    }
+    (navigation as any).navigate('AIAssistant');
+  };
+
+  const lastOdometerUpdate = vehicle?.id ? getLastOdometerUpdate(vehicle.id) : null;
+  const currentTimeMs = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const odometerAgeDays = lastOdometerUpdate ? Math.floor((currentTimeMs - lastOdometerUpdate) / dayMs) : null;
+  const odometerSummary = !lastOdometerUpdate
+    ? 'No reading saved yet. Keeping odometer updated improves health and expense accuracy.'
+    : odometerAgeDays === 0
+      ? 'Odometer was updated today. Keep logging consistently to sharpen insights.'
+      : `Last reading was ${odometerAgeDays} day${odometerAgeDays === 1 ? '' : 's'} ago.`;
+
+  const healthScore = vehicle?.healthScore?.overallScore ?? null;
+  const fuelSummary = fuelPrices
+    ? `Petrol ₹${fuelPrices.petrol} • Diesel ₹${fuelPrices.diesel}${fuelPrices.cng ? ` • CNG ₹${fuelPrices.cng}` : ''}`
+    : selectedState === 'Detecting...'
+      ? 'We are finding fuel prices for your current state.'
+      : `Fuel prices for ${selectedState} will appear here when available.`;
+  const requiredDocumentTypes = ['RC', 'Insurance', 'PUC', 'DL'];
+  const requiredDocumentLabels: Record<string, string> = {
+    RC: 'RC',
+    Insurance: 'insurance',
+    PUC: 'PUC',
+    DL: 'license',
+  };
+  const requiredDocuments = requiredDocumentTypes.map((type) => documents.find((doc) => doc.type === type));
+  const missingDocumentTypes = requiredDocumentTypes.filter((type) => !documents.find((doc) => doc.type === type));
+  const documentsNeedingReview = requiredDocuments.filter((doc) => doc && doc.status !== 'verified');
+  const documentBadge = missingDocumentTypes.length > 0
+    ? `${missingDocumentTypes.length} missing`
+    : documentsNeedingReview.length > 0
+      ? `${documentsNeedingReview.length} review`
+      : 'Ready';
+  const documentAccent = missingDocumentTypes.length > 0
+    ? '#f59e0b'
+    : documentsNeedingReview.length > 0
+      ? '#fb7185'
+      : '#22c55e';
+  const documentTitle = missingDocumentTypes.length > 0
+    ? 'Complete your glovebox'
+    : documentsNeedingReview.length > 0
+      ? 'Review document expiry'
+      : 'Documents look healthy';
+  const documentSummary = missingDocumentTypes.length > 0
+    ? `Add ${missingDocumentTypes
+      .slice(0, 2)
+      .map((type) => requiredDocumentLabels[type])
+      .join(' and ')} so you have the essentials for daily driving.`
+    : documentsNeedingReview.length > 0
+      ? 'One or more stored documents are expiring or expired. Review them before your next trip.'
+      : 'RC, insurance, PUC and license are already stored in your glovebox.';
+  const serviceBadge = serviceAlertCount > 0
+    ? `${serviceAlertCount} overdue`
+    : serviceDueSoonCount > 0
+      ? `${serviceDueSoonCount} due soon`
+      : vehicle ? 'Live' : 'Start here';
+  const serviceAccent = serviceAlertCount > 0
+    ? '#fb7185'
+    : serviceDueSoonCount > 0
+      ? '#f59e0b'
+      : '#4ade80';
+  const serviceTitle = vehicle
+    ? serviceAlertCount > 0
+      ? `${serviceAlertCount} service alert${serviceAlertCount === 1 ? '' : 's'}`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} parts need attention`
+        : `${healthScore ?? 100}% health score`
+    : 'Add your first vehicle';
+  const serviceSummary = vehicle
+    ? serviceAlertCount > 0
+      ? `${serviceAlertCount} part${serviceAlertCount === 1 ? '' : 's'} are overdue. Open health to review the most urgent replacements.`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} part${serviceDueSoonCount === 1 ? '' : 's'} are due soon. Your next checkpoint is ${serviceDueText}.`
+        : `Your next service checkpoint is ${serviceDueText}.`
+    : 'Connect your vehicle to unlock service, trip and document insights.';
+  const spendTitle = monthlySpendTotal !== null
+    ? `₹${Math.round(monthlySpendTotal).toLocaleString('en-IN')} this month`
+    : 'Track every rupee';
+  const spendBadge = expenseAlertCount > 0
+    ? `${expenseAlertCount} alert${expenseAlertCount === 1 ? '' : 's'}`
+    : monthlyExpenseCount > 0
+      ? 'Monthly spend'
+      : 'Cost view';
+  const spendAccent = expenseAlertCount > 0 ? '#f59e0b' : '#60a5fa';
+  const spendSummary = monthlySpendTotal !== null && monthlyExpenseCount > 0
+    ? `${expenseHeadline} ${fuelSummary}`
+    : expenseHeadline;
+
+  const ownershipTimelineItems: TimelineItem[] = [
+    {
+      id: 'health',
+      eyebrow: vehicle ? 'Vehicle health' : 'Garage setup',
+      title: serviceTitle,
+      description: serviceSummary,
+      icon: vehicle ? 'shield-check' : 'car-plus',
+      iconSet: 'mc',
+      accent: serviceAccent,
+      badge: serviceBadge,
+      cta: vehicle ? 'Open health' : 'Go to garage',
+      stage: serviceAlertCount > 0 ? 'Now' : serviceDueSoonCount > 0 ? 'Next' : 'Later',
+      priority: serviceAlertCount > 0 ? 'urgent' : serviceDueSoonCount > 0 ? 'normal' : 'good',
+      priorityScore: serviceAlertCount > 0 ? 100 : serviceDueSoonCount > 0 ? 80 : 40,
+      onPress: () => vehicle ? navigateToRootScreen('WarrantyStatus') : navigateToRootScreen('VehicleList'),
+    },
+    {
+      id: 'documents',
+      eyebrow: 'Document readiness',
+      title: documentTitle,
+      description: documentSummary,
+      icon: 'file-document-check-outline',
+      iconSet: 'mc',
+      accent: documentAccent,
+      badge: documentBadge,
+      cta: 'Open glovebox',
+      stage: missingDocumentTypes.length > 0 ? 'Now' : documentsNeedingReview.length > 0 ? 'Next' : 'Later',
+      priority: missingDocumentTypes.length > 0 ? 'urgent' : documentsNeedingReview.length > 0 ? 'normal' : 'good',
+      priorityScore: missingDocumentTypes.length > 0 ? 90 : documentsNeedingReview.length > 0 ? 75 : 35,
+      onPress: () => navigateToRootScreen('DocumentList'),
+    },
+    {
+      id: 'odometer',
+      eyebrow: 'Daily upkeep',
+      title: !lastOdometerUpdate
+        ? 'Update odometer'
+        : odometerAgeDays && odometerAgeDays > 7
+          ? 'Odometer is stale'
+          : 'Keep readings fresh',
+      description: odometerSummary,
+      icon: 'speedometer-outline',
+      iconSet: 'ion',
+      accent: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? '#f59e0b' : '#38bdf8',
+      badge: !lastOdometerUpdate ? 'Missing' : odometerAgeDays === 0 ? 'Updated today' : `${odometerAgeDays ?? 0}d ago`,
+      cta: 'Update reading',
+      stage: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'Now' : 'Later',
+      priority: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'urgent' : 'good',
+      priorityScore: !lastOdometerUpdate ? 92 : (odometerAgeDays !== null && odometerAgeDays > 7) ? 88 : 28,
+      onPress: () => (navigation as any).navigate('Odometer'),
+    },
+    {
+      id: 'costs',
+      eyebrow: 'Running costs',
+      title: spendTitle,
+      description: spendSummary,
+      icon: 'wallet',
+      iconSet: 'fa',
+      accent: spendAccent,
+      badge: fuelLoading ? 'Updating' : spendBadge,
+      cta: 'Open expenses',
+      stage: expenseAlertCount > 0 ? 'Now' : monthlyExpenseCount > 0 ? 'Next' : 'Later',
+      priority: expenseAlertCount > 0 ? 'urgent' : monthlyExpenseCount > 0 ? 'normal' : 'good',
+      priorityScore: expenseAlertCount > 0 ? 85 : monthlyExpenseCount > 0 ? 60 : 25,
+      onPress: () => navigateToRootScreen('Expenses'),
+    },
+    {
+      id: 'trip',
+      eyebrow: 'Trip ready',
+      title: 'Plan the next drive',
+      description: userLocationDisplay.includes(',')
+        ? `Estimate route costs, stops and trip spend around ${userLocationDisplay}.`
+        : 'Build a route budget before your next long drive.',
+      icon: 'map-search-outline',
+      iconSet: 'mc',
+      accent: '#a78bfa',
+      badge: 'Planner',
+      cta: 'Plan trip',
+      stage: 'Later',
+      priority: 'normal',
+      priorityScore: 20,
+      onPress: () => navigateToRootScreen('TripExpense'),
+    },
+    {
+      id: 'ai',
+      eyebrow: 'AI copilot',
+      title: 'Ask what needs attention',
+      description: vehicle
+        ? `Get a quick summary for your ${getBannerVehicleShortName(vehicle)} with service, spend and support suggestions.`
+        : 'Use AI to set up your garage, expenses and support faster.',
+      icon: 'sparkles',
+      iconSet: 'mc',
+      accent: '#22d3ee',
+      badge: 'Action ready',
+      cta: 'Open AI',
+      stage: 'Next',
+      priority: 'normal',
+      priorityScore: 50,
+      onPress: () => openAiAssistant(
+        vehicle
+          ? `Give me a quick ownership summary for my ${getBannerVehicleShortName(vehicle)} and tell me what I should do next.`
+          : 'Help me set up my garage and tell me the first three things I should complete in the app.'
+      ),
+    },
+  ];
+
+  const sortedOwnershipTimelineItems = useMemo(
+    () => [...ownershipTimelineItems].sort((a, b) => b.priorityScore - a.priorityScore),
+    [ownershipTimelineItems]
+  );
+
+  const recommendedTimelineItemId = sortedOwnershipTimelineItems[0]?.id;
+
+  useEffect(() => {
+    timelineEntranceAnim.setValue(0);
+    Animated.timing(timelineEntranceAnim, {
+      toValue: 1,
+      duration: 550,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [timelineEntranceAnim, recommendedTimelineItemId]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -988,24 +1369,40 @@ export default function Home() {
             ref={carouselRef}
             horizontal
             pagingEnabled
+            decelerationRate="fast"
+            snapToInterval={bannerWidth}
+            snapToAlignment="start"
+            disableIntervalMomentum
+            bounces={false}
+            getItemLayout={(_, index) => ({
+              length: bannerWidth,
+              offset: bannerWidth * index,
+              index,
+            })}
+            onScrollToIndexFailed={(info) => {
+              carouselRef.current?.scrollToOffset({
+                offset: info.index * bannerWidth,
+                animated: true,
+              });
+            }}
+            initialNumToRender={1}
+            maxToRenderPerBatch={2}
+            windowSize={3}
             showsHorizontalScrollIndicator={false}
+            onScrollBeginDrag={pauseAutoScrollTemporarily}
+            onMomentumScrollEnd={handleBannerMomentumEnd}
+            data={carouselSlides}
+            keyExtractor={(item) => item}
             onTouchStart={() => {
               pauseAutoScrollTemporarily();
             }}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
-              carouselIndexRef.current = index;
-              setCarouselIndex(index);
-            }}
-            data={carouselSlides}
-            keyExtractor={(item) => item}
             renderItem={({ item }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
               const fallbackHeroImage = (vehicle?.vehicleType === 'BIKE'
                 ? require('../../assets/images/bike.png')
                 : require('../../assets/images/car_vehicle_demo.png')) as ImageSourcePropType;
               const heroImageSource: ImageSourcePropType =
-                typeof vehicleImageUrl === 'string' && vehicleImageUrl.length > 0
+                vehicleImageUrl && vehicleImageUrl.length > 0
                   ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
                   : fallbackHeroImage;
 
@@ -1013,24 +1410,25 @@ export default function Home() {
                 const isAddVehicleBanner = !vehicleLoading && !vehicle;
 
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={isAddVehicleBanner ? 0.92 : 1}
-                    disabled={!isAddVehicleBanner}
-                    onPress={navigateToGarageTab}
-                  >
-                    <View style={styles.primaryImageWrap}>
-                      <FastImage
-                        source={heroImageSource as any}
-                        style={styles.primaryImageFull}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                      {/* Bottom-up gradient scrim for text legibility */}
-                      <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
-                        locations={[0, 0.3, 0.65, 1]}
-                        style={styles.primaryImageOverlay}
-                      >
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={isAddVehicleBanner ? 0.92 : 1}
+                      disabled={!isAddVehicleBanner}
+                      onPress={navigateToGarageTab}
+                    >
+                      <View style={styles.primaryImageWrap}>
+                        <FastImage
+                          source={heroImageSource as any}
+                          style={styles.primaryImageFull}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                        {/* Bottom-up gradient scrim for text legibility */}
+                        <LinearGradient
+                          colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
+                          locations={[0, 0.3, 0.65, 1]}
+                          style={styles.primaryImageOverlay}
+                        >
                           <View style={styles.bannerBottomRow}>
                             {/* Left: vehicle info + health */}
                             {vehicleLoading ? (
@@ -1062,69 +1460,77 @@ export default function Home() {
                             </View>
                           </View>
                         </LinearGradient>
-                    </View>
-                  </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'expenses') {
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('Expenses')}
-                  >
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
-                        <Text style={styles.promoTitle}>Expense Tracker</Text>
-                        <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
-                        <View style={styles.promoAction}>
-                          <Text style={styles.promoActionText}>Try Now</Text>
-                          <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => navigateToRootScreen('Expenses')}
+                    >
+                      <View style={styles.promoSlide}>
+                        <View style={styles.promoLeft}>
+                          <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
+                          <Text style={styles.promoTitle}>Expense Tracker</Text>
+                          <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={styles.promoActionText}>Try Now</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
+                          </View>
+                        </View>
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/expense_AD.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
                         </View>
                       </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/expense_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'services') {
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => setServiceModalVisible(true)}
-                  >
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
-                        <Text style={styles.promoTitle}>Featured Services</Text>
-                        <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
-                        <View style={styles.promoAction}>
-                          <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
-                          <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => setServiceModalVisible(true)}
+                    >
+                      <View style={styles.promoSlide}>
+                        <View style={styles.promoLeft}>
+                          <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
+                          <Text style={styles.promoTitle}>Featured Services</Text>
+                          <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                          </View>
+                        </View>
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/vehicle_AD.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
                         </View>
                       </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/vehicle_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'social') {
                 return (
-                  <View style={styles.slideFull}>
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
                     <View style={styles.promoSlide}>
                       <View style={styles.promoLeft}>
                         <Text style={styles.promoSubtitle}>Stay Connected</Text>
@@ -1157,135 +1563,148 @@ export default function Home() {
                   </View>
                 );
               }
+
               if (item === 'drivingBehavior') {
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('DrivingSummary')}
-                  >
-                    <View style={styles.slideFull}>
-                      <FastImage
-                        source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
-                        style={styles.promoBackgroundImage}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                      <LinearGradient
-                        colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
-                        locations={[0, 0.5, 1]}
-                        start={{ x: 0, y: 0.5 }}
-                        end={{ x: 1, y: 0.5 }}
-                        style={styles.promoBackgroundOverlay}
-                      >
-                        <View style={styles.promoBackgroundContent}>
-                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
-                          <Text style={styles.promoTitle}>Driving Behavior</Text>
-                          <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
-                          <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
-                            <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => navigateToRootScreen('DrivingSummary')}
+                    >
+                      <View style={styles.slideFull}>
+                        <FastImage
+                          source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
+                          style={styles.promoBackgroundImage}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                        <LinearGradient
+                          colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
+                          locations={[0, 0.5, 1]}
+                          start={{ x: 0, y: 0.5 }}
+                          end={{ x: 1, y: 0.5 }}
+                          style={styles.promoBackgroundOverlay}
+                        >
+                          <View style={styles.promoBackgroundContent}>
+                            <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
+                            <Text style={styles.promoTitle}>Driving Behavior</Text>
+                            <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
+                            <View style={styles.promoAction}>
+                              <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
+                              <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
+                            </View>
                           </View>
-                        </View>
-                      </LinearGradient>
-                    </View>
-                  </TouchableOpacity>
+                        </LinearGradient>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'tripPlanner') {
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('TripExpense')}
-                  >
-                    <View style={styles.slideFull}>
-                      <FastImage
-                        source={require('../../assets/images/trip_planner_banner.png') as any}
-                        style={styles.promoBackgroundImage}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                      <LinearGradient
-                        colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
-                        locations={[0, 0.5, 1]}
-                        start={{ x: 0, y: 0.5 }}
-                        end={{ x: 1, y: 0.5 }}
-                        style={styles.promoBackgroundOverlay}
-                      >
-                        <View style={styles.promoBackgroundContent}>
-                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
-                          <Text style={styles.promoTitle}>Trip Planner</Text>
-                          <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
-                          <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
-                            <MaterialIcon name="chevron-right" size={18} color="#34D399" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => navigateToRootScreen('TripExpense')}
+                    >
+                      <View style={styles.slideFull}>
+                        <FastImage
+                          source={require('../../assets/images/trip_planner_banner.png') as any}
+                          style={styles.promoBackgroundImage}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                        <LinearGradient
+                          colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
+                          locations={[0, 0.5, 1]}
+                          start={{ x: 0, y: 0.5 }}
+                          end={{ x: 1, y: 0.5 }}
+                          style={styles.promoBackgroundOverlay}
+                        >
+                          <View style={styles.promoBackgroundContent}>
+                            <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
+                            <Text style={styles.promoTitle}>Trip Planner</Text>
+                            <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
+                            <View style={styles.promoAction}>
+                              <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
+                              <MaterialIcon name="chevron-right" size={18} color="#34D399" />
+                            </View>
                           </View>
-                        </View>
-                      </LinearGradient>
-                    </View>
-                  </TouchableOpacity>
+                        </LinearGradient>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
-              const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
-              const now = Date.now();
-              const weekMs = 7 * 24 * 60 * 60 * 1000;
-              const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
-              const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
 
-              return (
-                <TouchableOpacity
-                  style={styles.slideFull}
-                  activeOpacity={0.9}
-                  onPress={() => (navigation as any).navigate('Odometer')}
-                >
-                  <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
-                    <View style={styles.promoLeft}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
-                        {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
-                        <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                          {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
-                        </Text>
-                      </View>
+              if (item === 'odometer') {
+                const lastUpdateNum = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
+                const now = Date.now();
+                const weekMs = 7 * 24 * 60 * 60 * 1000;
+                const isOverAWeekNum = !!(lastUpdateNum && (now - lastUpdateNum) > weekMs);
+                const daysSinceNum = lastUpdateNum ? Math.floor((now - lastUpdateNum) / (24 * 60 * 60 * 1000)) : null;
 
-                      {lastUpdate ? (
-                        <View>
-                          <View style={styles.odometerInfoRow}>
-                            <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
-                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                              {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                            </Text>
-                            <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
-                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                              {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                return (
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => (navigation as any).navigate('Odometer')}
+                    >
+                      <View style={[styles.promoSlide, isOverAWeekNum ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
+                        <View style={styles.promoLeft}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
+                            {isOverAWeekNum && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
+                            <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                              {isOverAWeekNum ? 'ODOMETER ALERT' : 'Update Odometer'}
                             </Text>
                           </View>
 
-                          <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
-                            <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
-                              {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
+                          {lastUpdateNum ? (
+                            <View>
+                              <View style={styles.odometerInfoRow}>
+                                <MaterialIcon name="calendar-month" size={14} color={isOverAWeekNum ? '#ff4d4d' : '#888'} />
+                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                                  {new Date(lastUpdateNum).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                </Text>
+                                <MaterialIcon name="clock-outline" size={14} color={isOverAWeekNum ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
+                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                                  {new Date(lastUpdateNum).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                </Text>
+                              </View>
+
+                              <View style={[styles.odometerBadge, isOverAWeekNum ? styles.odometerWarningBadge : undefined]}>
+                                <Text style={[styles.odometerBadgeText, isOverAWeekNum ? styles.odometerWarningBadgeText : undefined]}>
+                                  {isOverAWeekNum ? `${daysSinceNum} days ago` : 'Last Reading'}
+                                </Text>
+                              </View>
+                            </View>
+                          ) : (
+                            <Text style={styles.promoDesc}>
+                              Start tracking your vehicle health by updating odometer.
                             </Text>
+                          )}
+
+                          <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
+                            <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
+                            <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
                           </View>
                         </View>
-                      ) : (
-                        <Text style={styles.promoDesc}>
-                          Start tracking your vehicle health by updating odometer.
-                        </Text>
-                      )}
-
-                      <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
-                        <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
-                        <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/odometer.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
+                        </View>
                       </View>
-                    </View>
-                    <View style={styles.promoRight}>
-                      <Image
-                        source={require('../../assets/images/odometer.png') as any}
-                        style={styles.adImage}
-                        resizeMode="contain"
-                      />
-                    </View>
+                    </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
-              );
+                );
+              }
+
+              return null;
             }}
           />
 
@@ -1367,6 +1786,97 @@ export default function Home() {
             }
           }}
         />
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Ownership Timeline</Text>
+              <Text style={styles.sectionSubtitle}>Suggested next actions for your vehicle.</Text>
+            </View>
+          </View>
+          <FlashListAny
+            horizontal
+            data={sortedOwnershipTimelineItems}
+            estimatedItemSize={300}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.timelineScrollContent}
+            keyExtractor={(item: TimelineItem) => item.id}
+            renderItem={({ item, index }: { item: TimelineItem; index: number }) => (
+              <Animated.View
+                key={item.id}
+                style={{
+                  opacity: timelineEntranceAnim.interpolate({
+                    inputRange: [0, 0.35 + index * 0.1, 1],
+                    outputRange: [0, 0, 1],
+                    extrapolate: 'clamp',
+                  }),
+                  transform: [
+                    {
+                      translateY: timelineEntranceAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [16 + index * 2, 0],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  style={[
+                    styles.timelineCard,
+                    item.priority === 'urgent' ? styles.timelineCardUrgent : item.priority === 'good' ? styles.timelineCardGood : undefined,
+                  ]}
+                  onPress={item.onPress}
+                >
+                  <LinearGradient
+                    colors={[`${item.accent}2A`, 'rgba(255,255,255,0.02)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.timelineCardGlow}
+                  />
+                  <View style={styles.timelineCardInner}>
+                    <View style={styles.timelineMainContent}>
+                      <View style={styles.timelineCardTopRow}>
+                        <View style={[styles.timelineIconWrap, { backgroundColor: `${item.accent}20` }]}>
+                          {item.iconSet === 'fa' ? (
+                            <Icon name={item.icon} size={wp(4.8)} color={item.accent} />
+                          ) : item.iconSet === 'ion' ? (
+                            <Ionicons name={item.icon as any} size={wp(5.2)} color={item.accent} />
+                          ) : (
+                            <MaterialIcon name={item.icon} size={wp(5.2)} color={item.accent} />
+                          )}
+                        </View>
+                        <View style={styles.timelineTopChips}>
+                          <View style={[styles.timelineBadge, { borderColor: `${item.accent}55`, backgroundColor: `${item.accent}14` }]}>
+                            <Text numberOfLines={1} style={[styles.timelineBadgeText, { color: item.accent }]}>{item.badge}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      <View style={styles.timelineMetaRow}>
+                        <Text numberOfLines={1} style={styles.timelineEyebrow}>{item.eyebrow}</Text>
+                        <View style={[styles.timelineStagePill, item.stage === 'Now' ? styles.timelineStageNow : item.stage === 'Next' ? styles.timelineStageNext : styles.timelineStageLater]}>
+                          <Text numberOfLines={1} style={styles.timelineStageText}>
+                            {item.id === recommendedTimelineItemId ? 'Now • Top' : item.stage}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.timelineBody}>
+                        <Text numberOfLines={2} style={styles.timelineCardTitle}>{item.title}</Text>
+                        <Text numberOfLines={2} style={styles.timelineDescription}>{item.description}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.timelineActionRow}>
+                      <View style={[styles.timelineActionPill, { borderColor: `${item.accent}80` }]}>
+                        <Text numberOfLines={1} style={styles.timelineActionText}>{item.cta}</Text>
+                        <MaterialIcon name="chevron-right" size={16} color={item.accent} />
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+          />
+        </View>
 
         {/* INSURANCE BANNER */}
         <View style={styles.bannerSection}>
@@ -1471,7 +1981,7 @@ export default function Home() {
               style={styles.stateButton}
               onPress={() => setShowStateModal(true)}
             >
-              <Text style={styles.stateButtonText}>{selectedState.split(' ')[0]}</Text>
+              <Text style={styles.stateButtonText}>{selectedState ? selectedState.split(' ')[0] : 'Detecting...'}</Text>
               <MaterialIcon name="chevron-down" size={14} color="#0a0a0a" />
             </TouchableOpacity>
           </View>
@@ -1485,19 +1995,19 @@ export default function Home() {
               <View style={styles.fuelInlineContainer}>
                 <View style={styles.fuelInlineItem}>
                   <Text style={styles.fuelInlineLabel}>Petrol:</Text>
-                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.petrol}</Text>
+                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices?.petrol}</Text>
                 </View>
                 <View style={styles.fuelInlineSpacer} />
                 <View style={styles.fuelInlineItem}>
                   <Text style={styles.fuelInlineLabel}>Diesel:</Text>
-                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.diesel}</Text>
+                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices?.diesel}</Text>
                 </View>
-                {fuelPrices.cng && (
+                {fuelPrices?.cng && (
                   <>
                     <View style={styles.fuelInlineSpacer} />
                     <View style={styles.fuelInlineItem}>
                       <Text style={styles.fuelInlineLabel}>CNG:</Text>
-                      <Text style={styles.fuelInlineValue}>₹ {fuelPrices.cng}</Text>
+                      <Text style={styles.fuelInlineValue}>₹ {fuelPrices?.cng}</Text>
                     </View>
                   </>
                 )}
@@ -1862,6 +2372,160 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     color: '#FFFFFF',
     fontSize: wp(5),
+  },
+  sectionSubtitle: {
+    marginTop: hp(0.35),
+    color: 'rgba(255,255,255,0.62)',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+  },
+  timelineScrollContent: {
+    paddingRight: wp(5),
+  },
+  timelineCard: {
+    width: wp(74),
+    height: Math.max(hp(26.5), 238),
+    marginRight: wp(3.5),
+    borderRadius: 22,
+    backgroundColor: '#0d1117',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+    justifyContent: 'flex-start',
+  },
+  timelineCardInner: {
+    flex: 1,
+    paddingTop: wp(4),
+    paddingHorizontal: wp(4),
+    paddingBottom: wp(4),
+  },
+  timelineMainContent: {
+    flex: 1,
+  },
+  timelineCardUrgent: {
+    borderColor: 'rgba(245, 158, 11, 0.45)',
+  },
+  timelineCardGood: {
+    borderColor: 'rgba(74, 222, 128, 0.35)',
+  },
+  timelineCardGlow: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  timelineCardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: hp(1),
+  },
+  timelineIconWrap: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timelineBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: wp(2.3),
+    paddingVertical: hp(0.35),
+    maxWidth: wp(28),
+  },
+  timelineTopChips: {
+    alignItems: 'flex-end',
+    maxWidth: wp(28),
+  },
+  timelineBadgeText: {
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(2.6),
+    flexShrink: 1,
+  },
+  timelineMetaRow: {
+    marginBottom: hp(0.55),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: wp(2),
+    minHeight: hp(2.2),
+  },
+  timelineBody: {
+    flexGrow: 1,
+    minHeight: 0,
+    justifyContent: 'flex-start',
+    paddingBottom: hp(0.8),
+  },
+  timelineEyebrow: {
+    color: 'rgba(255,255,255,0.58)',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(2.8),
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    flexShrink: 1,
+  },
+  timelineStagePill: {
+    borderRadius: 999,
+    paddingHorizontal: wp(1.8),
+    paddingVertical: hp(0.4),
+    maxWidth: wp(24),
+  },
+  timelineStageNow: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  timelineStageNext: {
+    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+  },
+  timelineStageLater: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  timelineStageText: {
+    color: '#fff',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(2.5),
+  },
+  timelineCardTitle: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.5),
+    lineHeight: hp(2.55),
+    marginBottom: hp(0.4),
+    minHeight: hp(2.55) * 2,
+    textAlignVertical: 'top',
+  },
+  timelineDescription: {
+    color: 'rgba(255,255,255,0.72)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.05),
+    lineHeight: hp(1.8),
+    minHeight: hp(1.8) * 2,
+    marginBottom: hp(0.2),
+    textAlignVertical: 'top',
+  },
+  timelineActionRow: {
+    marginTop: hp(1.4),
+    paddingTop: hp(1.1),
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: hp(4.3),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.10)',
+  },
+  timelineActionPill: {
+    borderWidth: 1.2,
+    borderRadius: 12,
+    paddingHorizontal: wp(3.2),
+    paddingVertical: hp(0.75),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  timelineActionText: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.2),
+    marginRight: wp(0.8),
+    flexShrink: 1,
+    color: '#FFFFFF',
   },
   discoveryPlaceholder: {
     paddingVertical: hp(2),

@@ -30,6 +30,12 @@ import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import { Linking } from 'react-native';
 
+const STATUS_STEPS = [
+  { key: 'REQUESTED', label: 'Requested' },
+  { key: 'PICKED_UP', label: 'Picked up' },
+  { key: 'DROPPED_OFF', label: 'Delivered' },
+] as const;
+
 export default function ValetService() {
   const navigation = useNavigation<any>();
   const [vehicleNumber, setVehicleNumber] = React.useState('');
@@ -46,6 +52,19 @@ export default function ValetService() {
       Linking.openURL(`tel:${data.pickupInfo.valetPhone}`);
     }
   };
+
+  const openLocationInMaps = React.useCallback(() => {
+    if (!location?.latitude || !location?.longitude) return;
+    const destination = `${location.latitude},${location.longitude}`;
+    const label = encodeURIComponent('Valet Location');
+    const url = Platform.OS === 'ios'
+      ? `https://maps.apple.com/?ll=${destination}&q=${label}`
+      : `geo:${destination}?q=${destination}(${label})`;
+
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${destination}`).catch(() => {});
+    });
+  }, [location]);
 
   const refresh = React.useCallback(async (isSilent = false) => {
     try {
@@ -112,6 +131,34 @@ export default function ValetService() {
       default: return '#64748B';
     }
   };
+
+  const getStatusSummary = (status?: string) => {
+    switch (status) {
+      case 'REQUESTED':
+        return {
+          title: 'Driver assigned and moving',
+          description: 'Your valet request is active. Stay available in case the driver calls for a quick confirmation.',
+        };
+      case 'PICKED_UP':
+        return {
+          title: 'Vehicle is with the valet team',
+          description: 'Your vehicle has been picked up. You can call the driver or open the latest location on the map.',
+        };
+      case 'DROPPED_OFF':
+        return {
+          title: 'Drop is complete',
+          description: 'Your vehicle has been delivered. Refresh if you want to verify the latest assignment details.',
+        };
+      default:
+        return {
+          title: 'No active valet request',
+          description: 'Verify your vehicle number to check the latest valet status or place a new vehicle request.',
+        };
+    }
+  };
+
+  const activeStepIndex = STATUS_STEPS.findIndex((step) => step.key === data?.requestStatus);
+  const statusSummary = getStatusSummary(data?.requestStatus);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -185,12 +232,42 @@ export default function ValetService() {
               </View>
             </View>
 
+            <View style={styles.statusInsightCard}>
+              <Text style={styles.statusInsightTitle}>{statusSummary.title}</Text>
+              <Text style={styles.statusInsightText}>{statusSummary.description}</Text>
+            </View>
+
+            <View style={styles.stageRow}>
+              {STATUS_STEPS.map((step, index) => {
+                const isActive = activeStepIndex >= index && activeStepIndex !== -1;
+                return (
+                  <View key={step.key} style={styles.stageItem}>
+                    <View
+                      style={[
+                        styles.stageDot,
+                        isActive
+                          ? { backgroundColor: getStatusColor(data?.requestStatus), borderColor: getStatusColor(data?.requestStatus) }
+                          : styles.stageDotInactive,
+                      ]}
+                    />
+                    <Text style={[styles.stageLabel, isActive ? styles.stageLabelActive : null]}>{step.label}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
             {location && (
-              <View style={styles.locationBadge}>
-                <MaterialIcon name="map-marker-radius" size={wp(4)} color="#FFBF00" />
-                <Text style={styles.locationText}>
-                  LIVE: {location.latitude?.toFixed(5)}, {location.longitude?.toFixed(5)}
-                </Text>
+              <View style={styles.locationCard}>
+                <View style={styles.locationBadge}>
+                  <MaterialIcon name="map-marker-radius" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.locationText}>
+                    LIVE: {location.latitude?.toFixed(5)}, {location.longitude?.toFixed(5)}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.mapActionBtn} onPress={openLocationInMaps}>
+                  <MaterialIcon name="map-search-outline" size={wp(4)} color="#111" />
+                  <Text style={styles.mapActionText}>Open in Maps</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -386,6 +463,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: hp(2),
   },
+  statusInsightCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 14,
+    padding: wp(3.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginBottom: hp(2),
+  },
+  statusInsightTitle: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.7),
+    color: '#fff',
+    marginBottom: hp(0.6),
+  },
+  statusInsightText: {
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.2),
+    color: '#9CA3AF',
+    lineHeight: hp(2.1),
+  },
+  stageRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: hp(2),
+    gap: wp(2.5),
+  },
+  stageItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stageDot: {
+    width: wp(4.2),
+    height: wp(4.2),
+    borderRadius: wp(2.1),
+    borderWidth: 1.5,
+    marginBottom: hp(0.8),
+  },
+  stageDotInactive: {
+    backgroundColor: 'transparent',
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  stageLabel: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(2.9),
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  stageLabelActive: {
+    color: '#fff',
+  },
   infoItem: {
     flex: 1,
   },
@@ -400,18 +527,35 @@ const styles = StyleSheet.create({
     fontSize: wp(3.8),
     color: '#eee',
   },
-  locationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  locationCard: {
     backgroundColor: 'rgba(255,191,0,0.05)',
     padding: wp(3),
     borderRadius: 12,
+    gap: hp(1.2),
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: wp(2),
   },
   locationText: {
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
     color: '#FFBF00',
+  },
+  mapActionBtn: {
+    backgroundColor: '#FFBF00',
+    borderRadius: 10,
+    minHeight: hp(5),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+  },
+  mapActionText: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.4),
+    color: '#111',
   },
   actions: {
     gap: hp(1.5),

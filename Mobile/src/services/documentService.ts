@@ -2,8 +2,11 @@ import { Platform } from 'react-native';
 import { API_BASE_URL } from '../config';
 import { getAccessToken } from './storage';
 import { api } from './api';
+import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue } from './cache';
 
 const DOCUMENTS_URL = `${API_BASE_URL}/api/v1/documents`;
+const DOCUMENTS_CACHE_KEY = 'cache:documents:list';
+const DOCUMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const DOC_TYPE_MAP: Record<string, string> = {
   RC: 'RC',
@@ -107,12 +110,21 @@ export async function uploadDocument(params: UploadDocumentParams): Promise<Docu
   if (params.documentNumber) formData.append('documentNumber', params.documentNumber);
 
   const res = await api.upload<any>('/v1/documents', formData);
+  clearCachedValue(DOCUMENTS_CACHE_KEY);
   return res.data ?? res;
 }
 
 export async function listDocuments(): Promise<DocumentResponse[]> {
-  const res = await api.get<any>('/v1/documents');
-  return res.data ?? [];
+  try {
+    const res = await api.get<any>('/v1/documents');
+    const docs = res.data ?? [];
+    setCachedValue(DOCUMENTS_CACHE_KEY, docs, DOCUMENTS_CACHE_TTL_MS);
+    return docs;
+  } catch (error) {
+    const cached = getCachedValue<DocumentResponse[]>(DOCUMENTS_CACHE_KEY) || getStaleCachedValue<DocumentResponse[]>(DOCUMENTS_CACHE_KEY);
+    if (cached) return cached;
+    throw error;
+  }
 }
 
 export async function getDocument(id: string): Promise<DocumentResponse> {
@@ -122,6 +134,7 @@ export async function getDocument(id: string): Promise<DocumentResponse> {
 
 export async function deleteDocument(id: string): Promise<void> {
   await api.delete(`/v1/documents/${id}`);
+  clearCachedValue(DOCUMENTS_CACHE_KEY);
 }
 
 export async function syncDigiLocker(client_id?: string): Promise<any> {

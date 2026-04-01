@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { io, Socket } from 'socket.io-client';
 import { api } from '../../services/api';
+import { FlashList } from '@shopify/flash-list';
+import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 
 interface AppNotification {
     id: string;
@@ -17,14 +19,22 @@ interface AppNotification {
 import { SOCKET_BASE_URL } from '../../config';
 
 const SOCKET_URL = SOCKET_BASE_URL;
+const NOTIFICATIONS_CACHE_KEY = 'cache:notifications:list';
+const NOTIFICATIONS_CACHE_TTL_MS = 3 * 60 * 1000;
 
 export const NotificationsScreen = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(true);
+    const sortedNotifications = useMemo(
+        () => [...notifications].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+        [notifications]
+    );
 
     useEffect(() => {
         if (!user?.id) return;
+        const cached = getStaleCachedValue<AppNotification[]>(NOTIFICATIONS_CACHE_KEY);
+        if (cached) setNotifications(cached);
 
         // 1. Fetch historical inbox correctly mapped from Postgres REST API
         fetchNotifications();
@@ -62,24 +72,33 @@ export const NotificationsScreen = () => {
             const response = await api.get<{ data: AppNotification[] }>('/v1/notifications');
             if (response?.data) {
                 setNotifications(response.data);
+                setCachedValue(NOTIFICATIONS_CACHE_KEY, response.data, NOTIFICATIONS_CACHE_TTL_MS);
             }
         } catch (error) {
             console.error("Failed to fetch notifications:", error);
+            const cached = getCachedValue<AppNotification[]>(NOTIFICATIONS_CACHE_KEY) || getStaleCachedValue<AppNotification[]>(NOTIFICATIONS_CACHE_KEY);
+            if (cached) setNotifications(cached);
         } finally {
             setLoading(false);
         }
     };
 
-    const markAsRead = async (id: string) => {
+    const markAsRead = useCallback(async (id: string) => {
         try {
             await api.patch(`/v1/notifications/${id}/read`);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+            clearCachedValue(NOTIFICATIONS_CACHE_KEY);
+            setCachedValue(
+              NOTIFICATIONS_CACHE_KEY,
+              notifications.map(n => n.id === id ? { ...n, isRead: true } : n),
+              NOTIFICATIONS_CACHE_TTL_MS,
+            );
         } catch (error) {
             console.error("Failed to mark as read:", error);
         }
-    };
+    }, [notifications]);
 
-    const renderItem = ({ item }: { item: AppNotification }) => (
+    const renderItem = useCallback(({ item }: { item: AppNotification }) => (
         <TouchableOpacity
             style={[styles.notificationCard, !item.isRead && styles.unreadCard]}
             onPress={() => !item.isRead && markAsRead(item.id)}
@@ -91,7 +110,7 @@ export const NotificationsScreen = () => {
             </View>
             <Text style={styles.body}>{item.body}</Text>
         </TouchableOpacity>
-    );
+    ), [markAsRead]);
 
     if (!user?.id) {
         return (
@@ -114,11 +133,13 @@ export const NotificationsScreen = () => {
 
     return (
         <View style={styles.container}>
-            <FlatList
-                data={notifications}
+            <FlashList
+                data={sortedNotifications}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContainer}
+                estimatedItemSize={96}
+                showsVerticalScrollIndicator={false}
                 ListEmptyComponent={loading ? null : <Text style={styles.emptyText}>No notifications yet.</Text>}
             />
         </View>

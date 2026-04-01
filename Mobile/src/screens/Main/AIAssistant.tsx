@@ -458,14 +458,14 @@ export default function AIAssistant() {
     const onFinish = () => setTtsSpeakingId(null);
     const onCancel = () => setTtsSpeakingId(null);
     const onError = () => setTtsSpeakingId(null);
-    Tts.addEventListener('tts-finish', onFinish);
-    Tts.addEventListener('tts-cancel', onCancel);
-    Tts.addEventListener('tts-error', onError);
+    const finishSub = Tts.addEventListener('tts-finish', onFinish);
+    const cancelSub = Tts.addEventListener('tts-cancel', onCancel);
+    const errorSub = Tts.addEventListener('tts-error', onError);
 
     return () => {
-      Tts.removeEventListener('tts-finish', onFinish);
-      Tts.removeEventListener('tts-cancel', onCancel);
-      Tts.removeEventListener('tts-error', onError);
+      finishSub?.remove?.();
+      cancelSub?.remove?.();
+      errorSub?.remove?.();
     };
   }, []);
 
