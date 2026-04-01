@@ -52,6 +52,7 @@ import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
 import { getAccessToken } from '../../services/storage';
+import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/offlineMutationQueue';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -126,6 +127,9 @@ export default function DocumentList() {
   useEffect(() => {
     dispatch(fetchDocuments());
     loadPrimaryVehicle();
+    flushQueuedDocumentUploads((doc) => {
+      dispatch(addDocumentFromResponse(toDocItem(doc)));
+    }).catch(() => {});
   }, [dispatch]);
 
   const loadPrimaryVehicle = async () => {
@@ -250,7 +254,29 @@ export default function DocumentList() {
       dispatch(addDocumentFromResponse(toDocItem(result)));
       Alert.alert('Success', `${type} uploaded successfully`);
     } catch (err: any) {
-      Alert.alert('Upload Failed', err.message || 'Something went wrong');
+      const message = String(err?.message ?? '');
+      const isNetworkError =
+        !getNetworkOnlineState() ||
+        /network error|network request failed|failed to fetch|server unreachable/i.test(message);
+
+      if (!isNetworkError) {
+        Alert.alert('Upload Failed', message || 'Something went wrong');
+        return;
+      }
+
+      try {
+        await queueDocumentUpload({
+          type,
+          fileUri: uri,
+          fileName: name,
+          mimeType: mime,
+          vehicleId: primaryVehicle?.id,
+          documentNumber: primaryVehicle?.registrationNumber,
+        });
+        Alert.alert('Saved offline', `${type} will upload automatically when network returns.`);
+      } catch {
+        Alert.alert('Upload Failed', message || 'Something went wrong');
+      }
     } finally {
       setIsUploading(false);
     }

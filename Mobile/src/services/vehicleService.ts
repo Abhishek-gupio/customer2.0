@@ -1,4 +1,5 @@
 import { api } from './api';
+import { clearCachedValue, getCachedValue, setCachedValue, getStaleCachedValue } from './cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -190,13 +191,21 @@ export const vehicleService = {
     addVehicle: async (data: AddVehicleInput): Promise<Vehicle> => {
         // Backend now generates + saves imageUrl automatically via Gemini
         const response = await api.post<{ success: boolean; data: Vehicle }>('/v1/vehicles', data);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     getVehicles: async (): Promise<Vehicle[]> => {
-        const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicles');
-        const list = response.data || [];
-        return list.map(normalizeVehicleHealthScore);
+        try {
+            const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicles');
+            const list = (response.data || []).map(normalizeVehicleHealthScore);
+            setCachedValue(VEHICLES_CACHE_KEY, list, VEHICLES_CACHE_TTL_MS);
+            return list;
+        } catch (error) {
+            const cached = getCachedValue<Vehicle[]>(VEHICLES_CACHE_KEY) || getStaleCachedValue<Vehicle[]>(VEHICLES_CACHE_KEY);
+            if (cached) return cached.map(normalizeVehicleHealthScore);
+            throw error;
+        }
     },
 
     getVehicleById: async (id: string): Promise<Vehicle> => {
@@ -216,16 +225,19 @@ export const vehicleService = {
 
     updateVehicle: async (id: string, data: UpdateVehicleInput): Promise<Vehicle> => {
         const response = await api.put<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`, data);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     deleteVehicle: async (id: string): Promise<any> => {
         const response = await api.delete<{ success: boolean; data: any }>(`/v1/vehicles/${id}`);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     setPrimaryVehicle: async (id: string): Promise<Vehicle> => {
         const response = await api.put<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}/primary`);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
@@ -240,11 +252,13 @@ export const vehicleService = {
 
     addOdometer: async (id: string, data: AddOdometerInput): Promise<OdometerLog> => {
         const response = await api.post<{ success: boolean; data: OdometerLog }>(`/v1/vehicles/${id}/odometer`, data);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     addOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerLog> => {
         const response = await api.upload<{ success: boolean; data: OdometerLog }>(`/v1/vehicles/${id}/odometer-ai`, photo);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
@@ -307,3 +321,5 @@ export const vehicleService = {
 
 export const FALLBACK_CAR_IMAGE =
     'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';
+const VEHICLES_CACHE_KEY = 'cache:vehicles:list';
+const VEHICLES_CACHE_TTL_MS = 5 * 60 * 1000;

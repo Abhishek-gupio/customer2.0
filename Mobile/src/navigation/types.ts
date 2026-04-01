@@ -29,6 +29,7 @@ export type RootStackParamList = {
   DigiLockerKYC: { url: string; client_id: string };
   Settings: undefined;
   BudgetSettings: undefined;
+  SyncQueue: undefined;
   ServiceHistory: { selectedPartType?: string } | undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;

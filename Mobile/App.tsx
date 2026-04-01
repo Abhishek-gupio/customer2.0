@@ -15,6 +15,7 @@ import {
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 import { setupNotifications } from './src/services/notification';
+import NetworkBanner from './src/components/NetworkBanner';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -86,6 +87,7 @@ function App() {
         <View style={styles.appContent}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+            <NetworkBanner />
             <NavigationContainer linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />

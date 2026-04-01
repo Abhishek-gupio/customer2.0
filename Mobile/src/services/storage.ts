@@ -219,6 +219,22 @@ export function setVoiceLanguageIndex(index: number): void {
   storage.set(VOICE_LANGUAGE_INDEX_KEY, String(index));
 }
 
+export function setStorageValue(key: string, value: string): void {
+  storage.set(key, value);
+}
+
+export function getStorageValue(key: string): string | undefined {
+  return storage.getString(key);
+}
+
+export function removeStorageValue(key: string): void {
+  if (storage.remove) {
+    storage.remove(key);
+    return;
+  }
+  storage.set(key, '');
+}
+
 const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
 const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
 

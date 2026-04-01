@@ -34,7 +34,10 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { setPrimaryVehicleId, getPrimaryVehicleId } from '../../services/storage';
 import { FlashList } from "@shopify/flash-list";
+import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 const FlashListAny = FlashList as any;
+const EXPENSES_CACHE_KEY = 'cache:expenses:list';
+const EXPENSES_CACHE_TTL_MS = 3 * 60 * 1000;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -204,6 +207,10 @@ const ExpenseFeed = () => {
     setLoading(true);
     try {
       const resolvedVehicleId = targetVehicleId ?? primaryVehicle?.id ?? vehicleIdRef.current ?? null;
+      const cachedExpenses = getStaleCachedValue<any[]>(resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY);
+      if (cachedExpenses && expensesList.length === 0) {
+        setRawExpenses(cachedExpenses);
+      }
       const response = await api.get<any>(
         resolvedVehicleId ? `/v1/expenses?vehicleId=${resolvedVehicleId}` : '/v1/expenses'
       );
@@ -256,8 +263,18 @@ const ExpenseFeed = () => {
         });
 
       setBills(recentBills);
+      setCachedValue(
+        resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY,
+        list,
+        EXPENSES_CACHE_TTL_MS,
+      );
     } catch (error) {
       console.error("Fetch Expenses Error:", error);
+      const resolvedVehicleId = targetVehicleId ?? primaryVehicle?.id ?? vehicleIdRef.current ?? null;
+      const cachedExpenses = getCachedValue<any[]>(resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY) || getStaleCachedValue<any[]>(resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY);
+      if (cachedExpenses) {
+        setRawExpenses(cachedExpenses);
+      }
     } finally {
       setLoading(false);
       isRefreshingRef.current = false;
@@ -298,6 +315,7 @@ const ExpenseFeed = () => {
 
           // 2. Save the new expense
           await api.post('/v1/expenses', payload);
+          clearCachedValue(EXPENSES_CACHE_KEY);
 
           // 3. Mark params as processed to avoid re-saving on re-renders
           // By creating a new object for the params, we ensure a re-render

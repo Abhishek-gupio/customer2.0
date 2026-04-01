@@ -17,6 +17,9 @@ import { api } from "../../services/api";
 import { parse } from "date-fns";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 import { vehicleService, type Vehicle } from "../../services/vehicleService";
+import { queueExpenseCreate } from "../../services/offlineMutationQueue";
+import { getNetworkOnlineState } from '../../services/api';
+import { clearCachedValue } from '../../services/cache';
 
 export interface ReceiptReviewerData {
   amount?: string;
@@ -158,6 +161,7 @@ export default function ReceiptReviewer({
       };
 
       await api.post("/v1/expenses", payload);
+      clearCachedValue('cache:expenses:list');
       setExpenseListNeedsRefresh();
 
       setCategory("Fuel");
@@ -174,10 +178,30 @@ export default function ReceiptReviewer({
       }, 300);
     } catch (error: any) {
       console.error("ReceiptReviewer save error:", error);
-      Alert.alert(
-        "Error",
-        error?.error?.message ?? error?.message ?? "Failed to save expense",
-      );
+      const message = String(error?.message ?? "");
+      const isNetworkError =
+        !getNetworkOnlineState() ||
+        /network error|network request failed|failed to fetch|server unreachable/i.test(message);
+
+      if (!isNetworkError) {
+        Alert.alert(
+          "Error",
+          error?.error?.message ?? error?.message ?? "Failed to save expense",
+        );
+        return;
+      }
+
+      try {
+        await queueExpenseCreate(payload);
+        onClose();
+        Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
+        if (onSuccess) onSuccess();
+      } catch {
+        Alert.alert(
+          "Error",
+          error?.error?.message ?? message ?? "Failed to save expense",
+        );
+      }
     } finally {
       setLoading(false);
     }

@@ -40,6 +40,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
+import { getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
 
@@ -59,6 +60,10 @@ try {
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 const AUTO_SCROLL_INTERVAL_MS = 9000;
 const AUTO_SCROLL_RESUME_DELAY_MS = 15000;
+const HOME_LOCATION_CACHE_KEY = 'cache:home:location';
+const HOME_FUEL_CACHE_PREFIX = 'cache:home:fuel:';
+const HOME_PRIMARY_VEHICLE_CACHE_KEY = 'cache:home:primaryVehicle';
+const HOME_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function sortCarNewsLatestFirst(list: any[]): any[] {
   return [...list].sort((a, b) => {
@@ -213,7 +218,7 @@ export default function Home() {
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [fuelLoading, setFuelLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(() => getStaleCachedValue<Vehicle>(HOME_PRIMARY_VEHICLE_CACHE_KEY));
   const [vehicleLoading, setVehicleLoading] = useState(true);
   const [serviceDueText, setServiceDueText] = useState('Checking...');
   const [serviceAlertCount, setServiceAlertCount] = useState(0);
@@ -644,11 +649,17 @@ export default function Home() {
   const fetchPrimaryVehicle = async () => {
     try {
       setVehicleLoading(true);
+      const cachedPrimary = getCachedValue<Vehicle>(HOME_PRIMARY_VEHICLE_CACHE_KEY);
+      if (cachedPrimary) {
+        setVehicle(cachedPrimary);
+      }
+
       const vehicles = await vehicleService.getVehicles();
       const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
 
       if (primary) {
         setVehicle(primary);
+        setCachedValue(HOME_PRIMARY_VEHICLE_CACHE_KEY, primary, HOME_CACHE_TTL_MS);
         // Show odometer reminder slider ONLY if not updated in the last 24 hours
         const lastUpdate = getLastOdometerUpdate(primary.id);
         const now = Date.now();
@@ -705,6 +716,10 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error fetching primary vehicle:', error);
+      const stalePrimary = getStaleCachedValue<Vehicle>(HOME_PRIMARY_VEHICLE_CACHE_KEY);
+      if (stalePrimary) {
+        setVehicle(stalePrimary);
+      }
     } finally {
       setVehicleLoading(false);
     }
@@ -714,19 +729,29 @@ export default function Home() {
   const fetchFuelPrices = async () => {
     try {
       setFuelLoading(true);
+      const cacheKey = `${HOME_FUEL_CACHE_PREFIX}${selectedState}`;
+      const cachedFuel = getCachedValue<{ petrol: number; diesel: number; cng?: number }>(cacheKey);
+      if (cachedFuel) {
+        setFuelPrices(cachedFuel);
+      }
       const res = await api.get<any>(`/v1/fuel/state?name=${selectedState}`);
       const data = (res as any).data || res;
       if (data && (data.PETROL || data.petrol)) {
-        setFuelPrices({
+        const nextFuel = {
           petrol: data.PETROL || data.petrol,
           diesel: data.DIESEL || data.diesel,
           cng: data.CNG || data.cng
-        });
+        };
+        setFuelPrices(nextFuel);
+        setCachedValue(cacheKey, nextFuel, HOME_CACHE_TTL_MS);
       } else {
         console.warn('No fuel data available for', selectedState);
       }
     } catch (error) {
       console.error('Error fetching fuel prices:', error);
+      const cacheKey = `${HOME_FUEL_CACHE_PREFIX}${selectedState}`;
+      const staleFuel = getStaleCachedValue<{ petrol: number; diesel: number; cng?: number }>(cacheKey);
+      if (staleFuel) setFuelPrices(staleFuel);
     } finally {
       setFuelLoading(false);
     }
@@ -759,6 +784,8 @@ export default function Home() {
 
   const reverseGeocode = async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
     try {
+      const cachedLocation = getCachedValue<{ display: string; state: string }>(HOME_LOCATION_CACHE_KEY);
+      if (cachedLocation) return cachedLocation;
       const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
       const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
       const res = await fetch(url, {
@@ -774,8 +801,12 @@ export default function Home() {
       const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
       const display = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || 'Unknown Location';
 
-      return { display, state: addr.state || '' };
+      const nextLocation = { display, state: addr.state || '' };
+      setCachedValue(HOME_LOCATION_CACHE_KEY, nextLocation, HOME_CACHE_TTL_MS);
+      return nextLocation;
     } catch {
+      const staleLocation = getStaleCachedValue<{ display: string; state: string }>(HOME_LOCATION_CACHE_KEY);
+      if (staleLocation) return staleLocation;
       return null;
     }
   };

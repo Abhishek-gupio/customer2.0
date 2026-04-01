@@ -22,6 +22,9 @@ import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 import { googleMapsService } from "../../services/googleMapsService";
+import { queueExpenseCreate } from "../../services/offlineMutationQueue";
+import { getNetworkOnlineState } from '../../services/api';
+import { clearCachedValue } from '../../services/cache';
 
 let Geolocation: any = null;
 try {
@@ -401,6 +404,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }
 
       const response = await api.post<CreateExpenseResponse>('/v1/expenses', payload);
+      clearCachedValue('cache:expenses:list');
       const responseData = response?.data;
       const serviceRecord = responseData?.serviceRecord ?? null;
       const failedParts = response?.data?.failedParts ?? [];
@@ -463,7 +467,24 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }, 300);
     } catch (error: any) {
       console.error("Add Expense Error:", error);
-      Alert.alert("Error", error?.message || "Failed to add expense");
+      const message = String(error?.message ?? "");
+      const isNetworkError =
+        !getNetworkOnlineState() ||
+        /network error|network request failed|failed to fetch|server unreachable/i.test(message);
+
+      if (!isNetworkError) {
+        Alert.alert("Error", message || "Failed to add expense");
+        return;
+      }
+
+      try {
+        await queueExpenseCreate(payload);
+        onClose();
+        Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
+        if (onSuccess) onSuccess();
+      } catch {
+        Alert.alert("Error", message || "Failed to add expense");
+      }
     } finally {
       setLoading(false);
     }
