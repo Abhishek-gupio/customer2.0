@@ -95,10 +95,10 @@ export const adminService = {
     const admin = await db.adminUser?.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
-    // Don't reveal if email exists for security — always respond with success
+    // Check if user exists
     if (!admin) {
       logger.warn({ email }, "Forgot password request for non-existent admin email");
-      return { message: "If this email is registered, an OTP has been sent." };
+      throw AppError.notFound("This email is not registered in our system.");
     }
     const otp = randomInt(100_000, 999_999).toString();
     adminOtpMemoryStore.set(email.toLowerCase().trim(), {

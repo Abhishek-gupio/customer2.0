@@ -86,10 +86,16 @@ export const adminController = {
     const page = req.query.page ? Number(req.query.page) : undefined;
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const type = typeof req.query.type === "string" ? req.query.type : undefined;
+    const healthStatus = typeof req.query.healthStatus === "string" ? req.query.healthStatus : undefined;
+    const verificationStatus = typeof req.query.verificationStatus === "string" ? req.query.verificationStatus : undefined;
     const data = await adminDashboardService.listVehicles({
       page,
       limit,
       search,
+      type,
+      healthStatus,
+      verificationStatus,
       role: req.admin.role,
     });
     success(res, data);
@@ -159,7 +165,36 @@ export const adminController = {
     if (!email || !otp || !newPassword) throw AppError.badRequest("Email, OTP, and new password are required");
     if (newPassword.length < 8) throw AppError.badRequest("Password must be at least 8 characters");
     const data = await adminService.resetPassword(email, otp, newPassword);
-    success(res, data);
+    success(res, data, 202);
+  }),
+
+  deleteCustomers: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can delete customers");
+    }
+    const { customerIds } = req.body;
+    if (!Array.isArray(customerIds) || !customerIds.length) {
+      throw AppError.badRequest("Customer IDs must be a non-empty array");
+    }
+    const data = await adminDashboardService.deleteCustomers(customerIds);
+    success(res, data, 200);
+  }),
+
+  updateCustomer: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can update customer records");
+    }
+    const customerId = typeof req.params.id === "string" ? req.params.id : "";
+    if (!customerId) throw AppError.badRequest("Customer ID required");
+    
+    const { fullName, email, phoneNumber } = req.body;
+    
+    const data = await adminDashboardService.updateCustomer(customerId, {
+      fullName,
+      email,
+      phoneNumber
+    });
+    success(res, data, 200);
   }),
 };
 
