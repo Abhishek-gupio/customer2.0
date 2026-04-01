@@ -64,6 +64,14 @@ const HOME_LOCATION_CACHE_KEY = 'cache:home:location';
 const HOME_FUEL_CACHE_PREFIX = 'cache:home:fuel:';
 const HOME_PRIMARY_VEHICLE_CACHE_KEY = 'cache:home:primaryVehicle';
 const HOME_CACHE_TTL_MS = 10 * 60 * 1000;
+type HomeCarouselSlide =
+  | 'vehicle'
+  | 'expenses'
+  | 'services'
+  | 'social'
+  | 'drivingBehavior'
+  | 'tripPlanner'
+  | 'odometer';
 
 function sortCarNewsLatestFirst(list: any[]): any[] {
   return [...list].sort((a, b) => {
@@ -253,6 +261,22 @@ export default function Home() {
   const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const carouselSlides = useMemo<HomeCarouselSlide[]>(() => {
+    const slides: HomeCarouselSlide[] = [
+      'vehicle',
+      'expenses',
+      'services',
+      'social',
+      'drivingBehavior',
+      'tripPlanner',
+    ];
+
+    if (showOdometerSlide) {
+      slides.push('odometer');
+    }
+
+    return slides;
+  }, [showOdometerSlide]);
   const windowSize = Dimensions.get('window');
   const bannerWidth = windowSize.width;
   const miniVideoCardWidth = wp(58);
@@ -499,27 +523,26 @@ export default function Home() {
   // Auto-scroll carousel every 5 seconds
   // Use a ref to avoid stale closure & re-creating the interval on every slide,
   // which caused IllegalStateException from conflicting Animated frame timestamps.
-  const bannerSlides = useMemo(() => (showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]), [showOdometerSlide]);
   const carouselIndexRef = useRef(0);
   const handleBannerMomentumEnd = useCallback((e: any) => {
     const layoutWidth = e?.nativeEvent?.layoutMeasurement?.width || bannerWidth;
     const offsetX = e?.nativeEvent?.contentOffset?.x || 0;
     const rawIndex = Math.round(offsetX / layoutWidth);
-    const index = Math.max(0, Math.min(rawIndex, bannerSlides.length - 1));
+    const index = Math.max(0, Math.min(rawIndex, carouselSlides.length - 1));
     carouselIndexRef.current = index;
     setCarouselIndex(index);
-  }, [bannerSlides.length, bannerWidth]);
+  }, [bannerWidth, carouselSlides.length]);
 
   useEffect(() => {
-    const maxIndex = bannerSlides.length - 1;
+    const maxIndex = carouselSlides.length - 1;
     if (carouselIndexRef.current <= maxIndex) return;
     carouselIndexRef.current = 0;
     setCarouselIndex(0);
     carouselRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [bannerSlides.length]);
+  }, [carouselSlides.length]);
 
   useEffect(() => {
-    const totalSlides = bannerSlides.length;
+    const totalSlides = carouselSlides.length;
     if (totalSlides <= 1) return;
     const timer = setInterval(() => {
       if (autoScrollStoppedRef.current) return;
@@ -541,7 +564,17 @@ export default function Home() {
         autoScrollResumeTimerRef.current = null;
       }
     };
-  }, [bannerSlides.length, bannerWidth]);
+  }, [bannerWidth, carouselSlides.length]);
+
+  useEffect(() => {
+    if (carouselIndexRef.current < carouselSlides.length) {
+      return;
+    }
+
+    const nextIndex = Math.max(0, carouselSlides.length - 1);
+    carouselIndexRef.current = nextIndex;
+    setCarouselIndex(nextIndex);
+  }, [carouselSlides.length]);
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
@@ -958,6 +991,16 @@ export default function Home() {
     navigation.navigate('Services' as any, { screen });
   };
 
+  const navigateToGarageTab = useCallback(() => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Main', { screen: 'my_garage' });
+      return;
+    }
+
+    navigation.navigate('my_garage' as any);
+  }, [navigation]);
+
   const fetchDiscoveryContent = async () => {
     try {
       setDiscoveryLoading(true);
@@ -1348,7 +1391,7 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             onScrollBeginDrag={pauseAutoScrollTemporarily}
             onMomentumScrollEnd={handleBannerMomentumEnd}
-            data={bannerSlides}
+            data={carouselSlides}
             keyExtractor={(item) => item.toString()}
             renderItem={({ item }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
@@ -1360,7 +1403,9 @@ export default function Home() {
                   ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
                   : fallbackHeroImage;
 
-              if (item === 0) {
+              if (item === 'vehicle') {
+                const isAddVehicleBanner = !vehicleLoading && !vehicle;
+
                 return (
                   <View style={[styles.slideFull, { width: bannerWidth }]}>
                     <View style={styles.primaryImageWrap}>
@@ -1407,10 +1452,10 @@ export default function Home() {
                           </View>
                         </LinearGradient>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               }
-              if (item === 1) {
+              if (item === 'expenses') {
                 return (
                   <TouchableOpacity
                     style={[styles.slideFull, { width: bannerWidth }]}
@@ -1438,7 +1483,7 @@ export default function Home() {
                   </TouchableOpacity>
                 );
               }
-              if (item === 2) {
+              if (item === 'services') {
                 return (
                   <TouchableOpacity
                     style={[styles.slideFull, { width: bannerWidth }]}
@@ -1466,7 +1511,7 @@ export default function Home() {
                   </TouchableOpacity>
                 );
               }
-              if (item === 3) {
+              if (item === 'social') {
                 return (
                   <View style={[styles.slideFull, { width: bannerWidth }]}>
                     <View style={styles.promoSlide}>
@@ -1499,6 +1544,74 @@ export default function Home() {
                       </View>
                     </View>
                   </View>
+                );
+              }
+              if (item === 'drivingBehavior') {
+                return (
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => navigateToRootScreen('DrivingSummary')}
+                  >
+                    <View style={styles.slideFull}>
+                      <FastImage
+                        source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
+                        style={styles.promoBackgroundImage}
+                        resizeMode={FastImage.resizeMode.cover}
+                      />
+                      <LinearGradient
+                        colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
+                        locations={[0, 0.5, 1]}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.promoBackgroundOverlay}
+                      >
+                        <View style={styles.promoBackgroundContent}>
+                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
+                          <Text style={styles.promoTitle}>Driving Behavior</Text>
+                          <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }
+              if (item === 'tripPlanner') {
+                return (
+                  <TouchableOpacity
+                    style={styles.slideFull}
+                    activeOpacity={0.9}
+                    onPress={() => navigateToRootScreen('TripExpense')}
+                  >
+                    <View style={styles.slideFull}>
+                      <FastImage
+                        source={require('../../assets/images/trip_planner_banner.png') as any}
+                        style={styles.promoBackgroundImage}
+                        resizeMode={FastImage.resizeMode.cover}
+                      />
+                      <LinearGradient
+                        colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
+                        locations={[0, 0.5, 1]}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.promoBackgroundOverlay}
+                      >
+                        <View style={styles.promoBackgroundContent}>
+                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
+                          <Text style={styles.promoTitle}>Trip Planner</Text>
+                          <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#34D399" />
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
                 );
               }
               const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
@@ -1567,7 +1680,7 @@ export default function Home() {
 
           {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
-            {bannerSlides.map((i) => (
+            {carouselSlides.map((_, i) => (
               <View
                 key={i}
                 style={[
@@ -1766,7 +1879,10 @@ export default function Home() {
           </View>
           {discoveryLoading && trendingVideos.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
-              <Text style={styles.discoveryPlaceholderText}>Loading videos…</Text>
+              <View style={styles.discoveryLoadingRow}>
+                <ActivityIndicator size="small" color="#FFBF00" />
+                <Text style={styles.discoveryPlaceholderText}>Loading videos…</Text>
+              </View>
             </View>
           ) : trendingVideos.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
@@ -1885,7 +2001,10 @@ export default function Home() {
           </View>
           {discoveryLoading && trendingNews.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
-              <Text style={styles.discoveryPlaceholderText}>Loading news…</Text>
+              <View style={styles.discoveryLoadingRow}>
+                <ActivityIndicator size="small" color="#FFBF00" />
+                <Text style={styles.discoveryPlaceholderText}>Loading news…</Text>
+              </View>
             </View>
           ) : trendingNews.length === 0 ? (
             <View style={styles.discoveryPlaceholder}>
@@ -2386,6 +2505,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
   },
+  discoveryLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+  },
   discoveryPlaceholderText: {
     color: '#888',
     fontSize: wp(3.4),
@@ -2678,6 +2803,54 @@ const styles = StyleSheet.create({
     width: wp(35),
     height: hp(18),
   },
+  promoBackgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    transform: [{ scale: 1.02 }],
+  },
+  promoBackgroundOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(4),
+  },
+  promoBackgroundContent: {
+    maxWidth: '55%',
+  },
+  featureVisualCard: {
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(8),
+    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    overflow: 'hidden',
+  },
+  featureVisualGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  featureVisualImage: {
+    width: '100%',
+    height: '100%',
+  },
+  drivingPromoSubtitle: {
+    color: '#60A5FA',
+  },
+  drivingPromoActionText: {
+    color: '#60A5FA',
+  },
+  drivingFeatureVisualCard: {
+    borderColor: 'rgba(96,165,250,0.26)',
+  },
+  tripPlannerPromoSubtitle: {
+    color: '#34D399',
+  },
+  tripPlannerPromoActionText: {
+    color: '#34D399',
+  },
+  tripPlannerFeatureVisualCard: {
+    borderColor: 'rgba(52,211,153,0.26)',
+  },
   promoSubtitle: {
     color: '#aaa',
     fontSize: wp(3.5),
@@ -2691,13 +2864,19 @@ const styles = StyleSheet.create({
     fontSize: wp(5.5),
     fontFamily: 'Outfit-Black',
     marginBottom: hp(1.5),
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   promoDesc: {
-    color: '#ccc',
+    color: 'rgba(255,255,255,0.88)',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Regular',
     lineHeight: hp(2),
     marginBottom: hp(2),
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   promoButtons: {
     flexDirection: 'row',

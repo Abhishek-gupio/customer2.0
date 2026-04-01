@@ -14,6 +14,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -158,6 +159,17 @@ export default function AIAssistant() {
   const [userName, setUserName] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const { voiceOwner, setVoiceOwner } = React.useContext(VoiceOwnerContext);
+
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
   const lastRouteRef = useRef<{ sessionId?: string; userMessage?: string } | null>(null);
   const isLocalSession = sessionId?.startsWith('local-');
   const wantsListeningRef = useRef(false);
@@ -417,23 +429,28 @@ export default function AIAssistant() {
 
   useEffect(() => {
     let isMounted = true;
-    Tts.setDucking(true);
-    Tts.setDefaultRate(0.5, true);
-    Tts.setDefaultPitch(1.05);
+    try {
+      Tts.setDefaultRate(0.5);
+      Tts.setDefaultPitch(1.05);
+    } catch (e) {
+      console.warn('TTS defaults error:', e);
+    }
     Tts.getInitStatus()
       .then(() => {
         if (!isMounted) return;
         setTtsReady(true);
         Tts.setDefaultLanguage('en-IN').catch(() => {});
+        // Tts.setDucking(true); // Temporarily disabling due to iOS bridge error with Objective-C BOOL
       })
-      .catch(() => {
+      .catch((err) => {
         if (!isMounted) return;
+        console.warn('TTS init error:', err);
         setTtsReady(false);
       });
 
     return () => {
       isMounted = false;
-      Tts.stop();
+      try { Tts.stop(); } catch (e) {}
     };
   }, []);
 
@@ -466,16 +483,16 @@ export default function AIAssistant() {
 
   const toggleListening = async () => {
     if (!voiceAvailable) {
-      Alert.alert('Mic Unavailable', "Voice input isn't available on this device.");
+      showStatus('Mic Unavailable', "Voice input isn't available on this device.", "error");
       return;
     }
     if (voiceOwner && voiceOwner !== 'chat') {
-      Alert.alert('Mic In Use', 'Another feature is using the microphone right now.');
+      showStatus('Mic In Use', 'Another feature is using the microphone right now.', "error");
       return;
     }
     const allowed = await ensureMicPermission();
     if (!allowed) {
-      Alert.alert('Mic Permission', 'Please enable microphone permission in settings.');
+      showStatus('Mic Permission', 'Please enable microphone permission in settings.', "error");
       return;
     }
     try {
@@ -820,7 +837,7 @@ export default function AIAssistant() {
     }
     if (text && text.trim().length > 0) {
       if (!ttsReady) {
-        Alert.alert('Voice Unavailable', 'Text-to-speech is not ready on this device.');
+        showStatus('Voice Unavailable', 'Text-to-speech is not ready on this device.', 'error');
         return;
       }
       if (ttsSpeakingId === msgId) {
@@ -840,7 +857,7 @@ export default function AIAssistant() {
       });
       Tts.speak(text);
     } else {
-      Alert.alert('No Audio', 'Audio is not available for this message.');
+      showStatus('No Audio', 'Audio is not available for this message.', 'error');
     }
   };
 
@@ -889,7 +906,7 @@ export default function AIAssistant() {
   const submitQuickExpense = () => {
     const amount = quickExpenseAmount.trim().replace(/[^0-9.]/g, '');
     if (!amount || Number.isNaN(Number(amount))) {
-      Alert.alert('Invalid amount', 'Please enter a valid number.');
+      showStatus('Invalid amount', 'Please enter a valid number.', 'error');
       return;
     }
     const prompt = `Add an expense of ₹${amount} for ${quickExpenseCategory}`;
@@ -1198,6 +1215,14 @@ export default function AIAssistant() {
           onError={() => setPlayingVoiceUrl(null)}
         />
       ) : null}
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }

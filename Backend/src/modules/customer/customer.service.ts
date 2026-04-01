@@ -42,14 +42,14 @@ function requestMessage(status: string): string {
   }
 }
 
-import { getRedis } from "../../config/redis";
+import { getRedis, runRedisCommand } from "../../config/redis";
 
 async function getPublicCustomerForCustomerId(customerId: string) {
   const redis = getRedis();
   const cacheKey = `customer_link:${customerId}`;
   
   if (redis) {
-    const cached = await redis.get(cacheKey);
+    const cached = await runRedisCommand((client) => client.get(cacheKey));
     if (cached) {
       try {
         return JSON.parse(cached);
@@ -119,7 +119,9 @@ async function getPublicCustomerForCustomerId(customerId: string) {
   }
 
   if (redis && publicCustomer) {
-    await redis.setex(cacheKey, 3600, JSON.stringify(publicCustomer));
+    await runRedisCommand((client) =>
+      client.setex(cacheKey, 3600, JSON.stringify(publicCustomer)),
+    );
   }
 
   return publicCustomer;

@@ -431,12 +431,17 @@ const SOSScreen = () => {
           <View style={styles.sosRing}>
             <Animated.View style={[styles.pulseRing, styles.pulseRingVisible, { transform: [{ scale: pulseAnim }] }]} />
             <View style={styles.sosOuter}>
-               <TouchableOpacity
+              <TouchableOpacity
                 style={[styles.sosButton, triggering && styles.sosButtonDisabled]}
                 onPress={handleTriggerSOS}
                 activeOpacity={0.8}
+                disabled={triggering}
               >
-                <Text style={styles.sosText}>{triggering ? '...' : 'SOS'}</Text>
+                {triggering ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <Text style={styles.sosText}>SOS</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -539,6 +544,7 @@ const SOSScreen = () => {
                 key={type}
                 style={[styles.typeButton, sosType === type && styles.typeButtonActive]}
                 onPress={() => setSosType(type)}
+                disabled={triggering}
               >
                 <Ionicons 
                   name={getIconForType(type)} 

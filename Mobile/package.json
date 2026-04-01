@@ -10,7 +10,7 @@
     "ios:fix-version": "cd ios && rm -rf Pods Podfile.lock build && pod install && cd ..",
     "lint": "eslint .",
     "start": "react-native start",
-    "start:reset": "watchman watch-del-all 2>/dev/null; react-native start --reset-cache",
+    "start:reset": "react-native start --reset-cache",
     "test": "jest"
   },
   "dependencies": {

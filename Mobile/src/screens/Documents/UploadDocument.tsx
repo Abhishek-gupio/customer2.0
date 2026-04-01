@@ -24,6 +24,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import StatusModal from '../../components/common/Modals/StatusModal';
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation } from '../../lib/react-navigation-native';
@@ -33,6 +34,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { addDocumentFromResponse, toDocItem } from '../../store/slices/documentsSlice';
 import { uploadDocument, checkImageQuality } from '../../services/documentService';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 
 type UploadDocNavProp = NativeStackNavigationProp<RootStackParamList, 'UploadDocument'>;
 
@@ -59,6 +61,16 @@ export default function UploadDocument() {
   const [qualityHints, setQualityHints] = useState<string[]>([]);
   const [pendingImageAsset, setPendingImageAsset] = useState<{ uri: string; fileName?: string; type?: string } | null>(null);
   const [previewError, setPreviewError] = useState(false);
+  const isBusy = uploading || qualityCheckLoading;
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   useEffect(() => {
     fetchPrimaryVehicle();
@@ -123,10 +135,12 @@ export default function UploadDocument() {
   };
 
   const handleTapToUpload = () => {
+    if (isBusy) return;
     setShowSourceModal(true);
   };
 
   const handlePickDocument = async () => {
+    if (isBusy) return;
     try {
       const res = await pickDocument({
         type: [docTypes.pdf, docTypes.images],
@@ -145,7 +159,7 @@ export default function UploadDocument() {
     } catch (e: unknown) {
       const err = e as { code?: string };
       if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
-        Alert.alert('Error', 'Could not pick file');
+        showStatus('Error', 'Could not pick file', 'error');
       }
     }
   };
@@ -180,10 +194,11 @@ export default function UploadDocument() {
   };
 
   const handlePickImage = async () => {
+    if (isBusy) return;
     if (Platform.OS === 'android') {
       const hasPermission = await requestAndroidPermissions();
       if (!hasPermission) {
-        Alert.alert('Permission needed', 'Camera and photo library access are required.');
+        showStatus('Permission needed', 'Camera and photo library access are required.', 'error');
         return;
       }
     }
@@ -199,15 +214,16 @@ export default function UploadDocument() {
         });
       }
     } catch {
-      Alert.alert('Error', 'Could not pick image');
+      showStatus('Error', 'Could not pick image', 'error');
     }
   };
 
   const handleTakePhoto = async () => {
+    if (isBusy) return;
     if (Platform.OS === 'android') {
       const hasPermission = await requestAndroidPermissions();
       if (!hasPermission) {
-        Alert.alert('Permission needed', 'Camera access is required.');
+        showStatus('Permission needed', 'Camera access is required.', 'error');
         return;
       }
     }
@@ -223,17 +239,18 @@ export default function UploadDocument() {
         });
       }
     } catch {
-      Alert.alert('Error', 'Could not take photo');
+      showStatus('Error', 'Could not take photo', 'error');
     }
   };
 
   const handleUpload = async () => {
+    if (isBusy) return;
     if (!docType) {
-      Alert.alert('Required', 'Please select document type');
+      showStatus('Required', 'Please select document type', 'error');
       return;
     }
     if (!fileInfo) {
-      Alert.alert('Required', 'Please add a document (tap to upload)');
+      showStatus('Required', 'Please add a document (tap to upload)', 'error');
       return;
     }
 
@@ -248,11 +265,10 @@ export default function UploadDocument() {
       });
 
       dispatch(addDocumentFromResponse(toDocItem(result)));
-      Alert.alert('Success', 'Document uploaded successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showStatus('Success', 'Document uploaded successfully');
+      setTimeout(() => navigation.goBack(), 1500);
     } catch (err: any) {
-      Alert.alert('Upload Failed', err.message || 'Something went wrong');
+      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
     } finally {
       setUploading(false);
     }
@@ -296,6 +312,7 @@ export default function UploadDocument() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.selectInput}
+          disabled={isBusy}
           onPress={() => setShowTypeDropdown(!showTypeDropdown)}
         >
           <Text style={docType ? styles.selectText : styles.selectPlaceholder}>
@@ -360,8 +377,9 @@ export default function UploadDocument() {
         {/* Tap to Upload / Preview */}
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.uploadArea}
+          style={[styles.uploadArea, isBusy && styles.uploadAreaDisabled]}
           onPress={handleTapToUpload}
+          disabled={isBusy}
         >
           {fileInfo && isImage ? (
             previewError ? (
@@ -416,7 +434,7 @@ export default function UploadDocument() {
           <View style={styles.fileNameRow}>
             <Icon name="paperclip" size={wp(3.5)} color="#FFBF00" />
             <Text style={styles.fileNameSmall} numberOfLines={1}>{fileInfo.name}</Text>
-            <TouchableOpacity onPress={() => setFileInfo(null)} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => setFileInfo(null)} activeOpacity={0.7} disabled={isBusy}>
               <Icon name="times-circle" size={wp(4)} color="#666" />
             </TouchableOpacity>
           </View>
@@ -431,21 +449,14 @@ export default function UploadDocument() {
         </View>
 
         {/* Upload Button */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.submitBtn, uploading && styles.submitBtnDisabled]}
+        <LoaderButton
+          title="Upload"
+          loading={uploading}
+          loadingTitle="Uploading..."
           onPress={handleUpload}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <ActivityIndicator color="#000" size="small" />
-          ) : (
-            <>
-              <Text style={styles.submitBtnText}>Upload</Text>
-              <Icon name="arrow-right" size={wp(4)} color="#000" />
-            </>
-          )}
-        </TouchableOpacity>
+          disabled={qualityCheckLoading}
+          style={[styles.submitBtn, uploading && styles.submitBtnDisabled]}
+        />
       </ScrollView>
 
       {/* Source Selection Modal */}
@@ -453,15 +464,23 @@ export default function UploadDocument() {
         visible={showSourceModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowSourceModal(false)}
+        onRequestClose={() => {
+          if (!isBusy) {
+            setShowSourceModal(false);
+          }
+        }}
       >
-        <TouchableWithoutFeedback onPress={() => setShowSourceModal(false)}>
+        <TouchableWithoutFeedback onPress={() => {
+          if (!isBusy) {
+            setShowSourceModal(false);
+          }
+        }}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Choose Source</Text>
-                  <TouchableOpacity onPress={() => setShowSourceModal(false)}>
+                  <TouchableOpacity onPress={() => setShowSourceModal(false)} disabled={isBusy}>
                     <Icon name="times" size={wp(5)} color="#888" />
                   </TouchableOpacity>
                 </View>
@@ -470,6 +489,7 @@ export default function UploadDocument() {
                   <TouchableOpacity
                     style={styles.modalOption}
                     onPress={() => { setShowSourceModal(false); void handleTakePhoto(); }}
+                    disabled={isBusy}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
                       <Icon name="camera" size={wp(5)} color="#4CAF50" />
@@ -480,6 +500,7 @@ export default function UploadDocument() {
                   <TouchableOpacity
                     style={styles.modalOption}
                     onPress={() => { setShowSourceModal(false); void handlePickImage(); }}
+                    disabled={isBusy}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
                       <Icon name="images" size={wp(5)} color="#2196F3" />
@@ -490,6 +511,7 @@ export default function UploadDocument() {
                   <TouchableOpacity
                     style={styles.modalOption}
                     onPress={() => { setShowSourceModal(false); handlePickDocument(); }}
+                    disabled={isBusy}
                   >
                     <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
                       <Icon name="file-pdf" size={wp(5)} color="#FF9800" />
@@ -501,6 +523,7 @@ export default function UploadDocument() {
                 <TouchableOpacity
                   style={styles.modalCancelBtn}
                   onPress={() => setShowSourceModal(false)}
+                  disabled={isBusy}
                 >
                   <Text style={styles.modalCancelText}>Cancel</Text>
                 </TouchableOpacity>
@@ -555,10 +578,17 @@ export default function UploadDocument() {
         <View style={StyleSheet.absoluteFill} pointerEvents="box-only">
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <ActivityIndicator size="large" color="#FFBF00" />
-            <Text style={{ color: '#fff', marginTop: hp(2) }}>Checking image quality…</Text>
+            <Text style={{ color: '#fff', marginTop: hp(2), fontFamily: 'Outfit-Regular' }}>Checking image quality…</Text>
           </View>
         </View>
       )}
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -653,6 +683,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,191,0,0.25)',
     borderStyle: 'dashed',
     overflow: 'hidden',
+  },
+  uploadAreaDisabled: {
+    opacity: 0.6,
   },
   uploadIconWrap: {
     width: wp(18),

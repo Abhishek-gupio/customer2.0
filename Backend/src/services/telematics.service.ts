@@ -7,7 +7,7 @@ const db = dbInstances;
 
 const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
 
-import { getRedis } from "../config/redis";
+import { getRedis, runRedisCommand } from "../config/redis";
 
 const ADMIN_TOKEN_REDIS_KEY = "damoov:admin_token";
 const RATE_LIMIT_BACKOFF_REDIS_KEY = "damoov:rate_limit_backoff";
@@ -24,11 +24,15 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
   const redis = getRedis();
   
   if (redis) {
-    const cachedToken = await redis.get(ADMIN_TOKEN_REDIS_KEY);
+    const cachedToken = await runRedisCommand((client) =>
+      client.get(ADMIN_TOKEN_REDIS_KEY),
+    );
     if (cachedToken) return cachedToken;
 
     if (!forceLogin) {
-      const backoffUntil = await redis.get(RATE_LIMIT_BACKOFF_REDIS_KEY);
+      const backoffUntil = await runRedisCommand((client) =>
+        client.get(RATE_LIMIT_BACKOFF_REDIS_KEY),
+      );
       if (backoffUntil && Date.now() < parseInt(backoffUntil, 10)) {
         logger.debug(
           { backoffUntil: new Date(parseInt(backoffUntil, 10)).toISOString() },
@@ -59,14 +63,18 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
 
     if (redis) {
       // TTL set to 50 minutes (3000 seconds)
-      await redis.setex(ADMIN_TOKEN_REDIS_KEY, 3000, token);
+      await runRedisCommand((client) =>
+        client.setex(ADMIN_TOKEN_REDIS_KEY, 3000, token),
+      );
     }
     return token;
   } catch (err: any) {
     if (isRateLimitError(err)) {
       if (redis) {
         const backoffTime = Date.now() + RATE_LIMIT_BACKOFF_MS;
-        await redis.setex(RATE_LIMIT_BACKOFF_REDIS_KEY, 7200, backoffTime.toString());
+        await runRedisCommand((client) =>
+          client.setex(RATE_LIMIT_BACKOFF_REDIS_KEY, 7200, backoffTime.toString()),
+        );
       }
       logger.warn(
         { error: err.response?.data || err.message, backoffMinutes: 120 },
@@ -341,7 +349,9 @@ export const telematicsService = {
 
                 // 2. Check if we have it in Redis (pending persistence/recent)
                 if (redis) {
-                  const cached = await redis.get(cacheKey);
+                  const cached = await runRedisCommand((client) =>
+                    client.get(cacheKey),
+                  );
                   if (cached) {
                     const parsed = JSON.parse(cached);
                     return { ...trip, ...parsed };
@@ -405,7 +415,9 @@ export const telematicsService = {
 
                 // 5. CACHE in Redis (TTL 1 day for recent trips)
                 if (redis) {
-                  await redis.setex(cacheKey, 24 * 3600, JSON.stringify(enrichedData)).catch(() => {});
+                  await runRedisCommand((client) =>
+                    client.setex(cacheKey, 24 * 3600, JSON.stringify(enrichedData)),
+                  );
                 }
 
                 return { ...trip, ...enrichedData };

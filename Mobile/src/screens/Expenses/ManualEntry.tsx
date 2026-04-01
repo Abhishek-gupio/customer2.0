@@ -11,20 +11,19 @@ import {
   Platform,
   PermissionsAndroid,
   Alert,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
+import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { api } from "../../services/api";
+import { api, getNetworkOnlineState } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 import { googleMapsService } from "../../services/googleMapsService";
-import { queueExpenseCreate } from "../../services/offlineMutationQueue";
-import { getNetworkOnlineState } from '../../services/api';
-import { clearCachedValue } from '../../services/cache';
+import LoaderButton from "../../components/Button";
+import { queueExpenseCreate } from "src/services/offlineMutationQueue";
 
 let Geolocation: any = null;
 try {
@@ -139,6 +138,16 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     lat?: number;
     lng?: number;
   } | null>(null);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const fetchVehicles = async () => {
     try {
@@ -166,7 +175,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const requestLocationPermission = async (): Promise<boolean> => {
     if (Platform.OS === "ios") {
       try {
-        if (Geolocation?.requestAuthorization) {
+          if (Geolocation?.requestAuthorization) {
           const status = await Geolocation.requestAuthorization("whenInUse");
           return (
             status === "granted" ||
@@ -345,7 +354,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       if (date && date.trim().length > 0) {
         const parsed = parseManualDate(date);
         if (!parsed) {
-          Alert.alert("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).");
+          showStatus("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).", "error");
           setLoading(false);
           return;
         }
@@ -462,7 +471,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         const warrantySyncText = warrantySyncError
           ? `\n\nWarranty status was not updated: ${warrantySyncError}`
           : "";
-        Alert.alert("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
+        showStatus("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
         if (onSuccess) onSuccess();
       }, 300);
     } catch (error: any) {
@@ -478,13 +487,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }
 
       try {
-        await queueExpenseCreate(payload);
+        await queueExpenseCreate(payload as any);
         onClose();
         Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
         if (onSuccess) onSuccess();
       } catch {
         Alert.alert("Error", message || "Failed to add expense");
       }
+      showStatus("Error", error?.message || "Failed to add expense", "error");
     } finally {
       setLoading(false);
     }
@@ -494,7 +504,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     <>
 
       <Modal transparent visible={visible} animationType="fade">
-        <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={styles.backdrop} onPress={() => { if (!loading) onClose(); }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%", alignItems: "center" }}
@@ -503,13 +513,13 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
               <View style={styles.header}>
                 <Text style={styles.title}>Add Manual Entry</Text>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity onPress={onClose} disabled={loading}>
                   <Ionicons name="close" size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
 
               <Label text="Vehicle" />
-              <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+              <TouchableOpacity onPress={() => setShowVehiclePicker(true)} disabled={loading}>
                 <Input
                   value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
                   icon="chevron-down"
@@ -518,14 +528,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
               </TouchableOpacity>
 
               <Label text="Category" />
-              <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
+              <TouchableOpacity onPress={() => setShowCategoryPicker(true)} disabled={loading}>
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
 
               {(category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other') && (
                 <>
                   <Label text="Part Serviced" />
-                  <TouchableOpacity onPress={() => setShowPartPicker(true)}>
+                  <TouchableOpacity onPress={() => setShowPartPicker(true)} disabled={loading}>
                     <Input
                       value={
                         selectedPartTypes.length > 0
@@ -549,6 +559,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"
+                editable={!loading}
               />
 
               <Label text="Odometer Reading (km)" />
@@ -557,6 +568,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={odometer}
                 onChangeText={setOdometer}
                 keyboardType="numeric"
+                editable={!loading}
               />
 
 
@@ -565,6 +577,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 placeholder="Enter description"
                 value={description}
                 onChangeText={setDescription}
+                editable={!loading}
               />
 
               <Label text="Place (Google Maps)" />
@@ -575,6 +588,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                   setPlaceSearch(text);
                   setSelectedPlace(null);
                 }}
+                editable={!loading}
               />
 
 
@@ -584,23 +598,19 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={date}
                 onChangeText={setDate}
                 icon="calendar-outline"
-                onIconPress={openDatePicker}
+                onIconPress={loading ? undefined : openDatePicker}
+                editable={!loading}
               />
 
 
-              <TouchableOpacity
-                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
-                disabled={!isValid || loading}
+              <LoaderButton
+                title="Save Entry"
+                loading={loading}
+                loadingTitle="Saving..."
                 onPress={handleSave}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.saveText, isValid && styles.saveTextActive]}>
-                    Save Entry
-                  </Text>
-                )}
-              </TouchableOpacity>
+                disabled={!isValid}
+                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
+              />
             </Pressable>
           </KeyboardAvoidingView>
         </Pressable>
@@ -777,6 +787,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
           </Pressable>
         </Pressable>
       </Modal>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </>
   );
 }

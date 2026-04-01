@@ -15,6 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import { useFocusEffect } from '../../lib/react-navigation-native';
 import {
   widthPercentageToDP as wp,
@@ -32,6 +33,15 @@ export default function Odometer() {
   const [reading, setReading] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [photoSubmitting, setPhotoSubmitting] = useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const fetchPrimary = useCallback(async () => {
     try {
@@ -60,11 +70,11 @@ export default function Odometer() {
   const handleSaveReading = async () => {
     const value = reading.trim() ? parseInt(reading.replace(/\D/g, ''), 10) : 0;
     if (!vehicle?.id) {
-      Alert.alert('No vehicle', 'Set a primary vehicle first.');
+      showStatus('No vehicle', 'Set a primary vehicle first.', 'error');
       return;
     }
     if (!value || value < 0) {
-      Alert.alert('Invalid reading', 'Enter a valid odometer reading in km.');
+      showStatus('Invalid reading', 'Enter a valid odometer reading in km.', 'error');
       return;
     }
     setSubmitting(true);
@@ -73,8 +83,9 @@ export default function Odometer() {
       setLastOdometerUpdate(vehicle.id, Date.now());
       setWarrantyStatusNeedsRefresh();
       await fetchPrimary();
+      showStatus('Success', 'Odometer updated successfully');
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to update odometer');
+      showStatus('Error', err?.message || 'Failed to update odometer', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -82,7 +93,7 @@ export default function Odometer() {
 
   const handlePhotoUpdate = async () => {
     if (!vehicle?.id) {
-      Alert.alert('No vehicle', 'Set a primary vehicle first.');
+      showStatus('No vehicle', 'Set a primary vehicle first.', 'error');
       return;
     }
     try {
@@ -98,7 +109,7 @@ export default function Odometer() {
           },
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert('Permission denied', 'Camera permission is required to continue.');
+          showStatus('Permission denied', 'Camera permission is required to continue.', 'error');
           return;
         }
       }
@@ -109,7 +120,7 @@ export default function Odometer() {
       });
       if (result?.didCancel) return;
       if (result?.errorCode) {
-        Alert.alert('Camera error', result?.errorMessage || 'Could not open camera.');
+        showStatus('Camera error', result?.errorMessage || 'Could not open camera.', 'error');
         return;
       }
       if (result.assets && result.assets.length > 0) {
@@ -125,7 +136,7 @@ export default function Odometer() {
           const extracted = await vehicleService.extractOdometerViaAI(vehicle.id, fd);
           setReading(String(extracted.reading ?? ''));
         } catch (err: any) {
-          Alert.alert('Error', err?.message || 'Could not read odometer from photo. Try manual entry.');
+          showStatus('Error', err?.message || 'Could not read odometer from photo. Try manual entry.', 'error');
         } finally {
           setPhotoSubmitting(false);
         }

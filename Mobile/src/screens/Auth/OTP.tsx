@@ -4,13 +4,10 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Image,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert,
   Keyboard,
   type ImageSourcePropType,
   type NativeSyntheticEvent,
@@ -22,12 +19,14 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 import { useRoute, useNavigation, type RouteProp } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { sendOtp, verifyOtp } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
+import { getAuthErrorMessage } from '../../utils/errorHandlers';
 
 
 const OTP_LENGTH = 6;
@@ -37,32 +36,23 @@ export default function OTP() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'OTP'>>();
   const dispatch = useAppDispatch();
   const phoneFromParams = route.params?.phone ?? '';
-  const otpFromParams = route.params?.otp ?? '';
   const otpExpiresInFromParams = route.params?.otpExpiresIn;
   const initialExpirySec = typeof otpExpiresInFromParams === 'number' ? otpExpiresInFromParams : 300;
 
-  const [otp, setOtp] = useState<string[]>(() => {
-    if (otpFromParams && /^\d{6}$/.test(otpFromParams)) {
-      return otpFromParams.split('');
-    }
-    return Array(OTP_LENGTH).fill('');
-  });
-  const [devOtp, setDevOtp] = useState(otpFromParams);
+  const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(''));
   const [remainingSec, setRemainingSec] = useState<number>(initialExpirySec);
   const [resending, setResending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
-    if (otpFromParams && /^\d{6}$/.test(otpFromParams)) {
-      setOtp(otpFromParams.split(''));
-    }
-    setDevOtp(otpFromParams);
     if (typeof otpExpiresInFromParams === 'number') {
       setRemainingSec(otpExpiresInFromParams);
     }
-  }, [otpFromParams, otpExpiresInFromParams]);
+  }, [otpExpiresInFromParams]);
 
   useEffect(() => {
     const keyboardDidShow = Keyboard.addListener('keyboardDidShow', () => {
@@ -88,20 +78,18 @@ export default function OTP() {
 
   const handleResend = async () => {
     if (!phoneFromParams || resending || remainingSec > 0) return;
+    setError('');
+    setStatusMessage('');
     setResending(true);
     try {
       const data = await sendOtp(phoneFromParams);
-      if (data.otp && /^\d{6}$/.test(data.otp)) {
-        setDevOtp(data.otp);
-      }
       const nextExpiry = typeof data.otpExpiresIn === 'number' ? data.otpExpiresIn : initialExpirySec;
       setRemainingSec(nextExpiry);
       setOtp(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
-      Alert.alert('OTP sent', 'A new OTP has been sent to your phone.');
+      setStatusMessage('A new OTP has been sent to your phone.');
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to resend OTP';
-      Alert.alert('Resend failed', message);
+      setError(getAuthErrorMessage(e));
     } finally {
       setResending(false);
     }
@@ -115,6 +103,8 @@ export default function OTP() {
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d*$/.test(value)) return;
+    setError('');
+    setStatusMessage('');
     if (value.length > 1) {
       const digits = value.slice(0, OTP_LENGTH).split('');
       setOtp((prev) => {
@@ -157,32 +147,32 @@ export default function OTP() {
   };
 
   const handleConfirm = async () => {
+    if (loading) return;
+
     const code = otp.join('');
-    if (code.length !== OTP_LENGTH) return;
-    if (!phoneFromParams) {
-      Alert.alert('Error', 'Phone number missing. Please go back and sign up again.');
+    if (code.length !== OTP_LENGTH) {
+      setError('Enter the 6-digit OTP');
       return;
     }
+
+    if (!phoneFromParams) {
+      setError('Phone number missing. Please go back and sign in again.');
+      return;
+    }
+
+    setError('');
+    setStatusMessage('');
     setLoading(true);
     try {
       const result = await verifyOtp(phoneFromParams, code);
       dispatch(setUser({ id: result.userId ?? '', email: undefined }));
       navigation.replace('LoginSuccessfull');
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Invalid OTP';
-      Alert.alert('Verification failed', message);
+      setError(getAuthErrorMessage(e));
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const code = otp.join('');
-    if (code.length === OTP_LENGTH && !loading) {
-      handleConfirm();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otp]);
 
   return (
     <KeyboardAvoidingView
@@ -234,13 +224,13 @@ export default function OTP() {
               textContentType={i === 0 ? 'oneTimeCode' : 'none'}
               autoComplete={i === 0 ? 'sms-otp' : 'off'}
               importantForAutofill={i === 0 ? 'yes' : 'no'}
+              editable={!loading}
             />
           ))}
         </View>
 
-        {devOtp ? (
-          <Text style={styles.devOtpText}>Dev OTP: {devOtp}</Text>
-        ) : null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {!error && statusMessage ? <Text style={styles.statusText}>{statusMessage}</Text> : null}
 
         <View style={styles.resendRow}>
           {remainingSec > 0 ? (
@@ -249,29 +239,22 @@ export default function OTP() {
             <Text style={styles.resendText}>Didn't receive the OTP?</Text>
           )}
           {remainingSec <= 0 && (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={[styles.resendButton, resending && styles.resendButtonDisabled]}
+            <LoaderButton
+              title="Resend OTP"
+              loading={resending}
               onPress={handleResend}
-              disabled={resending}
-            >
-              {resending ? null : (
-                <Text style={styles.resendButtonText}>Resend OTP</Text>
-              )}
-            </TouchableOpacity>
+              style={styles.resendButton}
+            />
           )}
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.confirmButton, loading && styles.confirmButtonDisabled]}
+        <LoaderButton
+          title="CONFIRM"
+          loading={loading}
+          loadingTitle="Confirming..."
           onPress={handleConfirm}
-          disabled={loading}
-        >
-          {loading ? null : (
-            <Text style={styles.confirmText}>CONFIRM</Text>
-          )}
-        </TouchableOpacity>
+          style={styles.confirmButton}
+        />
       </ScrollView>
 
     </KeyboardAvoidingView>
@@ -361,6 +344,20 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
     textAlign: 'center',
   },
+  errorText: {
+    width: '100%',
+    fontSize: wp(3.5),
+    color: '#f66',
+    marginBottom: hp(1.5),
+    textAlign: 'center',
+  },
+  statusText: {
+    width: '100%',
+    fontSize: wp(3.5),
+    color: 'rgba(255,255,255,0.75)',
+    marginBottom: hp(1.5),
+    textAlign: 'center',
+  },
   resendRow: {
     width: '100%',
     alignItems: 'center',
@@ -377,6 +374,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: wp(6),
     paddingVertical: hp(1.2),
+    minHeight: 44,
   },
   resendButtonDisabled: {
     opacity: 0.5,
@@ -391,19 +389,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFBF00',
     borderRadius: 18,
     height: 62,
-    alignItems: 'center',
-    justifyContent: 'center',
     shadowColor: '#FFBF00',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
-  },
-  confirmText: {
-    fontFamily: 'Outfit-Black',
-    fontSize: wp(4.5),
-    color: '#000000',
-    letterSpacing: 0,
   },
   confirmButtonDisabled: {
     opacity: 0.7,

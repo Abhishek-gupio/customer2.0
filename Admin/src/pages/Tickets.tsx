@@ -24,16 +24,20 @@ export default function Tickets() {
 
   const isSupport = admin?.role === 'SUPPORT';
 
+  // Initial Fetch on mount
   useEffect(() => {
     fetchTickets();
+  }, []);
 
-    // Listen for real-time updates
+  // Socket synchronization and real-time updates
+  useEffect(() => {
     const socket = getSocket();
     if (admin?.id) {
       socket.emit('join', admin.id);
     }
 
     socket.on('new_support_message', (data: { packet: TicketMessage }) => {
+      // Use the value from the closure which is correctly updated as selecteTicketId is a dependency
       if (selectedTicketId === data.packet.ticketId) {
         setMessages(prev => [...prev, data.packet]);
       }
@@ -52,7 +56,7 @@ export default function Tickets() {
       socket.off('new_support_message');
       socket.off('ticket_status_updated');
     };
-  }, [selectedTicketId]);
+  }, [selectedTicketId, admin?.id]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -20,10 +20,13 @@ import {
   Download,
   ListFilter,
   Calendar,
+  Edit2,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerDetail as CustomerDetailType, type AdminVehicleDetail, type AdminVehicleDocument } from '../api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { EditCustomerModal } from '../components/ui/EditCustomerModal';
 import { cn } from '../lib/cn';
 import { formatDate, formatDateTime, formatTime } from '../lib/dateUtils';
 
@@ -431,18 +434,21 @@ export default function CustomerDetail() {
   const [expenseFilter, setExpenseFilter] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
   const [activeDropdown, setActiveDropdown] = useState<'category' | 'time' | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { admin } = useAuth();
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
+
+  const fetchCustomer = async () => {
+    if (!id) return;
+    setLoading(true);
+    const res = await adminApi.getCustomer(id);
+    setLoading(false);
+    if (res.success) setCustomer(res.data);
+    else setError(res.error.message);
+  };
 
   useEffect(() => {
-    if (!id) return;
-    let ignore = false;
-    setLoading(true);
-    adminApi.getCustomer(id).then((res) => {
-      if (ignore) return;
-      setLoading(false);
-      if (res.success) setCustomer(res.data);
-      else setError(res.error.message);
-    });
-    return () => { ignore = true; };
+    fetchCustomer();
   }, [id]);
 
   const expenses = (customer?.expenses ?? []) as ExpenseRow[];
@@ -486,8 +492,8 @@ export default function CustomerDetail() {
       {/* Sticky Header Section */}
       <div className="shrink-0 space-y-4 pb-4 bg-[#0c0c0e]/40 backdrop-blur-md rounded-b-[2.5rem] p-6 -mx-6 -mt-6 mb-4 border-b border-white/5 z-20">
         <div className="flex flex-col gap-2">
-          <Link 
-            to="/customers" 
+          <Link
+            to="/customers"
             className="inline-flex items-center gap-2 w-fit px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 shadow-lg group"
           >
             <ArrowLeft className="h-3.5 w-3.5 text-[var(--accent)] group-hover:-translate-x-0.5 transition-transform" />
@@ -501,8 +507,21 @@ export default function CustomerDetail() {
                 {customer.email && <span>· {customer.email}</span>}
               </div>
             </div>
-            
-            {/* Glossy Tab Navigation */}
+
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              {isSuperAdmin && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-11 px-4 rounded-xl bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] border-[var(--accent)]/20 font-bold"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+
+              {/* Glossy Tab Navigation */}
             <div className="flex gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]">
               {(['overview', 'vehicles', 'expenses', 'documents', 'tickets'] as const).map((t) => (
                 <button
@@ -522,6 +541,7 @@ export default function CustomerDetail() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Scrollable Content Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10 space-y-4">
@@ -601,7 +621,7 @@ export default function CustomerDetail() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <CardTitle className="flex items-center gap-2.5 font-black text-white uppercase tracking-tight">
-                    <ReceiptIndianRupee className="h-5 w-5 text-[var(--accent)]" /> 
+                    <ReceiptIndianRupee className="h-5 w-5 text-[var(--accent)]" />
                     Financial Overview
                   </CardTitle>
                   <CardDescription className="font-medium text-white/30 tracking-wide">Analysis of ledger entries</CardDescription>
@@ -618,29 +638,29 @@ export default function CustomerDetail() {
                   <div className="flex items-center gap-2">
                     {/* Category Filter */}
                     <div className="relative">
-                      <button 
+                      <button
                         onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'category' ? null : 'category'); }}
                         className={cn(
                           "h-10 w-10 flex items-center justify-center rounded-xl border transition-all duration-300",
-                          expenseFilter 
-                            ? "bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)] shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]" 
+                          expenseFilter
+                            ? "bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)] shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]"
                             : "bg-white/5 border-white/10 text-white/40 hover:text-white"
                         )}
                         title="Category Filter"
                       >
                         <ListFilter className={cn("h-4.5 w-4.5 transition-transform duration-300", activeDropdown === 'category' && "rotate-180 scale-110")} />
                       </button>
-                      
+
                       {activeDropdown === 'category' && (
                         <div className="absolute right-0 mt-3 w-48 rounded-2xl border border-white/10 bg-[#0c0c0e] shadow-2xl z-50 p-2 animate-in zoom-in-95 duration-200">
-                          <button 
+                          <button
                             onClick={() => { setExpenseFilter(null); setActiveDropdown(null); }}
                             className={cn("w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all", !expenseFilter ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}
                           >
                             All Categories
                           </button>
                           {categories.map(cat => (
-                            <button 
+                            <button
                               key={cat}
                               onClick={() => { setExpenseFilter(cat); setActiveDropdown(null); }}
                               className={cn("w-full text-left px-3 py-2 mt-1 rounded-lg text-xs font-bold transition-all capitalize", expenseFilter === cat ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}
@@ -654,12 +674,12 @@ export default function CustomerDetail() {
 
                     {/* Time Filter */}
                     <div className="relative">
-                      <button 
+                      <button
                         onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'time' ? null : 'time'); }}
                         className={cn(
                           "h-10 w-10 flex items-center justify-center rounded-xl border transition-all duration-300",
-                          timeFilter !== 'all' 
-                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                          timeFilter !== 'all'
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                             : "bg-white/5 border-white/10 text-white/40 hover:text-white"
                         )}
                         title="Time Filter"
@@ -670,7 +690,7 @@ export default function CustomerDetail() {
                       {activeDropdown === 'time' && (
                         <div className="absolute right-0 mt-3 w-48 rounded-2xl border border-white/10 bg-[#0c0c0e] shadow-2xl z-50 p-2 animate-in zoom-in-95 duration-200">
                           {(['all', 'today', 'week', 'month', 'year'] as const).map(opt => (
-                            <button 
+                            <button
                               key={opt}
                               onClick={() => { setTimeFilter(opt); setActiveDropdown(null); }}
                               className={cn(
@@ -697,16 +717,16 @@ export default function CustomerDetail() {
             <CardContent className="p-6 space-y-2">
               {filteredExpenses.length > 0 ? (
                 filteredExpenses.map((e) => (
-                    <div key={e.id} className="group rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 hover:bg-white/[0.05] transition-all">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="font-extrabold text-lg text-white/90">₹{e.amount.toLocaleString()}</div>
-                        <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[10px] font-black text-white/40 uppercase tracking-widest group-hover:text-white/60 transition-colors">
-                          {e.category}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-xs font-medium text-white/30">{formatDateTime(e.date)}</div>
+                  <div key={e.id} className="group rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 hover:bg-white/[0.05] transition-all">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-extrabold text-lg text-white/90">₹{e.amount.toLocaleString()}</div>
+                      <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[10px] font-black text-white/40 uppercase tracking-widest group-hover:text-white/60 transition-colors">
+                        {e.category}
+                      </span>
                     </div>
-                  ))
+                    <div className="mt-1 text-xs font-medium text-white/30">{formatDateTime(e.date)}</div>
+                  </div>
+                ))
               ) : (
                 <div className="text-sm text-white/60 py-10 text-center">No expense records found.</div>
               )}
@@ -767,16 +787,16 @@ export default function CustomerDetail() {
                       <span className={cn(
                         "text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md border transition-colors",
                         t.status === 'OPEN' ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" :
-                        t.status === 'IN_PROGRESS' ? "bg-blue-500/5 text-blue-500 border-blue-500/10" :
-                        "bg-white/5 text-white/40 border-white/5"
+                          t.status === 'IN_PROGRESS' ? "bg-blue-500/5 text-blue-500 border-blue-500/10" :
+                            "bg-white/5 text-white/40 border-white/5"
                       )}>
                         {t.status}
                       </span>
                       <span className={cn(
                         "text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md border transition-colors",
                         t.priority === 'HIGH' || t.priority === 'URGENT' ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                        t.priority === 'MEDIUM' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
-                        "bg-white/5 text-white/40 border-white/5"
+                          t.priority === 'MEDIUM' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
+                            "bg-white/5 text-white/40 border-white/5"
                       )}>
                         {t.priority}
                       </span>
@@ -795,6 +815,21 @@ export default function CustomerDetail() {
             onClose={() => setSelectedDocument(null)}
           />
         )}
+
+        <EditCustomerModal
+          isOpen={isEditModalOpen}
+          initialData={customer}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={async (data) => {
+            if (!id) return;
+            const res = await adminApi.updateCustomer(id, data);
+            if (res.success) {
+              await fetchCustomer();
+            } else {
+              throw new Error(res.error.message);
+            }
+          }}
+        />
       </div>
     </div>
   );

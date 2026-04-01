@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, ArrowRight, Clock, TrendingUp, Search, Activity, PieChart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, Clock, TrendingUp, Activity, PieChart } from 'lucide-react';
 import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart, Pie, Cell, PieChart as RePieChart } from 'recharts';
 import { adminApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -10,10 +10,12 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { cn } from '../lib/cn';
 import CountUp from '../components/ui/CountUp/CountUp';
 import { formatDate } from '../lib/dateUtils';
+import { pdf } from '@react-pdf/renderer';
+import { DashboardReport } from '../components/reports/DashboardReport';
+import logoImg from '../assets/images/logo.png';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<{
     customers: number;
     vehicles: number;
@@ -33,8 +35,34 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [selectedRange, setSelectedRange] = useState(7);
   const [isMounted, setIsMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<any>(null);
+
+  // Health Filtering State
+  const [selectedHealth, setSelectedHealth] = useState<string | null>(null);
+  const [healthVehicles, setHealthVehicles] = useState<any[]>([]);
+  const [loadingHealth, setLoadingHealth] = useState(false);
+
+
+  const fetchHealthVehicles = async (status: string) => {
+
+    if (selectedHealth === status) {
+      setSelectedHealth(null);
+      setHealthVehicles([]);
+      return;
+    }
+    setSelectedHealth(status);
+    setLoadingHealth(true);
+    try {
+      const res = await adminApi.listVehicles({ healthStatus: status, limit: 10 });
+      if (res.success) {
+        setHealthVehicles(res.data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingHealth(false);
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -150,7 +178,7 @@ export default function Dashboard() {
       {/* --- DASHBOARD HEADER & QUICK ACTIONS (Local title removed) --- */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
         <div />
-        
+
         <div className="flex items-center gap-3">
           {/* Action buttons removed per request */}
         </div>
@@ -209,8 +237,8 @@ export default function Dashboard() {
                 Trends Analysis
               </CardTitle>
               <CardDescription>
-                Growth and behavior over the last {selectedRange} days. 
-                Total expenses: ₹{weekExpenseTotal.toLocaleString('en-IN')}
+                Growth and behavior over the last {selectedRange} days.
+                Total expenses: {formatCurrencyShorthand(weekExpenseTotal)}
               </CardDescription>
             </div>
             <div className="flex items-center gap-1.5 rounded-2xl bg-white/[0.03] p-1.5 border border-white/[0.06] shadow-inner">
@@ -220,8 +248,8 @@ export default function Dashboard() {
                   onClick={() => setSelectedRange(r)}
                   className={cn(
                     "px-4 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all duration-300 rounded-xl relative overflow-hidden",
-                    selectedRange === r 
-                      ? "bg-white text-[#0a0a0a] shadow-[0_4px_12px_rgba(255,255,255,0.2)] scale-105 active:scale-95" 
+                    selectedRange === r
+                      ? "bg-white text-[#0a0a0a] shadow-[0_4px_12px_rgba(255,255,255,0.2)] scale-105 active:scale-95"
                       : "text-white/30 hover:text-white/60 hover:bg-white/5"
                   )}
                 >
@@ -245,26 +273,26 @@ export default function Dashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="name" 
-                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 500 }} 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
                     dy={10}
                     interval={selectedRange > 30 ? 10 : selectedRange > 7 ? 2 : 0}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="left"
-                    tick={{ fill: 'var(--accent)', fontSize: 11, fontWeight: 600 }} 
-                    axisLine={false} 
+                    tick={{ fill: 'var(--accent)', fontSize: 11, fontWeight: 600 }}
+                    axisLine={false}
                     tickLine={false}
                     tickFormatter={(val) => Math.floor(val) === val ? val : ''}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="right"
                     orientation="right"
-                    tick={{ fill: '#f59e0b', fontSize: 10, fontWeight: 500 }} 
-                    axisLine={false} 
+                    tick={{ fill: '#f59e0b', fontSize: 10, fontWeight: 500 }}
+                    axisLine={false}
                     tickLine={false}
                     tickFormatter={(val) => `₹${formatCurrencyShorthand(val).replace('₹', '')}`}
                   />
@@ -297,30 +325,30 @@ export default function Dashboard() {
                       );
                     }}
                   />
-                  <Legend 
-                    verticalAlign="top" 
-                    align="right" 
-                    height={36} 
-                    iconType="circle" 
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    height={36}
+                    iconType="circle"
                     formatter={(value) => <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{value === 'customers' ? 'Signups' : 'Expenses'}</span>}
                   />
-                  <Area 
+                  <Area
                     yAxisId="left"
                     name="customers"
-                    type="monotone" 
-                    dataKey="customers" 
-                    stroke="var(--accent)" 
-                    strokeWidth={3} 
-                    fill="url(#signupGradient)" 
+                    type="monotone"
+                    dataKey="customers"
+                    stroke="var(--accent)"
+                    strokeWidth={3}
+                    fill="url(#signupGradient)"
                     animationDuration={1500}
                     dot={selectedRange > 30 ? false : { r: 3, fill: 'var(--accent)', stroke: '#0a0a0a', strokeWidth: 1.5, fillOpacity: 1 }}
                     activeDot={{ r: 5, fill: 'var(--accent)', stroke: 'white', strokeWidth: 2 }}
                   />
-                  <Bar 
+                  <Bar
                     yAxisId="right"
-                    dataKey="expenseAmount" 
-                    fill="url(#expenseGradient)" 
-                    radius={[4, 4, 0, 0]} 
+                    dataKey="expenseAmount"
+                    fill="url(#expenseGradient)"
+                    radius={[4, 4, 0, 0]}
                     barSize={selectedRange > 7 ? 8 : 20}
                     animationDuration={2000}
                   />
@@ -351,10 +379,10 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-1 flex items-baseline gap-1">
                   <span className="text-xl font-black text-white">
-                    <CountUp 
-                      to={stats?.unverifiedVehiclesCount ?? 0} 
-                      duration={1} 
-                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val/1000).toFixed(1)}k` : Math.floor(val).toString()}
+                    <CountUp
+                      to={stats?.unverifiedVehiclesCount ?? 0}
+                      duration={1}
+                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.floor(val).toString()}
                     />
                   </span>
                   <span className="text-[10px] text-white/50 font-medium">Vehicles</span>
@@ -369,10 +397,10 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-1 flex items-baseline gap-1">
                   <span className="text-xl font-black text-white">
-                    +<CountUp 
-                      to={stats?.totalCustomersToday ?? 0} 
-                      duration={1} 
-                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val/1000).toFixed(1)}k` : Math.floor(val).toString()}
+                    +<CountUp
+                      to={stats?.totalCustomersToday ?? 0}
+                      duration={1}
+                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.floor(val).toString()}
                     />
                   </span>
                   <span className="text-[10px] text-white/50 font-medium">New Customers</span>
@@ -392,7 +420,7 @@ export default function Dashboard() {
                   stats.recentHighExpenses.map((exp) => (
                     <Link
                       key={exp.id}
-                      to={`/customers`} 
+                      to={`/customers`}
                       className="group flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-2.5 transition hover:bg-white/[0.04] hover:border-white/[0.08]"
                     >
                       <div className="flex flex-col gap-0.5 min-w-0">
@@ -421,8 +449,8 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        {/* EXPENSE CATEGORY ANALYSIS */}
-        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
+        {/* EXPENSE CATEGORY ANALYSIS - Now spanning 2 columns for a "big" graph */}
+        <Card className="xl:col-span-2 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <PieChart className="h-4 w-4 text-orange-400" />
@@ -430,7 +458,7 @@ export default function Dashboard() {
             </CardTitle>
             <CardDescription>Breakdown by major categories</CardDescription>
           </CardHeader>
-          <CardContent className="h-[280px] relative">
+          <CardContent className="h-[320px] relative">
             {stats?.expenseCategoryBreakdown && stats.expenseCategoryBreakdown.length > 0 ? (
               <div className="h-full w-full relative">
                 <ResponsiveContainer width="100%" height="100%">
@@ -439,14 +467,14 @@ export default function Dashboard() {
                       data={stats.expenseCategoryBreakdown}
                       cx="50%"
                       cy="50%"
-                      innerRadius={80}
-                      outerRadius={105}
+                      innerRadius={90}
+                      outerRadius={120}
                       paddingAngle={8}
                       dataKey="amount"
                       onMouseEnter={(_, index) => setActiveSegment(stats.expenseCategoryBreakdown[index])}
                       onMouseLeave={() => setActiveSegment(null)}
                     >
-                      {stats.expenseCategoryBreakdown.map((entry, index) => {
+                      {stats.expenseCategoryBreakdown.map((_, index) => {
                         const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
                         return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="none" />;
                       })}
@@ -455,19 +483,20 @@ export default function Dashboard() {
                   </RePieChart>
                 </ResponsiveContainer>
 
-                {/* Fixed "Box" in the corner for hovered data */}
+                {/* Hover data display */}
                 <div className={cn(
-                  "absolute top-0 right-0 p-3 rounded-2xl border border-white/10 bg-[#0c0c0c]/80 backdrop-blur-md transition-all duration-300 z-20",
+                  "absolute top-0 right-0 p-4 rounded-2xl border border-white/10 bg-[#0c0c0c]/80 backdrop-blur-md transition-all duration-300 z-20",
                   activeSegment ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
                 )}>
                   <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">{activeSegment?.category}</div>
-                  <div className="text-lg font-black text-white">₹{activeSegment?.amount?.toLocaleString('en-IN')}</div>
+                  <div className="text-xl font-black text-white">{formatCurrencyShorthand(activeSegment?.amount || 0)}</div>
+                  <div className="text-[10px] text-white/30 mt-1">{activeSegment?.count} items</div>
                 </div>
 
                 {/* Centered Total Indicator */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-10 text-center">
-                   <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Total</div>
-                   <div className="text-2xl font-black text-white leading-none">₹{(stats?.totalExpenses || 0).toLocaleString('en-IN')}</div>
+                  <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Total</div>
+                  <div className="text-3xl font-black text-white leading-none">{formatCurrencyShorthand(stats?.totalExpenses || 0)}</div>
                 </div>
               </div>
             ) : (
@@ -476,57 +505,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* VEHICLE HEALTH MONITOR */}
-        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="h-4 w-4 text-emerald-400" />
-              Vehicle Health
-            </CardTitle>
-            <CardDescription>Status of currently monitored fleet</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="grid grid-cols-1 gap-2">
-                <HealthStatusRow 
-                   label="Critical Condition" 
-                   count={stats?.vehicleHealthDistribution?.critical || 0} 
-                   color="bg-red-500" 
-                   iconColor="text-red-400" 
-                />
-                <HealthStatusRow 
-                   label="Maintenance Required" 
-                   count={stats?.vehicleHealthDistribution?.warning || 0} 
-                   color="bg-amber-500" 
-                   iconColor="text-amber-400" 
-                />
-                <HealthStatusRow 
-                   label="Good Status" 
-                   count={stats?.vehicleHealthDistribution?.good || 0} 
-                   color="bg-emerald-500" 
-                   iconColor="text-emerald-400" 
-                />
-             </div>
-             
-             <div className="pt-2">
-                <div className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-3 px-1 flex items-center justify-between">
-                  <span>Priority Support Tickets</span>
-                  <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400 text-[9px]">{(stats?.ticketPriorityDistribution || []).find(p => p.priority === 'HIGH')?.count || 0} Critical</span>
-                </div>
-                <div className="space-y-2">
-                   {stats?.ticketPriorityDistribution?.length ? stats.ticketPriorityDistribution.map((p, i) => (
-                      <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                         <span className="text-xs font-semibold text-white/70">{p.priority} Priority</span>
-                         <span className="text-sm font-black text-white">{p.count}</span>
-                      </div>
-                   )) : (
-                    <div className="text-[10px] text-white/30 text-center py-2">No active tickets</div>
-                   )}
-                </div>
-             </div>
-          </CardContent>
-        </Card>
-
-        {/* RECENT HIGH REVENUE/EXPENSE FEED */}
+        {/* GROWTH SUMMARY - Beside the big chart */}
         <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -536,159 +515,229 @@ export default function Dashboard() {
             <CardDescription>Activity in the current period</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
-                <div>
-                   <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">New Signups Today</div>
-                   <div className="text-2xl font-black text-white mt-0.5">+{stats?.totalCustomersToday || 0}</div>
-                </div>
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                   <Users className="h-5 w-5" />
-                </div>
-             </div>
-             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
-                <div>
-                   <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Pending Verification</div>
-                   <div className="text-2xl font-black text-white mt-0.5">{stats?.unverifiedVehiclesCount || 0}</div>
-                </div>
-                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                   <ShieldAlert className="h-5 w-5" />
-                </div>
-             </div>
-             
-             <button 
-               onClick={() => {
-                 let iframe = document.getElementById('report-iframe') as HTMLIFrameElement;
-                 if (!iframe) {
-                   iframe = document.createElement('iframe');
-                   iframe.id = 'report-iframe';
-                   iframe.style.display = 'none';
-                   document.body.appendChild(iframe);
-                 }
-                 
-                 const html = `
-                   <html>
-                     <head>
-                       <title>Gupio Dashboard Report</title>
-                       <style>
-                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-                         body { font-family: 'Inter', sans-serif; background: #fff; color: #000; padding: 40px; margin: 0; }
-                         .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px; }
-                         .logo { height: 40px; }
-                         .title { font-size: 24px; font-weight: 900; color: #000; text-transform: uppercase; margin: 0; }
-                         .meta { color: #666; font-size: 13px; margin-top: 5px; }
-                         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
-                         .card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; }
-                         .card-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
-                         .card-value { font-size: 20px; font-weight: 900; color: #000; }
-                         .section-title { font-size: 14px; font-weight: 900; color: #000; text-transform: uppercase; margin: 25px 0 12px 0; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
-                         .table { width: 100%; border-collapse: collapse; }
-                         .table th { text-align: left; font-size: 11px; color: #999; text-transform: uppercase; padding: 8px; border-bottom: 1px solid #f0f0f0; }
-                         .table td { padding: 8px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
-                         .footer { margin-top: 40px; text-align: center; color: #ccc; font-size: 9px; border-top: 1px solid #f0f0f0; padding-top: 15px; }
-                       </style>
-                     </head>
-                     <body>
-                       <div class="header">
-                         <div>
-                           <h1 class="title">Admin Dashboard Report</h1>
-                           <div class="meta">Analysis Period: <strong>${selectedRange} Days</strong> | Date: ${formatDate(new Date())}</div>
-                         </div>
-                         <img src="/src/assets/images/logo.png" class="logo" />
-                       </div>
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
+              <div>
+                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">New Signups Today</div>
+                <div className="text-2xl font-black text-white mt-0.5">+{stats?.totalCustomersToday || 0}</div>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <Users className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
+              <div>
+                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Pending Verification</div>
+                <div className="text-2xl font-black text-white mt-0.5">{stats?.unverifiedVehiclesCount || 0}</div>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+            </div>
 
-                       <div class="grid">
-                         <div class="card">
-                           <div class="card-label">Total Customers</div>
-                           <div class="card-value">${stats?.customers}</div>
-                         </div>
-                         <div class="card">
-                           <div class="card-label">Active Fleet</div>
-                           <div class="card-value">${stats?.vehicles}</div>
-                         </div>
-                         <div class="card">
-                           <div class="card-label">Total Operating Expenses</div>
-                           <div class="card-value">₹${stats?.totalExpenses?.toLocaleString('en-IN')}</div>
-                         </div>
-                         <div class="card">
-                           <div class="card-label">Support Tickets</div>
-                           <div class="card-value">${stats?.supportTicketsOpen} Open</div>
-                         </div>
-                       </div>
+            <button
+              onClick={async () => {
+                const blob = await pdf(
+                  <DashboardReport stats={stats} selectedRange={selectedRange} logoUrl={logoImg} />
+                ).toBlob();
 
-                       <h2 class="section-title">Fleet Health Summary</h2>
-                       <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
-                         <div class="card" style="border-left: 4px solid #ef4444;">
-                           <div class="card-label">Critical</div>
-                           <div class="card-value">${stats?.vehicleHealthDistribution?.critical || 0}</div>
-                         </div>
-                         <div class="card" style="border-left: 4px solid #f59e0b;">
-                           <div class="card-label">Warning</div>
-                           <div class="card-value">${stats?.vehicleHealthDistribution?.warning || 0}</div>
-                         </div>
-                         <div class="card" style="border-left: 4px solid #10b981;">
-                           <div class="card-label">Good</div>
-                           <div class="card-value">${stats?.vehicleHealthDistribution?.good || 0}</div>
-                         </div>
-                       </div>
-
-                       <h2 class="section-title">Operating Costs Breakdown</h2>
-                       <table class="table">
-                         <thead>
-                           <tr>
-                             <th>Expense Category</th>
-                             <th>Records</th>
-                             <th>Total Amount</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           ${(stats?.expenseCategoryBreakdown || []).map(cat => `
-                             <tr>
-                               <td><strong>${cat.category}</strong></td>
-                               <td>${cat.count}</td>
-                               <td>₹${cat.amount.toLocaleString('en-IN')}</td>
-                             </tr>
-                           `).join('')}
-                         </tbody>
-                       </table>
-
-                       <div class="footer">
-                         Generated by Gupio Admin Terminal. This document contains confidential operational data.
-                       </div>
-                     </body>
-                   </html>
-                 `;
-
-                 const doc = iframe.contentWindow?.document || iframe.contentDocument;
-                 if (doc) {
-                   doc.open();
-                   doc.write(html);
-                   doc.close();
-                   setTimeout(() => {
-                     iframe.contentWindow?.focus();
-                     iframe.contentWindow?.print();
-                   }, 1000);
-                 }
-               }}
-               className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
-             >
-                Download Full Report
-             </button>
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Gupio_Dashboard_Report_${selectedRange}D.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              }}
+              className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
+            >
+              Download Full Report
+            </button>
           </CardContent>
         </Card>
       </div>
+
+      {/* VEHICLE HEALTH MONITOR - Now full width at the bottom */}
+      <div className="grid grid-cols-1 gap-4">
+        <Card className="border-none bg-gradient-to-b from-white/[0.02] to-transparent">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Activity className="h-5 w-5 text-emerald-400" />
+                  Vehicle Health Monitoring
+                </CardTitle>
+                <CardDescription>Click a status to see affected vehicles</CardDescription>
+              </div>
+              <div className="flex items-center gap-4 bg-white/[0.03] px-4 py-2 rounded-2xl border border-white/5">
+                <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mr-2">Quick Stats:</div>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-red-500">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" /> {stats?.vehicleHealthDistribution?.critical || 0}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {stats?.vehicleHealthDistribution?.warning || 0}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-500">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {stats?.vehicleHealthDistribution?.good || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <HealthStatusRow
+                label="Critical Condition"
+                count={stats?.vehicleHealthDistribution?.critical || 0}
+                color="bg-red-500"
+                iconColor="text-red-400"
+                isActive={selectedHealth === 'critical'}
+                onClick={() => fetchHealthVehicles('critical')}
+              />
+              <HealthStatusRow
+                label="Maintenance Required"
+                count={stats?.vehicleHealthDistribution?.warning || 0}
+                color="bg-amber-500"
+                iconColor="text-amber-400"
+                isActive={selectedHealth === 'warning'}
+                onClick={() => fetchHealthVehicles('warning')}
+              />
+              <HealthStatusRow
+                label="Good Status"
+                count={stats?.vehicleHealthDistribution?.good || 0}
+                color="bg-emerald-500"
+                iconColor="text-emerald-400"
+                isActive={selectedHealth === 'good'}
+                onClick={() => fetchHealthVehicles('good')}
+              />
+            </div>
+
+            {/* Dynamic Vehicle List */}
+            {selectedHealth && (
+              <div className="mt-4 rounded-2xl bg-white/[0.01] border border-white/[0.04] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="flex items-center justify-between px-4 py-3 bg-white/[0.03] border-b border-white/5">
+                  <h4 className="text-xs font-bold text-white/70 uppercase tracking-widest py-1">
+                    Showing: {selectedHealth === 'critical' ? 'Critical Vehicles' : selectedHealth === 'warning' ? 'Maintenance Required' : 'Good Condition Vehicles'}
+                  </h4>
+                  <button onClick={() => setSelectedHealth(null)} className="text-[10px] font-bold text-white/30 hover:text-white">CLOSE</button>
+                </div>
+
+                {loadingHealth ? (
+                  <div className="p-8 flex flex-col items-center justify-center gap-3">
+                    <div className="h-5 w-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-tighter">Scanning Fleet...</span>
+                  </div>
+                ) : healthVehicles.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-white/[0.04]">
+                          <th className="px-5 py-3 text-[10px] font-bold text-white/30 uppercase">Registration</th>
+                          <th className="px-5 py-3 text-[10px] font-bold text-white/30 uppercase">Vehicle Detail</th>
+                          <th className="px-5 py-3 text-[10px] font-bold text-white/30 uppercase">Owner</th>
+                          <th className="px-5 py-3 text-[10px] font-bold text-white/30 uppercase">Health Score</th>
+                          <th className="px-5 py-3 text-[10px] font-bold text-white/30 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.02]">
+                        {healthVehicles.map((v) => (
+                          <tr key={v.id} className="group hover:bg-white/[0.01] transition-colors">
+                            <td className="px-5 py-3 text-xs font-black text-white/90">{v.registrationNumber}</td>
+                            <td className="px-5 py-3">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-white/70">{v.make} {v.model}</span>
+                                <span className="text-[10px] text-white/30 uppercase">{v.fuelType} • {v.vehicleType}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-xs font-medium text-white/60">{v.customer?.fullName || 'N/A'}</td>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-12 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                  <div
+                                    className={cn(
+                                      "h-full rounded-full transition-all duration-1000",
+                                      (v.healthScore?.overallScore || 0) < 50 ? 'bg-red-500' : (v.healthScore?.overallScore || 0) < 80 ? 'bg-amber-500' : 'bg-emerald-500'
+                                    )}
+                                    style={{ width: `${v.healthScore?.overallScore || 0}%` }}
+                                  />
+                                </div>
+                                <span className="text-[11px] font-black text-white">{v.healthScore?.overallScore || 0}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3">
+                              <Link to={`/customers/${v.customer?.id}`} className="text-[10px] font-black text-[var(--accent)] hover:underline">VIEW DETAIL</Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-[11px] text-white/20">No vehicles found in this category.</div>
+                )}
+              </div>
+            )}
+
+            {/* Tickets Section below the interactive list or stats */}
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+              <div>
+                <div className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-4 px-1 flex items-center justify-between">
+                  <span>Priority Support Tickets</span>
+                  <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400 text-[9px]">{(stats?.ticketPriorityDistribution || []).find(p => p.priority === 'HIGH')?.count || 0} Critical</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {stats?.ticketPriorityDistribution?.length ? stats.ticketPriorityDistribution.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] group hover:bg-white/[0.04] transition-all">
+                      <span className="text-xs font-semibold text-white/70">{p.priority} Priority</span>
+                      <span className="text-sm font-black text-white">{p.count}</span>
+                    </div>
+                  )) : (
+                    <div className="col-span-2 text-[10px] text-white/30 text-center py-2">No active tickets</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-center">
+                <div className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-5">
+                  <h5 className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <ShieldAlert className="h-3 w-3" /> System Alert
+                  </h5>
+                  <p className="text-xs text-amber-200/60 leading-relaxed mb-4">
+                    There are {stats?.unverifiedVehiclesCount || 0} vehicles pending RC verification. Please ensure all documents are checked against official RTO records to maintain data integrity.
+                  </p>
+                  <Link to="/vehicles" className="text-[10px] font-black text-amber-400 hover:text-amber-300 transition-colors uppercase tracking-tighter underline underline-offset-4">Go to verification center &rarr;</Link>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   );
 }
 
-function HealthStatusRow({ label, count, color, iconColor }: { label: string; count: number; color: string; iconColor: string }) {
+function HealthStatusRow({ label, count, color, iconColor, onClick, isActive }: { label: string; count: number; color: string; iconColor: string; onClick?: () => void; isActive?: boolean }) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] group hover:bg-white/[0.04] transition-all">
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border transition-all w-full text-left outline-none",
+        isActive
+          ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-[0_0_20px_rgba(var(--accent-rgb),0.1)]"
+          : "border-white/[0.04] group hover:bg-white/[0.04] hover:border-white/[0.08]"
+      )}
+    >
       <div className="flex items-center gap-3">
-        <div className={cn("h-2 w-2 rounded-full", color)} />
-        <span className="text-xs font-semibold text-white/80">{label}</span>
+        <div className={cn("h-2.5 w-2.5 rounded-full", color, isActive && "animate-pulse")} />
+        <span className={cn("text-xs font-bold uppercase tracking-wider", isActive ? "text-white" : "text-white/60 group-hover:text-white/80")}>{label}</span>
       </div>
-      <span className={cn("text-sm font-black", iconColor)}>{count}</span>
-    </div>
+      <div className="flex items-center gap-2">
+        <span className={cn("text-lg font-black transition-transform", iconColor, isActive && "scale-110")}>{count}</span>
+        {isActive && <div className="h-1 w-1 rounded-full bg-white animate-bounce" />}
+      </div>
+    </button>
   );
 }
 
@@ -722,8 +771,9 @@ function KPICard({
 
   const formatValueWithShorthand = (val: number) => {
     if (isNaN(val)) return '0';
+    if (val >= 10000000) return `${(val / 10000000).toFixed(2)}CR`;
     if (val >= 100000) return `${(val / 100000).toFixed(2)}L`;
-    if (val >= 1000) return `${(val / 1000).toFixed(1)}k`;
+    if (val >= 1000) return `${(val / 1000).toFixed(1)}K`;
     return Math.floor(val).toLocaleString('en-IN');
   };
 
@@ -802,10 +852,10 @@ function KPICard({
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-[22px] font-extrabold tracking-tight text-white leading-none">
                 {isCurrency && "₹"}
-                <CountUp 
-                  to={Number(value)} 
-                  separator="," 
-                  duration={1} 
+                <CountUp
+                  to={Number(value)}
+                  separator=","
+                  duration={1}
                   startWhen={true}
                   formatter={formatValueWithShorthand}
                 />
@@ -833,10 +883,10 @@ function KPICard({
             <div className="flex items-baseline gap-1.5">
               <span className="text-[17px] font-extrabold text-white leading-none">
                 {isCurrency && "₹"}
-                <CountUp 
-                  to={Number(value)} 
-                  separator="," 
-                  duration={1} 
+                <CountUp
+                  to={Number(value)}
+                  separator=","
+                  duration={1}
                   startWhen={true}
                   formatter={formatValueWithShorthand}
                 />
@@ -854,26 +904,26 @@ function KPICard({
           <div className="absolute right-[-8px] bottom-[-12px] w-[62%] h-[110px] opacity-90 pointer-events-none z-10 min-h-0 min-w-0">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
-              <AreaChart data={displayChartData} margin={{ top: 6, right: 8, bottom: 10, left: 4 }}>
-                <YAxis hide domain={[0, 'dataMax + 2']} padding={{ top: 16, bottom: 0 }} />
-                <defs>
-                  <linearGradient id={`grad-${title.replace(/\s+/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={style.shadowColor} stopOpacity={0.28} />
-                    <stop offset="100%" stopColor={style.shadowColor} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="val"
-                  stroke={style.shadowColor}
-                  strokeWidth={2}
-                  fill={`url(#grad-${title.replace(/\s+/g, '')})`}
-                  dot={false}
-                  isAnimationActive={true}
-                  animationDuration={1500}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+                <AreaChart data={displayChartData} margin={{ top: 6, right: 8, bottom: 10, left: 4 }}>
+                  <YAxis hide domain={[0, 'dataMax + 2']} padding={{ top: 16, bottom: 0 }} />
+                  <defs>
+                    <linearGradient id={`grad-${title.replace(/\s+/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={style.shadowColor} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={style.shadowColor} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="monotone"
+                    dataKey="val"
+                    stroke={style.shadowColor}
+                    strokeWidth={2}
+                    fill={`url(#grad-${title.replace(/\s+/g, '')})`}
+                    dot={false}
+                    isAnimationActive={true}
+                    animationDuration={1500}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
@@ -886,8 +936,9 @@ function KPICard({
 
 function formatCurrencyShorthand(val: number) {
   if (isNaN(val)) return '₹0';
+  if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)}CR`;
   if (val >= 100000) return `₹${(val / 100000).toFixed(2)}L`;
-  if (val >= 1000) return `₹${(val / 1000).toFixed(1)}k`;
+  if (val >= 1000) return `₹${(val / 1000).toFixed(1)}K`;
   return `₹${val.toLocaleString('en-IN')}`;
 }
 
@@ -895,11 +946,11 @@ function calculateTrend(trend: any[], key: string) {
   if (trend.length < 2) return { value: '0', isPositive: true };
   const latest = trend[trend.length - 1][key] || 0;
   const previous = trend[trend.length - 2][key] || 0;
-  
+
   if (previous === 0) {
     return { value: latest > 0 ? '100' : '0', isPositive: true };
   }
-  
+
   const diff = ((latest - previous) / previous) * 100;
   return {
     value: Math.abs(diff).toFixed(0),

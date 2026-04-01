@@ -9,7 +9,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   Alert,
   type ImageSourcePropType,
   Animated as RNAnimated,
@@ -24,9 +23,16 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { GOOGLE_WEB_CLIENT_ID } from '../../config';
-import { login as loginApi, loginWithGoogle } from '../../services/authService';
+import LoaderButton from '../../components/Button';
+import {
+  formatPhoneNumber,
+  login,
+  loginWithGoogle,
+} from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
+import { getAuthErrorMessage, isOtpCooldownError } from '../../utils/errorHandlers';
+import { validateIndianPhone } from '../../utils/validators';
 
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signin'>;
@@ -64,46 +70,32 @@ export default function Signin() {
   };
 
   const handleSubmit = async () => {
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) {
-      setError('Enter a valid 10-digit phone number');
+    if (loading) {
       return;
     }
+
+    const validationError = validateIndianPhone(phone);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setError('');
+    const phoneNumber = formatPhoneNumber(phone);
     setLoading(true);
     try {
-      const phoneNumber = digits.length === 10 ? `+91${digits}` : phone.trim();
-      const data = await loginApi(phoneNumber);
+      await login(phoneNumber);
       navigation.navigate('OTP', {
         phone: phoneNumber,
-        ...(data.otp && { otp: data.otp }),
-        ...(typeof data.otpExpiresIn === 'number' && { otpExpiresIn: data.otpExpiresIn }),
       });
-      if (data.otp) {
-        Alert.alert('Dev OTP', `Use this OTP: ${data.otp}`, [{ text: 'OK' }]);
-      }
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Sign in failed';
-      if (
-        message.toLowerCase().includes('please sign up') ||
-        message.toLowerCase().includes('sign up')
-      ) {
-        setError('Please sign up');
-        Alert.alert('Not registered', 'This number is not registered. Please sign up.', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign Up', onPress: () => navigation.navigate('Signup') },
-        ]);
-      } else if (
-        message.toLowerCase().includes('invalid phone') ||
-        message.toLowerCase().includes('invalid number') ||
-        message.toLowerCase().includes('not a valid')
-      ) {
-        setError('Invalid number');
-        Alert.alert('Invalid number', 'Please enter a valid phone number.');
-      } else {
-        setError(message);
-        Alert.alert('Sign in failed', message);
+      if (isOtpCooldownError(e)) {
+        navigation.navigate('OTP', {
+          phone: phoneNumber,
+        });
+        return;
       }
+      setError(getAuthErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -172,23 +164,23 @@ export default function Signin() {
             keyboardType="phone-pad"
             autoCapitalize="none"
             autoCorrect={false}
+            editable={!loading && !googleLoading}
           />
         </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <RNAnimated.View style={{ width: '100%', transform: [{ scale: buttonScale }] }}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            <Text style={styles.submitText}>Submit</Text>
-            <Icon name="arrow-right" size={wp(5)} color="#000" />
-          </TouchableOpacity>
+          <View onTouchStart={handlePressIn} onTouchEnd={handlePressOut}>
+            <LoaderButton
+              title="Sign In"
+              loading={loading}
+              loadingTitle="Signing In..."
+              onPress={handleSubmit}
+              disabled={googleLoading}
+              style={styles.submitButton}
+            />
+          </View>
         </RNAnimated.View>
 
         <View style={styles.orRow}>
@@ -294,27 +286,16 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
     backgroundColor: '#FFBF00',
     borderRadius: 18,
     height: 62,
     marginBottom: hp(4),
-    gap: wp(3),
     shadowColor: '#FFBF00',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
-  },
-  submitText: {
-    fontFamily: 'Outfit-Black',
-    fontSize: wp(4.5),
-    color: '#000000',
-    letterSpacing: 0,
-    fontWeight: '900',
   },
   submitButtonDisabled: {
     opacity: 0.7,

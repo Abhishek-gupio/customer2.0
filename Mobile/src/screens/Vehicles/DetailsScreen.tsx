@@ -22,10 +22,12 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash
+    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash, ChevronRight
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -38,9 +40,11 @@ import { getProfile } from '../../services/profileService';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { RootState } from '../../store';
 import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
+import LoaderButton from '../../components/Button';
 
 const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
 const BikeImage = require('../../assets/images/bike.png') as any;
+const IndianLion = require('../../assets/images/indian_lion.png') as any;
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];
@@ -50,14 +54,16 @@ type DetailsScreenProps = {
     onAddNew: () => void;
     onDelete: (id: string) => void;
     onSetPrimary: (id: string) => void;
+    deletingVehicleId?: string | null;
+    settingPrimaryId?: string | null;
     initialTab?: MainTab;
 };
 
 type MainTab = 'Alerts' | 'Details';
-type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'More';
+type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Documents';
 
 export const DetailsScreen = ({
-    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, initialTab
+    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, deletingVehicleId, settingPrimaryId, initialTab
 }: DetailsScreenProps) => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const [mainTab, setMainTab] = useState<MainTab>(initialTab || 'Alerts');
@@ -68,6 +74,25 @@ export const DetailsScreen = ({
     useEffect(() => {
         if (initialTab) setMainTab(initialTab);
     }, [initialTab]);
+
+    const [statusModal, setStatusModal] = useState({
+        visible: false,
+        type: 'success' as 'success' | 'delete' | 'error',
+        title: '',
+        message: '',
+    });
+    const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+        setStatusModal({ visible: true, type, title, message });
+    };
+
+    const [confirmModal, setConfirmModal] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'default' as 'default' | 'logout' | 'delete',
+        confirmText: 'Confirm',
+        onConfirm: () => { }
+    });
     const [healthScoreDetail, setHealthScoreDetail] = useState<{
         overallScore?: number;
         scoreChangeReason?: string;
@@ -177,22 +202,23 @@ export const DetailsScreen = ({
     }, [activeVehicle?.id, activeVehicle?.imageUrl]);
 
     if (!activeVehicle) return null;
+    
+    // rto refers to the combined data from the DB record and the supplemental RTO lookup.
+    // We prioritize top-level activeVehicle fields as they come from the production DB.
+    const rto = { 
+        ...activeVehicle.rtoDetails, 
+        ...activeVehicle,
+        // Ensure shared field names are handled if they differ
+        ownerName: activeVehicle.ownerName || activeVehicle.rtoDetails?.ownerName,
+        rto: activeVehicle.rto || activeVehicle.rtoDetails?.rto,
+        vehicleClass: activeVehicle.vehicleClass || activeVehicle.rtoDetails?.vehicleClass,
+        fitnessUpto: activeVehicle.fitnessUpto || activeVehicle.rtoDetails?.fitnessUpto
+    };
 
-    // rtoDetails comes from the Gemini lookup, merged into the vehicle object
-    // by AddVehicleScreen → onDone → GupioGarageApp state.
-    const rto = activeVehicle.rtoDetails || activeVehicle;
-
-    // Hero image source
-    const fallbackHeroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
-    const heroImageSource = !heroError && activeVehicle.imageUrl ? { uri: activeVehicle.imageUrl } : fallbackHeroSrc;
-    // Hero image source: use activeVehicle.imageUrl if available, fallback to local assets
+    // Hero image source: use absolute URL if available, else fallback to local assets
     const heroUri = activeVehicle.imageUrl ? getAbsoluteUrl(activeVehicle.imageUrl) : null;
-    const heroSrc = heroUri 
-        ? { uri: heroUri } 
-        : (activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage);
-
-    // If hero error occurred, fallback to local
-    const displayHeroSrc = heroError ? (activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) : heroSrc;
+    const fallbackSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    const heroImageSource = (!heroError && heroUri) ? { uri: heroUri } : fallbackSrc;
 
     const handleFeedbackSubmit = () => {
         if (!rating) return;
@@ -204,14 +230,17 @@ export const DetailsScreen = ({
     };
 
     const handleDeletePress = () => {
-        Alert.alert(
-            'Remove Vehicle',
-            `Remove ${activeVehicle.registrationNumber} from your garage?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Remove', style: 'destructive', onPress: () => onDelete(activeVehicle.id) },
-            ]
-        );
+        setConfirmModal({
+            visible: true,
+            title: 'Remove Vehicle',
+            message: `Remove ${activeVehicle.registrationNumber} from your garage?`,
+            type: 'delete',
+            confirmText: 'Remove',
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, visible: false }));
+                onDelete(activeVehicle.id);
+            }
+        });
     };
 
     const openShare = async () => {
@@ -260,6 +289,89 @@ export const DetailsScreen = ({
     };
 
     // ── Document Actions ──
+    const generateRCPDF = async () => {
+        try {
+            const dateStr = new Date().toLocaleDateString('en-GB');
+            const html = `
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: 'Helvetica', sans-serif; padding: 40px; background: #fff; color: #000; }
+                            .cert { border: 2px solid #333; padding: 30px; border-radius: 10px; }
+                            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+                            .header img { width: 60px; margin-bottom: 10px; }
+                            .header h1 { margin: 0; font-size: 20px; text-transform: uppercase; }
+                            .header p { margin: 5px 0; font-size: 12px; color: #666; }
+                            .meta-grid { display: flex; flex-wrap: wrap; margin-bottom: 20px; }
+                            .meta-item { width: 50%; margin-bottom: 15px; }
+                            .label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; }
+                            .value { font-size: 13px; font-weight: bold; margin-top: 2px; }
+                            .info-table { width: 100%; border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 30px; }
+                            .info-row { display: flex; margin-bottom: 10px; font-size: 12px; }
+                            .info-label { width: 150px; color: #444; font-weight: bold; }
+                            .info-value { flex: 1; font-weight: 800; }
+                            .footer { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #eee; padding-top: 20px; }
+                            .note { font-size: 10px; color: #6366f1; font-weight: bold; }
+                            .signature { border: 1px solid #eee; padding: 8px; border-radius: 4px; font-size: 9px; text-align: center; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="cert">
+                            <div class="header">
+                                <img src="https://gupio.io/assets/images/indian_lion.png" />
+                                <h1>UNION OF INDIA REGISTRATION CERTIFICATE</h1>
+                                <p>Issuing Authority: ${activeVehicle?.rtoDetails?.rto || 'Transport Department'}</p>
+                            </div>
+                            <div class="meta-grid">
+                                <div class="meta-item">
+                                    <div class="label">Registration No:</div>
+                                    <div class="value">${activeVehicle?.registrationNumber}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Registration Date:</div>
+                                    <div class="value">${activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Chassis No:</div>
+                                    <div class="value">${activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Engine No:</div>
+                                    <div class="value">${activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div class="info-table">
+                                <div class="info-row"><div class="info-label">Owner Name:</div> <div class="info-value">${rto.ownerName || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Make / Model:</div> <div class="info-value">${activeVehicle.make || rto.make || 'N/A'} / ${activeVehicle.model || rto.model || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Vehicle Type / Class:</div> <div class="info-value">${activeVehicle.vehicleType || (rto as any).vehicleType || 'N/A'} (${rto.vehicleClass || 'N/A'})</div></div>
+                                <div class="info-row"><div class="info-label">RTO Office:</div> <div class="info-value">${rto.rto || 'Transport Department'}</div></div>
+                                <div class="info-row"><div class="info-label">Fuel Norms:</div> <div class="info-value">${activeVehicle.fuelNorms || rto.fuelNorms || activeVehicle.fuelType || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Color:</div> <div class="info-value">${activeVehicle.color || rto.color || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Manufacturing:</div> <div class="info-value">${activeVehicle.manufacturingMonthYear || rto.manufacturingMonthYear || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">RC EXPIRED:</div> <div class="info-value">${rto.fitnessUpto || 'N/A'}</div></div>
+                            </div>
+                            <div class="footer">
+                                <div class="note">Powered by DigiLocker</div>
+                                <div class="signature">
+                                    Digitally signed on ${dateStr}<br/>Verified by Gupio
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+            `;
+            const options = {
+                html: html,
+                fileName: `RC_${activeVehicle?.registrationNumber}_${Date.now()}`,
+            };
+            const file = await convertToPDF(options);
+            return file?.filePath;
+        } catch (error) {
+            console.error('RC PDF Gen Error:', error);
+            return null;
+        }
+    };
+
     const createPDFFromImage = async (doc: any) => {
         try {
             let base64Data = '';
@@ -305,10 +417,25 @@ export const DetailsScreen = ({
     };
 
     const handleShareDoc = async (doc: any) => {
-        if (!doc?.imageUri) return;
         try {
             setIsProcessing(true);
-            const pdfPath = await createPDFFromImage(doc);
+            const isRC = doc?.type?.toUpperCase() === 'RC' || doc?.type?.toLowerCase() === 'reg certificate';
+            let pdfPath: string | null = '';
+            
+            if (isRC) {
+                pdfPath = await generateRCPDF();
+            } else {
+                if (!doc?.imageUri) {
+                    setIsProcessing(false);
+                    return;
+                }
+                pdfPath = await createPDFFromImage(doc);
+            }
+
+            if (!pdfPath) {
+                setIsProcessing(false);
+                return;
+            }
             
             // Generate a clean temp path in cache with .pdf extension
             const cleanFileName = `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
@@ -347,7 +474,7 @@ export const DetailsScreen = ({
             if (msg.includes('User did not share') || msg.toLowerCase().includes('cancel') || msg.includes('dismissed')) {
                 return;
             }
-            Alert.alert('Error', 'Could not share document as PDF. Please try again.');
+            showStatus('Error', 'Could not share document as PDF. Please try again.', 'error');
             console.error('Share Error:', error);
         }
     };
@@ -382,34 +509,31 @@ export const DetailsScreen = ({
             }
 
             setIsProcessing(false);
-            Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
+            showStatus('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
         } catch (error: any) {
             setIsProcessing(false);
-            Alert.alert('Error', error.message || 'Could not download document as PDF');
+            showStatus('Error', error.message || 'Could not download document as PDF', 'error');
         }
     };
 
     const handleDeleteDoc = async (id: string, type: string) => {
-        Alert.alert(
-            'Delete Document',
-            `Are you sure you want to delete your ${type}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await dispatch(removeDocumentAsync(id)).unwrap();
-                            setShowViewerModal(false);
-                            Alert.alert('Success', `${type} deleted successfully`);
-                        } catch (err: any) {
-                            Alert.alert('Error', err.message || 'Failed to delete');
-                        }
-                    }
+        setConfirmModal({
+            visible: true,
+            title: 'Delete Document',
+            message: `Are you sure you want to delete your ${type}?`,
+            type: 'delete',
+            confirmText: 'Delete',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, visible: false }));
+                try {
+                    await dispatch(removeDocumentAsync(id)).unwrap();
+                    setShowViewerModal(false);
+                    showStatus('Success', `${type} deleted successfully`);
+                } catch (err: any) {
+                    showStatus('Error', err.message || 'Failed to delete', 'error');
                 }
-            ]
-        );
+            }
+        });
     };
 
     // ── Helper: alert status badge ───────────────────────────────────────────
@@ -503,8 +627,12 @@ export const DetailsScreen = ({
                             <User size={18} color={COLORS.primary} />
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn}>
-                        <Trash2 size={22} color="#FF453A" />
+                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn} disabled={deletingVehicleId === activeVehicle.id}>
+                        {deletingVehicleId === activeVehicle.id ? (
+                            <ActivityIndicator size="small" color="#FF453A" />
+                        ) : (
+                            <Trash2 size={22} color="#FF453A" />
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
@@ -534,13 +662,17 @@ export const DetailsScreen = ({
                             <Text style={styles.primaryBadgeText}>PRIMARY VEHICLE</Text>
                         </View>
                     ) : (
-                        <TouchableOpacity
-                            style={styles.setPrimaryBtn}
+                        <LoaderButton
+                            title="SET AS PRIMARY"
+                            loading={settingPrimaryId === activeVehicle.id}
+                            loadingTitle="Setting..."
                             onPress={() => onSetPrimary(activeVehicle.id)}
-                        >
-                            <Star size={14} color={COLORS.primary} />
-                            <Text style={styles.setPrimaryBtnText}>SET AS PRIMARY</Text>
-                        </TouchableOpacity>
+                            disabled={deletingVehicleId === activeVehicle.id}
+                            style={styles.setPrimaryBtn}
+                            titleStyle={styles.setPrimaryBtnText}
+                            loadingTitleStyle={styles.setPrimaryBtnText}
+                            indicatorColor={COLORS.primary}
+                        />
                     )}
 
                     {/* ── Vehicle switcher circle icons ── */}
@@ -594,21 +726,19 @@ export const DetailsScreen = ({
                 <View style={styles.sectionPad}>
                     {mainTab === 'Alerts' ? (
                         <>
-                            {/* ── Status Grid (Challans & PUCC) ── */}
-                            <View style={styles.statusGrid}>
+                            {/* ── Status List (Challans & Health) ── */}
+                            <View style={styles.statusVerticalStack}>
                                 <StatusCard
                                     icon={FileText}
-                                    label="challans"
-                                    value="CHECK NOW"
-                                    style={activeVehicle.isPrimary ? styles.statusCardHalf : styles.statusCardFull}
+                                    label="TRAFFIC CHALLANS"
+                                    value="Check your pending fines"
                                     onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
                                 {activeVehicle.isPrimary && (
                                     <StatusCard
                                         icon={ShieldCheck}
-                                        label="vehicle health"
-                                        value="STATUS"
-                                        style={styles.statusCardHalf}
+                                        label="VEHICLE HEALTH"
+                                        value="Detailed health report"
                                         onPress={() => navigation.navigate('WarrantyStatus')}
                                     />
                                 )}
@@ -639,7 +769,7 @@ export const DetailsScreen = ({
                         <View>
                             <View style={{ alignItems: 'center' }}>
                                 <View style={styles.subTabNav}>
-                                     {(['Health', 'Owner', 'Vehicle', 'More'] as SubTab[]).map(st => (
+                                    {(['Health', 'Owner', 'Vehicle', 'Documents'] as SubTab[]).map(st => (
                                         <TouchableOpacity
                                             key={st}
                                             onPress={() => setSubTab(st)}
@@ -824,7 +954,7 @@ export const DetailsScreen = ({
 
                                 {subTab === 'Owner' && (
                                     <>
-                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Unknown'} />
+                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || (rto as any)?.owner_name || 'Unknown'} />
                                         <InfoCard icon={Building} label="RTO" value={rto?.rto || 'N/A'} />
                                     </>
                                 )}
@@ -838,17 +968,10 @@ export const DetailsScreen = ({
                                         <InfoCard icon={Droplets} label="Fuel Type" value={rto?.fuelType || activeVehicle.fuelType || 'Petrol'} />
                                         <InfoCard icon={Droplets} label="Color" value={rto?.color ?? activeVehicle.color ?? 'N/A'} />
                                         <InfoCard icon={Weight} label="Unladen Weight" value={rto?.unloadedWeight ?? activeVehicle.unloadedWeight ?? 'N/A'} />
-                                    </>
-                                )}
-                                {subTab === 'More' && (
-                                    <>
-                                        <InfoCard icon={Tag} label="Registration Number" value={rto?.registrationNumber || activeVehicle.registrationNumber || 'N/A'} />
+                                        
+                                        {/* Merged 'More' details */}
                                         <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
-                                        <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
-                                        {(rto?.pollutionUpto || activeVehicle.pollutionUpto) && (
-                                            <InfoCard icon={ShieldCheck} label="PUC Upto" value={rto?.pollutionUpto || activeVehicle.pollutionUpto} />
-                                        )}
+                                        <InfoCard icon={Clock} label="RC EXPIRED" value={rto?.fitnessUpto || (rto as any)?.rc_expiry_date || 'N/A'} />
                                         {(rto?.fuelNorms || activeVehicle.fuelNorms) && (
                                             <InfoCard icon={Info} label="Fuel Norms" value={rto?.fuelNorms || activeVehicle.fuelNorms} />
                                         )}
@@ -866,6 +989,90 @@ export const DetailsScreen = ({
                                         )}
                                         <InfoCard icon={Calendar} label="Manufacturing Date" value={rto?.manufacturingMonthYear || activeVehicle.manufacturingMonthYear || 'N/A'} />
                                     </>
+                                )}
+                                {subTab === 'Documents' && (
+                                    <View style={styles.documentsTab}>
+                                        {/* RC Mini Certificate (Production Style) */}
+                                        <View style={styles.certificate}>
+                                            <View style={styles.certHeader}>
+                                                <View style={styles.certHeaderTitleCol}>
+                                                    <Text style={styles.certTitleLine1}>UNION OF INDIA</Text>
+                                                    <Text style={styles.certTitleLine2}>REGISTRATION CERTIFICATE (RC)</Text>
+                                                </View>
+                                                <TouchableOpacity onPress={() => handleShareDoc(getDocByType('reg certificate'))} style={styles.certShareBtn}>
+                                                    <Share2 size={16} color={COLORS.primary} />
+                                                </TouchableOpacity>
+                                            </View>
+                                            
+                                            <View style={styles.certPlateRow}>
+                                                <Text style={styles.certPlateText}>{activeVehicle.registrationNumber}</Text>
+                                                <View style={styles.certStatusBadge}>
+                                                   <Text style={styles.certStatusText}>{rto?.rcStatus || 'ACTIVE'}</Text>
+                                                </View>
+                                            </View>
+
+                                            <View style={styles.certInfoGrid}>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>OWNER</Text>
+                                                    <Text style={styles.certValue}>{rto.ownerName || 'PENDING'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>CLASS</Text>
+                                                    <Text style={styles.certValue}>{rto.vehicleClass || activeVehicle.vehicleType || 'N/A'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>RC EXPIRED</Text>
+                                                    <Text style={styles.certValue}>{rto.fitnessUpto || 'N/A'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>ISSUING AUTHORITY</Text>
+                                                    <Text style={styles.certValue}>{rto.rto || 'LOCAL RTO'}</Text>
+                                                </View>
+                                            </View>
+
+                                            <TouchableOpacity 
+                                                style={styles.certViewDetailsBtn}
+                                                onPress={() => {
+                                                    const doc = getDocByType('reg certificate');
+                                                    if (doc) {
+                                                        setViewingDoc(doc);
+                                                    } else {
+                                                        // Pass a formal DB-only reference if no image exists
+                                                        setViewingDoc({ 
+                                                            type: 'RC', 
+                                                            isFormalOnly: true,
+                                                            registrationNumber: activeVehicle.registrationNumber 
+                                                        });
+                                                    }
+                                                    setShowViewerModal(true);
+                                                }}
+                                            >
+                                                <FileText size={14} color="#FFF" />
+                                                <Text style={styles.certViewDetailsText}>VIEW ORIGINAL DOCUMENT</Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        {/* Other Docs List */}
+                                        <View style={styles.otherDocsList}>
+                                            <Text style={styles.subSectionTitle}>OTHER DOCUMENTS</Text>
+                                            <TouchableOpacity style={styles.otherDocRow} onPress={() => navigation.navigate('DocumentList')}>
+                                                <ShieldCheck size={20} color="#8E8E93" />
+                                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                                    <Text style={styles.otherDocLabel}>Insurance Policy</Text>
+                                                    <Text style={styles.otherDocValue}>{rto?.insuranceUpto || 'Not Available'}</Text>
+                                                </View>
+                                                <ChevronRight size={18} color="#444" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.otherDocRow} onPress={() => navigation.navigate('DocumentList')}>
+                                                <Droplets size={20} color="#8E8E93" />
+                                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                                    <Text style={styles.otherDocLabel}>PUC Certificate</Text>
+                                                    <Text style={styles.otherDocValue}>{rto?.pollutionUpto || 'Not Available'}</Text>
+                                                </View>
+                                                <ChevronRight size={18} color="#444" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
                                 )}
                             </View>
                         </View>
@@ -924,7 +1131,111 @@ export const DetailsScreen = ({
                         minimumZoomScale={1}
                         bouncesZoom={true}
                     >
-                        {viewingDoc?.imageUri ? (
+                        {viewingDoc?.type?.toUpperCase() === 'RC' || viewingDoc?.type?.toLowerCase() === 'reg certificate' ? (
+                            <View style={styles.formalCertContainer}>
+                                <View style={styles.formalCert}>
+                                    <View style={styles.formalCertHeader}>
+                                        <Image source={IndianLion} style={styles.formalLionLogo} resizeMode="contain" />
+                                        <Text style={styles.formalCertTitle}>UNION OF INDIA REGISTRATION CERTIFICATE</Text>
+                                        <Text style={styles.formalCertSubtitle}>Issuing Authority: {activeVehicle?.rtoDetails?.rto || 'Transport Department'}</Text>
+                                        <View style={styles.formalCertDivider} />
+                                    </View>
+
+                                    <View style={styles.formalCertMeta}>
+                                        <View style={styles.formalCertMetaRow}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.formalCertMetaLabel}>Registration No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.registrationNumber}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                <Text style={styles.formalCertMetaLabelSmall}>Reg Date:</Text>
+                                                <Text style={styles.formalCertMetaValueSmall}>{activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.formalCertMetaRow}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.formalCertMetaLabel}>Chassis No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                <Text style={styles.formalCertMetaLabelSmall}>Engine No:</Text>
+                                                <Text style={styles.formalCertMetaValueSmall}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.formalCertInfoGrid}>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Owner Name</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.ownerName || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Make / Model</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.make || rto.make || 'N/A'} / {activeVehicle.model || rto.model || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Vehicle Type</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.vehicleType || (rto as any).vehicleType || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Vehicle Class</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.vehicleClass || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>RTO Name</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.rto || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Fuel Norms</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.fuelNorms || rto.fuelNorms || activeVehicle.fuelType || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Engine No</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.engineNumber || rto.engineNumber || rto.engineNo || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Chassis No</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.chassisNumber || rto.chassisNumber || rto.chassisNo || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Color</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.color || rto.color || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Mfg Date</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.manufacturingMonthYear || rto.manufacturingMonthYear || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>RC EXPIRED</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.fitnessUpto || 'N/A'}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.formalCertFooter}>
+                                        <MaterialCommunityIcons name="qrcode" size={70} color="#333" />
+                                        <View style={styles.formalCertNoteBox}>
+                                            <Text style={styles.formalCertPowered}>Powered by DigiLocker</Text>
+                                            <View style={styles.formalCertSignedBadge}>
+                                                <Text style={styles.formalCertSignedText}>Digitally signed on</Text>
+                                                <Text style={styles.formalCertSignedDate}>{new Date().toLocaleDateString('en-GB')}</Text>
+                                                <CheckCircle2 size={12} color="#22C55E" />
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : viewingDoc?.imageUri ? (
                             <Image
                                 source={{ uri: viewingDoc.imageUri }}
                                 style={styles.fullImage}
@@ -956,6 +1267,24 @@ export const DetailsScreen = ({
                     <ActivityIndicator size="large" color={COLORS.primary} />
                 </View>
             )}
+
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
+
+            <ConfirmModal
+                visible={confirmModal.visible}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                confirmText={confirmModal.confirmText}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+            />
         </SafeAreaView>
     );
 };
@@ -979,8 +1308,8 @@ const styles = StyleSheet.create({
     tabPillText: { fontSize: hp('1.5%'), fontFamily: 'Outfit-Black', color: '#888' },
 
     // Hero Section
-    heroSection: { alignItems: 'center', paddingBottom: hp('2%') },
-    heroImageFrame: { width: wp('90%'), height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroSection: { alignItems: 'center', paddingBottom: hp('2%'), paddingHorizontal: wp('6%') },
+    heroImageFrame: { width: '100%', height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
     heroImage: { width: '100%', height: '100%' },
     brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase', marginTop: hp('1%') },
     modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
@@ -1045,20 +1374,10 @@ const styles = StyleSheet.create({
     sectionPad: { paddingHorizontal: wp('6%'), paddingTop: hp('2.5%') },
     sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: hp('2%') },
 
-    // Status Boxes
-    statusGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        gap: wp('3%')
-    },
-    statusCardHalf: {
-        width: width < 380 ? '100%' : '48.5%',
-        minHeight: hp('12%')
-    },
-    statusCardFull: {
-        width: '100%',
-        minHeight: hp('12%')
+    // Status List Stack
+    statusVerticalStack: {
+        flexDirection: 'column',
+        gap: hp('1.5%')
     },
     statusBox: {
         flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: 24,
@@ -1270,5 +1589,299 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999
+    },
+
+    // Documents Tab Styles
+    documentsTab: {
+        gap: hp('2%')
+    },
+    certificate: {
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5
+    },
+    certHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+        paddingBottom: 12
+    },
+    certHeaderTitleCol: {
+        flex: 1
+    },
+    certTitleLine1: {
+        fontSize: 10,
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 2
+    },
+    certTitleLine2: {
+        fontSize: 14,
+        color: '#000',
+        fontFamily: 'Outfit-Black',
+        marginTop: 2
+    },
+    certShareBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    certPlateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F8F8F8',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16
+    },
+    certPlateText: {
+        fontSize: 18,
+        color: '#000',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 1
+    },
+    certStatusBadge: {
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4
+    },
+    certStatusText: {
+        fontSize: 10,
+        color: '#2E7D32',
+        fontFamily: 'Outfit-Bold'
+    },
+    certInfoGrid: {
+        gap: 8,
+        marginBottom: 20
+    },
+    certRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    certLabel: {
+        fontSize: 10,
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Bold'
+    },
+    certValue: {
+        fontSize: 12,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
+    },
+    certViewDetailsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000',
+        paddingVertical: 12,
+        borderRadius: 8,
+        gap: 8
+    },
+    certViewDetailsText: {
+        color: '#FFF',
+        fontSize: 10,
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 1
+    },
+    otherDocsList: {
+        marginTop: hp('2%'),
+        gap: 12
+    },
+    subSectionTitle: {
+        fontSize: 12,
+        fontFamily: 'Outfit-Bold',
+        color: '#8E8E93',
+        letterSpacing: 1,
+        marginBottom: 4
+    },
+    otherDocRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.surface,
+        padding: 16,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border
+    },
+    otherDocLabel: {
+        color: '#FFF',
+        fontSize: 14,
+        fontFamily: 'Outfit-Bold'
+    },
+    otherDocValue: {
+        color: '#8E8E93',
+        fontSize: 11,
+        fontFamily: 'Outfit-Medium',
+        marginTop: 2
+    },
+
+    // Formal Certificate Styles
+    formalCertContainer: {
+        width: wp('92%'),
+        padding: 5,
+        alignSelf: 'center'
+    },
+    formalCert: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+        elevation: 15
+    },
+    formalCertHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        position: 'relative',
+        paddingBottom: 25
+    },
+    formalLionLogo: {
+        width: wp('12%'),
+        height: wp('12%'),
+        marginRight: 15
+    },
+    formalTitleCol: {
+        flex: 1
+    },
+    formalCertTitle: {
+        fontSize: 14,
+        color: '#000',
+        fontFamily: 'Outfit-Bold',
+        textTransform: 'uppercase'
+    },
+    formalCertSubtitle: {
+        fontSize: 9,
+        color: '#666',
+        fontFamily: 'Outfit-Medium',
+        marginTop: 2
+    },
+    formalCertDivider: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 2,
+        backgroundColor: '#333'
+    },
+    formalCertMeta: {
+        marginBottom: 20
+    },
+    formalCertMetaRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+        paddingBottom: 5
+    },
+    formalCertMetaLabel: {
+        fontSize: 9,
+        color: '#666',
+        fontFamily: 'Outfit-Medium',
+        textTransform: 'uppercase'
+    },
+    formalCertMetaValue: {
+        fontSize: 11,
+        color: '#000',
+        fontFamily: 'Outfit-Black',
+        marginTop: 1
+    },
+    formalCertMetaLabelSmall: {
+        fontSize: 8,
+        color: '#666',
+        fontFamily: 'Outfit-Medium'
+    },
+    formalCertMetaValueSmall: {
+        fontSize: 10,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
+    },
+    formalCertInfoGrid: {
+        paddingTop: 5,
+        marginBottom: 25
+    },
+    formalCertInfoLayout: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    formalCertCols: {
+        flex: 1,
+        gap: 12
+    },
+    formalCertRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start'
+    },
+    formalCertLabel: {
+        width: wp('22%'),
+        fontSize: 10,
+        color: '#444',
+        fontFamily: 'Outfit-Bold'
+    },
+    formalCertSep: {
+        width: 12,
+        fontSize: 10,
+        color: '#444'
+    },
+    formalCertValue: {
+        flex: 1,
+        fontSize: 10,
+        color: '#000',
+        fontFamily: 'Outfit-Black'
+    },
+    formalCertFooter: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#F0F0F0',
+        paddingTop: 15
+    },
+    formalCertNoteBox: {
+        alignItems: 'flex-end',
+        gap: 6
+    },
+    formalCertPowered: {
+        fontSize: 9,
+        color: '#6366F1',
+        fontFamily: 'Outfit-Black',
+        textTransform: 'uppercase'
+    },
+    formalCertSignedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        borderWidth: 1,
+        borderColor: '#22C55E',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        backgroundColor: '#F0FDF4'
+    },
+    formalCertSignedText: {
+        fontSize: 8,
+        color: '#166534',
+        fontFamily: 'Outfit-Medium'
+    },
+    formalCertSignedDate: {
+        fontSize: 8,
+        color: '#166534',
+        fontFamily: 'Outfit-Black'
     }
 });
