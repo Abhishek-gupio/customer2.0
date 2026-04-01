@@ -64,7 +64,7 @@ export const expenseService = {
         source: input.source || "MANUAL",
         receiptUrl,
         mimeType,
-      },
+      } as any,
     });
 
     // 1. Fuel Enrichment (Handled directly as it's a small call)
@@ -154,17 +154,44 @@ export const expenseService = {
 
     const [items, total] = await Promise.all([
       db.expense.findMany({
-        where,
+        where: where as any,
         orderBy: { date: "desc" },
         skip,
         take: limit,
       }),
-      db.expense.count({ where }),
+      db.expense.count({ where: where as any }),
     ]);
+
+    const expenseIds = items.map((item) => item.id);
+    const latestServiceRecordByExpenseId = new Map<string, any>();
+
+    if (expenseIds.length > 0) {
+      const serviceRecords = await db.serviceRecord.findMany({
+        where: {
+          expenseId: { in: expenseIds },
+        },
+        include: {
+          parts: true,
+        },
+        orderBy: [{ serviceDate: "desc" }, { createdAt: "desc" }],
+      });
+
+      for (const record of serviceRecords) {
+        if (record.expenseId && !latestServiceRecordByExpenseId.has(record.expenseId)) {
+          latestServiceRecordByExpenseId.set(record.expenseId, record);
+        }
+      }
+    }
+
+    const enrichedItems = items.map((item) => ({
+      ...item,
+      serviceRecord: latestServiceRecordByExpenseId.get(item.id) ?? null,
+    }));
+
     // Backward-compatible shape for mobile clients:
     // - Older app expects `expenses` array in various nesting locations.
     // - Newer API can still use `items`/pagination if needed.
-    return { expenses: items, items, total, page, limit };
+    return { expenses: enrichedItems, items: enrichedItems, total, page, limit };
   },
 
   async parseReceiptImage(customerId: string, file: Express.Multer.File, dryRun: boolean) {

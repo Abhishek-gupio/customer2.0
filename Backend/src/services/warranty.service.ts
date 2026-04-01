@@ -731,6 +731,8 @@ export const warrantyService = {
    * Get list of service providers (garages) used by the customer
    */
   async getServiceProviders(customerId: string): Promise<string[]> {
+    const serviceExpenseCategories = ["SERVICE", "REPAIR"] as const;
+
     // 1. From Service Records
     const records = await db.serviceRecord.findMany({
       where: { vehicle: { customerId: customerId }, garageName: { not: null } },
@@ -742,7 +744,7 @@ export const warrantyService = {
     const expenses = await db.expense.findMany({
       where: {
         customerId,
-        category: { in: ["SERVICE", "REPAIR"] },
+        category: { in: [...serviceExpenseCategories] as any },
         merchantName: { not: null },
       },
       distinct: ["merchantName"],

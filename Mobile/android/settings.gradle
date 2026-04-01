@@ -1,5 +1,7 @@
 pluginManagement {
-    includeBuild("../../node_modules/@react-native/gradle-plugin")
+    def mobilePluginDir = new File(rootDir, "../node_modules/@react-native/gradle-plugin")
+    def workspacePluginDir = new File(rootDir, "../../node_modules/@react-native/gradle-plugin")
+    includeBuild((mobilePluginDir.exists() ? mobilePluginDir : workspacePluginDir).path)
     repositories {
         gradlePluginPortal()
         google()
@@ -9,6 +11,19 @@ pluginManagement {
 
 plugins { id("com.facebook.react.settings") }
 
+def mobileNodeModulesDir = new File(rootDir, "../node_modules")
+def workspaceNodeModulesDir = new File(rootDir, "../../node_modules")
+
+def resolveFromNodeModules = { String relativePath ->
+    def mobileCandidate = new File(mobileNodeModulesDir, relativePath)
+    if (mobileCandidate.exists()) return mobileCandidate
+
+    def workspaceCandidate = new File(workspaceNodeModulesDir, relativePath)
+    if (workspaceCandidate.exists()) return workspaceCandidate
+
+    return mobileCandidate
+}
+
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
     ex.autolinkLibrariesFromCommand()
 }
@@ -16,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 rootProject.name = 'Mobile'
 include ':app'
 
-def pnpmRoot = new File(rootDir, 'node_modules/.pnpm')
+def pnpmRoot = new File(mobileNodeModulesDir, '.pnpm')
 if (pnpmRoot.exists()) {
     pnpmRoot.eachDir { d ->
         def candidate = new File(d, 'node_modules/react-native-nitro-modules')
@@ -28,41 +43,9 @@ if (pnpmRoot.exists()) {
     }
 }
 
-includeBuild('../../node_modules/@react-native/gradle-plugin')
+includeBuild(resolveFromNodeModules("@react-native/gradle-plugin").path)
 
-def findExpoDir = { ->
-    def localNodeModules = new File(rootDir, 'node_modules')
-    def workspaceNodeModules = new File(rootDir, '../node_modules')
-    def nodeModuleDirs = [localNodeModules, workspaceNodeModules]
-
-    for (def nm in nodeModuleDirs) {
-        def plain = new File(nm, 'expo')
-        if (plain.exists()) return plain
-
-        def pnpm = new File(nm, '.pnpm')
-        if (pnpm.exists()) {
-            pnpm.eachDir { d ->
-                def candidate = new File(d, 'node_modules/expo')
-                if (candidate.exists()) {
-                    return candidate
-                }
-            }
-        }
-    }
-
-    return null
-}
-
-def expoDir = findExpoDir()
-if (expoDir != null) {
-    apply from: new File(expoDir, 'scripts/autolinking.gradle')
-    useExpoModules()
-}
-
-def reactNativeShareDir = new File(rootProject.projectDir, '../node_modules/react-native-share/android')
-if (!reactNativeShareDir.exists()) {
-    reactNativeShareDir = new File(rootProject.projectDir, '../../node_modules/react-native-share/android')
-}
+def reactNativeShareDir = resolveFromNodeModules('react-native-share/android')
 
 include ':react-native-share'
 project(':react-native-share').projectDir = reactNativeShareDir

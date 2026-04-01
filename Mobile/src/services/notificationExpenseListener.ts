@@ -6,7 +6,7 @@
  * then sends the text to the backend `parse/text` API to auto-create expenses.
  */
 import { API_BASE_URL } from '../config';
-import { getAccessToken, getAutoExpenseEnabled } from './storage';
+import { getAccessToken, getAutoExpenseEnabled, setLastReceivedOtp } from './storage';
 
 // ─── Known Indian banking / UPI app packages ────────────────────────────
 const BANKING_PACKAGES = new Set([
@@ -41,6 +41,13 @@ const BANKING_PACKAGES = new Set([
     'in.juspay.namma',                         // Namma Yatri
 ]);
 
+const OTP_SOURCE_PACKAGES = new Set([
+    'com.google.android.apps.messaging',
+    'com.samsung.android.messaging',
+    'com.android.messaging',
+    'com.oneplus.mms',
+]);
+
 // ─── Financial keywords (fallback for unknown apps) ─────────────────────
 const FINANCIAL_KEYWORDS = [
     'debited', 'credited', 'debit', 'credit',
@@ -50,6 +57,14 @@ const FINANCIAL_KEYWORDS = [
     'A/c', 'Acct', 'a/c',
     'transaction', 'txn',
     'fastag', 'petrol', 'fuel', 'toll',
+];
+
+const OTP_KEYWORDS = [
+    'otp',
+    'one time password',
+    'one-time password',
+    'verification code',
+    'gupio',
 ];
 
 // ─── Local dedup: avoid re-sending the same notification ────────────────
@@ -82,6 +97,29 @@ function isDuplicate(text: string): boolean {
 function isFinancialText(text: string): boolean {
     const lower = text.toLowerCase();
     return FINANCIAL_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+}
+
+function extractOtp(text: string): string | null {
+    const lower = text.toLowerCase();
+    const hasOtpKeyword = OTP_KEYWORDS.some(keyword => lower.includes(keyword));
+    const isGupioMessage = lower.includes('gupio');
+    if (!hasOtpKeyword || !isGupioMessage) {
+        return null;
+    }
+
+    const patterns = [
+        /\botp(?:\s+is|\s*[:\-])?\s*(\d{4,8})\b/i,
+        /\b(\d{4,8})\b(?=.*\botp\b)/i,
+        /\b(\d{4,8})\b(?=.*\bgupio\b)/i,
+        /\b(\d{6})\b/,
+    ];
+
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match?.[1]) return match[1];
+    }
+
+    return null;
 }
 
 // Primary vehicle lookup (cached)
@@ -169,20 +207,24 @@ async function sendToBackend(text: string): Promise<void> {
 // ─── Main headless handler ──────────────────────────────────────────────
 export const headlessNotificationListener = async ({ notification }: { notification: string }) => {
     try {
-        // 0. Check user toggle
-        if (!getAutoExpenseEnabled()) return;
-
         if (!notification) return;
 
         const parsed = JSON.parse(notification);
         const { app, text, bigText, title } = parsed;
 
-        // 1. Check if from a known banking app
-        const isKnownApp = BANKING_PACKAGES.has(app);
-
-        // 2. Get the fullest text available
+        // 1. Get the fullest text available
         const content = bigText || text || title || '';
         if (!content || content.length < 10) return;
+
+        const otpText = `${title || ''}\n${content}`;
+        const otp =
+            OTP_SOURCE_PACKAGES.has(app) || String(title || '').toLowerCase().includes('gupio')
+                ? extractOtp(otpText)
+                : null;
+        if (otp) {
+            setLastReceivedOtp(otp);
+            console.log(`[NotifExpense] Stored OTP from ${app}: ${otp}`);
+        }
 
         // Android may redact sensitive notification text on lockscreen or for messaging apps.
         // Those placeholders are not parseable and will cause 400s; skip them.
@@ -195,10 +237,16 @@ export const headlessNotificationListener = async ({ notification }: { notificat
             return;
         }
 
-        // 3. If not a known app, check for financial keywords
+        // 2. Check user toggle for expense parsing only
+        if (!getAutoExpenseEnabled()) return;
+
+        // 3. Check if from a known banking app
+        const isKnownApp = BANKING_PACKAGES.has(app);
+
+        // 4. If not a known app, check for financial keywords
         if (!isKnownApp && !isFinancialText(content)) return;
 
-        // 4. Local dedup
+        // 5. Local dedup
         if (isDuplicate(content)) return;
 
         console.log(`[NotifExpense] 📩 Processing notification from ${app}: ${content.substring(0, 80)}...`);

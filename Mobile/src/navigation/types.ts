@@ -43,6 +43,7 @@ export type RootStackParamList = {
   TripExpense: undefined;
   DLVerification: undefined;
   Fastag: undefined;
+  UploadDocument: undefined;
   TripPlannerInsights: undefined;
 };
 

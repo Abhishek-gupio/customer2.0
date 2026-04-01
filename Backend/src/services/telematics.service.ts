@@ -410,7 +410,7 @@ export const telematicsService = {
                     endLocation: endLocation as any,
                     scores: scores as any,
                     statistics: stats as any,
-                  },
+                  } as any,
                 }).catch(err => logger.error({ err, tripId: trip.id }, "Background trip persistence failed"));
 
                 // 5. CACHE in Redis (TTL 1 day for recent trips)

@@ -5,6 +5,7 @@ import { RootState } from '../../store';
 import { io, Socket } from 'socket.io-client';
 import { api } from '../../services/api';
 import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 
 interface AppNotification {
@@ -133,9 +134,9 @@ export const NotificationsScreen = () => {
 
     return (
         <View style={styles.container}>
-            <FlashList
+            <FlashListAny
                 data={sortedNotifications}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item: any) => item.id}
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContainer}
                 estimatedItemSize={96}

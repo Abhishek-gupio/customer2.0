@@ -76,6 +76,36 @@ const toNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const formatServiceType = (value: unknown) => {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  return value
+    .trim()
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char: string) => char.toUpperCase());
+};
+
+const formatPartLabel = (part: any) => {
+  const rawValue =
+    (typeof part?.partName === 'string' && part.partName.trim() && part.partName) ||
+    (typeof part?.partType === 'string' && part.partType.trim() && part.partType) ||
+    '';
+
+  if (!rawValue) return null;
+
+  return rawValue
+    .trim()
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char: string) => char.toUpperCase());
+};
+
+const hasServiceDetails = (item: any) =>
+  Boolean(item?.serviceType) ||
+  Boolean(item?.servicedPart) ||
+  Boolean(item?.location) ||
+  ['SERVICE', 'REPAIR'].includes(String(item?.category || '').toUpperCase());
+
 const toDate = (value: unknown) => {
   if (!value) return null;
   const d = new Date(value as any);
@@ -130,6 +160,7 @@ const ExpenseFeed = () => {
   const [selectedFromDate, setSelectedFromDate] = React.useState<Date | null>(null);
   const [selectedToDate, setSelectedToDate] = React.useState<Date | null>(null);
   const [calendarSelectionTarget, setCalendarSelectionTarget] = React.useState<'from' | 'to'>('from');
+  const [selectedExpense, setSelectedExpense] = React.useState<any | null>(null);
 
   // ── Computed stats ──
   const [totalThisMonth, setTotalThisMonth] = React.useState(0);
@@ -230,6 +261,26 @@ const ExpenseFeed = () => {
 
       const mappedExpenses = list.map((item: any) => {
         const category = String(item.category || 'OTHER').toUpperCase();
+        const linkedServiceRecord =
+          item.serviceRecord ||
+          (Array.isArray(item.serviceRecords) ? item.serviceRecords[0] : null);
+        const location =
+          item.location ||
+          item.placeName ||
+          item.placeAddress ||
+          linkedServiceRecord?.garageName ||
+          linkedServiceRecord?.location ||
+          item.merchantName ||
+          null;
+        const serviceType = formatServiceType(
+          item.serviceType ||
+          linkedServiceRecord?.serviceType ||
+          item.metadata?.serviceType,
+        );
+        const servicedPart =
+          (Array.isArray(linkedServiceRecord?.parts)
+            ? linkedServiceRecord.parts.map(formatPartLabel).filter(Boolean).join(', ')
+            : null) || null;
         return {
           id: item.id,
           title: category,
@@ -241,6 +292,9 @@ const ExpenseFeed = () => {
           icon: getExpenseIcon(category),
           color: getExpenseColor(category),
           category,
+          location,
+          serviceType,
+          servicedPart,
         };
       });
       setExpensesList(mappedExpenses);
@@ -603,16 +657,64 @@ const ExpenseFeed = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View key={item.id} style={styles.listCard}>
-      <View style={[styles.iconCircle, { borderColor: item.color }]}>
+    <TouchableOpacity
+      key={item.id}
+      style={styles.listCard}
+      activeOpacity={0.9}
+      onPress={() => setSelectedExpense(item)}
+    >
+      <View
+        style={[
+          styles.iconCircle,
+          {
+            borderColor: `${item.color}55`,
+            backgroundColor: `${item.color}16`,
+          },
+        ]}
+      >
         <Icon name={item.icon} size={wp(5)} color={item.color} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemSub}>{item.date} · {item.source}</Text>
+
+      <View style={styles.itemContent}>
+        <View style={styles.itemHeaderRow}>
+          <Text style={styles.itemTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text style={styles.itemAmount} numberOfLines={1}>
+            ₹{item.amount}
+          </Text>
+        </View>
+
+        <Text style={styles.itemMeta}>
+          {item.date} {'\u2022'} {item.source}
+        </Text>
+
+        {hasServiceDetails(item) && item.location ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Location</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.location}
+            </Text>
+          </View>
+        ) : null}
+        {hasServiceDetails(item) && item.serviceType ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Type</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.serviceType}
+            </Text>
+          </View>
+        ) : null}
+        {hasServiceDetails(item) && item.servicedPart ? (
+          <View style={[styles.detailRow, styles.detailRowTop]}>
+            <Text style={styles.detailLabel}>Part</Text>
+            <Text style={styles.detailValue} numberOfLines={2}>
+              {item.servicedPart}
+            </Text>
+          </View>
+        ) : null}
       </View>
-      <Text style={styles.itemAmount}>₹{item.amount}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -961,6 +1063,116 @@ const ExpenseFeed = () => {
           </View>
         </Pressable>
       </Modal>
+
+      <Modal
+        visible={Boolean(selectedExpense)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedExpense(null)}
+      >
+        <Pressable
+          style={styles.expenseModalBackdrop}
+          onPress={() => setSelectedExpense(null)}
+        >
+          <Pressable style={styles.expenseModalCard} onPress={() => {}}>
+            {selectedExpense ? (
+              <>
+                <View style={styles.expenseModalHeader}>
+                  <View style={styles.expenseModalTitleRow}>
+                    <View
+                      style={[
+                        styles.expenseModalIconWrap,
+                        {
+                          borderColor: `${selectedExpense.color}55`,
+                          backgroundColor: `${selectedExpense.color}16`,
+                        },
+                      ]}
+                    >
+                      <Icon
+                        name={selectedExpense.icon}
+                        size={wp(5)}
+                        color={selectedExpense.color}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.expenseModalTitle}>
+                        {selectedExpense.title}
+                      </Text>
+                      <Text style={styles.expenseModalMeta}>
+                        {selectedExpense.date} {'\u2022'} {selectedExpense.source}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setSelectedExpense(null)}
+                    style={styles.expenseModalClose}
+                  >
+                    <Ionicons name="close" size={22} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.expenseAmountPanel}>
+                  <Text style={styles.expenseAmountLabel}>Amount</Text>
+                  <Text style={styles.expenseAmountValue}>
+                    ₹{selectedExpense.amount}
+                  </Text>
+                </View>
+
+                <View style={styles.expenseDetailList}>
+                  <View style={styles.expenseDetailRow}>
+                    <Text style={styles.expenseDetailLabel}>Category</Text>
+                    <Text style={styles.expenseDetailValue}>
+                      {selectedExpense.type}
+                    </Text>
+                  </View>
+
+                  <View style={styles.expenseDetailRow}>
+                    <Text style={styles.expenseDetailLabel}>Date</Text>
+                    <Text style={styles.expenseDetailValue}>
+                      {selectedExpense.date}
+                    </Text>
+                  </View>
+
+                  <View style={styles.expenseDetailRow}>
+                    <Text style={styles.expenseDetailLabel}>Source</Text>
+                    <Text style={styles.expenseDetailValue}>
+                      {selectedExpense.source || '-'}
+                    </Text>
+                  </View>
+
+                  {selectedExpense.location ? (
+                    <View style={[styles.expenseDetailRow, styles.expenseDetailRowTop]}>
+                      <Text style={styles.expenseDetailLabel}>Location</Text>
+                      <Text style={styles.expenseDetailValue}>
+                        {selectedExpense.location}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {selectedExpense.serviceType ? (
+                    <View style={styles.expenseDetailRow}>
+                      <Text style={styles.expenseDetailLabel}>Type</Text>
+                      <Text style={styles.expenseDetailValue}>
+                        {selectedExpense.serviceType}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {selectedExpense.servicedPart ? (
+                    <View style={[styles.expenseDetailRow, styles.expenseDetailRowTop]}>
+                      <Text style={styles.expenseDetailLabel}>Part</Text>
+                      <Text style={styles.expenseDetailValue}>
+                        {selectedExpense.servicedPart}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              </>
+            ) : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1053,27 +1265,85 @@ const styles = StyleSheet.create({
   activeText: { color: '#000', fontWeight: '600' },
   listCard: {
     flexDirection: 'row',
-    backgroundColor: '#141414',
+    backgroundColor: '#15181d',
     marginHorizontal: wp(4),
-    marginVertical: hp(1.5),
-    padding: wp(8),
-    borderRadius: wp(6),
-    borderWidth: wp(0.2),
-    borderColor: '#f3efef70',
-    alignItems: 'center',
+    marginVertical: hp(1),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.8),
+    borderRadius: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'flex-start',
   },
   iconCircle: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(3.8),
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp(4),
+    marginRight: wp(3.5),
   },
-  itemTitle: { color: '#fff', fontSize: wp(4.5), fontWeight: '600' },
+  itemContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: wp(3),
+    minWidth: 0,
+  },
+  itemTitle: {
+    color: '#fff',
+    fontSize: wp(4.3),
+    fontWeight: '700',
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  itemMeta: {
+    color: '#8f98aa',
+    fontSize: wp(3),
+    marginTop: hp(0.35),
+    marginBottom: hp(0.8),
+  },
   itemSub: { color: '#888', fontSize: wp(3.2) },
-  itemAmount: { color: '#fff', fontSize: wp(5), fontWeight: '700' },
+  itemAmount: {
+    color: '#fff',
+    fontSize: wp(4.6),
+    fontWeight: '700',
+    marginLeft: wp(2),
+    flexShrink: 0,
+    maxWidth: '38%',
+    textAlign: 'right',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(0.35),
+    minWidth: 0,
+  },
+  detailRowTop: {
+    alignItems: 'flex-start',
+  },
+  detailLabel: {
+    width: wp(14),
+    color: '#6f7788',
+    fontSize: wp(3),
+    fontWeight: '600',
+    marginRight: wp(2),
+    flexShrink: 0,
+  },
+  detailValue: {
+    flex: 1,
+    color: '#dce2ec',
+    fontSize: wp(3.15),
+    fontWeight: '500',
+    minWidth: 0,
+    flexShrink: 1,
+  },
   sectionTitleCentered: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -1240,6 +1510,105 @@ const styles = StyleSheet.create({
   calendarActionText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  expenseModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    justifyContent: 'center',
+    paddingHorizontal: wp(5),
+  },
+  expenseModalCard: {
+    backgroundColor: '#161a20',
+    borderRadius: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: wp(4.5),
+  },
+  expenseModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: hp(1.6),
+    gap: wp(3),
+  },
+  expenseModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    gap: wp(3),
+  },
+  expenseModalIconWrap: {
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(3.8),
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expenseModalTitle: {
+    color: '#fff',
+    fontSize: wp(4.6),
+    fontWeight: '700',
+  },
+  expenseModalMeta: {
+    color: '#8f98aa',
+    fontSize: wp(3.1),
+    marginTop: hp(0.3),
+  },
+  expenseModalClose: {
+    width: wp(9),
+    height: wp(9),
+    borderRadius: wp(4.5),
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expenseAmountPanel: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: wp(4),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  expenseAmountLabel: {
+    color: '#8f98aa',
+    fontSize: wp(3),
+    marginBottom: hp(0.4),
+  },
+  expenseAmountValue: {
+    color: '#fff',
+    fontSize: wp(7),
+    fontWeight: '700',
+  },
+  expenseDetailList: {
+    gap: hp(0.8),
+  },
+  expenseDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    paddingVertical: hp(0.4),
+  },
+  expenseDetailRowTop: {
+    alignItems: 'flex-start',
+  },
+  expenseDetailLabel: {
+    width: wp(18),
+    color: '#6f7788',
+    fontSize: wp(3.1),
+    fontWeight: '600',
+    marginRight: wp(2.5),
+    flexShrink: 0,
+  },
+  expenseDetailValue: {
+    flex: 1,
+    minWidth: 0,
+    color: '#e4e9f1',
+    fontSize: wp(3.35),
+    fontWeight: '500',
   },
   Dropcontainer:{
     // backgroundColor:"#999",

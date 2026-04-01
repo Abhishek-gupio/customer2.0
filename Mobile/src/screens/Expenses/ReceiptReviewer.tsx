@@ -153,25 +153,26 @@ export default function ReceiptReviewer({
     }
 
     setLoading(true);
-    try {
-      let parsedDate: string | undefined;
-      if (date) {
-        try {
-          const d = parse(date, "dd-MM-yyyy", new Date());
-          if (!isNaN(d.getTime())) parsedDate = d.toISOString();
-        } catch (_) { }
-      }
+      let payload: any;
+      try {
+        let parsedDate: string | undefined;
+        if (date) {
+          try {
+            const d = parse(date, "dd-MM-yyyy", new Date());
+            if (!isNaN(d.getTime())) parsedDate = d.toISOString();
+          } catch (_) { }
+        }
 
-      const payload = {
-        amount: numAmount,
-        category: category.toUpperCase(),
-        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
-        notes: description.trim() || undefined,
-        date: parsedDate,
-        source,
-        receiptUrl: receiptUrl ?? undefined,
-        mimeType: mimeType ?? undefined,
-      };
+        payload = {
+          amount: numAmount,
+          category: category.toUpperCase(),
+          vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
+          notes: description.trim() || undefined,
+          date: parsedDate,
+          source,
+          receiptUrl: receiptUrl ?? undefined,
+          mimeType: mimeType ?? undefined,
+        };
 
       await api.post("/v1/expenses", payload);
       clearCachedValue('cache:expenses:list');
