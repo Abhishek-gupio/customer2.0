@@ -8,6 +8,7 @@ import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
 import Tickets from './pages/Tickets';
 import Vehicles from './pages/Vehicles';
+import VehicleCatalog from './pages/VehicleCatalog';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
 
@@ -64,6 +65,7 @@ export default function App() {
             <Route path="customers/:id" element={<CustomerDetail />} />
             <Route path="tickets" element={<Tickets />} />
             <Route path="vehicles" element={<Vehicles />} />
+            <Route path="car-library" element={<VehicleCatalog />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

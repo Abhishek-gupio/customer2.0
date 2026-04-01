@@ -594,4 +594,86 @@ export const adminDashboardService = {
       },
     });
   },
+
+  /** List catalog vehicles (VehicleCatalog + VehicleAsset) grouped by type/make. */
+  async listCatalogVehicles(params?: { type?: string }) {
+    const where: any = {};
+    if (params?.type) {
+      where.vehicleType = params.type;
+    }
+
+    const vehicles = await (dbInstances as any).vehicleCatalog.findMany({
+      where,
+      include: {
+        assets: {
+          orderBy: [{ type: 'asc' }, { assetIndex: 'asc' }],
+        },
+      },
+      orderBy: [{ make: 'asc' }, { model: 'asc' }],
+    });
+
+    return Promise.all(vehicles.map(async (v: any) => ({
+      id: v.id,
+      vehicleType: v.vehicleType,
+      make: v.make,
+      model: v.model,
+      variant: v.variant ?? null,
+      normalizedKey: v.normalizedKey,
+      images: await Promise.all(v.assets.map(async (a: any) => ({
+        id: a.id,
+        assetUrl: await storageService.ensureReadableUrl(a.assetUrl),
+        type: a.type,
+        assetIndex: a.assetIndex,
+      }))),
+    })));
+  },
+
+  /** Update an existing catalog asset (image) in S3. */
+  async updateCatalogVehicleAsset(catalogId: string, assetId: string, file: Express.Multer.File) {
+    const asset = await (dbInstances as any).vehicleAsset.findFirst({
+      where: { id: assetId, catalogId },
+      include: { catalog: true }
+    });
+    if (!asset) throw AppError.notFound("Asset not found or does not belong to this catalog entry");
+
+    // Construct the "existing way" folder path:
+    // vehicle-catalog/{vehicleType}/assets/{make}/{model}/default/{assetType}/{index}
+    const vehicleType = (asset.catalog.vehicleType || "car").toLowerCase();
+    const make = (asset.catalog.make || "unknown").toLowerCase().trim().replace(/\s+/g, "-");
+    const model = (asset.catalog.model || "unknown").toLowerCase().trim().replace(/\s+/g, "-");
+    const assetType = asset.type.toLowerCase();
+    const assetIndex = asset.assetIndex || 0;
+
+    const folder = `vehicle-catalog/${vehicleType}/assets/${make}/${model}/default/${assetType}/${assetIndex}`;
+
+    // Upload new file to S3
+    const { url, key } = await storageService.uploadFile(file, folder);
+
+    // Update the database - SAVE FULL URL TO assetUrl (AS REQUESTED)
+    const updated = await (dbInstances as any).vehicleAsset.update({
+      where: { id: assetId },
+      data: {
+        assetUrl: url,
+        s3Key: key,
+        mimeType: file.mimetype,
+      },
+    });
+
+    // Optionally delete the old file if it was a storage URL
+    if (asset.assetUrl) {
+      try {
+        await storageService.deleteFile(asset.assetUrl);
+      } catch (err) {
+        // Log but don't fail the request if deletion fails
+        (console as any).error("Failed to delete old catalog asset:", err);
+      }
+    }
+
+    return {
+      id: updated.id,
+      assetUrl: await storageService.ensureReadableUrl(updated.assetUrl),
+      type: updated.type,
+      assetIndex: updated.assetIndex,
+    };
+  },
 };

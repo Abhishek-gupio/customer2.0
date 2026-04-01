@@ -16,12 +16,15 @@ export async function api<T>(
 
   async function run(): Promise<{ success: true; data: T } | { success: false; error: { message: string } }> {
     const token = getToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const headers: Record<string, string> = { ...options.headers as Record<string, string> };
+
+    // Automatically set Content-Type to JSON if it's not FormData
+    if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     if (token) {
-      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      headers['Authorization'] = `Bearer ${token}`;
     }
     const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
     const json = await res.json().catch(() => ({}));
@@ -143,6 +146,21 @@ export const adminApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  listCatalogVehicles: (params?: { type?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.type) sp.set('type', params.type);
+    const q = sp.toString();
+    return api<CatalogVehicle[]>(`/v1/admin/catalog/vehicles${q ? `?${q}` : ''}`);
+  },
+  updateCatalogVehicleAsset: (catalogId: string, assetId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api<any>(`/v1/admin/catalog/vehicles/${catalogId}/assets/${assetId}`, {
+      method: 'PATCH',
+      body: formData,
+      // The API wrapper should NOT set Content-Type header when body is FormData
+    });
+  },
 };
 
 export interface CustomerListItem {
@@ -345,4 +363,14 @@ export interface AdminVehicleListItem {
   customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
   healthScore?: AdminVehicleHealthScore | null;
   _count: { challans: number; documents: number; expenses: number };
+}
+
+export interface CatalogVehicle {
+  id: string;
+  vehicleType: string;
+  make: string;
+  model: string;
+  variant: string | null;
+  normalizedKey: string;
+  images: { id: string; assetUrl: string; type: string; assetIndex: number }[];
 }

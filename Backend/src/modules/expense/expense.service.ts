@@ -49,7 +49,7 @@ export const expenseService = {
     if (file) {
       const uploaded = await storageService.uploadFile(
         file,
-        `expenses/${customerId}`,
+        `customers/${customerId}/expenses`,
       );
       receiptUrl = uploaded.url;
       mimeType = file.mimetype;
@@ -815,7 +815,7 @@ export const expenseService = {
     // 2. Upload the bill image
     const uploaded = await storageService.uploadFile(
       file,
-      `service-bills/${customerId}`,
+      `customers/${customerId}/expenses/service-bills`,
     );
 
     // 3. AI OCR: Extract exact line items from the bill
@@ -1032,7 +1032,7 @@ export const expenseService = {
     // 1. Upload
     const uploaded = await storageService.uploadFile(
       file,
-      `expenses/${customerId}`,
+      `customers/${customerId}/expenses`,
     );
 
     // 2. Perform OCR & Parsing using dedicated receipt parser

@@ -101,6 +101,24 @@ export const adminController = {
     success(res, data);
   }),
 
+  catalogVehicles: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const type = typeof req.query.type === 'string' ? req.query.type : undefined;
+    const data = await adminDashboardService.listCatalogVehicles({ type });
+    success(res, data);
+  }),
+
+  updateCatalogVehicleAsset: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const catalogId = req.params.id as string;
+    const assetId = req.params.assetId as string;
+    if (!catalogId || !assetId) throw AppError.badRequest("Catalog ID and Asset ID required");
+    if (!req.file) throw AppError.badRequest("No image file provided");
+
+    const data = await adminDashboardService.updateCatalogVehicleAsset(catalogId, assetId, req.file);
+    success(res, data, 200);
+  }),
+
   addTicketMessage: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
     const ticketId = req.params.id;
