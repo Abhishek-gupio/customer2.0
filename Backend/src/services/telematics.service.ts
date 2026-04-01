@@ -13,6 +13,16 @@ const ADMIN_TOKEN_REDIS_KEY = "damoov:admin_token";
 const RATE_LIMIT_BACKOFF_REDIS_KEY = "damoov:rate_limit_backoff";
 const RATE_LIMIT_BACKOFF_MS = 2 * 60 * 60 * 1000;
 
+export type TelematicsProvider = "damoov" | "inhouse";
+
+function normalizeTelematicsProvider(provider?: unknown): TelematicsProvider {
+  const fallback: TelematicsProvider =
+    env.TELEMATICS_DEFAULT_PROVIDER === "inhouse" ? "inhouse" : "damoov";
+  const value = String(provider ?? "").trim().toLowerCase();
+  if (!value) return fallback;
+  return value === "inhouse" ? "inhouse" : "damoov";
+}
+
 function isRateLimitError(err: any): boolean {
   const status = err.response?.status;
   const body = err.response?.data;
@@ -91,6 +101,10 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
 }
 
 export const telematicsService = {
+  resolveProvider(provider?: unknown): TelematicsProvider {
+    return normalizeTelematicsProvider(provider);
+  },
+
   /**
    * Register a user with Damoov explicitly to get a DeviceToken
    */
@@ -124,6 +138,34 @@ export const telematicsService = {
       throw new Error("Failed to register user with Telematics API: " + JSON.stringify(error.response?.data || error.message));
     }
   },
+
+  async registerUser(clientCustomId: string, provider?: unknown) {
+    const selectedProvider = normalizeTelematicsProvider(provider);
+
+    if (selectedProvider === "inhouse") {
+      const safeId = String(clientCustomId || "user")
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "")
+        .slice(0, 24);
+      const ts = Date.now();
+      const inHouseToken = `inhouse-device-${safeId || "user"}-${ts}`;
+
+      logger.info(
+        { clientCustomId, provider: selectedProvider, inHouseToken },
+        "Registering user with in-house telematics (local token)",
+      );
+
+      return {
+        Result: {
+          DeviceToken: inHouseToken,
+          Provider: "inhouse",
+        },
+      };
+    }
+
+    return this.registerUserWithDamoov(clientCustomId);
+  },
+
   /**
    * Link a mobile SDK instance to a vehicle.
    * Schema: one row per vehicleId (unique), one row per instanceId (unique).
@@ -135,15 +177,30 @@ export const telematicsService = {
     instanceId: string,
     deviceToken?: string,
     platform?: string,
+    provider?: unknown,
   ) {
-    logger.info({ vehicleId, instanceId }, "Linking Telematics Device");
+    const selectedProvider = normalizeTelematicsProvider(provider);
+    const resolvedInstanceId =
+      selectedProvider === "inhouse" && !String(instanceId).startsWith("inhouse-")
+        ? `inhouse-${instanceId}`
+        : instanceId;
+    const platformWithProvider = platform ? `${platform}:${selectedProvider}` : selectedProvider;
 
-    const payload = { deviceToken, platform, isActive: true };
+    logger.info(
+      { vehicleId, instanceId: resolvedInstanceId, provider: selectedProvider },
+      "Linking Telematics Device",
+    );
+
+    const payload = {
+      deviceToken,
+      platform: platformWithProvider,
+      isActive: true,
+    };
 
     const existing = await db.telematicsDevice.findFirst({
       where: {
         OR: [
-          { instanceId },
+          { instanceId: resolvedInstanceId },
           { vehicleId },
         ],
       },
@@ -154,7 +211,7 @@ export const telematicsService = {
       // If the row matches vehicleId, update it (possibly changing its instanceId)
       return db.telematicsDevice.update({
         where: { id: existing.id },
-        data: { instanceId, vehicleId, ...payload },
+        data: { instanceId: resolvedInstanceId, vehicleId, ...payload },
       });
     }
 
@@ -162,12 +219,125 @@ export const telematicsService = {
     return db.telematicsDevice.create({
       data: {
         vehicleId,
-        instanceId,
+        instanceId: resolvedInstanceId,
         deviceToken,
-        platform,
+        platform: platformWithProvider,
         isActive: true,
       },
     });
+  },
+
+  async ingestInHouseTrip(input: {
+    vehicleId?: string;
+    instanceId?: string;
+    tripId?: string;
+    startTime?: string | number | Date;
+    endTime?: string | number | Date;
+    distanceKm?: number;
+    durationMin?: number;
+    safetyScore?: number;
+    maxSpeed?: number | null;
+    avgSpeed?: number | null;
+    startLocation?: any;
+    endLocation?: any;
+    statistics?: any;
+    scores?: any;
+    events?: Array<{
+      eventType?: string;
+      timestamp?: string | number | Date;
+      latitude?: number;
+      longitude?: number;
+      severity?: number | null;
+      speed?: number | null;
+    }>;
+  }) {
+    const instanceId =
+      input.instanceId && String(input.instanceId).trim().length > 0
+        ? String(input.instanceId)
+        : undefined;
+
+    let vehicleId = input.vehicleId;
+    if (!vehicleId && instanceId) {
+      const linkedDevice = await db.telematicsDevice.findUnique({
+        where: { instanceId },
+      });
+      vehicleId = linkedDevice?.vehicleId;
+    }
+
+    if (!vehicleId) {
+      throw new Error("vehicleId (or linked instanceId) is required for in-house trip ingestion");
+    }
+
+    const start = input.startTime ? new Date(input.startTime) : new Date();
+    const end = input.endTime ? new Date(input.endTime) : new Date();
+    const tripId = input.tripId || `INHOUSE_${Date.now()}`;
+
+    const stats = input.statistics ?? null;
+    const scores = input.scores ?? null;
+
+    const trip = await db.drivingTrip.upsert({
+      where: { tripId },
+      update: {
+        vehicleId,
+        startTime: start,
+        endTime: end,
+        distanceKm: Number(input.distanceKm ?? 0) || 0,
+        durationMin: Number(input.durationMin ?? 0) || 0,
+        safetyScore: Math.round(Number(input.safetyScore ?? 100) || 100),
+        maxSpeed: input.maxSpeed ?? null,
+        avgSpeed: input.avgSpeed ?? null,
+        startLocation: input.startLocation ?? null,
+        endLocation: input.endLocation ?? null,
+        scores,
+        statistics: stats,
+        status: "COMPLETED",
+      },
+      create: {
+        vehicleId,
+        tripId,
+        startTime: start,
+        endTime: end,
+        distanceKm: Number(input.distanceKm ?? 0) || 0,
+        durationMin: Number(input.durationMin ?? 0) || 0,
+        safetyScore: Math.round(Number(input.safetyScore ?? 100) || 100),
+        maxSpeed: input.maxSpeed ?? null,
+        avgSpeed: input.avgSpeed ?? null,
+        startLocation: input.startLocation ?? null,
+        endLocation: input.endLocation ?? null,
+        scores,
+        statistics: stats,
+        status: "COMPLETED",
+      },
+    });
+
+    if (Array.isArray(input.events) && input.events.length > 0) {
+      await db.drivingEvent.deleteMany({ where: { tripId: trip.id } });
+      const eventRows = input.events
+        .filter((event) =>
+          event &&
+          event.timestamp != null &&
+          Number.isFinite(Number(event.latitude)) &&
+          Number.isFinite(Number(event.longitude)),
+        )
+        .map((event) => ({
+          tripId: trip.id,
+          eventType: String(event.eventType || "INHOUSE_POINT"),
+          timestamp: new Date(event.timestamp as any),
+          latitude: Number(event.latitude),
+          longitude: Number(event.longitude),
+          severity: event.severity ?? null,
+          speed: event.speed ?? null,
+        }));
+
+      if (eventRows.length > 0) {
+        await db.drivingEvent.createMany({
+          data: eventRows,
+        });
+      }
+    }
+
+    await this.updateVehicleHealth(vehicleId);
+    return { status: "success", provider: "inhouse", tripId: trip.id };
   },
 
   /**
@@ -641,6 +811,29 @@ export const telematicsService = {
       moneyTip,
       safetyTip,
     };
+  },
+
+  /**
+   * Pull trips for all active devices from Damoov API (Cron job Alternative).
+   * Uses cached admin token to avoid login rate limits; on 429 skips this run and retries next schedule.
+   * @param options.forceLogin - If true, attempt login even during rate-limit backoff (for manual/immediate sync).
+   */
+  async syncTripsForProvider(
+    provider?: unknown,
+    options?: { forceLogin?: boolean },
+  ) {
+    const selectedProvider = normalizeTelematicsProvider(provider);
+
+    if (selectedProvider === "inhouse") {
+      logger.info(
+        { provider: selectedProvider },
+        "In-house telematics selected: external Damoov sync skipped",
+      );
+      return { provider: selectedProvider, status: "skipped_external_sync" as const };
+    }
+
+    await this.syncTripsForAllDevices(options);
+    return { provider: selectedProvider, status: "synced" as const };
   },
 
   /**

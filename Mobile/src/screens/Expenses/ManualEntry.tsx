@@ -23,7 +23,8 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 import { googleMapsService } from "../../services/googleMapsService";
 import LoaderButton from "../../components/Button";
-import { queueExpenseCreate } from "src/services/offlineMutationQueue";
+import { queueExpenseCreate } from "../../services/offlineMutationQueue";
+import { clearCachedValue } from "../../services/cache";
 
 let Geolocation: any = null;
 try {
@@ -346,6 +347,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const handleSave = async () => {
     if (!isValid) return;
 
+    let payload: any = null;
     setLoading(true);
     try {
       // Parse date from supported text formats.
@@ -376,7 +378,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         : (selectedVehicleId ?? vehicleId ?? undefined);
       const normalizedPartTypes = normalizeSelectedPartTypes(selectedPartTypes);
 
-      const payload: any = {
+      payload = {
         amount: parseFloat(amount),
         category: category.toUpperCase(), // Backend expects uppercase
         vehicleId: targetVehicleId,
@@ -487,7 +489,11 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }
 
       try {
-        await queueExpenseCreate(payload as any);
+        if (payload) {
+          await queueExpenseCreate(payload as any);
+        } else {
+          throw new Error(message || "Failed to add expense");
+        }
         onClose();
         Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
         if (onSuccess) onSuccess();

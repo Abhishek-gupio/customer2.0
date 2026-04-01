@@ -1,10 +1,12 @@
 import { getStorageValue, setStorageValue } from './storage';
 import { uploadDocument, type UploadDocumentParams, type DocumentResponse } from './documentService';
-import { api } from './api';
+import { api, getNetworkOnlineState, subscribeNetworkState } from './api';
 import { clearCachedValue } from './cache';
+import { telematicsApi, type InHouseTripPayload } from '../api/telematics';
 
 const DOCUMENT_UPLOAD_QUEUE_KEY = 'queue:document-uploads';
 const EXPENSE_CREATE_QUEUE_KEY = 'queue:expense-create';
+const INHOUSE_TRIP_UPLOAD_QUEUE_KEY = 'queue:inhouse-trip-upload';
 
 type QueuedDocumentUpload = UploadDocumentParams & {
   queuedAt: number;
@@ -116,9 +118,106 @@ export async function flushQueuedExpenseCreates(
   return { uploaded, remaining: remaining.length };
 }
 
+type QueuedInHouseTripUpload = {
+  payload: InHouseTripPayload;
+  queuedAt: number;
+};
+
+function readInHouseTripQueue(): QueuedInHouseTripUpload[] {
+  try {
+    const raw = getStorageValue(INHOUSE_TRIP_UPLOAD_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeInHouseTripQueue(queue: QueuedInHouseTripUpload[]): void {
+  setStorageValue(INHOUSE_TRIP_UPLOAD_QUEUE_KEY, JSON.stringify(queue));
+}
+
+export function getQueuedInHouseTripUploadCount(): number {
+  return readInHouseTripQueue().length;
+}
+
+export async function queueInHouseTripUpload(payload: InHouseTripPayload): Promise<number> {
+  const queue = readInHouseTripQueue();
+  queue.push({ payload, queuedAt: Date.now() });
+  writeInHouseTripQueue(queue);
+  return queue.length;
+}
+
+export async function flushQueuedInHouseTripUploads(
+  onSuccess?: (payload: InHouseTripPayload) => void,
+): Promise<{ uploaded: number; remaining: number }> {
+  const queue = readInHouseTripQueue();
+  if (!queue.length) return { uploaded: 0, remaining: 0 };
+
+  const remaining: QueuedInHouseTripUpload[] = [];
+  let uploaded = 0;
+
+  for (const item of queue) {
+    try {
+      await telematicsApi.submitInHouseTrip(item.payload);
+      uploaded += 1;
+      onSuccess?.(item.payload);
+    } catch {
+      remaining.push(item);
+    }
+  }
+
+  writeInHouseTripQueue(remaining);
+  return { uploaded, remaining: remaining.length };
+}
+
+let autoSyncInitialized = false;
+let autoSyncInFlight = false;
+let autoSyncInterval: ReturnType<typeof setInterval> | null = null;
+
+async function flushAllQueuesSilently(): Promise<void> {
+  if (autoSyncInFlight) return;
+  autoSyncInFlight = true;
+  try {
+    await Promise.all([
+      flushQueuedDocumentUploads(),
+      flushQueuedExpenseCreates(),
+      flushQueuedInHouseTripUploads(),
+    ]);
+  } catch {
+    // best-effort flush
+  } finally {
+    autoSyncInFlight = false;
+  }
+}
+
+export function initializeOfflineQueueAutoSync(): void {
+  if (autoSyncInitialized) return;
+  autoSyncInitialized = true;
+
+  subscribeNetworkState((online) => {
+    if (online) {
+      flushAllQueuesSilently().catch(() => {});
+    }
+  });
+
+  if (getNetworkOnlineState()) {
+    flushAllQueuesSilently().catch(() => {});
+  }
+
+  // Safety net: periodically retry queues even when no network-state transition is emitted.
+  autoSyncInterval = setInterval(() => {
+    if (getNetworkOnlineState()) {
+      flushAllQueuesSilently().catch(() => {});
+    }
+  }, 20000);
+}
+
 export function getQueuedActionSummary() {
   return {
     documentUploads: getQueuedDocumentUploadCount(),
     expenseCreates: getQueuedExpenseCreateCount(),
+    inHouseTripUploads: getQueuedInHouseTripUploadCount(),
   };
 }

@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -520,10 +521,8 @@ export default function Home() {
     }, [selectedVideo])
   );
 
-  // Auto-scroll carousel every 5 seconds
-  // Use a ref to avoid stale closure & re-creating the interval on every slide,
-  // which caused IllegalStateException from conflicting Animated frame timestamps.
   const carouselIndexRef = useRef(0);
+
   const handleBannerMomentumEnd = useCallback((e: any) => {
     const layoutWidth = e?.nativeEvent?.layoutMeasurement?.width || bannerWidth;
     const offsetX = e?.nativeEvent?.contentOffset?.x || 0;
@@ -531,7 +530,7 @@ export default function Home() {
     const index = Math.max(0, Math.min(rawIndex, carouselSlides.length - 1));
     carouselIndexRef.current = index;
     setCarouselIndex(index);
-  }, [bannerWidth, carouselSlides.length]);
+  }, [carouselSlides.length, bannerWidth]);
 
   useEffect(() => {
     const maxIndex = carouselSlides.length - 1;
@@ -557,6 +556,7 @@ export default function Home() {
         // guard against layout-not-ready race
       }
     }, AUTO_SCROLL_INTERVAL_MS);
+
     return () => {
       clearInterval(timer);
       if (autoScrollResumeTimerRef.current) {
@@ -564,7 +564,7 @@ export default function Home() {
         autoScrollResumeTimerRef.current = null;
       }
     };
-  }, [bannerWidth, carouselSlides.length]);
+  }, [carouselSlides.length, bannerWidth, showOdometerSlide]);
 
   useEffect(() => {
     if (carouselIndexRef.current < carouselSlides.length) {
@@ -1392,14 +1392,17 @@ export default function Home() {
             onScrollBeginDrag={pauseAutoScrollTemporarily}
             onMomentumScrollEnd={handleBannerMomentumEnd}
             data={carouselSlides}
-            keyExtractor={(item) => item.toString()}
+            keyExtractor={(item) => item}
+            onTouchStart={() => {
+              pauseAutoScrollTemporarily();
+            }}
             renderItem={({ item }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
               const fallbackHeroImage = (vehicle?.vehicleType === 'BIKE'
                 ? require('../../assets/images/bike.png')
                 : require('../../assets/images/car_vehicle_demo.png')) as ImageSourcePropType;
               const heroImageSource: ImageSourcePropType =
-                typeof vehicleImageUrl === 'string' && vehicleImageUrl.length > 0
+                vehicleImageUrl && vehicleImageUrl.length > 0
                   ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
                   : fallbackHeroImage;
 
@@ -1408,18 +1411,24 @@ export default function Home() {
 
                 return (
                   <View style={[styles.slideFull, { width: bannerWidth }]}>
-                    <View style={styles.primaryImageWrap}>
-                      <FastImage
-                        source={heroImageSource as any}
-                        style={styles.primaryImageFull}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                      {/* Bottom-up gradient scrim for text legibility */}
-                      <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
-                        locations={[0, 0.3, 0.65, 1]}
-                        style={styles.primaryImageOverlay}
-                      >
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={isAddVehicleBanner ? 0.92 : 1}
+                      disabled={!isAddVehicleBanner}
+                      onPress={navigateToGarageTab}
+                    >
+                      <View style={styles.primaryImageWrap}>
+                        <FastImage
+                          source={heroImageSource as any}
+                          style={styles.primaryImageFull}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                        {/* Bottom-up gradient scrim for text legibility */}
+                        <LinearGradient
+                          colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
+                          locations={[0, 0.3, 0.65, 1]}
+                          style={styles.primaryImageOverlay}
+                        >
                           <View style={styles.bannerBottomRow}>
                             {/* Left: vehicle info + health */}
                             {vehicleLoading ? (
@@ -1451,66 +1460,74 @@ export default function Home() {
                             </View>
                           </View>
                         </LinearGradient>
-                    </View>
-                  </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'expenses') {
                 return (
-                  <TouchableOpacity
-                    style={[styles.slideFull, { width: bannerWidth }]}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('Expenses')}
-                  >
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
-                        <Text style={styles.promoTitle}>Expense Tracker</Text>
-                        <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
-                        <View style={styles.promoAction}>
-                          <Text style={styles.promoActionText}>Try Now</Text>
-                          <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => navigateToRootScreen('Expenses')}
+                    >
+                      <View style={styles.promoSlide}>
+                        <View style={styles.promoLeft}>
+                          <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
+                          <Text style={styles.promoTitle}>Expense Tracker</Text>
+                          <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={styles.promoActionText}>Try Now</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
+                          </View>
+                        </View>
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/expense_AD.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
                         </View>
                       </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/expense_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'services') {
                 return (
-                  <TouchableOpacity
-                    style={[styles.slideFull, { width: bannerWidth }]}
-                    activeOpacity={0.9}
-                    onPress={() => setServiceModalVisible(true)}
-                  >
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
-                        <Text style={styles.promoTitle}>Featured Services</Text>
-                        <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
-                        <View style={styles.promoAction}>
-                          <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
-                          <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => setServiceModalVisible(true)}
+                    >
+                      <View style={styles.promoSlide}>
+                        <View style={styles.promoLeft}>
+                          <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
+                          <Text style={styles.promoTitle}>Featured Services</Text>
+                          <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
+                          </View>
+                        </View>
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/vehicle_AD.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
                         </View>
                       </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/vehicle_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'social') {
                 return (
                   <View style={[styles.slideFull, { width: bannerWidth }]}>
@@ -1546,135 +1563,148 @@ export default function Home() {
                   </View>
                 );
               }
+
               if (item === 'drivingBehavior') {
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('DrivingSummary')}
-                  >
-                    <View style={styles.slideFull}>
-                      <FastImage
-                        source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
-                        style={styles.promoBackgroundImage}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                      <LinearGradient
-                        colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
-                        locations={[0, 0.5, 1]}
-                        start={{ x: 0, y: 0.5 }}
-                        end={{ x: 1, y: 0.5 }}
-                        style={styles.promoBackgroundOverlay}
-                      >
-                        <View style={styles.promoBackgroundContent}>
-                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
-                          <Text style={styles.promoTitle}>Driving Behavior</Text>
-                          <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
-                          <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
-                            <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => navigateToRootScreen('DrivingSummary')}
+                    >
+                      <View style={styles.slideFull}>
+                        <FastImage
+                          source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
+                          style={styles.promoBackgroundImage}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                        <LinearGradient
+                          colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
+                          locations={[0, 0.5, 1]}
+                          start={{ x: 0, y: 0.5 }}
+                          end={{ x: 1, y: 0.5 }}
+                          style={styles.promoBackgroundOverlay}
+                        >
+                          <View style={styles.promoBackgroundContent}>
+                            <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
+                            <Text style={styles.promoTitle}>Driving Behavior</Text>
+                            <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
+                            <View style={styles.promoAction}>
+                              <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
+                              <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
+                            </View>
                           </View>
-                        </View>
-                      </LinearGradient>
-                    </View>
-                  </TouchableOpacity>
+                        </LinearGradient>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
+
               if (item === 'tripPlanner') {
                 return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('TripExpense')}
-                  >
-                    <View style={styles.slideFull}>
-                      <FastImage
-                        source={require('../../assets/images/trip_planner_banner.png') as any}
-                        style={styles.promoBackgroundImage}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                      <LinearGradient
-                        colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
-                        locations={[0, 0.5, 1]}
-                        start={{ x: 0, y: 0.5 }}
-                        end={{ x: 1, y: 0.5 }}
-                        style={styles.promoBackgroundOverlay}
-                      >
-                        <View style={styles.promoBackgroundContent}>
-                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
-                          <Text style={styles.promoTitle}>Trip Planner</Text>
-                          <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
-                          <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
-                            <MaterialIcon name="chevron-right" size={18} color="#34D399" />
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => navigateToRootScreen('TripExpense')}
+                    >
+                      <View style={styles.slideFull}>
+                        <FastImage
+                          source={require('../../assets/images/trip_planner_banner.png') as any}
+                          style={styles.promoBackgroundImage}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                        <LinearGradient
+                          colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
+                          locations={[0, 0.5, 1]}
+                          start={{ x: 0, y: 0.5 }}
+                          end={{ x: 1, y: 0.5 }}
+                          style={styles.promoBackgroundOverlay}
+                        >
+                          <View style={styles.promoBackgroundContent}>
+                            <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
+                            <Text style={styles.promoTitle}>Trip Planner</Text>
+                            <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
+                            <View style={styles.promoAction}>
+                              <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
+                              <MaterialIcon name="chevron-right" size={18} color="#34D399" />
+                            </View>
                           </View>
-                        </View>
-                      </LinearGradient>
-                    </View>
-                  </TouchableOpacity>
+                        </LinearGradient>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 );
               }
-              const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
-              const now = Date.now();
-              const weekMs = 7 * 24 * 60 * 60 * 1000;
-              const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
-              const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
 
-              return (
-                <TouchableOpacity
-                  style={[styles.slideFull, { width: bannerWidth }]}
-                  activeOpacity={0.9}
-                  onPress={() => (navigation as any).navigate('Odometer')}
-                >
-                  <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
-                    <View style={styles.promoLeft}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
-                        {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
-                        <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                          {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
-                        </Text>
-                      </View>
+              if (item === 'odometer') {
+                const lastUpdateNum = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
+                const now = Date.now();
+                const weekMs = 7 * 24 * 60 * 60 * 1000;
+                const isOverAWeekNum = !!(lastUpdateNum && (now - lastUpdateNum) > weekMs);
+                const daysSinceNum = lastUpdateNum ? Math.floor((now - lastUpdateNum) / (24 * 60 * 60 * 1000)) : null;
 
-                      {lastUpdate ? (
-                        <View>
-                          <View style={styles.odometerInfoRow}>
-                            <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
-                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                              {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                            </Text>
-                            <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
-                            <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                              {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                return (
+                  <View style={[styles.slideFull, { width: bannerWidth }]}>
+                    <TouchableOpacity
+                      style={styles.slideFull}
+                      activeOpacity={0.9}
+                      onPress={() => (navigation as any).navigate('Odometer')}
+                    >
+                      <View style={[styles.promoSlide, isOverAWeekNum ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
+                        <View style={styles.promoLeft}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
+                            {isOverAWeekNum && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
+                            <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                              {isOverAWeekNum ? 'ODOMETER ALERT' : 'Update Odometer'}
                             </Text>
                           </View>
 
-                          <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
-                            <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
-                              {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
+                          {lastUpdateNum ? (
+                            <View>
+                              <View style={styles.odometerInfoRow}>
+                                <MaterialIcon name="calendar-month" size={14} color={isOverAWeekNum ? '#ff4d4d' : '#888'} />
+                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                                  {new Date(lastUpdateNum).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                </Text>
+                                <MaterialIcon name="clock-outline" size={14} color={isOverAWeekNum ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
+                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                                  {new Date(lastUpdateNum).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                </Text>
+                              </View>
+
+                              <View style={[styles.odometerBadge, isOverAWeekNum ? styles.odometerWarningBadge : undefined]}>
+                                <Text style={[styles.odometerBadgeText, isOverAWeekNum ? styles.odometerWarningBadgeText : undefined]}>
+                                  {isOverAWeekNum ? `${daysSinceNum} days ago` : 'Last Reading'}
+                                </Text>
+                              </View>
+                            </View>
+                          ) : (
+                            <Text style={styles.promoDesc}>
+                              Start tracking your vehicle health by updating odometer.
                             </Text>
+                          )}
+
+                          <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
+                            <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
+                            <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
                           </View>
                         </View>
-                      ) : (
-                        <Text style={styles.promoDesc}>
-                          Start tracking your vehicle health by updating odometer.
-                        </Text>
-                      )}
-
-                      <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
-                        <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
-                        <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/odometer.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
+                        </View>
                       </View>
-                    </View>
-                    <View style={styles.promoRight}>
-                      <Image
-                        source={require('../../assets/images/odometer.png') as any}
-                        style={styles.adImage}
-                        resizeMode="contain"
-                      />
-                    </View>
+                    </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
-              );
+                );
+              }
+
+              return null;
             }}
           />
 
@@ -1764,14 +1794,14 @@ export default function Home() {
               <Text style={styles.sectionSubtitle}>Suggested next actions for your vehicle.</Text>
             </View>
           </View>
-          <FlashList
+          <FlashListAny
             horizontal
             data={sortedOwnershipTimelineItems}
-            estimatedItemSize={wp(78)}
+            estimatedItemSize={300}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.timelineScrollContent}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => (
+            keyExtractor={(item: TimelineItem) => item.id}
+            renderItem={({ item, index }: { item: TimelineItem; index: number }) => (
               <Animated.View
                 key={item.id}
                 style={{
@@ -1951,7 +1981,7 @@ export default function Home() {
               style={styles.stateButton}
               onPress={() => setShowStateModal(true)}
             >
-              <Text style={styles.stateButtonText}>{selectedState.split(' ')[0]}</Text>
+              <Text style={styles.stateButtonText}>{selectedState ? selectedState.split(' ')[0] : 'Detecting...'}</Text>
               <MaterialIcon name="chevron-down" size={14} color="#0a0a0a" />
             </TouchableOpacity>
           </View>
@@ -1965,19 +1995,19 @@ export default function Home() {
               <View style={styles.fuelInlineContainer}>
                 <View style={styles.fuelInlineItem}>
                   <Text style={styles.fuelInlineLabel}>Petrol:</Text>
-                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.petrol}</Text>
+                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices?.petrol}</Text>
                 </View>
                 <View style={styles.fuelInlineSpacer} />
                 <View style={styles.fuelInlineItem}>
                   <Text style={styles.fuelInlineLabel}>Diesel:</Text>
-                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.diesel}</Text>
+                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices?.diesel}</Text>
                 </View>
-                {fuelPrices.cng && (
+                {fuelPrices?.cng && (
                   <>
                     <View style={styles.fuelInlineSpacer} />
                     <View style={styles.fuelInlineItem}>
                       <Text style={styles.fuelInlineLabel}>CNG:</Text>
-                      <Text style={styles.fuelInlineValue}>₹ {fuelPrices.cng}</Text>
+                      <Text style={styles.fuelInlineValue}>₹ {fuelPrices?.cng}</Text>
                     </View>
                   </>
                 )}

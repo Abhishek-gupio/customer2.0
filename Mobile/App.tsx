@@ -16,6 +16,8 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 import { setupNotifications } from './src/services/notification';
 import NetworkBanner from './src/components/NetworkBanner';
+import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
+import { initializeInHouseTelematicsAutoEngine } from './src/services/inHouseTelematicsAutoEngine';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -70,6 +72,8 @@ function App() {
         setupNotifications().catch(err => {
           console.error('Error during notification setup:', err);
         });
+        initializeOfflineQueueAutoSync();
+        initializeInHouseTelematicsAutoEngine();
       });
   }, []);
 

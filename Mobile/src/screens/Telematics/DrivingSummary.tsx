@@ -8,6 +8,7 @@ import {
   ActivityIndicator, 
   Platform, 
   Alert, 
+  Linking,
   StatusBar, 
   PermissionsAndroid, 
   Modal 
@@ -21,11 +22,25 @@ import { format } from 'date-fns';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService } from '../../services/vehicleService';
 import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
-import { getUserId, getTelematicsLinked, setTelematicsLinked } from '../../services/storage';
+import {
+    getUserId,
+    getTelematicsLinked,
+    setTelematicsLinked,
+    getTelematicsProvider,
+    getTelematicsAutoModeEnabled,
+    setTelematicsAutoModeEnabled,
+    setTelematicsProvider as persistTelematicsProvider,
+    type TelematicsProvider,
+} from '../../services/storage';
 import BackButton from '../../components/BackButton';
 import { damoovTelematics } from '../../native/damoovTelematics';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
+import { inHouseTelematics } from '../../services/inHouseTelematics';
+import {
+    subscribeInHouseTelematicsAutoEngine,
+    triggerInHouseTelematicsAutoEngineTick,
+} from '../../services/inHouseTelematicsAutoEngine';
 
 const uuidV4 = (): string =>
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -61,18 +76,28 @@ export default function DrivingSummary({ navigation }: any) {
     const [latestMapFullscreen, setLatestMapFullscreen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isAssistanceDrawerOpen, setIsAssistanceDrawerOpen] = useState(false);
-    const [primaryVehicle, setPrimaryVehicle] = useState<{ id: string; registrationNumber?: string } | null>(null);
+    const [primaryVehicle, setPrimaryVehicle] = useState<{ id: string; registrationNumber?: string; vehicleType?: string } | null>(null);
     const [linkLoading, setLinkLoading] = useState(false);
     const [linkDone, setLinkDone] = useState(false);
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lon: number } | null>(null);
+    const [telematicsProvider, setTelematicsProviderState] = useState<TelematicsProvider>(getTelematicsProvider());
+    const [inHouseStatus, setInHouseStatus] = useState(() => inHouseTelematics.getStatus());
+    const [inHouseActionLoading, setInHouseActionLoading] = useState(false);
+    const [autoModeEnabled, setAutoModeEnabled] = useState(() => getTelematicsAutoModeEnabled());
+    const [locationServicesEnabled, setLocationServicesEnabled] = useState<boolean | null>(null);
 
     const latestMapRef = useRef<MapView>(null);
 
-    const fetchTelemetry = async () => {
+    const refreshInHouseStatus = () => {
+        setInHouseStatus(inHouseTelematics.getStatus());
+    };
+
+    const fetchTelemetry = async (providerOverride?: TelematicsProvider) => {
+        const activeProvider = providerOverride ?? telematicsProvider;
         try {
             setLoading(true);
             try {
-                await telematicsApi.syncTrips();
+                await telematicsApi.syncTrips(activeProvider);
             } catch (e) {
                 console.log('Skipping auto-sync', e);
             }
@@ -95,6 +120,9 @@ export default function DrivingSummary({ navigation }: any) {
                     if (backendLinked && !storedLinked) {
                         setTelematicsLinked(primary.id, true);
                     }
+                    if (activeProvider === 'inhouse' && getTelematicsAutoModeEnabled()) {
+                        triggerInHouseTelematicsAutoEngineTick(true);
+                    }
                 } else {
                     // For safety, if we have trips, it must be linked
                     const tripsRes = await telematicsApi.getTrips(primary.id);
@@ -102,6 +130,9 @@ export default function DrivingSummary({ navigation }: any) {
                     if (tripsArray.length > 0) {
                         setLinkDone(true);
                         setTelematicsLinked(primary.id, true);
+                        if (activeProvider === 'inhouse' && getTelematicsAutoModeEnabled()) {
+                            triggerInHouseTelematicsAutoEngineTick(true);
+                        }
                     }
                 }
 
@@ -151,7 +182,11 @@ export default function DrivingSummary({ navigation }: any) {
     };
 
     useEffect(() => {
-        fetchTelemetry();
+        fetchTelemetry(telematicsProvider);
+        refreshInHouseStatus();
+        if (Platform.OS === 'android' && telematicsProvider === 'inhouse') {
+            refreshLocationServicesState().catch(() => setLocationServicesEnabled(null));
+        }
 
         // Get current location for SOS drawer
         if (Geolocation) {
@@ -164,6 +199,263 @@ export default function DrivingSummary({ navigation }: any) {
             );
         }
     }, []);
+
+    useEffect(() => {
+        if (telematicsProvider !== 'inhouse') {
+            setLocationServicesEnabled(null);
+            return;
+        }
+
+        if (Platform.OS === 'android') {
+            refreshLocationServicesState().catch(() => setLocationServicesEnabled(null));
+        }
+    }, [telematicsProvider]);
+
+    useEffect(() => {
+        inHouseTelematics.refreshStatusFromNative().then(setInHouseStatus).catch(() => {
+            refreshInHouseStatus();
+        });
+
+        const timer = setInterval(() => {
+            inHouseTelematics
+                .refreshStatusFromNative()
+                .then(next => {
+                    setInHouseStatus(prev => {
+                        if (
+                            prev.isRunning === next.isRunning &&
+                            prev.startedAtMs === next.startedAtMs &&
+                            prev.pointsCaptured === next.pointsCaptured &&
+                            prev.mode === next.mode &&
+                            prev.hasPendingCompletedTrip === next.hasPendingCompletedTrip
+                        ) {
+                            return prev;
+                        }
+                        return next;
+                    });
+                })
+                .catch(() => {
+                    const next = inHouseTelematics.getStatus();
+                    setInHouseStatus(prev => {
+                        if (
+                            prev.isRunning === next.isRunning &&
+                            prev.startedAtMs === next.startedAtMs &&
+                            prev.pointsCaptured === next.pointsCaptured &&
+                            prev.mode === next.mode &&
+                            prev.hasPendingCompletedTrip === next.hasPendingCompletedTrip
+                        ) {
+                            return prev;
+                        }
+                        return next;
+                    });
+                });
+        }, 3000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        return subscribeInHouseTelematicsAutoEngine(event => {
+            if (event.type !== 'trip_saved') return;
+            if (telematicsProvider !== 'inhouse') return;
+            if (primaryVehicle?.id && event.vehicleId !== primaryVehicle.id) return;
+
+            refreshInHouseStatus();
+            if (!event.queuedOffline) {
+                fetchTelemetry('inhouse');
+            }
+        });
+    }, [telematicsProvider, primaryVehicle?.id]);
+
+    const handleProviderToggle = (provider: TelematicsProvider) => {
+        if (provider === telematicsProvider) return;
+
+        if (telematicsProvider === 'inhouse' && inHouseTelematics.getStatus().isRunning) {
+            inHouseTelematics.stopAndDiscard();
+            refreshInHouseStatus();
+        }
+
+        persistTelematicsProvider(provider);
+        setTelematicsProviderState(provider);
+
+        if (primaryVehicle?.id) {
+            setTelematicsLinked(primaryVehicle.id, false);
+        }
+        setLinkDone(false);
+        setLatestTrip(null);
+        setLatestPath([]);
+        setScore(null);
+        setMetrics({ distance: '0', duration: '0h 0m', harshBraking: '0', hardAccel: '0', phoneUsage: '0', nightDist: '0 km' });
+
+        fetchTelemetry(provider);
+        if (provider === 'inhouse' && autoModeEnabled) {
+            triggerInHouseTelematicsAutoEngineTick(true);
+        }
+        Alert.alert(
+            'Telematics source updated',
+            provider === 'inhouse'
+                ? 'In-house telematics (beta) is now selected.'
+                : 'Damoov telematics is now selected.',
+        );
+    };
+
+    const mapInHouseStopReason = (reason: string): string => {
+        switch (reason) {
+            case 'not_running':
+                return 'Trip recorder is not running.';
+            case 'no_geolocation':
+                return 'Location service is not available in this build.';
+            case 'no_points':
+                return 'No GPS points were captured. Please try again with location enabled.';
+            case 'too_short':
+                return 'Trip was too short to save. Drive for at least ~2 minutes or ~200m.';
+            case 'upload_failed':
+                return 'Trip captured, but upload failed. Please retry with internet connection.';
+            default:
+                return 'Trip could not be saved.';
+        }
+    };
+
+    const buildInHouseStopMessage = (result: { reason: string; error?: string }) => {
+        const base = mapInHouseStopReason(result.reason);
+        if (!result.error) return base;
+        return `${base}\n\nDetails: ${result.error}`;
+    };
+
+    const refreshLocationServicesState = async (): Promise<boolean | null> => {
+        if (telematicsProvider !== 'inhouse') {
+            setLocationServicesEnabled(null);
+            return null;
+        }
+
+        try {
+            const enabled = await inHouseTelematics.isLocationEnabled();
+            setLocationServicesEnabled(enabled);
+            return enabled;
+        } catch {
+            setLocationServicesEnabled(null);
+            return null;
+        }
+    };
+
+    const openLocationSettings = async () => {
+        try {
+            if (Platform.OS === 'android' && typeof Linking.sendIntent === 'function') {
+                await Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS');
+                return;
+            }
+        } catch {}
+
+        try {
+            await Linking.openSettings();
+        } catch {}
+    };
+
+    const showLocationDisabledAlert = () => {
+        Alert.alert(
+            'Turn on Location',
+            'In-house telematics needs device Location turned on to record or auto-detect trips. Enable GPS/Location services and try again.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Open Settings', onPress: () => { void openLocationSettings(); } },
+            ],
+        );
+    };
+
+    const ensureInHouseLocationEnabled = async (): Promise<boolean> => {
+        const enabled = await refreshLocationServicesState();
+        if (enabled === false) {
+            showLocationDisabledAlert();
+            return false;
+        }
+        return true;
+    };
+
+    const handleAutoModeToggle = async () => {
+        const next = !autoModeEnabled;
+
+        if (next && telematicsProvider === 'inhouse') {
+            const ready = await ensureInHouseLocationEnabled();
+            if (!ready) return;
+        }
+
+        setAutoModeEnabled(next);
+        setTelematicsAutoModeEnabled(next);
+
+        if (next && telematicsProvider === 'inhouse') {
+            triggerInHouseTelematicsAutoEngineTick(true);
+        }
+    };
+
+    const handleInHouseRecorderAction = async () => {
+        if (!primaryVehicle?.id) {
+            Alert.alert('Vehicle required', 'Please add/select a vehicle first.');
+            return;
+        }
+
+        if (telematicsProvider !== 'inhouse') {
+            Alert.alert('Provider mismatch', 'Switch to in-house provider to use in-house recording.');
+            return;
+        }
+
+        if (inHouseStatus.isRunning) {
+            setInHouseActionLoading(true);
+            try {
+                const result = await inHouseTelematics.stopAndUpload(primaryVehicle.id, {
+                    vehicleType: primaryVehicle.vehicleType,
+                });
+                refreshInHouseStatus();
+                if (result.submitted) {
+                    if (result.queuedOffline) {
+                        Alert.alert(
+                            'Saved offline',
+                            `Trip captured locally (${result.distanceKm.toFixed(2)} km). It will auto-sync when network returns.${result.queueSize ? ` Pending trips: ${result.queueSize}.` : ''}`,
+                        );
+                    } else {
+                        Alert.alert(
+                            'Trip saved',
+                            `Captured ${result.distanceKm.toFixed(2)} km in ${Math.round(result.durationMin)} min. Score: ${result.safetyScore}.`,
+                        );
+                        fetchTelemetry('inhouse');
+                    }
+                } else {
+                    Alert.alert('Trip not saved', buildInHouseStopMessage(result));
+                }
+            } finally {
+                setInHouseActionLoading(false);
+            }
+            return;
+        }
+
+        if (Platform.OS === 'android') {
+            const granted = await requestTelematicsPermissions();
+            if (!granted) {
+                Alert.alert('Permissions needed', 'Location and activity permissions are required for in-house trip recording.');
+                return;
+            }
+        }
+
+        const locationEnabled = await ensureInHouseLocationEnabled();
+        if (!locationEnabled) {
+            return;
+        }
+
+        await inHouseTelematics.syncNativeConfiguration({
+            provider: telematicsProvider,
+            autoModeEnabled,
+            linked: linkDone,
+            vehicleId: primaryVehicle.id,
+            vehicleType: primaryVehicle.vehicleType,
+        });
+
+        const startResult = await inHouseTelematics.start();
+        refreshInHouseStatus();
+        if (!startResult.started) {
+            Alert.alert('Unable to start recorder', startResult.reason || 'Please verify location permissions.');
+            return;
+        }
+
+        Alert.alert('Trip recording started', 'Drive normally and tap "Stop & Save" when your trip ends.');
+    };
 
     useEffect(() => {
         const loadLatestPath = async () => {
@@ -204,6 +496,18 @@ export default function DrivingSummary({ navigation }: any) {
     }, [latestPath, latestMapReady, latestPathLoading]);
 
     const requestTelematicsPermissions = async (): Promise<boolean> => {
+        if (Platform.OS === 'ios') {
+            try {
+                if (Geolocation?.requestAuthorization) {
+                    const status = await Geolocation.requestAuthorization('whenInUse');
+                    return status === 'granted' || status === 'authorizedWhenInUse' || status === 'authorizedAlways';
+                }
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
         if (Platform.OS !== 'android') return true;
         try {
             const apiLevel = (Platform as any).Version;
@@ -211,6 +515,10 @@ export default function DrivingSummary({ navigation }: any) {
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                 PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
             ];
+
+            if (apiLevel >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
+                perms.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+            }
             
             if (apiLevel >= 29) {
                 if (PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION) {
@@ -227,7 +535,6 @@ export default function DrivingSummary({ navigation }: any) {
             const activityGranted = apiLevel >= 29 
                 ? result[PermissionsAndroid.PERMISSIONS.ACTIVITY_RECOGNITION] === PermissionsAndroid.RESULTS.GRANTED
                 : true;
-
             return fineGranted && activityGranted;
         } catch { return false; }
     };
@@ -235,26 +542,55 @@ export default function DrivingSummary({ navigation }: any) {
     const handleLinkDevice = async () => {
         if (!primaryVehicle?.id) return;
         const userId = getUserId() || 'user';
+        const activeProvider = telematicsProvider;
         setLinkLoading(true);
         try {
-            if (Platform.OS === 'android' && damoovTelematics.isAvailable()) {
+            if (Platform.OS === 'android') {
                 const granted = await requestTelematicsPermissions();
                 if (!granted) {
                     Alert.alert('Permissions needed', 'Location and Physical Activity permissions are required for driving recognition. Please allow these in Settings to link your device.');
                     return;
                 }
             }
-            const deviceToken = await telematicsApi.registerUser(userId);
+
+            if (activeProvider === 'inhouse') {
+                const locationEnabled = await ensureInHouseLocationEnabled();
+                if (!locationEnabled) {
+                    return;
+                }
+            }
+
+            const deviceToken = await telematicsApi.registerUser(userId, activeProvider);
             if (!deviceToken) throw new Error('No DeviceToken');
-            const instanceId = uuidV4();
-            await telematicsApi.linkDevice(primaryVehicle.id, instanceId, deviceToken, Platform.OS as 'ios' | 'android');
-            if (damoovTelematics.isAvailable()) {
+
+            const instanceId =
+                activeProvider === 'inhouse'
+                    ? `inhouse-${uuidV4()}`
+                    : uuidV4();
+
+            await telematicsApi.linkDevice(
+                primaryVehicle.id,
+                instanceId,
+                deviceToken,
+                Platform.OS as 'ios' | 'android',
+                activeProvider,
+            );
+
+            if (activeProvider === 'damoov' && damoovTelematics.isAvailable()) {
                 await damoovTelematics.setDeviceId(deviceToken);
                 await damoovTelematics.setEnabled(true);
             }
             setTelematicsLinked(primaryVehicle.id, true);
             setLinkDone(true);
-            Alert.alert('Linked', 'Driving history is now being tracked.');
+            if (activeProvider === 'inhouse' && getTelematicsAutoModeEnabled()) {
+                triggerInHouseTelematicsAutoEngineTick(true);
+            }
+            Alert.alert(
+                'Linked',
+                activeProvider === 'inhouse'
+                    ? 'In-house telematics is linked (beta).'
+                    : 'Driving history is now being tracked with Damoov.',
+            );
         } catch (e: any) {
             Alert.alert('Link failed', e?.message || 'Error linking device');
         } finally {
@@ -391,7 +727,7 @@ export default function DrivingSummary({ navigation }: any) {
                     <View style={styles.gridRow}>
                         <View style={styles.gridCard}>
                             <Icon name="road" size={wp(5)} color="#FFBF00" />
-                            <Text style={styles.gridVal}>{metrics.distance} km</Text>
+                            <Text style={styles.gridVal}>{metrics.distance}</Text>
                             <Text style={styles.gridLab}>Distance</Text>
                         </View>
                         <View style={styles.gridSubtitleCard}>
@@ -415,16 +751,143 @@ export default function DrivingSummary({ navigation }: any) {
                 </View>
 
                 {/* DEVICE LINKING CARD */}
+                <View style={styles.providerCard}>
+                    <Text style={styles.providerTitle}>Telematics Provider</Text>
+                    <Text style={styles.providerSubtitle}>Use Damoov for production accuracy or try in-house tracking beta.</Text>
+                    <View style={styles.providerToggleRow}>
+                        <TouchableOpacity
+                            style={[
+                                styles.providerToggleBtn,
+                                telematicsProvider === 'damoov' && styles.providerToggleBtnActive,
+                            ]}
+                            onPress={() => handleProviderToggle('damoov')}
+                        >
+                            <Text
+                                style={[
+                                    styles.providerToggleText,
+                                    telematicsProvider === 'damoov' && styles.providerToggleTextActive,
+                                ]}
+                            >
+                                Damoov
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.providerToggleBtn,
+                                telematicsProvider === 'inhouse' && styles.providerToggleBtnActive,
+                            ]}
+                            onPress={() => handleProviderToggle('inhouse')}
+                        >
+                            <Text
+                                style={[
+                                    styles.providerToggleText,
+                                    telematicsProvider === 'inhouse' && styles.providerToggleTextActive,
+                                ]}
+                            >
+                                In-house (Beta)
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
                 {!linkDone && primaryVehicle && (
                     <TouchableOpacity style={styles.linkCard} onPress={handleLinkDevice} disabled={linkLoading}>
                         <LinearGradient colors={['#FFBF00', '#F59E0B']} style={styles.linkGrad} start={{x:0, y:0}} end={{x:1, y:1}}>
                             <View style={styles.linkInfo}>
                                 <Text style={styles.linkTitle}>Link Your Device</Text>
-                                <Text style={styles.linkDesc}>Enable real-time trip recording for {primaryVehicle.registrationNumber}</Text>
+                                <Text style={styles.linkDesc}>
+                                    {telematicsProvider === 'inhouse'
+                                        ? `Enable in-house telemetry beta for ${primaryVehicle.registrationNumber}`
+                                        : `Enable real-time Damoov trip recording for ${primaryVehicle.registrationNumber}`}
+                                </Text>
                             </View>
                             {linkLoading ? <ActivityIndicator color="#000" /> : <Icon name="link" size={wp(5)} color="#000" />}
                         </LinearGradient>
                     </TouchableOpacity>
+                )}
+
+                {telematicsProvider === 'inhouse' && linkDone && primaryVehicle && (
+                    <View style={styles.inHouseRecorderCard}>
+                        <View style={styles.inHouseRecorderHeader}>
+                            <Text style={styles.inHouseRecorderTitle}>In-house Trip Recorder</Text>
+                            <View
+                                style={[
+                                    styles.inHouseStatusBadge,
+                                    inHouseStatus.isRunning && styles.inHouseStatusBadgeActive,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.inHouseStatusText,
+                                        inHouseStatus.isRunning && styles.inHouseStatusTextActive,
+                                    ]}
+                                >
+                                    {inHouseStatus.isRunning
+                                        ? 'Recording'
+                                        : inHouseStatus.mode === 'monitoring'
+                                            ? 'Monitoring'
+                                            : 'Idle'}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.autoModeRow}
+                            onPress={handleAutoModeToggle}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.autoModeLabel}>Auto Trip Mode (Beta)</Text>
+                            <View style={[styles.autoModePill, autoModeEnabled && styles.autoModePillActive]}>
+                                <Text style={[styles.autoModePillText, autoModeEnabled && styles.autoModePillTextActive]}>
+                                    {autoModeEnabled ? 'ON' : 'OFF'}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        <Text style={styles.inHouseRecorderMeta}>
+                            {Platform.OS === 'android' && inHouseStatus.mode === 'monitoring'
+                                ? 'Native monitor is armed and waiting for movement'
+                                : Platform.OS === 'android' && inHouseStatus.isRunning && inHouseStatus.pointsCaptured === 0
+                                    ? 'Background service active (collecting points...)'
+                                : `GPS points: ${inHouseStatus.pointsCaptured}`}
+                        </Text>
+                        <Text style={styles.inHouseRecorderMeta}>
+                            {inHouseStatus.startedAtMs
+                                ? `Started at ${format(new Date(inHouseStatus.startedAtMs), 'HH:mm')}`
+                                : autoModeEnabled
+                                    ? 'Auto mode will start recording when movement is detected'
+                                    : 'Tap start before you begin driving'}
+                        </Text>
+
+                        {locationServicesEnabled === false && (
+                            <View style={styles.locationWarningBanner}>
+                                <MaterialIcon name="crosshairs-gps" size={wp(4.3)} color="#FFBF00" />
+                                <View style={styles.locationWarningContent}>
+                                    <Text style={styles.locationWarningTitle}>Location is off</Text>
+                                    <Text style={styles.locationWarningText}>
+                                        Turn on device Location to start or auto-detect in-house trips.
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
+
+                        <TouchableOpacity
+                            style={[
+                                styles.inHouseRecorderButton,
+                                inHouseStatus.isRunning && styles.inHouseRecorderButtonStop,
+                            ]}
+                            onPress={handleInHouseRecorderAction}
+                            disabled={inHouseActionLoading}
+                        >
+                            {inHouseActionLoading ? (
+                                <ActivityIndicator color="#000" />
+                            ) : (
+                                <Text style={styles.inHouseRecorderButtonText}>
+                                    {inHouseStatus.isRunning ? 'Stop & Save Trip' : 'Start Trip Recording'}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
                 )}
                 {/* LAST TRIP INSIGHTS (NEW SUMMARY SECTION) */}
                 {latestTrip && (
@@ -1025,6 +1488,169 @@ const styles = StyleSheet.create({
     linkCard: {
         marginHorizontal: wp(5),
         marginBottom: hp(3),
+    },
+    providerCard: {
+        marginHorizontal: wp(5),
+        marginBottom: hp(1.8),
+        padding: wp(4),
+        borderRadius: 18,
+        backgroundColor: '#111',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
+    },
+    providerTitle: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(3.8),
+        color: '#fff',
+    },
+    providerSubtitle: {
+        marginTop: hp(0.4),
+        fontFamily: 'Outfit-Medium',
+        fontSize: wp(3),
+        color: '#8a8a8a',
+    },
+    providerToggleRow: {
+        marginTop: hp(1.2),
+        flexDirection: 'row',
+        gap: wp(2),
+    },
+    providerToggleBtn: {
+        flex: 1,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.12)',
+        paddingVertical: hp(1),
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+    },
+    providerToggleBtnActive: {
+        borderColor: '#FFBF00',
+        backgroundColor: 'rgba(255,191,0,0.18)',
+    },
+    providerToggleText: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(3.2),
+        color: '#d1d1d1',
+    },
+    providerToggleTextActive: {
+        color: '#FFBF00',
+    },
+    inHouseRecorderCard: {
+        marginHorizontal: wp(5),
+        marginBottom: hp(2.4),
+        padding: wp(4),
+        borderRadius: 18,
+        backgroundColor: '#111',
+        borderWidth: 1,
+        borderColor: 'rgba(255,191,0,0.25)',
+    },
+    inHouseRecorderHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: hp(1),
+    },
+    inHouseRecorderTitle: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(3.6),
+        color: '#fff',
+    },
+    inHouseStatusBadge: {
+        paddingHorizontal: wp(2.5),
+        paddingVertical: hp(0.4),
+        borderRadius: 999,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+    },
+    inHouseStatusBadgeActive: {
+        backgroundColor: 'rgba(16,185,129,0.2)',
+    },
+    inHouseStatusText: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(2.7),
+        color: '#cfcfcf',
+    },
+    inHouseStatusTextActive: {
+        color: '#10B981',
+    },
+    inHouseRecorderMeta: {
+        fontFamily: 'Outfit-Medium',
+        fontSize: wp(3),
+        color: '#a8a8a8',
+        marginBottom: hp(0.4),
+    },
+    locationWarningBanner: {
+        marginTop: hp(1),
+        marginBottom: hp(0.8),
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255,191,0,0.3)',
+        backgroundColor: 'rgba(255,191,0,0.08)',
+        paddingHorizontal: wp(3.5),
+        paddingVertical: hp(1),
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: wp(2.5),
+    },
+    locationWarningContent: {
+        flex: 1,
+    },
+    locationWarningTitle: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(3.1),
+        color: '#FFE29A',
+        marginBottom: hp(0.15),
+    },
+    locationWarningText: {
+        fontFamily: 'Outfit-Medium',
+        fontSize: wp(2.9),
+        color: '#E7D7A7',
+        lineHeight: hp(1.9),
+    },
+    autoModeRow: {
+        marginTop: hp(0.4),
+        marginBottom: hp(1),
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    autoModeLabel: {
+        fontFamily: 'Outfit-SemiBold',
+        fontSize: wp(3.1),
+        color: '#d7d7d7',
+    },
+    autoModePill: {
+        paddingHorizontal: wp(2.7),
+        paddingVertical: hp(0.4),
+        borderRadius: 999,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+    autoModePillActive: {
+        backgroundColor: 'rgba(16,185,129,0.22)',
+    },
+    autoModePillText: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(2.7),
+        color: '#cfcfcf',
+    },
+    autoModePillTextActive: {
+        color: '#10B981',
+    },
+    inHouseRecorderButton: {
+        marginTop: hp(1.2),
+        borderRadius: 12,
+        paddingVertical: hp(1.2),
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FFBF00',
+    },
+    inHouseRecorderButtonStop: {
+        backgroundColor: '#F59E0B',
+    },
+    inHouseRecorderButtonText: {
+        fontFamily: 'Outfit-Bold',
+        fontSize: wp(3.3),
+        color: '#000',
     },
     linkGrad: {
         borderRadius: 20,

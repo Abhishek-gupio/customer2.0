@@ -9,6 +9,9 @@ router.post("/register", telematicsController.register);
 // Webhook from Damoov (Unauthenticated or specific signature check)
 router.post("/webhook", telematicsController.webhook);
 
+// In-house telematics trip ingestion
+router.post("/inhouse/trips", telematicsController.ingestInHouseTrip);
+
 // Link device (Ideally Authenticated, public for now)
 router.post("/link/:vehicleId", telematicsController.linkDevice);
 

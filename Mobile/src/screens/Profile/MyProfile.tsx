@@ -126,7 +126,10 @@ export default function MyProfile() {
 
   const dispatch = useDispatch();
   const queuedSummary = getQueuedActionSummary();
-  const queuedTotal = queuedSummary.documentUploads + queuedSummary.expenseCreates;
+  const queuedTotal =
+    queuedSummary.documentUploads +
+    queuedSummary.expenseCreates +
+    queuedSummary.inHouseTripUploads;
 
   const handleLogout = () => {
     setConfirmModal({

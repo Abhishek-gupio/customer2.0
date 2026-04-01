@@ -74,6 +74,7 @@ const envSchema = z.object({
   WEATHER_API_KEY: z.string().optional(),
 
   // Telematics
+  TELEMATICS_DEFAULT_PROVIDER: z.enum(["damoov", "inhouse"]).default("damoov"),
   DAMOOV_WEBHOOK_SECRET: z.string().optional(),
   DAMOOV_INSTANCE_ID: z.string().optional(),
   DAMOOV_INSTANCE_KEY: z.string().optional(),

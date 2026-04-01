@@ -152,6 +152,7 @@ export default function ReceiptReviewer({
       return;
     }
 
+    let payload: any = null;
     setLoading(true);
     try {
       let parsedDate: string | undefined;
@@ -162,7 +163,7 @@ export default function ReceiptReviewer({
         } catch (_) { }
       }
 
-      const payload = {
+      payload = {
         amount: numAmount,
         category: category.toUpperCase(),
         vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
@@ -204,7 +205,11 @@ export default function ReceiptReviewer({
       }
 
       try {
-        await queueExpenseCreate(payload as any);
+        if (payload) {
+          await queueExpenseCreate(payload as any);
+        } else {
+          throw new Error(message || "Failed to save expense");
+        }
         onClose();
         Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
         if (onSuccess) onSuccess();

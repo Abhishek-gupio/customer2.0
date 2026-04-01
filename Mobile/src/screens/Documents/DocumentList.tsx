@@ -56,7 +56,7 @@ import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { getNetworkOnlineState } from 'src/services/api';
+import { getNetworkOnlineState } from '../../services/api';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -518,7 +518,7 @@ export default function DocumentList() {
     return documents.find(d => d.type === type);
   };
 
-  const requiredDocTypes = REQUIRED_DOCS.map(doc => doc.type);
+  const requiredDocTypes: string[] = REQUIRED_DOCS.map(doc => doc.type);
   const uploadedDocsCount = documents.filter(d => requiredDocTypes.includes(d.type)).length;
   const MAX_DOCS = 4;
   const totalDocs = Math.min(uploadedDocsCount, MAX_DOCS);

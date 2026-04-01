@@ -5,7 +5,12 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import BackButton from '../../components/BackButton';
-import { flushQueuedDocumentUploads, flushQueuedExpenseCreates, getQueuedActionSummary } from '../../services/offlineMutationQueue';
+import {
+  flushQueuedDocumentUploads,
+  flushQueuedExpenseCreates,
+  flushQueuedInHouseTripUploads,
+  getQueuedActionSummary,
+} from '../../services/offlineMutationQueue';
 import { getNetworkOnlineState } from '../../services/api';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'SyncQueue'>;
@@ -26,12 +31,13 @@ export default function SyncQueueScreen() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const [docs, expenses] = await Promise.all([
+      const [docs, expenses, trips] = await Promise.all([
         flushQueuedDocumentUploads(),
         flushQueuedExpenseCreates(),
+        flushQueuedInHouseTripUploads(),
       ]);
       refreshSummary();
-      Alert.alert('Sync complete', `Uploaded ${docs.uploaded} documents and ${expenses.uploaded} expenses.`);
+      Alert.alert('Sync complete', `Uploaded ${docs.uploaded} documents, ${expenses.uploaded} expenses, and ${trips.uploaded} trips.`);
     } finally {
       setSyncing(false);
     }
@@ -48,6 +54,7 @@ export default function SyncQueueScreen() {
         <Text style={styles.cardTitle}>Queued actions</Text>
         <Text style={styles.row}>Document uploads: {summary.documentUploads}</Text>
         <Text style={styles.row}>Expense saves: {summary.expenseCreates}</Text>
+        <Text style={styles.row}>In-house trips: {summary.inHouseTripUploads}</Text>
         <Text style={[styles.status, online ? styles.online : styles.offline]}>
           {online ? 'Online' : 'Offline - waiting to sync'}
         </Text>

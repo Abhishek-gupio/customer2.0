@@ -3,6 +3,8 @@ const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
 const AUTH_PERSISTED_AT_KEY = 'auth_persisted_at_ms';
 const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
+const TELEMATICS_PROVIDER_KEY = 'telematics_provider';
+const TELEMATICS_AUTO_MODE_KEY = 'telematics_auto_mode_enabled';
 
 const AUTH_KEYS = new Set([
   ACCESS_TOKEN_KEY,
@@ -285,4 +287,25 @@ export function getLastOdometerUpdate(vehicleId: string): number | undefined {
 
 export function setLastOdometerUpdate(vehicleId: string, msSinceEpoch: number): void {
   storage.set(`last_odometer_update_${vehicleId}`, String(Math.floor(msSinceEpoch)));
+}
+
+export type TelematicsProvider = 'damoov' | 'inhouse';
+
+export function getTelematicsProvider(): TelematicsProvider {
+  const provider = storage.getString(TELEMATICS_PROVIDER_KEY);
+  return provider === 'inhouse' ? 'inhouse' : 'damoov';
+}
+
+export function setTelematicsProvider(provider: TelematicsProvider): void {
+  storage.set(TELEMATICS_PROVIDER_KEY, provider);
+}
+
+export function getTelematicsAutoModeEnabled(): boolean {
+  const value = storage.getString(TELEMATICS_AUTO_MODE_KEY);
+  if (value == null || value === '') return true;
+  return value === 'true';
+}
+
+export function setTelematicsAutoModeEnabled(enabled: boolean): void {
+  storage.set(TELEMATICS_AUTO_MODE_KEY, enabled ? 'true' : 'false');
 }

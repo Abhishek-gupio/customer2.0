@@ -16,6 +16,7 @@ import com.brentvatne.react.ReactVideoPackage
 import com.horcrux.svg.SvgPackage
 import cl.json.RNSharePackage
 import com.mobile1.damoov.DamoovTelematicsPackage
+import com.mobile1.inhouse.InHouseTelemetryPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -32,6 +33,7 @@ class MainApplication : Application(), ReactApplication {
             add(SvgPackage())
             add(RNSharePackage())
             add(DamoovTelematicsPackage())
+            add(InHouseTelemetryPackage())
         },
     )
   }

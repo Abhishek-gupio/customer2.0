@@ -10,14 +10,15 @@ export const telematicsController = {
    * Register a user with Damoov
    */
   register: asyncHandler(async (req: Request, res: Response) => {
-    const { clientCustomId } = req.body;
+    const { clientCustomId, provider } = req.body;
 
     if (!clientCustomId) {
       throw AppError.badRequest("clientCustomId is required");
     }
 
-    const result = await telematicsService.registerUserWithDamoov(
+    const result = await telematicsService.registerUser(
       clientCustomId as string,
+      provider,
     );
     success(res, result);
   }),
@@ -41,7 +42,7 @@ export const telematicsController = {
    */
   linkDevice: asyncHandler(async (req: Request, res: Response) => {
     const { vehicleId } = req.params;
-    const { instanceId, deviceToken, platform } = req.body;
+    const { instanceId, deviceToken, platform, provider } = req.body;
 
     if (!vehicleId || !instanceId) {
       throw AppError.badRequest("vehicleId and instanceId are required");
@@ -52,8 +53,19 @@ export const telematicsController = {
       instanceId as string,
       deviceToken as string,
       platform as string,
+      provider,
     );
     success(res, { success: true, device });
+  }),
+
+  /**
+   * In-house telematics: ingest finalized trip payload.
+   * This is the first step of in-house rollout and allows mobile-side trackers
+   * to push processed trips directly to our backend.
+   */
+  ingestInHouseTrip: asyncHandler(async (req: Request, res: Response) => {
+    const result = await telematicsService.ingestInHouseTrip(req.body ?? {});
+    success(res, result);
   }),
 
   /**
@@ -107,7 +119,17 @@ export const telematicsController = {
    * Manual sync with Damoov
    */
   sync: asyncHandler(async (req: Request, res: Response) => {
-    await telematicsService.syncTripsForAllDevices({ forceLogin: true });
-    success(res, { success: true, message: "Sync completed" });
+    const provider = req.body?.provider;
+    const syncResult = await telematicsService.syncTripsForProvider(provider, {
+      forceLogin: true,
+    });
+    success(res, {
+      success: true,
+      message:
+        syncResult.status === "skipped_external_sync"
+          ? "In-house provider selected; external sync skipped"
+          : "Sync completed",
+      provider: syncResult.provider,
+    });
   }),
 };

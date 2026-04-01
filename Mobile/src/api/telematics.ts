@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { getAccessToken } from '../services/storage';
+import type { TelematicsProvider } from '../services/storage';
 
 const API_URL = `${API_BASE_URL}/api/v1`;
 
@@ -15,10 +16,13 @@ export const telematicsApi = {
      * @param clientCustomId A unique identifier for the user (e.g. user ID or phone number)
      * @returns DeviceToken from Damoov
      */
-    async registerUser(clientCustomId: string): Promise<string> {
+    async registerUser(
+        clientCustomId: string,
+        provider: TelematicsProvider = 'damoov',
+    ): Promise<string> {
         const response = await axios.post(
             `${API_URL}/telematics/register`,
-            { clientCustomId },
+            { clientCustomId, provider },
             { headers: authHeaders() },
         );
 
@@ -37,13 +41,15 @@ export const telematicsApi = {
         vehicleId: string,
         instanceId: string,
         deviceToken: string,
-        platform: string
+        platform: string,
+        provider: TelematicsProvider = 'damoov',
     ): Promise<any> {
         const response = await axios.post(
             `${API_URL}/telematics/link/${vehicleId}`,
-            { instanceId, deviceToken, platform },
+            { instanceId, deviceToken, platform, provider },
             { headers: authHeaders() },
         );
+        return response.data;
     },
 
     /**
@@ -119,11 +125,44 @@ export const telematicsApi = {
     /**
      * Trigger a background sync with Damoov
      */
-    async syncTrips(): Promise<void> {
+    async syncTrips(provider: TelematicsProvider = 'damoov'): Promise<void> {
         await axios.post(
             `${API_URL}/telematics/sync`,
-            {},
+            { provider },
+            { headers: authHeaders() },
+        );
+    },
+
+    async submitInHouseTrip(payload: InHouseTripPayload): Promise<void> {
+        await axios.post(
+            `${API_URL}/telematics/inhouse/trips`,
+            payload,
             { headers: authHeaders() },
         );
     }
+};
+
+export type InHouseTripPayload = {
+    vehicleId?: string;
+    instanceId?: string;
+    tripId?: string;
+    startTime?: string;
+    endTime?: string;
+    distanceKm?: number;
+    durationMin?: number;
+    safetyScore?: number;
+    maxSpeed?: number | null;
+    avgSpeed?: number | null;
+    startLocation?: any;
+    endLocation?: any;
+    statistics?: any;
+    scores?: any;
+    events?: Array<{
+        eventType?: string;
+        timestamp?: string;
+        latitude?: number;
+        longitude?: number;
+        severity?: number | null;
+        speed?: number | null;
+    }>;
 };
