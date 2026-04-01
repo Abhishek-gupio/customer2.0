@@ -104,7 +104,7 @@ export const expenseParsingService = {
             rawText: text,
             isAutomated: true,
             notes: `AI-parsed (Confidence: ${aiResult.confidence})${aiResult.notes ? ` | ${aiResult.notes}` : ""}`,
-          },
+          } as any,
         });
 
         // Trigger Budget Check (BullMQ)
@@ -162,7 +162,7 @@ export const expenseParsingService = {
             rawText: text,
             isAutomated: true,
             notes: `Regex-parsed via UPI`,
-          },
+          } as any,
         });
 
         if (queues?.budgetCheck) {
@@ -201,7 +201,7 @@ export const expenseParsingService = {
           rawText: text,
           isAutomated: true,
           notes: `Basic regex fallback`,
-        },
+        } as any,
       });
       return { success: true, expense, parserMeta: { method: "BASIC_REGEX" } };
     }
@@ -278,7 +278,7 @@ export const expenseParsingService = {
           (typeof parsed.rawText === "string" ? parsed.rawText.slice(0, 500) : null),
         isAutomated: true,
         rawText: typeof parsed.rawText === "string" ? parsed.rawText.slice(0, 5000) : null,
-      },
+      } as any,
     });
 
     if (queues?.budgetCheck) {
@@ -329,7 +329,7 @@ export const expenseParsingService = {
         rawText: rawText.slice(0, 5000),
         isAutomated: true,
         notes: aiResult.notes ?? `Voice: ${rawText.slice(0, 500)}`,
-      },
+      } as any,
     });
 
     if (queues?.budgetCheck) {
@@ -397,7 +397,7 @@ export const expenseParsingService = {
         rawText: rawText.slice(0, 5000),
         isAutomated: true,
         notes: aiResult.notes ?? `Voice (text): ${text.slice(0, 500)}`,
-      },
+      } as any,
     });
 
     if (queues?.budgetCheck) {

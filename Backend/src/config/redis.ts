@@ -11,6 +11,9 @@ let redisErrorLogged = false;
  */
 export function getRedis(): Redis | null {
   if (redis !== null) return redis;
+  if (env.REDIS_ENABLED === false) {
+    return null;
+  }
   const url = env.REDIS_URL;
   if (!url || url === "") {
     // Fully silent: do not log or connect if REDIS_URL is not set
