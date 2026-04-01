@@ -23,6 +23,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import { api } from '../../services/api';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { PartStatusCard } from '../../components/ServiceAndWarranty/PartStatusCard';
@@ -100,6 +101,15 @@ export const WarrantyStatus = () => {
   const [selectedPartTypes, setSelectedPartTypes] = useState<string[]>([]);
   const [showPartPicker, setShowPartPicker] = useState(false);
   const [savingUpdate, setSavingUpdate] = useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const getPartIcon = (type: string) => {
     switch (type) {
@@ -244,28 +254,28 @@ export const WarrantyStatus = () => {
     const parsedOdometer = Number(updateOdometer);
 
     if (normalizedPartTypes.length === 0) {
-      Alert.alert('Missing parts', 'Select at least one part to update.');
+      showStatus('Missing parts', 'Select at least one part to update.', 'error');
       return;
     }
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Invalid amount', 'Enter a valid part cost.');
+      showStatus('Invalid amount', 'Enter a valid part cost.', 'error');
       return;
     }
 
     if (!Number.isFinite(parsedOdometer) || parsedOdometer <= 0) {
-      Alert.alert('Invalid odometer', 'Enter a valid odometer reading.');
+      showStatus('Invalid odometer', 'Enter a valid odometer reading.', 'error');
       return;
     }
 
     if (!updateDate.trim()) {
-      Alert.alert('Missing date', 'Enter the service date in YYYY-MM-DD format.');
+      showStatus('Missing date', 'Enter the service date in YYYY-MM-DD format.', 'error');
       return;
     }
 
     const parsedDate = new Date(updateDate);
     if (Number.isNaN(parsedDate.getTime())) {
-      Alert.alert('Invalid date', 'Enter the service date in YYYY-MM-DD format.');
+      showStatus('Invalid date', 'Enter the service date in YYYY-MM-DD format.', 'error');
       return;
     }
 
@@ -289,15 +299,15 @@ export const WarrantyStatus = () => {
       setWarrantyStatusNeedsRefresh();
       closeUpdateModal();
       await fetchData();
-      Alert.alert(
+      showStatus(
         'Success',
         normalizedPartTypes.length === 1
           ? `${getPartTypeLabel(normalizedPartTypes[0])} updated successfully.`
-          : `${normalizedPartTypes.length} parts updated successfully.`,
+          : `${normalizedPartTypes.length} parts updated successfully.`
       );
     } catch (error: any) {
       console.error('Part update failed:', error);
-      Alert.alert('Error', error?.message || 'Failed to update part.');
+      showStatus('Error', error?.message || 'Failed to update part.', 'error');
     } finally {
       setSavingUpdate(false);
     }
@@ -534,6 +544,14 @@ export const WarrantyStatus = () => {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

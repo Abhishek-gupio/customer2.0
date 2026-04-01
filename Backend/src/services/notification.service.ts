@@ -15,6 +15,21 @@ const configuration = OneSignal.createConfiguration({
 const onesignalClient = new OneSignal.DefaultApi(configuration);
 
 export const notificationService = {
+  async cleanupOldNotifications() {
+    const cutoff = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+
+    const result = await (dbInstances as any).inAppNotification.deleteMany({
+      where: {
+        createdAt: { lt: cutoff },
+      },
+    });
+
+    logger.info(
+      { deletedCount: result.count, cutoff: cutoff.toISOString() },
+      "Old in-app notifications cleanup completed",
+    );
+  },
+
   /**
    * Send notification across all channels (Custom In-App, OneSignal Push, SMS Fallback)
    */
@@ -272,6 +287,15 @@ export const notificationService = {
    * Initialize the background cron jobs
    */
   initCronJobs() {
+    // Run every day at 12:30 AM – delete in-app notifications older than 2 days
+    cron.schedule("30 0 * * *", async () => {
+      try {
+        await this.cleanupOldNotifications();
+      } catch (err) {
+        logger.error({ err }, "Failed to cleanup old in-app notifications");
+      }
+    });
+
     // Run daily at 9:00 AM – odometer update reminder (one per customer per day)
     cron.schedule("0 9 * * *", async () => {
       await this.sendDailyOdometerReminders();
@@ -300,7 +324,7 @@ export const notificationService = {
     }
 
     logger.info(
-      "Background cron jobs initialized (Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",
+      "Background cron jobs initialized (Notification Cleanup 12:30 AM; Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",
     );
   },
 };

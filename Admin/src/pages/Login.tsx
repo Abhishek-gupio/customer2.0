@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '../components/ui/Select';
 import './Auth.css';
+import LoadingScreen from '../components/LoadingScreen/LoadingScreen';
 
 type View = 'main' | 'forgot_email' | 'forgot_otp' | 'forgot_reset';
 
@@ -138,6 +139,7 @@ export default function Login() {
   if (view !== 'main') {
     return (
       <div className="auth-body">
+        {(submitting || fpSubmitting) && <LoadingScreen />}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
           <Particles
             particleColors={["#ffffff"]}
@@ -354,6 +356,7 @@ export default function Login() {
   // ---- Main login/signup view ----
   return (
     <div className="auth-body selection:bg-white selection:text-black">
+      {(submitting || fpSubmitting) && <LoadingScreen />}
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
         <Particles
           particleColors={["#ffffff"]}

@@ -11,6 +11,12 @@ import {
 } from './storage';
 import { damoovTelematics } from '../native/damoovTelematics';
 
+type ApiEnvelope<T> = { success?: boolean; data?: T } & Partial<T>;
+
+function unwrapResponse<T>(response: ApiEnvelope<T>): T {
+  return ((response as { data?: T })?.data ?? response) as T;
+}
+
 /** Decode JWT payload without verification (client-side only for id). */
 function decodeJwtPayload(token: string): { id: string } | null {
   try {
@@ -48,6 +54,13 @@ export function normalizePhone(phone: string): string {
   return digits.slice(-10);
 }
 
+export function formatPhoneNumber(phoneNumber: string): string {
+  const normalizedPhone = normalizePhone(phoneNumber);
+  return phoneNumber.trim().startsWith('+')
+    ? phoneNumber.trim()
+    : `+91${normalizedPhone}`;
+}
+
 export type SignupPayload = {
   fullName?: string;
   email?: string;
@@ -82,45 +95,52 @@ export type LoginResponse = {
   otpExpiresIn?: number;
 };
 
+export type CheckUserResponse = {
+  exists: boolean;
+  message: string;
+  userId?: string;
+};
+
 export async function login(phoneNumber: string): Promise<LoginResponse> {
-  const phone = normalizePhone(phoneNumber);
-  const body = {
-    phoneNumber: phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${phone}`,
-  };
-  return api.post<LoginResponse>('/v1/auth/login', body);
+  const response = await api.post<ApiEnvelope<LoginResponse>>('/v1/auth/login', {
+    phoneNumber: formatPhoneNumber(phoneNumber),
+  });
+  return unwrapResponse(response);
+}
+
+export async function checkUserExists(phoneNumber: string): Promise<CheckUserResponse> {
+  const response = await api.post<ApiEnvelope<CheckUserResponse>>('/v1/auth/check-user', {
+    phoneNumber: formatPhoneNumber(phoneNumber),
+  });
+  return unwrapResponse(response);
 }
 
 export async function sendOtp(phoneNumber: string): Promise<LoginResponse> {
-  const phone = normalizePhone(phoneNumber);
-  const body = {
-    phoneNumber: phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${phone}`,
-  };
-  return api.post<LoginResponse>('/v1/auth/send-otp', body);
+  const response = await api.post<ApiEnvelope<LoginResponse>>('/v1/auth/send-otp', {
+    phoneNumber: formatPhoneNumber(phoneNumber),
+  });
+  return unwrapResponse(response);
 }
 
 export async function signup(payload: SignupPayload): Promise<SignupResponse> {
-  const phone = normalizePhone(payload.phoneNumber);
-  const body = {
+  const response = await api.post<ApiEnvelope<SignupResponse>>('/v1/auth/signup', {
     fullName: payload.fullName?.trim() || undefined,
     email: payload.email?.trim() || undefined,
-    phoneNumber: payload.phoneNumber.trim().startsWith('+')
-      ? payload.phoneNumber.trim()
-      : `+91${phone}`,
-  };
-  return api.post<SignupResponse>('/v1/auth/signup', body);
+    phoneNumber: formatPhoneNumber(payload.phoneNumber),
+  });
+  return unwrapResponse(response);
 }
 
 export async function verifyOtp(phoneNumber: string, otp: string): Promise<VerifyOtpResponse & { userId?: string }> {
-  const phone = phoneNumber.trim().startsWith('+') ? phoneNumber.trim() : `+91${normalizePhone(phoneNumber)}`;
-  const res = await api.post<any>('/v1/auth/verify-otp', {
-    phoneNumber: phone,
+  const res = await api.post<ApiEnvelope<VerifyOtpResponse>>('/v1/auth/verify-otp', {
+    phoneNumber: formatPhoneNumber(phoneNumber),
     otp,
   });
   if (typeof console !== 'undefined') {
     console.log('verifyOtp response:', res);
   }
   // Unwrap data property if present (backend wraps in { success, data })
-  const payload = res.data ? res.data : res;
+  const payload = unwrapResponse(res);
   setAccessToken(payload.accessToken);
   setRefreshToken(payload.refreshToken);
   setAuthPersistedAt(Date.now());
@@ -152,8 +172,8 @@ export type LoginWithGoogleResponse = VerifyOtpResponse;
 
 /** Sign in with Google: exchange ID token for app tokens and persist. */
 export async function loginWithGoogle(idToken: string): Promise<LoginWithGoogleResponse & { userId?: string }> {
-  const res = await api.post<{ data?: LoginWithGoogleResponse } & LoginWithGoogleResponse>('/v1/auth/google', { idToken });
-  const payload = (res as any).data ?? res;
+  const res = await api.post<ApiEnvelope<LoginWithGoogleResponse>>('/v1/auth/google', { idToken });
+  const payload = unwrapResponse(res);
   setAccessToken(payload.accessToken);
   setRefreshToken(payload.refreshToken);
   setAuthPersistedAt(Date.now());

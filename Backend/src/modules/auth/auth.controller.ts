@@ -36,6 +36,12 @@ export const authController = {
     success(res, data, 201);
   }),
 
+  checkUser: asyncHandler(async (req: Request, res: Response) => {
+    const body = parseBody(req, sendOtpSchema);
+    const data = await authService.checkUser(body.phoneNumber);
+    success(res, data);
+  }),
+
   sendOtp: asyncHandler(async (req: Request, res: Response) => {
     const body = parseBody(req, sendOtpSchema);
     const data = await authService.sendOtp(body.phoneNumber);

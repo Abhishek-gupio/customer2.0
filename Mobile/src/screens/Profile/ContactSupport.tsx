@@ -28,6 +28,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import { supportApi } from '../../api/support';
+import LoaderButton from '../../components/Button';
 
 const CATEGORIES = [
   { label: 'Vehicle', value: 'VEHICLE', icon: 'car' },
@@ -167,6 +168,7 @@ export default function ContactSupport() {
                 key={cat.value}
                 style={[styles.catBtn, category === cat.value && styles.catBtnActive]}
                 onPress={() => setCategory(cat.value)}
+                disabled={loading}
               >
                 <Icon name={cat.icon} size={wp(3.5)} color={category === cat.value ? '#4CAF50' : '#666'} />
                 <Text style={[styles.catText, category === cat.value && styles.catTextActive]}>
@@ -191,6 +193,7 @@ export default function ContactSupport() {
                         selectedVehicleId === v.id && styles.vehicleCardActive
                       ]}
                       onPress={() => setSelectedVehicleId(v.id)}
+                      disabled={loading}
                     >
                       <View style={[styles.vehicleIcon, selectedVehicleId === v.id && { backgroundColor: '#4CAF50' }]}>
                         <Icon name="car" size={wp(3)} color={selectedVehicleId === v.id ? '#000' : '#888'} />
@@ -206,6 +209,7 @@ export default function ContactSupport() {
                       selectedVehicleId === null && styles.vehicleCardActive
                     ]}
                     onPress={() => setSelectedVehicleId(null)}
+                    disabled={loading}
                   >
                     <View style={[styles.vehicleIcon, selectedVehicleId === null && { backgroundColor: '#4CAF50' }]}>
                       <Icon name="times" size={wp(3)} color={selectedVehicleId === null ? '#000' : '#888'} />
@@ -229,6 +233,7 @@ export default function ContactSupport() {
             placeholderTextColor="#555"
             value={subject}
             onChangeText={(text) => text.length <= 150 && setSubject(text)}
+            editable={!loading}
           />
 
           <View style={styles.rowBetween}>
@@ -244,6 +249,7 @@ export default function ContactSupport() {
             textAlignVertical="top"
             value={description}
             onChangeText={(text) => text.length <= 5000 && setDescription(text)}
+            editable={!loading}
           />
           <Text style={styles.hint}>Describe your issue in detail</Text>
 
@@ -257,6 +263,7 @@ export default function ContactSupport() {
                   priority === p.value && { borderColor: p.color, backgroundColor: p.color + '15' }
                 ]}
                 onPress={() => setPriority(p.value)}
+                disabled={loading}
               >
                 <View style={[styles.priorityDot, { backgroundColor: p.color }]} />
                 <Text style={[styles.priorityText, { color: p.color }]}>{p.label}</Text>
@@ -274,20 +281,16 @@ export default function ContactSupport() {
             </Text>
           </View>
 
-          <TouchableOpacity 
-            style={styles.submitBtn} 
+          <LoaderButton
+            title="Submit Ticket"
+            loading={loading}
+            loadingTitle="Submitting..."
             onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <View style={styles.submitBtnContent}>
-                <Icon name="paper-plane" size={wp(4)} color="#000" style={{ marginRight: wp(2) }} />
-                <Text style={styles.submitText}>Submit Ticket</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+            style={styles.submitBtn}
+            titleStyle={styles.submitText}
+            loadingTitleStyle={styles.submitText}
+            indicatorColor="#000"
+          />
         </View>
       </ScrollView>
 
@@ -443,7 +446,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  submitBtnContent: { flexDirection: 'row', alignItems: 'center' },
   submitText: { fontSize: wp(4.5), fontWeight: '800', color: '#000' },
 
   /* ── Custom Alert Popup ── */

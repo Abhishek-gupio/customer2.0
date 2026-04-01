@@ -16,6 +16,7 @@ import {
   ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import StatusModal from "../../components/common/Modals/StatusModal";
 import ManualEntryOverlay from "./ManualEntry";
 import ReceiptReviewer from "./ReceiptReviewer";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -95,6 +96,7 @@ export default function AddExpenseScreen() {
   const { voiceOwner, setVoiceOwner } = useContext(VoiceOwnerContext);
   const [showManual, setShowManual] = useState(false);
   const [manualInitialData, setManualInitialData] = useState<any>(null);
+  const [showScanOptions, setShowScanOptions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceText, setVoiceText] = useState("");
@@ -110,6 +112,17 @@ export default function AddExpenseScreen() {
   const voiceBusyRetryRef = useRef(0);
   const voicePartialTextRef = useRef("");
   const voiceEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+    onClose: () => { },
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success', onClose?: () => void) => {
+    setStatusModal({ visible: true, type, title, message, onClose: onClose || (() => { }) });
+  };
 
   const clearVoiceEndTimeout = () => {
     if (voiceEndTimeoutRef.current) {
@@ -186,9 +199,10 @@ export default function AddExpenseScreen() {
   const processVoiceCommand = async (speechText: string) => {
     const trimmed = (speechText || "").trim();
     if (trimmed.length < 2) {
-      Alert.alert(
+      showStatus(
         "No speech detected",
         "Please speak clearly with amount and category (e.g. 500 rupees fuel today).",
+        "error"
       );
       return;
     }
@@ -225,14 +239,16 @@ export default function AddExpenseScreen() {
         setReviewSource("VOICE");
         setShowReviewer(true);
       } else if (result?.error?.message || result?.error) {
-        Alert.alert(
+        showStatus(
           "Voice Processing",
           result.error?.message || result.error || "Could not parse expense from voice command.",
+          "error"
         );
       } else if (!expense) {
-        Alert.alert(
+        showStatus(
           "Couldn't understand",
           "Say amount and category clearly (e.g. 500 rupees fuel today). Or use manual entry.",
+          "error"
         );
       }
     } catch (error: any) {
@@ -245,23 +261,19 @@ export default function AddExpenseScreen() {
         /say the amount clearly/i.test(String(msg));
 
       if (isAiNotConfigured || isNoAmount) {
-        Alert.alert(
+        showStatus(
           "Voice Not Available",
           isAiNotConfigured
             ? "Voice parsing is not set up on the server. We’ll open manual entry with your spoken text."
             : "We couldn't detect the amount from your voice. We'll open manual entry with your spoken text.",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setManualInitialData({ description: trimmed });
-                setShowManual(true);
-              },
-            },
-          ],
+          "error",
+          () => {
+            setManualInitialData({ description: trimmed });
+            setShowManual(true);
+          }
         );
       } else {
-        Alert.alert("Error", msg);
+        showStatus("Error", msg, "error");
       }
     } finally {
       setLoading(false);
@@ -272,16 +284,18 @@ export default function AddExpenseScreen() {
     const normalizedAsset = normalizeReceiptAsset(asset);
     if (!normalizedAsset.uri) return;
     if (normalizedAsset.detectedType === "image/heic" || normalizedAsset.detectedType === "image/heif") {
-      Alert.alert(
-        "Unsupported receipt format",
+      showStatus(
+        "Unsupported format",
         "This receipt photo is in HEIC format. Please retake it as JPG/PNG or choose a compatible image from gallery.",
+        "error"
       );
       return;
     }
     if (!SUPPORTED_RECEIPT_MIME_TYPES.has(normalizedAsset.type)) {
-      Alert.alert(
-        "Unsupported receipt format",
+      showStatus(
+        "Unsupported format",
         "Please use a JPG, PNG, or WebP image for receipt scanning.",
+        "error"
       );
       return;
     }
@@ -325,7 +339,7 @@ export default function AddExpenseScreen() {
         setReviewSource("RECEIPT");
         setShowReviewer(true);
       } else {
-        Alert.alert("Scan Failed", result.error?.message || "Could not read receipt. Please try again or enter manually.");
+        showStatus("Scan Failed", result.error?.message || "Could not read receipt. Please try again or enter manually.", "error");
       }
     } catch (e: any) {
       const msg = String(e?.message ?? "").trim();
@@ -335,22 +349,20 @@ export default function AddExpenseScreen() {
       const isAiNotConfigured = /ai not configured|gemini|not configured/i.test(msg);
       const isTooLarge = /request entity too large|payload too large|file too large|413/i.test(msg);
       if (isParseFailed) {
-        Alert.alert(
+        showStatus(
           "Couldn't Read Amount",
-          "We couldn't detect the amount from the receipt. Would you like to enter it manually?",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Enter Manually", onPress: () => { setScannedData(null); setShowReviewer(false); setShowManual(true); } },
-          ]
+          "We couldn't detect the amount from the receipt. We'll open manual entry for you.",
+          "error",
+          () => { setScannedData(null); setShowReviewer(false); setShowManual(true); }
         );
       } else if (isReceiptMismatch) {
-        Alert.alert("Not a receipt", "Please upload a clear receipt or bill photo.");
+        showStatus("Not a receipt", "Please upload a clear receipt or bill photo.", "error");
       } else if (isAiNotConfigured) {
-        Alert.alert("Receipt scanning unavailable", "Receipt scanning is not configured on the server right now.");
+        showStatus("扫描不可用", "Receipt scanning is not configured on the server right now.", "error");
       } else if (isTooLarge) {
-        Alert.alert("Receipt too large", "Please retake the receipt a bit closer or use a smaller JPG/PNG image.");
+        showStatus("Receipt too large", "Please retake the receipt a bit closer or use a smaller JPG/PNG image.", "error");
       } else {
-        Alert.alert("Receipt Scan Error", msg || "Could not scan this receipt. Try a clearer JPG or PNG image.");
+        showStatus("Scan Error", msg || "Could not scan this receipt.", "error");
       }
     } finally {
       setLoading(false);
@@ -383,7 +395,7 @@ export default function AddExpenseScreen() {
         { title: "Camera Permission", message: "App needs camera access to scan bills", buttonPositive: "OK" }
       );
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert("Permission needed", "Camera access is required to scan bills.");
+        showStatus("Permission needed", "Camera access is required to scan bills.", "error");
         return;
       }
     }
@@ -397,7 +409,7 @@ export default function AddExpenseScreen() {
         assetRepresentationMode: "compatible",
       });
       if (response.errorCode) {
-        Alert.alert("Camera Error", response.errorMessage || "Could not capture image.");
+        showStatus("Camera Error", response.errorMessage || "Could not capture image.", "error");
         return;
       }
       if (!response.didCancel && response.assets?.[0]) {
@@ -408,19 +420,17 @@ export default function AddExpenseScreen() {
           uploadAndParseReceipt(asset);
         } else {
           setLoading(false);
-          Alert.alert(
+          showStatus(
             "Image quality",
             result.hints.join("\n\n") + "\n\nYou can retake or use this image anyway.",
-            [
-              { text: "Retake", style: "cancel" },
-              { text: "Use anyway", onPress: () => uploadAndParseReceipt(asset) },
-            ]
+            "error",
+            () => uploadAndParseReceipt(asset)
           );
         }
       }
     } catch (error: any) {
       setLoading(false);
-      Alert.alert("Camera Error", error?.message || "Could not open camera.");
+      showStatus("Camera Error", error?.message || "Could not open camera.", "error");
     }
   };
 
@@ -428,7 +438,7 @@ export default function AddExpenseScreen() {
     if (Platform.OS === "android") {
       const granted = await requestStoragePermission();
       if (!granted) {
-        Alert.alert("Permission needed", "Photo library access is required to select receipts.");
+        showStatus("Permission needed", "Photo library access is required to select receipts.", "error");
         return;
       }
     }
@@ -442,7 +452,7 @@ export default function AddExpenseScreen() {
         assetRepresentationMode: "compatible",
       });
       if (response.errorCode) {
-        Alert.alert("Error", response.errorMessage || "Could not pick image.");
+        showStatus("Error", response.errorMessage || "Could not pick image.", "error");
         return;
       }
       if (!response.didCancel && response.assets?.[0]) {
@@ -453,52 +463,32 @@ export default function AddExpenseScreen() {
           uploadAndParseReceipt(asset);
         } else {
           setLoading(false);
-          Alert.alert(
+          showStatus(
             "Image quality",
             result.hints.join("\n\n") + "\n\nYou can pick another or use this image anyway.",
-            [
-              { text: "Pick another", style: "cancel" },
-              { text: "Use anyway", onPress: () => uploadAndParseReceipt(asset) },
-            ]
+            "error",
+            () => uploadAndParseReceipt(asset)
           );
         }
       }
     } catch (error: any) {
       setLoading(false);
-      Alert.alert("Error", error?.message || "Could not pick image.");
+      showStatus("Error", error?.message || "Could not pick image.", "error");
     }
   };
 
   const showScanBillsPicker = () => {
-    const run = (fn: () => void) => {
-      InteractionManager.runAfterInteractions(() => setTimeout(fn, 100));
-    };
-    if (Platform.OS === "ios" && ActionSheetIOS) {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: ["Take Photo", "Upload from Gallery", "Cancel"], cancelButtonIndex: 2 },
-        (i) => { if (i === 0) run(handleTakePhoto); else if (i === 1) run(handlePickFromGallery); }
-      );
-    } else {
-      Alert.alert(
-        "Scan Receipt",
-        "Use a receipt or bill (e.g. fuel slip, service bill). Choose source:",
-        [
-          { text: "Take Photo", onPress: () => run(handleTakePhoto) },
-          { text: "Upload from Gallery", onPress: () => run(handlePickFromGallery) },
-          { text: "Cancel", style: "cancel" },
-        ]
-      );
-    }
+    setShowScanOptions(true);
   };
 
   const startVoiceRecording = async () => {
     if (!voiceAvailable) {
-      Alert.alert("Voice Not Available", "Please use manual entry or scan bills instead.");
+      showStatus("Voice Not Available", "Please use manual entry or scan bills instead.", "error");
       return;
     }
     if (voiceStartInFlightRef.current) return;
     if (voiceOwner && voiceOwner !== "addExpense" && voiceOwner !== "heyGupio") {
-      Alert.alert("Mic In Use", "Another feature is using the microphone right now.");
+      showStatus("Mic In Use", "Another feature is using the microphone right now.", "error");
       return;
     }
     try {
@@ -510,10 +500,7 @@ export default function AddExpenseScreen() {
             { title: "Microphone", message: "Needed for voice expense.", buttonPositive: "OK" }
           );
           if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            Alert.alert("Permission", "Enable microphone in settings.", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Settings", onPress: () => Linking.openSettings() },
-            ]);
+            showStatus("Permission", "Enable microphone in settings.", "error", () => Linking.openSettings());
             return;
           }
         }
@@ -521,7 +508,7 @@ export default function AddExpenseScreen() {
 
       if (!Voice || typeof Voice.start !== "function") {
         setVoiceAvailable(false);
-        Alert.alert("Voice Not Available", "Use manual entry or scan bills.");
+        showStatus("Voice Not Available", "Use manual entry or scan bills.", "error");
         return;
       }
       voiceStartInFlightRef.current = true;
@@ -568,9 +555,10 @@ export default function AddExpenseScreen() {
             return;
           }
           void releaseVoiceSession();
-          Alert.alert(
+          showStatus(
             "Couldn't hear you",
-            "We didn't catch any speech. Try again closer to the mic and say amount, category, and date.",
+            "We didn't catch any speech. Try again closer to the mic.",
+            "error"
           );
         }, 900);
       };
@@ -620,9 +608,10 @@ export default function AddExpenseScreen() {
           msg.startsWith("11/") // 11/Didn't understand, please try again.
         ) {
           void releaseVoiceSession();
-          Alert.alert(
+          showStatus(
             "Couldn’t hear you",
-            "We didn’t catch any speech. Try again closer to the mic and speak clearly.",
+            "We didn’t catch any speech. Try again closer to the mic.",
+            "error"
           );
           return;
         }
@@ -630,9 +619,10 @@ export default function AddExpenseScreen() {
         // Permission / privacy
         if (msg.includes("permission") || msg.includes("denied") || msg.includes("record audio")) {
           void releaseVoiceSession();
-          Alert.alert(
+          showStatus(
             "Microphone blocked",
-            "Microphone permission is off. Please enable it in system settings for this app.",
+            "Microphone permission is off. Please enable it in system settings.",
+            "error"
           );
           return;
         }
@@ -646,25 +636,27 @@ export default function AddExpenseScreen() {
             return;
           }
           void releaseVoiceSession();
-          Alert.alert("Microphone busy", "Please wait a moment and try again.");
+          showStatus("Microphone busy", "Please wait a moment and try again.", "error");
           return;
         }
 
         // Recognizer / engine not present on device
         if (msg.includes("recognizer not present") || msg.includes("service not available") || msg.includes("not available")) {
           void releaseVoiceSession();
-          Alert.alert(
+          showStatus(
             "Voice not available",
-            "This device doesn’t have a working speech recognizer. Please use manual entry or scan receipt.",
+            "This device doesn’t have a working speech recognizer.",
+            "error"
           );
           return;
         }
 
         // Fallback: generic error
         void releaseVoiceSession();
-        Alert.alert(
+        showStatus(
           "Voice Error",
-          rawMsg || "There was a problem with voice recognition. Please try again or use manual entry.",
+          rawMsg || "There was a problem with voice recognition.",
+          "error"
         );
       };
 
@@ -682,7 +674,7 @@ export default function AddExpenseScreen() {
       setIsRecording(true);
     } catch (e: any) {
       await releaseVoiceSession();
-      Alert.alert("Voice Error", e?.message ?? "Try again or use manual entry.");
+      showStatus("Voice Error", e?.message ?? "Try again or use manual entry.", "error");
     }
   };
 
@@ -779,6 +771,64 @@ export default function AddExpenseScreen() {
           navigation.goBack();
         }}
       />
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => {
+          const cb = statusModal.onClose;
+          setStatusModal(prev => ({ ...prev, visible: false, onClose: () => { } }));
+          cb();
+        }}
+      />
+
+      <Modal
+        visible={showScanOptions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowScanOptions(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowScanOptions(false)}>
+          <View style={styles.optionsContainer}>
+            <Text style={styles.optionsTitle}>Scan Receipt</Text>
+            <Text style={styles.optionsSubtitle}>Choose a source for your bill or receipt</Text>
+            
+            <TouchableOpacity 
+              style={styles.optionItem} 
+              onPress={() => { setShowScanOptions(false); setTimeout(handleTakePhoto, 300); }}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                <Ionicons name="camera-outline" size={24} color="#10B981" />
+              </View>
+              <View style={styles.optionText}>
+                <Text style={styles.optionLabel}>Take Photo</Text>
+                <Text style={styles.optionDesc}>Capture a clear photo of your receipt</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionItem} 
+              onPress={() => { setShowScanOptions(false); setTimeout(handlePickFromGallery, 300); }}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                <Ionicons name="image-outline" size={24} color="#3B82F6" />
+              </View>
+              <View style={styles.optionText}>
+                <Text style={styles.optionLabel}>Upload from Gallery</Text>
+                <Text style={styles.optionDesc}>Pick an existing photo from your device</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionsCancel} 
+              onPress={() => setShowScanOptions(false)}
+            >
+              <Text style={styles.optionsCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
 
       <Modal
         visible={showVoiceLangPicker}
@@ -852,7 +902,90 @@ function ActionCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end', // Align panel to bottom or center? The original was centered.
+    justifyContent: 'flex-end',
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  loadingText: {
+    color: "#fff",
+    marginTop: 20,
+    fontSize: 18,
+    fontFamily: "Outfit-Bold",
+    letterSpacing: 0.5,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  optionsContainer: {
+    width: '100%',
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 48 : 32,
+  },
+  optionsTitle: {
+    color: '#FFF',
+    fontSize: 22,
+    fontFamily: 'Outfit-Bold',
+    marginBottom: 4,
+  },
+  optionsSubtitle: {
+    color: '#8E8E93',
+    fontSize: 15,
+    fontFamily: 'Outfit-Regular',
+    marginBottom: 24,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+  },
+  optionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  optionText: {
+    flex: 1,
+  },
+  optionLabel: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+  },
+  optionDesc: {
+    color: '#8E8E93',
+    fontSize: 13,
+    fontFamily: 'Outfit-Regular',
+  },
+  optionsCancel: {
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  optionsCancelText: {
+    color: '#FFF',
+    fontSize: 17,
+    fontFamily: 'Outfit-Bold',
   },
   backdrop: {
     flex: 1,

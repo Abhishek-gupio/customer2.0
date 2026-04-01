@@ -7,6 +7,9 @@ import {
   BACKEND_TYPE_MAP,
 } from '../../services/documentService';
 import { getAbsoluteUrl } from '../../config';
+import { getStaleCachedValue } from '../../services/cache';
+
+const DOCUMENTS_CACHE_KEY = 'cache:documents:list';
 
 export interface DocumentItem {
   id: string;
@@ -70,7 +73,7 @@ interface DocumentsState {
 }
 
 const initialState: DocumentsState = {
-  documents: [],
+  documents: getStaleCachedValue<DocumentItem[]>(DOCUMENTS_CACHE_KEY) ?? [],
   loading: false,
   error: null,
 };

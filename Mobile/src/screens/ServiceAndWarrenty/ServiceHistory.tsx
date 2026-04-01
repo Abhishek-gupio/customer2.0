@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    FlatList,
     TouchableOpacity,
     ActivityIndicator,
     ScrollView,
@@ -14,6 +13,7 @@ import ServiceCard from '../../components/ServiceCard';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlashList } from '@shopify/flash-list';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -119,9 +119,23 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
         );
     }, [records, selectedFilter]);
 
+    const sortedFilteredRecords = useMemo(
+        () =>
+            [...filteredRecords].sort((a, b) => {
+                const ta = a?.date ? new Date(a.date).getTime() : 0;
+                const tb = b?.date ? new Date(b.date).getTime() : 0;
+                return tb - ta;
+            }),
+        [filteredRecords]
+    );
+
     const headerFilterLabel = useMemo(() => {
         return selectedFilter === 'All' ? 'All Parts' : selectedFilter;
     }, [selectedFilter]);
+
+    const renderServiceHistoryItem = useCallback(({ item }: { item: any }) => {
+        return <ServiceCard item={item} />;
+    }, []);
 
     const fetchData = useCallback(async () => {
         const nextSelectedFilter = getPartLabel(route?.params?.selectedPartType);
@@ -216,11 +230,13 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                         <ActivityIndicator size="large" color="#FFBF00" />
                     </View>
                 ) : (
-                    <FlatList
-                        data={filteredRecords}
+                    <FlashList
+                        data={sortedFilteredRecords}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => <ServiceCard item={item} />}
+                        renderItem={renderServiceHistoryItem}
                         showsVerticalScrollIndicator={false}
+                        estimatedItemSize={180}
+                        drawDistance={600}
                         contentContainerStyle={[
                             styles.listContent,
                             filteredRecords.length === 0 &&

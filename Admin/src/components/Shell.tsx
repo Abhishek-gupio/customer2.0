@@ -7,14 +7,12 @@ import {
   PanelLeftClose,
   Ticket,
   CarFront,
-  AlertTriangle,
-  X
 } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 import ShinyText from './ui/ShinyText/ShinyText';
-import Particles from './Particles/Particles';
+import { ConfirmationModal } from './ui/ConfirmationModal';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'white' },
@@ -350,76 +348,16 @@ export default function Shell() {
         </main>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
-          {/* Background Overlay with Particles */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
-            onClick={() => setShowLogoutConfirm(false)}
-          >
-            <div className="absolute inset-0 opacity-40">
-              <Particles
-                particleColors={["#ffffff", "#00f2ff"]}
-                particleCount={100}
-                particleSpread={10}
-                speed={0.1}
-                particleBaseSize={80}
-                moveParticlesOnHover={false}
-                alphaParticles={true}
-                disableRotation={false}
-              />
-            </div>
-          </div>
-
-          {/* Modal Card */}
-          <div className="relative w-full max-w-[360px] bg-[#0c0c0c]/90 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out flex flex-col items-center text-center">
-            {/* Close Button */}
-            <button 
-              onClick={() => setShowLogoutConfirm(false)}
-              className="absolute top-6 right-6 p-2 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-95"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {/* Warning Icon with Glow */}
-            <div className="relative mb-5">
-              <div className="absolute inset-0 bg-red-500/20 blur-2xl rounded-full" />
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500/20 to-red-500/5 border border-red-500/20">
-                <AlertTriangle className="h-7 w-7 text-red-500" />
-              </div>
-            </div>
-
-            {/* Content */}
-            <h3 className="text-[22px] font-black tracking-tight text-white mb-1.5">
-              Confirm Logout
-            </h3>
-            <p className="text-[14px] text-zinc-400 font-medium leading-relaxed mb-8 max-w-[240px]">
-              Are you sure you want to end your current session?
-            </p>
-
-            {/* Actions */}
-            <div className="flex flex-col w-full gap-2.5">
-              <button
-                onClick={confirmLogout}
-                className="group relative flex h-[48px] w-full items-center justify-center overflow-hidden rounded-xl bg-white font-bold text-black transition-all hover:bg-red-500 hover:text-white active:scale-[0.98]"
-              >
-                <div className="relative z-10 flex items-center gap-2">
-                  <LogOut className="h-4 w-4" />
-                  <span className="text-sm">Sign Out</span>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="flex h-[48px] w-full items-center justify-center rounded-xl bg-white/5 border border-white/10 font-bold text-white hover:bg-white/10 transition-all active:scale-[0.98] text-sm"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Confirm Logout"
+        description="Are you sure you want to end your current session?"
+        confirmLabel="Sign Out"
+        confirmIcon={LogOut}
+        confirmVariant="danger"
+      />
     </div>
   );
 }

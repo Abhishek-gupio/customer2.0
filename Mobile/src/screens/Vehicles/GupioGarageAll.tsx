@@ -10,6 +10,7 @@ import {
     IdCard, Weight, Building
 } from 'lucide-react-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
+import LoaderButton from '../../components/Button';
 
 const { width } = Dimensions.get('window');
 
@@ -125,6 +126,7 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
                             value={vNo}
                             onChangeText={setVNo}
                             autoCapitalize="characters"
+                            editable={!loading}
                         />
                     </View>
                 </View>
@@ -136,26 +138,26 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
                         placeholderTextColor="#666"
                         value={model}
                         onChangeText={setModel}
+                        editable={!loading}
                     />
                 </View>
 
-                <TouchableOpacity
+                <LoaderButton
+                    title="CONTINUE"
+                    loading={loading}
+                    loadingTitle="Saving..."
+                    titleStyle={[styles.primaryBtnText, (!vNo || loading) && { color: '#666' }]}
+                    loadingTitleStyle={styles.primaryBtnText}
                     style={[styles.primaryBtn, (!vNo || loading) && { backgroundColor: '#333' }]}
                     onPress={handleAdd}
-                    disabled={loading || !vNo}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#000" />
-                    ) : (
-                        <Text style={[styles.primaryBtnText, (!vNo || loading) && { color: '#666' }]}>CONTINUE</Text>
-                    )}
-                </TouchableOpacity>
+                    disabled={!vNo}
+                />
             </View>
         </View>
     );
 };
 
-const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
+const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete, deleteLoadingId }: any) => {
     // Calculate average health from vehicle health scores
     const avgHealth = Math.round(
         vehicles.reduce((acc: number, v: Vehicle) => acc + (v.healthScore?.overallScore || 0), 0) / (vehicles.length || 1)
@@ -209,8 +211,13 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
                             <TouchableOpacity
                                 onPress={() => onDelete(v.id)}
                                 style={styles.delBtn}
+                                disabled={deleteLoadingId === v.id}
                             >
-                                <Trash2 size={20} color="#FF453A" />
+                                {deleteLoadingId === v.id ? (
+                                    <ActivityIndicator size="small" color="#FF453A" />
+                                ) : (
+                                    <Trash2 size={20} color="#FF453A" />
+                                )}
                             </TouchableOpacity>
                             <ChevronRight size={20} color="#666" />
                         </TouchableOpacity>
@@ -231,7 +238,7 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
     );
 };
 
-const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete }: any) => {
+const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, deleteLoadingId }: any) => {
     const [mainTab, setMainTab] = useState('Alerts');
     const [subTab, setSubTab] = useState('Vehicle');
     const [rating, setRating] = useState(0);
@@ -270,8 +277,12 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                         <Text style={[styles.tabPillText, mainTab === 'Details' && { color: '#000' }]}>Details</Text>
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={() => onDelete(activeVehicle.id)} style={styles.topRoundBtn}>
-                    <Trash2 size={22} color={COLORS.textMuted} />
+                <TouchableOpacity onPress={() => onDelete(activeVehicle.id)} style={styles.topRoundBtn} disabled={deleteLoadingId === activeVehicle.id}>
+                    {deleteLoadingId === activeVehicle.id ? (
+                        <ActivityIndicator size="small" color={COLORS.textMuted} />
+                    ) : (
+                        <Trash2 size={22} color={COLORS.textMuted} />
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -438,6 +449,7 @@ export default function GupioGarageApp() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [activeVehicle, setActiveVehicle] = useState<Vehicle | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchVehicles();
@@ -464,7 +476,9 @@ export default function GupioGarageApp() {
     };
 
     const handleDelete = async (id: string) => {
+        if (deleteLoadingId) return;
         try {
+            setDeleteLoadingId(id);
             await vehicleService.deleteVehicle(id);
             await fetchVehicles();
             if (activeVehicle?.id === id) {
@@ -473,6 +487,8 @@ export default function GupioGarageApp() {
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setDeleteLoadingId(null);
         }
     };
 
@@ -488,6 +504,7 @@ export default function GupioGarageApp() {
                         onAdd={() => setScreen('ADD')}
                         onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }}
                         onDelete={handleDelete}
+                        deleteLoadingId={deleteLoadingId}
                     />
                 );
                 break;
@@ -503,6 +520,7 @@ export default function GupioGarageApp() {
                         onBack={() => setScreen('GARAGE')}
                         onAddNew={() => setScreen('ADD')}
                         onDelete={handleDelete}
+                        deleteLoadingId={deleteLoadingId}
                     />
                 );
                 break;

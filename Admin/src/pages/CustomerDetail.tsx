@@ -20,10 +20,13 @@ import {
   Download,
   ListFilter,
   Calendar,
+  Edit2,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { adminApi, type CustomerDetail as CustomerDetailType, type AdminVehicleDetail, type AdminVehicleDocument } from '../api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { EditCustomerModal } from '../components/ui/EditCustomerModal';
 import { cn } from '../lib/cn';
 import { formatDate, formatDateTime, formatTime } from '../lib/dateUtils';
 
@@ -431,18 +434,21 @@ export default function CustomerDetail() {
   const [expenseFilter, setExpenseFilter] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
   const [activeDropdown, setActiveDropdown] = useState<'category' | 'time' | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { admin } = useAuth();
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
+
+  const fetchCustomer = async () => {
+    if (!id) return;
+    setLoading(true);
+    const res = await adminApi.getCustomer(id);
+    setLoading(false);
+    if (res.success) setCustomer(res.data);
+    else setError(res.error.message);
+  };
 
   useEffect(() => {
-    if (!id) return;
-    let ignore = false;
-    setLoading(true);
-    adminApi.getCustomer(id).then((res) => {
-      if (ignore) return;
-      setLoading(false);
-      if (res.success) setCustomer(res.data);
-      else setError(res.error.message);
-    });
-    return () => { ignore = true; };
+    fetchCustomer();
   }, [id]);
 
   const expenses = (customer?.expenses ?? []) as ExpenseRow[];
@@ -502,7 +508,20 @@ export default function CustomerDetail() {
               </div>
             </div>
 
-            {/* Glossy Tab Navigation */}
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              {isSuperAdmin && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-11 px-4 rounded-xl bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] border-[var(--accent)]/20 font-bold"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+
+              {/* Glossy Tab Navigation */}
             <div className="flex gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]">
               {(['overview', 'vehicles', 'expenses', 'documents', 'tickets'] as const).map((t) => (
                 <button
@@ -522,6 +541,7 @@ export default function CustomerDetail() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Scrollable Content Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10 space-y-4">
@@ -795,6 +815,21 @@ export default function CustomerDetail() {
             onClose={() => setSelectedDocument(null)}
           />
         )}
+
+        <EditCustomerModal
+          isOpen={isEditModalOpen}
+          initialData={customer}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={async (data) => {
+            if (!id) return;
+            const res = await adminApi.updateCustomer(id, data);
+            if (res.success) {
+              await fetchCustomer();
+            } else {
+              throw new Error(res.error.message);
+            }
+          }}
+        />
       </div>
     </div>
   );

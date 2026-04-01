@@ -15,6 +15,9 @@ import {
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 import { setupNotifications } from './src/services/notification';
+import NetworkBanner from './src/components/NetworkBanner';
+import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
+import { initializeInHouseTelematicsAutoEngine } from './src/services/inHouseTelematicsAutoEngine';
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -59,32 +62,19 @@ function App() {
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    let isActive = true;
-    let cleanupNotifications: (() => void) | undefined;
-
-    const bootstrap = async () => {
-      try {
-        await hydrateAuthFromPersistedStorage();
-      } catch {
+    hydrateAuthFromPersistedStorage()
+      .catch(() => {
         /* keep going; MMKV path still works */
-      } finally {
+      })
+      .finally(() => {
         bootstrapAuthToRedux();
-        if (!isActive) return;
         setStorageReady(true);
-        try {
-          cleanupNotifications = await setupNotifications();
-        } catch (err) {
+        setupNotifications().catch(err => {
           console.error('Error during notification setup:', err);
-        }
-      }
-    };
-
-    void bootstrap();
-
-    return () => {
-      isActive = false;
-      cleanupNotifications?.();
-    };
+        });
+        initializeOfflineQueueAutoSync();
+        initializeInHouseTelematicsAutoEngine();
+      });
   }, []);
 
   if (!storageReady) {
@@ -101,6 +91,7 @@ function App() {
         <View style={styles.appContent}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+            <NetworkBanner />
             <NavigationContainer linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />

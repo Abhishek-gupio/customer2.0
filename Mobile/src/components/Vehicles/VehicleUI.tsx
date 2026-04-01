@@ -46,15 +46,18 @@ export const InfoCard = ({ icon: Icon, label, value, style }: { icon: any, label
 
 export const StatusCard = ({ icon: Icon, label, value, onPress, style }: { icon: any, label: string, value: string, onPress?: () => void, style?: any }) => (
     <TouchableOpacity onPress={onPress} disabled={!onPress} style={[styles.statusCard, style]} activeOpacity={0.8}>
-        <View style={styles.statusHeader}>
-            <View style={styles.statusIconBox}>
-                {Icon && <Icon size={20} color={COLORS.primary} />}
+        <View style={styles.statusContentMain}>
+            <View style={styles.statusHeaderRow}>
+                <View style={styles.statusIconBoxSmall}>
+                    {Icon && <Icon size={16} color={COLORS.primary} />}
+                </View>
+                <Text style={styles.statusLabel}>{label}</Text>
             </View>
-            <ChevronRight size={16} color="#444" />
-        </View>
-        <View style={styles.statusContent}>
-            <Text style={styles.statusLabel}>{label}</Text>
             <Text style={styles.statusValue}>{value}</Text>
+        </View>
+        <View style={styles.statusAction}>
+            <Text style={styles.actionText}>Check</Text>
+            <ChevronRight size={16} color={COLORS.primary} />
         </View>
     </TouchableOpacity>
 );
@@ -112,23 +115,39 @@ const styles = StyleSheet.create({
         color: '#AAA', fontSize: hp('1.3%'), fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit'
     },
     statusCard: {
-        flex: 1, backgroundColor: '#0D0D0E', padding: 18, borderRadius: 28,
-        borderWidth: 1, borderColor: '#1F1F1F', minHeight: 130, justifyContent: 'space-between'
+        width: '100%', backgroundColor: '#0D0D0E', padding: 16, borderRadius: 24,
+        borderWidth: 1, borderColor: '#1F1F1F', flexDirection: 'row', 
+        alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: hp('1.8%')
     },
-    statusHeader: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
+    statusLeft: {
+        flexDirection: 'row', alignItems: 'center', gap: 16, flex: 1
     },
     statusIconBox: {
-        width: 40, height: 40, backgroundColor: '#000', borderRadius: 12,
+        width: 44, height: 44, backgroundColor: '#000', borderRadius: 12,
         alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#1F1F1F'
     },
-    statusContent: {
-        marginTop: 12
+    statusContentMain: {
+        flex: 1, flexDirection: 'column', gap: 12
+    },
+    statusHeaderRow: {
+        flexDirection: 'row', alignItems: 'center', gap: 10
+    },
+    statusIconBoxSmall: {
+        width: 32, height: 32, backgroundColor: '#000', borderRadius: 8,
+        alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#1F1F1F'
     },
     statusLabel: {
-        color: '#8E8E93', fontSize: 10, fontFamily: 'Outfit-Bold', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4
+        color: '#8E8E93', fontSize: hp('1.1%'), fontFamily: 'Outfit-Bold', textTransform: 'uppercase', letterSpacing: 1.5
     },
     statusValue: {
-        color: '#FFF', fontSize: 18, fontFamily: 'Outfit-Black'
+        color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Black'
+    },
+    statusAction: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 215, 0, 0.08)', 
+        paddingVertical: 8, paddingHorizontal: 14, borderRadius: 14, gap: 4, marginLeft: 12
+    },
+    actionText: {
+        color: COLORS.primary, fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold'
     }
 });

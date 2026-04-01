@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,6 +21,8 @@ import AIAssistant from '../screens/Main/AIAssistant';
 import Odometer from '../screens/Main/Odometer'; 
 import HeyGupioOverlay from '../components/HeyGupioOverlay';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
+
+const GupioLogoAI = require('../assets/images/gupio-logo-ai.png') as any;
 
 const AI_GRADIENT = ['#4f46e5', '#7c3aed', '#06b6d4', '#4f46e5'] as const;
 const FLOW_DURATION_MS = 3000;
@@ -43,7 +46,6 @@ function CenterTabButton({
   accessibilityState?: { selected?: boolean };
 }) {
   const flowAnim = useRef(new Animated.Value(0)).current;
-  const agentPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -57,31 +59,7 @@ function CenterTabButton({
     return () => loop.stop();
   }, [flowAnim]);
 
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(agentPulse, {
-          toValue: 1,
-          duration: AGENT_PULSE_MS / 2,
-          useNativeDriver: true,
-        }),
-        Animated.timing(agentPulse, {
-          toValue: 0,
-          duration: AGENT_PULSE_MS / 2,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [agentPulse]);
-
   const rotate = flowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const rotateY = agentPulse.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
@@ -110,19 +88,13 @@ function CenterTabButton({
               end={{ x: 1, y: 1 }}
             />
           </Animated.View>
-          <Animated.View
-            style={[
-              styles.centerButtonIconWrap,
-              {
-                transform: [
-                  { perspective: 400 },
-                  { rotateY },
-                ],
-              },
-            ]}
-          >
-            <Icon name="robot" size={wp(5.2)} color="#fff" />
-          </Animated.View>
+          <View style={styles.centerButtonIconWrap}>
+            <Image 
+              source={GupioLogoAI} 
+              style={{ width: wp(7.5), height: wp(7.5) }} 
+              resizeMode="contain"
+            />
+          </View>
         </View>
       </TouchableOpacity>
     </View>

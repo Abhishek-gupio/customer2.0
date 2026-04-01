@@ -42,28 +42,30 @@ type ServiceId =
   | 'DLVerification'
   | 'Fastag';
 
-type ServiceItem = { id: ServiceId; name: string; icon: string; iconSet: 'fa' | 'mc' | 'mechanic' | 'parking' | 'towing' };
+type ServiceItem = {
+  id: ServiceId;
+  name: string;
+  icon: string;
+  iconSet: 'fa' | 'mc';
+};
 
 const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
-  { id: 'ServiceHistory', name: 'History', icon: 'history', iconSet: 'fa' },
-  { id: 'NearbyPlaces', name: 'Nearby', icon: 'map-marker-alt', iconSet: 'fa' },
-  { id: 'CheckChallan', name: 'Challan', icon: 'gavel', iconSet: 'fa' },
-  { id: 'FuelStations', name: 'Fuel', icon: 'gas-station', iconSet: 'mc' },
+  { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa' },
+  { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa' },
+  { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa' },
+  { id: 'FuelStations', name: 'Fuel Nearby', icon: 'gas-station', iconSet: 'mc' },
   { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'Mechanics', name: 'Mechanic', icon: 'mechanic', iconSet: 'mechanic' },
-  { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
-  { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
-  { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
-  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'parking' },
-  { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
+  { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa' },
+  { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa' },
+  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
+  { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'Mechanics', 'CarWash'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
-  { title: 'Nearby & Utilities', itemIds: ['NearbyPlaces', 'FuelStations', 'ChargingStation', 'Parking'], color: '#22c55e' }, // Green
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
 
@@ -81,8 +83,8 @@ const ADS_DATA = [
   {
     id: '2',
     title: 'Smart Parking',
-    subtitle: 'Find Spots Nearby',
-    desc: 'Tired of searching? Locate premium parking spots in seconds.',
+    subtitle: 'Nearby parking',
+    desc: 'See parking options around you and jump straight into directions.',
     theme: '#60a5fa',
     icon: 'parking',
     iconSet: 'parking',
@@ -90,9 +92,9 @@ const ADS_DATA = [
   },
   {
     id: '3',
-    title: 'Expert Mechanics',
-    subtitle: 'Book a Service',
-    desc: 'Trusted repairs and transparent pricing for your vehicle care.',
+    title: 'Nearby Mechanics',
+    subtitle: 'Quick local help',
+    desc: 'Browse mechanics around you when you need service support fast.',
     theme: '#94a3b8',
     icon: 'mechanic',
     iconSet: 'mechanic',
@@ -109,35 +111,7 @@ const ADS_DATA = [
   },
 ];
 
-const getItemById = (id: ServiceId): ServiceItem => SERVICE_ITEMS.find((i) => i.id === id)!;
-
-const NEARBY_PLACE_SERVICE_IDS: ServiceId[] = [
-  'FuelStations',
-  'Hospital',
-  'PoliceStation',
-  'Hotel',
-  'ChargingStation',
-  'Mechanics',
-  'RTO',
-  'CarWash',
-  'Parking',
-  'TyreShop',
-  'DocumentServices',
-  'CarSpa',
-];
-
-function renderMechanicIcon(color: string, size: number, large = false) {
-  return (
-    <View style={large ? styles.mechanicIconLargeWrap : styles.mechanicIconWrap}>
-      <IconMC
-        name="account-wrench-outline"
-        size={large ? size * 1.22 : size * 1.12}
-        color={color}
-      />
-    </View>
-  );
-}
-
+const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id);
 function renderParkingIcon(color: string, size: number, large = false) {
   return (
     <View style={large ? styles.parkingIconLargeWrap : styles.parkingIconWrap}>
@@ -173,17 +147,13 @@ function renderServiceIcon(
   size: number,
   large = false
 ) {
-    if (item.iconSet === 'mechanic') {
-      return renderMechanicIcon(color, size, large);
-    }
+  if (item.iconSet === 'parking') {
+    return renderParkingIcon(color, size, large);
+  }
 
-    if (item.iconSet === 'parking') {
-      return renderParkingIcon(color, size, large);
-    }
-
-    if (item.iconSet === 'towing') {
-      return renderTowingIcon(color, size, large);
-    }
+  if (item.iconSet === 'towing') {
+    return renderTowingIcon(color, size, large);
+  }
 
   if (item.iconSet === 'mc') {
     return <IconMC name={item.icon as any} size={size} color={color} />;
@@ -223,11 +193,6 @@ export default function ServicesHub() {
       return;
     }
 
-    if (NEARBY_PLACE_SERVICE_IDS.includes(id as ServiceId)) {
-      navigation.push('NearbyPlaces', { placeType: id });
-      return;
-    }
-
     switch (id) {
       case 'ServiceHistory':
         navigation.navigate('ServiceHistory');
@@ -256,6 +221,7 @@ export default function ServicesHub() {
   const filteredCategories = CATEGORIES.map((cat) => {
     const filteredIds = cat.itemIds.filter((id) => {
       const item = getItemById(id);
+      if (!item) return false;
       return (
         item.name.toLowerCase().includes(normalizedSearch) ||
         cat.title.toLowerCase().includes(normalizedSearch)
@@ -383,22 +349,23 @@ export default function ServicesHub() {
               <View style={styles.row}>
                 {cat.itemIds.map((id) => {
                   const item = getItemById(id);
+                  if (!item) return null;
                   return (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={styles.button}
-                      onPress={() => onServicePress(item.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.iconBox}>
-                        {renderServiceIcon(item, '#fff', wp(5.8))}
-                      </View>
-                      <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.button}
+                        onPress={() => onServicePress(item.id)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.iconBox}>
+                          {renderServiceIcon(item, '#fff', wp(5.8))}
+                        </View>
+                        <Text style={styles.label} numberOfLines={2}>{item.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
           ))}
           {normalizedSearch && filteredCategories.length === 0 ? (
             <View style={styles.emptySearchState}>
@@ -409,9 +376,24 @@ export default function ServicesHub() {
           ) : null}
         </View>
 
+        <TouchableOpacity
+          style={styles.nearbyLauncher}
+          activeOpacity={0.9}
+          onPress={() => onServicePress('NearbyPlaces')}
+        >
+          <View style={styles.nearbyLauncherIcon}>
+            <IconMC name="map-search" size={wp(6)} color="#fff" />
+          </View>
+          <View style={styles.nearbyLauncherTextWrap}>
+            <Text style={styles.nearbyLauncherTitle}>Nearby</Text>
+            <Text style={styles.nearbyLauncherText}>Open all nearby screens and place search</Text>
+          </View>
+          <IconMC name="chevron-right" size={wp(5.5)} color="rgba(255,255,255,0.7)" />
+        </TouchableOpacity>
+
         <View style={styles.infoRow}>
           <Icon name="info-circle" size={wp(3)} color="#444" />
-          <Text style={styles.infoText}>More services coming soon</Text>
+          <Text style={styles.infoText}>This hub now shows only direct services that are ready to use.</Text>
         </View>
       </ScrollView>
       <LoadingSpinner visible={navLoading} />
@@ -471,6 +453,41 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: hp(4),
+  },
+  nearbyLauncher: {
+    marginHorizontal: wp(5),
+    marginBottom: hp(2),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    borderRadius: 18,
+    backgroundColor: '#12161d',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+  },
+  nearbyLauncherIcon: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  nearbyLauncherTextWrap: {
+    flex: 1,
+  },
+  nearbyLauncherTitle: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.5),
+  },
+  nearbyLauncherText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.1),
+    marginTop: hp(0.3),
   },
   searchWrap: {
     paddingHorizontal: wp(6),
@@ -554,18 +571,6 @@ const styles = StyleSheet.create({
     width: wp(20),
     height: wp(20),
     borderRadius: wp(10),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mechanicIconWrap: {
-    width: wp(8.6),
-    height: wp(8.6),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mechanicIconLargeWrap: {
-    width: wp(11.5),
-    height: wp(11.5),
     alignItems: 'center',
     justifyContent: 'center',
   },

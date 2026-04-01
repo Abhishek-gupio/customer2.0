@@ -690,9 +690,13 @@ export default function HeyGupioOverlay() {
       }
       Tts.getInitStatus()
         .then(() => {
-          Promise.resolve((Tts as any).setDefaultLanguage?.('en-IN')).catch(() => {});
-          Tts.setDefaultRate(0.48);
-          Tts.setDefaultPitch(1.0);
+          try {
+            (Tts as any).setDefaultLanguage?.('en-IN').catch(() => {});
+            Tts.setDefaultRate(0.48);
+            Tts.setDefaultPitch(1.0);
+          } catch (e) {
+            console.warn('TTS defaults error:', e);
+          }
         })
         .catch((err: any) => {
           if (err?.code === 'no_engine') Tts.requestInstallEngine();
