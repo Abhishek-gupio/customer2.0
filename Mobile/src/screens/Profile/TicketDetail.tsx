@@ -19,6 +19,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import { supportApi } from '../../api/support';
+import LoaderButton from '../../components/Button';
 
 export default function TicketDetail() {
   const navigation = useNavigation<any>();
@@ -46,13 +47,13 @@ export default function TicketDetail() {
   }, []);
 
   const handleSendReply = async () => {
-    if (!reply.trim()) return;
+    if (!reply.trim() || sending) return;
     setSending(true);
     try {
       const resp = await supportApi.addMessage(ticketId, reply);
       if (resp.success) {
         setReply('');
-        loadTicketDetail();
+        await loadTicketDetail();
       }
     } catch (err) {
       console.error('Failed to send reply', err);
@@ -188,22 +189,17 @@ export default function TicketDetail() {
                 multiline
                 value={reply}
                 onChangeText={setReply}
+                editable={!sending}
               />
             </View>
-            <TouchableOpacity
-              style={[styles.sendBtn, !reply.trim() && styles.sendBtnDisabled]}
+            <LoaderButton
+              title="Send Reply"
+              loading={sending}
+              loadingTitle="Sending..."
               onPress={handleSendReply}
-              disabled={sending || !reply.trim()}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color="#000" />
-              ) : (
-                <View style={styles.sendBtnContent}>
-                  <Icon name="paper-plane" size={wp(4)} color="#000" />
-                  <Text style={styles.sendBtnText}>Send Reply</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+              disabled={!reply.trim()}
+              style={[styles.sendBtn, !reply.trim() && styles.sendBtnDisabled]}
+            />
           </View>
         </KeyboardAvoidingView>
       )}
@@ -353,6 +349,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendBtnDisabled: { backgroundColor: '#1a1a1a', opacity: 0.5 },
-  sendBtnContent: { flexDirection: 'row', alignItems: 'center' },
-  sendBtnText: { color: '#000', fontWeight: '800', fontSize: wp(4), marginLeft: wp(3) },
 });

@@ -40,6 +40,7 @@ import { getProfile } from '../../services/profileService';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { RootState } from '../../store';
 import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
+import LoaderButton from '../../components/Button';
 
 const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
 const BikeImage = require('../../assets/images/bike.png') as any;
@@ -53,6 +54,8 @@ type DetailsScreenProps = {
     onAddNew: () => void;
     onDelete: (id: string) => void;
     onSetPrimary: (id: string) => void;
+    deletingVehicleId?: string | null;
+    settingPrimaryId?: string | null;
     initialTab?: MainTab;
 };
 
@@ -60,7 +63,7 @@ type MainTab = 'Alerts' | 'Details';
 type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Documents';
 
 export const DetailsScreen = ({
-    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, initialTab
+    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, deletingVehicleId, settingPrimaryId, initialTab
 }: DetailsScreenProps) => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const [mainTab, setMainTab] = useState<MainTab>(initialTab || 'Alerts');
@@ -624,8 +627,12 @@ export const DetailsScreen = ({
                             <User size={18} color={COLORS.primary} />
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn}>
-                        <Trash2 size={22} color="#FF453A" />
+                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn} disabled={deletingVehicleId === activeVehicle.id}>
+                        {deletingVehicleId === activeVehicle.id ? (
+                            <ActivityIndicator size="small" color="#FF453A" />
+                        ) : (
+                            <Trash2 size={22} color="#FF453A" />
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
@@ -655,13 +662,17 @@ export const DetailsScreen = ({
                             <Text style={styles.primaryBadgeText}>PRIMARY VEHICLE</Text>
                         </View>
                     ) : (
-                        <TouchableOpacity
-                            style={styles.setPrimaryBtn}
+                        <LoaderButton
+                            title="SET AS PRIMARY"
+                            loading={settingPrimaryId === activeVehicle.id}
+                            loadingTitle="Setting..."
                             onPress={() => onSetPrimary(activeVehicle.id)}
-                        >
-                            <Star size={14} color={COLORS.primary} />
-                            <Text style={styles.setPrimaryBtnText}>SET AS PRIMARY</Text>
-                        </TouchableOpacity>
+                            disabled={deletingVehicleId === activeVehicle.id}
+                            style={styles.setPrimaryBtn}
+                            titleStyle={styles.setPrimaryBtnText}
+                            loadingTitleStyle={styles.setPrimaryBtnText}
+                            indicatorColor={COLORS.primary}
+                        />
                     )}
 
                     {/* ── Vehicle switcher circle icons ── */}

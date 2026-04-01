@@ -40,6 +40,7 @@ import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type 
 import { getAbsoluteUrl } from '../../config';
 import { googleMapsService } from '../../services/googleMapsService';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 
@@ -758,17 +759,16 @@ export default function MyProfile() {
           {/* Confirm Button */}
           {selectedAvatar && (
             <View style={styles.avatarConfirmWrap}>
-              <TouchableOpacity
-                style={styles.avatarConfirmBtn}
-                activeOpacity={0.85}
+              <LoaderButton
+                title="Set as Profile Picture"
+                loading={saving}
+                loadingTitle="Saving..."
                 onPress={() => handleAvatarSelect(selectedAvatar)}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="#000" />
-                ) : (
-                  <Text style={styles.avatarConfirmText}>Set as Profile Picture</Text>
-                )}
-              </TouchableOpacity>
+                style={styles.avatarConfirmBtn}
+                titleStyle={styles.avatarConfirmText}
+                loadingTitleStyle={styles.avatarConfirmText}
+                indicatorColor="#000"
+              />
             </View>
           )}
         </View>
@@ -805,20 +805,16 @@ export default function MyProfile() {
                   </TouchableOpacity>
                 ) : (
                   <>
-                    <TouchableOpacity
-                      style={[styles.savePill, saving && { opacity: 0.6 }]}
+                    <LoaderButton
+                      title="Save"
+                      loading={saving}
+                      loadingTitle="Saving..."
                       onPress={handleSave}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator size="small" color="#000" />
-                      ) : (
-                        <>
-                          <Icon name="save" size={12} color="#000" />
-                          <Text style={styles.savePillText}>Save</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
+                      style={styles.savePill}
+                      titleStyle={styles.savePillText}
+                      loadingTitleStyle={styles.savePillText}
+                      indicatorColor="#000"
+                    />
                   </>
                 )}
               </View>

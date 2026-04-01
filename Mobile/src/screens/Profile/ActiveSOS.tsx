@@ -7,6 +7,7 @@ import { useNavigation, useRoute, RouteProp } from '../../lib/react-navigation-n
 import { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { sosService, type EmergencyContact, type NearbyHelpItem } from '../../services/sosService';
+import LoaderButton from '../../components/Button';
 
 const ActiveSOS = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -195,14 +196,16 @@ const ActiveSOS = () => {
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.resolveButton} 
+          <LoaderButton
+            title="I AM SAFE NOW"
+            loading={resolving}
+            loadingTitle="Resolving..."
             onPress={handleResolve}
-            disabled={resolving}
-          >
-            <Ionicons name="checkmark-circle" size={24} color="#fff" style={{marginRight: 10}} />
-            <Text style={styles.resolveText}>{resolving ? 'Resolving...' : 'I AM SAFE NOW'}</Text>
-          </TouchableOpacity>
+            style={styles.resolveButton}
+            titleStyle={styles.resolveText}
+            loadingTitleStyle={styles.resolveText}
+            indicatorColor="#fff"
+          />
 
           <TouchableOpacity 
             style={styles.policeButton} 

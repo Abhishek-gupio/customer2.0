@@ -1,6 +1,7 @@
 import { Queue, QueueOptions, WorkerOptions } from "bullmq";
 import { env } from "./env";
 import { logger } from "./logger";
+import { getRedisStatus } from "./redis";
 
 const redisUrl = env.REDIS_URL;
 let redisConfig:
@@ -27,7 +28,8 @@ if (redisUrl) {
   }
 }
 
-export const isQueueEnabled = redisConfig !== null;
+export const isQueueEnabled =
+  redisConfig !== null && getRedisStatus() === "ok";
 
 // Queue Definitions
 export const QUEUE_NAMES = {
