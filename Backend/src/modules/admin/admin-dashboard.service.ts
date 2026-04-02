@@ -1,5 +1,6 @@
 import { dbInstances } from "@repo/db-customer";
 import axios from "axios";
+import crypto from 'crypto';
 import { storageService } from "../../services/storage.service";
 import { AppError } from "../../utils/AppError";
 import type { AdminRole } from "@repo/db-customer";
@@ -627,6 +628,123 @@ export const adminDashboardService = {
       }))),
     })));
   },
+  /** Create a new vehicle entry in the catalog with one or more images. */
+  async createCatalogVehicle(params: {
+    make: string;
+    model: string;
+    type: string;           // e.g. "CAR", "BIKE"
+    files: Express.Multer.File[];
+    imageTypes: string[];   // e.g. ["HERO", "ANGLE"]
+  }) {
+    const { make, model, type, files, imageTypes } = params;
+    const db = dbInstances as any;
+
+    // 1. Validate duplicate normalizedKey
+    const normalizedKey = `${type.toUpperCase()}|${make.toLowerCase()}|${model.toLowerCase()}`;
+    const existing = await db.vehicleCatalog.findUnique({ where: { normalizedKey } });
+    if (existing) throw AppError.conflict(`Vehicle "${type}/${make}/${model}" already exists in the catalog`);
+
+    // 2. Upload ALL images to S3 FIRST (before any DB writes)
+    const uploadResults: { url: string; key: string; assetType: string; index: number; assetHash: string; mimeType: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const assetType = (imageTypes[i] ?? "HERO").toUpperCase();
+      const folder = `vehicle-catalog/${type.toLowerCase()}/assets/${make.toLowerCase().replace(/\s+/g, '-')}/${model.toLowerCase().replace(/\s+/g, '-')}/default/${assetType.toLowerCase()}/${i}`;
+      const { url, key } = await storageService.uploadFile(file, folder);
+      const assetHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+      uploadResults.push({ url, key, assetType, index: i, assetHash, mimeType: file.mimetype });
+    }
+
+    // 3. Create VehicleCatalog + VehicleAsset records in a single transaction
+    const catalog = await db.$transaction(async (tx: any) => {
+      const created = await tx.vehicleCatalog.create({
+        data: {
+          vehicleType: type.toUpperCase(),
+          make,
+          model,
+          normalizedKey,
+          assets: {
+            create: uploadResults.map(({ url, key, assetType, index, assetHash, mimeType }) => ({
+              type: assetType as any,
+              assetIndex: index,
+              assetUrl: url,
+              s3Key: key,
+              assetHash,
+              mimeType,
+              source: "admin-upload",
+            })),
+          },
+        },
+        include: { assets: true },
+      });
+      return created;
+    });
+
+    return {
+      id: catalog.id,
+      vehicleType: catalog.vehicleType,
+      make: catalog.make,
+      model: catalog.model,
+      variant: (catalog as any).variant ?? null,
+      normalizedKey: catalog.normalizedKey,
+      images: await Promise.all(catalog.assets.map(async (a: any) => ({
+        id: a.id,
+        assetUrl: await storageService.ensureReadableUrl(a.assetUrl),
+        type: a.type,
+        assetIndex: a.assetIndex,
+      }))),
+    };
+  },
+
+  /** Create a brand-new asset (image) for a catalog entry that currently has none. */
+  async createCatalogVehicleAsset(catalogId: string, file: Express.Multer.File, imageType = 'HERO') {
+    const db = dbInstances as any;
+
+    // Load the catalog entry to build the S3 path
+    const catalog = await db.vehicleCatalog.findUnique({ where: { id: catalogId } });
+    if (!catalog) throw AppError.notFound('Catalog entry not found');
+
+    // Determine next available index for this asset type
+    const existingAssets = await db.vehicleAsset.findMany({
+      where: { catalogId, type: imageType },
+      orderBy: { assetIndex: 'desc' },
+      take: 1,
+    });
+    const nextIndex = existingAssets.length > 0 ? existingAssets[0].assetIndex + 1 : 0;
+
+    // Build the same S3 folder structure as the ingest scripts
+    const vehicleType = (catalog.vehicleType || 'car').toLowerCase();
+    const make = (catalog.make || 'unknown').toLowerCase().trim().replace(/\s+/g, '-');
+    const model = (catalog.model || 'unknown').toLowerCase().trim().replace(/\s+/g, '-');
+    const assetType = imageType.toLowerCase();
+
+    const folder = `vehicle-catalog/${vehicleType}/assets/${make}/${model}/default/${assetType}/${nextIndex}`;
+
+    // Upload to S3 (or local fallback) first — no DB write until upload succeeds
+    const { url, key } = await storageService.uploadFile(file, folder);
+    const assetHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+
+    // Create the VehicleAsset record
+    const asset = await db.vehicleAsset.create({
+      data: {
+        catalogId,
+        type: imageType as any,
+        assetIndex: nextIndex,
+        assetUrl: url,
+        s3Key: key,
+        assetHash,
+        mimeType: file.mimetype,
+        source: 'admin-upload',
+      },
+    });
+
+    return {
+      id: asset.id,
+      assetUrl: await storageService.ensureReadableUrl(asset.assetUrl),
+      type: asset.type,
+      assetIndex: asset.assetIndex,
+    };
+  },
 
   /** Update an existing catalog asset (image) in S3. */
   async updateCatalogVehicleAsset(catalogId: string, assetId: string, file: Express.Multer.File) {
@@ -648,6 +766,7 @@ export const adminDashboardService = {
 
     // Upload new file to S3
     const { url, key } = await storageService.uploadFile(file, folder);
+    const assetHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
 
     // Update the database - SAVE FULL URL TO assetUrl (AS REQUESTED)
     const updated = await (dbInstances as any).vehicleAsset.update({
@@ -655,6 +774,7 @@ export const adminDashboardService = {
       data: {
         assetUrl: url,
         s3Key: key,
+        assetHash,
         mimeType: file.mimetype,
       },
     });

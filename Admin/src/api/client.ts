@@ -152,6 +152,17 @@ export const adminApi = {
     const q = sp.toString();
     return api<CatalogVehicle[]>(`/v1/admin/catalog/vehicles${q ? `?${q}` : ''}`);
   },
+  createCatalogVehicle: (formData: FormData) =>
+    api<CatalogVehicle>('/v1/admin/catalog/vehicles', { method: 'POST', body: formData }),
+  createCatalogVehicleAsset: (catalogId: string, file: File, imageType = 'HERO') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('imageType', imageType);
+    return api<{ id: string; assetUrl: string; type: string; assetIndex: number }>(
+      `/v1/admin/catalog/vehicles/${catalogId}/assets`,
+      { method: 'POST', body: formData }
+    );
+  },
   updateCatalogVehicleAsset: (catalogId: string, assetId: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);

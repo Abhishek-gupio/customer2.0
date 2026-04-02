@@ -36,6 +36,8 @@ router.get("/documents/:id/download", adminController.downloadDocument);
 
 // Vehicle Catalog routes (VehicleCatalog + VehicleAsset — S3 images by make/model)
 router.get("/catalog/vehicles", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.catalogVehicles);
+router.post("/catalog/vehicles", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), upload.array("images", 10), adminController.createCatalogVehicle);
+router.post("/catalog/vehicles/:id/assets", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), upload.single("file"), adminController.createCatalogVehicleAsset);
 router.patch("/catalog/vehicles/:id/assets/:assetId", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), upload.single("file"), adminController.updateCatalogVehicleAsset);
 
 export const adminRoutes = router;

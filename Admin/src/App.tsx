@@ -39,13 +39,13 @@ export default function App() {
           <CinematicSplashScreen onComplete={handleSplashComplete} />
         )}
       </AnimatePresence>
-      
+
       {/* 
         Render Routes behind the splash but keep them invisible 
         to prevent layout flashes or white solid boxes (on mobile) 
         from showing during initial mount.
       */}
-      <div style={{ 
+      <div style={{
         display: isSplashScreenVisible ? 'none' : 'block',
         opacity: isSplashScreenVisible ? 0 : 1,
         transition: 'opacity 0.5s ease-in-out'

@@ -558,8 +558,8 @@ export default function CustomerDetail() {
               </div>
             </div>
           </div>
+        </div>
       </div>
-    </div>
 
       {/* Scrollable Content Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10 space-y-4">
