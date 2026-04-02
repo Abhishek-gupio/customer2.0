@@ -99,7 +99,7 @@ android {
 
     namespace = "com.mobile1"
     defaultConfig {
-        applicationId "com.mobile1"
+        applicationId "com.gupio.zeenath.android"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -187,6 +187,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-auth")
 
     // Jetpack Compose Dependencies (Required for DotLottie)
     def compose_version = "1.7.5"
