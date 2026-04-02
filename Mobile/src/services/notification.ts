@@ -4,6 +4,16 @@ import { API_BASE_URL } from '../config';
 import { getStoredAccessToken } from './authService';
 import { Platform, PermissionsAndroid } from 'react-native';
 
+const isInstallationsAuthError = (error: unknown) => {
+  const message =
+    typeof error === 'string'
+      ? error
+      : error && typeof error === 'object' && 'message' in error
+        ? String((error as any).message)
+        : '';
+  return /FIS_AUTH_ERROR|messaging\/unknown|ExecutionException|java\.io\.IOException/i.test(message);
+};
+
 export const setupNotifications = async () => {
   try {
     // 1. Request permission for Android 13+
@@ -22,17 +32,25 @@ export const setupNotifications = async () => {
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
-      // 2. Get FCM token
-      const fcmToken = await messaging().getToken();
-      console.log('Firebase Cloud Messaging Token:', fcmToken);
+      try {
+        // 2. Get FCM token
+        const fcmToken = await messaging().getToken();
+        console.log('Firebase Cloud Messaging Token:', fcmToken);
 
-      // 3. Register device with backend
-      await registerDeviceWithBackend(fcmToken);
+        // 3. Register device with backend
+        await registerDeviceWithBackend(fcmToken);
 
-      // Listen for token refresh
-      messaging().onTokenRefresh((token: string) => {
-        registerDeviceWithBackend(token);
-      });
+        // Listen for token refresh
+        messaging().onTokenRefresh((token: string) => {
+          registerDeviceWithBackend(token);
+        });
+      } catch (tokenError) {
+        if (isInstallationsAuthError(tokenError)) {
+          console.warn('FCM token unavailable (Firebase Installations auth/config issue). Continuing without push token.');
+        } else {
+          console.warn('FCM token setup failed:', tokenError);
+        }
+      }
     }
 
     // 4. Handle Foreground Messages
@@ -54,7 +72,11 @@ export const setupNotifications = async () => {
       });
 
   } catch (error) {
-    console.error('Notification Setup Error:', error);
+    if (isInstallationsAuthError(error)) {
+      console.warn('Notification setup skipped due to Firebase Installations auth/config issue.');
+      return;
+    }
+    console.warn('Notification Setup Error:', error);
   }
 };
 

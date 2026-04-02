@@ -51,10 +51,13 @@ export default function OTP() {
   const dispatch = useAppDispatch();
   const phoneFromParams = route.params?.phone ?? '';
   const otpExpiresInFromParams = route.params?.otpExpiresIn;
+  const otpResendInFromParams = route.params?.otpResendIn;
+  const otpRequestedAtFromParams = route.params?.otpRequestedAt;
   const initialExpirySec = typeof otpExpiresInFromParams === 'number' ? otpExpiresInFromParams : 300;
+  const initialResendSec = typeof otpResendInFromParams === 'number' ? otpResendInFromParams : 30;
 
   const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(''));
-  const [remainingSec, setRemainingSec] = useState<number>(initialExpirySec);
+  const [remainingSec, setRemainingSec] = useState<number>(initialResendSec);
   const [resending, setResending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -65,16 +68,23 @@ export default function OTP() {
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const lastAppliedOtpAtRef = useRef(0);
   const otpSessionStartedAtRef = useRef(Date.now());
+  const lastSubmittedOtpRef = useRef('');
 
   useEffect(() => {
-    if (typeof otpExpiresInFromParams === 'number') {
-      setRemainingSec(otpExpiresInFromParams);
+    if (typeof otpResendInFromParams === 'number') {
+      setRemainingSec(otpResendInFromParams);
     }
-  }, [otpExpiresInFromParams]);
+  }, [otpResendInFromParams]);
 
   useEffect(() => {
-    otpSessionStartedAtRef.current = Date.now();
-    clearLastReceivedOtp();
+    const now = Date.now();
+    const requestedAt =
+      typeof otpRequestedAtFromParams === 'number' &&
+      Number.isFinite(otpRequestedAtFromParams) &&
+      otpRequestedAtFromParams > 0
+        ? otpRequestedAtFromParams
+        : now;
+    otpSessionStartedAtRef.current = Math.min(requestedAt, now);
     lastAppliedOtpAtRef.current = 0;
 
     const checkNotificationPermission = async () => {
@@ -101,7 +111,7 @@ export default function OTP() {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [otpRequestedAtFromParams]);
 
   useEffect(() => {
     let active = true;
@@ -113,9 +123,8 @@ export default function OTP() {
       const stored = await getLastReceivedOtpAsync();
       reading = false;
       if (!active || !stored) return;
-      if (!stored) return;
       if (!/^\d{6}$/.test(stored.otp)) return;
-      if (stored.receivedAt > 0 && stored.receivedAt < otpSessionStartedAtRef.current) {
+      if (!stored.receivedAt || stored.receivedAt <= otpSessionStartedAtRef.current) {
         return;
       }
       if (stored.receivedAt <= lastAppliedOtpAtRef.current) return;
@@ -138,7 +147,7 @@ export default function OTP() {
       active = false;
       clearInterval(interval);
     };
-  }, [initialExpirySec, otpExpiresInFromParams]);
+  }, [initialExpirySec]);
 
   useEffect(() => {
     const keyboardDidShow = Keyboard.addListener('keyboardDidShow', () => {
@@ -162,6 +171,21 @@ export default function OTP() {
     return () => clearInterval(timer);
   }, [remainingSec]);
 
+  useEffect(() => {
+    const code = otp.join('');
+
+    if (code.length !== OTP_LENGTH) {
+      lastSubmittedOtpRef.current = '';
+      return;
+    }
+
+    if (loading || !phoneFromParams) return;
+    if (lastSubmittedOtpRef.current === code) return;
+
+    lastSubmittedOtpRef.current = code;
+    void handleConfirm();
+  }, [otp, loading, phoneFromParams]);
+
   const handleResend = async () => {
     if (!phoneFromParams || resending || remainingSec > 0) return;
     setError('');
@@ -175,8 +199,8 @@ export default function OTP() {
       if (data.otp && /^\d{6}$/.test(data.otp)) {
         // setDevOtp(data.otp);
       }
-      const nextExpiry = typeof data.otpExpiresIn === 'number' ? data.otpExpiresIn : initialExpirySec;
-      setRemainingSec(nextExpiry);
+      const nextResend = typeof data.otpResendIn === 'number' ? data.otpResendIn : initialResendSec;
+      setRemainingSec(nextResend);
       setOtp(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
       setStatusMessage('A new OTP has been sent to your phone.');
@@ -276,6 +300,7 @@ export default function OTP() {
       dispatch(setUser({ id: result.userId ?? '', email: undefined }));
       navigation.replace('LoginSuccessfull');
     } catch (e) {
+      lastSubmittedOtpRef.current = '';
       setError(getAuthErrorMessage(e));
     } finally {
       setLoading(false);

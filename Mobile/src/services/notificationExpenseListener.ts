@@ -41,13 +41,6 @@ const BANKING_PACKAGES = new Set([
     'in.juspay.namma',                         // Namma Yatri
 ]);
 
-const OTP_SOURCE_PACKAGES = new Set([
-    'com.google.android.apps.messaging',
-    'com.samsung.android.messaging',
-    'com.android.messaging',
-    'com.oneplus.mms',
-]);
-
 // ─── Financial keywords (fallback for unknown apps) ─────────────────────
 const FINANCIAL_KEYWORDS = [
     'debited', 'credited', 'debit', 'credit',
@@ -103,20 +96,24 @@ function extractOtp(text: string): string | null {
     const lower = text.toLowerCase();
     const hasOtpKeyword = OTP_KEYWORDS.some(keyword => lower.includes(keyword));
     const isGupioMessage = lower.includes('gupio');
-    if (!hasOtpKeyword || !isGupioMessage) {
+    if (!hasOtpKeyword && !isGupioMessage) {
         return null;
     }
 
     const patterns = [
-        /\botp(?:\s+is|\s*[:\-])?\s*(\d{4,8})\b/i,
-        /\b(\d{4,8})\b(?=.*\botp\b)/i,
+        /\b(?:otp|one[\s-]?time password|verification code)\D{0,24}(\d{4,8})\b/i,
+        /\b(\d{4,8})\b\D{0,24}\b(?:otp|one[\s-]?time password|verification code)\b/i,
         /\b(\d{4,8})\b(?=.*\bgupio\b)/i,
-        /\b(\d{6})\b/,
     ];
 
     for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match?.[1]) return match[1];
+    }
+
+    if (isGupioMessage) {
+      const generic = text.match(/\b(\d{6})\b/);
+      if (generic?.[1]) return generic[1];
     }
 
     return null;
@@ -210,17 +207,18 @@ export const headlessNotificationListener = async ({ notification }: { notificat
         if (!notification) return;
 
         const parsed = JSON.parse(notification);
-        const { app, text, bigText, title } = parsed;
+        const app = parsed?.app || parsed?.packageName || parsed?.appPackage || '';
+        const { text, bigText, title, subText, summaryText } = parsed;
 
-        // 1. Get the fullest text available
-        const content = bigText || text || title || '';
+        // 1. Build the richest available text
+        const contentParts = [bigText, text, subText, summaryText, title]
+            .map((value) => (typeof value === 'string' ? value.trim() : ''))
+            .filter(Boolean);
+        const content = contentParts.sort((a, b) => b.length - a.length)[0] || '';
         if (!content || content.length < 10) return;
 
-        const otpText = `${title || ''}\n${content}`;
-        const otp =
-            OTP_SOURCE_PACKAGES.has(app) || String(title || '').toLowerCase().includes('gupio')
-                ? extractOtp(otpText)
-                : null;
+        const otpText = contentParts.join('\n');
+        const otp = extractOtp(otpText);
         if (otp) {
             setLastReceivedOtp(otp);
             console.log(`[NotifExpense] Stored OTP from ${app}: ${otp}`);
@@ -255,3 +253,4 @@ export const headlessNotificationListener = async ({ notification }: { notificat
         console.error('[NotifExpense] Handler error:', err);
     }
 };
+

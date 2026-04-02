@@ -82,16 +82,21 @@ export default function Signin() {
 
     setError('');
     const phoneNumber = formatPhoneNumber(phone);
+    const otpRequestedAt = Date.now();
     setLoading(true);
     try {
-      await login(phoneNumber);
+      const data = await login(phoneNumber);
       navigation.navigate('OTP', {
         phone: phoneNumber,
+        otpRequestedAt,
+        ...(typeof data.otpExpiresIn === 'number' && { otpExpiresIn: data.otpExpiresIn }),
+        ...(typeof data.otpResendIn === 'number' && { otpResendIn: data.otpResendIn }),
       });
     } catch (e) {
       if (isOtpCooldownError(e)) {
         navigation.navigate('OTP', {
           phone: phoneNumber,
+          otpRequestedAt,
         });
         return;
       }

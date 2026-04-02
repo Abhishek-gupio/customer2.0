@@ -266,8 +266,14 @@ const ExpenseFeed = () => {
           (Array.isArray(item.serviceRecords) ? item.serviceRecords[0] : null);
         const location =
           item.location ||
+          item.address ||
+          item.merchantAddress ||
+          item.storeAddress ||
+          item.vendorAddress ||
+          item.place ||
           item.placeName ||
           item.placeAddress ||
+          item.metadata?.location ||
           linkedServiceRecord?.garageName ||
           linkedServiceRecord?.location ||
           item.merchantName ||
@@ -689,7 +695,7 @@ const ExpenseFeed = () => {
           {item.date} {'\u2022'} {item.source}
         </Text>
 
-        {hasServiceDetails(item) && item.location ? (
+        {item.location ? (
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Location</Text>
             <Text style={styles.detailValue} numberOfLines={1}>

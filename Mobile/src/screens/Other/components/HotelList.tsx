@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, ScrollView, Linking, Pressable } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Linking, Pressable } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Star, MapPin, Trophy, BadgePercent, LayoutGrid, ArrowUpDown, Navigation } from 'lucide-react-native';
 import { PlanningState, Hotel } from '../tripPlannerTypes';
 import { placesService } from '../../../services/placesService';
 import { TripExpenseResult } from '../../../services/tripExpenseService';
 import { decodePolyline } from '../../../utils/polyline';
 import { tripPlannerAnalytics } from '../../../services/analytics';
+const FlashListAny = FlashList as any;
 
 interface Props {
   planning: PlanningState;
@@ -281,7 +283,7 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
     }
   };
 
-  const handleBooking = (providerId: string, hotel: Hotel) => {
+  const handleBooking = useCallback((providerId: string, hotel: Hotel) => {
     setRedirectingProvider(providerId);
     setRedirectingHotelId(hotel.id);
 
@@ -341,9 +343,9 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
       has_budget: budget > 0,
       nightly_budget: nightlyBudget || 0,
     });
-  };
+  }, [budget, destinationCity, nightlyBudget, onChange, planning.arrivalDate, planning.departureDate, planning.numberOfPeople, tripResult?.to]);
 
-  const handleNavigate = async (hotel: Hotel) => {
+  const handleNavigate = useCallback(async (hotel: Hotel) => {
     const city = destinationCity || tripResult?.to || '';
     const directionsUrl = buildMapsDirectionsUrl(hotel, city);
     const fallbackUrl = buildMapsPlaceUrl(hotel.name, city, hotel.id);
@@ -357,9 +359,9 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
         console.error('Failed to open fallback maps URL', fallbackErr);
       }
     }
-  };
+  }, [destinationCity, tripResult?.to]);
 
-  const handleProviderLogoError = (providerId: ProviderId) => {
+  const handleProviderLogoError = useCallback((providerId: ProviderId) => {
     setProviderLogoIndex((prev) => {
       const provider = PROVIDERS.find((p) => p.id === providerId);
       if (!provider) return prev;
@@ -367,17 +369,17 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
       if (currentIndex >= provider.logos.length) return prev;
       return { ...prev, [providerId]: currentIndex + 1 };
     });
-  };
+  }, []);
 
-  const handleSelectHotel = (hotel: Hotel) => {
+  const handleSelectHotel = useCallback((hotel: Hotel) => {
     onChange({
       selectedHotelId: hotel.id,
       selectedHotelDetails: toSelectedHotelDetails(hotel),
     });
-  };
+  }, [onChange]);
 
-  const sortedHotels = [...hotels]
-    .filter(item => {
+  const sortedHotels = useMemo(() => [...hotels]
+    .filter((item) => {
       const matchesOpenNow = !openNowOnly || item.openNow === true;
       if (!matchesOpenNow) return false;
       if (budget === 0) return true;
@@ -394,7 +396,9 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
         }
         if (a.rating !== b.rating) return b.rating - a.rating;
         return (b.ratingCount || 0) - (a.ratingCount || 0);
-    });
+    }), [budget, hotels, nightlyBudget, openNowOnly, sortBy]);
+
+  const hotelKeyExtractor = useCallback((item: Hotel) => item.id, []);
 
   const renderSortBar = () => (
     <View style={styles.controlsCard}>
@@ -441,7 +445,7 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
     </View>
   );
 
-  const renderHotel = ({ item }: { item: Hotel }) => {
+  const renderHotel = useCallback(({ item }: { item: Hotel }) => {
     const isSelected = planning.selectedHotelId === item.id;
     const isOyo = item.name.toLowerCase().includes('oyo');
 
@@ -608,7 +612,7 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
         </View>
       </Pressable>
     );
-  };
+  }, [handleBooking, handleNavigate, handleProviderLogoError, handleSelectHotel, planning.selectedHotelId, providerLogoIndex, redirectingHotelId, redirectingProvider]);
 
   return (
     <View style={styles.container}>
@@ -619,10 +623,11 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
         </View>
       ) : null}
       {renderSortBar()}
-      <FlatList
+      <FlashListAny
         data={sortedHotels}
         renderItem={renderHotel}
-        keyExtractor={(item) => item.id}
+        keyExtractor={hotelKeyExtractor}
+        estimatedItemSize={420}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         ListEmptyComponent={

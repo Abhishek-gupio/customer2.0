@@ -14,6 +14,7 @@ import {
   Modal,
   Linking,
   Image,
+  RefreshControl,
   Animated,
   Easing,
   BackHandler,
@@ -245,6 +246,7 @@ export default function Home() {
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const videoBaseX = useRef(new Animated.Value(0)).current;
   const videoBaseY = useRef(new Animated.Value(0)).current;
   const videoDragX = useRef(new Animated.Value(0)).current;
@@ -520,6 +522,23 @@ export default function Home() {
       return () => subscription.remove();
     }, [selectedVideo])
   );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.allSettled([
+        fetchPrimaryVehicleRef.current?.() ?? Promise.resolve(),
+        fetchDiscoveryContent(),
+        fetchUserLocationWithRetry(0),
+        dispatch(fetchDocuments()) as unknown as Promise<unknown>,
+        selectedState && selectedState !== 'Detecting...' && STATES.includes(selectedState)
+          ? fetchFuelPrices()
+          : Promise.resolve(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch, selectedState]);
 
   const carouselIndexRef = useRef(0);
 
@@ -1361,6 +1380,14 @@ export default function Home() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFBF00"
+            colors={['#FFBF00']}
+          />
+        }
       >
         {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>

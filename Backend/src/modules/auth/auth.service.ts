@@ -37,6 +37,7 @@ function buildOtpResponse(otp: string, requiresOtpVerification = false) {
     message: "OTP sent to your phone",
     ...(requiresOtpVerification && { requiresOtpVerification: true }),
     otpExpiresIn: env.OTP_EXPIRY_SEC,
+    otpResendIn: env.OTP_RATE_LIMIT_WINDOW_SEC,
     ...(process.env.NODE_ENV === "development" && { otp }),
   };
 }

@@ -262,6 +262,25 @@ export default function Alerts() {
     setIsLongPressModalVisible(true);
   };
 
+  const notificationKeyExtractor = useCallback((item: NotificationItem) => item.id, []);
+
+  const renderNotificationItem = useCallback(
+    ({ item }: { item: NotificationItem }) => (
+      <NotificationCard
+        item={item}
+        onRemove={removeNotification}
+        onPress={() => handleNotificationPress(item)}
+        onLongPress={() => handleLongPress(item)}
+        onSwipeDelete={() => removeNotification(item.id)}
+        isSelectionMode={isSelectionMode}
+        isSelected={selectedIds.includes(item.id)}
+      />
+    ),
+    [handleLongPress, handleNotificationPress, isSelectionMode, selectedIds]
+  );
+
+  const renderSeparator = useCallback(() => <View style={styles.separator} />, []);
+
   const markAsUnread = (id: string) => {
     setNotificationsList(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
     setIsLongPressModalVisible(false);
@@ -430,19 +449,9 @@ export default function Alerts() {
         ) : (
           <FlatList
             data={filteredNotifications}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <NotificationCard 
-                item={item} 
-                onRemove={removeNotification} 
-                onPress={() => handleNotificationPress(item)}
-                onLongPress={() => handleLongPress(item)}
-                onSwipeDelete={() => removeNotification(item.id)}
-                isSelectionMode={isSelectionMode}
-                isSelected={selectedIds.includes(item.id)}
-              />
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            keyExtractor={notificationKeyExtractor}
+            renderItem={renderNotificationItem}
+            ItemSeparatorComponent={renderSeparator}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
