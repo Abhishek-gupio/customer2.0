@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Ticket, MessageSquare, Send, CheckCircle2, Clock, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { adminApi, type SupportTicketListItem, type TicketStatus, type TicketMessage } from '../api/client';
 import { Button } from '../components/ui/Button';
@@ -7,6 +7,8 @@ import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
 import { getSocket } from '../lib/socket';
 import { formatDate, formatTime } from '../lib/dateUtils';
+import BoundarySection from '../components/BoundarySection';
+import { appendCorrelationId, reportHandledError } from '../lib/errorReporting';
 
 export default function Tickets() {
   const { admin } = useAuth();
@@ -23,11 +25,78 @@ export default function Tickets() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const isSupport = admin?.role === 'SUPPORT';
+  const reportTicketError = useCallback(
+    (
+      error: unknown,
+      surface: string,
+      userMessage?: string,
+      extras?: Record<string, unknown>,
+    ) => {
+      const { correlationId } = reportHandledError(error, {
+        surface,
+        level: 'feature',
+        extras,
+      });
+
+      if (userMessage) {
+        window.alert(appendCorrelationId(userMessage, correlationId));
+      }
+
+      return correlationId;
+    },
+    [],
+  );
+
+  const fetchTickets = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await adminApi.listTickets({ limit: 100 });
+      if (res.success) {
+        setTickets(res.data.data);
+        return;
+      }
+      reportTicketError(
+        new Error(res.error.message),
+        'admin-tickets-list',
+        'Ticket list could not be loaded.',
+      );
+    } catch (error) {
+      reportTicketError(error, 'admin-tickets-list', 'Ticket list could not be loaded.');
+    } finally {
+      setLoading(false);
+    }
+  }, [reportTicketError]);
+
+  const fetchMessages = useCallback(async (id: string) => {
+    setTicketLoading(true);
+    try {
+      const res = await adminApi.getTicketMessages(id);
+      if (res.success) {
+        setMessages(res.data);
+        return;
+      }
+      reportTicketError(
+        new Error(res.error.message),
+        'admin-tickets-messages',
+        'Ticket conversation could not be loaded.',
+        { ticketId: id },
+      );
+    } catch (error) {
+      reportTicketError(
+        error,
+        'admin-tickets-messages',
+        'Ticket conversation could not be loaded.',
+        { ticketId: id },
+      );
+    } finally {
+      setTicketLoading(false);
+    }
+  }, [reportTicketError]);
 
   // Initial Fetch on mount
   useEffect(() => {
-    fetchTickets();
-  }, []);
+    void fetchTickets();
+  }, [fetchTickets]);
 
   // Socket synchronization and real-time updates
   useEffect(() => {
@@ -37,19 +106,34 @@ export default function Tickets() {
     }
 
     socket.on('new_support_message', (data: { packet: TicketMessage }) => {
-      // Use the value from the closure which is correctly updated as selecteTicketId is a dependency
-      if (selectedTicketId === data.packet.ticketId) {
-        setMessages(prev => [...prev, data.packet]);
+      try {
+        if (selectedTicketId === data.packet.ticketId) {
+          setMessages(prev => [...prev, data.packet]);
+        }
+        setTickets(prev => prev.map(t =>
+          t.id === data.packet.ticketId
+            ? { ...t, _count: { ...t._count, messages: t._count.messages + 1 }, updatedAt: new Date().toISOString() }
+            : t
+        ));
+      } catch (error) {
+        reportHandledError(error, {
+          surface: 'admin-tickets-socket-message',
+          level: 'feature',
+          extras: { ticketId: data?.packet?.ticketId },
+        });
       }
-      setTickets(prev => prev.map(t =>
-        t.id === data.packet.ticketId
-          ? { ...t, _count: { ...t._count, messages: t._count.messages + 1 }, updatedAt: new Date().toISOString() }
-          : t
-      ));
     });
 
     socket.on('ticket_status_updated', (data: { ticketId: string, status: TicketStatus }) => {
-      setTickets(prev => prev.map(t => t.id === data.ticketId ? { ...t, status: data.status } : t));
+      try {
+        setTickets(prev => prev.map(t => t.id === data.ticketId ? { ...t, status: data.status } : t));
+      } catch (error) {
+        reportHandledError(error, {
+          surface: 'admin-tickets-socket-status',
+          level: 'feature',
+          extras: { ticketId: data?.ticketId, status: data?.status },
+        });
+      }
     });
 
     return () => {
@@ -62,24 +146,10 @@ export default function Tickets() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const fetchTickets = async () => {
-    setLoading(true);
-    const res = await adminApi.listTickets({ limit: 100 });
-    setLoading(false);
-    if (res.success) setTickets(res.data.data);
-  };
-
-  const fetchMessages = async (id: string) => {
-    setTicketLoading(true);
-    const res = await adminApi.getTicketMessages(id);
-    setTicketLoading(false);
-    if (res.success) setMessages(res.data);
-  };
-
   const handleTicketSelect = (id: string) => {
     setSelectedTicketId(id);
     setMessages([]);
-    fetchMessages(id);
+    void fetchMessages(id);
   };
 
   const activeTicket = useMemo(() =>
@@ -102,24 +172,57 @@ export default function Tickets() {
     if (!newMessage.trim() || !selectedTicketId || sending) return;
 
     setSending(true);
-    const res = await adminApi.addTicketMessage(selectedTicketId, newMessage.trim());
-    setSending(false);
+    try {
+      const res = await adminApi.addTicketMessage(selectedTicketId, newMessage.trim());
 
-    if (res.success) {
-      setNewMessage('');
-      setMessages(prev => [...prev, res.data]);
+      if (res.success) {
+        setNewMessage('');
+        setMessages(prev => [...prev, res.data]);
+        return;
+      }
+
+      reportTicketError(
+        new Error(res.error.message),
+        'admin-tickets-send-message',
+        'Message could not be sent.',
+        { ticketId: selectedTicketId },
+      );
+    } catch (error) {
+      reportTicketError(
+        error,
+        'admin-tickets-send-message',
+        'Message could not be sent.',
+        { ticketId: selectedTicketId },
+      );
+    } finally {
+      setSending(false);
     }
   };
 
   const handleStatusChange = async (status: TicketStatus) => {
     if (!selectedTicketId || sending) return;
     setSending(true);
-    const res = await adminApi.updateTicketStatus(selectedTicketId, status);
-    setSending(false);
-    if (res.success) {
-      setTickets(prev => prev.map(t => t.id === selectedTicketId ? { ...t, status } : t));
-    } else {
-      alert("Failed to update status. Please try again.");
+    try {
+      const res = await adminApi.updateTicketStatus(selectedTicketId, status);
+      if (res.success) {
+        setTickets(prev => prev.map(t => t.id === selectedTicketId ? { ...t, status } : t));
+      } else {
+        reportTicketError(
+          new Error(res.error.message),
+          'admin-tickets-status-update',
+          'Failed to update ticket status.',
+          { ticketId: selectedTicketId, status },
+        );
+      }
+    } catch (error) {
+      reportTicketError(
+        error,
+        'admin-tickets-status-update',
+        'Failed to update ticket status.',
+        { ticketId: selectedTicketId, status },
+      );
+    } finally {
+      setSending(false);
     }
   };
 
@@ -127,6 +230,11 @@ export default function Tickets() {
   const renderSupportView = () => (
     <div className="flex-1 h-full flex flex-col lg:flex-row gap-6 items-start animate-in fade-in duration-500 overflow-hidden min-h-0">
       {/* Sidebar: Ticket List */}
+      <BoundarySection
+        boundaryName="admin-tickets-support-list-widget"
+        fallbackTitle="Ticket list is unavailable"
+        fallbackMessage="Retry this support list or refresh the section if it keeps failing."
+      >
       <div className={cn(
         "flex flex-col h-full bg-[#0c0c0c] border border-white/[0.08] rounded-3xl overflow-hidden transition-all duration-300",
         selectedTicketId ? "hidden lg:flex w-full lg:w-[400px]" : "flex w-full lg:w-[400px]"
@@ -191,8 +299,14 @@ export default function Tickets() {
           )}
         </div>
       </div>
+      </BoundarySection>
 
       {/* Main Chat Area */}
+      <BoundarySection
+        boundaryName="admin-tickets-support-chat-widget"
+        fallbackTitle="Ticket conversation is unavailable"
+        fallbackMessage="Retry this chat panel or refresh the section if it keeps failing."
+      >
       <div className={cn("flex-1 h-full flex flex-col bg-[#0c0c0c] border border-white/[0.08] rounded-3xl overflow-hidden relative", !selectedTicketId && "hidden lg:flex")}>
         {!selectedTicketId ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-10">
@@ -261,6 +375,7 @@ export default function Tickets() {
           </>
         )}
       </div>
+      </BoundarySection>
     </div>
   );
 
@@ -287,6 +402,11 @@ export default function Tickets() {
         </div>
       </div>
 
+      <BoundarySection
+        boundaryName="admin-tickets-table-widget"
+        fallbackTitle="Support ticket table is unavailable"
+        fallbackMessage="Retry this ticket table or refresh the section if it keeps failing."
+      >
       <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -407,9 +527,15 @@ export default function Tickets() {
           </div>
         </CardContent>
       </Card>
+      </BoundarySection>
 
       {/* --- ADMIN CHAT FULL-SCREEN MODAL --- */}
       {selectedTicketId && (
+        <BoundarySection
+          boundaryName="admin-tickets-modal-widget"
+          fallbackTitle="Ticket detail modal is unavailable"
+          fallbackMessage="Retry this ticket detail view or refresh the section if it keeps failing."
+        >
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-6">
           {/* Backdrop */}
           <div
@@ -544,6 +670,7 @@ export default function Tickets() {
             </div>
           </div>
         </div>
+        </BoundarySection>
       )}
     </div>
   );

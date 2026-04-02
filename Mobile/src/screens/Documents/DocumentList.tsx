@@ -53,14 +53,11 @@ import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
 import { getNetworkOnlineState } from '../../services/api';
-import { getAccessToken } from '../../services/storage';
 import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/offlineMutationQueue';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-
-// @ts-ignore
-const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
+import BoundaryBlock from '../../components/BoundaryBlock';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -122,6 +119,7 @@ function getDocumentStatusMeta(doc?: DocumentItem | null) {
 }
 
 export default function DocumentList() {
+  const ENABLE_DOCUMENTS_FEATURE_BOUNDARY_TEST = __DEV__ && false;
   const navigation = useNavigation<DocListNavProp>();
   const dispatch = useAppDispatch();
   const { documents, loading } = useAppSelector((state: RootState) => state.documents);
@@ -146,8 +144,31 @@ export default function DocumentList() {
     message: '',
   });
 
+  if (ENABLE_DOCUMENTS_FEATURE_BOUNDARY_TEST) {
+    throw new Error('documents feature test');
+  }
+
   const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
     setStatusModal({ visible: true, type, title, message });
+  };
+  const reportDocumentError = (
+    error: unknown,
+    surface: string,
+    userMessage?: string,
+    extras?: Record<string, unknown>,
+    title = 'Something went wrong',
+  ) => {
+    const { correlationId } = reportHandledError(error, {
+      surface,
+      level: 'feature',
+      extras,
+    });
+
+    if (userMessage) {
+      showStatus(title, appendCorrelationId(userMessage, correlationId), 'error');
+    }
+
+    return correlationId;
   };
 
   useEffect(() => {
@@ -155,7 +176,12 @@ export default function DocumentList() {
     loadPrimaryVehicle();
     flushQueuedDocumentUploads((doc) => {
       dispatch(addDocumentFromResponse(toDocItem(doc)));
-    }).catch(() => {});
+    }).catch((error) => {
+      reportHandledError(error, {
+        surface: 'documents-queued-upload-flush',
+        level: 'feature',
+      });
+    });
   }, [dispatch]);
 
   const loadPrimaryVehicle = async () => {
@@ -163,51 +189,12 @@ export default function DocumentList() {
       const vehicles = await vehicleService.getVehicles();
       const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
       setPrimaryVehicle(primary || null);
-    } catch {
+    } catch (error) {
+      reportHandledError(error, {
+        surface: 'documents-primary-vehicle-load',
+        level: 'feature',
+      });
       setPrimaryVehicle(null);
-    }
-  };
-
-  const requestAndroidPermissions = async (): Promise<boolean> => {
-    if (Platform.OS !== 'android') return true;
-    try {
-      const camera = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Camera Permission',
-          message: 'App needs camera access to capture documents',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      const storage = Platform.Version >= 33
-        ? await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          {
-            title: 'Photo Library Permission',
-            message: 'App needs photo library access to select documents',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        )
-        : await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs storage access to select documents',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-      return (
-        camera === PermissionsAndroid.RESULTS.GRANTED &&
-        storage === PermissionsAndroid.RESULTS.GRANTED
-      );
-    } catch {
-      return false;
     }
   };
 
@@ -223,7 +210,7 @@ export default function DocumentList() {
     } catch (e: any) {
       const err = e as { code?: string };
       if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
-        showStatus('Error', 'Could not pick file', 'error');
+        reportDocumentError(e, 'documents-file-picker', 'Could not pick a file.', { type }, 'Picker Error');
       }
     }
   };
@@ -246,8 +233,8 @@ export default function DocumentList() {
       if (res?.assets?.[0]) {
         uploadImageAsset(res.assets[0], type);
       }
-    } catch {
-      showStatus('Error', 'Could not pick image', 'error');
+    } catch (error) {
+      reportDocumentError(error, 'documents-image-picker', 'Could not pick an image.', { type }, 'Picker Error');
     }
   };
 
@@ -265,8 +252,8 @@ export default function DocumentList() {
       if (res?.assets?.[0]) {
         uploadImageAsset(res.assets[0], type);
       }
-    } catch {
-      showStatus('Error', 'Could not take photo', 'error');
+    } catch (error) {
+      reportDocumentError(error, 'documents-camera-capture', 'Could not capture a photo.', { type }, 'Camera Error');
     }
   };
 
@@ -283,7 +270,13 @@ export default function DocumentList() {
       dispatch(addDocumentFromResponse(toDocItem(result)));
       showStatus('Success', 'Document uploaded successfully');
     } catch (err: any) {
-      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
+      reportDocumentError(
+        err,
+        'documents-image-upload',
+        err?.message || 'Document upload failed.',
+        { type },
+        'Upload Failed',
+      );
     } finally {
       setIsUploading(false);
     }
@@ -310,7 +303,14 @@ export default function DocumentList() {
         /network error|network request failed|failed to fetch|server unreachable/i.test(message);
 
       if (!isNetworkError) {
-        Alert.alert('Upload Failed', message || 'Something went wrong');
+        const correlationId = reportDocumentError(
+          err,
+          'documents-upload',
+          undefined,
+          { type, mime, isNetworkError: false },
+          'Upload Failed',
+        );
+        Alert.alert('Upload Failed', appendCorrelationId(message || 'Something went wrong', correlationId));
         return;
       }
 
@@ -324,10 +324,23 @@ export default function DocumentList() {
           documentNumber: primaryVehicle?.registrationNumber,
         });
         Alert.alert('Saved offline', `${type} will upload automatically when network returns.`);
-      } catch {
-        Alert.alert('Upload Failed', message || 'Something went wrong');
+      } catch (queueError) {
+        const correlationId = reportDocumentError(
+          queueError,
+          'documents-upload-queue',
+          undefined,
+          { type, mime },
+          'Upload Failed',
+        );
+        Alert.alert('Upload Failed', appendCorrelationId(message || 'Something went wrong', correlationId));
       }
-      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
+      reportDocumentError(
+        err,
+        'documents-upload-network',
+        'Upload was saved for retry when network returns.',
+        { type, mime, isNetworkError: true },
+        'Saved Offline',
+      );
     } finally {
       setIsUploading(false);
     }
@@ -341,7 +354,6 @@ export default function DocumentList() {
         for (let i = 0; i <= retries; i++) {
           try {
             if (uri.startsWith('http')) {
-              const token = getAccessToken();
               const tempPath = `${RNFS.CachesDirectoryPath}/pdf_tmp_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
 
               const downloadResult = await RNFS.downloadFile({
@@ -399,8 +411,14 @@ export default function DocumentList() {
       const file = await generatePDF(options);
       return file.filePath;
     } catch (error) {
-      console.error('PDF Generation Error:', error);
-      throw new Error('Failed to generate PDF');
+      const correlationId = reportDocumentError(
+        error,
+        'documents-pdf-generation',
+        undefined,
+        { documentCount: docs.length, fileName },
+        'PDF Error',
+      );
+      throw new Error(appendCorrelationId('Failed to generate PDF', correlationId));
     }
   };
 
@@ -423,7 +441,13 @@ export default function DocumentList() {
     } catch (error: any) {
       setIsUploading(false);
       if (error?.message !== 'User did not share') {
-        showStatus('Error', 'Could not share documents', 'error');
+        reportDocumentError(
+          error,
+          'documents-share-all',
+          'Could not share documents.',
+          { documentCount: documents.length },
+          'Share Failed',
+        );
       }
     }
   };
@@ -468,8 +492,20 @@ export default function DocumentList() {
       if (localPath) {
         try {
           await RNShareCustom.open({ url: `file://${localPath}`, type: 'application/pdf' });
-        } catch { }
+        } catch (shareError) {
+          reportHandledError(shareError, {
+            surface: 'documents-download-all-fallback-share',
+            level: 'feature',
+          });
+        }
       }
+      reportDocumentError(
+        error,
+        'documents-download-all',
+        'Could not save all documents.',
+        { documentCount: documents.length },
+        'Download Failed',
+      );
     }
   };
 
@@ -489,7 +525,13 @@ export default function DocumentList() {
     } catch (error: any) {
       setIsUploading(false);
       if (error?.message !== 'User did not share') {
-        showStatus('Error', 'Could not share document as PDF', 'error');
+        reportDocumentError(
+          error,
+          'documents-share-single',
+          'Could not share this document.',
+          { documentType: doc?.type },
+          'Share Failed',
+        );
       }
     }
   };
@@ -513,9 +555,15 @@ export default function DocumentList() {
         saveToFiles: true,
       });
       setIsUploading(false);
-    } catch (error: any) {
+    } catch (error) {
       setIsUploading(false);
-      showStatus('Download Error', 'Could not initiate download. Please use the Share button.', 'error');
+      reportDocumentError(
+        error,
+        'documents-download-single',
+        'Could not initiate download. Please use the Share button.',
+        { documentType: doc?.type },
+        'Download Failed',
+      );
     }
   };
 
@@ -572,7 +620,13 @@ export default function DocumentList() {
           await dispatch(removeDocumentAsync(id)).unwrap();
           showStatus('Deleted', `${type} has been removed.`, 'delete');
         } catch (err: any) {
-          showStatus('Error', err.message || 'Failed to delete', 'error');
+          reportDocumentError(
+            err,
+            'documents-delete',
+            err?.message || 'Failed to delete the document.',
+            { documentId: id, documentType: type },
+            'Delete Failed',
+          );
         }
       }
     });
@@ -602,8 +656,14 @@ export default function DocumentList() {
               await syncDigiLocker(res.client_id);
               dispatch(fetchDocuments());
               showStatus('Synced', 'Documents updated from DigiLocker!');
-            } catch (err) {
-              showStatus('Error', 'Sync failed. Please try again.', 'error');
+            } catch (error) {
+              reportDocumentError(
+                error,
+                'documents-digilocker-sync',
+                'Sync failed. Please try again.',
+                { clientId: res.client_id },
+                'Sync Failed',
+              );
             } finally {
               setIsUploading(false);
             }
@@ -612,7 +672,13 @@ export default function DocumentList() {
       }
     } catch (error: any) {
       setIsUploading(false);
-      showStatus('Error', error.message || 'Could not connect to DigiLocker', 'error');
+      reportDocumentError(
+        error,
+        'documents-digilocker-connect',
+        error?.message || 'Could not connect to DigiLocker.',
+        undefined,
+        'DigiLocker Unavailable',
+      );
     }
   };
 
@@ -710,6 +776,11 @@ export default function DocumentList() {
           </View>
         </View>
 
+        <BoundaryBlock
+          boundaryName="documents-health-widget"
+          fallbackTitle="Document health is unavailable"
+          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.nextActionCard}>
           <View style={styles.nextActionHeader}>
             <Text style={styles.nextActionTitle}>Document health</Text>
@@ -751,8 +822,14 @@ export default function DocumentList() {
             </TouchableOpacity>
           </View>
         </View>
+        </BoundaryBlock>
 
         {/* DigiLocker Banner */}
+        <BoundaryBlock
+          boundaryName="documents-digilocker-banner-widget"
+          fallbackTitle="DigiLocker banner is unavailable"
+          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.digiBanner}>
           <View style={styles.digiRow}>
             <View style={styles.digiContentLeft}>
@@ -781,6 +858,7 @@ export default function DocumentList() {
             </View>
           </View>
         </View>
+        </BoundaryBlock>
 
         {/* Your Vehicle Documents */}
         <View style={styles.sectionHeaderRow}>
@@ -814,20 +892,32 @@ export default function DocumentList() {
           </View>
         )}
 
+        <BoundaryBlock
+          boundaryName="documents-vehicle-grid-widget"
+          fallbackTitle="Vehicle documents are unavailable"
+          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.gloveboxGrid}>
           <DocumentSlot label="RC Front" type="RC" />
           <DocumentSlot label="Insurance" type="Insurance" />
           <DocumentSlot label="PUC" type="PUC" />
         </View>
+        </BoundaryBlock>
 
         {/* Your Personal Documents */}
         <View style={[styles.sectionHeaderRow, { marginTop: 40 }]}>
           <Text style={styles.sectionTitle}>YOUR PERSONAL DOCUMENTS</Text>
         </View>
 
+        <BoundaryBlock
+          boundaryName="documents-personal-grid-widget"
+          fallbackTitle="Personal documents are unavailable"
+          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.personalGrid}>
           <DocumentSlot label="Driving License" type="DL" />
         </View>
+        </BoundaryBlock>
 
         <View style={styles.quickActions}>
           <TouchableOpacity

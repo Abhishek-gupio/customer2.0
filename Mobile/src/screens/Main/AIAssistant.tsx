@@ -10,7 +10,6 @@ import {
   TextInput,
   View,
   PermissionsAndroid,
-  Alert,
   Modal,
   ScrollView,
 } from 'react-native';
@@ -27,6 +26,10 @@ import Tts from 'react-native-tts';
 import { VoiceOwnerContext } from '../../context/VoiceOwnerContext';
 import { API_BASE_URL } from '../../config';
 import { getProfile } from '../../services/profileService';
+import BoundaryBlock from '../../components/BoundaryBlock';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
+
+let hasTriggeredChatFeatureBoundaryTest = false;
 
 type AssistantRouteProp = RouteProp<MainTabParamList, 'AIAssistant'>;
 
@@ -139,7 +142,16 @@ function looksLikeProfileUpdateCommand(message: string): boolean {
   );
 }
 
+function ChatFeatureBoundaryTestCrash() {
+  hasTriggeredChatFeatureBoundaryTest = true;
+  throw new Error('chat feature test');
+}
+
 export default function AIAssistant() {
+  const ENABLE_CHAT_FEATURE_BOUNDARY_TEST = __DEV__ && true;
+  const shouldTriggerChatFeatureBoundaryTest =
+    ENABLE_CHAT_FEATURE_BOUNDARY_TEST &&
+    !hasTriggeredChatFeatureBoundaryTest;
   const navigation = useNavigation();
   const rootNavigation = (navigation as any).getParent?.() ?? navigation;
   const route = useRoute<AssistantRouteProp>();
@@ -167,9 +179,28 @@ export default function AIAssistant() {
     message: '',
   });
 
-  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
-    setStatusModal({ visible: true, type, title, message });
-  };
+  const showStatus = useCallback((title: string, statusMessage: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message: statusMessage });
+  }, []);
+  const reportAssistantError = useCallback((
+    error: unknown,
+    surface: string,
+    userMessage?: string,
+    extras?: Record<string, unknown>,
+    title = 'Something went wrong',
+  ) => {
+    const { correlationId } = reportHandledError(error, {
+      surface,
+      level: 'feature',
+      extras,
+    });
+
+    if (userMessage) {
+      showStatus(title, appendCorrelationId(userMessage, correlationId), 'error');
+    }
+
+    return correlationId;
+  }, [showStatus]);
   const lastRouteRef = useRef<{ sessionId?: string; userMessage?: string } | null>(null);
   const isLocalSession = sessionId?.startsWith('local-');
   const wantsListeningRef = useRef(false);
@@ -310,7 +341,12 @@ export default function AIAssistant() {
         const name = (data.fullName || '').trim();
         setUserName(name);
       })
-      .catch(() => {});
+      .catch((error) => {
+        reportHandledError(error, {
+          surface: 'chat-ai-assistant-profile-load',
+          level: 'feature',
+        });
+      });
     return () => {
       isMounted = false;
     };
@@ -321,8 +357,11 @@ export default function AIAssistant() {
       const data = await getProfile();
       const name = (data.fullName || '').trim();
       setUserName(name);
-    } catch {
-      // no-op
+    } catch (error) {
+      reportHandledError(error, {
+        surface: 'chat-ai-assistant-profile-refresh',
+        level: 'feature',
+      });
     }
   }, []);
 
@@ -406,6 +445,13 @@ export default function AIAssistant() {
       setIsListening(false);
       setVoiceOwner(null);
       wantsListeningRef.current = false;
+      reportAssistantError(
+        e,
+        'chat-ai-assistant-voice-runtime',
+        'Voice input could not continue. Please try again.',
+        { code: Number(code) || undefined },
+        'Mic Error',
+      );
     };
 
     return () => {
@@ -416,7 +462,7 @@ export default function AIAssistant() {
         (Voice as any).removeAllListeners?.();
       }
     };
-  }, [releaseChatMic, setVoiceOwner]);
+  }, [releaseChatMic, reportAssistantError, setVoiceOwner]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -432,8 +478,11 @@ export default function AIAssistant() {
     try {
       Tts.setDefaultRate(0.5);
       Tts.setDefaultPitch(1.05);
-    } catch (e) {
-      console.warn('TTS defaults error:', e);
+    } catch (error) {
+      reportHandledError(error, {
+        surface: 'chat-ai-assistant-tts-defaults',
+        level: 'feature',
+      });
     }
     Tts.getInitStatus()
       .then(() => {
@@ -444,13 +493,16 @@ export default function AIAssistant() {
       })
       .catch((err) => {
         if (!isMounted) return;
-        console.warn('TTS init error:', err);
+        reportHandledError(err, {
+          surface: 'chat-ai-assistant-tts-init',
+          level: 'feature',
+        });
         setTtsReady(false);
       });
 
     return () => {
       isMounted = false;
-      try { Tts.stop(); } catch (e) {}
+      try { Tts.stop(); } catch {}
     };
   }, []);
 
@@ -476,7 +528,11 @@ export default function AIAssistant() {
         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } catch {
+    } catch (error) {
+      reportHandledError(error, {
+        surface: 'chat-ai-assistant-mic-permission',
+        level: 'feature',
+      });
       return false;
     }
   };
@@ -506,7 +562,14 @@ export default function AIAssistant() {
         setVoiceOwner('chat' as any);
         await startVoiceRecognition();
       }
-    } catch {
+    } catch (error) {
+      reportAssistantError(
+        error,
+        'chat-ai-assistant-mic-toggle',
+        'Voice input could not start. Please try again.',
+        { isListening },
+        'Mic Error',
+      );
       releaseChatMic();
       return;
     }
@@ -529,7 +592,13 @@ export default function AIAssistant() {
       setMessages(uiMessages);
       setSessionId(sid);
     } catch (error) {
-      console.error('Failed to load history:', error);
+      reportAssistantError(
+        error,
+        'chat-ai-assistant-history-load',
+        'Conversation history could not be loaded.',
+        { sessionId: sid },
+        'History Unavailable',
+      );
     } finally {
       setIsHistoryLoading(false);
     }
@@ -715,7 +784,12 @@ export default function AIAssistant() {
         if (profileUpdated) {
           refreshDisplayedUserName().catch(() => {});
         }
-      } catch {
+      } catch (error) {
+        reportHandledError(error, {
+          surface: 'chat-ai-assistant-send-fallback',
+          level: 'feature',
+          extras: { sessionId, isLocalSession, messageLength: messageText.length },
+        });
         if (!sessionId) setSessionId(`local-${Date.now()}`);
         await streamLocalReply(botMsgId, getLocalBotReply(messageText));
       }
@@ -817,7 +891,11 @@ export default function AIAssistant() {
         },
       );
     } catch (error) {
-      console.error('Stream error:', error);
+      reportHandledError(error, {
+        surface: 'chat-ai-assistant-stream',
+        level: 'feature',
+        extras: { sessionId, isLocalSession, messageLength: messageText.length },
+      });
       await runFallback();
     }
   };
@@ -874,7 +952,13 @@ export default function AIAssistant() {
         prev.map((m) => (m.id === msgId ? { ...m, feedback: score } : m)),
       );
     } catch (error) {
-      console.error('Feedback error:', error);
+      reportAssistantError(
+        error,
+        'chat-ai-assistant-feedback',
+        'Feedback could not be saved right now.',
+        { sessionId, score, msgId },
+        'Feedback Failed',
+      );
     }
   };
 
@@ -1031,6 +1115,9 @@ export default function AIAssistant() {
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+      {shouldTriggerChatFeatureBoundaryTest ? (
+        <ChatFeatureBoundaryTestCrash />
+      ) : null}
       <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.headerBtn}>
             <Ionicons name="arrow-back-outline" size={22} color="#9fb3ff" />
@@ -1078,6 +1165,11 @@ export default function AIAssistant() {
                 <Text>Loading conversation...</Text>
               </View>
             ) : (
+              <BoundaryBlock
+                boundaryName="chat-ai-assistant-empty-state-widget"
+                fallbackTitle="Assistant suggestions are unavailable"
+                fallbackMessage="You can still type a message below. Retry this block or report the issue if it keeps happening."
+              >
               <View style={styles.emptyContainer}>
                       <FastImage
                         source={require('../../assets/images/index.gif') as any}
@@ -1104,6 +1196,7 @@ export default function AIAssistant() {
                   ))}
                 </View>
               </View>
+              </BoundaryBlock>
             )
           }
         />
@@ -1160,6 +1253,11 @@ export default function AIAssistant() {
           style={styles.modalOverlay}
           onPress={() => setQuickExpenseVisible(false)}
         >
+          <BoundaryBlock
+            boundaryName="chat-ai-assistant-quick-expense-widget"
+            fallbackTitle="Quick expense form is unavailable"
+            fallbackMessage="Close this modal and keep using chat, or retry this block if it keeps happening."
+          >
           <Pressable style={styles.quickExpenseCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.quickExpenseTitle}>Quick add expense</Text>
             <TextInput
@@ -1201,6 +1299,7 @@ export default function AIAssistant() {
               </Pressable>
             </View>
           </Pressable>
+          </BoundaryBlock>
         </Pressable>
       </Modal>
 
@@ -1212,7 +1311,13 @@ export default function AIAssistant() {
           muted={false}
           repeat={false}
           onEnd={() => setPlayingVoiceUrl(null)}
-          onError={() => setPlayingVoiceUrl(null)}
+          onError={(error) => {
+            reportHandledError(error, {
+              surface: 'chat-ai-assistant-voice-playback',
+              level: 'widget',
+            });
+            setPlayingVoiceUrl(null);
+          }}
         />
       ) : null}
 

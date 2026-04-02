@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -27,8 +27,10 @@ import { adminApi, type CustomerDetail as CustomerDetailType, type AdminVehicleD
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { EditCustomerModal } from '../components/ui/EditCustomerModal';
+import BoundarySection from '../components/BoundarySection';
 import { cn } from '../lib/cn';
 import { formatDate, formatDateTime, formatTime } from '../lib/dateUtils';
+import { appendCorrelationId, reportHandledError } from '../lib/errorReporting';
 
 // --- TYPES ---
 type ExpenseRow = {
@@ -329,7 +331,20 @@ function VehicleDetailCard({ vehicle: v }: { vehicle: AdminVehicleDetail }) {
   );
 }
 
-function DocumentViewer({ doc, onClose }: { doc: AdminVehicleDocument; onClose: () => void }) {
+function DocumentViewer({
+  doc,
+  onClose,
+  onReportError,
+}: {
+  doc: AdminVehicleDocument;
+  onClose: () => void;
+  onReportError: (
+    error: unknown,
+    surface: string,
+    userMessage?: string,
+    extras?: Record<string, unknown>,
+  ) => string;
+}) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-10">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xl animate-in fade-in duration-500" onClick={onClose} />
@@ -375,7 +390,12 @@ function DocumentViewer({ doc, onClose }: { doc: AdminVehicleDocument; onClose: 
                     document.body.removeChild(link);
                     window.URL.revokeObjectURL(url);
                   } catch (err) {
-                    console.error('Download failed:', err);
+                    onReportError(
+                      err,
+                      'admin-customer-detail-document-download',
+                      undefined,
+                      { documentId: doc.id, documentType: doc.type },
+                    );
                     window.open(doc.fileUrl!, '_blank');
                   }
                 }}
@@ -437,19 +457,62 @@ export default function CustomerDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { admin } = useAuth();
   const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
+  const reportCustomerError = useCallback(
+    (
+      error: unknown,
+      surface: string,
+      userMessage?: string,
+      extras?: Record<string, unknown>,
+    ) => {
+      const { correlationId } = reportHandledError(error, {
+        surface,
+        level: 'feature',
+        extras,
+      });
 
-  const fetchCustomer = async () => {
+      if (userMessage) {
+        window.alert(appendCorrelationId(userMessage, correlationId));
+      }
+
+      return correlationId;
+    },
+    [],
+  );
+
+  const fetchCustomer = useCallback(async () => {
     if (!id) return;
     setLoading(true);
-    const res = await adminApi.getCustomer(id);
-    setLoading(false);
-    if (res.success) setCustomer(res.data);
-    else setError(res.error.message);
-  };
+    try {
+      const res = await adminApi.getCustomer(id);
+      if (res.success) {
+        setCustomer(res.data);
+        setError('');
+        return;
+      }
+
+      const correlationId = reportCustomerError(
+        new Error(res.error.message),
+        'admin-customer-detail-load',
+        undefined,
+        { customerId: id },
+      );
+      setError(appendCorrelationId(res.error.message, correlationId));
+    } catch (error) {
+      const correlationId = reportCustomerError(
+        error,
+        'admin-customer-detail-load',
+        undefined,
+        { customerId: id },
+      );
+      setError(appendCorrelationId('Customer details could not be loaded.', correlationId));
+    } finally {
+      setLoading(false);
+    }
+  }, [id, reportCustomerError]);
 
   useEffect(() => {
     fetchCustomer();
-  }, [id]);
+  }, [fetchCustomer]);
 
   const expenses = (customer?.expenses ?? []) as ExpenseRow[];
 
@@ -547,52 +610,64 @@ export default function CustomerDetail() {
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10 space-y-4">
         {tab === 'overview' && (
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <Card className="xl:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-[var(--accent)]" />
-                  Profile
-                </CardTitle>
-                <CardDescription>Customer metadata and quick metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-3 text-sm text-white/70 md:grid-cols-2">
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
-                    <div className="text-xs font-semibold text-white/50">Customer ID</div>
-                    <div className="mt-2 break-all font-semibold text-white leading-relaxed">{customer.id}</div>
-                  </div>
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
-                    <div className="text-xs font-semibold text-white/50">Registration Date</div>
-                    <div className="mt-2 font-semibold text-white">{formatDateTime(customer.createdAt)}</div>
-                  </div>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <StatPill icon={CarFront} label="Vehicles" value={customer._count.vehicles} />
-                  <StatPill icon={ReceiptIndianRupee} label="Expenses" value={customer._count.expenses} />
-                  <StatPill icon={FileText} label="Docs" value={customer._count.documents} />
-                  <StatPill icon={Ticket} label="Tickets" value={customer._count.supportTickets} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Emergency contacts</CardTitle>
-                <CardDescription>{(customer.emergencyContacts as any[])?.length ?? 0} saved contacts</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {Array.isArray(customer.emergencyContacts) && customer.emergencyContacts.length > 0 ? (
-                  (customer.emergencyContacts as any[]).slice(0, 6).map((ec) => (
-                    <div key={ec.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
-                      <div className="font-semibold">{ec.name}</div>
-                      <div className="mt-1 text-sm text-white/60">{ec.phoneNumber}</div>
+            <BoundarySection
+              boundaryName="admin-customer-detail-overview-widget"
+              fallbackTitle="Customer overview is unavailable"
+              fallbackMessage="Retry this overview block or refresh the section if it keeps failing."
+            >
+              <Card className="xl:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-[var(--accent)]" />
+                    Profile
+                  </CardTitle>
+                  <CardDescription>Customer metadata and quick metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-3 text-sm text-white/70 md:grid-cols-2">
+                    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+                      <div className="text-xs font-semibold text-white/50">Customer ID</div>
+                      <div className="mt-2 break-all font-semibold text-white leading-relaxed">{customer.id}</div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-white/60 py-4 text-center">No emergency contacts listed.</div>
-                )}
-              </CardContent>
-            </Card>
+                    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+                      <div className="text-xs font-semibold text-white/50">Registration Date</div>
+                      <div className="mt-2 font-semibold text-white">{formatDateTime(customer.createdAt)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <StatPill icon={CarFront} label="Vehicles" value={customer._count.vehicles} />
+                    <StatPill icon={ReceiptIndianRupee} label="Expenses" value={customer._count.expenses} />
+                    <StatPill icon={FileText} label="Docs" value={customer._count.documents} />
+                    <StatPill icon={Ticket} label="Tickets" value={customer._count.supportTickets} />
+                  </div>
+                </CardContent>
+              </Card>
+            </BoundarySection>
+
+            <BoundarySection
+              boundaryName="admin-customer-detail-emergency-contacts-widget"
+              fallbackTitle="Emergency contacts are unavailable"
+              fallbackMessage="Retry this contacts block or refresh the section if it keeps failing."
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>Emergency contacts</CardTitle>
+                  <CardDescription>{(customer.emergencyContacts as any[])?.length ?? 0} saved contacts</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Array.isArray(customer.emergencyContacts) && customer.emergencyContacts.length > 0 ? (
+                    (customer.emergencyContacts as any[]).slice(0, 6).map((ec) => (
+                      <div key={ec.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+                        <div className="font-semibold">{ec.name}</div>
+                        <div className="mt-1 text-sm text-white/60">{ec.phoneNumber}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-white/60 py-4 text-center">No emergency contacts listed.</div>
+                  )}
+                </CardContent>
+              </Card>
+            </BoundarySection>
           </div>
         )}
 
@@ -602,19 +677,30 @@ export default function CustomerDetail() {
               <CarFront className="h-5 w-5 text-[var(--accent)]" />
               <h2 className="text-lg font-semibold">Registered Vehicles ({vehicles?.length ?? 0})</h2>
             </div>
-            {vehicles && vehicles.length > 0 ? (
-              vehicles.map((v) => <VehicleDetailCard key={v.id} vehicle={v} />)
-            ) : (
-              <Card>
-                <CardContent className="py-20 text-center text-sm text-white/40">
-                  No vehicles recorded for this customer yet.
-                </CardContent>
-              </Card>
-            )}
+            <BoundarySection
+              boundaryName="admin-customer-detail-vehicles-widget"
+              fallbackTitle="Vehicle details are unavailable"
+              fallbackMessage="Retry this vehicle section or refresh the section if it keeps failing."
+            >
+              {vehicles && vehicles.length > 0 ? (
+                vehicles.map((v) => <VehicleDetailCard key={v.id} vehicle={v} />)
+              ) : (
+                <Card>
+                  <CardContent className="py-20 text-center text-sm text-white/40">
+                    No vehicles recorded for this customer yet.
+                  </CardContent>
+                </Card>
+              )}
+            </BoundarySection>
           </div>
         )}
 
         {tab === 'expenses' && (
+          <BoundarySection
+            boundaryName="admin-customer-detail-expenses-widget"
+            fallbackTitle="Expense history is unavailable"
+            fallbackMessage="Retry this expense section or refresh the section if it keeps failing."
+          >
           <Card className="flex flex-col min-h-0">
             {/* Sticky Card Header for filters */}
             <CardHeader className="shrink-0 sticky top-0 z-10 bg-[#0c0c0e]/90 backdrop-blur-xl border-b border-white/5 -mx-px -mt-px rounded-t-[1.75rem] py-5">
@@ -732,87 +818,101 @@ export default function CustomerDetail() {
               )}
             </CardContent>
           </Card>
+          </BoundarySection>
         )}
 
         {tab === 'documents' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><FileText className="h-4 w-4 text-[var(--accent)]" /> Compliance Vault</CardTitle>
-              <CardDescription>Verified documents and certifications</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {Array.isArray(documents) && documents.length > 0 ? documents.map((d) => (
-                <div
-                  key={d.id}
-                  className="group rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all active:scale-[0.99]"
-                  onClick={() => setSelectedDocument(d)}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-white/10 transition-all">
-                        <FileText className="h-5 w-5" />
+          <BoundarySection
+            boundaryName="admin-customer-detail-documents-widget"
+            fallbackTitle="Document records are unavailable"
+            fallbackMessage="Retry this document section or refresh the section if it keeps failing."
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><FileText className="h-4 w-4 text-[var(--accent)]" /> Compliance Vault</CardTitle>
+                <CardDescription>Verified documents and certifications</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {Array.isArray(documents) && documents.length > 0 ? documents.map((d) => (
+                  <div
+                    key={d.id}
+                    className="group rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all active:scale-[0.99]"
+                    onClick={() => setSelectedDocument(d)}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-white/10 transition-all">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white/90 group-hover:text-white transition-colors capitalize">{d.type}</div>
+                          <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-0.5">{d.documentNumber || 'NO IDENTIFIER'}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold text-white/90 group-hover:text-white transition-colors capitalize">{d.type}</div>
-                        <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-0.5">{d.documentNumber || 'NO IDENTIFIER'}</div>
+                      <div className="flex items-center gap-3">
+                        <span className={cn(
+                          "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border",
+                          d.verificationStatus === 'VERIFIED' ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" : "bg-white/5 text-white/40 border-white/5"
+                        )}>
+                          {d.verificationStatus || 'PENDING'}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={cn(
-                        "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border",
-                        d.verificationStatus === 'VERIFIED' ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" : "bg-white/5 text-white/40 border-white/5"
-                      )}>
-                        {d.verificationStatus || 'PENDING'}
-                      </span>
                     </div>
                   </div>
-                </div>
-              )) : <div className="text-sm text-white/60 py-10 text-center">No document records found.</div>}
-            </CardContent>
-          </Card>
+                )) : <div className="text-sm text-white/60 py-10 text-center">No document records found.</div>}
+              </CardContent>
+            </Card>
+          </BoundarySection>
         )}
 
         {tab === 'tickets' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Ticket className="h-4 w-4 text-[var(--accent)]" /> Assistance Hub</CardTitle>
-              <CardDescription>Open assistance requests and history</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {Array.isArray(tickets) && tickets.length > 0 ? tickets.map((t) => (
-                <div key={t.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 hover:bg-white/[0.05] transition-all">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="font-semibold text-white/90">{t.subject}</div>
-                    <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md border transition-colors",
-                        t.status === 'OPEN' ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" :
-                          t.status === 'IN_PROGRESS' ? "bg-blue-500/5 text-blue-500 border-blue-500/10" :
-                            "bg-white/5 text-white/40 border-white/5"
-                      )}>
-                        {t.status}
-                      </span>
-                      <span className={cn(
-                        "text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md border transition-colors",
-                        t.priority === 'HIGH' || t.priority === 'URGENT' ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                          t.priority === 'MEDIUM' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
-                            "bg-white/5 text-white/40 border-white/5"
-                      )}>
-                        {t.priority}
-                      </span>
+          <BoundarySection
+            boundaryName="admin-customer-detail-tickets-widget"
+            fallbackTitle="Support tickets are unavailable"
+            fallbackMessage="Retry this support section or refresh the section if it keeps failing."
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Ticket className="h-4 w-4 text-[var(--accent)]" /> Assistance Hub</CardTitle>
+                <CardDescription>Open assistance requests and history</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {Array.isArray(tickets) && tickets.length > 0 ? tickets.map((t) => (
+                  <div key={t.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 hover:bg-white/[0.05] transition-all">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-semibold text-white/90">{t.subject}</div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md border transition-colors",
+                          t.status === 'OPEN' ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" :
+                            t.status === 'IN_PROGRESS' ? "bg-blue-500/5 text-blue-500 border-blue-500/10" :
+                              "bg-white/5 text-white/40 border-white/5"
+                        )}>
+                          {t.status}
+                        </span>
+                        <span className={cn(
+                          "text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md border transition-colors",
+                          t.priority === 'HIGH' || t.priority === 'URGENT' ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                            t.priority === 'MEDIUM' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
+                              "bg-white/5 text-white/40 border-white/5"
+                        )}>
+                          {t.priority}
+                        </span>
+                      </div>
                     </div>
+                    <div className="mt-1 text-sm text-white/50 leading-relaxed">{t.description}</div>
                   </div>
-                  <div className="mt-1 text-sm text-white/50 leading-relaxed">{t.description}</div>
-                </div>
-              )) : <div className="text-sm text-white/60 py-10 text-center">No active support tickets.</div>}
-            </CardContent>
-          </Card>
+                )) : <div className="text-sm text-white/60 py-10 text-center">No active support tickets.</div>}
+              </CardContent>
+            </Card>
+          </BoundarySection>
         )}
 
         {selectedDocument && (
           <DocumentViewer
             doc={selectedDocument}
             onClose={() => setSelectedDocument(null)}
+            onReportError={reportCustomerError}
           />
         )}
 
@@ -826,7 +926,13 @@ export default function CustomerDetail() {
             if (res.success) {
               await fetchCustomer();
             } else {
-              throw new Error(res.error.message);
+              const correlationId = reportCustomerError(
+                new Error(res.error.message),
+                'admin-customer-detail-update',
+                undefined,
+                { customerId: id },
+              );
+              throw new Error(appendCorrelationId(res.error.message, correlationId));
             }
           }}
         />

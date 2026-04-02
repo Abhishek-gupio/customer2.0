@@ -35,6 +35,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import QuickServicesGrid from '../../components/QuickServicesGrid';
+import BoundaryBlock from '../../components/BoundaryBlock';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -65,6 +66,7 @@ const HOME_LOCATION_CACHE_KEY = 'cache:home:location';
 const HOME_FUEL_CACHE_PREFIX = 'cache:home:fuel:';
 const HOME_PRIMARY_VEHICLE_CACHE_KEY = 'cache:home:primaryVehicle';
 const HOME_CACHE_TTL_MS = 10 * 60 * 1000;
+const HOME_NUMBER_PLATE_PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 type HomeCarouselSlide =
   | 'vehicle'
   | 'expenses'
@@ -140,7 +142,7 @@ function HealthDisplay({ score }: { score: number }) {
     ]).start();
 
     return () => { countAnim.removeListener(countListener); };
-  }, [score]);
+  }, [barAnim, countAnim, fadeAnim, score]);
 
   const color = score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
   const label = score >= 80 ? 'EXCELLENT' : score >= 50 ? 'GOOD' : 'CRITICAL';
@@ -219,7 +221,6 @@ export default function Home() {
   const dispatch = useAppDispatch();
   const documents = useAppSelector((state) => state.documents.documents);
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
-  const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
   const [selectedState, setSelectedState] = useState('Detecting...');
   const [userLocationDisplay, setUserLocationDisplay] = useState('Detecting...');
@@ -257,9 +258,10 @@ export default function Home() {
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timelineEntranceAnim = useRef(new Animated.Value(0)).current;
+  const isGpsPreciseRef = useRef(false);
+  const userLocationDisplayRef = useRef(userLocationDisplay);
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const carouselSlides = useMemo<HomeCarouselSlide[]>(() => {
@@ -468,14 +470,14 @@ export default function Home() {
     fetchDiscoveryContent();
     fetchUserLocationWithRetry(0);
     dispatch(fetchDocuments());
-  }, [dispatch]);
+  }, [dispatch, fetchDiscoveryContent, fetchUserLocationWithRetry]);
 
   // Fetch fuel prices when state changes
   useEffect(() => {
     if (selectedState && selectedState !== 'Detecting...' && STATES.includes(selectedState)) {
       fetchFuelPrices();
     }
-  }, [selectedState]);
+  }, [fetchFuelPrices, selectedState]);
 
   useEffect(() => {
     if (selectedVideo) {
@@ -494,7 +496,7 @@ export default function Home() {
       fetchPrimaryVehicleRef.current?.();
       fetchDiscoveryContent();
       dispatch(fetchDocuments());
-    }, [dispatch])
+    }, [dispatch, fetchDiscoveryContent])
   );
 
   useFocusEffect(
@@ -552,7 +554,7 @@ export default function Home() {
           offset: nextIndex * bannerWidth,
           animated: true,
         });
-      } catch (_) {
+      } catch {
         // guard against layout-not-ready race
       }
     }, AUTO_SCROLL_INTERVAL_MS);
@@ -584,7 +586,7 @@ export default function Home() {
     let timeout: any;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = HOME_NUMBER_PLATE_PLACEHOLDERS[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
@@ -601,7 +603,8 @@ export default function Home() {
         if (currentIdx === 0) {
           isDeleting = false;
           // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+          placeholderIdx =
+            (placeholderIdx + 1) % HOME_NUMBER_PLATE_PLACEHOLDERS.length;
           timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
@@ -612,6 +615,10 @@ export default function Home() {
     animatePlaceholder();
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    userLocationDisplayRef.current = userLocationDisplay;
+  }, [userLocationDisplay]);
 
   const fetchExpenseHighlights = async (vehicleId?: string) => {
     try {
@@ -759,7 +766,7 @@ export default function Home() {
   };
   fetchPrimaryVehicleRef.current = fetchPrimaryVehicle;
 
-  const fetchFuelPrices = async () => {
+  const fetchFuelPrices = useCallback(async () => {
     try {
       setFuelLoading(true);
       const cacheKey = `${HOME_FUEL_CACHE_PREFIX}${selectedState}`;
@@ -788,9 +795,9 @@ export default function Home() {
     } finally {
       setFuelLoading(false);
     }
-  };
+  }, [selectedState]);
 
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       try {
         const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
@@ -813,9 +820,9 @@ export default function Home() {
       }
     }
     return true;
-  };
+  }, []);
 
-  const reverseGeocode = async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
+  const reverseGeocode = useCallback(async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
     try {
       const cachedLocation = getCachedValue<{ display: string; state: string }>(HOME_LOCATION_CACHE_KEY);
       if (cachedLocation) return cachedLocation;
@@ -842,11 +849,15 @@ export default function Home() {
       if (staleLocation) return staleLocation;
       return null;
     }
-  };
+  }, []);
 
   const [isGpsPrecise, setIsGpsPrecise] = useState(false);
+ 
+  useEffect(() => {
+    isGpsPreciseRef.current = isGpsPrecise;
+  }, [isGpsPrecise]);
 
-  const fetchUserLocationWithRetry = async (attempt = 0) => {
+  const fetchUserLocationWithRetry = useCallback(async (attempt = 0) => {
     const maxAttempts = 20; // Try for ~4 minutes if needed
     try {
       setLocationLoading(true);
@@ -878,7 +889,7 @@ export default function Home() {
       }
 
       // fallback to IP (only if GPS failed and we haven't found a GPS result yet)
-      if (!isGpsPrecise) {
+      if (!isGpsPreciseRef.current) {
         let geo: any = null;
         for (const ipUrl of GEO.ipProviders) {
           try {
@@ -901,9 +912,15 @@ export default function Home() {
       }
 
       // If we don't have a GPS-precise result yet, retry
-      if (!isGpsPrecise && attempt < maxAttempts) {
-        setTimeout(() => fetchUserLocationWithRetry(attempt + 1), 10000); // Wait 10s between retries
-      } else if (!isGpsPrecise && attempt >= maxAttempts && !userLocationDisplay.includes(',')) {
+      if (!isGpsPreciseRef.current && attempt < maxAttempts) {
+        setTimeout(() => {
+          fetchUserLocationWithRetry(attempt + 1).catch(() => {});
+        }, 10000); // Wait 10s between retries
+      } else if (
+        !isGpsPreciseRef.current &&
+        attempt >= maxAttempts &&
+        !userLocationDisplayRef.current.includes(',')
+      ) {
         setUserLocationDisplay('Location not available');
         setLocationLoading(false);
       } else {
@@ -911,15 +928,15 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Location detection failed:', error);
-      if (!isGpsPrecise && attempt < maxAttempts) {
-        setTimeout(() => fetchUserLocationWithRetry(attempt + 1), 10000);
+      if (!isGpsPreciseRef.current && attempt < maxAttempts) {
+        setTimeout(() => {
+          fetchUserLocationWithRetry(attempt + 1).catch(() => {});
+        }, 10000);
       } else {
         setLocationLoading(false);
       }
     }
-  };
-
-  const fetchUserLocation = () => fetchUserLocationWithRetry(0);
+  }, [requestLocationPermission, reverseGeocode]);
 
   const handleProfilePress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
@@ -958,7 +975,7 @@ export default function Home() {
     }
   };
 
-  const navigateToRootScreen = (screenName: keyof RootStackParamList, params?: any) => {
+  const navigateToRootScreen = useCallback((screenName: keyof RootStackParamList, params?: any) => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
       if (params) {
@@ -973,7 +990,7 @@ export default function Home() {
         navigation.navigate(screenName as any);
       }
     }
-  };
+  }, [navigation]);
 
   const navigateToServicesScreen = (
     screen:
@@ -1001,7 +1018,7 @@ export default function Home() {
     navigation.navigate('my_garage' as any);
   }, [navigation]);
 
-  const fetchDiscoveryContent = async () => {
+  const fetchDiscoveryContent = useCallback(async () => {
     try {
       setDiscoveryLoading(true);
       const res = await api.get<{
@@ -1021,7 +1038,7 @@ export default function Home() {
     } finally {
       setDiscoveryLoading(false);
     }
-  };
+  }, []);
 
   /** Extract a YouTube video ID from watch, share, shorts, embed, and mobile URLs. */
   const getYouTubeVideoId = (url: unknown): string | null => {
@@ -1134,13 +1151,17 @@ export default function Home() {
     }
   };
 
-  const openAiAssistant = (userMessage?: string) => {
+  const openAiAssistant = useCallback((userMessage?: string) => {
     if (userMessage) {
       (navigation as any).navigate('AIAssistant', { userMessage });
       return;
     }
     (navigation as any).navigate('AIAssistant');
-  };
+  }, [navigation]);
+
+  const openOdometer = useCallback(() => {
+    (navigation as any).navigate('Odometer');
+  }, [navigation]);
 
   const lastOdometerUpdate = vehicle?.id ? getLastOdometerUpdate(vehicle.id) : null;
   const currentTimeMs = Date.now();
@@ -1227,116 +1248,148 @@ export default function Home() {
   const spendSummary = monthlySpendTotal !== null && monthlyExpenseCount > 0
     ? `${expenseHeadline} ${fuelSummary}`
     : expenseHeadline;
-
-  const ownershipTimelineItems: TimelineItem[] = [
-    {
-      id: 'health',
-      eyebrow: vehicle ? 'Vehicle health' : 'Garage setup',
-      title: serviceTitle,
-      description: serviceSummary,
-      icon: vehicle ? 'shield-check' : 'car-plus',
-      iconSet: 'mc',
-      accent: serviceAccent,
-      badge: serviceBadge,
-      cta: vehicle ? 'Open health' : 'Go to garage',
-      stage: serviceAlertCount > 0 ? 'Now' : serviceDueSoonCount > 0 ? 'Next' : 'Later',
-      priority: serviceAlertCount > 0 ? 'urgent' : serviceDueSoonCount > 0 ? 'normal' : 'good',
-      priorityScore: serviceAlertCount > 0 ? 100 : serviceDueSoonCount > 0 ? 80 : 40,
-      onPress: () => vehicle ? navigateToRootScreen('WarrantyStatus') : navigateToRootScreen('VehicleList'),
-    },
-    {
-      id: 'documents',
-      eyebrow: 'Document readiness',
-      title: documentTitle,
-      description: documentSummary,
-      icon: 'file-document-check-outline',
-      iconSet: 'mc',
-      accent: documentAccent,
-      badge: documentBadge,
-      cta: 'Open glovebox',
-      stage: missingDocumentTypes.length > 0 ? 'Now' : documentsNeedingReview.length > 0 ? 'Next' : 'Later',
-      priority: missingDocumentTypes.length > 0 ? 'urgent' : documentsNeedingReview.length > 0 ? 'normal' : 'good',
-      priorityScore: missingDocumentTypes.length > 0 ? 90 : documentsNeedingReview.length > 0 ? 75 : 35,
-      onPress: () => navigateToRootScreen('DocumentList'),
-    },
-    {
-      id: 'odometer',
-      eyebrow: 'Daily upkeep',
-      title: !lastOdometerUpdate
-        ? 'Update odometer'
-        : odometerAgeDays && odometerAgeDays > 7
-          ? 'Odometer is stale'
-          : 'Keep readings fresh',
-      description: odometerSummary,
-      icon: 'speedometer-outline',
-      iconSet: 'ion',
-      accent: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? '#f59e0b' : '#38bdf8',
-      badge: !lastOdometerUpdate ? 'Missing' : odometerAgeDays === 0 ? 'Updated today' : `${odometerAgeDays ?? 0}d ago`,
-      cta: 'Update reading',
-      stage: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'Now' : 'Later',
-      priority: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'urgent' : 'good',
-      priorityScore: !lastOdometerUpdate ? 92 : (odometerAgeDays !== null && odometerAgeDays > 7) ? 88 : 28,
-      onPress: () => (navigation as any).navigate('Odometer'),
-    },
-    {
-      id: 'costs',
-      eyebrow: 'Running costs',
-      title: spendTitle,
-      description: spendSummary,
-      icon: 'wallet',
-      iconSet: 'fa',
-      accent: spendAccent,
-      badge: fuelLoading ? 'Updating' : spendBadge,
-      cta: 'Open expenses',
-      stage: expenseAlertCount > 0 ? 'Now' : monthlyExpenseCount > 0 ? 'Next' : 'Later',
-      priority: expenseAlertCount > 0 ? 'urgent' : monthlyExpenseCount > 0 ? 'normal' : 'good',
-      priorityScore: expenseAlertCount > 0 ? 85 : monthlyExpenseCount > 0 ? 60 : 25,
-      onPress: () => navigateToRootScreen('Expenses'),
-    },
-    {
-      id: 'trip',
-      eyebrow: 'Trip ready',
-      title: 'Plan the next drive',
-      description: userLocationDisplay.includes(',')
-        ? `Estimate route costs, stops and trip spend around ${userLocationDisplay}.`
-        : 'Build a route budget before your next long drive.',
-      icon: 'map-search-outline',
-      iconSet: 'mc',
-      accent: '#a78bfa',
-      badge: 'Planner',
-      cta: 'Plan trip',
-      stage: 'Later',
-      priority: 'normal',
-      priorityScore: 20,
-      onPress: () => navigateToRootScreen('TripExpense'),
-    },
-    {
-      id: 'ai',
-      eyebrow: 'AI copilot',
-      title: 'Ask what needs attention',
-      description: vehicle
-        ? `Get a quick summary for your ${getBannerVehicleShortName(vehicle)} with service, spend and support suggestions.`
-        : 'Use AI to set up your garage, expenses and support faster.',
-      icon: 'sparkles',
-      iconSet: 'mc',
-      accent: '#22d3ee',
-      badge: 'Action ready',
-      cta: 'Open AI',
-      stage: 'Next',
-      priority: 'normal',
-      priorityScore: 50,
-      onPress: () => openAiAssistant(
-        vehicle
-          ? `Give me a quick ownership summary for my ${getBannerVehicleShortName(vehicle)} and tell me what I should do next.`
-          : 'Help me set up my garage and tell me the first three things I should complete in the app.'
-      ),
-    },
-  ];
-
-  const sortedOwnershipTimelineItems = useMemo(
-    () => [...ownershipTimelineItems].sort((a, b) => b.priorityScore - a.priorityScore),
-    [ownershipTimelineItems]
+  const vehicleShortName = useMemo(
+    () => (vehicle ? getBannerVehicleShortName(vehicle) : null),
+    [getBannerVehicleShortName, vehicle],
   );
+
+  const sortedOwnershipTimelineItems = useMemo(() => {
+    const ownershipTimelineItems: TimelineItem[] = [
+      {
+        id: 'health',
+        eyebrow: vehicle ? 'Vehicle health' : 'Garage setup',
+        title: serviceTitle,
+        description: serviceSummary,
+        icon: vehicle ? 'shield-check' : 'car-plus',
+        iconSet: 'mc',
+        accent: serviceAccent,
+        badge: serviceBadge,
+        cta: vehicle ? 'Open health' : 'Go to garage',
+        stage: serviceAlertCount > 0 ? 'Now' : serviceDueSoonCount > 0 ? 'Next' : 'Later',
+        priority: serviceAlertCount > 0 ? 'urgent' : serviceDueSoonCount > 0 ? 'normal' : 'good',
+        priorityScore: serviceAlertCount > 0 ? 100 : serviceDueSoonCount > 0 ? 80 : 40,
+        onPress: () => vehicle ? navigateToRootScreen('WarrantyStatus') : navigateToRootScreen('VehicleList'),
+      },
+      {
+        id: 'documents',
+        eyebrow: 'Document readiness',
+        title: documentTitle,
+        description: documentSummary,
+        icon: 'file-document-check-outline',
+        iconSet: 'mc',
+        accent: documentAccent,
+        badge: documentBadge,
+        cta: 'Open glovebox',
+        stage: missingDocumentTypes.length > 0 ? 'Now' : documentsNeedingReview.length > 0 ? 'Next' : 'Later',
+        priority: missingDocumentTypes.length > 0 ? 'urgent' : documentsNeedingReview.length > 0 ? 'normal' : 'good',
+        priorityScore: missingDocumentTypes.length > 0 ? 90 : documentsNeedingReview.length > 0 ? 75 : 35,
+        onPress: () => navigateToRootScreen('DocumentList'),
+      },
+      {
+        id: 'odometer',
+        eyebrow: 'Daily upkeep',
+        title: !lastOdometerUpdate
+          ? 'Update odometer'
+          : odometerAgeDays && odometerAgeDays > 7
+            ? 'Odometer is stale'
+            : 'Keep readings fresh',
+        description: odometerSummary,
+        icon: 'speedometer-outline',
+        iconSet: 'ion',
+        accent: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? '#f59e0b' : '#38bdf8',
+        badge: !lastOdometerUpdate ? 'Missing' : odometerAgeDays === 0 ? 'Updated today' : `${odometerAgeDays ?? 0}d ago`,
+        cta: 'Update reading',
+        stage: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'Now' : 'Later',
+        priority: !lastOdometerUpdate || (odometerAgeDays !== null && odometerAgeDays > 7) ? 'urgent' : 'good',
+        priorityScore: !lastOdometerUpdate ? 92 : (odometerAgeDays !== null && odometerAgeDays > 7) ? 88 : 28,
+        onPress: openOdometer,
+      },
+      {
+        id: 'costs',
+        eyebrow: 'Running costs',
+        title: spendTitle,
+        description: spendSummary,
+        icon: 'wallet',
+        iconSet: 'fa',
+        accent: spendAccent,
+        badge: fuelLoading ? 'Updating' : spendBadge,
+        cta: 'Open expenses',
+        stage: expenseAlertCount > 0 ? 'Now' : monthlyExpenseCount > 0 ? 'Next' : 'Later',
+        priority: expenseAlertCount > 0 ? 'urgent' : monthlyExpenseCount > 0 ? 'normal' : 'good',
+        priorityScore: expenseAlertCount > 0 ? 85 : monthlyExpenseCount > 0 ? 60 : 25,
+        onPress: () => navigateToRootScreen('Expenses'),
+      },
+      {
+        id: 'trip',
+        eyebrow: 'Trip ready',
+        title: 'Plan the next drive',
+        description: userLocationDisplay.includes(',')
+          ? `Estimate route costs, stops and trip spend around ${userLocationDisplay}.`
+          : 'Build a route budget before your next long drive.',
+        icon: 'map-search-outline',
+        iconSet: 'mc',
+        accent: '#a78bfa',
+        badge: 'Planner',
+        cta: 'Plan trip',
+        stage: 'Later',
+        priority: 'normal',
+        priorityScore: 20,
+        onPress: () => navigateToRootScreen('TripExpense'),
+      },
+      {
+        id: 'ai',
+        eyebrow: 'AI copilot',
+        title: 'Ask what needs attention',
+        description: vehicleShortName
+          ? `Get a quick summary for your ${vehicleShortName} with service, spend and support suggestions.`
+          : 'Use AI to set up your garage, expenses and support faster.',
+        icon: 'sparkles',
+        iconSet: 'mc',
+        accent: '#22d3ee',
+        badge: 'Action ready',
+        cta: 'Open AI',
+        stage: 'Next',
+        priority: 'normal',
+        priorityScore: 50,
+        onPress: () => openAiAssistant(
+          vehicleShortName
+            ? `Give me a quick ownership summary for my ${vehicleShortName} and tell me what I should do next.`
+            : 'Help me set up my garage and tell me the first three things I should complete in the app.'
+        ),
+      },
+    ];
+
+    return ownershipTimelineItems.sort((a, b) => b.priorityScore - a.priorityScore);
+  }, [
+    documentAccent,
+    documentBadge,
+    documentSummary,
+    documentTitle,
+    documentsNeedingReview.length,
+    expenseAlertCount,
+    fuelLoading,
+    missingDocumentTypes.length,
+    monthlyExpenseCount,
+    navigateToRootScreen,
+    odometerAgeDays,
+    lastOdometerUpdate,
+    odometerSummary,
+    openAiAssistant,
+    openOdometer,
+    serviceAccent,
+    serviceAlertCount,
+    serviceBadge,
+    serviceDueSoonCount,
+    serviceSummary,
+    serviceTitle,
+    spendAccent,
+    spendBadge,
+    spendSummary,
+    spendTitle,
+    userLocationDisplay,
+    vehicle,
+    vehicleShortName,
+  ]);
 
   const recommendedTimelineItemId = sortedOwnershipTimelineItems[0]?.id;
 
@@ -1760,32 +1813,38 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        <QuickServicesGrid
-          onServicePress={id => {
-            if (id === 'document') {
-              navigateToRootScreen('DocumentList');
-            } else if (id === 'garage') {
-              navigateToRootScreen('VehicleList');
-            } else if (id === 'expense') {
-              navigateToRootScreen('Expenses');
-            } else if (id === 'valet') {
-              navigateToRootScreen('Valet');
-            } else if (id === 'service') {
-              navigateToServicesScreen('ServicesHome');
-            } else if (id === 'driving') {
-              navigateToRootScreen('DrivingSummary');
-            } else if (id === 'nearby') {
-              navigation.navigate('Services' as any, {
-                screen: 'NearbyPlaces',
-                params: { fromHome: true }
-              });
-            } else if (id === 'support') {
-              handleHelpPress();
-            } else if (id === 'tripcost' || id === 'trip_planner') {
-              navigateToRootScreen('TripExpense');
-            }
-          }}
-        />
+        <BoundaryBlock
+          boundaryName="home-quick-services-widget"
+          fallbackTitle="Quick services are unavailable"
+          fallbackMessage="You can keep using the rest of Home. Retry this block or report the issue if it keeps happening."
+        >
+          <QuickServicesGrid
+            onServicePress={id => {
+              if (id === 'document') {
+                navigateToRootScreen('DocumentList');
+              } else if (id === 'garage') {
+                navigateToRootScreen('VehicleList');
+              } else if (id === 'expense') {
+                navigateToRootScreen('Expenses');
+              } else if (id === 'valet') {
+                navigateToRootScreen('Valet');
+              } else if (id === 'service') {
+                navigateToServicesScreen('ServicesHome');
+              } else if (id === 'driving') {
+                navigateToRootScreen('DrivingSummary');
+              } else if (id === 'nearby') {
+                navigation.navigate('Services' as any, {
+                  screen: 'NearbyPlaces',
+                  params: { fromHome: true }
+                });
+              } else if (id === 'support') {
+                handleHelpPress();
+              } else if (id === 'tripcost' || id === 'trip_planner') {
+                navigateToRootScreen('TripExpense');
+              }
+            }}
+          />
+        </BoundaryBlock>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -1879,27 +1938,38 @@ export default function Home() {
         </View>
 
         {/* INSURANCE BANNER */}
-        <View style={styles.bannerSection}>
-          <View style={styles.insuranceBanner}>
-            <Image
-              source={require('../../assets/images/challan.png') as any}
-              style={styles.bannerImage}
-              resizeMode="contain"
-            />
-            <View style={styles.bannerContent}>
-              <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
-              <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
-              <TouchableOpacity
-                style={styles.payNowButton}
-                onPress={() => navigateToServicesScreen('CheckChallan')}
-              >
-                <Text style={styles.payNowText}>Check Now</Text>
-              </TouchableOpacity>
+        <BoundaryBlock
+          boundaryName="home-challan-banner-widget"
+          fallbackTitle="Challan banner is unavailable"
+          fallbackMessage="You can keep using the rest of Home. Retry this block or report the issue if it keeps happening."
+        >
+          <View style={styles.bannerSection}>
+            <View style={styles.insuranceBanner}>
+              <Image
+                source={require('../../assets/images/challan.png') as any}
+                style={styles.bannerImage}
+                resizeMode="contain"
+              />
+              <View style={styles.bannerContent}>
+                <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
+                <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
+                <TouchableOpacity
+                  style={styles.payNowButton}
+                  onPress={() => navigateToServicesScreen('CheckChallan')}
+                >
+                  <Text style={styles.payNowText}>Check Now</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </BoundaryBlock>
 
         {/* TRENDING CAR VIDEOS — ScrollView avoids nested VirtualizedList inside ScrollView (FlatList often gets 0 height). */}
+        <BoundaryBlock
+          boundaryName="home-trending-videos-widget"
+          fallbackTitle="Trending videos are unavailable"
+          fallbackMessage="You can keep using the rest of Home. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Trending Videos</Text>
@@ -1965,7 +2035,13 @@ export default function Home() {
           )}
 
         </View>
+        </BoundaryBlock>
 
+        <BoundaryBlock
+          boundaryName="home-fuel-prices-widget"
+          fallbackTitle="Fuel prices are unavailable"
+          fallbackMessage="You can keep using the rest of Home. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.fuelSection}>
           <View style={styles.fuelHeaderBanner}>
             <View style={styles.fuelHeaderLeft}>
@@ -2023,7 +2099,13 @@ export default function Home() {
             </View>
           )}
         </View>
+        </BoundaryBlock>
 
+        <BoundaryBlock
+          boundaryName="home-trending-news-widget"
+          fallbackTitle="Trending news is unavailable"
+          fallbackMessage="You can keep using the rest of Home. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Trending News</Text>
@@ -2081,6 +2163,7 @@ export default function Home() {
             </ScrollView>
           )}
         </View>
+        </BoundaryBlock>
 
         {/* FULL HEIGHT HOME ADVERTISEMENT */}
         {/* <View style={styles.fullAdSection}>

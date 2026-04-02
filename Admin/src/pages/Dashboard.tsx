@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, Clock, TrendingUp, Activity, PieChart } from 'lucide-react';
 import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart, Pie, Cell, PieChart as RePieChart } from 'recharts';
@@ -13,6 +13,8 @@ import { formatDate } from '../lib/dateUtils';
 import { pdf } from '@react-pdf/renderer';
 import { DashboardReport } from '../components/reports/DashboardReport';
 import logoImg from '../assets/images/logo.png';
+import BoundarySection from '../components/BoundarySection';
+import { appendCorrelationId, reportHandledError } from '../lib/errorReporting';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
@@ -41,9 +43,30 @@ export default function Dashboard() {
   const [selectedHealth, setSelectedHealth] = useState<string | null>(null);
   const [healthVehicles, setHealthVehicles] = useState<any[]>([]);
   const [loadingHealth, setLoadingHealth] = useState(false);
+  const reportDashboardError = useCallback(
+    (
+      error: unknown,
+      surface: string,
+      userMessage?: string,
+      extras?: Record<string, unknown>,
+    ) => {
+      const { correlationId } = reportHandledError(error, {
+        surface,
+        level: 'feature',
+        extras,
+      });
+
+      if (userMessage) {
+        window.alert(appendCorrelationId(userMessage, correlationId));
+      }
+
+      return correlationId;
+    },
+    [],
+  );
 
 
-  const fetchHealthVehicles = async (status: string) => {
+  const fetchHealthVehicles = useCallback(async (status: string) => {
 
     if (selectedHealth === status) {
       setSelectedHealth(null);
@@ -56,13 +79,25 @@ export default function Dashboard() {
       const res = await adminApi.listVehicles({ healthStatus: status, limit: 10 });
       if (res.success) {
         setHealthVehicles(res.data.data);
+      } else {
+        reportDashboardError(
+          new Error(res.error.message),
+          'admin-dashboard-health-vehicles',
+          'Vehicle health details could not be loaded.',
+          { status },
+        );
       }
     } catch (err) {
-      console.error(err);
+      reportDashboardError(
+        err,
+        'admin-dashboard-health-vehicles',
+        'Vehicle health details could not be loaded.',
+        { status },
+      );
     } finally {
       setLoadingHealth(false);
     }
-  };
+  }, [reportDashboardError, selectedHealth]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -88,17 +123,46 @@ export default function Dashboard() {
       return;
     }
     let ignore = false;
-    setLoading(true);
-    adminApi.stats(selectedRange).then((res) => {
-      if (ignore) return;
-      setLoading(false);
-      if (res.success) setStats(res.data);
-      else setError(res.error.message);
-    });
+    const loadStats = async () => {
+      setLoading(true);
+      try {
+        const res = await adminApi.stats(selectedRange);
+        if (ignore) return;
+
+        if (res.success) {
+          setStats(res.data);
+          setError('');
+          return;
+        }
+
+        const correlationId = reportDashboardError(
+          new Error(res.error.message),
+          'admin-dashboard-stats',
+          undefined,
+          { selectedRange },
+        );
+        setError(appendCorrelationId(res.error.message, correlationId));
+      } catch (error) {
+        if (ignore) return;
+        const correlationId = reportDashboardError(
+          error,
+          'admin-dashboard-stats',
+          undefined,
+          { selectedRange },
+        );
+        setError(appendCorrelationId('Dashboard stats could not be loaded.', correlationId));
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadStats();
     return () => {
       ignore = true;
     };
-  }, [canSeeStats, selectedRange]);
+  }, [canSeeStats, reportDashboardError, selectedRange]);
 
   if (loading) {
     return (
@@ -229,6 +293,11 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <BoundarySection
+          boundaryName="admin-dashboard-trends-widget"
+          fallbackTitle="Trends analysis is unavailable"
+          fallbackMessage="Retry this analytics widget or refresh the section if it keeps failing."
+        >
         <Card className="xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
@@ -359,7 +428,13 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        </BoundarySection>
 
+        <BoundarySection
+          boundaryName="admin-dashboard-action-center-widget"
+          fallbackTitle="Action Center is unavailable"
+          fallbackMessage="Retry this widget or refresh the section if it keeps failing."
+        >
         <Card className="relative overflow-hidden border-none bg-[#0a0a0a] shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-transparent opacity-50" />
           <CardHeader className="relative z-10 pb-2">
@@ -446,10 +521,16 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        </BoundarySection>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {/* EXPENSE CATEGORY ANALYSIS - Now spanning 2 columns for a "big" graph */}
+        <BoundarySection
+          boundaryName="admin-dashboard-expense-distribution-widget"
+          fallbackTitle="Expense distribution is unavailable"
+          fallbackMessage="Retry this chart or refresh the section if it keeps failing."
+        >
         <Card className="xl:col-span-2 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -504,8 +585,14 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        </BoundarySection>
 
         {/* GROWTH SUMMARY - Beside the big chart */}
+        <BoundarySection
+          boundaryName="admin-dashboard-growth-summary-widget"
+          fallbackTitle="Growth summary is unavailable"
+          fallbackMessage="Retry this widget or refresh the section if it keeps failing."
+        >
         <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -536,18 +623,27 @@ export default function Dashboard() {
 
             <button
               onClick={async () => {
-                const blob = await pdf(
-                  <DashboardReport stats={stats} selectedRange={selectedRange} logoUrl={logoImg} />
-                ).toBlob();
+                try {
+                  const blob = await pdf(
+                    <DashboardReport stats={stats} selectedRange={selectedRange} logoUrl={logoImg} />
+                  ).toBlob();
 
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Gupio_Dashboard_Report_${selectedRange}D.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `Gupio_Dashboard_Report_${selectedRange}D.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  reportDashboardError(
+                    error,
+                    'admin-dashboard-export-pdf',
+                    'Dashboard report could not be exported.',
+                    { selectedRange },
+                  );
+                }
               }}
               className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
             >
@@ -555,10 +651,16 @@ export default function Dashboard() {
             </button>
           </CardContent>
         </Card>
+        </BoundarySection>
       </div>
 
       {/* VEHICLE HEALTH MONITOR - Now full width at the bottom */}
       <div className="grid grid-cols-1 gap-4">
+        <BoundarySection
+          boundaryName="admin-dashboard-vehicle-health-widget"
+          fallbackTitle="Vehicle health monitoring is unavailable"
+          fallbackMessage="Retry this monitoring widget or refresh the section if it keeps failing."
+        >
         <Card className="border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -712,6 +814,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        </BoundarySection>
       </div>
 
     </div>

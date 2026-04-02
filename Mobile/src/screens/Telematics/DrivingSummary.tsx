@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -20,12 +20,15 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService } from '../../services/vehicleService';
-import { AssistanceDrawer } from '../../components/common/AssistanceDrawer';
 import { getUserId, getTelematicsLinked, setTelematicsLinked } from '../../services/storage';
 import BackButton from '../../components/BackButton';
 import { damoovTelematics } from '../../native/damoovTelematics';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
+import BoundaryBlock from '../../components/BoundaryBlock';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
+
+let hasTriggeredTelematicsFeatureBoundaryTest = false;
 
 const uuidV4 = (): string =>
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -44,7 +47,16 @@ const Geolocation: any = (() => {
     }
 })();
 
+function TelematicsFeatureBoundaryTestCrash() {
+    hasTriggeredTelematicsFeatureBoundaryTest = true;
+    throw new Error('telematics feature test');
+}
+
 export default function DrivingSummary({ navigation }: any) {
+    const ENABLE_TELEMATICS_FEATURE_BOUNDARY_TEST = __DEV__ && false;
+    const shouldTriggerTelematicsFeatureBoundaryTest =
+        ENABLE_TELEMATICS_FEATURE_BOUNDARY_TEST &&
+        !hasTriggeredTelematicsFeatureBoundaryTest;
     const [score, setScore] = useState<number | null>(null);
     const [metrics, setMetrics] = useState({ 
         distance: '0', 
@@ -60,21 +72,36 @@ export default function DrivingSummary({ navigation }: any) {
     const [latestMapReady, setLatestMapReady] = useState(false);
     const [latestMapFullscreen, setLatestMapFullscreen] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [isAssistanceDrawerOpen, setIsAssistanceDrawerOpen] = useState(false);
+    const [_isAssistanceDrawerOpen, _setIsAssistanceDrawerOpen] = useState(false);
     const [primaryVehicle, setPrimaryVehicle] = useState<{ id: string; registrationNumber?: string } | null>(null);
     const [linkLoading, setLinkLoading] = useState(false);
     const [linkDone, setLinkDone] = useState(false);
-    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lon: number } | null>(null);
+    const [_currentLocation, setCurrentLocation] = useState<{ lat: number; lon: number } | null>(null);
 
     const latestMapRef = useRef<MapView>(null);
 
-    const fetchTelemetry = async () => {
+    const reportTelematicsError = useCallback((
+        error: unknown,
+        surface: string,
+        extras?: Record<string, unknown>,
+    ) => {
+        return reportHandledError(error, {
+            surface,
+            level: 'feature',
+            extras,
+        }).correlationId;
+    }, []);
+
+    const fetchTelemetry = useCallback(async (notifyOnError = false) => {
         try {
             setLoading(true);
             try {
                 await telematicsApi.syncTrips();
             } catch (e) {
-                console.log('Skipping auto-sync', e);
+                reportHandledError(e, {
+                    surface: 'telematics-auto-sync',
+                    level: 'feature',
+                });
             }
 
             const res = await vehicleService.getVehicles();
@@ -144,11 +171,17 @@ export default function DrivingSummary({ navigation }: any) {
                 }
             }
         } catch (error) {
-            console.error("Failed to load telematics:", error);
+            const correlationId = reportTelematicsError(error, 'telematics-summary-load');
+            if (notifyOnError) {
+                Alert.alert(
+                    'Refresh Failed',
+                    appendCorrelationId('Could not refresh telematics right now.', correlationId),
+                );
+            }
         } finally {
             setLoading(false);
         }
-    };
+    }, [reportTelematicsError]);
 
     useEffect(() => {
         fetchTelemetry();
@@ -159,11 +192,16 @@ export default function DrivingSummary({ navigation }: any) {
                 (pos: any) => {
                     setCurrentLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude });
                 },
-                (err: any) => console.log('Summary GPS Error', err),
+                (err: any) => {
+                    reportHandledError(err, {
+                        surface: 'telematics-summary-location',
+                        level: 'feature',
+                    });
+                },
                 { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
             );
         }
-    }, []);
+    }, [fetchTelemetry]);
 
     useEffect(() => {
         const loadLatestPath = async () => {
@@ -180,7 +218,11 @@ export default function DrivingSummary({ navigation }: any) {
                     : [];
                 setLatestPath(validPath);
             } catch (e) {
-                console.error('DrivingSummary latestPath error', e);
+                reportHandledError(e, {
+                    surface: 'telematics-summary-latest-path',
+                    level: 'widget',
+                    extras: { tripId: latestTrip?.id },
+                });
                 setLatestPath([]);
             } finally {
                 setLatestPathLoading(false);
@@ -229,7 +271,13 @@ export default function DrivingSummary({ navigation }: any) {
                 : true;
 
             return fineGranted && activityGranted;
-        } catch { return false; }
+        } catch (error) {
+            reportHandledError(error, {
+                surface: 'telematics-link-permissions',
+                level: 'feature',
+            });
+            return false;
+        }
     };
 
     const handleLinkDevice = async () => {
@@ -256,7 +304,11 @@ export default function DrivingSummary({ navigation }: any) {
             setLinkDone(true);
             Alert.alert('Linked', 'Driving history is now being tracked.');
         } catch (e: any) {
-            Alert.alert('Link failed', e?.message || 'Error linking device');
+            const correlationId = reportTelematicsError(e, 'telematics-link-device', {
+                vehicleId: primaryVehicle.id,
+                userId,
+            });
+            Alert.alert('Link failed', appendCorrelationId(e?.message || 'Error linking device', correlationId));
         } finally {
             setLinkLoading(false);
         }
@@ -271,6 +323,9 @@ export default function DrivingSummary({ navigation }: any) {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
+            {shouldTriggerTelematicsFeatureBoundaryTest ? (
+                <TelematicsFeatureBoundaryTestCrash />
+            ) : null}
             <StatusBar barStyle="light-content" />
             
             <View style={styles.header}>
@@ -307,7 +362,7 @@ export default function DrivingSummary({ navigation }: any) {
                                 <MaterialIcon name="shield-check-outline" size={wp(5)} color={getScoreColor(score)} />
                                 <Text style={styles.sectionLabelPremium}>SAFETY PERFORMANCE</Text>
                             </View>
-                            <TouchableOpacity onPress={() => fetchTelemetry()} activeOpacity={0.7} style={styles.refreshBadge}>
+                            <TouchableOpacity onPress={() => fetchTelemetry(true)} activeOpacity={0.7} style={styles.refreshBadge}>
                                 <Icon name="sync-alt" size={wp(3)} color="#FFBF00" />
                             </TouchableOpacity>
                         </View>
@@ -512,6 +567,11 @@ export default function DrivingSummary({ navigation }: any) {
 
                 {/* LATEST TRIP MAP */}
                 {latestTrip && (
+                    <BoundaryBlock
+                        boundaryName="telematics-last-drive-map-widget"
+                        fallbackTitle="Last drive map is unavailable"
+                        fallbackMessage="You can keep using the rest of telematics. Retry this map or report the issue if it keeps happening."
+                    >
                     <View style={styles.mapSection}>
                         <View style={styles.mapHeaderRow}>
                             <Text style={styles.sectionHeading}>Last Drive Track</Text>
@@ -605,6 +665,7 @@ export default function DrivingSummary({ navigation }: any) {
                             </Text>
                         </View>
                     </View>
+                    </BoundaryBlock>
                 )}
 
                 <View style={{ height: hp(6) }} />
