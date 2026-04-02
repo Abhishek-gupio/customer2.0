@@ -67,10 +67,14 @@ function cleanModel(model: string, make?: string): string {
 
   // Remove make from model if it starts with it (e.g. "Tata Nexon" -> "Nexon")
   if (make) {
-    const makeWords = make.toLowerCase().split(' ');
-    const firstWordOfMake = makeWords[0];
-    if (cleaned.toLowerCase().startsWith(firstWordOfMake)) {
-      cleaned = cleaned.substring(firstWordOfMake.length).trim();
+    if (cleaned.toLowerCase().startsWith(make.toLowerCase())) {
+      cleaned = cleaned.substring(make.length).trim();
+    } else {
+      const makeWords = make.toLowerCase().split(' ');
+      const firstWordOfMake = makeWords[0];
+      if (cleaned.toLowerCase().startsWith(firstWordOfMake)) {
+        cleaned = cleaned.substring(firstWordOfMake.length).trim();
+      }
     }
   }
 
@@ -108,6 +112,16 @@ async function resolveCatalogHeroImageUrl(args: {
   let catalog: any = await dbInstances.vehicleCatalog.findUnique({
     where: { normalizedKey },
   });
+
+  if (!catalog) {
+    catalog = await dbInstances.vehicleCatalog.findFirst({
+      where: {
+        vehicleType: args.vehicleType,
+        make: { equals: args.make.trim(), mode: "insensitive" },
+        model: { equals: cleanModel(args.model, args.make ?? undefined), mode: "insensitive" }
+      }
+    });
+  }
 
   if (!catalog) {
     const makeNeedle = normalizeForMatch(cleanMake(args.make));
@@ -578,7 +592,18 @@ export const vehicleService = {
       where: { normalizedKey },
     });
 
-    // 2) Fallback fuzzy lookup (in case make/model strings differ slightly)
+    // 2) Fallback raw string exact match (protect against fuzzy collision)
+    if (!catalog) {
+      catalog = await dbInstances.vehicleCatalog.findFirst({
+        where: {
+          vehicleType: bucket,
+          make: { equals: make.trim(), mode: "insensitive" },
+          model: { equals: cleanModel(model, make ?? undefined), mode: "insensitive" }
+        }
+      });
+    }
+
+    // 3) Fallback fuzzy lookup (in case make/model strings differ slightly)
     if (!catalog) {
       const makeNeedle = normalizeForMatch(cleanMake(make));
       const modelNeedle = normalizeForMatch(cleanModel(model));
