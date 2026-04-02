@@ -1,5 +1,6 @@
 import { dbInstances } from "@repo/db-customer";
 import axios from "axios";
+import crypto from 'crypto';
 import { storageService } from "../../services/storage.service";
 import { AppError } from "../../utils/AppError";
 import type { AdminRole } from "@repo/db-customer";
@@ -372,13 +373,15 @@ export const adminDashboardService = {
     const db = dbInstances as any;
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const rangeStart = new Date(today);
+    rangeStart.setUTCDate(rangeStart.getUTCDate() - (days - 1));
 
     try {
       const expenseFallback = { _sum: { amount: 0 as number }, _count: 0 };
       const [
         customers,
         vehicles,
-        expenses,
+        periodExpenses,
         supportTicketsOpen,
         trendData,
         unverifiedVehiclesCount,
@@ -392,7 +395,11 @@ export const adminDashboardService = {
         dbInstances.customer.count(),
         dbInstances.customerVehicle.count(),
         db.expense
-          ? db.expense.aggregate({ _sum: { amount: true }, _count: true }).catch(() => expenseFallback)
+          ? db.expense.aggregate({ 
+              _sum: { amount: true }, 
+              _count: true,
+              where: { date: { gte: rangeStart } }
+            }).catch(() => expenseFallback)
           : Promise.resolve(expenseFallback),
         db.supportTicket
           ? db.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }).catch(() => 0)
@@ -403,7 +410,7 @@ export const adminDashboardService = {
         dbInstances.customer.count({ where: { createdAt: { gte: today } } }),
         db.expense
           ? db.expense.findMany({
-            where: { amount: { gt: 1000 } },
+            where: { date: { gte: rangeStart }, amount: { gt: 1000 } },
             take: 3,
             orderBy: { date: "desc" },
             include: { customer: { select: { fullName: true } } },
@@ -412,6 +419,7 @@ export const adminDashboardService = {
         db.expense
           ? db.expense.groupBy({
             by: ['category'],
+            where: { date: { gte: rangeStart } },
             _sum: { amount: true },
             _count: true,
           }).catch(() => [])
@@ -439,8 +447,8 @@ export const adminDashboardService = {
       return {
         customers,
         vehicles,
-        totalExpenses: (expenses as { _sum?: { amount?: number }; _count?: number })._sum?.amount ?? 0,
-        expenseCount: (expenses as { _count?: number })._count ?? 0,
+        totalExpenses: (periodExpenses as { _sum?: { amount?: number }; _count?: number })._sum?.amount ?? 0,
+        expenseCount: (periodExpenses as { _count?: number })._count ?? 0,
         supportTicketsOpen: Number(supportTicketsOpen),
         trendData,
         unverifiedVehiclesCount,
@@ -471,46 +479,97 @@ export const adminDashboardService = {
     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const periods: { dayStart: Date; dayEnd: Date; dateStr: string; label: string }[] = [];
+    
+    const rangeStart = new Date(today);
+    rangeStart.setUTCDate(rangeStart.getUTCDate() - (daysToFetch - 1));
 
-    for (let i = daysToFetch - 1; i >= 0; i--) {
-      const d = new Date(today);
-      d.setUTCDate(d.getUTCDate() - i);
-      const dayStart = new Date(d);
-      const dayEnd = new Date(d);
-      dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
-      const dateStr = `${dayStart.getUTCFullYear()}-${String(dayStart.getUTCMonth() + 1).padStart(2, "0")}-${String(dayStart.getUTCDate()).padStart(2, "0")}`;
+    // Fetch everything for the range upfront in 4 bulk queries
+    const [allCustomers, allVehicles, allExpenses, allTickets] = await Promise.all([
+      dbInstances.customer.findMany({
+        where: { createdAt: { gte: rangeStart } },
+        select: { createdAt: true }
+      }),
+      dbInstances.customerVehicle.findMany({
+        where: { createdAt: { gte: rangeStart } },
+        select: { createdAt: true }
+      }),
+      db.expense 
+        ? db.expense.findMany({
+            where: { date: { gte: rangeStart } },
+            select: { date: true, amount: true }
+          }).catch(() => [])
+        : Promise.resolve([]),
+      db.supportTicket 
+        ? db.supportTicket.findMany({
+            where: { createdAt: { gte: rangeStart } },
+            select: { createdAt: true }
+          }).catch(() => [])
+        : Promise.resolve([])
+    ]);
 
-      // If fetching many days, use month + day for label (e.g. "Oct 12") instead of just weekday
-      let label = dayLabels[dayStart.getUTCDay()];
+    // Helper to format date consistent with our labels
+    const formatDateKey = (d: Date) => {
+      const dd = new Date(d);
+      return `${dd.getUTCFullYear()}-${String(dd.getUTCMonth() + 1).padStart(2, "0")}-${String(dd.getUTCDate()).padStart(2, "0")}`;
+    };
+
+    // Pre-calculate data structures for efficiency
+    const results: { date: string; label: string; customers: number; vehicles: number; expenseAmount: number; tickets: number }[] = [];
+    
+    // Initialize day map
+    const dayMap = new Map<string, { customers: number; vehicles: number; expenseAmount: number; tickets: number }>();
+
+    for (let i = 0; i < daysToFetch; i++) {
+      const d = new Date(rangeStart);
+      d.setUTCDate(d.getUTCDate() + i);
+      dayMap.set(formatDateKey(d), { customers: 0, vehicles: 0, expenseAmount: 0, tickets: 0 });
+    }
+
+    // Populate stats with O(N) complexity
+    allCustomers.forEach(c => {
+      const key = formatDateKey(c.createdAt);
+      const data = dayMap.get(key);
+      if (data) data.customers++;
+    });
+
+    allVehicles.forEach(v => {
+      const key = formatDateKey(v.createdAt);
+      const data = dayMap.get(key);
+      if (data) data.vehicles++;
+    });
+
+    allExpenses.forEach((e: any) => {
+      const key = formatDateKey(e.date);
+      const data = dayMap.get(key);
+      if (data) data.expenseAmount += e.amount || 0;
+    });
+
+    allTickets.forEach((t: any) => {
+      const key = formatDateKey(t.createdAt);
+      const data = dayMap.get(key);
+      if (data) data.tickets++;
+    });
+
+    // Transform into final array
+    for (let i = 0; i < daysToFetch; i++) {
+      const d = new Date(rangeStart);
+      d.setUTCDate(d.getUTCDate() + i);
+      const key = formatDateKey(d);
+      const stats = dayMap.get(key)!;
+      
+      let label = dayLabels[d.getUTCDay()];
       if (daysToFetch > 7) {
-        label = `${monthNames[dayStart.getUTCMonth()]} ${dayStart.getUTCDate()}`;
+        label = `${monthNames[d.getUTCMonth()]} ${d.getUTCDate()}`;
       }
 
-      periods.push({ dayStart, dayEnd, dateStr, label });
+      results.push({
+        date: key,
+        label,
+        ...stats,
+        expenseAmount: Math.round(stats.expenseAmount * 100) / 100
+      });
     }
-    const results = await Promise.all(
-      periods.map(async ({ dayStart, dayEnd, dateStr, label }) => {
-        const [custCount, vehicleCount, expSum, ticketCount] = await Promise.all([
-          dbInstances.customer.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
-          dbInstances.customerVehicle.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }),
-          db.expense
-            ? db.expense.aggregate({ _sum: { amount: true }, where: { date: { gte: dayStart, lt: dayEnd } } }).then((r: { _sum?: { amount?: number } }) => r._sum?.amount ?? 0).catch(() => 0)
-            : Promise.resolve(0),
-          db.supportTicket
-            ? db.supportTicket.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } }).catch(() => 0)
-            : Promise.resolve(0),
-        ]);
-        return {
-          date: dateStr,
-          label,
-          customers: custCount,
-          vehicles: vehicleCount,
-          expenseAmount: Math.round((expSum as number) * 100) / 100,
-          tickets: ticketCount
-        };
-      })
-    );
+
     return results;
   },
   /** Delete one or more customers. SUPER_ADMIN only. */
@@ -535,5 +594,206 @@ export const adminDashboardService = {
         phoneNumber: data.phoneNumber,
       },
     });
+  },
+
+  /** List catalog vehicles (VehicleCatalog + VehicleAsset) grouped by type/make. */
+  async listCatalogVehicles(params?: { type?: string }) {
+    const where: any = {};
+    if (params?.type) {
+      where.vehicleType = params.type;
+    }
+
+    const vehicles = await (dbInstances as any).vehicleCatalog.findMany({
+      where,
+      include: {
+        assets: {
+          orderBy: [{ type: 'asc' }, { assetIndex: 'asc' }],
+        },
+      },
+      orderBy: [{ make: 'asc' }, { model: 'asc' }],
+    });
+
+    return Promise.all(vehicles.map(async (v: any) => ({
+      id: v.id,
+      vehicleType: v.vehicleType,
+      make: v.make,
+      model: v.model,
+      variant: v.variant ?? null,
+      normalizedKey: v.normalizedKey,
+      images: await Promise.all(v.assets.map(async (a: any) => ({
+        id: a.id,
+        assetUrl: await storageService.ensureReadableUrl(a.assetUrl),
+        type: a.type,
+        assetIndex: a.assetIndex,
+      }))),
+    })));
+  },
+  /** Create a new vehicle entry in the catalog with one or more images. */
+  async createCatalogVehicle(params: {
+    make: string;
+    model: string;
+    type: string;           // e.g. "CAR", "BIKE"
+    files: Express.Multer.File[];
+    imageTypes: string[];   // e.g. ["HERO", "ANGLE"]
+  }) {
+    const { make, model, type, files, imageTypes } = params;
+    const db = dbInstances as any;
+
+    // 1. Validate duplicate normalizedKey
+    const normalizedKey = `${type.toUpperCase()}|${make.toLowerCase()}|${model.toLowerCase()}`;
+    const existing = await db.vehicleCatalog.findUnique({ where: { normalizedKey } });
+    if (existing) throw AppError.conflict(`Vehicle "${type}/${make}/${model}" already exists in the catalog`);
+
+    // 2. Upload ALL images to S3 FIRST (before any DB writes)
+    const uploadResults: { url: string; key: string; assetType: string; index: number; assetHash: string; mimeType: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const assetType = (imageTypes[i] ?? "HERO").toUpperCase();
+      const folder = `vehicle-catalog/${type.toLowerCase()}/assets/${make.toLowerCase().replace(/\s+/g, '-')}/${model.toLowerCase().replace(/\s+/g, '-')}/default/${assetType.toLowerCase()}/${i}`;
+      const { url, key } = await storageService.uploadFile(file, folder);
+      const assetHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+      uploadResults.push({ url, key, assetType, index: i, assetHash, mimeType: file.mimetype });
+    }
+
+    // 3. Create VehicleCatalog + VehicleAsset records in a single transaction
+    const catalog = await db.$transaction(async (tx: any) => {
+      const created = await tx.vehicleCatalog.create({
+        data: {
+          vehicleType: type.toUpperCase(),
+          make,
+          model,
+          normalizedKey,
+          assets: {
+            create: uploadResults.map(({ url, key, assetType, index, assetHash, mimeType }) => ({
+              type: assetType as any,
+              assetIndex: index,
+              assetUrl: url,
+              s3Key: key,
+              assetHash,
+              mimeType,
+              source: "admin-upload",
+            })),
+          },
+        },
+        include: { assets: true },
+      });
+      return created;
+    });
+
+    return {
+      id: catalog.id,
+      vehicleType: catalog.vehicleType,
+      make: catalog.make,
+      model: catalog.model,
+      variant: (catalog as any).variant ?? null,
+      normalizedKey: catalog.normalizedKey,
+      images: await Promise.all(catalog.assets.map(async (a: any) => ({
+        id: a.id,
+        assetUrl: await storageService.ensureReadableUrl(a.assetUrl),
+        type: a.type,
+        assetIndex: a.assetIndex,
+      }))),
+    };
+  },
+
+  /** Create a brand-new asset (image) for a catalog entry that currently has none. */
+  async createCatalogVehicleAsset(catalogId: string, file: Express.Multer.File, imageType = 'HERO') {
+    const db = dbInstances as any;
+
+    // Load the catalog entry to build the S3 path
+    const catalog = await db.vehicleCatalog.findUnique({ where: { id: catalogId } });
+    if (!catalog) throw AppError.notFound('Catalog entry not found');
+
+    // Determine next available index for this asset type
+    const existingAssets = await db.vehicleAsset.findMany({
+      where: { catalogId, type: imageType },
+      orderBy: { assetIndex: 'desc' },
+      take: 1,
+    });
+    const nextIndex = existingAssets.length > 0 ? existingAssets[0].assetIndex + 1 : 0;
+
+    // Build the same S3 folder structure as the ingest scripts
+    const vehicleType = (catalog.vehicleType || 'car').toLowerCase();
+    const make = (catalog.make || 'unknown').toLowerCase().trim().replace(/\s+/g, '-');
+    const model = (catalog.model || 'unknown').toLowerCase().trim().replace(/\s+/g, '-');
+    const assetType = imageType.toLowerCase();
+
+    const folder = `vehicle-catalog/${vehicleType}/assets/${make}/${model}/default/${assetType}/${nextIndex}`;
+
+    // Upload to S3 (or local fallback) first — no DB write until upload succeeds
+    const { url, key } = await storageService.uploadFile(file, folder);
+    const assetHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+
+    // Create the VehicleAsset record
+    const asset = await db.vehicleAsset.create({
+      data: {
+        catalogId,
+        type: imageType as any,
+        assetIndex: nextIndex,
+        assetUrl: url,
+        s3Key: key,
+        assetHash,
+        mimeType: file.mimetype,
+        source: 'admin-upload',
+      },
+    });
+
+    return {
+      id: asset.id,
+      assetUrl: await storageService.ensureReadableUrl(asset.assetUrl),
+      type: asset.type,
+      assetIndex: asset.assetIndex,
+    };
+  },
+
+  /** Update an existing catalog asset (image) in S3. */
+  async updateCatalogVehicleAsset(catalogId: string, assetId: string, file: Express.Multer.File) {
+    const asset = await (dbInstances as any).vehicleAsset.findFirst({
+      where: { id: assetId, catalogId },
+      include: { catalog: true }
+    });
+    if (!asset) throw AppError.notFound("Asset not found or does not belong to this catalog entry");
+
+    // Construct the "existing way" folder path:
+    // vehicle-catalog/{vehicleType}/assets/{make}/{model}/default/{assetType}/{index}
+    const vehicleType = (asset.catalog.vehicleType || "car").toLowerCase();
+    const make = (asset.catalog.make || "unknown").toLowerCase().trim().replace(/\s+/g, "-");
+    const model = (asset.catalog.model || "unknown").toLowerCase().trim().replace(/\s+/g, "-");
+    const assetType = asset.type.toLowerCase();
+    const assetIndex = asset.assetIndex || 0;
+
+    const folder = `vehicle-catalog/${vehicleType}/assets/${make}/${model}/default/${assetType}/${assetIndex}`;
+
+    // Upload new file to S3
+    const { url, key } = await storageService.uploadFile(file, folder);
+    const assetHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+
+    // Update the database - SAVE FULL URL TO assetUrl (AS REQUESTED)
+    const updated = await (dbInstances as any).vehicleAsset.update({
+      where: { id: assetId },
+      data: {
+        assetUrl: url,
+        s3Key: key,
+        assetHash,
+        mimeType: file.mimetype,
+      },
+    });
+
+    // Optionally delete the old file if it was a storage URL
+    if (asset.assetUrl) {
+      try {
+        await storageService.deleteFile(asset.assetUrl);
+      } catch (err) {
+        // Log but don't fail the request if deletion fails
+        (console as any).error("Failed to delete old catalog asset:", err);
+      }
+    }
+
+    return {
+      id: updated.id,
+      assetUrl: await storageService.ensureReadableUrl(updated.assetUrl),
+      type: updated.type,
+      assetIndex: updated.assetIndex,
+    };
   },
 };

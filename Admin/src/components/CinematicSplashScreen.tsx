@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import './CinematicSplashScreen.css';
 
 // Import images
@@ -45,15 +45,15 @@ const CinematicSplashScreen: React.FC<CinematicSplashScreenProps> = ({ onComplet
         sensitivity={0.55}
         lineThickness={1}
         linesColor="#FFB800"
-        gridScale={0.1}
+        gridScale={0.15}
         scanColor="#FFF3E0"
-        scanOpacity={0.4}
+        scanOpacity={0.35}
         scanDirection="backward"
         scanDelay={1.0}
         enablePost
-        bloomIntensity={0.6}
-        chromaticAberration={0.002}
-        noiseIntensity={0.01}
+        bloomIntensity={0.4}
+        chromaticAberration={0.001}
+        noiseIntensity={0}
       />
 
       <div className="splash-brand-section">

@@ -183,28 +183,30 @@ export default function Vehicles() {
           <h1 className="text-[28px] font-black tracking-tight text-white leading-none">Fleet Management</h1>
           <p className="mt-2 text-sm text-white/40 font-medium">Monitor and verify all customer vehicles across the platform</p>
         </div>
-        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right duration-500" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 animate-in fade-in slide-in-from-right duration-500" onClick={(e) => e.stopPropagation()}>
           {/* Vehicle Type Filter Dropdown */}
           <div className="relative">
             <Button
               variant="secondary"
               className={cn(
-                "h-10 px-4 rounded-xl flex items-center gap-2 transition-all duration-300",
+                "h-11 sm:h-10 px-4 rounded-xl flex items-center gap-2 transition-all duration-300 w-full sm:w-auto justify-between sm:justify-start",
                 typeFilter 
                   ? "bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)] shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]"
                   : "bg-white/5 border-white/10 text-white/50 hover:text-white"
               )}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             >
-              <ListFilter className="h-4 w-4" />
-              <span className="text-sm font-bold capitalize">
-                {typeFilter === 'BIKE' ? '2 Wheelers' : typeFilter === 'CAR' ? '4 Wheelers' : 'All Types'}
-              </span>
+              <div className="flex items-center gap-2">
+                <ListFilter className="h-4 w-4" />
+                <span className="text-sm font-bold capitalize">
+                  {typeFilter === 'BIKE' ? '2 Wheelers' : typeFilter === 'CAR' ? '4 Wheelers' : 'All Types'}
+                </span>
+              </div>
               <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-300", isFilterOpen && "rotate-180")} />
             </Button>
 
             {isFilterOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-white/10 bg-[#0c0c0e]/95 backdrop-blur-xl shadow-2xl z-[60] p-1.5 animate-in zoom-in-95 fade-in duration-200">
+              <div className="absolute left-0 sm:right-0 mt-3 w-full sm:w-56 rounded-2xl border border-white/10 bg-[#0c0c0e]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[80] p-2 animate-in zoom-in-95 fade-in duration-200">
                 <button
                   onClick={() => { setTypeFilter(null); setIsFilterOpen(false); setPage(1); }}
                   className={cn(

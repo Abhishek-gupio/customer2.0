@@ -31,7 +31,7 @@ export const documentService = {
     // 2. Save to Storage (S3 or Local per env)
     const { url: storageUrl } = await storageService.uploadFile(
       file,
-      `documents/${customerId}`,
+      `customers/${customerId}/documents`,
       true
     );
 

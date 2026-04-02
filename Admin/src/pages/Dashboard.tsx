@@ -229,6 +229,95 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        {/* Action Center - Now on the left (col-span-1) */}
+        <Card className="relative overflow-hidden border-none bg-[#0a0a0a] shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-transparent opacity-50" />
+          <CardHeader className="relative z-10 pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-bold">Action Center</CardTitle>
+              <Sparkles className="h-4 w-4 text-amber-400" />
+            </div>
+            <CardDescription>Real-time tasks & insights</CardDescription>
+          </CardHeader>
+          <CardContent className="relative z-10 space-y-4 pt-2">
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 transition-all hover:bg-white/[0.05]">
+                <div className="flex items-center gap-2 text-[#71717a]">
+                  <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Unverified</span>
+                </div>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-xl font-black text-white">
+                    <CountUp
+                      to={stats?.unverifiedVehiclesCount ?? 0}
+                      duration={1}
+                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.floor(val).toString()}
+                    />
+                  </span>
+                  <span className="text-[10px] text-white/50 font-medium">Vehicles</span>
+                </div>
+                <Link to="/vehicles" className="absolute inset-0 outline-none" />
+              </div>
+
+              <div className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 transition-all hover:bg-white/[0.05]">
+                <div className="flex items-center gap-2 text-[#71717a]">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Today</span>
+                </div>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-xl font-black text-white">
+                    +<CountUp
+                      to={stats?.totalCustomersToday ?? 0}
+                      duration={1}
+                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.floor(val).toString()}
+                    />
+                  </span>
+                  <span className="text-[10px] text-white/50 font-medium">New Customers</span>
+                </div>
+                <Link to="/customers" className="absolute inset-0 outline-none" />
+              </div>
+            </div>
+
+            {/* High Expenses Scan */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">Recent High Expenses</span>
+                <Clock className="h-3 w-3 text-white/20" />
+              </div>
+              <div className="space-y-2">
+                {stats?.recentHighExpenses && stats.recentHighExpenses.length > 0 ? (
+                  stats.recentHighExpenses.map((exp) => (
+                    <Link
+                      key={exp.id}
+                      to={`/customers`}
+                      className="group flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-2.5 transition hover:bg-white/[0.04] hover:border-white/[0.08]"
+                    >
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="truncate text-xs font-semibold text-white/90 group-hover:text-[var(--accent)]">
+                          {exp.customer?.fullName || 'Unknown Customer'}
+                        </span>
+                        <span className="text-[10px] text-white/40">
+                          {formatDate(exp.date)}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-xs font-bold text-white">₹{exp.amount.toLocaleString('en-IN')}</div>
+                        <div className="text-[9px] uppercase font-bold text-white/30 tracking-tighter">Verified</div>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-dashed border-white/10 p-4 text-center text-[11px] text-white/30">
+                    No high expenses recently
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Trends Analysis - Now on the right (col-span-2) */}
         <Card className="xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
@@ -359,97 +448,61 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-
-        <Card className="relative overflow-hidden border-none bg-[#0a0a0a] shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-transparent opacity-50" />
-          <CardHeader className="relative z-10 pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-bold">Action Center</CardTitle>
-              <Sparkles className="h-4 w-4 text-amber-400" />
-            </div>
-            <CardDescription>Real-time tasks & insights</CardDescription>
-          </CardHeader>
-          <CardContent className="relative z-10 space-y-4 pt-2">
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 transition-all hover:bg-white/[0.05]">
-                <div className="flex items-center gap-2 text-[#71717a]">
-                  <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Unverified</span>
-                </div>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-xl font-black text-white">
-                    <CountUp
-                      to={stats?.unverifiedVehiclesCount ?? 0}
-                      duration={1}
-                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.floor(val).toString()}
-                    />
-                  </span>
-                  <span className="text-[10px] text-white/50 font-medium">Vehicles</span>
-                </div>
-                <Link to="/vehicles" className="absolute inset-0 outline-none" />
-              </div>
-
-              <div className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 transition-all hover:bg-white/[0.05]">
-                <div className="flex items-center gap-2 text-[#71717a]">
-                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Today</span>
-                </div>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-xl font-black text-white">
-                    +<CountUp
-                      to={stats?.totalCustomersToday ?? 0}
-                      duration={1}
-                      formatter={(val) => Math.floor(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.floor(val).toString()}
-                    />
-                  </span>
-                  <span className="text-[10px] text-white/50 font-medium">New Customers</span>
-                </div>
-                <Link to="/customers" className="absolute inset-0 outline-none" />
-              </div>
-            </div>
-
-            {/* High Expenses Scan */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">Recent High Expenses</span>
-                <Clock className="h-3 w-3 text-white/20" />
-              </div>
-              <div className="space-y-2">
-                {stats?.recentHighExpenses && stats.recentHighExpenses.length > 0 ? (
-                  stats.recentHighExpenses.map((exp) => (
-                    <Link
-                      key={exp.id}
-                      to={`/customers`}
-                      className="group flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-2.5 transition hover:bg-white/[0.04] hover:border-white/[0.08]"
-                    >
-                      <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="truncate text-xs font-semibold text-white/90 group-hover:text-[var(--accent)]">
-                          {exp.customer?.fullName || 'Unknown Customer'}
-                        </span>
-                        <span className="text-[10px] text-white/40">
-                          {formatDate(exp.date)}
-                        </span>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-xs font-bold text-white">₹{exp.amount.toLocaleString('en-IN')}</div>
-                        <div className="text-[9px] uppercase font-bold text-white/30 tracking-tighter">Verified</div>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="rounded-xl border border-dashed border-white/10 p-4 text-center text-[11px] text-white/30">
-                    No high expenses recently
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        {/* EXPENSE CATEGORY ANALYSIS - Now spanning 2 columns for a "big" graph */}
+        {/* GROWTH SUMMARY - Now on the left (col-span-1) */}
+        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-blue-400" />
+              Growth Summary
+            </CardTitle>
+            <CardDescription>Activity in the current period</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
+              <div>
+                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">New Signups Today</div>
+                <div className="text-2xl font-black text-white mt-0.5">+{stats?.totalCustomersToday || 0}</div>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <Users className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
+              <div>
+                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Pending Verification</div>
+                <div className="text-2xl font-black text-white mt-0.5">{stats?.unverifiedVehiclesCount || 0}</div>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+            </div>
+
+            <button
+              onClick={async () => {
+                const blob = await pdf(
+                  <DashboardReport stats={stats} selectedRange={selectedRange} logoUrl={logoImg} />
+                ).toBlob();
+
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Gupio_Dashboard_Report_${selectedRange}D.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              }}
+              className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
+            >
+              Download Full Report
+            </button>
+          </CardContent>
+        </Card>
+
+        {/* EXPENSE CATEGORY ANALYSIS - Now on the right (col-span-2) */}
         <Card className="xl:col-span-2 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -502,57 +555,6 @@ export default function Dashboard() {
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-white/30">No categorical data</div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* GROWTH SUMMARY - Beside the big chart */}
-        <Card className="xl:col-span-1 border-none bg-gradient-to-b from-white/[0.02] to-transparent">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-blue-400" />
-              Growth Summary
-            </CardTitle>
-            <CardDescription>Activity in the current period</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
-              <div>
-                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">New Signups Today</div>
-                <div className="text-2xl font-black text-white mt-0.5">+{stats?.totalCustomersToday || 0}</div>
-              </div>
-              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                <Users className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between group hover:bg-white/[0.05] transition-colors">
-              <div>
-                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Pending Verification</div>
-                <div className="text-2xl font-black text-white mt-0.5">{stats?.unverifiedVehiclesCount || 0}</div>
-              </div>
-              <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                <ShieldAlert className="h-5 w-5" />
-              </div>
-            </div>
-
-            <button
-              onClick={async () => {
-                const blob = await pdf(
-                  <DashboardReport stats={stats} selectedRange={selectedRange} logoUrl={logoImg} />
-                ).toBlob();
-
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Gupio_Dashboard_Report_${selectedRange}D.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-              }}
-              className="w-full mt-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold text-white/60 hover:text-white transition-all active:scale-[0.98]"
-            >
-              Download Full Report
-            </button>
           </CardContent>
         </Card>
       </div>
