@@ -1,4 +1,4 @@
-package com.mobile1.damoov
+package com.gupio.customer.app.damoov
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule

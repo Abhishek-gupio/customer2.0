@@ -1,4 +1,4 @@
-package com.mobile1
+package com.gupio.customer.app
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -15,7 +15,7 @@ import com.swmansion.rnscreens.RNScreensPackage
 import com.brentvatne.react.ReactVideoPackage
 import com.horcrux.svg.SvgPackage
 import cl.json.RNSharePackage
-import com.mobile1.damoov.DamoovTelematicsPackage
+import com.gupio.customer.app.damoov.DamoovTelematicsPackage
 
 class MainApplication : Application(), ReactApplication {
 

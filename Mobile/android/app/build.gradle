@@ -97,9 +97,9 @@ android {
     buildToolsVersion = rootProject.ext.buildToolsVersion
     compileSdk = rootProject.ext.compileSdkVersion
 
-    namespace = "com.mobile1"
+    namespace = "com.gupio.customer.app"
     defaultConfig {
-        applicationId "com.gupio.zeenath.android"
+        applicationId "com.gupio.customer.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -197,13 +197,13 @@ dependencies {
     implementation("androidx.compose.material:material:$compose_version")
 }
 
-// Fix: React Native's generateReactNativeEntryPoint uses default "com.mobile". We use com.mobile1.
+// Fix: React Native's generateReactNativeEntryPoint uses default "com.mobile". We use com.gupio.customer.app.
 // Patch the generated file before every Java compile so it always has the correct package.
 def entryPointFile = file("${buildDir}/generated/autolinking/src/main/java/com/facebook/react/ReactNativeApplicationEntryPoint.java")
 tasks.register("patchEntryPointPackage") {
     doLast {
         if (entryPointFile.exists()) {
-            entryPointFile.text = entryPointFile.text.replace("com.mobile.", "com.mobile1.")
+            entryPointFile.text = entryPointFile.text.replace("com.mobile.", "com.gupio.customer.app.")
         }
     }
 }
