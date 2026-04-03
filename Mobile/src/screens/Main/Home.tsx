@@ -166,7 +166,7 @@ function HealthDisplay({ score }: { score: number }) {
       <View style={healthStyles.barBg}>
         <Animated.View style={[healthStyles.barFill, { width: barWidth, backgroundColor: color, shadowColor: color }]} />
       </View>
-      <Text style={healthStyles.subLabel}>VEHICLE HEALTH</Text>
+      <Text style={healthStyles.subLabel}>VEHICLE HEALT</Text>
     </View>
   );
 }
@@ -383,14 +383,14 @@ export default function Home() {
 
     const nextOffset = isVideoExpandedRef.current
       ? clampVideoOffset(
-          videoModalOffset.current.x + translationX,
-          videoModalOffset.current.y + translationY,
-          true
-        )
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY,
+        true
+      )
       : snapMiniVideoOffset(
-          videoModalOffset.current.x + translationX,
-          videoModalOffset.current.y + translationY
-        );
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY
+      );
 
     videoModalOffset.current = nextOffset;
     videoDragX.setValue(0);
@@ -964,7 +964,7 @@ export default function Home() {
     if (rootNav) {
       rootNav.navigate('Alerts');
     } else {
-      navigation.navigate('Alerts');   
+      navigation.navigate('Alerts');
     }
   };
 
@@ -2043,8 +2043,8 @@ export default function Home() {
           ) : (
             <View style={styles.fuelContentCard}>
               <Text style={styles.loadingText}>
-                {selectedState === 'Detecting...' 
-                  ? 'Finding your city...' 
+                {selectedState === 'Detecting...'
+                  ? 'Finding your city...'
                   : `No fuel data for ${selectedState || 'current state'}`}
               </Text>
             </View>
