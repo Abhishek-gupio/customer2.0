@@ -74,7 +74,7 @@ const linking = {
   },
 };
 
-function AppBoundaryTestCrash() {
+function AppBoundaryTestCrash(): never {
   throw new Error('app boundary test');
 }
 

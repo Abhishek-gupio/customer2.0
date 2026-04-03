@@ -7,6 +7,8 @@ interface BoundaryOptions {
   fallbackTitle: string;
   fallbackMessage: string;
   level?: BoundaryLevel;
+  onRetry?: () => void | Promise<void>;
+  onSoftRefresh?: () => void | Promise<void>;
 }
 
 export function withErrorBoundary<P extends object>(
@@ -26,8 +28,8 @@ export function withErrorBoundary<P extends object>(
         boundaryName={options.boundaryName}
         fallbackTitle={options.fallbackTitle}
         fallbackMessage={options.fallbackMessage}
-        onRetry={refresh}
-        onSoftRefresh={refresh}
+        onRetry={options.onRetry}
+        onSoftRefresh={options.onSoftRefresh ?? refresh}
       >
         <ScreenComponent key={resetKey} {...props} />
       </ErrorBoundary>

@@ -125,7 +125,7 @@ const toDate = (value: unknown) => {
   return null;
 };
 
-function PaymentsFeatureBoundaryTestCrash() {
+function PaymentsFeatureBoundaryTestCrash(): never {
   hasTriggeredPaymentsFeatureBoundaryTest = true;
   throw new Error('payments feature test');
 }

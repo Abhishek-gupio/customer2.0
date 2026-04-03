@@ -8,6 +8,8 @@ interface BoundaryBlockProps {
   fallbackTitle: string;
   fallbackMessage: string;
   level?: BoundaryLevel;
+  onRetry?: () => void | Promise<void>;
+  onSoftRefresh?: () => void | Promise<void>;
 }
 
 export default function BoundaryBlock({
@@ -16,6 +18,8 @@ export default function BoundaryBlock({
   fallbackTitle,
   fallbackMessage,
   level = 'widget',
+  onRetry,
+  onSoftRefresh,
 }: BoundaryBlockProps) {
   const [resetKey, setResetKey] = React.useState(0);
 
@@ -29,8 +33,8 @@ export default function BoundaryBlock({
       boundaryName={boundaryName}
       fallbackTitle={fallbackTitle}
       fallbackMessage={fallbackMessage}
-      onRetry={refresh}
-      onSoftRefresh={refresh}
+      onRetry={onRetry}
+      onSoftRefresh={onSoftRefresh ?? refresh}
     >
       <React.Fragment key={resetKey}>{children}</React.Fragment>
     </ErrorBoundary>

@@ -37,7 +37,7 @@ interface ErrorBoundaryState {
   error: Error | null;
   correlationId: string | null;
   componentStack?: string;
-  resetCounter: number;
+  refreshCounter: number;
   reporting: boolean;
 }
 
@@ -45,7 +45,7 @@ const INITIAL_STATE: ErrorBoundaryState = {
   error: null,
   correlationId: null,
   componentStack: undefined,
-  resetCounter: 0,
+  refreshCounter: 0,
   reporting: false,
 };
 
@@ -102,7 +102,7 @@ export default class ErrorBoundary extends React.Component<
     } finally {
       this.setState((currentState) => ({
         ...INITIAL_STATE,
-        resetCounter: currentState.resetCounter + 1,
+        refreshCounter: currentState.refreshCounter,
       }));
     }
   };
@@ -117,7 +117,7 @@ export default class ErrorBoundary extends React.Component<
     } finally {
       this.setState((currentState) => ({
         ...INITIAL_STATE,
-        resetCounter: currentState.resetCounter + 1,
+        refreshCounter: currentState.refreshCounter + 1,
       }));
     }
   };
@@ -180,11 +180,11 @@ export default class ErrorBoundary extends React.Component<
 
   render() {
     const { children, level = 'feature' } = this.props;
-    const { error, correlationId, resetCounter, reporting } = this.state;
+    const { error, correlationId, refreshCounter, reporting } = this.state;
 
     if (!error) {
       return (
-        <React.Fragment key={`boundary-reset-${resetCounter}`}>
+        <React.Fragment key={`boundary-refresh-${refreshCounter}`}>
           {children}
         </React.Fragment>
       );

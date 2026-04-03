@@ -142,13 +142,13 @@ function looksLikeProfileUpdateCommand(message: string): boolean {
   );
 }
 
-function ChatFeatureBoundaryTestCrash() {
+function ChatFeatureBoundaryTestCrash(): never {
   hasTriggeredChatFeatureBoundaryTest = true;
   throw new Error('chat feature test');
 }
 
 export default function AIAssistant() {
-  const ENABLE_CHAT_FEATURE_BOUNDARY_TEST = __DEV__ && true;
+  const ENABLE_CHAT_FEATURE_BOUNDARY_TEST = __DEV__ && false;
   const shouldTriggerChatFeatureBoundaryTest =
     ENABLE_CHAT_FEATURE_BOUNDARY_TEST &&
     !hasTriggeredChatFeatureBoundaryTest;

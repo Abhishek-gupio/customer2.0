@@ -13,6 +13,30 @@ export function getErrorMessage(
   return fallback;
 }
 
+export function isOfflineError(error: unknown): boolean {
+  const message = getErrorMessage(error, '').toLowerCase();
+
+  return (
+    message.includes('network error') ||
+    message.includes('failed to fetch') ||
+    message.includes('network request failed') ||
+    message.includes('internet connection') ||
+    message.includes('offline')
+  );
+}
+
+export function getNetworkAwareErrorMessage(
+  error: unknown,
+  fallback = 'Something went wrong. Please try again.',
+  offlineFallback = 'You are offline. Check your internet connection and try again.',
+): string {
+  if (isOfflineError(error)) {
+    return offlineFallback;
+  }
+
+  return getErrorMessage(error, fallback);
+}
+
 export function getAuthErrorMessage(error: unknown): string {
   const message = getErrorMessage(error, 'Unable to continue. Please try again.');
   const normalized = message.toLowerCase();
@@ -21,7 +45,7 @@ export function getAuthErrorMessage(error: unknown): string {
     return 'User not found';
   }
 
-  if (normalized.includes('network error')) {
+  if (isOfflineError(error)) {
     return 'Network error. Please try again.';
   }
 

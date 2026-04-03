@@ -47,7 +47,7 @@ const Geolocation: any = (() => {
     }
 })();
 
-function TelematicsFeatureBoundaryTestCrash() {
+function TelematicsFeatureBoundaryTestCrash(): never {
     hasTriggeredTelematicsFeatureBoundaryTest = true;
     throw new Error('telematics feature test');
 }
