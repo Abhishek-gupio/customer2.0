@@ -14,6 +14,7 @@ import {
   Modal,
   Linking,
   Image,
+  RefreshControl,
   Animated,
   Easing,
   BackHandler,
@@ -165,7 +166,7 @@ function HealthDisplay({ score }: { score: number }) {
       <View style={healthStyles.barBg}>
         <Animated.View style={[healthStyles.barFill, { width: barWidth, backgroundColor: color, shadowColor: color }]} />
       </View>
-      <Text style={healthStyles.subLabel}>VEHICLE HEALTH</Text>
+      <Text style={healthStyles.subLabel}>VEHICLE HEALT</Text>
     </View>
   );
 }
@@ -245,6 +246,7 @@ export default function Home() {
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const videoBaseX = useRef(new Animated.Value(0)).current;
   const videoBaseY = useRef(new Animated.Value(0)).current;
   const videoDragX = useRef(new Animated.Value(0)).current;
@@ -381,14 +383,14 @@ export default function Home() {
 
     const nextOffset = isVideoExpandedRef.current
       ? clampVideoOffset(
-          videoModalOffset.current.x + translationX,
-          videoModalOffset.current.y + translationY,
-          true
-        )
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY,
+        true
+      )
       : snapMiniVideoOffset(
-          videoModalOffset.current.x + translationX,
-          videoModalOffset.current.y + translationY
-        );
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY
+      );
 
     videoModalOffset.current = nextOffset;
     videoDragX.setValue(0);
@@ -945,7 +947,7 @@ export default function Home() {
     if (rootNav) {
       rootNav.navigate('Alerts');
     } else {
-      navigation.navigate('Alerts');   
+      navigation.navigate('Alerts');
     }
   };
 
@@ -1350,6 +1352,22 @@ export default function Home() {
     }).start();
   }, [timelineEntranceAnim, recommendedTimelineItemId]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (fetchPrimaryVehicleRef.current) {
+        // @ts-ignore - The ref types don't return promise but underlying function is async
+        await fetchPrimaryVehicleRef.current();
+      }
+      await fetchDiscoveryContent();
+      dispatch(fetchDocuments() as any);
+    } catch (error) {
+      console.error('Error refreshing content:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -1361,6 +1379,14 @@ export default function Home() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFBF00"
+            colors={['#FFBF00']}
+          />
+        }
       >
         {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>
@@ -2016,8 +2042,8 @@ export default function Home() {
           ) : (
             <View style={styles.fuelContentCard}>
               <Text style={styles.loadingText}>
-                {selectedState === 'Detecting...' 
-                  ? 'Finding your city...' 
+                {selectedState === 'Detecting...'
+                  ? 'Finding your city...'
                   : `No fuel data for ${selectedState || 'current state'}`}
               </Text>
             </View>

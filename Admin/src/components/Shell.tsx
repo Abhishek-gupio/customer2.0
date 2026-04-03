@@ -7,6 +7,7 @@ import {
   PanelLeftClose,
   Ticket,
   CarFront,
+  LibraryBig,
 } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
@@ -15,10 +16,11 @@ import ShinyText from './ui/ShinyText/ShinyText';
 import { ConfirmationModal } from './ui/ConfirmationModal';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'white' },
-  { to: '/customers', label: 'Customers', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'emerald' },
-  { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
-  { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red' },
+  { to: '/',               label: 'Dashboard',  icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'white'  },
+  { to: '/customers',      label: 'Customers',  icon: Users,           roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'emerald'},
+  { to: '/vehicles',       label: 'Vehicles',   icon: CarFront,        roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'blue'   },
+  { to: '/car-library',    label: 'Car Library',icon: LibraryBig,      roles: ['ADMIN'],           color: 'violet' },
+  { to: '/tickets',        label: 'Tickets',    icon: Ticket,          roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red'    },
 ];
 
 const colorStyles: Record<string, { glow: string; border: string; bg: string; icon: string }> = {
@@ -39,6 +41,12 @@ const colorStyles: Record<string, { glow: string; border: string; bg: string; ic
     border: '#3b82f6',
     bg: 'from-[#3b82f6]/[0.12]',
     icon: 'text-[#3b82f6]'
+  },
+  violet: {
+    glow: 'rgba(139,92,246,0.4)',
+    border: '#8b5cf6',
+    bg: 'from-[#8b5cf6]/[0.12]',
+    icon: 'text-[#8b5cf6]'
   },
   red: {
     glow: 'rgba(239,68,68,0.4)',
@@ -364,11 +372,12 @@ export default function Shell() {
 
 function getPageTitle(pathname: string) {
   switch (pathname) {
-    case '/': return { title: 'Dashboard', sub: 'Production-grade overview of customer app data' };
-    case '/customers': return { title: 'Customers', sub: 'Manage and view all registered customers' };
-    case '/vehicles': return { title: 'Vehicles', sub: 'Fleet management and registration tracking' };
-    case '/tickets': return { title: 'Tickets', sub: 'Global support and issue management' };
-    default: return { title: 'Admin', sub: 'System Management' };
+    case '/':            return { title: 'Dashboard',   sub: 'Production-grade overview of customer app data' };
+    case '/customers':   return { title: 'Customers',   sub: 'Manage and view all registered customers' };
+    case '/vehicles':    return { title: 'Vehicles',    sub: 'Fleet management and registration tracking' };
+    case '/car-library': return { title: 'Car Library', sub: 'Browse vehicle catalog with S3 model imagery' };
+    case '/tickets':     return { title: 'Tickets',     sub: 'Global support and issue management' };
+    default:             return { title: 'Admin',       sub: 'System Management' };
   }
 }
 

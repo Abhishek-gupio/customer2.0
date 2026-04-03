@@ -78,7 +78,7 @@ const int MAX_SCANS = 8;
 
 float smoother01(float a, float b, float x){
   float t = clamp((x - a) / max(1e-5, (b - a)), 0.0, 1.0);
-  return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+  return t * t * (3.0 - 2.0 * t); // Simpler smoothstep
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
@@ -287,8 +287,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     color = gridCol + scanCol + scanAura;
 
-  float n = fract(sin(dot(gl_FragCoord.xy + vec2(iTime * 123.4), vec2(12.9898,78.233))) * 43758.5453123);
-  color += (n - 0.5) * uNoise;
+  if (uNoise > 0.0) {
+    float n = fract(sin(dot(gl_FragCoord.xy + vec2(iTime * 123.4), vec2(12.9898,78.233))) * 43758.5453123);
+    color += (n - 0.5) * uNoise;
+  }
   color = clamp(color, 0.0, 1.0);
   float alpha = clamp(max(lineVis, combinedPulse), 0.0, 1.0);
   float gx = 1.0 - smoothstep(tx * 2.0, tx * 2.0 + aax * 2.0, ax);
@@ -455,9 +457,14 @@ export const GridScan: React.FC<GridScanProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Detect if we are on a mobile-sized screen (width <= 1024px)
+    const isMobileOrTablet = window.innerWidth <= 1024;
+    const finalEnablePost = isMobileOrTablet ? false : enablePost;
+    const finalPixelRatio = isMobileOrTablet ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: !finalEnablePost, alpha: true });
     rendererRef.current = renderer;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(finalPixelRatio);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping;
@@ -508,7 +515,7 @@ export const GridScan: React.FC<GridScanProps> = ({
     scene.add(quad);
 
     let composer: EffectComposer | null = null;
-    if (enablePost) {
+    if (finalEnablePost) {
       composer = new EffectComposer(renderer);
       composerRef.current = composer;
       const renderPass = new RenderPass(scene, camera);
@@ -682,6 +689,7 @@ export const GridScan: React.FC<GridScanProps> = ({
   }, [enableGyro, uiFaceActive]);
 
   useEffect(() => {
+    if (!enableWebcam) return;
     let canceled = false;
     const load = async () => {
       try {
@@ -698,7 +706,7 @@ export const GridScan: React.FC<GridScanProps> = ({
     return () => {
       canceled = true;
     };
-  }, [modelsPath]);
+  }, [modelsPath, enableWebcam]);
 
   useEffect(() => {
     let stop = false;

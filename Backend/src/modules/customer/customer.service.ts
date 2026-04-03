@@ -213,7 +213,7 @@ export const customerService = {
   ) {
     const { url } = await storageService.uploadFile(
       file,
-      `profile/${customerId}`,
+      `customers/${customerId}/profile`,
       true,
     );
     const customer = await dbInstances.customer.update({

@@ -22,9 +22,12 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../../services/sosService';
 import { googleMapsService } from '../../services/googleMapsService';
+import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import { getProfile } from '../../services/profileService';
 import { getAbsoluteUrl } from '../../config';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 // Removed Geolocation logic
 
@@ -114,7 +117,7 @@ const SOSScreen = () => {
 
   // Map Ref
   const mapRef = useRef<MapView>(null);
-  const locationInterval = useRef<NodeJS.Timeout | null>(null);
+  const locationInterval = useRef<any>(null);
   const primaryContact = contacts[0] || null;
   const incidentGuide = INCIDENT_GUIDES[sosType] || INCIDENT_GUIDES.OTHER;
 
@@ -162,8 +165,8 @@ const SOSScreen = () => {
       // Animate map to show bounds if needed
       if (mapRef.current && results.length > 0 && location) {
         const coords = results.filter((r) => r.location).map((r) => ({
-            latitude: r.location.lat,
-            longitude: r.location.lng,
+            latitude: r.location!.lat,
+            longitude: r.location!.lng,
         }));
         coords.push({ latitude: location.latitude, longitude: location.longitude });
         
@@ -569,10 +572,12 @@ const SOSScreen = () => {
               {searchingHelp ? 'Searching for nearby help...' : 'No nearby services found in 5km.'}
             </Text>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.nearbyScroll}>
-              {nearbyHelp.map((item) => (
-                <TouchableOpacity 
-                   key={item.placeId || `${item.name || 'resource'}-${item.address || 'unknown-address'}`} 
+            <FlashListAny
+              horizontal
+              data={nearbyHelp}
+              estimatedItemSize={wp(30)}
+              renderItem={({ item }: { item: NearbyHelpItem }) => (
+                <TouchableOpacity
                    style={styles.nearbyItem}
                    onPress={() => handleOpenNearbyResource(item)}
                 >
@@ -583,8 +588,8 @@ const SOSScreen = () => {
                   <Text style={styles.nearbyType}>{(item.type || 'help').toUpperCase()}</Text>
                   <Text style={styles.nearbyMeta}>Open route</Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              )}
+            />
           )}
         </View>
 

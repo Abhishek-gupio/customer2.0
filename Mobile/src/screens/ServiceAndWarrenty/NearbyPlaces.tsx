@@ -13,6 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -402,9 +403,9 @@ function NearbyPlacesListScreen({
           </TouchableOpacity>
         </View>
       ) : (
-        <FlashList
+        <FlashListAny
           data={places}
-          keyExtractor={(item) => item.placeId || item.name}
+          keyExtractor={(item: NearbyPlace) => item.placeId || item.name}
           estimatedItemSize={92}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -415,7 +416,7 @@ function NearbyPlacesListScreen({
             />
           }
           contentContainerStyle={styles.fuelListContent}
-          renderItem={({ item: place }) => (
+          renderItem={({ item: place }: { item: NearbyPlace }) => (
             <View style={styles.fuelCard}>
               <View style={styles.fuelCardLeft}>
                 <View style={styles.fuelCardIconWrap}>

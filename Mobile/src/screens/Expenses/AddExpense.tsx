@@ -33,11 +33,20 @@ import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "../../lib/react-navigation-native";
 import { api } from "../../services/api";
 import { checkImageQuality } from "../../services/documentService";
+import { googleMapsService } from "../../services/googleMapsService";
 import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
 import { VoiceOwnerContext } from "../../context/VoiceOwnerContext";
 
 type ReceiptAsset = { uri?: string; type?: string; fileName?: string };
+
+let Geolocation: any = null;
+try {
+  const geoModule = require("@react-native-community/geolocation") as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 
 const SUPPORTED_RECEIPT_MIME_TYPES = new Set([
   "image/jpeg",
@@ -112,6 +121,7 @@ export default function AddExpenseScreen() {
   const voiceBusyRetryRef = useRef(0);
   const voicePartialTextRef = useRef("");
   const voiceEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentLocationRef = useRef("");
   const [statusModal, setStatusModal] = useState({
     visible: false,
     type: 'success' as 'success' | 'delete' | 'error',
@@ -167,6 +177,89 @@ export default function AddExpenseScreen() {
     return [...new Set(locales.filter(Boolean))];
   };
 
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === "ios") {
+      try {
+        if (Geolocation?.requestAuthorization) {
+          const status = await Geolocation.requestAuthorization("whenInUse");
+          return (
+            status === "granted" ||
+            status === "authorized" ||
+            status === "authorizedWhenInUse"
+          );
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    try {
+      const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+      const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      const fineHas = await PermissionsAndroid.check(fine);
+      const coarseHas = await PermissionsAndroid.check(coarse);
+      if (fineHas || coarseHas) return true;
+
+      const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+      return (
+        results[fine] === PermissionsAndroid.RESULTS.GRANTED ||
+        results[coarse] === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
+
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+  };
+
+  const getCurrentLocationLabel = async () => {
+    if (currentLocationRef.current) return currentLocationRef.current;
+
+    try {
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(coords.latitude, coords.longitude);
+      currentLocationRef.current = address;
+      return address;
+    } catch {
+      return "";
+    }
+  };
+
   const handleCapturedSpeech = (speechText: string) => {
     const normalizedText = speechText.trim();
     if (!normalizedText || voiceResultHandledRef.current) return;
@@ -184,6 +277,7 @@ export default function AddExpenseScreen() {
   useEffect(() => {
     if (!Voice) setVoiceAvailable(false);
     else setVoiceAvailable(true);
+    void getCurrentLocationLabel();
     return () => {
       // Release mic when leaving screen so Hey Gupio can listen again (do not destroy – shared with Hey Gupio)
       clearVoiceEndTimeout();
@@ -216,6 +310,19 @@ export default function AddExpenseScreen() {
       const resData = response as any;
       const result = resData?.data ?? resData;
       const expense = result?.expense ?? result?.data?.expense;
+      let parsedLocation =
+        [
+          expense?.location,
+          expense?.address,
+          expense?.merchantAddress,
+          expense?.storeAddress,
+          expense?.vendorAddress,
+          expense?.place,
+          expense?.placeAddress,
+        ].find((value) => typeof value === "string" && value.trim().length > 0) || "";
+      if (!parsedLocation) {
+        parsedLocation = await getCurrentLocationLabel();
+      }
 
       if (expense && (typeof expense.amount === "number" ? expense.amount > 0 : Number(expense.amount) > 0)) {
         const exp = expense;
@@ -234,6 +341,7 @@ export default function AddExpenseScreen() {
           category: exp.category ?? "OTHER",
           description: [exp.merchantName, exp.notes].filter(Boolean).join(" · ") || exp.transcription || trimmed,
           date: dateStr,
+          location: parsedLocation,
           source: "voice",
         });
         setReviewSource("VOICE");
@@ -312,6 +420,15 @@ export default function AddExpenseScreen() {
       const result = res?.data ?? res;
 
       if (result.success && result.expense) {
+        const parsedLocation =
+          [
+            result.expense.location,
+            result.expense.address,
+            result.expense.merchantAddress,
+            result.expense.storeAddress,
+            result.expense.vendorAddress,
+            result.expense.place,
+          ].find((value) => typeof value === "string" && value.trim().length > 0) || "";
         let formattedDate = "";
         if (result.expense.date) {
           const d = new Date(result.expense.date);
@@ -322,17 +439,28 @@ export default function AddExpenseScreen() {
           category: result.expense.category,
           description: result.expense.notes || result.expense.merchantName || "",
           date: formattedDate,
+          location: parsedLocation,
           receiptUrl: result.expense.receiptUrl,
           mimeType: result.expense.mimeType,
         });
         setReviewSource("RECEIPT");
         setShowReviewer(true);
       } else if (result.receiptUrl) {
+        const parsedLocation =
+          [
+            result.location,
+            result.address,
+            result.merchantAddress,
+            result.storeAddress,
+            result.vendorAddress,
+            result.place,
+          ].find((value) => typeof value === "string" && value.trim().length > 0) || "";
         setScannedData({
           amount: "",
           category: "Other",
           description: "",
           date: "",
+          location: parsedLocation,
           receiptUrl: result.receiptUrl,
           mimeType: result.mimeType || undefined,
         });
@@ -724,10 +852,10 @@ export default function AddExpenseScreen() {
           {voiceAvailable && (
             <Text style={styles.voiceStatusText}>
               {isRecording
-                ? `Listening in ${VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "Auto"}. Say amount, category, and date.`
+                ? `Listening in ${VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "Auto"}. Say amount, category, date, and location.`
                 : voiceText
                   ? `Last voice input: ${voiceText}`
-                  : "Say something like 500 rupees fuel today."}
+                  : "Say something like 500 rupees fuel today at Shell Banjara Hills."}
             </Text>
           )}
 

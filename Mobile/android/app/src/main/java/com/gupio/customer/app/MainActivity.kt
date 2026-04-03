@@ -1,4 +1,4 @@
-package com.mobile1
+package com.gupio.customer.app
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

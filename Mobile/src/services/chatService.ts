@@ -119,7 +119,7 @@ type ChatVehicleContext = {
     rcStatus?: string;
     mileage?: string;
     healthScore?: number;
-    rtoDetails?: Record<string, unknown>;
+    rtoDetails?: any;
 };
 
 type MonthlyExpenseContext = {
@@ -602,12 +602,14 @@ async function getVehicleDocumentContext(vehicleId: string): Promise<VehicleDocu
         const vehicleDocuments = documents.filter((document: DocumentResponse) => document?.vehicleId === vehicleId);
         return {
             total: vehicleDocuments.length,
-            documents: vehicleDocuments.map((document) => ({
-                type: document.type,
-                documentNumber: document.documentNumber,
-                expiryDate: document.expiryDate,
-                issueDate: document.issueDate,
-                verificationStatus: document.verificationStatus,
+            documents: vehicleDocuments.map((doc) => ({
+                type: doc.type ?? '',
+                documentNumber: doc.documentNumber ?? null,
+                issueDate: doc.issueDate ?? null,
+                expiryDate: doc.expiryDate ?? null,
+                issuerName: doc.issuerName ?? null,
+                verificationStatus: doc.verificationStatus || 'PENDING',
+                source: doc.source || 'UNKNOWN',
             })),
         };
     } catch {

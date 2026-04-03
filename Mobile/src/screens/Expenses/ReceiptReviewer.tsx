@@ -28,6 +28,7 @@ export interface ReceiptReviewerData {
   category?: string;
   description?: string;
   date?: string;
+  location?: string;
   receiptUrl?: string;
   mimeType?: string;
 }
@@ -52,6 +53,7 @@ export default function ReceiptReviewer({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
+  const [location, setLocation] = useState("");
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
@@ -102,6 +104,7 @@ export default function ReceiptReviewer({
       }
       if (initialData.description) setDescription(initialData.description);
       if (initialData.date) setDate(initialData.date);
+      setLocation(initialData.location || "");
       if (initialData.receiptUrl) setReceiptUrl(initialData.receiptUrl);
       if (initialData.mimeType) setMimeType(initialData.mimeType);
     }
@@ -154,25 +157,26 @@ export default function ReceiptReviewer({
 
     let payload: any = null;
     setLoading(true);
-    try {
-      let parsedDate: string | undefined;
-      if (date) {
-        try {
-          const d = parse(date, "dd-MM-yyyy", new Date());
-          if (!isNaN(d.getTime())) parsedDate = d.toISOString();
-        } catch (_) { }
-      }
+      try {
+        let parsedDate: string | undefined;
+        if (date) {
+          try {
+            const d = parse(date, "dd-MM-yyyy", new Date());
+            if (!isNaN(d.getTime())) parsedDate = d.toISOString();
+          } catch (_) { }
+        }
 
-      payload = {
-        amount: numAmount,
-        category: category.toUpperCase(),
-        vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
-        notes: description.trim() || undefined,
-        date: parsedDate,
-        source,
-        receiptUrl: receiptUrl ?? undefined,
-        mimeType: mimeType ?? undefined,
-      };
+        payload = {
+          amount: numAmount,
+          category: category.toUpperCase(),
+          vehicleId: selectedVehicleId ?? vehicleId ?? undefined,
+          notes: description.trim() || undefined,
+          location: location.trim() || undefined,
+          date: parsedDate,
+          source,
+          receiptUrl: receiptUrl ?? undefined,
+          mimeType: mimeType ?? undefined,
+        };
 
       await api.post("/v1/expenses", payload);
       clearCachedValue('cache:expenses:list');
@@ -182,6 +186,7 @@ export default function ReceiptReviewer({
       setAmount("");
       setDescription("");
       setDate("");
+      setLocation("");
       setReceiptUrl(null);
       setMimeType(null);
 
@@ -276,6 +281,14 @@ export default function ReceiptReviewer({
                   placeholder="Enter description"
                   value={description}
                   onChangeText={setDescription}
+                />
+
+                <Label text="Location" />
+                <Input
+                  placeholder="Enter location"
+                  value={location}
+                  onChangeText={setLocation}
+                  icon="location-outline"
                 />
 
                 <Label text="Date" />

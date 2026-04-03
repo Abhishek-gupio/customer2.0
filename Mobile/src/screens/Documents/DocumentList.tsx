@@ -16,7 +16,8 @@ import {
   TouchableWithoutFeedback,
   Linking,
 } from 'react-native';
-import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
+// @ts-ignore
+import { generatePDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,6 +58,9 @@ import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getNetworkOnlineState } from '../../services/api';
+
+// @ts-ignore
+const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -323,6 +327,7 @@ export default function DocumentList() {
       } catch {
         Alert.alert('Upload Failed', message || 'Something went wrong');
       }
+      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
     } finally {
       setIsUploading(false);
     }
@@ -391,7 +396,7 @@ export default function DocumentList() {
         `,
         fileName: fileName || `glovebox_docs_${Date.now()}`,
       };
-      const file = await convertToPDF(options);
+      const file = await generatePDF(options);
       return file.filePath;
     } catch (error) {
       console.error('PDF Generation Error:', error);
@@ -518,8 +523,8 @@ export default function DocumentList() {
     return documents.find(d => d.type === type);
   };
 
-  const requiredDocTypes: string[] = REQUIRED_DOCS.map(doc => doc.type);
-  const uploadedDocsCount = documents.filter(d => requiredDocTypes.includes(d.type)).length;
+  const requiredDocTypes = REQUIRED_DOCS.map(doc => doc.type);
+  const uploadedDocsCount = documents.filter(d => (requiredDocTypes as string[]).includes(d.type)).length;
   const MAX_DOCS = 4;
   const totalDocs = Math.min(uploadedDocsCount, MAX_DOCS);
   const progressPercent = Math.round((totalDocs / MAX_DOCS) * 100);

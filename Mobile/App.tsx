@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  AppState,
+  Linking,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -18,6 +28,14 @@ import { setupNotifications } from './src/services/notification';
 import NetworkBanner from './src/components/NetworkBanner';
 import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
 import { initializeInHouseTelematicsAutoEngine } from './src/services/inHouseTelematicsAutoEngine';
+
+let RNAndroidNotificationListener: any = null;
+if (Platform.OS === 'android') {
+  try {
+    RNAndroidNotificationListener =
+      (require('react-native-android-notification-listener') as any).default;
+  } catch {}
+}
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -76,6 +94,65 @@ function App() {
         initializeInHouseTelematicsAutoEngine();
       });
   }, []);
+
+  useEffect(() => {
+    if (!storageReady || Platform.OS !== 'android' || !RNAndroidNotificationListener) {
+      return;
+    }
+
+    let promptShown = false;
+
+    const checkAndPromptNotificationPermission = async () => {
+      if (promptShown) return;
+      try {
+        const status = await RNAndroidNotificationListener.getPermissionStatus();
+        if (status === 'authorized') return;
+        promptShown = true;
+        Alert.alert(
+          'Enable notification access',
+          'Turn on notification access now so the app can auto-fetch your OTP from incoming messages and notifications.',
+          [
+            {
+              text: 'Not now',
+              style: 'cancel',
+              onPress: () => {
+                promptShown = false;
+              },
+            },
+            {
+              text: 'Open app settings',
+              onPress: async () => {
+                promptShown = false;
+                try {
+                  await Linking.openSettings();
+                } catch {}
+              },
+            },
+            {
+              text: 'Grant Permission',
+              onPress: () => {
+                promptShown = false;
+                RNAndroidNotificationListener.requestPermission();
+              },
+            },
+          ],
+        );
+      } catch {
+        // no-op
+      }
+    };
+
+    void checkAndPromptNotificationPermission();
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        void checkAndPromptNotificationPermission();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [storageReady]);
 
   if (!storageReady) {
     return (

@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -230,9 +231,9 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                         <ActivityIndicator size="large" color="#FFBF00" />
                     </View>
                 ) : (
-                    <FlashList
+                    <FlashListAny
                         data={sortedFilteredRecords}
-                        keyExtractor={(item) => item.id}
+                        keyExtractor={(item: any) => item.id}
                         renderItem={renderServiceHistoryItem}
                         showsVerticalScrollIndicator={false}
                         estimatedItemSize={180}

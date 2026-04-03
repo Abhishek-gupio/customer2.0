@@ -1,4 +1,4 @@
-package com.mobile1
+package com.gupio.customer.app
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -6,8 +6,6 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
-import com.telematicssdk.tracking.Settings
-import com.telematicssdk.tracking.TrackingApi
 
 import com.BV.LinearGradient.LinearGradientPackage
 import com.wenkesj.voice.VoicePackage
@@ -15,7 +13,6 @@ import com.swmansion.rnscreens.RNScreensPackage
 import com.brentvatne.react.ReactVideoPackage
 import com.horcrux.svg.SvgPackage
 import cl.json.RNSharePackage
-import com.mobile1.damoov.DamoovTelematicsPackage
 import com.mobile1.inhouse.InHouseTelemetryPackage
 
 class MainApplication : Application(), ReactApplication {
@@ -32,7 +29,6 @@ class MainApplication : Application(), ReactApplication {
             add(ReactVideoPackage())
             add(SvgPackage())
             add(RNSharePackage())
-            add(DamoovTelematicsPackage())
             add(InHouseTelemetryPackage())
         },
     )
@@ -40,13 +36,6 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-    // Damoov Telematics SDK: init before any tracking (stopTrackingTimeHigh, accuracyHigh, autoStart, hfOn, isElmOn, isAdOn)
-    try {
-      val settings = Settings(Settings.stopTrackingTimeHigh, Settings.accuracyHigh, true, true, false, false)
-      TrackingApi.getInstance().initialize(this, settings)
-    } catch (e: Exception) {
-      android.util.Log.e("MainApplication", "Damoov SDK init failed", e)
-    }
     loadReactNative(this)
   }
 }

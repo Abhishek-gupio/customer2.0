@@ -14,6 +14,7 @@ import {
 } from '../components/ui/Select';
 import './Auth.css';
 import LoadingScreen from '../components/LoadingScreen/LoadingScreen';
+import LoginSuccess from '../components/ui/LoginSuccess';
 
 type View = 'main' | 'forgot_email' | 'forgot_otp' | 'forgot_reset';
 
@@ -43,8 +44,14 @@ export default function Login() {
   const [fpSubmitting, setFpSubmitting] = useState(false);
   const [showFpNewPassword, setShowFpNewPassword] = useState(false);
   const [showFpConfirmPassword, setShowFpConfirmPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  if (token && !loading) return <Navigate to="/" replace />;
+  if (token && !showSuccess) {
+    if (loading) return (
+      <div style={{ minHeight: '100vh', background: '#000' }} />
+    );
+    return <Navigate to="/" replace />;
+  }
 
   // ---- Main handlers ----
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +60,7 @@ export default function Login() {
     setSubmitting(true);
     const res = await login(email.trim(), password);
     setSubmitting(false);
-    if (res.ok) navigate('/', { replace: true });
+    if (res.ok) setShowSuccess(true);
     else setError(res.error ?? 'Login failed');
   };
 
@@ -69,7 +76,7 @@ export default function Login() {
     setSubmitting(false);
     if (res.ok) {
       const loginRes = await login(email.trim(), password);
-      if (loginRes.ok) navigate('/', { replace: true });
+      if (loginRes.ok) setShowSuccess(true);
       else setError('Account created but login failed. Please sign in manually.');
     } else {
       setError(res.error ?? 'Registration failed');
@@ -356,6 +363,7 @@ export default function Login() {
   // ---- Main login/signup view ----
   return (
     <div className="auth-body selection:bg-white selection:text-black">
+      {showSuccess && <LoginSuccess onComplete={() => navigate('/', { replace: true })} />}
       {(submitting || fpSubmitting) && <LoadingScreen />}
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
         <Particles

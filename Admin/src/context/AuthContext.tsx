@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     admin: null,
     token: localStorage.getItem(TOKEN_KEY),
     loading: true,
-    isSplashScreenVisible: !localStorage.getItem(TOKEN_KEY), // Show splash only if NOT logged in
+    isSplashScreenVisible: true, // Always show splash on mount
   });
 
   const setSplashScreenVisible = useCallback((visible: boolean) => {
@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ADMIN_KEY);
-    setState({ 
-      admin: null, 
-      token: null, 
-      loading: false, 
+    setState({
+      admin: null,
+      token: null,
+      loading: false,
       isSplashScreenVisible: true // Show splash in login page after logout
     });
   }, []);

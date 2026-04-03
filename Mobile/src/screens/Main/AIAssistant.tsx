@@ -463,9 +463,9 @@ export default function AIAssistant() {
     const errorSub = Tts.addEventListener('tts-error', onError);
 
     return () => {
-      finishSub?.remove?.();
-      cancelSub?.remove?.();
-      errorSub?.remove?.();
+      (finishSub as any)?.remove?.();
+      (cancelSub as any)?.remove?.();
+      (errorSub as any)?.remove?.();
     };
   }, []);
 

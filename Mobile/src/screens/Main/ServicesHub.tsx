@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -183,7 +183,7 @@ export default function ServicesHub() {
     return () => clearInterval(interval);
   }, [adIndex]);
 
-  const onServicePress = (id: string) => {
+  const onServicePress = useCallback((id: string) => {
     if (id === 'PartsWarranty' || id === 'WarrantyStatus') {
       setNavLoading(true);
       setTimeout(() => {
@@ -215,7 +215,37 @@ export default function ServicesHub() {
       default:
         break;
     }
-  };
+  }, [navigation]);
+
+  const adKeyExtractor = useCallback((item: typeof ADS_DATA[number]) => item.id, []);
+
+  const renderAdItem = useCallback(
+    ({ item }: { item: typeof ADS_DATA[number] }) => (
+      <TouchableOpacity
+        style={styles.adCard}
+        activeOpacity={0.9}
+        onPress={() => onServicePress(item.target)}
+      >
+        <View style={styles.adContent}>
+          <View style={styles.adLeft}>
+            <Text style={[styles.adSubtitle, { color: item.theme }]}>{item.subtitle}</Text>
+            <Text style={styles.adTitle}>{item.title}</Text>
+            <Text style={styles.adDesc} numberOfLines={2}>{item.desc}</Text>
+            <View style={styles.tryNowBtn}>
+              <Text style={[styles.tryNowText, { color: item.theme }]}>Try Now</Text>
+              <Icon name="chevron-right" size={10} color={item.theme} />
+            </View>
+          </View>
+          <View style={styles.adRight}>
+            <View style={[styles.adIconCircle, { backgroundColor: `${item.theme}20` }]}>
+              {renderServiceIcon(item as any, item.theme, wp(10), true)}
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    ),
+    [onServicePress]
+  );
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredCategories = CATEGORIES.map((cat) => {
@@ -295,7 +325,7 @@ export default function ServicesHub() {
           <FlatList
             ref={flatListRef}
             data={ADS_DATA}
-            keyExtractor={(item) => item.id}
+            keyExtractor={adKeyExtractor}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -303,36 +333,13 @@ export default function ServicesHub() {
               const index = Math.round(e.nativeEvent.contentOffset.x / wp(90));
               setAdIndex(index);
             }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.adCard}
-                activeOpacity={0.9}
-                onPress={() => onServicePress(item.target)}
-              >
-                <View style={styles.adContent}>
-                  <View style={styles.adLeft}>
-                    <Text style={[styles.adSubtitle, { color: item.theme }]}>{item.subtitle}</Text>
-                    <Text style={styles.adTitle}>{item.title}</Text>
-                    <Text style={styles.adDesc} numberOfLines={2}>{item.desc}</Text>
-                    <View style={styles.tryNowBtn}>
-                      <Text style={[styles.tryNowText, { color: item.theme }]}>Try Now</Text>
-                      <Icon name="chevron-right" size={10} color={item.theme} />
-                    </View>
-                  </View>
-                  <View style={styles.adRight}>
-                    <View style={[styles.adIconCircle, { backgroundColor: `${item.theme}20` }]}>
-                      {renderServiceIcon(item as any, item.theme, wp(10), true)}
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
+            renderItem={renderAdItem}
           />
           {/* Indicators */}
           <View style={styles.indicators}>
-            {ADS_DATA.map((_, i) => (
+            {ADS_DATA.map((ad, i) => (
               <View
-                key={i}
+                key={ad.id}
                 style={[
                   styles.dot,
                   adIndex === i ? { backgroundColor: '#fff', width: 14 } : { backgroundColor: '#444' }
