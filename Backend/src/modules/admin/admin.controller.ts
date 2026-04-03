@@ -101,6 +101,52 @@ export const adminController = {
     success(res, data);
   }),
 
+  catalogVehicles: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const type = typeof req.query.type === 'string' ? req.query.type : undefined;
+    const data = await adminDashboardService.listCatalogVehicles({ type });
+    success(res, data);
+  }),
+
+  createCatalogVehicle: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { make, model, type } = req.body;
+    if (!make || !model || !type) throw AppError.badRequest("Make, model, and type are required");
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) throw AppError.badRequest("At least one image is required");
+
+    // optional array of imageType from body (e.g. HERO, ANGLE)
+    const imageTypes = Array.isArray(req.body.imageTypes) ? req.body.imageTypes : [req.body.imageTypes || "HERO"];
+
+    const data = await adminDashboardService.createCatalogVehicle({ 
+      make, model, type, files, imageTypes 
+    });
+    success(res, data, 201);
+  }),
+
+  createCatalogVehicleAsset: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const catalogId = req.params.id as string;
+    if (!catalogId) throw AppError.badRequest("Catalog ID required");
+    if (!req.file) throw AppError.badRequest("No image file provided");
+
+    // accept optional imageType field from form-data (defaults to HERO)
+    const imageType = typeof req.body.imageType === 'string' ? req.body.imageType.toUpperCase() : 'HERO';
+    const data = await adminDashboardService.createCatalogVehicleAsset(catalogId, req.file, imageType);
+    success(res, data, 201);
+  }),
+
+  updateCatalogVehicleAsset: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const catalogId = req.params.id as string;
+    const assetId = req.params.assetId as string;
+    if (!catalogId || !assetId) throw AppError.badRequest("Catalog ID and Asset ID required");
+    if (!req.file) throw AppError.badRequest("No image file provided");
+
+    const data = await adminDashboardService.updateCatalogVehicleAsset(catalogId, assetId, req.file);
+    success(res, data, 200);
+  }),
+
   addTicketMessage: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
     const ticketId = req.params.id;
