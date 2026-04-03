@@ -56,13 +56,13 @@
         </activity>
 
         <service
-            android:name=".inhouse.InHouseTelemetryForegroundService"
+            android:name="com.mobile1.inhouse.InHouseTelemetryForegroundService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />
 
         <receiver
-            android:name=".inhouse.InHouseTelemetryBootReceiver"
+            android:name="com.mobile1.inhouse.InHouseTelemetryBootReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
