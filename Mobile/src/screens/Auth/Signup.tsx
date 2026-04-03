@@ -65,6 +65,7 @@ export default function Signup() {
     setLoading(true);
     try {
       const phoneNumber = formatPhoneNumber(phone);
+      const otpRequestedAt = Date.now();
       const data = await signupApi({
         fullName: fullName.trim() || undefined,
         email: email.trim() || undefined,
@@ -73,6 +74,8 @@ export default function Signup() {
       navigation.navigate('OTP', {
         phone: phoneNumber,
         ...(typeof data.otpExpiresIn === 'number' && { otpExpiresIn: data.otpExpiresIn }),
+        ...(typeof data.otpResendIn === 'number' && { otpResendIn: data.otpResendIn }),
+        otpRequestedAt,
       });
     } catch (e) {
       setError(getAuthErrorMessage(e));

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -172,6 +172,40 @@ export default function MyProfile() {
       }).start();
     }
   };
+
+  const avatarKeyExtractor = useCallback((item: typeof AVATAR_LIST[number]) => item.id, []);
+
+  const renderAvatarItem = useCallback(
+    ({ item }: { item: typeof AVATAR_LIST[number] }) => {
+      const isSelected = selectedAvatar === item.url;
+      return (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setSelectedAvatar(item.url)}
+          style={[
+            styles.avatarGridItem,
+            isSelected && styles.avatarGridItemSelected,
+          ]}
+        >
+          <Image
+            source={{ uri: item.url }}
+            style={styles.avatarGridImage}
+            resizeMode="cover"
+          />
+          {isSelected && (
+            <View style={styles.avatarSelectedBadge}>
+              <MaterialIcon name="check" size={16} color="#fff" />
+            </View>
+          )}
+          <Text style={[
+            styles.avatarGridLabel,
+            isSelected && styles.avatarGridLabelSelected,
+          ]}>{item.label}</Text>
+        </TouchableOpacity>
+      );
+    },
+    [selectedAvatar]
+  );
 
 
   const validate = () => {
@@ -725,38 +759,11 @@ export default function MyProfile() {
           <FlatList
             data={AVATAR_LIST}
             numColumns={AVATAR_GRID_COLS}
-            keyExtractor={(item) => item.id}
+            keyExtractor={avatarKeyExtractor}
             contentContainerStyle={styles.avatarGrid}
             columnWrapperStyle={styles.avatarRow}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const isSelected = selectedAvatar === item.url;
-              return (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setSelectedAvatar(item.url)}
-                  style={[
-                    styles.avatarGridItem,
-                    isSelected && styles.avatarGridItemSelected,
-                  ]}
-                >
-                  <Image
-                    source={{ uri: item.url }}
-                    style={styles.avatarGridImage}
-                    resizeMode="cover"
-                  />
-                  {isSelected && (
-                    <View style={styles.avatarSelectedBadge}>
-                      <MaterialIcon name="check" size={16} color="#fff" />
-                    </View>
-                  )}
-                  <Text style={[
-                    styles.avatarGridLabel,
-                    isSelected && styles.avatarGridLabelSelected,
-                  ]}>{item.label}</Text>
-                </TouchableOpacity>
-              );
-            }}
+            renderItem={renderAvatarItem}
           />
 
           {/* Confirm Button */}

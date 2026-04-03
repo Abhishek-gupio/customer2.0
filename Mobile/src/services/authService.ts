@@ -73,6 +73,7 @@ export type SignupResponse = {
   /** Present in development so you can see OTP without SMS */
   otp?: string;
   otpExpiresIn?: number;
+  otpResendIn?: number;
 };
 
 export type VerifyOtpPayload = {
@@ -93,6 +94,7 @@ export type LoginResponse = {
   requiresOtpVerification?: boolean;
   otp?: string;
   otpExpiresIn?: number;
+  otpResendIn?: number;
 };
 
 export type CheckUserResponse = {
