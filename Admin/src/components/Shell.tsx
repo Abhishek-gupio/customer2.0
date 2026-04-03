@@ -19,7 +19,7 @@ const navItems = [
   { to: '/',               label: 'Dashboard',  icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'white'  },
   { to: '/customers',      label: 'Customers',  icon: Users,           roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'emerald'},
   { to: '/vehicles',       label: 'Vehicles',   icon: CarFront,        roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'blue'   },
-  { to: '/car-library',    label: 'Car Library',icon: LibraryBig,      roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'violet' },
+  { to: '/car-library',    label: 'Car Library',icon: LibraryBig,      roles: ['ADMIN'],           color: 'violet' },
   { to: '/tickets',        label: 'Tickets',    icon: Ticket,          roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red'    },
 ];
 
