@@ -41,7 +41,7 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
-import { api } from '../../services/api';
+import { api, getNetworkOnlineState, subscribeNetworkState } from '../../services/api';
 import { getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
@@ -258,6 +258,8 @@ export default function Home() {
   const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastKnownNetworkStateRef = useRef(getNetworkOnlineState());
+  const reconnectRefreshInFlightRef = useRef(false);
   const timelineEntranceAnim = useRef(new Animated.Value(0)).current;
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
@@ -539,6 +541,29 @@ export default function Home() {
       setRefreshing(false);
     }
   }, [dispatch, selectedState]);
+
+  useFocusEffect(
+    useCallback(() => {
+      lastKnownNetworkStateRef.current = getNetworkOnlineState();
+
+      const unsubscribe = subscribeNetworkState((online) => {
+        const wasOnline = lastKnownNetworkStateRef.current;
+        lastKnownNetworkStateRef.current = online;
+
+        if (!wasOnline && online && !reconnectRefreshInFlightRef.current) {
+          reconnectRefreshInFlightRef.current = true;
+          handleRefresh().finally(() => {
+            reconnectRefreshInFlightRef.current = false;
+          });
+        }
+      });
+
+      return () => {
+        unsubscribe();
+        reconnectRefreshInFlightRef.current = false;
+      };
+    }, [handleRefresh])
+  );
 
   const carouselIndexRef = useRef(0);
 
