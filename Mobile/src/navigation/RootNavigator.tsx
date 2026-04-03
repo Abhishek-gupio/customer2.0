@@ -49,8 +49,107 @@ import TripPlannerInsightsScreen from '../screens/Other/TripPlannerInsightsScree
 import DLVerification from '../screens/ServiceAndWarrenty/DLVerification';
 import Fastag from '../screens/ServiceAndWarrenty/Fastag';
 import { store } from '../store';
+import { withErrorBoundary } from '../components/withErrorBoundary';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const DocumentListScreen = withErrorBoundary(DocumentList, {
+  boundaryName: 'documents-document-list',
+  fallbackTitle: 'Documents could not load',
+  fallbackMessage:
+    'Retry the document locker or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const DigiLockerKYCScreen = withErrorBoundary(DigiLockerKYC, {
+  boundaryName: 'documents-digilocker-kyc',
+  fallbackTitle: 'DigiLocker verification could not load',
+  fallbackMessage:
+    'Retry the DigiLocker flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const ExpensesListScreen = withErrorBoundary(ExpensesList, {
+  boundaryName: 'payments-expenses-list',
+  fallbackTitle: 'Expenses could not load',
+  fallbackMessage:
+    'Retry the expense view or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const AddExpenseScreen = withErrorBoundary(addExpense, {
+  boundaryName: 'payments-add-expense',
+  fallbackTitle: 'Expense entry could not load',
+  fallbackMessage:
+    'Retry the payment entry flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const BudgetSettingsScreen = withErrorBoundary(BudgetSettings, {
+  boundaryName: 'payments-budget-settings',
+  fallbackTitle: 'Budget settings could not load',
+  fallbackMessage:
+    'Retry the budget settings flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const ExpenseAnalyticsScreen = withErrorBoundary(ExpenseAnalytics, {
+  boundaryName: 'payments-expense-analytics',
+  fallbackTitle: 'Expense analytics could not load',
+  fallbackMessage:
+    'Retry the analytics view or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const ChallansScreen = withErrorBoundary(Challans, {
+  boundaryName: 'payments-challans',
+  fallbackTitle: 'Challan payments could not load',
+  fallbackMessage:
+    'Retry the challan flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const FastagScreen = withErrorBoundary(Fastag, {
+  boundaryName: 'payments-fastag',
+  fallbackTitle: 'Fastag payments could not load',
+  fallbackMessage:
+    'Retry the Fastag flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const DLVerificationScreen = withErrorBoundary(DLVerification, {
+  boundaryName: 'payments-dl-verification',
+  fallbackTitle: 'Driving licence verification could not load',
+  fallbackMessage:
+    'Retry the licence verification flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const AiBotHomeScreen = withErrorBoundary(AiBotHome, {
+  boundaryName: 'chat-ai-bot-home',
+  fallbackTitle: 'AI chat home could not load',
+  fallbackMessage:
+    'Retry the AI assistant flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const ChatSessionsBoundaryScreen = withErrorBoundary(ChatSessionsScreen, {
+  boundaryName: 'chat-sessions',
+  fallbackTitle: 'Chat sessions could not load',
+  fallbackMessage:
+    'Retry the chat session list or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const DrivingSummaryScreen = withErrorBoundary(DrivingSummary, {
+  boundaryName: 'telematics-driving-summary',
+  fallbackTitle: 'Driving summary could not load',
+  fallbackMessage:
+    'Retry the driving insights flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const DrivingTimelineScreen = withErrorBoundary(DrivingTimeline, {
+  boundaryName: 'telematics-driving-timeline',
+  fallbackTitle: 'Driving timeline could not load',
+  fallbackMessage:
+    'Retry the trip timeline or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
+const TripDetailScreen = withErrorBoundary(TripDetail, {
+  boundaryName: 'telematics-trip-detail',
+  fallbackTitle: 'Trip details could not load',
+  fallbackMessage:
+    'Retry the trip detail flow or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
 
 
 export function RootNavigator() {
@@ -79,18 +178,18 @@ export function RootNavigator() {
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
-      <Stack.Screen name="DocumentList" component={DocumentList} />
-      <Stack.Screen name="DigiLockerKYC" component={DigiLockerKYC} />
+      <Stack.Screen name="DocumentList" component={DocumentListScreen} />
+      <Stack.Screen name="DigiLockerKYC" component={DigiLockerKYCScreen} />
       <Stack.Screen name="Valet" component={ValetService} />
 
       {/* All vehicle screens are handled internally by GupioGarageApp */}
       <Stack.Screen name="VehicleList" component={GupioGarageApp} />
       <Stack.Screen name="VehicleDetails" component={GupioGarageApp} />
       <Stack.Screen name="AddVehicle" component={GupioGarageApp} />
-      <Stack.Screen name="Challans" component={Challans} />
+      <Stack.Screen name="Challans" component={ChallansScreen} />
       <Stack.Screen name="Main" component={MainBottomTabs} />
-      <Stack.Screen name="Expenses" component={ExpensesList} />
-      <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />
+      <Stack.Screen name="Expenses" component={ExpensesListScreen} />
+      <Stack.Screen name="addExpense" component={AddExpenseScreen} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
       <Stack.Screen name="TermsConditions" component={TermsConditions} />
@@ -100,25 +199,25 @@ export function RootNavigator() {
       <Stack.Screen name="TicketHistory" component={TicketHistory} />
       <Stack.Screen name="TicketDetail" component={TicketDetail} />
       <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen name="BudgetSettings" component={BudgetSettings} options={{ presentation: 'transparentModal' }} />
+      <Stack.Screen name="BudgetSettings" component={BudgetSettingsScreen} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="SyncQueue" component={SyncQueue} />
-      <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
+      <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalyticsScreen} />
       <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
       <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
-      <Stack.Screen name="AiBotHome" component={AiBotHome} />
-      <Stack.Screen name="ChatSessions" component={ChatSessionsScreen} />
+      <Stack.Screen name="AiBotHome" component={AiBotHomeScreen} />
+      <Stack.Screen name="ChatSessions" component={ChatSessionsBoundaryScreen} />
 
-      <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
-      <Stack.Screen name="DrivingTimeline" component={DrivingTimeline} />
-      <Stack.Screen name="TripDetail" component={TripDetail} />
+      <Stack.Screen name="DrivingSummary" component={DrivingSummaryScreen} />
+      <Stack.Screen name="DrivingTimeline" component={DrivingTimelineScreen} />
+      <Stack.Screen name="TripDetail" component={TripDetailScreen} />
       <Stack.Screen name="Alerts" component={Alerts} />
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
       <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
       <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
-      <Stack.Screen name="DLVerification" component={DLVerification} />
-      <Stack.Screen name="Fastag" component={Fastag} />
+      <Stack.Screen name="DLVerification" component={DLVerificationScreen} />
+      <Stack.Screen name="Fastag" component={FastagScreen} />
     </Stack.Navigator>
   );
 }

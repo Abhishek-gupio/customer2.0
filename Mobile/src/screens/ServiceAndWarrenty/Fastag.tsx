@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
@@ -24,6 +22,8 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
+import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
 
 export default function Fastag() {
   const navigation = useNavigation();
@@ -38,9 +38,38 @@ export default function Fastag() {
     title: '',
     message: '',
   });
-  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+  const showStatus = useCallback((title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
     setStatusModal({ visible: true, type, title, message });
-  };
+  }, []);
+
+  const reportFastagError = useCallback((
+    error: unknown,
+    surface: string,
+    fallbackMessage: string,
+    title = 'Error',
+    extras?: Record<string, unknown>,
+  ) => {
+    const { correlationId } = reportHandledError(error, {
+      surface,
+      level: 'feature',
+      extras,
+    });
+
+    showStatus(
+      title,
+      appendCorrelationId(
+        getNetworkAwareErrorMessage(
+          error,
+          fallbackMessage,
+          'You are offline. Reconnect and try again.',
+        ),
+        correlationId,
+      ),
+      'error',
+    );
+
+    return correlationId;
+  }, [showStatus]);
 
   const [confirmModal, setConfirmModal] = useState({
     visible: false,
@@ -51,25 +80,29 @@ export default function Fastag() {
     onConfirm: () => { }
   });
 
-  useEffect(() => {
-    fetchExistingFastag();
-  }, []);
-
-  const fetchExistingFastag = async () => {
+  const fetchExistingFastag = useCallback(async () => {
     try {
       const resp: any = await api.get('/v1/documents/get-fastag');
       if (resp && resp.success && resp.data) {
         setVerificationResult(resp.data);
       }
     } catch (err: any) {
-      // Supress console error during initial fetch if data doesn't exist yet
-      if (__DEV__ && !err.message?.includes('404')) {
-         console.log("Existing Fastag not found or error:", err.message || err);
+      if (!err?.message?.includes('404')) {
+        reportFastagError(
+          err,
+          'payments-fastag-existing-profile',
+          'Could not load your Fastag profile.',
+          'Fastag unavailable',
+        );
       }
     } finally {
       setCheckingExisting(false);
     }
-  };
+  }, [reportFastagError]);
+
+  useEffect(() => {
+    fetchExistingFastag();
+  }, [fetchExistingFastag]);
 
   const handleBack = () => navigation.goBack();
 
@@ -89,7 +122,11 @@ export default function Fastag() {
           setIfscCode('');
           showStatus('Deleted', 'Fastag profile removed successfully');
         } catch (error) {
-          showStatus('Error', 'Failed to delete Fastag profile', 'error');
+          reportFastagError(
+            error,
+            'payments-fastag-delete',
+            'Failed to delete Fastag profile.',
+          );
         }
       }
     });
@@ -112,10 +149,22 @@ export default function Fastag() {
         setVerificationResult(response.data);
         showStatus('Success', 'Account verified successfully');
       } else {
-        showStatus('Verification Failed', response.message || 'Unable to verify account', 'error');
+        reportFastagError(
+          new Error(response.message || 'Unable to verify account'),
+          'payments-fastag-verify-response',
+          'Unable to verify account.',
+          'Verification Failed',
+          { accountNumberPresent: Boolean(accountNumber), ifscCodePresent: Boolean(ifscCode) },
+        );
       }
     } catch (error: any) {
-      showStatus('Verification Failed', error.message || 'System error during verification', 'error');
+      reportFastagError(
+        error,
+        'payments-fastag-verify',
+        'System error during verification.',
+        'Verification Failed',
+        { accountNumberPresent: Boolean(accountNumber), ifscCodePresent: Boolean(ifscCode) },
+      );
     } finally {
       setLoading(false);
     }
