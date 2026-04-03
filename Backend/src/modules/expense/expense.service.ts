@@ -98,6 +98,10 @@ export const expenseService = {
     return expenseParsingService.createExpenseFromVoice(customerId, file);
   },
 
+  async previewExpenseFromVoiceAudio(customerId: string, file: Express.Multer.File) {
+    return expenseParsingService.previewExpenseFromVoiceAudio(customerId, file);
+  },
+
   async previewExpenseFromVoiceText(text: string) {
     return expenseParsingService.previewExpenseFromVoiceText(text);
   },

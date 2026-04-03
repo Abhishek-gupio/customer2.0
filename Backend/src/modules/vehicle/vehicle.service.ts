@@ -507,11 +507,8 @@ export const vehicleService = {
     // Ensure vehicle image comes from catalog assets when available.
     return Promise.all(
       vehicles.map(async (v: any) => {
-        const shouldResolveFromCatalog = !v.imageUrl || isLegacyUnsplashUrl(v.imageUrl);
-        const catalogHero = shouldResolveFromCatalog
-          ? await resolveCatalogHeroForVehicleRecord(v)
-          : null;
-        const resolvedImageUrl = catalogHero ?? (shouldResolveFromCatalog ? null : v.imageUrl);
+        const catalogHero = await resolveCatalogHeroForVehicleRecord(v);
+        const resolvedImageUrl = catalogHero ?? v.imageUrl ?? null;
 
         // Backfill DB once catalog hero is found, so future reads stay consistent.
         if (catalogHero && catalogHero !== v.imageUrl) {
