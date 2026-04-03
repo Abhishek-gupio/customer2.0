@@ -71,6 +71,11 @@ export default function DrivingSummary({ navigation }: any) {
     });
     const [latestTrip, setLatestTrip] = useState<any | null>(null);
     const [latestPath, setLatestPath] = useState<any[]>([]);
+    const [liveTripSession, setLiveTripSession] = useState<{
+        sessionId: string;
+        vehicleId: string;
+        startedAt?: string;
+    } | null>(null);
     const [latestPathLoading, setLatestPathLoading] = useState(false);
     const [latestMapReady, setLatestMapReady] = useState(false);
     const [latestMapFullscreen, setLatestMapFullscreen] = useState(false);
@@ -272,6 +277,7 @@ export default function DrivingSummary({ navigation }: any) {
         if (telematicsProvider === 'inhouse' && inHouseTelematics.getStatus().isRunning) {
             inHouseTelematics.stopAndDiscard();
             refreshInHouseStatus();
+            setLiveTripSession(null);
         }
 
         persistTelematicsProvider(provider);
@@ -283,6 +289,7 @@ export default function DrivingSummary({ navigation }: any) {
         setLinkDone(false);
         setLatestTrip(null);
         setLatestPath([]);
+        setLiveTripSession(null);
         setScore(null);
         setMetrics({ distance: '0', duration: '0h 0m', harshBraking: '0', hardAccel: '0', phoneUsage: '0', nightDist: '0 km' });
 
@@ -403,6 +410,7 @@ export default function DrivingSummary({ navigation }: any) {
                 const result = await inHouseTelematics.stopAndUpload(primaryVehicle.id, {
                     vehicleType: primaryVehicle.vehicleType,
                 });
+                setLiveTripSession(null);
                 refreshInHouseStatus();
                 if (result.submitted) {
                     if (result.queuedOffline) {
@@ -454,13 +462,68 @@ export default function DrivingSummary({ navigation }: any) {
             return;
         }
 
+        const liveStart = await inHouseTelematics.startLiveSession(
+            primaryVehicle.id,
+            primaryVehicle.vehicleType,
+        );
+        if (liveStart.started && liveStart.sessionId) {
+            setLiveTripSession({
+                sessionId: liveStart.sessionId,
+                vehicleId: primaryVehicle.id,
+                startedAt: new Date().toISOString(),
+            });
+        }
+
         Alert.alert('Trip recording started', 'Drive normally and tap "Stop & Save" when your trip ends.');
     };
 
     useEffect(() => {
         const loadLatestPath = async () => {
+            if (telematicsProvider === 'inhouse' && inHouseStatus.isRunning && primaryVehicle?.id) {
+                try {
+                    setLatestPathLoading(true);
+                    const liveSession = await telematicsApi.getActiveInHouseLiveSession(primaryVehicle.id);
+                    if (liveSession?.sessionId) {
+                        setLiveTripSession({
+                            sessionId: liveSession.sessionId,
+                            vehicleId: liveSession.vehicleId,
+                            startedAt: liveSession.startedAt,
+                        });
+                    }
+
+                    let livePath = Array.isArray(liveSession?.points)
+                        ? liveSession!.points
+                            .filter((p: any) => p && !isNaN(Number(p.lat)) && !isNaN(Number(p.lon)))
+                            .map((p: any) => ({
+                                lat: Number(p.lat),
+                                lon: Number(p.lon),
+                                timestamp: p.timestamp,
+                                eventType: p.eventType,
+                            }))
+                        : [];
+
+                    if (livePath.length === 0) {
+                        const localPoints = await inHouseTelematics.getPointsSnapshot();
+                        livePath = localPoints.map((point) => ({
+                            lat: point.latitude,
+                            lon: point.longitude,
+                            timestamp: new Date(point.timestampMs).toISOString(),
+                            eventType: '',
+                        }));
+                    }
+
+                    setLatestPath(livePath);
+                    return;
+                } catch (e) {
+                    console.error('DrivingSummary livePath error', e);
+                } finally {
+                    setLatestPathLoading(false);
+                }
+            }
+
             if (!latestTrip?.id) {
                 setLatestPath([]);
+                setLatestPathLoading(false);
                 return;
             }
             try {
@@ -479,7 +542,12 @@ export default function DrivingSummary({ navigation }: any) {
             }
         };
         loadLatestPath();
-    }, [latestTrip?.id]);
+        const timer = setInterval(() => {
+            loadLatestPath();
+        }, telematicsProvider === 'inhouse' && inHouseStatus.isRunning ? 4000 : 15000);
+
+        return () => clearInterval(timer);
+    }, [latestTrip?.id, telematicsProvider, inHouseStatus.isRunning, primaryVehicle?.id]);
 
     useEffect(() => {
         if (!latestPathLoading && latestPath.length > 0 && latestMapRef.current && latestMapReady) {
@@ -494,6 +562,16 @@ export default function DrivingSummary({ navigation }: any) {
             } catch {}
         }
     }, [latestPath, latestMapReady, latestPathLoading]);
+
+    const isLiveMapActive = telematicsProvider === 'inhouse' && inHouseStatus.isRunning;
+    const showMapSection = Boolean(latestTrip || isLiveMapActive || latestPath.length > 0);
+    const mapSectionTitle = isLiveMapActive ? 'Live Drive Track' : 'Last Drive Track';
+    const mapCityLabel = isLiveMapActive
+        ? `${latestPath.length} point${latestPath.length === 1 ? '' : 's'} live`
+        : `${latestTrip?.startLocation?.Parts?.City || 'Start'} → ${latestTrip?.endLocation?.Parts?.City || 'End'}`;
+    const mapFooterAddress = isLiveMapActive
+        ? 'Tracking current route in real time...'
+        : latestTrip?.startLocation?.Full || 'Recording details...';
 
     const requestTelematicsPermissions = async (): Promise<boolean> => {
         if (Platform.OS === 'ios') {
@@ -974,13 +1052,13 @@ export default function DrivingSummary({ navigation }: any) {
                 )}
 
                 {/* LATEST TRIP MAP */}
-                {latestTrip && (
+                {showMapSection && (
                     <View style={styles.mapSection}>
                         <View style={styles.mapHeaderRow}>
-                            <Text style={styles.sectionHeading}>Last Drive Track</Text>
+                            <Text style={styles.sectionHeading}>{mapSectionTitle}</Text>
                             <View style={styles.cityBadge}>
                                 <Text style={styles.cityText}>
-                                    {(latestTrip.startLocation?.Parts?.City || 'Start')} → {(latestTrip.endLocation?.Parts?.City || 'End')}
+                                    {mapCityLabel}
                                 </Text>
                             </View>
                         </View>
@@ -1064,7 +1142,7 @@ export default function DrivingSummary({ navigation }: any) {
                         <View style={styles.addressFooter}>
                             <MaterialIcon name="place" size={wp(3.5)} color="#FFBF00" />
                             <Text style={styles.addressText} numberOfLines={1}>
-                                {latestTrip.startLocation?.Full || 'Recording details...'}
+                                {mapFooterAddress}
                             </Text>
                         </View>
                     </View>

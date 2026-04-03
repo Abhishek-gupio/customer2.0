@@ -68,6 +68,67 @@ export const telematicsController = {
     success(res, result);
   }),
 
+  startInHouseLiveSession: asyncHandler(async (req: Request, res: Response) => {
+    const result = await telematicsService.startInHouseLiveSession({
+      customerId: (req as any).customer?.id ?? null,
+      vehicleId: req.body?.vehicleId,
+      vehicleType: req.body?.vehicleType ?? null,
+    });
+    success(res, result);
+  }),
+
+  pushInHouseLivePoints: asyncHandler(async (req: Request, res: Response) => {
+    const sessionId = String(req.params.sessionId || "");
+    if (!sessionId) {
+      throw AppError.badRequest("sessionId is required");
+    }
+
+    const result = await telematicsService.pushInHouseLivePoints({
+      sessionId,
+      customerId: (req as any).customer?.id ?? null,
+      vehicleId: req.body?.vehicleId,
+      points: req.body?.points ?? [],
+    });
+    success(res, result);
+  }),
+
+  getInHouseLiveSession: asyncHandler(async (req: Request, res: Response) => {
+    const sessionId = String(req.params.sessionId || "");
+    if (!sessionId) {
+      throw AppError.badRequest("sessionId is required");
+    }
+
+    const result = await telematicsService.getInHouseLiveSessionById(sessionId);
+    success(res, result);
+  }),
+
+  getActiveInHouseLiveSessionForVehicle: asyncHandler(async (req: Request, res: Response) => {
+    const vehicleId = String(req.params.vehicleId || "");
+    if (!vehicleId) {
+      throw AppError.badRequest("vehicleId is required");
+    }
+
+    const result = await telematicsService.getActiveInHouseLiveSessionForVehicle({
+      customerId: (req as any).customer?.id ?? null,
+      vehicleId,
+    });
+    success(res, result);
+  }),
+
+  stopInHouseLiveSession: asyncHandler(async (req: Request, res: Response) => {
+    const sessionId = String(req.params.sessionId || "");
+    if (!sessionId) {
+      throw AppError.badRequest("sessionId is required");
+    }
+
+    const result = await telematicsService.stopInHouseLiveSession({
+      sessionId,
+      customerId: (req as any).customer?.id ?? null,
+      vehicleId: req.body?.vehicleId,
+    });
+    success(res, result);
+  }),
+
   /**
    * Get Trip History
    */

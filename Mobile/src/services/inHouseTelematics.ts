@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { telematicsApi } from '../api/telematics';
+import { googleMapsService } from './googleMapsService';
 import {
   inHouseTelematicsNative,
   type NativeCompletedTrip,
@@ -87,6 +88,16 @@ type RecorderStatus = {
   hasPendingCompletedTrip: boolean;
 };
 
+type LiveSessionState = {
+  sessionId: string | null;
+  vehicleId: string | null;
+  vehicleType: string | null;
+  syncTimer: ReturnType<typeof setInterval> | null;
+  syncInFlight: boolean;
+  lastPointCount: number;
+  lastPointTimestamp: string | null;
+};
+
 const Geolocation: any = (() => {
   try {
     const geoModule = require('@react-native-community/geolocation') as any;
@@ -106,6 +117,7 @@ const AUTO_IDLE_STOP_MS = 3 * 60 * 1000;
 const AUTO_MIN_ACTIVE_BEFORE_STOP_MS = 4 * 60 * 1000;
 const AUTO_START_PROBE_HITS_REQUIRED = 2;
 const AUTO_START_PROBE_WINDOW_MS = 90 * 1000;
+const LIVE_SYNC_INTERVAL_MS = 5000;
 
 const SCORING_CALIBRATION_BY_PROFILE: Record<VehicleProfile, ScoringCalibration> = {
   bike: {
@@ -160,6 +172,15 @@ let nativeStatusCache: RecorderStatus = {
   pointsCaptured: 0,
   mode: 'idle',
   hasPendingCompletedTrip: false,
+};
+const liveSessionState: LiveSessionState = {
+  sessionId: null,
+  vehicleId: null,
+  vehicleType: null,
+  syncTimer: null,
+  syncInFlight: false,
+  lastPointCount: 0,
+  lastPointTimestamp: null,
 };
 
 function toRad(value: number): number {
@@ -737,17 +758,76 @@ function buildEvents(
   };
 }
 
-function formatLocation(point: LocationPoint | undefined): any {
+async function formatLocation(point: LocationPoint | undefined): Promise<any> {
   if (!point) return null;
+
+  const details = await googleMapsService.getAddressDetails(
+    point.latitude,
+    point.longitude,
+  );
+
   return {
-    Full: `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`,
-    Parts: {
-      City: 'Unknown',
-      Country: 'Unknown',
-    },
+    Full: details.full,
+    Parts: details.parts,
     Latitude: point.latitude,
     Longitude: point.longitude,
   };
+}
+
+function clearLiveSyncTimer(): void {
+  if (liveSessionState.syncTimer != null) {
+    clearInterval(liveSessionState.syncTimer);
+  }
+  liveSessionState.syncTimer = null;
+}
+
+function resetLiveSessionState(): void {
+  clearLiveSyncTimer();
+  liveSessionState.sessionId = null;
+  liveSessionState.vehicleId = null;
+  liveSessionState.vehicleType = null;
+  liveSessionState.syncInFlight = false;
+  liveSessionState.lastPointCount = 0;
+  liveSessionState.lastPointTimestamp = null;
+}
+
+async function syncLiveSessionPoints(force = false): Promise<void> {
+  if (!liveSessionState.sessionId || !liveSessionState.vehicleId || liveSessionState.syncInFlight) {
+    return;
+  }
+
+  liveSessionState.syncInFlight = true;
+  try {
+    const points = await inHouseTelematics.getPointsSnapshot();
+    const normalized = points.map((point) => ({
+      lat: point.latitude,
+      lon: point.longitude,
+      timestamp: new Date(point.timestampMs).toISOString(),
+      speed: point.speedKmh,
+      eventType: '',
+    }));
+
+    const pointCount = normalized.length;
+    const lastPointTimestamp = normalized[normalized.length - 1]?.timestamp || null;
+    const hasChanged =
+      pointCount !== liveSessionState.lastPointCount ||
+      lastPointTimestamp !== liveSessionState.lastPointTimestamp;
+
+    if (!force && (!hasChanged || pointCount === 0)) {
+      return;
+    }
+
+    await telematicsApi.pushInHouseLivePoints(liveSessionState.sessionId, {
+      vehicleId: liveSessionState.vehicleId,
+      points: normalized,
+    });
+    liveSessionState.lastPointCount = pointCount;
+    liveSessionState.lastPointTimestamp = lastPointTimestamp;
+  } catch (error) {
+    console.log('inHouseTelematics live sync error', error);
+  } finally {
+    liveSessionState.syncInFlight = false;
+  }
 }
 
 function cleanupWatcher(): void {
@@ -908,6 +988,10 @@ async function buildAndSubmitTripFromPoints(
   const safetyScore = Math.round(clamp(100 - weightedPenalty * 3.2, 42, 100));
 
   const tripId = `INHOUSE_APP_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const [startLocation, endLocation] = await Promise.all([
+    formatLocation(first),
+    formatLocation(last),
+  ]);
 
   const payload = {
     vehicleId,
@@ -919,8 +1003,8 @@ async function buildAndSubmitTripFromPoints(
     safetyScore,
     maxSpeed: maxSpeed != null ? Number(maxSpeed.toFixed(1)) : null,
     avgSpeed,
-    startLocation: formatLocation(first),
-    endLocation: formatLocation(last),
+    startLocation,
+    endLocation,
     statistics: {
       Mileage: Number(distanceKm.toFixed(3)),
       DurationMinutes: Number(durationMin.toFixed(2)),
@@ -946,6 +1030,12 @@ async function buildAndSubmitTripFromPoints(
       Safety: safetyScore,
       Confidence: Number(confidence.toFixed(2)),
     },
+    path: points.map((point) => ({
+      timestamp: new Date(point.timestampMs).toISOString(),
+      latitude: point.latitude,
+      longitude: point.longitude,
+      speed: point.speedKmh,
+    })),
     events,
   };
 
@@ -1067,6 +1157,61 @@ export const inHouseTelematics = {
     return mergeAndSortPoints([...state.points, ...nativePoints]);
   },
 
+  getLiveSession() {
+    return {
+      sessionId: liveSessionState.sessionId,
+      vehicleId: liveSessionState.vehicleId,
+      vehicleType: liveSessionState.vehicleType,
+    };
+  },
+
+  async startLiveSession(vehicleId: string, vehicleType?: string | null): Promise<{ started: boolean; sessionId?: string }> {
+    if (!vehicleId) return { started: false };
+
+    if (liveSessionState.sessionId && liveSessionState.vehicleId === vehicleId) {
+      return { started: true, sessionId: liveSessionState.sessionId };
+    }
+
+    try {
+      const liveSession = await telematicsApi.startInHouseLiveSession({
+        vehicleId,
+        vehicleType: vehicleType ?? null,
+      });
+      liveSessionState.sessionId = liveSession.sessionId;
+      liveSessionState.vehicleId = vehicleId;
+      liveSessionState.vehicleType = vehicleType ?? null;
+      liveSessionState.lastPointCount = 0;
+      liveSessionState.lastPointTimestamp = null;
+      clearLiveSyncTimer();
+      liveSessionState.syncTimer = setInterval(() => {
+        void syncLiveSessionPoints();
+      }, LIVE_SYNC_INTERVAL_MS);
+      await syncLiveSessionPoints(true);
+      return { started: true, sessionId: liveSession.sessionId };
+    } catch (error) {
+      console.log('inHouseTelematics startLiveSession error', error);
+      resetLiveSessionState();
+      return { started: false };
+    }
+  },
+
+  async syncLiveSessionNow(force = false): Promise<void> {
+    await syncLiveSessionPoints(force);
+  },
+
+  async stopLiveSession(): Promise<void> {
+    const sessionId = liveSessionState.sessionId;
+    const vehicleId = liveSessionState.vehicleId;
+    resetLiveSessionState();
+    if (!sessionId) return;
+
+    try {
+      await telematicsApi.stopInHouseLiveSession(sessionId, vehicleId ? { vehicleId } : undefined);
+    } catch (error) {
+      console.log('inHouseTelematics stopLiveSession error', error);
+    }
+  },
+
   async start(): Promise<{ started: boolean; reason?: string }> {
     if (!this.isAvailable()) {
       return { started: false, reason: 'Geolocation module is not available.' };
@@ -1179,6 +1324,7 @@ export const inHouseTelematics = {
   },
 
   stopAndDiscard(): void {
+    void this.stopLiveSession();
     if (Platform.OS === 'android' && inHouseTelematicsNative.isAvailable()) {
       inHouseTelematicsNative
         .stopForegroundTracking()
@@ -1195,6 +1341,8 @@ export const inHouseTelematics = {
     vehicleId: string,
     options?: { vehicleType?: string | null },
   ): Promise<StopResult> {
+    await this.syncLiveSessionNow(true);
+    await this.stopLiveSession();
     if (!this.getStatus().isRunning) {
       return { submitted: false, reason: 'not_running' };
     }

@@ -139,6 +139,80 @@ export const telematicsApi = {
             payload,
             { headers: authHeaders() },
         );
+    },
+
+    async startInHouseLiveSession(payload: {
+        vehicleId: string;
+        vehicleType?: string | null;
+    }): Promise<{
+        sessionId: string;
+        vehicleId: string;
+        vehicleType?: string | null;
+        startedAt: string;
+        updatedAt: string;
+        pointCount: number;
+        points: { lat: number; lon: number; timestamp: string; speed?: number | null; eventType?: string }[];
+    }> {
+        const response = await axios.post(
+            `${API_URL}/telematics/inhouse/live/start`,
+            payload,
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data;
+    },
+
+    async pushInHouseLivePoints(
+        sessionId: string,
+        payload: {
+            vehicleId?: string;
+            points: Array<{
+                lat?: number;
+                lon?: number;
+                latitude?: number;
+                longitude?: number;
+                timestamp?: string;
+                speed?: number | null;
+                eventType?: string;
+            }>;
+        },
+    ): Promise<{
+        sessionId: string;
+        vehicleId: string;
+        pointCount: number;
+        updatedAt: string;
+        points: { lat: number; lon: number; timestamp: string; speed?: number | null; eventType?: string }[];
+    }> {
+        const response = await axios.post(
+            `${API_URL}/telematics/inhouse/live/${sessionId}/points`,
+            payload,
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data;
+    },
+
+    async getActiveInHouseLiveSession(vehicleId: string): Promise<{
+        sessionId: string;
+        vehicleId: string;
+        vehicleType?: string | null;
+        startedAt: string;
+        updatedAt: string;
+        pointCount: number;
+        points: { lat: number; lon: number; timestamp: string; speed?: number | null; eventType?: string }[];
+    } | null> {
+        const response = await axios.get(
+            `${API_URL}/telematics/inhouse/live/vehicle/${vehicleId}`,
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data ?? null;
+    },
+
+    async stopInHouseLiveSession(sessionId: string, payload?: { vehicleId?: string }): Promise<{ stopped: boolean }> {
+        const response = await axios.post(
+            `${API_URL}/telematics/inhouse/live/${sessionId}/stop`,
+            payload ?? {},
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data;
     }
 };
 
@@ -157,6 +231,12 @@ export type InHouseTripPayload = {
     endLocation?: any;
     statistics?: any;
     scores?: any;
+    path?: Array<{
+        timestamp?: string;
+        latitude?: number;
+        longitude?: number;
+        speed?: number | null;
+    }>;
     events?: Array<{
         eventType?: string;
         timestamp?: string;

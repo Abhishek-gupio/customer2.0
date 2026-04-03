@@ -11,6 +11,11 @@ router.post("/webhook", telematicsController.webhook);
 
 // In-house telematics trip ingestion
 router.post("/inhouse/trips", telematicsController.ingestInHouseTrip);
+router.post("/inhouse/live/start", telematicsController.startInHouseLiveSession);
+router.post("/inhouse/live/:sessionId/points", telematicsController.pushInHouseLivePoints);
+router.get("/inhouse/live/:sessionId", telematicsController.getInHouseLiveSession);
+router.get("/inhouse/live/vehicle/:vehicleId", telematicsController.getActiveInHouseLiveSessionForVehicle);
+router.post("/inhouse/live/:sessionId/stop", telematicsController.stopInHouseLiveSession);
 
 // Link device (Ideally Authenticated, public for now)
 router.post("/link/:vehicleId", telematicsController.linkDevice);
