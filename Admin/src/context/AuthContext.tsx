@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ADMIN_KEY);
-    setState({ 
-      admin: null, 
-      token: null, 
-      loading: false, 
+    setState({
+      admin: null,
+      token: null,
+      loading: false,
       isSplashScreenVisible: true // Show splash in login page after logout
     });
   }, []);

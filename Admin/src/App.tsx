@@ -25,6 +25,32 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RoleProtectedRoute({ 
+  children, 
+  allowedRoles 
+}: { 
+  children: React.ReactNode; 
+  allowedRoles: ('SUPER_ADMIN' | 'ADMIN' | 'SUPPORT')[] 
+}) {
+  const { admin, token, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg, #000000)' }}>
+        <span style={{ color: 'var(--accent)' }}>Loading...</span>
+      </div>
+    );
+  }
+
+  if (!token) return <Navigate to="/login" replace />;
+  
+  if (!admin || !allowedRoles.includes(admin.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 export default function App() {
   const { isSplashScreenVisible, setSplashScreenVisible } = useAuth();
 
@@ -65,7 +91,14 @@ export default function App() {
             <Route path="customers/:id" element={<CustomerDetail />} />
             <Route path="tickets" element={<Tickets />} />
             <Route path="vehicles" element={<Vehicles />} />
-            <Route path="car-library" element={<VehicleCatalog />} />
+            <Route 
+              path="car-library" 
+              element={
+                <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                  <VehicleCatalog />
+                </RoleProtectedRoute>
+              } 
+            />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

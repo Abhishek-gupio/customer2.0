@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Car, Bike, Layers, Search, ImageOff, Grid3X3, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, Edit2, Loader2, Upload, Plus } from 'lucide-react';
 import { adminApi, type CatalogVehicle } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/cn';
@@ -124,6 +125,8 @@ function BrandSection({ make, vehicles, onOpenVehicle }: { make: string; vehicle
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function VehicleCatalog() {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('ADMIN');
   const [vehicles, setVehicles] = useState<CatalogVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -191,12 +194,14 @@ export default function VehicleCatalog() {
               </p>
             </div>
             
-            <Button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="md:hidden h-10 w-10 rounded-xl bg-[var(--accent)] text-black p-0 flex items-center justify-center"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+            {isAdmin && (
+              <Button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="md:hidden h-10 w-10 rounded-xl bg-[var(--accent)] text-black p-0 flex items-center justify-center"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -211,13 +216,15 @@ export default function VehicleCatalog() {
               />
             </div>
             
-            <Button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="hidden md:flex items-center gap-2 h-10 rounded-xl bg-white text-[#0a0a0a] hover:bg-white/90 font-bold px-4 transition-all"
-            >
-              <Plus className="h-4 w-4" />
-              Add Vehicle
-            </Button>
+            {isAdmin && (
+              <Button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="hidden md:flex items-center gap-2 h-10 rounded-xl bg-white text-[#0a0a0a] hover:bg-white/90 font-bold px-4 transition-all"
+              >
+                <Plus className="h-4 w-4" />
+                Add Vehicle
+              </Button>
+            )}
           </div>
         </div>
 
@@ -407,6 +414,8 @@ function VehicleDetailViewer({
   onUpdate: (updatedAsset: any) => void;
   onAdd: (newAsset: any) => void;
 }) {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('ADMIN');
   const hasNoImages = (vehicle.images?.length ?? 0) === 0;
   const [activeImgIdx, setActiveImgIdx] = useState(0);
   const images = (vehicle.images?.length ?? 0) > 0 ? (vehicle.images as any[]) : [{ id: 'na', assetUrl: '', type: 'HERO', assetIndex: 0 }];
@@ -502,13 +511,15 @@ function VehicleDetailViewer({
               </div>
             )}
 
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/viewer:opacity-100 transition-opacity">
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-              <Button variant="secondary" className="rounded-full h-14 px-6 border-white/20 bg-black/40 backdrop-blur-md hover:bg-black/60 shadow-2xl" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
-                {isUploading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : hasNoImages || failed ? <Upload className="h-5 w-5 mr-2" /> : <Edit2 className="h-5 w-5 mr-2" />}
-                {isUploading ? 'Uploading…' : hasNoImages || failed ? 'Upload Image' : 'Replace Image'}
-              </Button>
-            </div>
+            {isAdmin && (
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/viewer:opacity-100 transition-opacity">
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                <Button variant="secondary" className="rounded-full h-14 px-6 border-white/20 bg-black/40 backdrop-blur-md hover:bg-black/60 shadow-2xl" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
+                  {isUploading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : hasNoImages || failed ? <Upload className="h-5 w-5 mr-2" /> : <Edit2 className="h-5 w-5 mr-2" />}
+                  {isUploading ? 'Uploading…' : hasNoImages || failed ? 'Upload Image' : 'Replace Image'}
+                </Button>
+              </div>
+            )}
 
             {images.length > 1 && (
               <>
