@@ -36,7 +36,6 @@ import { getAbsoluteUrl } from '../../config';
 import { Vehicle, vehicleService } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import ShareScreen from './Share';
-import { getProfile } from '../../services/profileService';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { RootState } from '../../store';
 import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
@@ -146,9 +145,9 @@ export const DetailsScreen = ({
     const [shareVisible, setShareVisible] = useState(false);
     const [shareLoading, setShareLoading] = useState(false);
     const [shareAccessList, setShareAccessList] = useState<any[]>([]);
-    const [currentCustomerId, setCurrentCustomerId] = useState<string | null>(null);
     const dispatch = useAppDispatch();
     const { documents, loading } = useAppSelector((state: RootState) => state.documents);
+    const currentCustomerId = useAppSelector((state: RootState) => state.auth.user?.id ?? null);
 
     const [showViewerModal, setShowViewerModal] = useState(false);
     const [viewingDoc, setViewingDoc] = useState<any>(null);
@@ -159,21 +158,6 @@ export const DetailsScreen = ({
             dispatch(fetchDocuments());
         }, [dispatch])
     );
-
-    useEffect(() => {
-        let mounted = true;
-        (async () => {
-            try {
-                const profile = await getProfile();
-                if (mounted) setCurrentCustomerId(profile.id);
-            } catch {
-                if (mounted) setCurrentCustomerId(null);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, []);
 
     const fetchHealthDetail = useCallback(async (vehicleId: string) => {
         try {

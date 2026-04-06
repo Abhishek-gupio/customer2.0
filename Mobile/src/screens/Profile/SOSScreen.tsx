@@ -24,10 +24,10 @@ import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } 
 import { googleMapsService } from '../../services/googleMapsService';
 import { FlashList } from '@shopify/flash-list';
 const FlashListAny = FlashList as any;
-import { getProfile } from '../../services/profileService';
 import { getAbsoluteUrl } from '../../config';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useProfileStore } from '../../store/profileStore';
 
 // Removed Geolocation logic
 
@@ -109,8 +109,8 @@ const SOSScreen = () => {
   const [sosType, setSosType] = useState<SOSType>('OTHER');
   const [nearbyHelp, setNearbyHelp] = useState<NearbyHelpItem[]>([]);
   const [searchingHelp, setSearchingHelp] = useState<boolean>(false);
-  const [profilePic, setProfilePic] = useState<string | null>(null);
-  const [profileName, setProfileName] = useState<string>('');
+  const cachedProfile = useProfileStore((state) => state.profile);
+  const loadProfile = useProfileStore((state) => state.loadProfile);
 
   // Animation Refs
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -120,24 +120,19 @@ const SOSScreen = () => {
   const locationInterval = useRef<any>(null);
   const primaryContact = contacts[0] || null;
   const incidentGuide = INCIDENT_GUIDES[sosType] || INCIDENT_GUIDES.OTHER;
+  const profileName = cachedProfile?.fullName || '';
+  const profilePic = cachedProfile?.profilePic ? getAbsoluteUrl(cachedProfile.profilePic) : null;
 
   // Initialize
   const fetchInitialData = React.useCallback(async () => {
     try {
-      const [contactList, activeSOS, profileData] = await Promise.all([
+      const [contactList, activeSOS] = await Promise.all([
         sosService.getContacts(),
         sosService.getActiveSOS(),
-        getProfile().catch(() => null),
+        loadProfile().catch(() => null),
       ]);
 
       setContacts(contactList);
-
-      if (profileData) {
-        setProfileName(profileData.fullName || '');
-        if (profileData.profilePic) {
-          setProfilePic(getAbsoluteUrl(profileData.profilePic));
-        }
-      }
 
       if (activeSOS) {
         navigation.replace('ActiveSOS', {
@@ -152,7 +147,7 @@ const SOSScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigation]);
+  }, [loadProfile, navigation]);
 
   const fetchNearbyHelp = React.useCallback(async () => {
     if (!location || searchingHelp) return;

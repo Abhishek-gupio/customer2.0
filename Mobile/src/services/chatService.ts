@@ -4,10 +4,11 @@ import { getAccessToken, getPrimaryVehicleId } from './storage';
 import { vehicleService, type Vehicle } from './vehicleService';
 import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from '../utils/refreshManager';
 import { listDocuments, type DocumentResponse } from './documentService';
-import { getProfile, updateProfile, type ProfileResponse, type UpdateProfilePayload } from './profileService';
+import { updateProfile, type ProfileResponse, type UpdateProfilePayload } from './profileService';
 import { googleMapsService } from './googleMapsService';
 import { placesService, type NearbyPlaceType } from './placesService';
 import { sosService, type SOSType } from './sosService';
+import { loadCachedProfile, setCachedProfile } from '../store/profileStore';
 
 // ============================================================================
 // Types
@@ -216,12 +217,6 @@ let vehicleCountCache:
     | null = null;
 
 const PRIMARY_VEHICLE_CACHE_TTL_MS = 60_000;
-let userProfileCache:
-    | {
-        profile: ChatUserContext | null;
-        fetchedAt: number;
-    }
-    | null = null;
 
 function getEffectiveUserMessage(message: string): string {
     const trimmed = message.trim();
@@ -328,24 +323,14 @@ function mapUserContext(profile: ProfileResponse | null): ChatUserContext | null
 }
 
 async function getUserContext(forceRefresh = false): Promise<ChatUserContext | null> {
-    const now = Date.now();
-    if (
-        !forceRefresh &&
-        userProfileCache &&
-        now - userProfileCache.fetchedAt < PRIMARY_VEHICLE_CACHE_TTL_MS
-    ) {
-        return userProfileCache.profile;
-    }
-
     try {
-        const profile = mapUserContext(await getProfile());
-        userProfileCache = {
-            profile,
-            fetchedAt: now,
-        };
-        return profile;
+        const profile = await loadCachedProfile({
+            force: forceRefresh,
+            maxAgeMs: PRIMARY_VEHICLE_CACHE_TTL_MS,
+        });
+        return mapUserContext(profile);
     } catch {
-        return userProfileCache?.profile ?? null;
+        return null;
     }
 }
 
@@ -1390,8 +1375,8 @@ async function tryResolveLocalProfileUpdate(
         };
     }
 
-    await updateProfile(intent.payload);
-    await getUserContext(true);
+    const updatedProfile = await updateProfile(intent.payload);
+    setCachedProfile(updatedProfile);
 
     return {
         sessionId,

@@ -11,9 +11,9 @@ import type { NativeStackNavigationProp } from '../lib/react-navigation-native-s
 import type { RootStackParamList } from '../navigation/types';
 import { vehicleService, type Vehicle } from '../services/vehicleService';
 import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../services/sosService';
-import { getProfile, type ProfileResponse } from '../services/profileService';
 import { getAbsoluteUrl } from '../config';
 import BackButton from './BackButton';
+import { useProfileStore } from '../store/profileStore';
 
 let Geolocation: any = null;
 try {
@@ -41,8 +41,9 @@ const SOSButton = () => {
   const [lastGeoError, setLastGeoError] = useState<{ code?: number; message?: string } | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   const [locatingSince, setLocatingSince] = useState<number | null>(null);
-  const [userData, setUserData] = useState<ProfileResponse | null>(null);
   const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
+  const userData = useProfileStore((state) => state.profile);
+  const loadProfile = useProfileStore((state) => state.loadProfile);
 
   // Animation refs
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -103,8 +104,7 @@ const SOSButton = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const profile = await getProfile();
-        setUserData(profile);
+        await loadProfile();
         
         // Fetch vehicles and find primary
         const vehicles = await vehicleService.getVehicles();
@@ -133,7 +133,7 @@ const SOSButton = () => {
       }
     };
     checkActive();
-  }, []);
+  }, [loadProfile, navigation]);
 
   const requestLocationPermission = useCallback(async () => {
     if (Platform.OS === 'ios') {

@@ -10,6 +10,7 @@ import {
   awaitAuthStoragePersisted,
 } from './storage';
 import { damoovTelematics } from '../native/damoovTelematics';
+import { clearCachedProfile } from '../store/profileStore';
 
 type ApiEnvelope<T> = { success?: boolean; data?: T } & Partial<T>;
 
@@ -167,6 +168,7 @@ export function getStoredRefreshToken(): string | undefined {
 
 export function logoutStorage(): void {
   damoovTelematics.logout().catch(() => {});
+  clearCachedProfile();
   clearAuthStorage();
 }
 

@@ -26,7 +26,7 @@ import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { VoiceOwnerContext } from '../../context/VoiceOwnerContext';
 import { API_BASE_URL } from '../../config';
-import { getProfile } from '../../services/profileService';
+import { useProfileStore } from '../../store/profileStore';
 
 type AssistantRouteProp = RouteProp<MainTabParamList, 'AIAssistant'>;
 
@@ -159,6 +159,8 @@ export default function AIAssistant() {
   const [userName, setUserName] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const { voiceOwner, setVoiceOwner } = React.useContext(VoiceOwnerContext);
+  const cachedProfile = useProfileStore((state) => state.profile);
+  const loadProfile = useProfileStore((state) => state.loadProfile);
 
   const [statusModal, setStatusModal] = useState({
     visible: false,
@@ -303,28 +305,32 @@ export default function AIAssistant() {
   }, [initialSessionId, initialMessage]);
 
   useEffect(() => {
+    if (cachedProfile) {
+      setUserName((cachedProfile.fullName || '').trim());
+      return;
+    }
+
     let isMounted = true;
-    getProfile()
+    loadProfile()
       .then((data) => {
-        if (!isMounted) return;
-        const name = (data.fullName || '').trim();
-        setUserName(name);
+        if (!isMounted || !data) return;
+        setUserName((data.fullName || '').trim());
       })
       .catch(() => {});
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [cachedProfile, loadProfile]);
 
   const refreshDisplayedUserName = useCallback(async () => {
     try {
-      const data = await getProfile();
-      const name = (data.fullName || '').trim();
+      const data = await loadProfile({ force: true });
+      const name = (data?.fullName || '').trim();
       setUserName(name);
     } catch {
       // no-op
     }
-  }, []);
+  }, [loadProfile]);
 
   const startVoiceRecognition = async () => {
     if (voiceStartInFlightRef.current) return;
