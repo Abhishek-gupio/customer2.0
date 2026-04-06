@@ -44,10 +44,10 @@ const FAB_SIZE = 56;
 const FAB_MARGIN = 20;
 const FAB_BOTTOM_OFFSET = 88;
 const MIN_TOP_OFFSET = 72;
-const AI_GIF_SOURCE = require('../../assets/ai.gif');
-const MIC_GIF_SOURCE = require('../../assets/mic.gif');
-const BRAIN_GIF_SOURCE = require('../../assets/brain.gif');
-const SPEAKER_GIF_SOURCE = require('../../assets/speaker.gif');
+const AI_GIF_SOURCE = require('../assets/aibot/ai.gif');
+const MIC_GIF_SOURCE = require('../assets/aibot/mic.gif');
+const BRAIN_GIF_SOURCE = require('../assets/aibot/brain.gif');
+const SPEAKER_GIF_SOURCE = require('../assets/aibot/speaker.gif');
 
 function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
