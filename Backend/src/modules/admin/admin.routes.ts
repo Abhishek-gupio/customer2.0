@@ -24,6 +24,8 @@ router.get("/stats", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController
 router.get("/customers", adminController.listCustomers);
 router.get("/tickets", adminController.listTickets);
 router.get("/vehicles", adminController.listVehicles);
+router.get("/expenses", adminController.listExpenses);
+router.get("/expenses/:id", adminController.getExpenseDetail);
 router.get("/customers/:id", adminController.getCustomerDetail);
 router.patch("/customers/:id", requireAdminRole(["SUPER_ADMIN"]), adminController.updateCustomer);
 router.delete("/customers", requireAdminRole(["SUPER_ADMIN"]), adminController.deleteCustomers);

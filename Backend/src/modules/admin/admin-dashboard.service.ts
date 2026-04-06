@@ -151,7 +151,7 @@ export const adminDashboardService = {
         where.rcVerified = false;
       }
     }
-    
+
     if (params.search?.trim()) {
       const q = `%${params.search.trim()}%`;
       where.OR = [
@@ -323,6 +323,72 @@ export const adminDashboardService = {
     };
   },
 
+  /** Fetch full expense detail for admin screen. */
+  async getExpenseDetail(expenseId: string) {
+    const exp = await (dbInstances as any).expense.findUnique({
+      where: { id: expenseId },
+      include: {
+        customer: { select: { id: true, fullName: true, phoneNumber: true, email: true, profilePic: true } },
+        vehicle: { select: { id: true, registrationNumber: true, make: true, model: true, imageUrl: true } },
+      },
+    });
+
+    if (!exp) throw AppError.notFound("Expense not found");
+
+    // Process URLs
+    if (exp.receiptUrl) exp.receiptUrl = await storageService.ensureReadableUrl(exp.receiptUrl);
+    if (exp.customer?.profilePic) exp.customer.profilePic = await storageService.ensureReadableUrl(exp.customer.profilePic);
+    if (exp.vehicle?.imageUrl) exp.vehicle.imageUrl = await storageService.ensureReadableUrl(exp.vehicle.imageUrl);
+
+    return exp;
+  },
+
+  /** List all expenses with pagination and search. */
+  async listExpenses(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (params.search?.trim()) {
+      const q = `%${params.search.trim()}%`;
+      where.OR = [
+        { category: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { customer: { fullName: { contains: q, mode: "insensitive" } } },
+      ];
+    }
+
+    const [expenses, total] = await Promise.all([
+      (dbInstances as any).expense.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { date: "desc" },
+        include: {
+          customer: { select: { id: true, fullName: true, phoneNumber: true } },
+          vehicle: { select: { id: true, registrationNumber: true } },
+        },
+      }),
+      (dbInstances as any).expense.count({ where }),
+    ]);
+
+    // Process receipt URLs
+    const processed = await Promise.all(expenses.map(async (e: any) => {
+      if (e.receiptUrl) e.receiptUrl = await storageService.ensureReadableUrl(e.receiptUrl);
+      return e;
+    }));
+
+    return {
+      data: processed,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  },
+
   async downloadDocument(documentId: string) {
     const doc = await dbInstances.vehicleDocument.findUnique({
       where: { id: documentId },
@@ -395,11 +461,11 @@ export const adminDashboardService = {
         dbInstances.customer.count(),
         dbInstances.customerVehicle.count(),
         db.expense
-          ? db.expense.aggregate({ 
-              _sum: { amount: true }, 
-              _count: true,
-              where: { date: { gte: rangeStart } }
-            }).catch(() => expenseFallback)
+          ? db.expense.aggregate({
+            _sum: { amount: true },
+            _count: true,
+            where: { date: { gte: rangeStart } }
+          }).catch(() => expenseFallback)
           : Promise.resolve(expenseFallback),
         db.supportTicket
           ? db.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }).catch(() => 0)
@@ -413,7 +479,7 @@ export const adminDashboardService = {
             where: { date: { gte: rangeStart }, amount: { gt: 1000 } },
             take: 3,
             orderBy: { date: "desc" },
-            include: { customer: { select: { fullName: true } } },
+            include: { customer: { select: { id: true, fullName: true } } },
           }).catch(() => [])
           : Promise.resolve([]),
         db.expense
@@ -479,7 +545,7 @@ export const adminDashboardService = {
     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    
+
     const rangeStart = new Date(today);
     rangeStart.setUTCDate(rangeStart.getUTCDate() - (daysToFetch - 1));
 
@@ -493,17 +559,17 @@ export const adminDashboardService = {
         where: { createdAt: { gte: rangeStart } },
         select: { createdAt: true }
       }),
-      db.expense 
+      db.expense
         ? db.expense.findMany({
-            where: { date: { gte: rangeStart } },
-            select: { date: true, amount: true }
-          }).catch(() => [])
+          where: { date: { gte: rangeStart } },
+          select: { date: true, amount: true }
+        }).catch(() => [])
         : Promise.resolve([]),
-      db.supportTicket 
+      db.supportTicket
         ? db.supportTicket.findMany({
-            where: { createdAt: { gte: rangeStart } },
-            select: { createdAt: true }
-          }).catch(() => [])
+          where: { createdAt: { gte: rangeStart } },
+          select: { createdAt: true }
+        }).catch(() => [])
         : Promise.resolve([])
     ]);
 
@@ -515,7 +581,7 @@ export const adminDashboardService = {
 
     // Pre-calculate data structures for efficiency
     const results: { date: string; label: string; customers: number; vehicles: number; expenseAmount: number; tickets: number }[] = [];
-    
+
     // Initialize day map
     const dayMap = new Map<string, { customers: number; vehicles: number; expenseAmount: number; tickets: number }>();
 
@@ -556,7 +622,7 @@ export const adminDashboardService = {
       d.setUTCDate(d.getUTCDate() + i);
       const key = formatDateKey(d);
       const stats = dayMap.get(key)!;
-      
+
       let label = dayLabels[d.getUTCDay()];
       if (daysToFetch > 7) {
         label = `${monthNames[d.getUTCMonth()]} ${d.getUTCDate()}`;

@@ -84,7 +84,7 @@ export const adminApi = {
       supportTicketsOpen: number;
       unverifiedVehiclesCount: number;
       totalCustomersToday: number;
-      recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+      recentHighExpenses: { id: string; amount: number; customer: { id: string; fullName: string }; category: string; date: string }[];
       expenseCategoryBreakdown: { category: string; amount: number; count: number }[];
       ticketPriorityDistribution: { priority: string; count: number }[];
       vehicleHealthDistribution: { critical: number; warning: number; good: number };
@@ -102,6 +102,17 @@ export const adminApi = {
     );
   },
   getCustomer: (id: string) => api<CustomerDetail>(`/v1/admin/customers/${id}`),
+  getExpense: (id: string) => api<AdminExpenseDetail>(`/v1/admin/expenses/${id}`),
+  listExpenses: (params?: { page?: number; limit?: number; search?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    const q = sp.toString();
+    return api<{ data: AdminExpenseListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/expenses${q ? `?${q}` : ''}`
+    );
+  },
   listTickets: (params?: { page?: number; limit?: number; search?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
@@ -238,6 +249,51 @@ export interface AdminVehicleAccess {
   id: string;
   role: string;
   customer: { id: string; fullName: string | null; email: string | null; phoneNumber: string };
+}
+
+export interface AdminExpenseDetail {
+  id: string;
+  amount: number;
+  category: string;
+  description: string | null;
+  date: string;
+  receiptUrl: string | null;
+  verificationStatus: string;
+  customerId: string;
+  customer?: {
+    id: string;
+    fullName: string;
+    phoneNumber: string;
+    email: string | null;
+    profilePic: string | null;
+  };
+  vehicle?: {
+    id: string;
+    registrationNumber: string;
+    make: string | null;
+    model: string | null;
+    imageUrl: string | null;
+  };
+}
+
+export interface AdminExpenseListItem {
+  id: string;
+  amount: number;
+  category: string;
+  description: string | null;
+  date: string;
+  receiptUrl: string | null;
+  verificationStatus: string;
+  customerId: string;
+  customer?: {
+    id: string;
+    fullName: string;
+    phoneNumber: string;
+  };
+  vehicle?: {
+    id: string;
+    registrationNumber: string;
+  };
 }
 
 export interface AdminChallan {

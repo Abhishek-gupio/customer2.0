@@ -158,10 +158,11 @@ const SplitText: React.FC<SplitTextProps> = ({
   const renderTag = () => {
     const style: React.CSSProperties = {
       textAlign,
-      overflow: 'hidden',
-      display: 'inline-block',
+      display: 'block',
+      width: '100%',
       whiteSpace: 'normal',
       wordWrap: 'break-word',
+      overflow: 'visible',
       willChange: 'transform, opacity'
     };
     const classes = `split-parent ${className}`;

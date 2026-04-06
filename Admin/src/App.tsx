@@ -9,6 +9,8 @@ import CustomerDetail from './pages/CustomerDetail';
 import Tickets from './pages/Tickets';
 import Vehicles from './pages/Vehicles';
 import VehicleCatalog from './pages/VehicleCatalog';
+import ExpenseDetail from './pages/ExpenseDetail';
+import Expenses from './pages/Expenses';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
 
@@ -99,6 +101,8 @@ export default function App() {
                 </RoleProtectedRoute>
               } 
             />
+            <Route path="expenses/:id" element={<ExpenseDetail />} />
+            <Route path="expenses" element={<Expenses />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
