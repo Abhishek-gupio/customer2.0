@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, useColorScheme, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  AppState,
+  Linking,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -8,14 +18,22 @@ import { store } from './src/store';
 import { setUser } from './src/store/slices/authSlice';
 import { getStoredAccessToken } from './src/services/authService';
 import {
-  clearAuthStorage,
-  getAuthPersistedAt,
   getUserId,
   hydrateAuthFromPersistedStorage,
   setUserId,
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
+import { setupNotifications } from './src/services/notification';
+import NetworkBanner from './src/components/NetworkBanner';
+
+let RNAndroidNotificationListener: any = null;
+if (Platform.OS === 'android') {
+  try {
+    RNAndroidNotificationListener =
+      (require('react-native-android-notification-listener') as any).default;
+  } catch {}
+}
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -33,38 +51,108 @@ function tryDecodeUserIdFromJwt(token: string): string | undefined {
   }
 }
 
-function AuthRestore() {
-  useEffect(() => {
-    const persistedAt = getAuthPersistedAt();
-    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-    if (persistedAt && Date.now() - persistedAt > THIRTY_DAYS_MS) {
-      clearAuthStorage();
-      return;
-    }
-    const token = getStoredAccessToken();
-    let id = getUserId();
-    if (token && !id) {
-      id = tryDecodeUserIdFromJwt(token);
-      if (id) setUserId(id);
-    }
-    if (token && id) {
-      store.dispatch(setUser({ id, email: undefined }));
-    }
-  }, []);
-  return <RootNavigator />;
+/** Run after hydrate so async-auth cache is filled; before navigator mounts so splash routing sees auth. */
+function bootstrapAuthToRedux() {
+  const token = getStoredAccessToken();
+  let id = getUserId();
+  if (token && !id) {
+    id = tryDecodeUserIdFromJwt(token);
+    if (id) setUserId(id);
+  }
+  if (token && id) {
+    store.dispatch(setUser({ id, email: undefined }));
+  }
 }
+
+const linking = {
+  prefixes: ['gupio://'],
+  config: {
+    screens: {
+      DocumentList: 'document-list',
+    },
+  },
+};
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    hydrateAuthFromPersistedStorage().finally(() => setStorageReady(true));
+    hydrateAuthFromPersistedStorage()
+      .catch(() => {
+        /* keep going; MMKV path still works */
+      })
+      .finally(() => {
+        bootstrapAuthToRedux();
+        setStorageReady(true);
+        setupNotifications().catch(err => {
+          console.error('Error during notification setup:', err);
+        });
+      });
   }, []);
+
+  useEffect(() => {
+    if (!storageReady || Platform.OS !== 'android' || !RNAndroidNotificationListener) {
+      return;
+    }
+
+    let promptShown = false;
+
+    const checkAndPromptNotificationPermission = async () => {
+      if (promptShown) return;
+      try {
+        const status = await RNAndroidNotificationListener.getPermissionStatus();
+        if (status === 'authorized') return;
+        promptShown = true;
+        Alert.alert(
+          'Enable notification access',
+          'Turn on notification access now so the app can auto-fetch your OTP from incoming messages and notifications.',
+          [
+            {
+              text: 'Not now',
+              style: 'cancel',
+              onPress: () => {
+                promptShown = false;
+              },
+            },
+            {
+              text: 'Open app settings',
+              onPress: async () => {
+                promptShown = false;
+                try {
+                  await Linking.openSettings();
+                } catch {}
+              },
+            },
+            {
+              text: 'Grant Permission',
+              onPress: () => {
+                promptShown = false;
+                RNAndroidNotificationListener.requestPermission();
+              },
+            },
+          ],
+        );
+      } catch {
+        // no-op
+      }
+    };
+
+    void checkAndPromptNotificationPermission();
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        void checkAndPromptNotificationPermission();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [storageReady]);
 
   if (!storageReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
+      <View style={styles.bootstrapLoader}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -72,13 +160,14 @@ function App() {
 
   return (
     <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.appRoot}>
+        <View style={styles.appContent}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <NavigationContainer>
+            <NetworkBanner />
+            <NavigationContainer linking={linking}>
               <VoiceOwnerProvider>
-                <AuthRestore />
+                <RootNavigator />
               </VoiceOwnerProvider>
             </NavigationContainer>
           </SafeAreaProvider>
@@ -87,5 +176,20 @@ function App() {
     </Provider>
   );
 }
+
+const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+  },
+  appContent: {
+    flex: 1,
+  },
+  bootstrapLoader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0a0a0a',
+  },
+});
 
 export default App;

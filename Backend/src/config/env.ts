@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ override: true });
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -17,12 +18,16 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v === "" ? undefined : v)),
+  REDIS_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => (v == null ? undefined : v === "true")),
   JWT_SECRET: z.string().min(1).default("dev-secret-change-in-production"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
   JWT_REFRESH_EXPIRY: z.string().default("30d"),
   ADMIN_JWT_EXPIRY: z.string().default("24h"),
   OTP_EXPIRY_SEC: z.coerce.number().default(300),
-  OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(60),
+  OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(30),
 
   // SMS Service
   SMS_SERVICE: z

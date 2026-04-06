@@ -8,8 +8,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert,
   Animated,
 } from 'react-native';
 import {
@@ -18,10 +16,14 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { signup as signupApi } from '../../services/authService';
+import { formatPhoneNumber, signup as signupApi } from '../../services/authService';
+import { getAuthErrorMessage } from '../../utils/errorHandlers';
+import { validateIndianPhone } from '../../utils/validators';
+
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 
@@ -49,15 +51,21 @@ export default function Signup() {
   };
 
   const handleSubmit = async () => {
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) {
-      setError('Enter a valid 10-digit phone number');
+    if (loading) {
       return;
     }
+
+    const validationError = validateIndianPhone(phone);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setError('');
     setLoading(true);
     try {
-      const phoneNumber = digits.length === 10 ? `+91${digits}` : phone.trim();
+      const phoneNumber = formatPhoneNumber(phone);
+      const otpRequestedAt = Date.now();
       const data = await signupApi({
         fullName: fullName.trim() || undefined,
         email: email.trim() || undefined,
@@ -65,16 +73,12 @@ export default function Signup() {
       });
       navigation.navigate('OTP', {
         phone: phoneNumber,
-        ...(data.otp && { otp: data.otp }),
         ...(typeof data.otpExpiresIn === 'number' && { otpExpiresIn: data.otpExpiresIn }),
+        ...(typeof data.otpResendIn === 'number' && { otpResendIn: data.otpResendIn }),
+        otpRequestedAt,
       });
-      if (data.otp) {
-        Alert.alert('Dev OTP', `Use this OTP: ${data.otp}`, [{ text: 'OK' }]);
-      }
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Signup failed';
-      setError(message);
-      Alert.alert('Signup failed', message);
+      setError(getAuthErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -102,9 +106,13 @@ export default function Signup() {
             placeholder="Enter full name"
             placeholderTextColor="#AAAAAA"
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={(value) => {
+              setFullName(value);
+              setError('');
+            }}
             autoCapitalize="words"
             autoCorrect={false}
+            editable={!loading}
           />
         </View>
 
@@ -115,10 +123,14 @@ export default function Signup() {
             placeholder="Enter email"
             placeholderTextColor="#AAAAAA"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(value) => {
+              setEmail(value);
+              setError('');
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            editable={!loading}
           />
         </View>
 
@@ -129,33 +141,28 @@ export default function Signup() {
             placeholder="Enter phone number"
             placeholderTextColor="#AAAAAA"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(value) => {
+              setPhone(value);
+              setError('');
+            }}
             keyboardType="phone-pad"
             autoCapitalize="none"
             autoCorrect={false}
+            editable={!loading}
           />
         </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <Animated.View style={{ width: '100%', transform: [{ scale: buttonScale }] }}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <>
-                <Text style={styles.submitText}>Submit</Text>
-                <Icon name="arrow-right" size={wp(5)} color="#000" />
-              </>
-            )}
-          </TouchableOpacity>
+          <View onTouchStart={handlePressIn} onTouchEnd={handlePressOut}>
+            <LoaderButton
+              title="Create Account"
+              loading={loading}
+              onPress={handleSubmit}
+              style={styles.submitButton}
+            />
+          </View>
         </Animated.View>
 
         <Text style={styles.footerText}>Already have an account?</Text>
@@ -167,6 +174,7 @@ export default function Signup() {
           <Text style={styles.signInText}>Sign In</Text>
         </TouchableOpacity>
       </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -239,27 +247,17 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
     backgroundColor: '#FFBF00',
     borderRadius: 18,
     height: 62,
     marginTop: hp(1.5),
     marginBottom: hp(4),
-    gap: wp(3),
     shadowColor: '#FFBF00',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
-  },
-  submitText: {
-    fontFamily: 'Outfit-Black',
-    fontSize: wp(4.5),
-    color: '#000000',
-    letterSpacing: 0,
   },
   submitButtonDisabled: {
     opacity: 0.7,

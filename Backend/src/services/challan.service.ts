@@ -61,6 +61,11 @@ export const challanService = {
       logger.info({ count: externalChallans.length }, "Discovered challans from external API");
       
       const syncedChallans = [];
+      const vehicleDetails = vehicle as typeof vehicle & {
+        ownerName?: string | null;
+        rto?: string | null;
+      };
+
       // Use owner/RTO from the first challan if available
       const first = externalChallans[0];
       const ownerName =
@@ -136,7 +141,25 @@ export const challanService = {
 
       return syncedChallans;
     } catch (error: any) {
-      logger.error({ error: error.message, vehicleId }, "Challan API call failed");
+      const code = String(error?.code ?? "");
+      const isNetworkOrDns =
+        code === "ENOTFOUND" ||
+        code === "EAI_AGAIN" ||
+        code === "ECONNREFUSED" ||
+        code === "ETIMEDOUT";
+
+      if (isNetworkOrDns) {
+        logger.warn(
+          { vehicleId, code, error: error?.message },
+          "Challan provider unavailable; returning cached/local challans",
+        );
+      } else {
+        logger.error(
+          { vehicleId, code, error: error?.message },
+          "Challan API call failed",
+        );
+      }
+
       // If API fails, return current local challans
       return this.getChallans(vehicleId);
     }
@@ -168,6 +191,69 @@ export const challanService = {
       where: { vehicleId },
       orderBy: { date: "desc" },
     });
+  },
+
+  async checkChallansByPlate(regNo: string) {
+    logger.info({ regNo }, "Checking for one-time traffic challans via plate...");
+    const payload = {
+      api_id: env.API_ID,
+      api_key: env.API_KEY,
+      token_id: env.TOKEN_ID,
+      reg_no: regNo,
+    };
+
+    try {
+      const response = await axios.post(
+        "https://javabackend.idspay.in/api/v1/prod/srv2/validation/echallan",
+        payload
+      );
+      const resData = response.data;
+      const resStatus = resData.status;
+      const isSuccess = typeof resStatus === 'string' 
+        ? resStatus === 'success' 
+        : resStatus?.type === 'success';
+
+      if (!isSuccess || !resData.data) return [];
+
+      const externalChallans = Array.isArray(resData.data.data) ? resData.data.data : [];
+      return externalChallans.map((ec: any) => ({
+        id: ec.challan_no || `TMP-${Date.now()}`,
+        challanNumber: ec.challan_no || "N/A",
+        amount: parseFloat(ec.challan_amount || ec.amount || "0"),
+        status: (ec.status || "UNPAID").toUpperCase(),
+        date: ec.challan_date || new Date(),
+        violationType: Array.isArray(ec.violation_details) 
+          ? ec.violation_details.map((v: any) => v.offence).join(" | ")
+          : ec.offence || "Traffic Violation",
+        location: ec.challan_location || "Unknown",
+        metadata: {
+            ownerName: resData.data?.owner_name || "Unknown",
+            rtoName: resData.data?.rto_name || "N/A"
+        }
+      }));
+    } catch (error: any) {
+      const code = String(error?.code ?? "");
+      const isNetworkOrDns =
+        code === "ENOTFOUND" ||
+        code === "EAI_AGAIN" ||
+        code === "ECONNREFUSED" ||
+        code === "ETIMEDOUT";
+
+      logger.error(
+        { regNo, code, message: error?.message },
+        "CheckChallansByPlate failed",
+      );
+
+      if (isNetworkOrDns) {
+        throw new AppError(
+          "Challan provider is temporarily unavailable. Please try again shortly.",
+          503,
+          "CHALLAN_PROVIDER_UNAVAILABLE",
+        );
+      }
+
+      return [];
+    }
   },
 
   async markAsPaid(challanId: string) {

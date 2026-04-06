@@ -76,4 +76,81 @@ export const customerController = {
     const data = await customerService.registerDevice(customerId, body);
     success(res, data, 201);
   }),
+
+  requestDrop: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) throw AppError.unauthorized();
+    const data = await customerService.requestDrop(
+      customerId,
+      typeof req.body?.vehicleNumber === "string" ? req.body.vehicleNumber : undefined,
+    );
+    success(res, data);
+  }),
+
+  getRequestStatus: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) throw AppError.unauthorized();
+    const data = await customerService.getRequestStatus(
+      customerId,
+      typeof req.query?.vehicleNumber === "string" ? req.query.vehicleNumber : undefined,
+    );
+    success(res, data);
+  }),
+
+  getVehicleRequestData: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) throw AppError.unauthorized();
+    const data = await customerService.getVehicleRequestData(
+      customerId,
+      typeof req.query?.vehicleNumber === "string" ? req.query.vehicleNumber : undefined,
+    );
+    success(res, data);
+  }),
+
+  cancelDropRequest: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) throw AppError.unauthorized();
+    const data = await customerService.cancelDropRequest(
+      customerId,
+      typeof req.body?.vehicleNumber === "string" ? req.body.vehicleNumber : undefined,
+    );
+    success(res, data);
+  }),
+
+  resendDropRequest: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) throw AppError.unauthorized();
+    const data = await customerService.requestDrop(
+      customerId,
+      typeof req.body?.vehicleNumber === "string" ? req.body.vehicleNumber : undefined,
+    );
+    success(res, data);
+  }),
+
+  getValetLocation: asyncHandler(async (req: Request, res: Response) => {
+    const vehicleParam = req.params.vehicleNumber;
+    const vehicleNumber =
+      typeof vehicleParam === "string" ? vehicleParam : vehicleParam?.[0];
+    if (!vehicleNumber) throw AppError.badRequest("vehicleNumber is required");
+    const data = await customerService.getValetLocation(vehicleNumber);
+    success(res, data);
+  }),
+
+  postCustomerLocation: asyncHandler(async (req: Request, res: Response) => {
+    const vehicleParam = req.params.vehicleNumber;
+    const vehicleNumber =
+      typeof vehicleParam === "string" ? vehicleParam : vehicleParam?.[0];
+    if (!vehicleNumber) throw AppError.badRequest("vehicleNumber is required");
+    const latitude = Number(req.body?.latitude);
+    const longitude = Number(req.body?.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw AppError.badRequest("Valid latitude and longitude are required");
+    }
+    const data = await customerService.upsertCustomerLocation(vehicleNumber, {
+      latitude,
+      longitude,
+      timestamp: Number(req.body?.timestamp) || undefined,
+    });
+    success(res, data);
+  }),
 };

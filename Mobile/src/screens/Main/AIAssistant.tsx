@@ -14,18 +14,19 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { MainTabParamList } from '../../navigation/types';
 import { chatService, type SSEChunk, type SuggestedAction } from '../../services/chatService';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { VoiceOwnerContext } from '../../context/VoiceOwnerContext';
 import { API_BASE_URL } from '../../config';
-import { getProfile } from '../../services/profileService';
+import { useProfileStore } from '../../store/profileStore';
 
 type AssistantRouteProp = RouteProp<MainTabParamList, 'AIAssistant'>;
 
@@ -43,6 +44,101 @@ interface UIMessage {
   timestamp: Date;
 }
 
+const VOICE_LOCALES = [
+  'kn-IN',
+  'te-IN',
+  'ta-IN',
+  'ml-IN',
+  'hi-IN',
+  'mr-IN',
+  'bn-IN',
+  'gu-IN',
+  'pa-IN',
+  'en-IN',
+  'en-US',
+  'en',
+] as const;
+
+function detectInputLocale(text: string): string {
+  if (!text) return 'en-IN';
+
+  const normalized = text.trim().toLowerCase();
+
+  if (/[\u0C80-\u0CFF]/.test(text)) return 'kn-IN';
+  if (/[\u0C00-\u0C7F]/.test(text)) return 'te-IN';
+  if (/[\u0B80-\u0BFF]/.test(text)) return 'ta-IN';
+  if (/[\u0D00-\u0D7F]/.test(text)) return 'ml-IN';
+  if (/[\u0980-\u09FF]/.test(text)) return 'bn-IN';
+  if (/[\u0A80-\u0AFF]/.test(text)) return 'gu-IN';
+  if (/[\u0A00-\u0A7F]/.test(text)) return 'pa-IN';
+  if (/[\u0900-\u097F]/.test(text)) return 'hi-IN';
+
+  if (
+    /\b(nanna|nimma|namma|nanage|nimage|yaake|yake|enu|yen|hegide|hegiddira|illi|alli|beku|beda|maadi|madi|madi|hogi|banni|baruthe|baralla|kannada)\b/.test(
+      normalized,
+    )
+  ) {
+    return 'kn-IN';
+  }
+
+  return 'en-IN';
+}
+
+function getSpeechLocaleForText(text: string): string {
+  return detectInputLocale(text);
+}
+
+function getLanguageLabel(locale: string): string {
+  if (locale.startsWith('hi')) return 'Hindi';
+  if (locale.startsWith('kn')) return 'Kannada';
+  if (locale.startsWith('te')) return 'Telugu';
+  if (locale.startsWith('ta')) return 'Tamil';
+  if (locale.startsWith('ml')) return 'Malayalam';
+  if (locale.startsWith('mr')) return 'Marathi';
+  if (locale.startsWith('bn')) return 'Bengali';
+  if (locale.startsWith('gu')) return 'Gujarati';
+  if (locale.startsWith('pa')) return 'Punjabi';
+  return 'English';
+}
+
+function buildLanguageAwarePrompt(message: string, locale: string): string {
+  const trimmed = message.trim();
+  if (!trimmed) return trimmed;
+
+  const language = getLanguageLabel(locale);
+  const scriptInstruction =
+    locale.startsWith('kn')
+      ? 'Reply only in Kannada. Do not reply in Hindi. Prefer Kannada script.'
+      : locale.startsWith('te')
+        ? 'Reply only in Telugu. Do not reply in Hindi. Prefer Telugu script.'
+        : locale.startsWith('ta')
+          ? 'Reply only in Tamil. Do not reply in Hindi. Prefer Tamil script.'
+          : locale.startsWith('ml')
+            ? 'Reply only in Malayalam. Do not reply in Hindi. Prefer Malayalam script.'
+            : locale.startsWith('hi')
+              ? 'Reply only in Hindi. Prefer Devanagari script.'
+              : `Reply only in natural ${language}.`;
+  return [
+    'System instruction: Reply in the same language used by the user.',
+    `If the user spoke in ${language}, answer in natural ${language}.`,
+    scriptInstruction,
+    'Do not translate the reply to English unless the user asks for English.',
+    '',
+    `User message: ${trimmed}`,
+  ].join('\n');
+}
+
+function looksLikeProfileUpdateCommand(message: string): boolean {
+  const text = message.trim().toLowerCase();
+  if (!text) return false;
+
+  return (
+    /(change|update|set|edit)\s+(my\s+)?name\s+(to|as)\s+/.test(text) ||
+    /\bmy\s+name\s+(is|should\s+be)\s+/.test(text) ||
+    /\bcall\s+me\s+/.test(text)
+  );
+}
+
 export default function AIAssistant() {
   const navigation = useNavigation();
   const rootNavigation = (navigation as any).getParent?.() ?? navigation;
@@ -53,7 +149,7 @@ export default function AIAssistant() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [playingVoiceUrl, setPlayingVoiceUrl] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -63,10 +159,49 @@ export default function AIAssistant() {
   const [userName, setUserName] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const { voiceOwner, setVoiceOwner } = React.useContext(VoiceOwnerContext);
+  const cachedProfile = useProfileStore((state) => state.profile);
+  const loadProfile = useProfileStore((state) => state.loadProfile);
+
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
   const lastRouteRef = useRef<{ sessionId?: string; userMessage?: string } | null>(null);
   const isLocalSession = sessionId?.startsWith('local-');
   const wantsListeningRef = useRef(false);
   const voiceRetryRef = useRef(0);
+  const voiceStartInFlightRef = useRef(false);
+  const lastInputLocaleRef = useRef<string>('en-IN');
+  const activeVoiceLocaleRef = useRef<string>('en-IN');
+
+  const releaseChatMic = useCallback(() => {
+    wantsListeningRef.current = false;
+    voiceRetryRef.current = 0;
+    voiceStartInFlightRef.current = false;
+    setIsListening(false);
+    setVoiceOwner(null);
+    (Voice as any).cancel?.().catch(() => {});
+    (Voice as any).stop?.().catch(() => {});
+  }, [setVoiceOwner]);
+
+  const takeChatMicOwnership = useCallback(async () => {
+    wantsListeningRef.current = false;
+    voiceRetryRef.current = 0;
+    voiceStartInFlightRef.current = false;
+    setIsListening(false);
+    setVoiceOwner('chat');
+    await (Voice as any).cancel?.().catch(() => {});
+    await (Voice as any).stop?.().catch(() => {});
+    if (typeof (Voice as any)?.destroy === 'function') {
+      await (Voice as any).destroy().catch(() => {});
+    }
+  }, [setVoiceOwner]);
 
   const [quickExpenseVisible, setQuickExpenseVisible] = useState(false);
   const [quickExpenseAmount, setQuickExpenseAmount] = useState('');
@@ -112,48 +247,39 @@ export default function AIAssistant() {
     [],
   );
 
-  const quickPrompts = useMemo(
-    () => [
-      'Add an expense for fuel',
-      'Show upcoming service reminders',
-      'How can I upload insurance docs?',
-      'Summarize this month’s vehicle costs',
-    ],
-    [],
-  );
   const assistantCards = useMemo(
     () => [
       {
-        title: 'Vehicle Health',
-        subtitle: 'Check my car',
-        icon: 'car-sport-outline',
-        prompt: 'Check vehicle health',
-      },
-      {
-        title: 'Insurance Status',
-        subtitle: 'Policy details',
-        icon: 'shield-checkmark-outline',
-        prompt: 'Show my insurance status',
-      },
-      {
-        title: 'Monthly Expenses',
-        subtitle: 'Spending report',
+        title: 'Expenses',
+        subtitle: 'Track spending',
         icon: 'cash-outline',
-        prompt: 'Show monthly expenses',
+        prompt: 'Show my monthly expenses',
       },
       {
-        title: 'Schedule Service',
-        subtitle: 'Book service',
-        icon: 'construct-outline',
-        prompt: 'Schedule a service for my vehicle',
+        title: 'Documents',
+        subtitle: 'RC, PUC, insurance',
+        icon: 'shield-checkmark-outline',
+        prompt: 'Show my document status',
+      },
+      {
+        title: 'Reminders',
+        subtitle: 'Service and renewals',
+        icon: 'notifications-outline',
+        prompt: 'Show upcoming service reminders',
+      },
+      {
+        title: 'Support',
+        subtitle: 'Need help',
+        icon: 'help-buoy-outline',
+        prompt: 'I need help or support',
       },
     ],
     [],
   );
 
   const canSend = useMemo(
-    () => message.trim().length > 0 && !isLoading && !isStreaming,
-    [message, isLoading, isStreaming],
+    () => message.trim().length > 0 && !isStreaming,
+    [message, isStreaming],
   );
 
   useEffect(() => {
@@ -179,28 +305,67 @@ export default function AIAssistant() {
   }, [initialSessionId, initialMessage]);
 
   useEffect(() => {
+    if (cachedProfile) {
+      setUserName((cachedProfile.fullName || '').trim());
+      return;
+    }
+
     let isMounted = true;
-    getProfile()
+    loadProfile()
       .then((data) => {
-        if (!isMounted) return;
-        const name = (data.fullName || '').trim();
-        setUserName(name);
+        if (!isMounted || !data) return;
+        setUserName((data.fullName || '').trim());
       })
       .catch(() => {});
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [cachedProfile, loadProfile]);
+
+  const refreshDisplayedUserName = useCallback(async () => {
+    try {
+      const data = await loadProfile({ force: true });
+      const name = (data?.fullName || '').trim();
+      setUserName(name);
+    } catch {
+      // no-op
+    }
+  }, [loadProfile]);
 
   const startVoiceRecognition = async () => {
+    if (voiceStartInFlightRef.current) return;
+    voiceStartInFlightRef.current = true;
     try {
-      await Voice.start('en-IN');
-    } catch {
       try {
-        await Voice.start('en-US');
-      } catch {
-        await Voice.start('en');
+        await (Voice as any).cancel?.().catch(() => {});
+        if (typeof (Voice as any).destroy === 'function') {
+          await (Voice as any).destroy().catch(() => {});
+        }
+      } catch {}
+
+      const localeIndex = Math.min(voiceRetryRef.current, VOICE_LOCALES.length - 1);
+      const fallbackLocales = [
+        VOICE_LOCALES[localeIndex],
+        ...VOICE_LOCALES.filter((_, index) => index !== localeIndex),
+      ];
+
+      let started = false;
+      for (const locale of fallbackLocales) {
+        try {
+          await (Voice as any).start(locale);
+          activeVoiceLocaleRef.current = locale;
+          started = true;
+          break;
+        } catch {
+          continue;
+        }
       }
+
+      if (!started) {
+        throw new Error('Voice recognition failed to start.');
+      }
+    } finally {
+      voiceStartInFlightRef.current = false;
     }
   };
 
@@ -210,18 +375,32 @@ export default function AIAssistant() {
       return;
     }
 
-    Voice.onSpeechStart = () => setIsListening(true);
+    Voice.onSpeechStart = () => {
+      voiceRetryRef.current = 0;
+      setIsListening(true);
+    };
     Voice.onSpeechEnd = () => setIsListening(false);
     Voice.onSpeechResults = (e: { value?: string[] }) => {
       const text = e?.value?.[0]?.trim();
+      if (text) {
+        const detectedLocale = detectInputLocale(text);
+        const activeLocale = activeVoiceLocaleRef.current;
+        lastInputLocaleRef.current =
+          activeLocale && !activeLocale.startsWith('en')
+            ? activeLocale
+            : detectedLocale === 'en-IN'
+              ? activeLocale
+              : detectedLocale;
+      }
       if (text) setMessage(text);
+      releaseChatMic();
     };
     (Voice as any).onSpeechError = (e: any) => {
+      voiceStartInFlightRef.current = false;
       const code = e?.error?.code ?? e?.code;
-      const message = e?.error?.message || e?.message || 'Voice recognition failed.';
       const nonFatalCodes = new Set([5, 6, 7, 8, 9, 11]);
       if (nonFatalCodes.has(Number(code)) && wantsListeningRef.current) {
-        if (voiceRetryRef.current < 2) {
+        if (voiceRetryRef.current < VOICE_LOCALES.length - 1) {
           voiceRetryRef.current += 1;
           setTimeout(() => {
             if (!wantsListeningRef.current) return;
@@ -233,39 +412,51 @@ export default function AIAssistant() {
       setIsListening(false);
       setVoiceOwner(null);
       wantsListeningRef.current = false;
-      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
     };
 
     return () => {
-      Voice.stop?.().catch(() => {});
-      if (typeof Voice?.destroy === 'function') {
-        Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => {});
+      releaseChatMic();
+      if (typeof (Voice as any)?.destroy === 'function') {
+        (Voice as any).destroy().then(() => (Voice as any).removeAllListeners?.()).catch(() => {});
       } else {
-        Voice.removeAllListeners?.();
+        (Voice as any).removeAllListeners?.();
       }
-      setVoiceOwner(null);
     };
-  }, [setVoiceOwner]);
+  }, [releaseChatMic, setVoiceOwner]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      takeChatMicOwnership().catch(() => {});
+      return () => {
+        releaseChatMic();
+      };
+    }, [releaseChatMic, takeChatMicOwnership]),
+  );
 
   useEffect(() => {
     let isMounted = true;
-    Tts.setDucking(true);
-    Tts.setDefaultRate(0.5, true);
-    Tts.setDefaultPitch(1.05);
+    try {
+      Tts.setDefaultRate(0.5);
+      Tts.setDefaultPitch(1.05);
+    } catch (e) {
+      console.warn('TTS defaults error:', e);
+    }
     Tts.getInitStatus()
       .then(() => {
         if (!isMounted) return;
         setTtsReady(true);
-        Tts.setDefaultLanguage('en-US').catch(() => {});
+        Tts.setDefaultLanguage('en-IN').catch(() => {});
+        // Tts.setDucking(true); // Temporarily disabling due to iOS bridge error with Objective-C BOOL
       })
-      .catch(() => {
+      .catch((err) => {
         if (!isMounted) return;
+        console.warn('TTS init error:', err);
         setTtsReady(false);
       });
 
     return () => {
       isMounted = false;
-      Tts.stop();
+      try { Tts.stop(); } catch (e) {}
     };
   }, []);
 
@@ -278,9 +469,9 @@ export default function AIAssistant() {
     const errorSub = Tts.addEventListener('tts-error', onError);
 
     return () => {
-      finishSub.remove();
-      cancelSub.remove();
-      errorSub.remove();
+      (finishSub as any)?.remove?.();
+      (cancelSub as any)?.remove?.();
+      (errorSub as any)?.remove?.();
     };
   }, []);
 
@@ -298,46 +489,38 @@ export default function AIAssistant() {
 
   const toggleListening = async () => {
     if (!voiceAvailable) {
-      Alert.alert('Mic Unavailable', "Voice input isn't available on this device.");
+      showStatus('Mic Unavailable', "Voice input isn't available on this device.", "error");
       return;
     }
     if (voiceOwner && voiceOwner !== 'chat') {
-      Alert.alert('Mic In Use', 'Another feature is using the microphone right now.');
+      showStatus('Mic In Use', 'Another feature is using the microphone right now.', "error");
       return;
     }
     const allowed = await ensureMicPermission();
     if (!allowed) {
-      Alert.alert('Mic Permission', 'Please enable microphone permission in settings.');
+      showStatus('Mic Permission', 'Please enable microphone permission in settings.', "error");
       return;
     }
     try {
       if (isListening) {
-        wantsListeningRef.current = false;
-        voiceRetryRef.current = 0;
-        await Voice.stop();
-        setIsListening(false);
-        setVoiceOwner(null);
+        await (Voice as any).stop?.().catch(() => {});
+        releaseChatMic();
       } else {
+        if (voiceStartInFlightRef.current) return;
         wantsListeningRef.current = true;
         voiceRetryRef.current = 0;
         setVoiceOwner('chat' as any);
-        await Voice.cancel().catch(() => {});
         await startVoiceRecognition();
       }
-    } catch (e: any) {
-      setIsListening(false);
-      setVoiceOwner(null);
-      wantsListeningRef.current = false;
-      voiceRetryRef.current = 0;
-      const code = e?.error?.code ?? e?.code;
-      const message = e?.error?.message || e?.message || 'Unable to start microphone.';
-      Alert.alert('Voice Error', code ? `${message} (code ${code})` : message);
+    } catch {
+      releaseChatMic();
+      return;
     }
   };
 
   const loadHistory = async (sid: string) => {
     try {
-      setIsLoading(true);
+      setIsHistoryLoading(true);
       const history = await chatService.getHistory(sid);
       const uiMessages: UIMessage[] = history.messages.map((m) => ({
         id: m.id,
@@ -354,7 +537,7 @@ export default function AIAssistant() {
     } catch (error) {
       console.error('Failed to load history:', error);
     } finally {
-      setIsLoading(false);
+      setIsHistoryLoading(false);
     }
   };
 
@@ -368,7 +551,6 @@ export default function AIAssistant() {
 
   const getLocalBotReply = (prompt: string) => {
     const text = prompt.toLowerCase();
-    const has = (k: string) => text.includes(k);
     const any = (list: string[]) => list.some((k) => text.includes(k));
 
     if (any(['engine light', 'check engine', 'mil'])) {
@@ -472,8 +654,16 @@ export default function AIAssistant() {
   };
 
   const handleSend = async (text?: string) => {
+    if (isListening || voiceOwner === 'chat') {
+      releaseChatMic();
+    }
     const messageText = (text || message).trim();
     if (!messageText) return;
+    const effectiveLocale =
+      text && text !== message
+        ? detectInputLocale(messageText)
+        : lastInputLocaleRef.current || detectInputLocale(messageText);
+    const languageAwareMessage = buildLanguageAwarePrompt(messageText, effectiveLocale);
 
     const userMsg: UIMessage = {
       id: `user-${Date.now()}`,
@@ -504,14 +694,21 @@ export default function AIAssistant() {
       if (fallbackAttempted) return;
       fallbackAttempted = true;
       try {
-        const response = await chatService.sendMessage(messageText, sessionId);
+        const response = await chatService.sendMessage(languageAwareMessage, sessionId);
+        const profileUpdated = Array.isArray(response.toolResults)
+          ? response.toolResults.some((item: any) => item?.kind === 'profile_updated')
+          : false;
+        const safeResponseMessage =
+          looksLikeProfileUpdateCommand(messageText) && !profileUpdated
+            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+            : response.message;
         setSessionId(response.sessionId);
         setMessages((prev) =>
           prev.map((m) =>
             m.id === botMsgId
               ? {
                   ...m,
-                  text: response.message,
+                  text: safeResponseMessage,
                   isStreaming: false,
                   voiceUrl: response.voiceUrl,
                   toolResults: response.toolResults,
@@ -521,6 +718,9 @@ export default function AIAssistant() {
               : m,
           ),
         );
+        if (profileUpdated) {
+          refreshDisplayedUserName().catch(() => {});
+        }
       } catch {
         if (!sessionId) setSessionId(`local-${Date.now()}`);
         await streamLocalReply(botMsgId, getLocalBotReply(messageText));
@@ -537,7 +737,7 @@ export default function AIAssistant() {
       }
 
       await chatService.sendMessageStream(
-        messageText,
+        languageAwareMessage,
         sessionId,
         async (chunk: SSEChunk) => {
           switch (chunk.type) {
@@ -592,11 +792,19 @@ export default function AIAssistant() {
               break;
 
             case 'done':
+              if (Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated')) {
+                refreshDisplayedUserName().catch(() => {});
+              }
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === botMsgId
                     ? {
                         ...m,
+                        text:
+                          looksLikeProfileUpdateCommand(messageText) &&
+                          !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated'))
+                            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+                            : m.text,
                         isStreaming: false,
                         voiceUrl: chunk.voiceUrl,
                         toolResults: chunk.toolResults || m.toolResults,
@@ -635,7 +843,7 @@ export default function AIAssistant() {
     }
     if (text && text.trim().length > 0) {
       if (!ttsReady) {
-        Alert.alert('Voice Unavailable', 'Text-to-speech is not ready on this device.');
+        showStatus('Voice Unavailable', 'Text-to-speech is not ready on this device.', 'error');
         return;
       }
       if (ttsSpeakingId === msgId) {
@@ -645,9 +853,17 @@ export default function AIAssistant() {
       }
       Tts.stop();
       setTtsSpeakingId(msgId);
+      const detectedSpeechLocale = getSpeechLocaleForText(text);
+      const preferredSpeechLocale =
+        detectedSpeechLocale === 'en-IN' && lastInputLocaleRef.current !== 'en-IN'
+          ? lastInputLocaleRef.current
+          : detectedSpeechLocale;
+      Tts.setDefaultLanguage(preferredSpeechLocale).catch(() => {
+        Tts.setDefaultLanguage(lastInputLocaleRef.current).catch(() => {});
+      });
       Tts.speak(text);
     } else {
-      Alert.alert('No Audio', 'Audio is not available for this message.');
+      showStatus('No Audio', 'Audio is not available for this message.', 'error');
     }
   };
 
@@ -682,37 +898,34 @@ export default function AIAssistant() {
     Support: 'help-buoy-outline',
   };
 
-  const onActionChipPress = useCallback(
-    (action: SuggestedAction) => {
-      if (isLoading || isStreaming) return;
-      if (action.label === 'Log expense') {
-        setQuickExpenseAmount('');
-        setQuickExpenseCategory('FUEL');
-        setQuickExpenseVisible(true);
-      } else {
-        handleSend(action.prompt);
-      }
-    },
-    [isLoading, isStreaming],
-  );
+  const onActionChipPress = (action: SuggestedAction) => {
+    if (isStreaming) return;
+    if (action.label === 'Log expense') {
+      setQuickExpenseAmount('');
+      setQuickExpenseCategory('FUEL');
+      setQuickExpenseVisible(true);
+    } else {
+      handleSend(action.prompt);
+    }
+  };
 
-  const submitQuickExpense = useCallback(() => {
+  const submitQuickExpense = () => {
     const amount = quickExpenseAmount.trim().replace(/[^0-9.]/g, '');
     if (!amount || Number.isNaN(Number(amount))) {
-      Alert.alert('Invalid amount', 'Please enter a valid number.');
+      showStatus('Invalid amount', 'Please enter a valid number.', 'error');
       return;
     }
     const prompt = `Add an expense of ₹${amount} for ${quickExpenseCategory}`;
     setQuickExpenseVisible(false);
     setQuickExpenseAmount('');
     handleSend(prompt);
-  }, [quickExpenseAmount, quickExpenseCategory]);
+  };
 
   const renderMessage = ({ item }: { item: UIMessage }) => {
     const isUser = item.sender === 'user';
     const isBot = item.sender === 'bot';
     const actionChips =
-      item.suggestedActions?.length > 0
+      (item.suggestedActions && item.suggestedActions.length > 0)
         ? item.suggestedActions
         : orderActionsByRelevance(DEFAULT_ACTIONS, item.text);
 
@@ -742,7 +955,7 @@ export default function AIAssistant() {
           {item.agentSteps && item.agentSteps.length > 0 && (
             <View style={styles.toolBadge}>
               <Ionicons name="git-branch-outline" size={12} color="#65d9a5" />
-              <Text style={[styles.toolBadgeText, { color: '#65d9a5' }]}>
+              <Text style={[styles.toolBadgeText, styles.toolBadgeTextSuccess]}>
                 {item.agentSteps.length} reasoning step{item.agentSteps.length > 1 ? 's' : ''}
               </Text>
             </View>
@@ -755,9 +968,9 @@ export default function AIAssistant() {
                   <Pressable
                     key={action.label}
                     onPress={() => onActionChipPress(action)}
-                    style={[styles.actionChip, (isLoading || isStreaming) && styles.actionChipDisabled]}
+                    style={[styles.actionChip, isStreaming && styles.actionChipDisabled]}
                     hitSlop={6}
-                    disabled={isLoading || isStreaming}
+                    disabled={isStreaming}
                     accessibilityLabel={action.label}
                     accessibilityHint={`Asks AI: ${action.prompt}`}
                   >
@@ -825,20 +1038,20 @@ export default function AIAssistant() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.headerBtn}>
+            <Ionicons name="arrow-back-outline" size={22} color="#9fb3ff" />
+          </Pressable>
         <View style={styles.headerCenter}>
           <Ionicons name="sparkles" size={18} color="#9fb3ff" />
           <Text style={styles.headerTitle}>Gupio AI</Text>
         </View>
         <View style={styles.headerActions}>
-          <Pressable onPress={handleNewChat} hitSlop={12} style={styles.headerBtn}>
-            <Ionicons name="add" size={20} color="#9fb3ff" />
-          </Pressable>
           <Pressable
             onPress={() => (rootNavigation as any).navigate('ChatSessions')}
             hitSlop={12}
             style={styles.headerBtn}
           >
-            <Ionicons name="chatbubbles-outline" size={22} color="#7a8599" />
+            <Ionicons name="time-outline" size={22} color="#9fb3ff" />
           </Pressable>
         </View>
       </View>
@@ -848,6 +1061,12 @@ export default function AIAssistant() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
+        {isHistoryLoading && (
+          <View style={styles.historyLoadingBar}>
+            <ActivityIndicator size="small" color="#9fb3ff" />
+            <Text style={styles.historyLoadingText}>Loading conversation...</Text>
+          </View>
+        )}
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -859,7 +1078,7 @@ export default function AIAssistant() {
           renderItem={renderMessage}
           onContentSizeChange={scrollToBottom}
           ListEmptyComponent={
-            isLoading ? (
+            isHistoryLoading ? (
               <View style={styles.emptyContainer}>
                 <ActivityIndicator color="#9fb3ff" size="large" />
                 <Text>Loading conversation...</Text>
@@ -867,17 +1086,10 @@ export default function AIAssistant() {
             ) : (
               <View style={styles.emptyContainer}>
                       <FastImage
-                        source={require('../../assets/images/giphy.gif') as any}
+                        source={require('../../assets/images/index.gif') as any}
                         style={styles.gif}
-                        resizeMode={FastImage.resizeMode.contain}
+                        resizeMode="contain"
                       />
-                {/* <View style={styles.heroOrb}>
-                  <View style={styles.heroRingOuter}>
-                    <View style={styles.heroRingInner}>
-                      <View style={styles.heroCore} />
-                    </View>
-                  </View>
-                </View> */}
                 <Text style={styles.heroGreeting}>
                   {userName ? `Hello ${userName} !` : 'Hello there'}
                 </Text>
@@ -897,38 +1109,10 @@ export default function AIAssistant() {
                     </Pressable>
                   ))}
                 </View>
-                <View style={styles.promptRow}>
-                  {quickPrompts.map((prompt) => (
-                    <Pressable
-                      key={prompt}
-                      onPress={() => handleSend(prompt)}
-                      style={styles.promptChip}
-                    >
-                      <Text style={styles.promptChipText}>{prompt}</Text>
-                    </Pressable>
-                  ))}
-                </View>
               </View>
             )
           }
         />
-
-        <View style={styles.inputBar}>
-          <View style={styles.inputTopRow}>
-            <Text style={styles.inputHint}>
-              {isListening ? 'Listening… speak now' : 'Type or use voice to chat'}
-            </Text>
-            <View style={[styles.voicePill, isListening && styles.voicePillActive]}>
-              <Ionicons
-                name={isListening ? 'mic' : 'mic-outline'}
-                size={12}
-                color={isListening ? '#061018' : '#9fb3ff'}
-              />
-              <Text style={[styles.voicePillText, isListening && styles.voicePillTextActive]}>
-                {isListening ? 'Voice On' : 'Voice'}
-              </Text>
-            </View>
-          </View>
           <View style={styles.inputContainer}>
             <TextInput
               value={message}
@@ -969,7 +1153,7 @@ export default function AIAssistant() {
               )}
             </Pressable>
           </View>
-        </View>
+        {/* </View> */}
       </KeyboardAvoidingView>
 
       <Modal
@@ -1037,6 +1221,14 @@ export default function AIAssistant() {
           onError={() => setPlayingVoiceUrl(null)}
         />
       ) : null}
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -1044,8 +1236,7 @@ export default function AIAssistant() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#101010',
-    // paddingBottom: 45,
+    backgroundColor: '#000000',
     paddingTop: 24,
   },
   flex: { flex: 1 },
@@ -1060,7 +1251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 9,
     paddingTop:5,
     paddingVertical: 5,
     borderBottomWidth: 1,
@@ -1081,14 +1272,26 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '700',
+  },
+  historyLoadingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#0a1324',
+    borderBottomWidth: 1,
+    borderBottomColor: '#111b2e',
+  },
+  historyLoadingText: {
+    color: '#9fb3ff',
+    fontSize: 12,
   },
 
   listContent: {
     paddingHorizontal: 12,
-    // paddingTop: 12,
-    // paddingBottom: 15,
     flexGrow: 1,
   },
   messageBubbleRow: {
@@ -1154,6 +1357,9 @@ const styles = StyleSheet.create({
   toolBadgeText: {
     color: '#9fb3ff',
     fontSize: 12,
+  },
+  toolBadgeTextSuccess: {
+    color: '#65d9a5',
   },
 
   actionChipsRow: {
@@ -1285,50 +1491,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: -6,
-    // paddingHorizontal: 24,
-  },
-  heroOrb: {
-    width: 180,
-    height: 180,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  heroRingOuter: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: '#151b2a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 12,
-  },
-  heroRingInner: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: '#1a2336',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#23304d',
-  },
-  heroCore: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
-    backgroundColor: '#7b879f',
-    opacity: 0.9,
   },
   heroGreeting: {
-    color: '#6f7b93',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap:5,
     fontSize: 14,
-    // marginTop: 1,
   },
   heroTitle: {
     color: '#ffffff',
@@ -1347,7 +1515,8 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '48%',
-    backgroundColor: '#0e1628',
+    backgroundColor: '#060d1b',
+    // backgroundColor: 'rgb(18, 18, 23)',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1400,7 +1569,6 @@ const styles = StyleSheet.create({
 
   inputBar: {
     paddingHorizontal: 12,
-    // paddingBottom: 8,
     paddingTop: 4,
     borderTopWidth: 1,
     borderTopColor: '#464d5f',
@@ -1445,22 +1613,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#0d1a30',
     borderRadius: 24,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#464d5f',
-    // paddingBottom:25,
     justifyContent:'center',
-    // alignItems: 'center',
+    marginHorizontal:12,
   },
   input: {
     flex: 1,
     color: '#fff',
     fontSize: 15,
-    // maxHeight: 10,
-    // minHeight: 36,
     marginRight: 8,
     paddingVertical: 4,
+    paddingHorizontal:6,
   },
   sendBtn: {
     width: 34,
@@ -1487,5 +1653,6 @@ const styles = StyleSheet.create({
     gif: {
     width: 200,
     height: 200,
+    top:-20
   },
 });

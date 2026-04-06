@@ -13,6 +13,44 @@ import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
 
 const db = dbInstances as any;
 
+// Debug logging for AI tool-call path analysis.
+// #region agent log
+const DEBUG_LOG_ENDPOINT =
+  "http://127.0.0.1:7317/ingest/c1ee2c59-97af-43c3-b8e6-f54db6b420fe";
+const DEBUG_SESSION_ID = "3a03a4";
+function debugLog(
+  location: string,
+  hypothesisId: string,
+  message: string,
+  data: Record<string, unknown>,
+) {
+  try {
+    const _fetch = (globalThis as any).fetch as
+      | ((url: string, init: any) => Promise<any>)
+      | undefined;
+    if (!_fetch) return;
+    _fetch(DEBUG_LOG_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": DEBUG_SESSION_ID,
+      },
+      body: JSON.stringify({
+        sessionId: DEBUG_SESSION_ID,
+        runId: "ai-doc-access-debug",
+        hypothesisId,
+        location,
+        message,
+        data,
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  } catch {
+    // ignore debug failures
+  }
+}
+// #endregion
+
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
   : null;
@@ -27,25 +65,26 @@ let activeCache: { name: string; expiry: number } | null = null;
 // Suggested actions derived from assistant response (for action chips in app)
 // ============================================================================
 const DEFAULT_ACTIONS: { label: string; prompt: string }[] = [
-  { label: "Log expense", prompt: "Add an expense for my vehicle" },
-  { label: "Set reminder", prompt: "Set a reminder for my vehicle" },
-  { label: "Documents", prompt: "Show my document status" },
-  { label: "Support", prompt: "I need help or support" },
+  { label: "Vehicle Assistant", prompt: "Vehicle Assistant" },
+  { label: "Expense Analysis", prompt: "Expense Analysis" },
+  { label: "My Support Tickets", prompt: "My Support Tickets" },
+  { label: "App Services & SOS", prompt: "App Services & SOS" },
 ];
 
 function getSuggestedActionsFromText(text: string): { label: string; prompt: string }[] {
   if (!text || typeof text !== "string") return DEFAULT_ACTIONS;
   const lower = text.toLowerCase();
   const score: Record<string, number> = {
-    "Log expense": 0,
-    "Set reminder": 0,
-    Documents: 0,
-    Support: 0,
+    "Vehicle Assistant": 0,
+    "Expense Analysis": 0,
+    "My Support Tickets": 0,
+    "App Services & SOS": 0,
   };
-  if (/\b(expense|fuel|spend|cost|toll|rupee|₹|inr)\b/.test(lower)) score["Log expense"] += 2;
-  if (/\b(document|insurance|rc|puc|expir|renew|upload)\b/.test(lower)) score["Documents"] += 2;
-  if (/\b(remind|service|due|schedule|maintenance)\b/.test(lower)) score["Set reminder"] += 2;
-  if (/\b(help|support|issue|problem|contact)\b/.test(lower)) score["Support"] += 2;
+  if (/\b(car|health|mileage|service|parts|odometer|engine|tyre|tire|oil)\b/.test(lower)) score["Vehicle Assistant"] += 2;
+  if (/\b(expense|spend|cost|budget|savings|report|fuel|toll|rupee|₹|inr)\b/.test(lower)) score["Expense Analysis"] += 2;
+  if (/\b(ticket|issue|complaint|status|bug|error|problem|support|help request)\b/.test(lower)) score["My Support Tickets"] += 2;
+  if (/\b(emergency|help|accident|breakdown|stuck|sos|valet|digilocker|rewards)\b/.test(lower)) score["App Services & SOS"] += 2;
+  
   const sorted = (Object.entries(score) as [keyof typeof score, number][])
     .filter(([, v]) => v > 0)
     .sort((a, b) => b[1] - a[1])
@@ -55,15 +94,232 @@ function getSuggestedActionsFromText(text: string): { label: string; prompt: str
   return [...sorted, ...rest].slice(0, 4);
 }
 
+/** Suggested action chip; optional in-app navigation (mobile reads `navigate`). */
+export type AISuggestedAction = {
+  label: string;
+  prompt: string;
+  navigate?: { screen: string; params?: Record<string, unknown> };
+};
+
+function buildNavigationActionsFromToolResults(
+  toolResults: any[] | undefined,
+): AISuggestedAction[] {
+  if (!toolResults?.length) return [];
+  const out: AISuggestedAction[] = [];
+  const add = (a: AISuggestedAction) => {
+    if (out.some((x) => x.label === a.label && !x.navigate && !a.navigate)) return;
+    if (
+      a.navigate &&
+      out.some(
+        (x) =>
+          x.navigate?.screen === a.navigate?.screen &&
+          JSON.stringify(x.navigate?.params) === JSON.stringify(a.navigate?.params),
+      )
+    ) {
+      return;
+    }
+    out.push(a);
+  };
+
+  for (const tr of toolResults) {
+    const tool = tr.tool;
+    const res = tr.result;
+    if (!res || res.success === false) continue;
+
+    if (tool === "get_challans" && res.vehicle?.id && !res.summary) {
+      add({
+        label: "Open challans",
+        prompt: `Open challans for ${res.vehicle.registrationNumber}`,
+        navigate: {
+          screen: "Challans",
+          params: { vehicle: res.vehicle },
+        },
+      });
+    }
+    if (tool === "get_challans" && res.summary) {
+      add({
+        label: "My Garage",
+        prompt: "Open my vehicle list",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "sync_challans" && res.vehicle?.id) {
+      add({
+        label: "Open challans",
+        prompt: `Open challans for ${res.vehicle.registrationNumber}`,
+        navigate: {
+          screen: "Challans",
+          params: { vehicle: res.vehicle },
+        },
+      });
+    }
+    if (tool === "get_driving_trips_summary" && res.success && res.vehicleId) {
+      add({
+        label: "Driving summary",
+        prompt: "Show my driving summary",
+        navigate: { screen: "DrivingSummary" },
+      });
+    }
+    if (tool === "get_service_history" && res.success && res.vehicle?.id) {
+      add({
+        label: "Service history",
+        prompt: "Open service history",
+        navigate: { screen: "ServiceHistory" },
+      });
+    }
+    if (tool === "get_upcoming_service_parts" && res.success && res.vehicle?.id) {
+      add({
+        label: "Warranty & parts",
+        prompt: "Open warranty and parts status",
+        navigate: { screen: "WarrantyStatus" },
+      });
+    }
+    if (tool === "add_vehicle_to_garage" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "remove_vehicle_from_garage" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "get_expenses_summary" && res.success) {
+      add({
+        label: "Expenses",
+        prompt: "Open expenses",
+        navigate: { screen: "Expenses" },
+      });
+    }
+  }
+  return out;
+}
+
+function mergeSuggestedActionsWithNavigation(
+  textActions: { label: string; prompt: string }[],
+  toolResults: any[] | undefined,
+): AISuggestedAction[] {
+  const nav = buildNavigationActionsFromToolResults(toolResults);
+  const merged: AISuggestedAction[] = [
+    ...nav,
+    ...(textActions || []).map((a) => ({ label: a.label, prompt: a.prompt })),
+  ];
+  const seen = new Set<string>();
+  const deduped: AISuggestedAction[] = [];
+  for (const a of merged) {
+    const key = a.navigate
+      ? `nav:${a.navigate.screen}:${JSON.stringify(a.navigate.params ?? {})}`
+      : `lbl:${a.label}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(a);
+  }
+  return deduped.slice(0, 8);
+}
+
 // ============================================================================
 // SYSTEM PROMPT — Enhanced with agent capabilities
 // ============================================================================
-const SYSTEM_PROMPT = `You are an intelligent automotive assistant for 'Gupio'.
-Always reply in the user's language. Be concise and proactive.
-When the user asks a compound question requiring multiple actions, call each relevant tool.
-When reasoning about complex queries, think step by step.
-If you call a tool, wait for the result before responding.
-If the user uploads an image (receipt, document, damage photo), analyze it and extract all relevant information.`;
+// ============================================================================
+// SYSTEM PROMPT — Gupio AI Support System Framework
+// ============================================================================
+const SYSTEM_PROMPT = `
+MASTER SYSTEM CONTEXT:
+You are Gupio AI, an intelligent support assistant for vehicle management and user services. You operate in 4 specialized modes based on user selection or intent. Always access user context (name, vehicle details, history) before responding.
+
+CORE PRINCIPLES FOR ALL MODES:
+- Address user by name (available in [USER PROFILE] context)
+- Be concise, specific, and action-oriented.
+- **SKIP PREAMBLES**: Do not say "I understand" or "I am analyzing." Go straight to the answer/action.
+- **NO BROAD ANALYSIS**: Do not describe what you are doing. Simply provide the "user-friendly understandable details" the user needs.
+- Confirm before executing actions (tool calls)
+- Provide timelines and reference numbers for tickets/services
+- Escalate when: user frustrated (2+ times), issue unresolved after 3 attempts, emergency detected
+- End with: "Is there anything else I can help you with?"
+- NEVER guess, make false promises, or share others' data
+
+=====================================================
+MODE 1: VEHICLE ASSISTANT 🚗
+=====================================================
+TRIGGER: User selects "Vehicle Assistant" or asks about car health, mileage, service, or parts.
+CONTEXT ACCESS: [MY GARAGE / VEHICLES], [RECENT EXPENSES], [PENDING ALERTS]
+CAPABILITIES:
+1. My Garage / fleet: User phrases like "my garage", "what's in my garage", "how many cars" → ALWAYS call 'list_my_vehicles' first (then 'get_vehicle_status' if they want health/odometer detail).
+2. Health & Odometer: Use 'get_vehicle_status' and 'get_maintenance_advisor'.
+3. Expense Logging: Use 'add_expense' (Fuel, Service, etc.).
+4. Service Schedule: Use 'get_or_suggest_parts_interval'.
+5. Document Status: Use 'get_document_status' or 'list_documents'.
+6. Challans: 'get_challans' (summary or per vehicle); 'sync_challans' only if user asks to refresh from the government/provider API.
+7. Driving: 'get_driving_trips_summary' for recent trips, distance, safety (telematics).
+8. Service & parts: 'get_service_history', 'get_upcoming_service_parts' for due maintenance.
+9. Garage edits: 'add_vehicle_to_garage' when user gives a registration number; 'remove_vehicle_from_garage' ONLY with userConfirmed true after explicit delete confirmation.
+10. After fetching challans, driving, service, or expenses, mention the matching Open … chip when available.
+
+=====================================================
+MODE 2: EXPENSE ANALYSIS 💰
+=====================================================
+TRIGGER: User selects "Expense Analysis" or asks about spending, budgets, or savings.
+CONTEXT ACCESS: [RECENT EXPENSES], [BUDGETS]
+CAPABILITIES:
+1. Spend Summary: Use 'get_expenses_summary'.
+2. Budget Tracking: Compare [RECENT EXPENSES] with [BUDGETS].
+3. Savings Tips: Use 'get_smart_recommendations'.
+4. Report Export: Use 'get_expense_report'.
+PATTERN RECOGNITION:
+- Alert if fuel spend > 25% of monthly total.
+- Suggest service if 'OTHER' expenses for parts increase.
+
+=====================================================
+MODE 3: MY SUPPORT TICKETS 🎫
+=====================================================
+TRIGGER: User selects "My Support Tickets" or asks about issues, complaints, or status.
+CONTEXT ACCESS: [ACTIVE SUPPORT TICKETS]
+CAPABILITIES:
+1. Ticket Status: Use 'list_support_tickets'.
+2. Details: Use 'get_ticket_details'.
+3. New Issue: Use 'create_support_ticket'.
+4. Reply: Use 'add_ticket_message'.
+CHECK BASICS: If reporting a bug, ask: "Let me check - you're using [Platform] on [Device Info]. Is that correct?" (Refer to [DEVICE INFO]).
+
+=====================================================
+MODE 4: APP SERVICES & SOS 🆘
+=====================================================
+TRIGGER: User selects "App Services & SOS" or mentions Emergency, Help, Accident, Breakdown, or SOS info.
+CONTEXT ACCESS: [USER PROFILE], [VEHICLES]
+CAPABILITIES:
+1. SOS Activation: If "HELP" or "ACCIDENT" detected, IMMEDIATELY ask: "Emergency detected. Should I trigger SOS to your contacts and find roadside assistance?"
+2. SOS Explanation: If user asks how SOS works, explain clearly:
+   - "I'll instantly alert your trusted emergency contacts via SMS, Email, and Voice call."
+   - "They'll receive your real-time GPS location and a Google Maps link to find you."
+   - "I can also find the nearest Hospitals, Police Stations, or Mechanics based on your situation."
+   - "You'll get a confirmation email once the alerts are successfully broadcasted."
+3. DigiLocker Sync: Explain how to upload docs.
+4. Feature Help: Explain Valet, Rewards, or Profile settings.
+URGENCY OVERRIDE: Any mention of "Emergency", "Stuck", "Accident", or "Help" must trigger Mode 4 regardless of previous mode.
+GUIDELINE: Avoid robotic "analysis" of the situation. Be empathetic, clear, and reassure the user that Gupio is here to help. Use bullet points for clarity when explaining processes.
+
+
+=====================================================
+MODE 5: TRIP PLANNER 🗺️
+=====================================================
+TRIGGER: User asks about trip costs, tolls, arrival times, or "my journey".
+CONTEXT ACCESS: [PLANNED TRIPS]
+CAPABILITIES:
+1. Trip Knowledge: Use 'get_current_trip_info' to access the latest calculated trip, including total costs, fuel, and specific toll plazas.
+2. Real-time Queries: Answer "How much is the next toll?" or "What's my estimated fuel cost?" using the tool's 'nextTolls' and 'totalCost' fields.
+3. Suggestion: If no trip is found, politely suggest: "I don't see an active trip. You can plan your journey in the Trip Expense screen, and I'll keep track of it for you."
+
+PATTERN RECOGNITION & PROACTIVE ASSISTANCE
+=====================================================
+- If a document is expired in [PENDING ALERTS], offer to help upload a new one.
+- If health score < 50%, suggest booking a service.
+- If budget exceeded, suggest fuel saving tips.
+- If a trip is planned, mention the "Open Trip" chip to view the interactive map.
+`;
 
 export const aiService = {
   /**
@@ -280,6 +536,16 @@ Write a concise summary (max 200 words) capturing all important details.`,
         (p: any) => p.functionCall,
       );
 
+      debugLog(
+        "ai.service.ts:executeToolLoop",
+        "H1_H5",
+        "function_calls_detected",
+        {
+          iteration: i + 1,
+          functionCallCount: functionCalls?.length || 0,
+        },
+      );
+
       // If no function calls, we have the final text answer
       if (!functionCalls || functionCalls.length === 0) {
         responseText = result.response.text();
@@ -292,6 +558,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
         const call = fc.functionCall!;
         const tool = toolRegistry[call.name as keyof typeof toolRegistry];
         if (tool) {
+          debugLog(
+            "ai.service.ts:executeToolLoop",
+            "H2_H4",
+            "tool_execute_start",
+            {
+              tool: call.name,
+              argsKeys: call.args ? Object.keys(call.args).slice(0, 8) : [],
+            },
+          );
           logger.info(
             { tool: call.name, args: call.args, iteration: i + 1 },
             "Executing Tool (multi-turn)",
@@ -300,17 +575,40 @@ Write a concise summary (max 200 words) capturing all important details.`,
             const result = await tool.execute(customerId, call.args);
             toolResults.push({ tool: call.name, args: call.args, result });
             const res = result as any;
+
+            debugLog(
+              "ai.service.ts:executeToolLoop",
+              "H2_H4",
+              "tool_execute_success",
+              {
+                tool: call.name,
+                success: (res as any)?.success,
+                error: (res as any)?.error,
+                documentsCount:
+                  call.name === "get_document_status" && Array.isArray((res as any)?.documents)
+                    ? (res as any).documents.length
+                    : undefined,
+              },
+            );
+
             callResults.push(
               `Tool ${call.name} result: ${res?.message || JSON.stringify(result)}`,
             );
           } catch (err) {
             callResults.push(`Tool ${call.name} failed: ${err}`);
+
+            debugLog(
+              "ai.service.ts:executeToolLoop",
+              "H2_H4",
+              "tool_execute_error",
+              { tool: call.name, error: String(err) },
+            );
           }
         }
       }
 
       // Feed tool results back into the next prompt
-      currentPrompt = `${initialPrompt}\n\nTOOL RESULTS:\n${callResults.join("\n")}\n\nBased on these tool results, provide a final comprehensive answer to the user. If you need more tools, call them. Otherwise, respond with text.`;
+      currentPrompt = `${initialPrompt}\n\nTOOL RESULTS:\n${callResults.join("\n")}\n\nBased on these tool results, provide a final direct and user-friendly answer. If you need more tools, call them. Otherwise, respond with text.`;
     }
 
     // If we ran out of iterations without a text answer
@@ -439,8 +737,12 @@ Write a concise summary (max 200 words) capturing all important details.`,
       // 🚀 BACKGROUND SIDE-EFFECTS (fire-and-forget)
       const responseTimeMs = Date.now() - startTime;
 
+      // Generate voice ONCE and reuse it for:
+      // 1) saving the assistant message metadata (background logging)
+      // 2) returning `voiceUrl` to the client
+      const voiceUrl = await voiceService.generateSpeechUrl(responseText);
+
       (async () => {
-        const voiceUrl = await voiceService.generateSpeechUrl(responseText);
         await db.$transaction([
           db.chatMessage.create({
             data: {
@@ -483,18 +785,18 @@ Write a concise summary (max 200 words) capturing all important details.`,
         logger.error({ err }, "Background chat logging failed"),
       );
 
-      const immediateVoiceUrl =
-        await voiceService.generateSpeechUrl(responseText);
-
       return {
         sessionId: finalSessionId,
         message: responseText,
-        voiceUrl: immediateVoiceUrl,
+        voiceUrl,
         contextUsed: contextDocs.length,
         toolResults:
           allToolResults.length > 0 ? allToolResults : undefined,
         agentSteps: agentSteps.length > 0 ? agentSteps : undefined,
-        suggestedActions: getSuggestedActionsFromText(responseText),
+        suggestedActions: mergeSuggestedActionsWithNavigation(
+          getSuggestedActionsFromText(responseText),
+          allToolResults,
+        ),
       };
     } catch (error) {
       if (isGeminiRateLimitError(error)) {
@@ -601,6 +903,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
             const tool =
               toolRegistry[call.name as keyof typeof toolRegistry];
             if (tool) {
+              debugLog(
+                "ai.service.ts:chatStream",
+                "H1_H5",
+                "tool_execute_start",
+                {
+                  tool: call.name,
+                  argsKeys: call.args ? Object.keys(call.args).slice(0, 8) : [],
+                },
+              );
               yield JSON.stringify({
                 type: "tool_start",
                 tool: call.name,
@@ -621,6 +932,21 @@ Write a concise summary (max 200 words) capturing all important details.`,
                   res?.message || `Completed ${call.name}`;
                 fullResponse += ` ${toolMessage}`;
 
+                debugLog(
+                  "ai.service.ts:chatStream",
+                  "H2_H4",
+                  "tool_execute_success",
+                  {
+                    tool: call.name,
+                    success: res?.success,
+                    error: res?.error,
+                    documentsCount:
+                      call.name === "get_document_status" && Array.isArray(res?.documents)
+                        ? res.documents.length
+                        : undefined,
+                  },
+                );
+
                 yield JSON.stringify({
                   type: "tool_result",
                   tool: call.name,
@@ -628,6 +954,12 @@ Write a concise summary (max 200 words) capturing all important details.`,
                   result: toolResult,
                 });
               } catch (err) {
+                debugLog(
+                  "ai.service.ts:chatStream",
+                  "H2_H4",
+                  "tool_execute_error",
+                  { tool: call.name, error: String(err) },
+                );
                 yield JSON.stringify({
                   type: "tool_error",
                   tool: call.name,
@@ -643,7 +975,10 @@ Write a concise summary (max 200 words) capturing all important details.`,
       const voiceUrl =
         await voiceService.generateSpeechUrl(fullResponse);
 
-      const suggestedActions = getSuggestedActionsFromText(fullResponse);
+      const suggestedActions = mergeSuggestedActionsWithNavigation(
+        getSuggestedActionsFromText(fullResponse),
+        toolResults,
+      );
       yield JSON.stringify({
         type: "done",
         voiceUrl,
@@ -729,7 +1064,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
       const thinkPrompt = [
         ...conversationParts,
         {
-          text: `\n\n[Step ${i + 1}/${maxIterations}] Think about what to do next. If you have all the information needed, provide the final answer as text. If you need data, call the appropriate tool.`,
+          text: `\n\n[Step ${i + 1}/${maxIterations}] Think about what to do next. Be direct and skip robotic analysis. If you have all the information needed, provide the final direct and user-friendly answer as text. If you need data, call the appropriate tool.`,
         },
       ];
 

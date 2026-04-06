@@ -4,6 +4,7 @@ import { success } from "../../utils/apiResponse";
 import { aiService } from "../../services/ai.service";
 import { analyticsService } from "../../services/analytics.service";
 import { AppError } from "../../utils/AppError";
+import { dbInstances } from "@repo/db-customer";
 
 export const chatController = {
   /**

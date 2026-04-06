@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 
 function getToken(): string | null {
   return localStorage.getItem('adminToken');
@@ -16,12 +16,15 @@ export async function api<T>(
 
   async function run(): Promise<{ success: true; data: T } | { success: false; error: { message: string } }> {
     const token = getToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const headers: Record<string, string> = { ...options.headers as Record<string, string> };
+
+    // Automatically set Content-Type to JSON if it's not FormData
+    if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     if (token) {
-      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      headers['Authorization'] = `Bearer ${token}`;
     }
     const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
     const json = await res.json().catch(() => ({}));
@@ -54,17 +57,40 @@ export const adminApi = {
       '/v1/admin/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
+  signup: (data: { email: string; password: string; name?: string; role?: string }) =>
+    api<{ id: string; email: string; name: string | null; role: string }>(
+      '/v1/admin/auth/signup',
+      { method: 'POST', body: JSON.stringify(data) }
+    ),
   me: () => api<{ admin: { id: string; email: string; role: string } }>('/v1/admin/me'),
-  stats: () =>
+  forgotPassword: (email: string) =>
+    api<{ message: string; otp?: string }>('/v1/admin/auth/forgot-password', {
+      method: 'POST', body: JSON.stringify({ email }),
+    }),
+  verifyResetOtp: (email: string, otp: string) =>
+    api<{ message: string; verified: boolean }>('/v1/admin/auth/verify-reset-otp', {
+      method: 'POST', body: JSON.stringify({ email, otp }),
+    }),
+  resetPassword: (email: string, otp: string, newPassword: string) =>
+    api<{ message: string }>('/v1/admin/auth/reset-password', {
+      method: 'POST', body: JSON.stringify({ email, otp, newPassword }),
+    }),
+  stats: (days: number = 7) =>
     api<{
       customers: number;
       vehicles: number;
       totalExpenses: number;
       expenseCount: number;
       supportTicketsOpen: number;
-      weeklyTrend?: { date: string; label: string; customers: number; expenseAmount: number }[];
+      unverifiedVehiclesCount: number;
+      totalCustomersToday: number;
+      recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+      expenseCategoryBreakdown: { category: string; amount: number; count: number }[];
+      ticketPriorityDistribution: { priority: string; count: number }[];
+      vehicleHealthDistribution: { critical: number; warning: number; good: number };
+      trendData?: { date: string; label: string; customers: number; expenseAmount: number; tickets: number; vehicles: number }[];
       databaseAvailable?: boolean;
-    }>('/v1/admin/stats'),
+    }>(`/v1/admin/stats?days=${days}`),
   listCustomers: (params?: { page?: number; limit?: number; search?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
@@ -76,6 +102,76 @@ export const adminApi = {
     );
   },
   getCustomer: (id: string) => api<CustomerDetail>(`/v1/admin/customers/${id}`),
+  listTickets: (params?: { page?: number; limit?: number; search?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    const q = sp.toString();
+    return api<{ data: SupportTicketListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/tickets${q ? `?${q}` : ''}`
+    );
+  },
+  getTicketMessages: (id: string) => api<TicketMessage[]>(`/v1/admin/tickets/${id}/messages`),
+  addTicketMessage: (id: string, content: string) =>
+    api<TicketMessage>(`/v1/admin/tickets/${id}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+  updateTicketStatus: (id: string, status: TicketStatus) =>
+    api<{ success: true }>(`/v1/admin/tickets/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+  listVehicles: (params?: { page?: number; limit?: number; search?: string; type?: string; healthStatus?: string; verificationStatus?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    if (params?.type) sp.set('type', params.type);
+    if (params?.healthStatus) sp.set('healthStatus', params.healthStatus);
+    if (params?.verificationStatus) sp.set('verificationStatus', params.verificationStatus);
+    const q = sp.toString();
+    return api<{ data: AdminVehicleListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/vehicles${q ? `?${q}` : ''}`
+    );
+  },
+  deleteCustomers: (customerIds: string[]) =>
+    api<{ count: number }>(`/v1/admin/customers`, {
+      method: 'DELETE',
+      body: JSON.stringify({ customerIds }),
+    }),
+  updateCustomer: (id: string, data: { fullName?: string; email?: string; phoneNumber?: string }) =>
+    api<any>(`/v1/admin/customers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  listCatalogVehicles: (params?: { type?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.type) sp.set('type', params.type);
+    const q = sp.toString();
+    return api<CatalogVehicle[]>(`/v1/admin/catalog/vehicles${q ? `?${q}` : ''}`);
+  },
+  createCatalogVehicle: (formData: FormData) =>
+    api<CatalogVehicle>('/v1/admin/catalog/vehicles', { method: 'POST', body: formData }),
+  createCatalogVehicleAsset: (catalogId: string, file: File, imageType = 'HERO') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('imageType', imageType);
+    return api<{ id: string; assetUrl: string; type: string; assetIndex: number }>(
+      `/v1/admin/catalog/vehicles/${catalogId}/assets`,
+      { method: 'POST', body: formData }
+    );
+  },
+  updateCatalogVehicleAsset: (catalogId: string, assetId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api<any>(`/v1/admin/catalog/vehicles/${catalogId}/assets/${assetId}`, {
+      method: 'PATCH',
+      body: formData,
+      // The API wrapper should NOT set Content-Type header when body is FormData
+    });
+  },
 };
 
 export interface CustomerListItem {
@@ -161,6 +257,9 @@ export interface AdminVehicleDocument {
   verificationStatus: string | null;
   expiryDate: string | null;
   documentNumber: string | null;
+  fileUrl?: string | null;
+  downloadUrl?: string | null;
+  mimeType?: string | null;
 }
 
 export interface AdminOdometerLog {
@@ -217,7 +316,72 @@ export interface CustomerDetail {
   emergencyContacts: unknown[];
   digilocker: unknown;
   _count: { vehicles: number; expenses: number; documents: number; supportTickets: number; chats: number; sosRequests: number };
-  expenses?: unknown[];
-  documents?: unknown[];
-  supportTickets?: unknown[];
+  expenses?: any[];
+  documents?: AdminVehicleDocument[];
+  supportTickets?: SupportTicket[];
+  expenseSummary?: {
+    total: number;
+    breakdown: Record<string, number>;
+    currency: string;
+  };
+}
+
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type TicketCategory = 'GENERAL' | 'TECHNICAL' | 'BILLING' | 'VEHICLE' | 'APP_ISSUE' | 'OTHER' | 'DOCUMENTS' | 'VALET' | 'AI_ASSISTANT' | 'ACCOUNT';
+
+export interface SupportTicketListItem {
+  id: string;
+  customerId: string;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  category: TicketCategory;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+  customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
+  _count: { messages: number };
+}
+
+export interface SupportTicket extends SupportTicketListItem {
+  messages: TicketMessage[];
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderRole: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface AdminVehicleListItem {
+  id: string;
+  registrationNumber: string;
+  make: string | null;
+  model: string | null;
+  variant: string | null;
+  year: number | null;
+  fuelType: string | null;
+  vehicleType: string | null;
+  ownerName: string | null;
+  rcVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
+  healthScore?: AdminVehicleHealthScore | null;
+  _count: { challans: number; documents: number; expenses: number };
+}
+
+export interface CatalogVehicle {
+  id: string;
+  vehicleType: string;
+  make: string;
+  model: string;
+  variant: string | null;
+  normalizedKey: string;
+  images: { id: string; assetUrl: string; type: string; assetIndex: number }[];
 }

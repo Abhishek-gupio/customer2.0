@@ -53,13 +53,7 @@ export const fuelPriceService = {
       logger.error({ err, city: normalizedCity }, "FuelPrice cache lookup failed");
     }
 
-    // 3. Absolute fallback if no data exists
-    const genericPrices: Record<string, number> = {
-      PETROL: 94.77,
-      DIESEL: 87.67,
-      CNG: 75.09,
-    };
-    return genericPrices[normalizedFuel] || null;
+    return null;
   },
 
   /**
@@ -119,7 +113,7 @@ export const fuelPriceService = {
       logger.error({ err, stateName: normalizedName }, "Failed to fetch state fuel prices");
     }
 
-    return { PETROL: 94.77, DIESEL: 87.67, CNG: 75.09 };
+    return { PETROL: null, DIESEL: null, CNG: null };
   },
 
   /**

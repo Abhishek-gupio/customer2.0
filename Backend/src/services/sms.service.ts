@@ -194,6 +194,10 @@ export class SMTPSMSService implements SMSService {
 
   async sendSMS(to: string, message: string): Promise<boolean> {
     try {
+      if (!to || !to.includes("@")) {
+        console.error("❌ SMTP Error: Recipient is not a valid email address:", to);
+        return false;
+      }
       const info = await this.transporter.sendMail({
         from: `"${process.env.SMTP_FROM_NAME || "GUPIO SOS"}" <${process.env.SMTP_USER}>`,
         to, // Can be email or email-to-sms gateway address
@@ -403,23 +407,44 @@ export async function sendEmail(options: {
   text?: string;
   fromOverride?: string;
 }): Promise<boolean> {
+  console.log(`[EmailService] Attempting to send email to: ${options.to} | Subject: ${options.subject}`);
+  
   try {
-    const user = process.env.GMAIL_USER;
-    const pass = process.env.GMAIL_APP_PASSWORD;
-    if (!user || !pass) {
-      console.error(
-        "GMAIL credentials missing: set GMAIL_USER and GMAIL_APP_PASSWORD",
-      );
-      return false;
+    const isSmtp = process.env.SMS_SERVICE === "SMTP" || process.env.SMTP_HOST;
+    let transporter: nodemailer.Transporter;
+
+    if (isSmtp) {
+      console.log(`[EmailService] Using generic SMTP config: ${process.env.SMTP_HOST}`);
+      transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || "587"),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    } else {
+      const user = process.env.GMAIL_USER;
+      const pass = process.env.GMAIL_APP_PASSWORD;
+      
+      if (!user || !pass) {
+        console.error("[EmailService] GMAIL credentials missing: set GMAIL_USER and GMAIL_APP_PASSWORD");
+        return false;
+      }
+      
+      console.log(`[EmailService] Using Gmail service for: ${user}`);
+      transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user, pass },
+      });
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user, pass },
-    });
+    const fromName = process.env.SMTP_FROM_NAME || "GUPIO SOS";
+    const fromUser = process.env.SMTP_USER || process.env.GMAIL_USER;
 
     const mailOptions = {
-      from: options.fromOverride || user,
+      from: options.fromOverride || `"${fromName}" <${fromUser}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -427,46 +452,38 @@ export async function sendEmail(options: {
     } as nodemailer.SendMailOptions;
 
     const info = await transporter.sendMail(mailOptions);
+    
     if (info.messageId) {
-      console.log(`Email sent successfully with ID: ${info.messageId}`);
+      console.log(`[EmailService] ✅ Email sent successfully! ID: ${info.messageId}`);
       try {
         const logDir = path.resolve(process.cwd(), "logs");
-        if (!fs.existsSync(logDir)) {
-          fs.mkdirSync(logDir, { recursive: true });
-        }
+        if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
         const logPath = path.join(logDir, "email.log");
         fs.appendFileSync(
           logPath,
           `[${new Date().toISOString()}] SENT to=${options.to} subject="${options.subject}" messageId=${info.messageId}\n`,
         );
       } catch (logErr: any) {
-        console.warn("Email logging failed:", logErr?.message || logErr);
+        console.warn("[EmailService] Logging failed:", logErr?.message || logErr);
       }
       return true;
     }
-    console.error("Failed to send email (no messageId returned)");
-    try {
-      const logDir = path.resolve(process.cwd(), "logs");
-      if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
-      const logPath = path.join(logDir, "email.log");
-      fs.appendFileSync(
-        logPath,
-        `[${new Date().toISOString()}] FAILED to=${options.to} subject="${options.subject}" reason=no-message-id\n`,
-      );
-    } catch {}
+    
+    console.error("[EmailService] ❌ Failed to send email (no messageId returned)");
     return false;
   } catch (error: any) {
-    console.error(
-      "Error sending email:",
-      error?.response?.data || error.message,
-    );
+    console.error("[EmailService] ❌ Error sending email:", error.message);
+    if (error.code === 'EAUTH') {
+      console.error("[EmailService] Authentication failed. Please check your credentials.");
+    }
+    
     try {
       const logDir = path.resolve(process.cwd(), "logs");
       if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
       const logPath = path.join(logDir, "email.log");
       fs.appendFileSync(
         logPath,
-        `[${new Date().toISOString()}] ERROR to=${options.to} subject="${options.subject}" error="${(error?.message || "").toString()}"\n`,
+        `[${new Date().toISOString()}] ERROR to=${options.to} subject="${options.subject}" error="${error.message}"\n`,
       );
     } catch {}
     return false;

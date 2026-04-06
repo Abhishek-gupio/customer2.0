@@ -1,29 +1,31 @@
 import compression from "compression";
 import cors from "cors";
 import express, { type Request, type Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { apiRoutes } from "./routes";
+import { digilockerController } from "./modules/document/digilocker.controller";
 import { setupSwagger } from "./swagger";
+import { RedisStore } from "rate-limit-redis";
+import { getRedis, getRedisStatus } from "./config/redis";
 
-/** Rate limit key: per user when JWT present, else per IP. Decode only (no verify) for key partitioning. */
+/** Rate limit key: per user when JWT present, else per IP. */
 function rateLimitKey(req: Request): string {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
     try {
       const token = authHeader.slice(7);
       const payload = jwt.decode(token) as { id?: string } | null;
-      if (payload?.id) return `user:${payload.id}`;
+      if (payload?.id) return payload.id;
     } catch {
       // malformed token; fall back to IP
     }
   }
-  const ip = req.ip ?? req.socket?.remoteAddress ?? "unknown";
-  return `ip:${ip}`;
+  return `ip:${ipKeyGenerator(req.ip ?? req.socket?.remoteAddress ?? "unknown")}`;
 }
 
 const app = express();
@@ -48,12 +50,22 @@ app.use(compression());
 // Static files for local storage fallback
 app.use("/uploads", express.static(env.UPLOAD_DIR));
 
+const redis = getRedis();
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: env.RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: rateLimitKey,
+  store: redis 
+    ? new RedisStore({
+        // @ts-expect-error - ioredis type mismatch in rate-limit-redis
+        sendCommand: (...args: string[]) => redis.call(...args),
+      })
+    : undefined,
+  passOnStoreError: true,
+  validate: { default: false },
   skip: (req) => {
     // Don't count health checks so load balancers don't burn the limit
     if (req.path === "/health" || req.path === "/health/detailed") return true;
@@ -83,8 +95,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.get("/health/detailed", async (_req: Request, res: Response) => {
   try {
     const db = env.DATABASE_URL ? "ok" : "not_configured";
-    const redisModule = await import("./config/redis");
-    const redis = (await redisModule.getRedis()) ? "ok" : "not_configured";
+    const redis = getRedisStatus();
     
     // Test actual DB query
     const { dbInstances } = await import("@repo/db-customer");
@@ -119,6 +130,9 @@ app.get("/health/detailed", async (_req: Request, res: Response) => {
 
 // Swagger setup
 setupSwagger(app);
+
+// Public DigiLocker Success Redirect (Must be before /api to bypass auth middleware)
+app.get("/api/v1/documents/digilocker/success", digilockerController.handleSuccess);
 
 app.use("/api", apiRoutes);
 

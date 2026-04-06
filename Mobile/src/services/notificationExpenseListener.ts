@@ -6,7 +6,7 @@
  * then sends the text to the backend `parse/text` API to auto-create expenses.
  */
 import { API_BASE_URL } from '../config';
-import { getAccessToken, getAutoExpenseEnabled } from './storage';
+import { getAccessToken, getAutoExpenseEnabled, setLastReceivedOtp } from './storage';
 
 // ─── Known Indian banking / UPI app packages ────────────────────────────
 const BANKING_PACKAGES = new Set([
@@ -52,6 +52,14 @@ const FINANCIAL_KEYWORDS = [
     'fastag', 'petrol', 'fuel', 'toll',
 ];
 
+const OTP_KEYWORDS = [
+    'otp',
+    'one time password',
+    'one-time password',
+    'verification code',
+    'gupio',
+];
+
 // ─── Local dedup: avoid re-sending the same notification ────────────────
 const recentHashes = new Set<string>();
 const MAX_HASH_SIZE = 200;
@@ -82,6 +90,33 @@ function isDuplicate(text: string): boolean {
 function isFinancialText(text: string): boolean {
     const lower = text.toLowerCase();
     return FINANCIAL_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+}
+
+function extractOtp(text: string): string | null {
+    const lower = text.toLowerCase();
+    const hasOtpKeyword = OTP_KEYWORDS.some(keyword => lower.includes(keyword));
+    const isGupioMessage = lower.includes('gupio');
+    if (!hasOtpKeyword && !isGupioMessage) {
+        return null;
+    }
+
+    const patterns = [
+        /\b(?:otp|one[\s-]?time password|verification code)\D{0,24}(\d{4,8})\b/i,
+        /\b(\d{4,8})\b\D{0,24}\b(?:otp|one[\s-]?time password|verification code)\b/i,
+        /\b(\d{4,8})\b(?=.*\bgupio\b)/i,
+    ];
+
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match?.[1]) return match[1];
+    }
+
+    if (isGupioMessage) {
+      const generic = text.match(/\b(\d{6})\b/);
+      if (generic?.[1]) return generic[1];
+    }
+
+    return null;
 }
 
 // Primary vehicle lookup (cached)
@@ -169,20 +204,25 @@ async function sendToBackend(text: string): Promise<void> {
 // ─── Main headless handler ──────────────────────────────────────────────
 export const headlessNotificationListener = async ({ notification }: { notification: string }) => {
     try {
-        // 0. Check user toggle
-        if (!getAutoExpenseEnabled()) return;
-
         if (!notification) return;
 
         const parsed = JSON.parse(notification);
-        const { app, text, bigText, title } = parsed;
+        const app = parsed?.app || parsed?.packageName || parsed?.appPackage || '';
+        const { text, bigText, title, subText, summaryText } = parsed;
 
-        // 1. Check if from a known banking app
-        const isKnownApp = BANKING_PACKAGES.has(app);
-
-        // 2. Get the fullest text available
-        const content = bigText || text || title || '';
+        // 1. Build the richest available text
+        const contentParts = [bigText, text, subText, summaryText, title]
+            .map((value) => (typeof value === 'string' ? value.trim() : ''))
+            .filter(Boolean);
+        const content = contentParts.sort((a, b) => b.length - a.length)[0] || '';
         if (!content || content.length < 10) return;
+
+        const otpText = contentParts.join('\n');
+        const otp = extractOtp(otpText);
+        if (otp) {
+            setLastReceivedOtp(otp);
+            console.log(`[NotifExpense] Stored OTP from ${app}: ${otp}`);
+        }
 
         // Android may redact sensitive notification text on lockscreen or for messaging apps.
         // Those placeholders are not parseable and will cause 400s; skip them.
@@ -195,10 +235,16 @@ export const headlessNotificationListener = async ({ notification }: { notificat
             return;
         }
 
-        // 3. If not a known app, check for financial keywords
+        // 2. Check user toggle for expense parsing only
+        if (!getAutoExpenseEnabled()) return;
+
+        // 3. Check if from a known banking app
+        const isKnownApp = BANKING_PACKAGES.has(app);
+
+        // 4. If not a known app, check for financial keywords
         if (!isKnownApp && !isFinancialText(content)) return;
 
-        // 4. Local dedup
+        // 5. Local dedup
         if (isDuplicate(content)) return;
 
         console.log(`[NotifExpense] 📩 Processing notification from ${app}: ${content.substring(0, 80)}...`);
@@ -207,3 +253,4 @@ export const headlessNotificationListener = async ({ notification }: { notificat
         console.error('[NotifExpense] Handler error:', err);
     }
 };
+

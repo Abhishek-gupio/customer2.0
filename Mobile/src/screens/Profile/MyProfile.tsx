@@ -1,44 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TouchableWithoutFeedback,
-  TextInput,
   StatusBar,
   ActivityIndicator,
   Alert,
-  Image,
-  Modal,
-  FlatList,
   Dimensions,
   PermissionsAndroid,
   Platform,
   Animated,
-  Easing,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { State } from 'react-native-gesture-handler';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { useNavigation, CommonActions } from '../../lib/react-navigation-native';
+import { useNavigation, CommonActions, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { useDispatch } from 'react-redux';
 import { logoutStorage } from '../../services/authService';
-import { logout } from '../../store/slices/authSlice';
-import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
-import { getAbsoluteUrl, GEO } from '../../config';
-import BackButton from '../../components/BackButton';
+import { getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
+import { getAbsoluteUrl } from '../../config';
+import { googleMapsService } from '../../services/googleMapsService';
+import { getQueuedActionSummary } from '../../services/offlineMutationQueue';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
+import { useProfileStore } from '../../store/profileStore';
+import { ProfileOverviewContent } from './components/ProfileOverviewContent';
+import { ProfileInfoModal } from './components/ProfileInfoModal';
+import { ProfileMediaModals } from './components/ProfileMediaModals';
 
 // GPS-based location (same pattern as SOSButton)
 let Geolocation: any = null;
@@ -59,6 +55,24 @@ interface ProfileData {
   memberSince: string;
   profilePic?: string;
 }
+
+type ProfileStatsCardItem = {
+  icon: string;
+  label: string;
+  value: string;
+  color: string;
+};
+
+type ProfileMenuItem = {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  color?: string;
+  bgColor?: string;
+  borderColor?: string;
+  isLast?: boolean;
+  badgeCount?: number;
+};
 
 // Predefined avatar list using DiceBear API
 const AVATAR_LIST = [
@@ -88,6 +102,10 @@ const AVATAR_ITEM_SIZE = (SCREEN_WIDTH - wp(12) - (AVATAR_GRID_COLS - 1) * 12) /
 
 export default function MyProfile() {
   const navigation = useNavigation<ProfileNavProp>();
+  const resolvedLocationRef = useRef<string>('Detecting...');
+  const locationRequestInFlightRef = useRef(false);
+  const setCachedProfile = useProfileStore((state) => state.setProfile);
+  const loadCachedProfile = useProfileStore((state) => state.loadProfile);
 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -101,44 +119,62 @@ export default function MyProfile() {
   const [avatarModal, setAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [infoModal, setInfoModal] = useState(false);
-  const dispatch = useDispatch();
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'default' as 'default' | 'delete' | 'logout',
+    onConfirm: () => { },
+  });
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
 
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logoutStorage();
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Signin' }],
-            })
-          );
-        },
-      },
-    ]);
-  };
+  const showStatus = useCallback((title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  }, []);
+  const queuedSummary = getQueuedActionSummary();
+  const queuedTotal = queuedSummary.documentUploads + queuedSummary.expenseCreates;
 
-  const handleMenuPress = (route?: keyof RootStackParamList, onPress?: () => void) => {
+  const handleLogout = useCallback(() => {
+    setConfirmModal({
+      visible: true,
+      title: 'Logout',
+      message: 'Are you sure you want to logout? You will need to sign in again to access your garage.',
+      type: 'logout',
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        logoutStorage();
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Signin' }],
+          })
+        );
+      }
+    });
+  }, [navigation]);
+
+  const handleMenuPress = useCallback((route?: keyof RootStackParamList, onPress?: () => void) => {
     if (route) {
       navigation.navigate(route as never);
     } else if (onPress) {
       onPress();
     }
-  };
+  }, [navigation]);
 
   // Animation handling for pinch-to-zoom
   const zoomScale = React.useRef(new Animated.Value(1)).current;
 
-  const onPinchEvent = Animated.event(
-    [{ nativeEvent: { scale: zoomScale } }],
-    { useNativeDriver: true }
+  const onPinchEvent = useMemo(
+    () => Animated.event([{ nativeEvent: { scale: zoomScale } }], { useNativeDriver: true }),
+    [zoomScale],
   );
 
-  const onPinchStateChange = (event: any) => {
+  const onPinchStateChange = useCallback((event: any) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
       Animated.spring(zoomScale, {
         toValue: 1,
@@ -146,10 +182,10 @@ export default function MyProfile() {
         bounciness: 1,
       }).start();
     }
-  };
+  }, [zoomScale]);
 
 
-  const validate = () => {
+  const validate = useCallback(() => {
     let isValid = true;
     const newErrors: { fullName?: string; email?: string; phone?: string; } = {};
 
@@ -185,14 +221,10 @@ export default function MyProfile() {
 
     setErrors(newErrors);
     return isValid;
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  }, [editData]);
 
   // Request location permission (Android + iOS)
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       try {
         const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
@@ -215,128 +247,113 @@ export default function MyProfile() {
       }
     }
     return true;
-  };
+  }, []);
 
-  // Reverse-geocode lat/long to locality/city. Prefer exact area (e.g. Srirampura, Mysore); avoid generic state-capital (e.g. Bengaluru, Karnataka) when display_name is more specific.
-  const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
+  const requestCameraPermission = useCallback(async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
     try {
-      const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
-      const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': GEO.userAgent },
-      });
-      const text = await res.text();
-      const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
-      const addr = data?.address;
-      if (!addr) return null;
-      // Prefer most specific place first: suburb/locality then town, not just city (often state capital)
-      const primary =
-        addr.suburb ||
-        addr.neighbourhood ||
-        addr.locality ||
-        addr.village ||
-        addr.county ||
-        addr.town ||
-        addr.city ||
-        addr.state_district;
-      const townOrCity = addr.town || addr.city;
-      const stateOrCountry = addr.state || addr.region || addr.country;
-      const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
-      let result = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || null;
-
-      // When result is generic (only city + state, e.g. Bengaluru, Karnataka) but display_name has more specific start (e.g. Srirampura, Mysore), use that so location is consistent with exact area
-      const displayName = data?.display_name;
-      if (displayName && typeof displayName === 'string') {
-        const parts = displayName.split(',').map((p: string) => p.trim()).filter(Boolean);
-        if (parts.length >= 2) {
-          const fromDisplay = `${parts[0]}, ${parts[1]}`;
-          const isGenericCityState = result && (primary === addr.city || primary === addr.state) && addr.city && addr.state;
-          if (isGenericCityState && fromDisplay !== result) result = fromDisplay;
-          else if (!result) result = fromDisplay;
-        }
-      }
-      return result || null;
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs camera access to capture your profile picture',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch {
-      return null;
+      return false;
     }
-  };
+  }, []);
 
-  // 1) Try GPS (lat/long) + reverse geocode. 2) Fallback to IP-based. Client-only, not stored on server.
-  const fetchUserLocation = async () => {
-    const applyLocation = (locationStr: string) => {
-      setProfile((prev) => (prev ? { ...prev, location: locationStr } : prev));
-      setEditData((prev) => (prev ? { ...prev, location: locationStr } : prev));
-    };
-
+  const requestStoragePermission = useCallback(async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
     try {
-      // 1. GPS path (accurate, like big companies)
-      if (Geolocation) {
-        const permitted = await requestLocationPermission();
-        if (permitted) {
-          const coords = await new Promise<{ lat: number; lon: number } | null>((resolve) => {
-            Geolocation.getCurrentPosition(
-              (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-              () => resolve(null),
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-            );
-          });
-          if (coords) {
-            const locationStr = await reverseGeocode(coords.lat, coords.lon);
-            if (locationStr) {
-              applyLocation(locationStr);
-              return;
-            }
-          }
-        }
-      }
+      const permission = Platform.Version >= 33
+        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
 
-      // 2. Fallback: IP-based geo (URLs from config)
-      let geo: any = null;
-      const headers = { 'User-Agent': GEO.userAgent };
-      for (const ipUrl of GEO.ipProviders) {
-        if (geo) break;
-        try {
-          const res = await fetch(ipUrl, { headers });
-          const text = await res.text();
-          const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
-          if (data?.city && data?.region) geo = data;
-        } catch { /* ignore */ }
-      }
+      const granted = await PermissionsAndroid.request(permission, {
+        title: 'Photo Library Permission',
+        message: 'App needs access to your photo library to select a profile picture',
+        buttonPositive: 'OK',
+        buttonNegative: 'Cancel',
+      });
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  }, []);
 
-      if (geo?.city && geo?.region) {
-        applyLocation(`${geo.city}, ${geo.region}`);
-        return;
-      }
-      applyLocation('Location not available');
+  const getGpsPosition = useCallback(async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
+
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+  }, [requestLocationPermission]);
+
+  const applyResolvedLocation = useCallback((locationStr: string) => {
+    resolvedLocationRef.current = locationStr;
+    setProfile((prev) => (prev ? { ...prev, location: locationStr } : prev));
+    setEditData((prev) => (prev ? { ...prev, location: locationStr } : prev));
+  }, []);
+
+  const fetchUserLocation = useCallback(async () => {
+    if (locationRequestInFlightRef.current) return;
+    locationRequestInFlightRef.current = true;
+    try {
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(
+        coords.latitude,
+        coords.longitude,
+      );
+      applyResolvedLocation(address);
     } catch (error) {
       console.log('Location detection failed:', error);
-      applyLocation('Location not available');
-    }
-  };
-
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const [data, statsData] = await Promise.all([
-        getProfile(),
-        getProfileStats().catch(() => ({ vehicles: 0, expenses: 0, documents: 0 })),
-      ]);
-      mapProfileData(data);
-      setStats(statsData);
-      fetchUserLocation();
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch profile');
+      applyResolvedLocation('Location not available');
     } finally {
-      setLoading(false);
+      locationRequestInFlightRef.current = false;
     }
-  };
+  }, [applyResolvedLocation, getGpsPosition]);
 
-  const mapProfileData = (data: ProfileResponse) => {
+  const mapProfileData = useCallback((data: ProfileResponse) => {
+    setCachedProfile(data);
+    const location = resolvedLocationRef.current;
     const formatted: ProfileData = {
       fullName: data.fullName ?? '',
       email: data.email ?? '',
       phone: data.phoneNumber ?? '',
-      location: 'Detecting...',
+      location,
       profilePic: data.profilePic || undefined,
       memberSince: data.createdAt
         ? new Date(data.createdAt).toLocaleDateString('default', {
@@ -348,17 +365,43 @@ export default function MyProfile() {
     };
     setProfile(formatted);
     setEditData(formatted);
-  };
+  }, [setCachedProfile]);
 
-  const handleEdit = () => {
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [data, statsData] = await Promise.all([
+        loadCachedProfile(),
+        getProfileStats().catch(() => ({ vehicles: 0, expenses: 0, documents: 0 })),
+      ]);
+      if (!data) throw new Error('Failed to fetch profile');
+      mapProfileData(data);
+      setStats(statsData);
+    } catch (error: any) {
+      showStatus('Error', error.message || 'Failed to fetch profile', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadCachedProfile, mapProfileData, showStatus]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+      if (resolvedLocationRef.current === 'Detecting...') {
+        fetchUserLocation();
+      }
+    }, [fetchProfile, fetchUserLocation]),
+  );
+
+  const handleEdit = useCallback(() => {
     if (profile) {
       setEditData({ ...profile });
       setErrors({});
       setIsEditing(true);
     }
-  };
+  }, [profile]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!editData) return;
     if (!validate()) return;
 
@@ -375,7 +418,7 @@ export default function MyProfile() {
 
       mapProfileData(updated);
       setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      showStatus('Profile Updated', 'Your changes have been saved successfully.');
     } catch (error: any) {
       let errorMessage = error.response?.data?.message || error.message || 'Could not save changes';
       if (Array.isArray(errorMessage)) {
@@ -383,98 +426,46 @@ export default function MyProfile() {
       } else if (typeof errorMessage === 'object') {
         errorMessage = JSON.stringify(errorMessage);
       }
-      Alert.alert('Update Failed', errorMessage);
+      showStatus('Update Failed', errorMessage, 'error');
     } finally {
       setSaving(false);
     }
-  };
+  }, [editData, mapProfileData, showStatus, validate]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (profile) {
       setEditData({ ...profile });
       setErrors({});
       setIsEditing(false);
     }
-  };
+  }, [profile]);
 
-  const updateField = (field: keyof ProfileData, value: string) => {
+  const updateField = useCallback((field: keyof ProfileData, value: string) => {
     if (!editData) return;
     setEditData((prev) => (prev ? { ...prev, [field]: value } : prev));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
+  }, [editData]);
 
-  const handleImagePick = () => {
-    setProfilePicModal(true);
-  };
+  const handleFullNameChange = useCallback((value: string) => {
+    updateField('fullName', value);
+  }, [updateField]);
 
-  const handleCameraOption = async () => {
-    setProfilePicModal(false);
-    const result = await launchCamera({
-      mediaType: 'photo',
-      quality: 0.7,
-    });
-    processImageResult(result);
-  };
+  const handleEmailChange = useCallback((value: string) => {
+    updateField('email', value);
+  }, [updateField]);
 
-  const handleGalleryOption = async () => {
-    setProfilePicModal(false);
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.7,
-    });
-    processImageResult(result);
-  };
+  const handlePhoneChange = useCallback((value: string) => {
+    updateField('phone', value);
+  }, [updateField]);
 
-  const handleAvatarOption = () => {
-    setProfilePicModal(false);
-    setSelectedAvatar(currentPic || null);
-    setTimeout(() => setAvatarModal(true), 300);
-  };
+  const processImageResult = useCallback(async (result: any) => {
+    if (result.didCancel) return;
 
-  const handleAvatarSelect = async (avatarUrl: string) => {
-    try {
-      setSaving(true);
-      setAvatarModal(false);
-      const updated = await updateProfile({ profilePic: avatarUrl });
-      mapProfileData(updated);
-      mapProfileData(updated);
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to set avatar');
-    } finally {
-      setSaving(false);
+    if (result.errorCode) {
+      showStatus('Error', result.errorMessage || 'An error occurred while picking the image', 'error');
+      return;
     }
-  };
 
-  const handleDeleteProfilePic = async () => {
-    setProfilePicModal(false);
-    if (!currentPic) return;
-    Alert.alert(
-      'Remove Profile Picture',
-      'Are you sure you want to remove your profile picture?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setSaving(true);
-              const updated = await updateProfile({ profilePic: '' });
-              mapProfileData(updated);
-              mapProfileData(updated);
-              Alert.alert('Success', 'Profile picture removed!');
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to remove picture');
-            } finally {
-              setSaving(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const processImageResult = async (result: any) => {
     if (result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
       const selectedImage = asset.uri;
@@ -482,6 +473,7 @@ export default function MyProfile() {
         if (isEditing && editData) {
           setEditData({ ...editData, profilePic: selectedImage });
         } else {
+          if (saving) return; // prevent duplicate upload if already in progress
           try {
             setSaving(true);
             const formData = new FormData();
@@ -492,358 +484,234 @@ export default function MyProfile() {
             } as any);
             const updated = await uploadProfilePicture(formData);
             mapProfileData(updated);
-            Alert.alert('Success', 'Profile picture updated!');
+            showStatus('Picture Updated', 'Your profile photo has been updated.');
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to update picture');
+            const isNetworkError =
+              err?.message?.toLowerCase().includes('network') ||
+              err?.code === 'ECONNREFUSED' ||
+              err?.code === 'ERR_NETWORK';
+            showStatus(
+              'Upload Failed',
+              isNetworkError
+                ? 'Could not upload photo. Please check your internet connection and try again.'
+                : err.message || 'Failed to update picture',
+              'error'
+            );
           } finally {
             setSaving(false);
           }
         }
       }
     }
-  };
+  }, [editData, isEditing, mapProfileData, saving, showStatus]);
 
-  if (loading && !profile) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e5e5e5" />
-      </SafeAreaView>
-    );
-  }
-
-  if (!profile || !editData) return null;
+  const handleImagePick = useCallback(() => {
+    setProfilePicModal(true);
+  }, []);
 
   const currentPic = isEditing ? editData?.profilePic : profile?.profilePic;
   const profilePicUri = currentPic ? getAbsoluteUrl(currentPic) : undefined;
 
+  const handleCameraOption = useCallback(async () => {
+    setProfilePicModal(false);
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+      return;
+    }
+    const result = await launchCamera({
+      mediaType: 'photo',
+      quality: 0.7,
+    });
+    await processImageResult(result);
+  }, [processImageResult, requestCameraPermission]);
+
+  const handleGalleryOption = useCallback(async () => {
+    setProfilePicModal(false);
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Storage access is required to pick a photo.');
+      return;
+    }
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.7,
+    });
+    await processImageResult(result);
+  }, [processImageResult, requestStoragePermission]);
+
+  const handleAvatarOption = useCallback(() => {
+    setProfilePicModal(false);
+    setSelectedAvatar(currentPic || null);
+    setTimeout(() => setAvatarModal(true), 300);
+  }, [currentPic]);
+
+  const handleAvatarSelect = useCallback(async (avatarUrl: string) => {
+    try {
+      setSaving(true);
+      setAvatarModal(false);
+      const updated = await updateProfile({ profilePic: avatarUrl });
+      mapProfileData(updated);
+      showStatus('Avatar Set', 'Your new avatar has been applied.');
+    } catch (err: any) {
+      showStatus('Error', err.message || 'Failed to set avatar', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }, [mapProfileData, showStatus]);
+
+  const handleDeleteProfilePic = useCallback(async () => {
+    setProfilePicModal(false);
+    if (!currentPic) return;
+    setConfirmModal({
+      visible: true,
+      title: 'Remove Picture',
+      message: 'Are you sure you want to remove your profile picture?',
+      type: 'delete',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        try {
+          setSaving(true);
+          const updated = await updateProfile({ profilePic: '' });
+          mapProfileData(updated);
+          showStatus('Removed', 'Profile picture removed successfully.');
+        } catch (err: any) {
+          showStatus('Error', err.message || 'Failed to remove picture', 'error');
+        } finally {
+          setSaving(false);
+        }
+      }
+    });
+  }, [currentPic, mapProfileData, showStatus]);
+
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
+  const openInfoModal = useCallback(() => setInfoModal(true), []);
+  const closeInfoModal = useCallback(() => {
+    if (isEditing) handleCancel();
+    setInfoModal(false);
+  }, [handleCancel, isEditing]);
+  const openPhotoPreview = useCallback(() => {
+    if (currentPic) setPhotoPreview(true);
+  }, [currentPic]);
+  const closePhotoPreview = useCallback(() => setPhotoPreview(false), []);
+  const closeProfilePicModal = useCallback(() => setProfilePicModal(false), []);
+  const closeAvatarModal = useCallback(() => setAvatarModal(false), []);
+  const selectAvatar = useCallback((avatarUrl: string) => setSelectedAvatar(avatarUrl), []);
+  const confirmAvatarSelection = useCallback(() => {
+    if (selectedAvatar) {
+      handleAvatarSelect(selectedAvatar);
+    }
+  }, [handleAvatarSelect, selectedAvatar]);
+  const openSOS = useCallback(() => handleMenuPress('SOS'), [handleMenuPress]);
+  const openHelpSupport = useCallback(() => handleMenuPress('HelpSupport'), [handleMenuPress]);
+  const openSyncQueue = useCallback(() => handleMenuPress('SyncQueue'), [handleMenuPress]);
+  const openTerms = useCallback(() => navigation.navigate('TermsConditions'), [navigation]);
+  const openPrivacy = useCallback(() => navigation.navigate('PrivacyPolicy'), [navigation]);
+
+  const statsCards = useMemo<ProfileStatsCardItem[]>(() => ([
+    { icon: 'car', label: 'Vehicles', value: String(stats.vehicles), color: '#FFD700' },
+    { icon: 'receipt', label: 'Expenses', value: String(stats.expenses), color: '#00F2FF' },
+    { icon: 'file-alt', label: 'Docs', value: String(stats.documents), color: '#FF4B2B' },
+  ]), [stats.documents, stats.expenses, stats.vehicles]);
+
+  const settingsItems = useMemo<ProfileMenuItem[]>(() => ([
+    {
+      icon: 'user-circle',
+      label: 'My Account',
+      onPress: openInfoModal,
+      color: '#00F2FF',
+      bgColor: 'rgba(0, 242, 255, 0.1)',
+    },
+    {
+      icon: 'shield-alt',
+      label: 'Emergency Contacts',
+      onPress: openSOS,
+      color: '#FF4D4D',
+      bgColor: 'rgba(255, 77, 77, 0.1)',
+      borderColor: '#FF4D4D',
+    },
+    {
+      icon: 'file-alt',
+      label: 'Terms & Conditions',
+      onPress: openTerms,
+      color: '#FFFFFF',
+      bgColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: '#FFFFFF',
+    },
+    {
+      icon: 'user-shield',
+      label: 'Privacy Policy',
+      onPress: openPrivacy,
+      color: '#7B61FF',
+      bgColor: 'rgba(123, 97, 255, 0.1)',
+      borderColor: '#7B61FF',
+    },
+    {
+      icon: 'question-circle',
+      label: 'Help & Support',
+      onPress: openHelpSupport,
+      color: '#FFBF00',
+      bgColor: 'rgba(255, 191, 0, 0.1)',
+      borderColor: '#FFBF00',
+    },
+    {
+      icon: 'sync-alt',
+      label: 'Sync Queue',
+      onPress: openSyncQueue,
+      color: '#4ADE80',
+      bgColor: 'rgba(74, 222, 128, 0.1)',
+      borderColor: '#4ADE80',
+      badgeCount: queuedTotal,
+    },
+    {
+      icon: 'sign-out-alt',
+      label: 'Logout',
+      onPress: handleLogout,
+      color: '#F44336',
+      isLast: true,
+    },
+  ]), [handleLogout, openHelpSupport, openInfoModal, openPrivacy, openSOS, openSyncQueue, openTerms, queuedTotal]);
+
+  if (!profile || !editData) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.topBar}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+              <Icon name="arrow-left" size={wp(4.8)} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
+          </View>
+        </View>
+        <View style={styles.fallbackState}>
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#e5e5e5" />
+              <Text style={styles.fallbackText}>Loading your profile...</Text>
+            </>
+          ) : (
+            <Text style={styles.fallbackText}>Unable to load your profile right now.</Text>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-
-
-      {/* ── Full-screen Photo Preview Modal ── */}
-      <Modal
-        visible={photoPreview}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPhotoPreview(false)}
-        statusBarTranslucent
-      >
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <TouchableWithoutFeedback onPress={() => setPhotoPreview(false)}>
-            <View style={styles.previewOverlay}>
-              <TouchableWithoutFeedback>
-                <View style={styles.previewContent}>
-                  <PinchGestureHandler
-                    onGestureEvent={onPinchEvent}
-                    onHandlerStateChange={onPinchStateChange}
-                  >
-                    <Animated.Image
-                      source={{ uri: profilePicUri }}
-                      style={[
-                        styles.previewImage,
-                        { transform: [{ scale: zoomScale }] }
-                      ]}
-                      resizeMode="contain"
-                    />
-                  </PinchGestureHandler>
-                </View>
-              </TouchableWithoutFeedback>
-              <TouchableOpacity
-                style={styles.previewCloseBtn}
-                onPress={() => setPhotoPreview(false)}
-                activeOpacity={0.8}
-              >
-                <Icon name="times" size={18} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </TouchableWithoutFeedback>
-        </GestureHandlerRootView>
-      </Modal>
-
-      {/* ── Profile Picture Bottom Sheet Modal ── */}
-      <Modal
-        visible={profilePicModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setProfilePicModal(false)}
-        statusBarTranslucent
-      >
-        <TouchableWithoutFeedback onPress={() => setProfilePicModal(false)}>
-          <View style={styles.bottomSheetOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.bottomSheet}>
-                {/* Header */}
-                <View style={styles.bottomSheetHeader}>
-                  <TouchableOpacity
-                    onPress={() => setProfilePicModal(false)}
-                    activeOpacity={0.7}
-                    style={styles.bottomSheetHeaderBtn}
-                  >
-                    <MaterialIcon name="close" size={24} color="#fff" />
-                  </TouchableOpacity>
-                  <Text style={[styles.bottomSheetTitle, { fontFamily: 'Outfit-Bold' }]}>Profile picture</Text>
-                  <TouchableOpacity
-                    onPress={handleDeleteProfilePic}
-                    activeOpacity={0.7}
-                    style={styles.bottomSheetHeaderBtn}
-                  >
-                    <MaterialIcon name="delete-outline" size={24} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Options */}
-                <View style={styles.bottomSheetOptions}>
-                  <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
-                    onPress={handleCameraOption}
-                  >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-camera" size={22} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.bottomSheetOptionText}>Camera</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
-                    onPress={handleGalleryOption}
-                  >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-library" size={22} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.bottomSheetOptionText}>Gallery</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
-                    onPress={handleAvatarOption}
-                  >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.bottomSheetOptionText}>Avatar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-
-      {/* ── Avatar Selection Modal ── */}
-      <Modal
-        visible={avatarModal}
-        animationType="slide"
-        onRequestClose={() => setAvatarModal(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.avatarModalContainer}>
-          {/* Avatar Modal Header */}
-          <View style={styles.avatarModalHeader}>
-            <BackButton onPress={() => setAvatarModal(false)} />
-            <Text style={[styles.avatarModalTitle, { fontFamily: 'Outfit-Bold' }]}>Choose Avatar</Text>
-            <View style={{ width: 40 }} />
-          </View>
-
-          {/* Avatar Grid */}
-          <FlatList
-            data={AVATAR_LIST}
-            numColumns={AVATAR_GRID_COLS}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.avatarGrid}
-            columnWrapperStyle={styles.avatarRow}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const isSelected = selectedAvatar === item.url;
-              return (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setSelectedAvatar(item.url)}
-                  style={[
-                    styles.avatarGridItem,
-                    isSelected && styles.avatarGridItemSelected,
-                  ]}
-                >
-                  <Image
-                    source={{ uri: item.url }}
-                    style={styles.avatarGridImage}
-                    resizeMode="cover"
-                  />
-                  {isSelected && (
-                    <View style={styles.avatarSelectedBadge}>
-                      <MaterialIcon name="check" size={16} color="#fff" />
-                    </View>
-                  )}
-                  <Text style={[
-                    styles.avatarGridLabel,
-                    isSelected && styles.avatarGridLabelSelected,
-                  ]}>{item.label}</Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-
-          {/* Confirm Button */}
-          {selectedAvatar && (
-            <View style={styles.avatarConfirmWrap}>
-              <TouchableOpacity
-                style={styles.avatarConfirmBtn}
-                activeOpacity={0.85}
-                onPress={() => handleAvatarSelect(selectedAvatar)}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="#000" />
-                ) : (
-                  <Text style={styles.avatarConfirmText}>Set as Profile Picture</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
+      {loading ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#e5e5e5" />
+          <Text style={styles.loadingBannerText}>Refreshing profile...</Text>
         </View>
-      </Modal>
+      ) : null}
 
-      {/* ── Advanced Profile Modal (Personal Info) ── */}
-      <Modal
-        visible={infoModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => {
-          if (isEditing) handleCancel();
-          setInfoModal(false);
-        }}
-        statusBarTranslucent
-      >
-        <View style={styles.advancedModalOverlay}>
-          <TouchableWithoutFeedback onPress={() => {
-            if (!isEditing) setInfoModal(false);
-          }}>
-            <View style={styles.advancedModalBlur} />
-          </TouchableWithoutFeedback>
 
-          <Animated.View style={styles.advancedModalContent}>
-            {/* Modal Pull Handle */}
-            <View style={styles.modalHandle} />
 
-            <View style={styles.advancedModalHeader}>
-              <View>
-                <Text style={styles.advancedModalTitle}>Account Details</Text>
-                <Text style={styles.advancedModalSubtitle}>Personal information & settings</Text>
-              </View>
-              <View style={styles.headerActions}>
-                {!isEditing ? (
-                  <TouchableOpacity style={styles.editPill} onPress={handleEdit}>
-                    <Icon name="pen" size={10} color="#FFBF00" />
-                    <Text style={styles.editPillText}>Edit</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <>
-                    <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-                      <Icon name="times" size={12} color="#ff4444" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.savePill, saving && { opacity: 0.6 }]}
-                      onPress={handleSave}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator size="small" color="#000" />
-                      ) : (
-                        <>
-                          <Icon name="save" size={12} color="#000" />
-                          <Text style={styles.savePillText}>Save</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            </View>
 
-            <ScrollView contentContainerStyle={styles.advancedModalScroll} showsVerticalScrollIndicator={false}>
-              {/* Profile Image Preview logic within modal */}
-              <View style={styles.modalIdentityRow}>
-                <TouchableOpacity
-                  activeOpacity={currentPic ? 0.8 : 1}
-                  onPress={() => { if (currentPic) setPhotoPreview(true); }}
-                >
-                  <View style={styles.modalAvatar}>
-                    {currentPic ? (
-                      <Image source={{ uri: profilePicUri }} style={styles.avatarImage} />
-                    ) : (
-                      <View style={styles.avatarPlaceholder}>
-                        <Icon name="user" size={wp(6)} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.modalIdentityText}>
-                  <Text style={styles.modalName}>{profile.fullName}</Text>
-                  <Text style={styles.modalEmail}>{profile.email}</Text>
-                </View>
-              </View>
 
-              <View style={styles.modalInfoList}>
-                <VerticalInfoRow
-                  icon="user"
-                  label="Full Name"
-                  value={isEditing ? editData.fullName : profile.fullName}
-                  isEditing={isEditing}
-                  onChange={(v: string) => updateField('fullName', v)}
-                  error={errors.fullName}
-                />
-
-                <VerticalInfoRow
-                  icon="envelope"
-                  label="Email Address"
-                  value={isEditing ? editData.email : profile.email}
-                  isEditing={isEditing}
-                  onChange={(v: string) => updateField('email', v)}
-                  keyboardType="email-address"
-                  error={errors.email}
-                />
-
-                <VerticalInfoRow
-                  icon="phone-alt"
-                  label="Phone Number"
-                  value={isEditing ? editData.phone : profile.phone}
-                  isEditing={isEditing}
-                  onChange={(v: string) => updateField('phone', v)}
-                  keyboardType="phone-pad"
-                  error={errors.phone}
-                />
-
-                <VerticalInfoRow
-                  icon="map-marker-alt"
-                  label="Location"
-                  value={profile.location}
-                  isEditing={false}
-                />
-
-                <VerticalInfoRow
-                  icon="calendar-alt"
-                  label="Member Since"
-                  value={profile.memberSince}
-                  isEditing={false}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={styles.modalCloseBtnFull}
-                activeOpacity={0.8}
-                onPress={() => {
-                  if (isEditing) handleCancel();
-                  setInfoModal(false);
-                }}
-              >
-                <Text style={styles.modalCloseText}>Done</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </Animated.View>
-        </View>
-      </Modal>
 
       <ScrollView
         style={styles.scroll}
@@ -851,178 +719,81 @@ export default function MyProfile() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Top Header Bar: back arrow + settings gear ── */}
-        <View style={styles.topBar}>
-          <View style={styles.headerLeft}>
-            <BackButton onPress={() => navigation.goBack()} />
-            <Text style={styles.headerTitle}>Profile</Text>
-          </View>
-          {/* Settings icon removed as requested */}
-        </View>
-
-        {/* ── Identity: Improved Avatar + Premium Badge ── */}
-        <View style={styles.premiumHeaderBackground}>
-          <LinearGradient
-            colors={['rgba(255, 215, 0, 0.08)', 'transparent']}
-            style={StyleSheet.absoluteFill}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-          />
-          <View style={styles.identityContainer}>
-            <View style={styles.avatarWrap}>
-              <View style={styles.avatarGlow} />
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setInfoModal(true)}
-              >
-                <View style={styles.avatar}>
-                  {currentPic ? (
-                    <Image
-                      source={{ uri: profilePicUri }}
-                      style={styles.avatarImage}
-                    />
-                  ) : (
-                    <View style={styles.avatarPlaceholder}>
-                      <Icon name="user" size={wp(8)} color="#FFFFFF" />
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cameraBtn}
-                activeOpacity={0.9}
-                onPress={handleImagePick}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="#000" />
-                ) : (
-                  <Icon name="camera" size={wp(3.2)} color="#000" />
-                )}
-              </TouchableOpacity>
-
-            </View>
-
-            <View style={styles.identityTextInfo}>
-              <Text style={styles.profileName}>{profile.fullName?.toUpperCase() || 'USER'}</Text>
-              <Text style={styles.memberSinceText}>Member since {profile.memberSince.split(' ').pop()}</Text>
-            </View>
-          </View>
-        </View>
-
-
-        {/* ── Quick Stats: Premium Glassmorphic Grid ── */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsSectionTitle}>FLEET INSIGHTS</Text>
-          <View style={styles.premiumStatsGrid}>
-            <StatCard
-              icon="car"
-              label="Vehicles"
-              value={String(stats.vehicles)}
-              color="#FFD700"
-            />
-            <StatCard
-              icon="receipt"
-              label="Expenses"
-              value={String(stats.expenses)}
-              color="#00F2FF"
-            />
-            <StatCard
-              icon="file-alt"
-              label="Docs"
-              value={String(stats.documents)}
-              color="#FF4B2B"
-            />
-          </View>
-        </View>
-
-        {/* ── Settings & Preferences Section ── */}
-        <View style={styles.integratedSettingsCard}>
-          <Text style={styles.integratedSettingsTitle}>Settings & Preferences</Text>
-
-          <View style={styles.integratedGroupCard}>
-            <MenuRow
-              icon="phone-alt"
-              label="SOS Emergency"
-              onPress={() => handleMenuPress('SOS')}
-              color="#FFD700"
-              bgColor="rgba(255, 215, 0, 0.1)"
-            />
-            <MenuRow
-              icon="bell"
-              label="Notifications"
-              onPress={() => { }}
-            />
-            <MenuRow
-              icon="shield-alt"
-              label="Privacy & Security"
-              onPress={() => { }}
-            />
-            <MenuRow
-              icon="ellipsis-h"
-              label="App Settings"
-              onPress={() => { }}
-            />
-            <MenuRow
-              icon="question-circle"
-              label="Help & Support"
-              onPress={() => handleMenuPress('HelpSupport')}
-            />
-            <MenuRow
-              icon="sign-out-alt"
-              label="Logout"
-              onPress={handleLogout}
-              color="#F44336"
-              isLast
-            />
-          </View>
-        </View>
-
-        <View style={{ height: hp(10) }} />
+        <ProfileOverviewContent
+          styles={styles}
+          profile={profile}
+          currentPic={currentPic}
+          profilePicUri={profilePicUri}
+          saving={saving}
+          statsItems={statsCards}
+          settingsItems={settingsItems}
+          onBack={handleBackPress}
+          onOpenInfoModal={openInfoModal}
+          onImagePick={handleImagePick}
+        />
       </ScrollView>
-    </SafeAreaView>
-  );
-}
 
-function VerticalInfoRow({
-  icon,
-  label,
-  value,
-  isEditing,
-  onChange,
-  keyboardType = 'default',
-  error,
-}: any) {
-  return (
-    <View style={styles.verticalRow}>
-      <View style={styles.vIconWrap}>
-        <Icon name={icon} size={wp(3.8)} color="#aaa" />
-      </View>
-      <View style={styles.vContentWrap}>
-        <Text style={styles.vLabel}>{label}</Text>
-        <View style={[
-          styles.inputContainer,
-          isEditing ? styles.inputContainerActive : undefined,
-          (isEditing && error) ? styles.inputContainerError : undefined
-        ]}>
-          {isEditing && onChange ? (
-            <TextInput
-              value={value}
-              onChangeText={onChange}
-              keyboardType={keyboardType}
-              autoCorrect={false}
-              placeholder={`Enter ${label}`}
-              placeholderTextColor="#444"
-              style={styles.vInput}
-            />
-          ) : (
-            <Text style={styles.vValue}>{value || 'Not provided'}</Text>
-          )}
-        </View>
-        {isEditing && error ? (
-          <Text style={styles.errorText}>{error}</Text>
-        ) : null}
-      </View>
-    </View>
+      <ProfileInfoModal
+        styles={styles}
+        visible={infoModal}
+        isEditing={isEditing}
+        saving={saving}
+        currentPic={currentPic}
+        profilePicUri={profilePicUri}
+        profile={profile}
+        editData={editData}
+        errors={errors}
+        onRequestClose={closeInfoModal}
+        onEdit={handleEdit}
+        onSave={handleSave}
+        onOpenPhotoPreview={openPhotoPreview}
+        onFullNameChange={handleFullNameChange}
+        onEmailChange={handleEmailChange}
+        onPhoneChange={handlePhoneChange}
+      />
+
+      <ProfileMediaModals
+        styles={styles}
+        photoPreview={photoPreview}
+        profilePicModal={profilePicModal}
+        avatarModal={avatarModal}
+        currentPic={currentPic}
+        profilePicUri={profilePicUri}
+        selectedAvatar={selectedAvatar}
+        avatarItems={AVATAR_LIST}
+        saving={saving}
+        zoomScale={zoomScale}
+        onPinchEvent={onPinchEvent}
+        onPinchStateChange={onPinchStateChange}
+        onClosePhotoPreview={closePhotoPreview}
+        onCloseProfilePicModal={closeProfilePicModal}
+        onCloseAvatarModal={closeAvatarModal}
+        onCameraOption={handleCameraOption}
+        onGalleryOption={handleGalleryOption}
+        onAvatarOption={handleAvatarOption}
+        onDeleteProfilePic={handleDeleteProfilePic}
+        onSelectAvatar={selectAvatar}
+        onConfirmAvatar={confirmAvatarSelection}
+      />
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
+
+      {/* ── Confirmation Modal (Logout/Delete) ── */}
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+        confirmText={confirmModal.type === 'logout' ? 'Logout' : 'Remove'}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -1033,6 +804,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.82)',
+    zIndex: 20,
+  },
+  loadingBannerText: {
+    color: '#b8b8b8',
+    fontSize: wp(3.4),
+    fontFamily: 'Outfit-Medium',
+    marginTop: hp(1.4),
+    textAlign: 'center',
+  },
+  fallbackState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: wp(10),
+  },
+  fallbackText: {
+    color: '#8a8a8a',
+    fontSize: wp(3.6),
+    textAlign: 'center',
+    fontFamily: 'Outfit-Medium',
   },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: hp(4) },
@@ -1164,7 +962,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-
   /* ── Personal Info Card ── */
   infoCard: {
     backgroundColor: '#121212',
@@ -1267,6 +1064,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0A0A',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+  },
+  inputContainerFixed: {
+    minHeight: 44,
+    justifyContent: 'flex-start',
   },
   inputContainerActive: {
     borderColor: '#FFFFFF',
@@ -1391,6 +1192,21 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
     color: '#fff',
+  },
+  menuBadge: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFBF00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  menuBadgeText: {
+    color: '#000',
+    fontFamily: 'Outfit-Black',
+    fontSize: 11,
   },
 
   /* ── Modals & Previews ── */
@@ -1639,12 +1455,8 @@ const styles = StyleSheet.create({
   },
   advancedModalContent: {
     backgroundColor: '#0a0b0e',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    minHeight: hp(85),
-    paddingTop: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    flex: 1,
+    paddingTop: hp(2),
   },
   modalHandle: {
     width: 40,
@@ -1659,6 +1471,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(6),
+    paddingVertical: hp(2),
     marginBottom: hp(2),
   },
   advancedModalTitle: {
@@ -1718,61 +1531,82 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   modalCloseText: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(4),
     color: '#fff',
+    fontSize: wp(4),
+  },
+
+  // Premium Modal Styles
+  premiumModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  premiumModalContent: {
+    backgroundColor: '#121212',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  premiumModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  premiumModalTitle: {
+    fontSize: 22,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  premiumCloseBtn: {
+    padding: 4,
+  },
+  premiumOptions: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  premiumOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0A0A0A',
+    padding: 18,
+    borderRadius: 16,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  premiumOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumOptionText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  premiumCancelBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+  },
+  premiumCancelText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#888',
+  },
+
+  confirmConfirmText: {
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
   },
 });
 
-/* ── Menu Row Sub-component with Animation ── */
-function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", isLast = false }: any) {
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={onPress}
-    >
-      <Animated.View style={[
-        styles.menuRow,
-        !isLast && styles.menuRowBorder,
-        { transform: [{ scale: scaleAnim }] }
-      ]}>
-        <View style={[styles.menuIconWrap, { backgroundColor: bgColor }]}>
-          <Icon name={icon} size={wp(4.2)} color={color} />
-        </View>
-        <Text style={[styles.menuLabel, label === 'Logout' && { color: '#F44336' }]}>{label}</Text>
-        <Icon name="chevron-right" size={wp(3)} color="#333" />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
-/* ── Stat Card Sub-component ── */
-function StatCard({ icon, label, value, color }: any) {
-  return (
-    <View style={styles.glassStatCard}>
-      <View style={[styles.statIconBox, { backgroundColor: `${color}15` }]}>
-        <Icon name={icon} size={14} color={color} />
-      </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}

@@ -1,0 +1,96 @@
+diff --git a/React/Fabric/Mounting/RCTComponentViewRegistry.mm b/React/Fabric/Mounting/RCTComponentViewRegistry.mm
+index 0834bbfb7d148d86a36c0b19a8354cf5a8733677..851fd5d9db6fc6000f8dfe8c6704ca459c7e0fa6 100644
+--- a/React/Fabric/Mounting/RCTComponentViewRegistry.mm
++++ b/React/Fabric/Mounting/RCTComponentViewRegistry.mm
+@@ -112,8 +112,9 @@ - (void)_enqueueComponentViewWithComponentHandle:(ComponentHandle)componentHandl
+     return;
+   }
+ 
+-  RCTAssert(
+-      componentViewDescriptor.view.superview == nil, @"RCTComponentViewRegistry: Attempt to recycle a mounted view.");
++  if (componentViewDescriptor.view.superview != nil) {
++    [componentViewDescriptor.view removeFromSuperview];
++  }
+   [componentViewDescriptor.view prepareForRecycle];
+ 
+   recycledViews.push_back(componentViewDescriptor);
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h
+index ded6174907f16358234cfb40a0cb2941737ba1a9..1370d7e8e320b27d754ec9be2d6b5e04387a6036 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h
+@@ -5,6 +5,9 @@
+  * LICENSE file in the root directory of this source tree.
+  */
+ 
++#ifndef RUNTIME_SCHEDULER_H
++#define RUNTIME_SCHEDULER_H
++
+ #pragma once
+ 
+ #include <ReactCommon/RuntimeExecutor.h>
+@@ -165,3 +168,5 @@ class RuntimeScheduler final : RuntimeSchedulerBase {
+ };
+ 
+ } // namespace facebook::react
++
++#endif
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerEventTimingDelegate.h b/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerEventTimingDelegate.h
+index 5900c33a9f4e2a5ff548748a06ce3ef1772c3b86..8bbe854d51f7a1a15705f9604471b4ede639bd96 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerEventTimingDelegate.h
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerEventTimingDelegate.h
+@@ -5,6 +5,9 @@
+  * LICENSE file in the root directory of this source tree.
+  */
+ 
++#ifndef RUNTIME_SCHEDULER_EVENT_TIMING_DELEGATE_H
++#define RUNTIME_SCHEDULER_EVENT_TIMING_DELEGATE_H
++
+ #pragma once
+ 
+ #include <react/timing/primitives.h>
+@@ -24,3 +27,5 @@ class RuntimeSchedulerEventTimingDelegate {
+ };
+ 
+ } // namespace facebook::react
++
++#endif
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerIntersectionObserverDelegate.h b/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerIntersectionObserverDelegate.h
+index 614aed82e811bed681f23d1476f8aee496dd013f..75f03b638b8572ae5928aebc0156aa5f8779b76b 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerIntersectionObserverDelegate.h
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerIntersectionObserverDelegate.h
+@@ -5,6 +5,9 @@
+  * LICENSE file in the root directory of this source tree.
+  */
+ 
++#ifndef RUNTIME_SCHEDULER_INTERSECTION_OBSERVER_DELEGATE_H
++#define RUNTIME_SCHEDULER_INTERSECTION_OBSERVER_DELEGATE_H
++
+ #pragma once
+ 
+ #include <unordered_set>
+@@ -22,3 +25,5 @@ class RuntimeSchedulerIntersectionObserverDelegate {
+ };
+ 
+ } // namespace facebook::react
++
++#endif
+diff --git a/ReactCommon/react/renderer/runtimescheduler/SchedulerPriorityUtils.h b/ReactCommon/react/renderer/runtimescheduler/SchedulerPriorityUtils.h
+index df109665581eeb67ba9520bc9d58c6ff33416d34..4c358cbd2ee3b053db57f301adcef68d7d14672f 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/SchedulerPriorityUtils.h
++++ b/ReactCommon/react/renderer/runtimescheduler/SchedulerPriorityUtils.h
+@@ -5,6 +5,9 @@
+  * LICENSE file in the root directory of this source tree.
+  */
+ 
++#ifndef SCHEDULER_PRIORITY_UTILS_H
++#define SCHEDULER_PRIORITY_UTILS_H
++
+ #pragma once
+ 
+ #include <ReactCommon/SchedulerPriority.h>
+@@ -58,3 +61,5 @@ static inline HighResDuration timeoutForSchedulerPriority(SchedulerPriority sche
+ }
+ 
+ } // namespace facebook::react
++
++#endif

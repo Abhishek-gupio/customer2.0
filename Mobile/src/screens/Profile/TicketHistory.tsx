@@ -76,7 +76,9 @@ export default function TicketHistory() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4CAF50" />}
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: hp(10) }} />
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+          </View>
         ) : tickets.length > 0 ? (
           tickets.map((ticket) => {
             const lastMessage = ticket.messages?.[ticket.messages.length - 1];
@@ -196,6 +198,11 @@ const styles = StyleSheet.create({
   
 
   content: { flex: 1, paddingHorizontal: wp(4) },
+  loadingWrap: {
+    minHeight: hp(65),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   ticketCard: {
     backgroundColor: '#121212',
     borderRadius: wp(5),
