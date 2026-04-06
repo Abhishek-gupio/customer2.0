@@ -72,8 +72,9 @@ const envSchema = z.object({
   PUBLIC_BASE_URL: z.string().optional().transform((v) => (v === "" ? undefined : v)),
   // AI Features
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_TEXT_MODEL: z.string().default("gemini-2.5-flash-lite"),
   /** Model for voice expense parsing; use gemini-1.5-pro for best accuracy. */
-  GEMINI_VOICE_MODEL: z.string().default("gemini-1.5-flash"),
+  GEMINI_VOICE_MODEL: z.string().default("gemini-2.5-flash-lite"),
 
   // Weather
   WEATHER_API_KEY: z.string().optional(),

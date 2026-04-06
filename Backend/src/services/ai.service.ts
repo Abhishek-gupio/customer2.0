@@ -57,6 +57,7 @@ const genAI = env.GEMINI_API_KEY
 const cacheManager = env.GEMINI_API_KEY
   ? new GoogleAICacheManager(env.GEMINI_API_KEY)
   : null;
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 // Global singleton to store the current cache name
 let activeCache: { name: string; expiry: number } | null = null;
@@ -373,7 +374,7 @@ export const aiService = {
       const declarations = this.getFunctionDeclarations();
 
       const cache = await cacheManager.create({
-        model: "gemini-2.0-flash",
+        model: GEMINI_TEXT_MODEL,
         displayName: "gupio-base-logic",
         systemInstruction: SYSTEM_PROMPT,
         contents: [],
@@ -403,7 +404,7 @@ export const aiService = {
 
     if (cacheName) {
       return genAI.getGenerativeModel(
-        { model: "gemini-2.0-flash", cachedContent: cacheName } as any,
+        { model: GEMINI_TEXT_MODEL, cachedContent: cacheName } as any,
         { apiVersion: "v1beta" },
       );
     }
@@ -411,7 +412,7 @@ export const aiService = {
     // Fallback: inline system instructions and tools
     const declarations = this.getFunctionDeclarations();
     return genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: GEMINI_TEXT_MODEL,
       systemInstruction: SYSTEM_PROMPT,
       tools: [{ functionDeclarations: declarations } as any],
     } as any);
@@ -449,7 +450,7 @@ export const aiService = {
     if (!genAI) return;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
       const result = await model.generateContent(
         `Summarize this conversation concisely, keeping key facts, user preferences, and decisions. 
 Previous summary: ${session?.summary || "None"}
@@ -1176,7 +1177,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
   async generateDrivingCoachAdvice(events: any[], context: any) {
     if (!genAI) throw new Error("AI not configured");
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
     const prompt = `
             You are a friendly, calm driving instructor.
