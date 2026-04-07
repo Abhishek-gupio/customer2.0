@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   Easing,
   StatusBar,
   Platform,
+  PermissionsAndroid,
   Alert,
   Modal,
   TextInput,
@@ -26,6 +28,7 @@ import { launchCamera } from 'react-native-image-picker';
 import Share, { VehicleUser } from './Share';
 import { vehicleService } from '../../services/vehicleService';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -106,9 +109,11 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [isOdoModalVisible, setIsOdoModalVisible] = useState(false);
+  const [isSavingOdometer, setIsSavingOdometer] = useState(false);
   const [odoInput, setOdoInput] = useState('');
   const [expandWhyScore, setExpandWhyScore] = useState(false);
   const [expandNextActions, setExpandNextActions] = useState(false);
+  const [expandMoreDetails, setExpandMoreDetails] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
   const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -135,10 +140,11 @@ const VehicleDetails = ({ navigation, route }: any) => {
       const data = await vehicleService.getVehicleById(vehicle.id);
       setVehicle((prev: any) => ({
         ...prev,
+        ...data,
         healthScore: data.healthScore?.overallScore ?? prev.healthScore ?? 0,
         healthScoreDetail: data.healthScore ?? null,
         odometer: data.currentOdometer ? `${data.currentOdometer.toLocaleString()} km` : prev.odometer,
-        photo: data.photo || prev.photo || prev.img,
+        photo: data.imageUrl || data.photo || prev.photo || prev.img,
         chassisNumber: data.chassisNumber,
         engineNumber: data.engineNumber,
         rcVerified: data.rcVerified,
@@ -167,7 +173,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
       toValue: healthScore,
       duration: 1500,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      // Animated SVG props (strokeDashoffset) must run on JS driver.
+      useNativeDriver: false,
     }).start();
   }, [animatedValue, healthScore]);
 
@@ -205,28 +212,48 @@ const VehicleDetails = ({ navigation, route }: any) => {
   });
 
   const handleManualOdometerSubmit = async () => {
-    if (!vehicle.id || !odoInput) return;
-    setIsOdoModalVisible(false);
-    setIsRecalculating(true);
+    if (!vehicle.id || !odoInput || isSavingOdometer) return;
+    setIsSavingOdometer(true);
     try {
       await vehicleService.addOdometer(vehicle.id, { reading: parseInt(odoInput, 10) });
       await fetchVehicleDetails();
-      Alert.alert('Success', 'Odometer updated successfully!');
       setOdoInput('');
+      setIsOdoModalVisible(false);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update odometer manually');
     } finally {
-      setIsRecalculating(false);
+      setIsSavingOdometer(false);
     }
   };
 
   const handleCameraOdometer = async () => {
-    setIsOdoModalVisible(false);
     try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'Camera access is required to scan odometer reading.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+            buttonNeutral: 'Ask Me Later',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission denied', 'Camera permission is required to continue.');
+          return;
+        }
+      }
+
       const result: any = await launchCamera({
         mediaType: 'photo',
         quality: 0.8,
       });
+      if (result?.didCancel) return;
+      if (result?.errorCode) {
+        Alert.alert('Camera error', result?.errorMessage || 'Could not open camera.');
+        return;
+      }
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         const fd = new FormData();
@@ -238,9 +265,8 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
         setIsRecalculating(true);
         try {
-          await vehicleService.addOdometerViaAI(vehicle.id, fd);
-          await fetchVehicleDetails();
-          Alert.alert('Success', 'Odometer updated successfully via AI!');
+          const extracted = await vehicleService.extractOdometerViaAI(vehicle.id, fd);
+          setOdoInput(String(extracted.reading ?? ''));
         } catch (err: any) {
           Alert.alert('Error', err?.message || 'Failed OCR check. Please try manual entry.');
         } finally {
@@ -253,9 +279,9 @@ const VehicleDetails = ({ navigation, route }: any) => {
   };
 
   const handleInvite = async (phone: string, role: 'Editor' | 'Viewer' | 'Driver') => {
+    if (isSharingLoading) return;
     setIsSharingLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
       const newUser: VehicleUser = {
         id: Date.now(),
         name: 'New User',
@@ -273,12 +299,15 @@ const VehicleDetails = ({ navigation, route }: any) => {
   };
 
   const handleRevoke = async (userId: number) => {
+    if (isSharingLoading) return;
+    setIsSharingLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
       setAccessList(prev => prev.filter(user => user.id !== userId));
       Alert.alert('Success', 'Access revoked successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to revoke access');
+    } finally {
+      setIsSharingLoading(false);
     }
   };
 
@@ -553,6 +582,75 @@ const VehicleDetails = ({ navigation, route }: any) => {
               </View>
             ))}
 
+            {/* Extended Info (More Section) */}
+            {[
+              { key: 'ownerName', label: 'Owner Name', icon: 'user' },
+              { key: 'rto', label: 'RTO Office', icon: 'building' },
+              { key: 'vehicleClass', label: 'Vehicle Class', icon: 'car-side' },
+              { key: 'fuelNorms', label: 'Fuel Norms', icon: 'leaf' },
+              { key: 'rcStatus', label: 'RC Status', icon: 'info-circle' },
+              { key: 'unloadedWeight', label: 'Unloaded Weight', icon: 'weight-hanging' },
+              { key: 'fitnessUpto', label: 'Fitness Upto', icon: 'clipboard-check' },
+              { key: 'insuranceUpto', label: 'Insurance Upto', icon: 'shield-alt' },
+              { key: 'pollutionUpto', label: 'Pollution Upto', icon: 'smog' },
+              { key: 'mileage', label: 'Mileage', icon: 'gas-pump' },
+              { key: 'transmission', label: 'Transmission', icon: 'shift' },
+              { key: 'color', label: 'Color', icon: 'palette' },
+              { key: 'manufacturingMonthYear', label: 'Manufacturing Date', icon: 'calendar-day' },
+              { key: 'vehicleType', label: 'Type', icon: 'car' },
+              { key: 'presentAddress', label: 'Present Address', icon: 'map-marker-alt' },
+            ].some(f => vehicle[f.key]) && (
+              <>
+                <TouchableOpacity
+                  style={[styles.whyScoreRow, { marginTop: hp(1) }]}
+                  onPress={() => setExpandMoreDetails(v => !v)}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome5 name="list-ul" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.whyScoreLabel}>More Details</Text>
+                  <FontAwesome5
+                    name={expandMoreDetails ? 'chevron-up' : 'chevron-down'}
+                    size={wp(3.5)}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+
+                {expandMoreDetails && (
+                  <View style={{ marginTop: hp(1) }}>
+                    {[
+                      { key: 'ownerName', label: 'Owner Name', icon: 'user' },
+                      { key: 'rto', label: 'RTO Office', icon: 'building' },
+                      { key: 'vehicleClass', label: 'Vehicle Class', icon: 'car-side' },
+                      { key: 'fuelNorms', label: 'Fuel Norms', icon: 'leaf' },
+                      { key: 'rcStatus', label: 'RC Status', icon: 'info-circle' },
+                      { key: 'unloadedWeight', label: 'Unloaded Weight', icon: 'weight-hanging' },
+                      { key: 'fitnessUpto', label: 'Fitness Upto', icon: 'clipboard-check' },
+                      { key: 'insuranceUpto', label: 'Insurance Upto', icon: 'shield-alt' },
+                      { key: 'pollutionUpto', label: 'Pollution Upto', icon: 'smog' },
+                      { key: 'mileage', label: 'Mileage', icon: 'gas-pump' },
+                      { key: 'transmission', label: 'Transmission', icon: 'shift' },
+                      { key: 'color', label: 'Color', icon: 'palette' },
+                      { key: 'manufacturingMonthYear', label: 'Manufacturing Date', icon: 'calendar-day' },
+                      { key: 'vehicleType', label: 'Type', icon: 'car' },
+                      { key: 'presentAddress', label: 'Present Address', icon: 'map-marker-alt' },
+                    ].map((f, i) => vehicle[f.key] ? (
+                      <View key={i} style={styles.infoRow}>
+                        <View style={styles.infoLeft}>
+                          <FontAwesome5
+                            name={f.icon as any}
+                            size={wp(3.5)}
+                            color="#444"
+                          />
+                          <Text style={styles.infoLabel}>{f.label}</Text>
+                        </View>
+                        <Text style={styles.infoValue}>{vehicle[f.key]}</Text>
+                      </View>
+                    ) : null)}
+                  </View>
+                )}
+              </>
+            )}
+
             <TouchableOpacity
               style={styles.updateBtn}
               onPress={() => setIsOdoModalVisible(true)}
@@ -607,12 +705,21 @@ const VehicleDetails = ({ navigation, route }: any) => {
         visible={isOdoModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setIsOdoModalVisible(false)}
+        onRequestClose={() => {
+          if (!isSavingOdometer) {
+            setIsOdoModalVisible(false);
+          }
+        }}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setIsOdoModalVisible(false)}
+          onPress={() => {
+            if (!isSavingOdometer) {
+              setIsOdoModalVisible(false);
+            }
+          }}
+          disabled={isSavingOdometer}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -631,16 +738,27 @@ const VehicleDetails = ({ navigation, route }: any) => {
                   keyboardType="numeric"
                   value={odoInput}
                   onChangeText={setOdoInput}
+                  editable={!isSavingOdometer}
                 />
 
-                <TouchableOpacity
-                  style={[styles.modalSubmitBtn, !odoInput && styles.modalSubmitBtnDisabled]}
+                {isSavingOdometer ? (
+                  <View style={styles.modalSavingRow}>
+                    <ActivityIndicator size="small" color="#FFBF00" />
+                    <Text style={styles.modalSavingText}>Updating odometer...</Text>
+                  </View>
+                ) : null}
+
+                <LoaderButton
+                  title="Update Odometer"
+                  loading={isSavingOdometer}
+                  loadingTitle="Updating..."
                   onPress={handleManualOdometerSubmit}
                   disabled={!odoInput}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.modalSubmitText}>Save Reading</Text>
-                </TouchableOpacity>
+                  style={[
+                    styles.modalSubmitBtn,
+                    !odoInput && styles.modalSubmitBtnDisabled,
+                  ]}
+                />
 
                 <View style={styles.dividerRow}>
                   <View style={styles.dividerLine} />
@@ -649,8 +767,12 @@ const VehicleDetails = ({ navigation, route }: any) => {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.modalAiBtn}
+                  style={[
+                    styles.modalAiBtn,
+                    isSavingOdometer && styles.modalAiBtnDisabled,
+                  ]}
                   onPress={handleCameraOdometer}
+                  disabled={isSavingOdometer}
                   activeOpacity={0.8}
                 >
                   <FontAwesome5 name="camera" size={wp(4)} color="#FFBF00" />
@@ -978,6 +1100,18 @@ const styles = StyleSheet.create({
   modalSubmitBtnDisabled: {
     backgroundColor: '#333',
   },
+  modalSavingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: hp(1.5),
+    gap: wp(2),
+  },
+  modalSavingText: {
+    color: '#FFBF00',
+    fontSize: wp(3.6),
+    fontWeight: '600',
+  },
   modalSubmitText: {
     color: '#000',
     fontSize: wp(4),
@@ -1009,6 +1143,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     borderWidth: 1,
     borderColor: 'rgba(255,191,0,0.2)',
+  },
+  modalAiBtnDisabled: {
+    opacity: 0.5,
   },
   modalAiText: {
     color: '#FFBF00',

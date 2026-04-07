@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { NotificationItem } from "../screens/Main/notifiData";
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
 
@@ -9,6 +10,8 @@ interface Props {
   onPress?: () => void;
   onLongPress?: () => void;
   onSwipeDelete?: () => void;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
 }
 
 const iconConfig = {
@@ -22,7 +25,15 @@ const iconConfig = {
   odometer: { icon: "speedometer-outline", color: "#F59E0B" },
 };
 
-const NotificationCard: React.FC<Props> = ({ item, onRemove, onPress, onLongPress, onSwipeDelete }) => {
+const NotificationCard: React.FC<Props> = ({
+  item,
+  onRemove,
+  onPress,
+  onLongPress,
+  onSwipeDelete,
+  isSelectionMode = false,
+  isSelected = false,
+}) => {
   const config = iconConfig[item.type] ?? iconConfig.alert;
 
   const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
@@ -37,43 +48,63 @@ const NotificationCard: React.FC<Props> = ({ item, onRemove, onPress, onLongPres
     );
   };
 
+  const cardContent = (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={[styles.card, isSelectionMode && isSelected ? styles.cardSelected : null]}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={300}
+    >
+      <View style={styles.container}>
+        <View style={[styles.iconContainer, { backgroundColor: `${config.color}15` }]}>
+          <Ionicons name={config.icon} size={22} color={config.color} />
+        </View>
+
+        <View style={styles.contentColumn}>
+          <View style={styles.contentHeader}>
+            <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+            {item.pinned ? (
+              <View style={styles.pinBadge}>
+                <MaterialCommunityIcons name="pin-outline" size={14} color="#FFBF00" />
+              </View>
+            ) : null}
+          </View>
+          
+          <Text style={styles.description} numberOfLines={3}>
+            {item.description}
+          </Text>
+
+          <View style={styles.bottomRow}>
+            <Text style={styles.time}>{item.time}</Text>
+          </View>
+        </View>
+
+        {isSelectionMode ? (
+          <View style={styles.selectionMarker}>
+            <MaterialCommunityIcons
+              name={isSelected ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
+              size={22}
+              color={isSelected ? '#FFBF00' : 'rgba(255,255,255,0.35)'}
+            />
+          </View>
+        ) : item.unread ? (
+          <View style={styles.dot} />
+        ) : null}
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (isSelectionMode) {
+    return cardContent;
+  }
+
   return (
-    <Swipeable 
+    <Swipeable
       renderRightActions={renderRightActions}
       onSwipeableWillOpen={onSwipeDelete}
     >
-      <TouchableOpacity 
-        activeOpacity={0.7} 
-        style={styles.card} 
-        onPress={onPress} 
-        onLongPress={onLongPress}
-        delayLongPress={300}
-      >
-        <View style={styles.container}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: `${config.color}15` }]}>
-            <Ionicons name={config.icon} size={22} color={config.color} />
-          </View>
-
-          {/* Content Column */}
-          <View style={styles.contentColumn}>
-            <View style={styles.contentHeader}>
-              <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-            </View>
-            
-            <Text style={styles.description} numberOfLines={3}>
-              {item.description}
-            </Text>
-
-            <View style={styles.bottomRow}>
-              <Text style={styles.time}>{item.time}</Text>
-            </View>
-          </View>
-
-          {/* Unread Dot */}
-          {item.unread && <View style={styles.dot} />}
-        </View>
-      </TouchableOpacity>
+      {cardContent}
     </Swipeable>
   );
 };
@@ -85,6 +116,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     paddingVertical: 18,
     paddingHorizontal: 20,
+  },
+  cardSelected: {
+    backgroundColor: 'rgba(255,191,0,0.08)',
   },
   container: {
     flexDirection: "row",
@@ -107,12 +141,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    gap: 8,
   },
   title: {
     color: "#fff",
     fontSize: 15,
     fontFamily: 'Outfit-Bold',
     lineHeight: 20,
+    flex: 1,
+  },
+  pinBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,191,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
   },
   description: {
     color: "rgba(255,255,255,0.6)",
@@ -137,6 +184,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFBF00",
     marginLeft: 12,
     marginTop: 6,
+  },
+  selectionMarker: {
+    marginLeft: 12,
+    marginTop: 2,
   },
   deleteAction: {
     backgroundColor: '#ff4444',

@@ -49,7 +49,10 @@ export const getNearbyHelp = async (
   try {
     const { latitude, longitude, type } = req.query;
 
+    console.log(`[SOS Controller] getNearbyHelp Request -> Lat: ${latitude}, Lon: ${longitude}, Type: ${type}`);
+
     if (!latitude || !longitude || !type) {
+      console.warn("[SOS Controller] Missing required parameters: latitude, longitude, and type");
       return res
         .status(400)
         .json({ message: "Latitude, longitude, and type are required" });
@@ -60,6 +63,8 @@ export const getNearbyHelp = async (
       parseFloat(longitude as string),
       type as SOSType,
     );
+    
+    console.log(`[SOS Controller] Returning ${help.length} nearby locations`);
     res.status(200).json(help);
   } catch (error) {
     console.error("Error fetching nearby help:", error);
@@ -73,10 +78,10 @@ export const addContact = async (req: Request, res: Response) => {
     const customerId = req.customer.id;
     const { name, phoneNumber, email, relation, priority } = req.body;
 
-    if (!name || !phoneNumber) {
+    if (!name || !phoneNumber || !email) {
       return res
         .status(400)
-        .json({ message: "Name and phone number are required" });
+        .json({ message: "Name, phone number, and email are required" });
     }
 
     const contact = await sosService.addContact(customerId, {

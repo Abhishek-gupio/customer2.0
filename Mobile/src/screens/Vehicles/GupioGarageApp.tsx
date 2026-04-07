@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, ToastAndroid, Platform, Alert } from 'react-native';
-import { useRoute, useNavigation } from '../../lib/react-navigation-native';
+import React, { useState, useCallback } from 'react';
+import { View, ActivityIndicator, StyleSheet, ToastAndroid, Platform, Alert, Text } from 'react-native';
+import { useRoute, useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { AddVehicleScreen } from './AddVehicleScreen';
@@ -21,6 +21,8 @@ export default function GupioGarageApp() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [activeVehicle, setActiveVehicle] = useState<Vehicle | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
+    const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
 
     const fetchVehicles = useCallback(async () => {
         try {
@@ -43,9 +45,11 @@ export default function GupioGarageApp() {
         }
     }, [route?.name]);
 
-    useEffect(() => {
-        fetchVehicles();
-    }, [fetchVehicles]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchVehicles();
+        }, [fetchVehicles])
+    );
 
     const handleAddDone = useCallback(async (newVehicle: Vehicle) => {
         setVehicles(prev => [...prev, newVehicle]);
@@ -58,7 +62,9 @@ export default function GupioGarageApp() {
     }, []);
 
     const handleDelete = useCallback(async (id: string) => {
+        if (deletingVehicleId || settingPrimaryId) return;
         try {
+            setDeletingVehicleId(id);
             await vehicleService.deleteVehicle(id);
             const remaining = vehicles.filter(v => v.id !== id);
             setVehicles(remaining);
@@ -71,12 +77,17 @@ export default function GupioGarageApp() {
                 setScreen('DETAILS');
             }
         } catch (error) {
+            console.error('[GupioGarageApp] deleteVehicle error:', error);
             Alert.alert('Error', 'Failed to delete vehicle.');
+        } finally {
+            setDeletingVehicleId(null);
         }
-    }, [vehicles]);
+    }, [deletingVehicleId, settingPrimaryId, vehicles]);
 
     const handleSetPrimary = useCallback(async (id: string) => {
+        if (settingPrimaryId || deletingVehicleId) return;
         try {
+            setSettingPrimaryId(id);
             const updated = await vehicleService.setPrimaryVehicle(id);
             setVehicles(prev => prev.map(v => ({
                 ...v,
@@ -87,25 +98,21 @@ export default function GupioGarageApp() {
                 ToastAndroid.show('Primary Vehicle Updated!', ToastAndroid.SHORT);
             }
         } catch (error) {
+            console.error('[GupioGarageApp] setPrimaryVehicle error:', error);
             Alert.alert('Error', 'Failed to set primary vehicle.');
+        } finally {
+            setSettingPrimaryId(null);
         }
-    }, []);
+    }, [deletingVehicleId, settingPrimaryId]);
 
-    // 2. Early Return (Must be after all Hooks)
-    if (initialLoading) {
-        return (
-            <View style={[styles.screen, styles.centered]}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-            </View>
-        );
-    }
-
-    // 3. Render
+    // 2. Render
+    let content: React.ReactNode = null;
     switch (screen) {
         case 'ADD':
-            return (
+            content = (
                 <AddVehicleScreen
                     isFirst={vehicles.length === 0}
+                    initialRegistrationNumber={(route.params as any)?.registrationNumber}
                     onBack={() => {
                         if (vehicles.length > 0) {
                             setScreen('DETAILS');
@@ -116,25 +123,47 @@ export default function GupioGarageApp() {
                     onDone={handleAddDone}
                 />
             );
+            break;
 
         case 'DETAILS':
-            return (
+            content = (
                 <DetailsScreen
                     vehicles={vehicles}
                     activeVehicle={activeVehicle}
                     setActiveVehicle={setActiveVehicle}
+                    initialTab={(route.params as any)?.initialTab}
                     onBack={() => {
                         navigation.goBack();
                     }}
                     onAddNew={() => setScreen('ADD')}
                     onDelete={handleDelete}
                     onSetPrimary={handleSetPrimary}
+                    deletingVehicleId={deletingVehicleId}
+                    settingPrimaryId={settingPrimaryId}
                 />
             );
+            break;
 
         default:
-            return null;
+            content = null;
+            break;
     }
+
+    return (
+        <View style={styles.screen}>
+            {initialLoading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <Text style={styles.loadingText}>Syncing your garage...</Text>
+                </View>
+            ) : null}
+            {content ?? (
+                <View style={[styles.centered, styles.placeholder]}>
+                    <Text style={styles.placeholderText}>Preparing your garage...</Text>
+                </View>
+            )}
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -145,5 +174,25 @@ const styles = StyleSheet.create({
     centered: {
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    loadingContainer: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.background,
+        zIndex: 10,
+    },
+    loadingText: {
+        color: '#b5b5b5',
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 8,
+    },
+    placeholder: {
+        flex: 1,
+    },
+    placeholderText: {
+        color: '#888',
+        fontSize: 13,
     },
 });

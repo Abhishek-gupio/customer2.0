@@ -5,9 +5,30 @@ import {
   setAccessToken,
   setRefreshToken,
   clearAuthStorage,
+  awaitAuthStoragePersisted,
 } from './storage';
 
 const base = `${API_BASE_URL}/api`;
+type NetworkListener = (online: boolean) => void;
+const networkListeners = new Set<NetworkListener>();
+let networkOnline = true;
+
+export function getNetworkOnlineState(): boolean {
+  return networkOnline;
+}
+
+export function subscribeNetworkState(listener: (online: boolean) => void): () => void {
+  networkListeners.add(listener);
+  return () => networkListeners.delete(listener);
+}
+
+function setNetworkOnlineState(next: boolean): void {
+  if (networkOnline === next) return;
+  networkOnline = next;
+  for (const listener of networkListeners) {
+    listener(networkOnline);
+  }
+}
 
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: object };
 
@@ -29,6 +50,7 @@ async function doRefresh(): Promise<boolean> {
       if (res.ok && payload?.accessToken) {
         setAccessToken(payload.accessToken);
         if (payload.refreshToken) setRefreshToken(payload.refreshToken);
+        await awaitAuthStoragePersisted();
         return true;
       }
       // Only clear local auth if refresh token is actually invalid/revoked.
@@ -77,12 +99,14 @@ async function request<T>(
   } catch (e: any) {
     const msg = e?.message || '';
     const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
+    if (isNetworkErr) setNetworkOnlineState(false);
     throw new Error(
       isNetworkErr
         ? 'Network error. Check internet and that the server is reachable.'
         : msg || 'Request failed',
     );
   }
+  setNetworkOnlineState(true);
   const data = await res.json().catch(() => ({}));
 
   if (res.status === 401 && !isRetry) {
@@ -123,12 +147,14 @@ async function upload<T>(
   } catch (e: any) {
     const msg = e?.message || '';
     const isNetworkErr = /network request failed|failed to fetch|network error/i.test(msg);
+    if (isNetworkErr) setNetworkOnlineState(false);
     throw new Error(
       isNetworkErr
         ? 'Network error. Check that the app can reach the server (e.g. use your computer\'s IP instead of localhost).'
         : msg || 'Upload failed',
     );
   }
+  setNetworkOnlineState(true);
 
   const text = await res.text();
   let data: any = {};

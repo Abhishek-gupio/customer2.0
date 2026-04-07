@@ -1,13 +1,19 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
-    StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid
+    StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid,
+    Animated, Easing
 } from 'react-native';
+import { useRef } from 'react';
+import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop, Path } from 'react-native-svg';
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
+import LinearGradient from 'react-native-linear-gradient';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window');
@@ -16,14 +22,17 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash
+    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash, ChevronRight
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { COLORS, FALLBACK_IMAGE, InfoCard, INDPlate, GloveboxItem, StatusCard } from '../../components/Vehicles/VehicleUI';
+import { getAbsoluteUrl } from '../../config';
 import { Vehicle, vehicleService } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import ShareScreen from './Share';
@@ -31,9 +40,11 @@ import { getProfile } from '../../services/profileService';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { RootState } from '../../store';
 import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
+import LoaderButton from '../../components/Button';
 
 const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
 const BikeImage = require('../../assets/images/bike.png') as any;
+const IndianLion = require('../../assets/images/indian_lion.png') as any;
 
 type DetailsScreenProps = {
     vehicles: Vehicle[];
@@ -43,17 +54,45 @@ type DetailsScreenProps = {
     onAddNew: () => void;
     onDelete: (id: string) => void;
     onSetPrimary: (id: string) => void;
+    deletingVehicleId?: string | null;
+    settingPrimaryId?: string | null;
+    initialTab?: MainTab;
 };
 
 type MainTab = 'Alerts' | 'Details';
-type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'More';
+type SubTab = 'Health' | 'Owner' | 'Vehicle' | 'Documents';
 
 export const DetailsScreen = ({
-    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary
+    vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, onSetPrimary, deletingVehicleId, settingPrimaryId, initialTab
 }: DetailsScreenProps) => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const [mainTab, setMainTab] = useState<MainTab>('Alerts');
+    const [mainTab, setMainTab] = useState<MainTab>(initialTab || 'Alerts');
     const [subTab, setSubTab] = useState<SubTab>('Health');
+
+
+
+    useEffect(() => {
+        if (initialTab) setMainTab(initialTab);
+    }, [initialTab]);
+
+    const [statusModal, setStatusModal] = useState({
+        visible: false,
+        type: 'success' as 'success' | 'delete' | 'error',
+        title: '',
+        message: '',
+    });
+    const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+        setStatusModal({ visible: true, type, title, message });
+    };
+
+    const [confirmModal, setConfirmModal] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'default' as 'default' | 'logout' | 'delete',
+        confirmText: 'Confirm',
+        onConfirm: () => { }
+    });
     const [healthScoreDetail, setHealthScoreDetail] = useState<{
         overallScore?: number;
         scoreChangeReason?: string;
@@ -61,6 +100,43 @@ export const DetailsScreen = ({
         recommendations?: string[];
         explanations?: string[];
     } | null>(null);
+    const healthVal = healthScoreDetail?.overallScore ?? activeVehicle?.healthScore?.overallScore ?? 0;
+    const animatedHealth = useRef(new Animated.Value(0)).current;
+
+    // Semicircle Gauge Constants
+    const R = wp(36);
+    const strokeWidth = wp(4.5);
+    const padding = wp(5);
+    const svgWidth = R * 2 + padding * 2;
+    const svgHeight = R + padding * 1.5;
+    const startX = padding;
+    const startY = R + padding;
+    const endX = startX + R * 2;
+    const pathData = `M ${startX} ${startY} A ${R} ${R} 0 0 1 ${endX} ${startY}`;
+    const pathLength = Math.PI * R;
+
+    useEffect(() => {
+        Animated.timing(animatedHealth, {
+            toValue: healthVal,
+            duration: 1800,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+        }).start();
+    }, [healthVal]);
+
+    const strokeDashoffset = animatedHealth.interpolate({
+        inputRange: [0, 100],
+        outputRange: [pathLength, 0],
+    });
+
+    const getHealthStatus = (score: number) => {
+        if (score >= 80) return { label: 'EXCELLENT', color: '#22C55E', desc: 'Your vehicle is in top shape. Maintenance is up to date.' };
+        if (score >= 50) return { label: 'GOOD', color: '#F59E0B', desc: 'Some parts need your attention soon to maintain peak performance.' };
+        return { label: 'CRITICAL', color: '#EF4444', desc: 'Immediate service recommended. Essential parts are overdue.' };
+    };
+
+    const healthStatus = getHealthStatus(healthVal);
+
     const [expandWhyScore, setExpandWhyScore] = useState(false);
     const [expandNextActions, setExpandNextActions] = useState(false);
     const [rating, setRating] = useState(0);
@@ -101,6 +177,12 @@ export const DetailsScreen = ({
 
     const fetchHealthDetail = useCallback(async (vehicleId: string) => {
         try {
+            // Recalculate first so user sees the latest score and reasons.
+            await vehicleService.recalculateHealth(vehicleId);
+        } catch {
+            // Continue and fetch whatever is currently stored.
+        }
+        try {
             const data = await vehicleService.getVehicleById(vehicleId);
             const hs = data?.healthScore as typeof healthScoreDetail;
             setHealthScoreDetail(hs ?? null);
@@ -115,36 +197,50 @@ export const DetailsScreen = ({
 
     // Hero image error state must be defined BEFORE any early returns
     const [heroError, setHeroError] = useState(false);
+    useEffect(() => {
+        setHeroError(false);
+    }, [activeVehicle?.id, activeVehicle?.imageUrl]);
 
     if (!activeVehicle) return null;
+    
+    // rto refers to the combined data from the DB record and the supplemental RTO lookup.
+    // We prioritize top-level activeVehicle fields as they come from the production DB.
+    const rto = { 
+        ...activeVehicle.rtoDetails, 
+        ...activeVehicle,
+        // Ensure shared field names are handled if they differ
+        ownerName: activeVehicle.ownerName || activeVehicle.rtoDetails?.ownerName,
+        rto: activeVehicle.rto || activeVehicle.rtoDetails?.rto,
+        vehicleClass: activeVehicle.vehicleClass || activeVehicle.rtoDetails?.vehicleClass,
+        fitnessUpto: activeVehicle.fitnessUpto || activeVehicle.rtoDetails?.fitnessUpto
+    };
 
-    // rtoDetails comes from the Gemini lookup, merged into the vehicle object
-    // by AddVehicleScreen → onDone → GupioGarageApp state.
-    const rto = activeVehicle.rtoDetails || activeVehicle;
-
-    // Hero image source
-    const heroSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    // Hero image source: use absolute URL if available, else fallback to local assets
+    const heroUri = activeVehicle.imageUrl ? getAbsoluteUrl(activeVehicle.imageUrl) : null;
+    const fallbackSrc = activeVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage;
+    const heroImageSource = (!heroError && heroUri) ? { uri: heroUri } : fallbackSrc;
 
     const handleFeedbackSubmit = () => {
         if (!rating) return;
         setIsSubmitting(true);
-        setTimeout(() => {
-            setSubmittedFeedback({ rating, text: feedback });
-            setIsSubmitting(false);
-            setRating(0);
-            setFeedback('');
-        }, 1500);
+        setSubmittedFeedback({ rating, text: feedback });
+        setIsSubmitting(false);
+        setRating(0);
+        setFeedback('');
     };
 
     const handleDeletePress = () => {
-        Alert.alert(
-            'Remove Vehicle',
-            `Remove ${activeVehicle.registrationNumber} from your garage?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Remove', style: 'destructive', onPress: () => onDelete(activeVehicle.id) },
-            ]
-        );
+        setConfirmModal({
+            visible: true,
+            title: 'Remove Vehicle',
+            message: `Remove ${activeVehicle.registrationNumber} from your garage?`,
+            type: 'delete',
+            confirmText: 'Remove',
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, visible: false }));
+                onDelete(activeVehicle.id);
+            }
+        });
     };
 
     const openShare = async () => {
@@ -193,6 +289,89 @@ export const DetailsScreen = ({
     };
 
     // ── Document Actions ──
+    const generateRCPDF = async () => {
+        try {
+            const dateStr = new Date().toLocaleDateString('en-GB');
+            const html = `
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: 'Helvetica', sans-serif; padding: 40px; background: #fff; color: #000; }
+                            .cert { border: 2px solid #333; padding: 30px; border-radius: 10px; }
+                            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+                            .header img { width: 60px; margin-bottom: 10px; }
+                            .header h1 { margin: 0; font-size: 20px; text-transform: uppercase; }
+                            .header p { margin: 5px 0; font-size: 12px; color: #666; }
+                            .meta-grid { display: flex; flex-wrap: wrap; margin-bottom: 20px; }
+                            .meta-item { width: 50%; margin-bottom: 15px; }
+                            .label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; }
+                            .value { font-size: 13px; font-weight: bold; margin-top: 2px; }
+                            .info-table { width: 100%; border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 30px; }
+                            .info-row { display: flex; margin-bottom: 10px; font-size: 12px; }
+                            .info-label { width: 150px; color: #444; font-weight: bold; }
+                            .info-value { flex: 1; font-weight: 800; }
+                            .footer { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #eee; padding-top: 20px; }
+                            .note { font-size: 10px; color: #6366f1; font-weight: bold; }
+                            .signature { border: 1px solid #eee; padding: 8px; border-radius: 4px; font-size: 9px; text-align: center; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="cert">
+                            <div class="header">
+                                <img src="https://gupio.io/assets/images/indian_lion.png" />
+                                <h1>UNION OF INDIA REGISTRATION CERTIFICATE</h1>
+                                <p>Issuing Authority: ${activeVehicle?.rtoDetails?.rto || 'Transport Department'}</p>
+                            </div>
+                            <div class="meta-grid">
+                                <div class="meta-item">
+                                    <div class="label">Registration No:</div>
+                                    <div class="value">${activeVehicle?.registrationNumber}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Registration Date:</div>
+                                    <div class="value">${activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Chassis No:</div>
+                                    <div class="value">${activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="label">Engine No:</div>
+                                    <div class="value">${activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div class="info-table">
+                                <div class="info-row"><div class="info-label">Owner Name:</div> <div class="info-value">${rto.ownerName || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Make / Model:</div> <div class="info-value">${activeVehicle.make || rto.make || 'N/A'} / ${activeVehicle.model || rto.model || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Vehicle Type / Class:</div> <div class="info-value">${activeVehicle.vehicleType || (rto as any).vehicleType || 'N/A'} (${rto.vehicleClass || 'N/A'})</div></div>
+                                <div class="info-row"><div class="info-label">RTO Office:</div> <div class="info-value">${rto.rto || 'Transport Department'}</div></div>
+                                <div class="info-row"><div class="info-label">Fuel Norms:</div> <div class="info-value">${activeVehicle.fuelNorms || rto.fuelNorms || activeVehicle.fuelType || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Color:</div> <div class="info-value">${activeVehicle.color || rto.color || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">Manufacturing:</div> <div class="info-value">${activeVehicle.manufacturingMonthYear || rto.manufacturingMonthYear || 'N/A'}</div></div>
+                                <div class="info-row"><div class="info-label">RC EXPIRED:</div> <div class="info-value">${rto.fitnessUpto || 'N/A'}</div></div>
+                            </div>
+                            <div class="footer">
+                                <div class="note">Powered by DigiLocker</div>
+                                <div class="signature">
+                                    Digitally signed on ${dateStr}<br/>Verified by Gupio
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+            `;
+            const options = {
+                html: html,
+                fileName: `RC_${activeVehicle?.registrationNumber}_${Date.now()}`,
+            };
+            const file = await convertToPDF(options);
+            return file?.filePath;
+        } catch (error) {
+            console.error('RC PDF Gen Error:', error);
+            return null;
+        }
+    };
+
     const createPDFFromImage = async (doc: any) => {
         try {
             let base64Data = '';
@@ -238,10 +417,25 @@ export const DetailsScreen = ({
     };
 
     const handleShareDoc = async (doc: any) => {
-        if (!doc?.imageUri) return;
         try {
             setIsProcessing(true);
-            const pdfPath = await createPDFFromImage(doc);
+            const isRC = doc?.type?.toUpperCase() === 'RC' || doc?.type?.toLowerCase() === 'reg certificate';
+            let pdfPath: string | null = '';
+            
+            if (isRC) {
+                pdfPath = await generateRCPDF();
+            } else {
+                if (!doc?.imageUri) {
+                    setIsProcessing(false);
+                    return;
+                }
+                pdfPath = await createPDFFromImage(doc);
+            }
+
+            if (!pdfPath) {
+                setIsProcessing(false);
+                return;
+            }
             
             // Generate a clean temp path in cache with .pdf extension
             const cleanFileName = `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
@@ -280,7 +474,7 @@ export const DetailsScreen = ({
             if (msg.includes('User did not share') || msg.toLowerCase().includes('cancel') || msg.includes('dismissed')) {
                 return;
             }
-            Alert.alert('Error', 'Could not share document as PDF. Please try again.');
+            showStatus('Error', 'Could not share document as PDF. Please try again.', 'error');
             console.error('Share Error:', error);
         }
     };
@@ -315,34 +509,31 @@ export const DetailsScreen = ({
             }
 
             setIsProcessing(false);
-            Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
+            showStatus('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
         } catch (error: any) {
             setIsProcessing(false);
-            Alert.alert('Error', error.message || 'Could not download document as PDF');
+            showStatus('Error', error.message || 'Could not download document as PDF', 'error');
         }
     };
 
     const handleDeleteDoc = async (id: string, type: string) => {
-        Alert.alert(
-            'Delete Document',
-            `Are you sure you want to delete your ${type}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await dispatch(removeDocumentAsync(id)).unwrap();
-                            setShowViewerModal(false);
-                            Alert.alert('Success', `${type} deleted successfully`);
-                        } catch (err: any) {
-                            Alert.alert('Error', err.message || 'Failed to delete');
-                        }
-                    }
+        setConfirmModal({
+            visible: true,
+            title: 'Delete Document',
+            message: `Are you sure you want to delete your ${type}?`,
+            type: 'delete',
+            confirmText: 'Delete',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, visible: false }));
+                try {
+                    await dispatch(removeDocumentAsync(id)).unwrap();
+                    setShowViewerModal(false);
+                    showStatus('Success', `${type} deleted successfully`);
+                } catch (err: any) {
+                    showStatus('Error', err.message || 'Failed to delete', 'error');
                 }
-            ]
-        );
+            }
+        });
     };
 
     // ── Helper: alert status badge ───────────────────────────────────────────
@@ -436,8 +627,12 @@ export const DetailsScreen = ({
                             <User size={18} color={COLORS.primary} />
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn}>
-                        <Trash2 size={22} color="#FF453A" />
+                    <TouchableOpacity onPress={handleDeletePress} style={styles.topRoundBtn} disabled={deletingVehicleId === activeVehicle.id}>
+                        {deletingVehicleId === activeVehicle.id ? (
+                            <ActivityIndicator size="small" color="#FF453A" />
+                        ) : (
+                            <Trash2 size={22} color="#FF453A" />
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
@@ -445,12 +640,14 @@ export const DetailsScreen = ({
             <ScrollView contentContainerStyle={{ paddingBottom: hp('12%') }} showsVerticalScrollIndicator={false}>
                 {/* ── Hero section as per mockup ── */}
                 <View style={styles.heroSection}>
-                    <Image
-                        source={heroSrc}
-                        style={styles.heroImage}
-                        resizeMode="contain"
-                        onError={() => setHeroError(true)}
-                    />
+                    <View style={styles.heroImageFrame}>
+                        <Image
+                            source={heroImageSource}
+                            style={styles.heroImage}
+                            resizeMode="cover"
+                            onError={() => setHeroError(true)}
+                        />
+                    </View>
 
                     <Text style={styles.brandName}>{activeVehicle.make?.toUpperCase() || 'VEHICLE'}</Text>
                     <Text style={styles.modelName}>{activeVehicle.model?.toUpperCase() || 'MODEL'}</Text>
@@ -465,17 +662,25 @@ export const DetailsScreen = ({
                             <Text style={styles.primaryBadgeText}>PRIMARY VEHICLE</Text>
                         </View>
                     ) : (
-                        <TouchableOpacity
-                            style={styles.setPrimaryBtn}
+                        <LoaderButton
+                            title="SET AS PRIMARY"
+                            loading={settingPrimaryId === activeVehicle.id}
+                            loadingTitle="Setting..."
                             onPress={() => onSetPrimary(activeVehicle.id)}
-                        >
-                            <Star size={14} color={COLORS.primary} />
-                            <Text style={styles.setPrimaryBtnText}>SET AS PRIMARY</Text>
-                        </TouchableOpacity>
+                            disabled={deletingVehicleId === activeVehicle.id}
+                            style={styles.setPrimaryBtn}
+                            titleStyle={styles.setPrimaryBtnText}
+                            loadingTitleStyle={styles.setPrimaryBtnText}
+                            indicatorColor={COLORS.primary}
+                        />
                     )}
 
                     {/* ── Vehicle switcher circle icons ── */}
-                    <View style={styles.switcherRow}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.switcherRow}
+                    >
                         <TouchableOpacity onPress={onAddNew} style={styles.addCircleBtn}>
                             <Plus size={24} color={COLORS.primary} />
                         </TouchableOpacity>
@@ -492,7 +697,7 @@ export const DetailsScreen = ({
                                 >
                                     <View style={[styles.miniCircleInner, activeVehicle.id === v.id && { borderColor: COLORS.primary }]}>
                                         <Image
-                                            source={v.vehicleType === 'BIKE' ? BikeImage : CarImage}
+                                            source={v.imageUrl ? { uri: v.imageUrl } : (v.vehicleType === 'BIKE' ? BikeImage : CarImage)}
                                             style={StyleSheet.absoluteFill}
                                             resizeMode="cover"
                                             blurRadius={activeVehicle.id === v.id ? 2 : 0}
@@ -514,33 +719,36 @@ export const DetailsScreen = ({
                                     </Text>
                                 </TouchableOpacity>
                             ))}
-                    </View>
+                    </ScrollView>
                 </View>
 
                 {/* ── Tab Content ── */}
                 <View style={styles.sectionPad}>
                     {mainTab === 'Alerts' ? (
                         <>
-                            {/* ── Status Grid (Challans & PUCC) ── */}
-                            <View style={styles.statusGrid}>
+                            {/* ── Status List (Challans & Health) ── */}
+                            <View style={styles.statusVerticalStack}>
                                 <StatusCard
                                     icon={FileText}
-                                    label="challans"
-                                    value="CHECK NOW"
+                                    label="TRAFFIC CHALLANS"
+                                    value="Check your pending fines"
                                     onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                 />
-                                <StatusCard
-                                    icon={ShieldCheck}
-                                    label="PUCC"
-                                    value="ACTIVE"
-                                />
+                                {activeVehicle.isPrimary && (
+                                    <StatusCard
+                                        icon={ShieldCheck}
+                                        label="VEHICLE HEALTH"
+                                        value="Detailed health report"
+                                        onPress={() => navigation.navigate('WarrantyStatus')}
+                                    />
+                                )}
                             </View>
 
 
 
                             {/* ── Your GloverBox ── */}
                             <View style={{ marginTop: hp('4%') }}>
-                                <Text style={styles.sectionHeading}>YOUR GLOVERBOX</Text>
+                                <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
                                 <View style={styles.gloveboxGrid}>
                                     <GloveboxImageItem label="reg certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
                                     <GloveboxImageItem label="driver's licence" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
@@ -561,7 +769,7 @@ export const DetailsScreen = ({
                         <View>
                             <View style={{ alignItems: 'center' }}>
                                 <View style={styles.subTabNav}>
-                                     {(['Health', 'Owner', 'Vehicle', 'More'] as SubTab[]).map(st => (
+                                    {(['Health', 'Owner', 'Vehicle', 'Documents'] as SubTab[]).map(st => (
                                         <TouchableOpacity
                                             key={st}
                                             onPress={() => setSubTab(st)}
@@ -570,6 +778,7 @@ export const DetailsScreen = ({
                                             <Text style={[styles.subTabText, subTab === st && styles.subTabTextActive]}>
                                                 {st}
                                             </Text>
+                                            {subTab === st && <View style={styles.subTabIndicator} />}
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -578,12 +787,83 @@ export const DetailsScreen = ({
                             <View style={{ gap: hp('2%') }}>
                                 {subTab === 'Health' && (
                                     <>
-                                        <View style={styles.healthScoreCard}>
-                                            <Text style={styles.healthScoreValue}>
-                                                {healthScoreDetail?.overallScore ?? activeVehicle.healthScore?.overallScore ?? '—'}
-                                            </Text>
-                                            <Text style={styles.healthScoreLabel}>/ 100 Health</Text>
-                                        </View>
+                                        <LinearGradient
+                                            colors={['#171717', '#0A0A0A']}
+                                            style={styles.healthScoreCard}
+                                        >
+                                            <View style={styles.healthHeader}>
+                                                <Text style={styles.healthTitle}>VEHICLE HEALTH SCORE</Text>
+                                                <View style={styles.liveBadge}>
+                                                    <View style={styles.livePulseContainer}>
+                                                        <View style={styles.liveDot} />
+                                                        <View style={styles.liveDotPing} />
+                                                    </View>
+                                                    <Text style={styles.liveText}>LIVE</Text>
+                                                </View>
+                                            </View>
+
+                                            <View style={styles.gaugeContainer}>
+                                                <Svg width={svgWidth} height={svgHeight}>
+                                                    <Defs>
+                                                        <SvgGradient id="gaugeTrack" x1="0" y1="0" x2="1" y2="0">
+                                                            <Stop offset="0" stopColor="#EF4444" stopOpacity="0.1" />
+                                                            <Stop offset="0.4" stopColor="#F59E0B" stopOpacity="0.1" />
+                                                            <Stop offset="1" stopColor="#22C55E" stopOpacity="0.1" />
+                                                        </SvgGradient>
+                                                        <SvgGradient id="gaugeFill" x1="0" y1="0" x2="1" y2="0">
+                                                            <Stop offset="0" stopColor="#EF4444" />
+                                                            <Stop offset="0.4" stopColor="#F59E0B" />
+                                                            <Stop offset="1" stopColor="#22C55E" />
+                                                        </SvgGradient>
+                                                    </Defs>
+                                                    <Path
+                                                        d={pathData}
+                                                        stroke="url(#gaugeTrack)"
+                                                        strokeWidth={strokeWidth}
+                                                        strokeLinecap="round"
+                                                        fill="transparent"
+                                                    />
+                                                    <AnimatedPath
+                                                        d={pathData}
+                                                        stroke="url(#gaugeFill)"
+                                                        strokeWidth={strokeWidth}
+                                                        strokeLinecap="round"
+                                                        fill="transparent"
+                                                        strokeDasharray={pathLength}
+                                                        strokeDashoffset={strokeDashoffset}
+                                                    />
+                                                </Svg>
+                                                <View style={styles.gaugeCenterText}>
+                                                    <Text style={styles.healthScoreValue}>{healthVal}</Text>
+                                                    <Text style={[styles.healthStatusLabel, { color: healthStatus.color }]}>
+                                                        {healthStatus.label}
+                                                    </Text>
+                                                </View>
+                                            </View>
+
+                                            <Text style={styles.healthDescription}>{healthStatus.desc}</Text>
+
+                                            <View style={styles.partsRow}>
+                                                <View style={styles.partStatBox}>
+                                                    <LinearGradient colors={['rgba(34, 197, 94, 0.15)', 'rgba(34, 197, 94, 0.02)']} style={styles.partIconBg}>
+                                                        <CheckCircle2 size={18} color="#22C55E" />
+                                                    </LinearGradient>
+                                                    <View>
+                                                        <Text style={styles.partNumber}>14</Text>
+                                                        <Text style={styles.partLabel}>HEALTHY PARTS</Text>
+                                                    </View>
+                                                </View>
+                                                <View style={styles.partStatBox}>
+                                                    <LinearGradient colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.02)']} style={styles.partIconBg}>
+                                                        <AlertCircle size={18} color="#EF4444" />
+                                                    </LinearGradient>
+                                                    <View>
+                                                        <Text style={[styles.partNumber, { color: '#EF4444' }]}>0</Text>
+                                                        <Text style={styles.partLabel}>PARTS DUE</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        </LinearGradient>
                                         <View style={styles.healthBasedOnCard}>
                                             <Text style={styles.healthBasedOnTitle}>What this score is based on</Text>
                                             {healthScoreDetail?.components?.some(c => c.name === 'driving' && c.score != null) ? (
@@ -604,17 +884,24 @@ export const DetailsScreen = ({
                                             <View style={styles.healthComponentsRow}>
                                                 {healthScoreDetail.components.map((c) => (
                                                     <View key={c.name} style={styles.healthComponentBox}>
+                                                        {c.name === 'maintenance' ? <Wrench size={16} color="#666" /> :
+                                                         c.name === 'driving' ? <Activity size={16} color="#666" /> :
+                                                         <Clock size={16} color="#666" />}
                                                         <Text style={styles.healthComponentLabel}>{c.label}</Text>
-                                                        <Text style={styles.healthComponentValue}>{c.score != null ? c.score : '—'}%</Text>
+                                                        <Text style={styles.healthComponentValue}>
+                                                            {c.score != null ? c.score : '—'}
+                                                            <Text style={{ fontSize: hp('1.4%'), color: '#555' }}>%</Text>
+                                                        </Text>
                                                     </View>
                                                 ))}
                                             </View>
                                         )}
-                                        {(healthScoreDetail?.scoreChangeReason || healthScoreDetail?.explanations?.length) ? (
+
+                                        {(healthScoreDetail?.scoreChangeReason || healthScoreDetail?.explanations?.length) && (
                                             <>
                                                 <TouchableOpacity
                                                     style={styles.whyScoreRow}
-                                                    onPress={() => setExpandWhyScore((v) => !v)}
+                                                    onPress={() => setExpandWhyScore(v => !v)}
                                                     activeOpacity={0.7}
                                                 >
                                                     <Info size={18} color={COLORS.primary} />
@@ -625,28 +912,31 @@ export const DetailsScreen = ({
                                                     <View style={styles.whyScoreBody}>
                                                         <Text style={styles.whyScoreText}>{healthScoreDetail?.scoreChangeReason ?? healthScoreDetail?.explanations?.[0] ?? '—'}</Text>
                                                         {healthScoreDetail?.explanations && healthScoreDetail.explanations.length > 1 && (
-                                                            healthScoreDetail.explanations.slice(1, 4).map((e: string, i: number) => (
-                                                                <Text key={i} style={styles.explanationItem}>• {e}</Text>
-                                                            ))
+                                                            <View style={{ marginTop: hp('1%'), gap: hp('0.5%') }}>
+                                                                {healthScoreDetail.explanations.slice(1, 4).map((e: string, i: number) => (
+                                                                    <Text key={i} style={styles.explanationItem}>• {e}</Text>
+                                                                ))}
+                                                            </View>
                                                         )}
                                                     </View>
                                                 )}
                                             </>
-                                        ) : null}
+                                        )}
+
                                         {healthScoreDetail?.recommendations && healthScoreDetail.recommendations.length > 0 && (
                                             <>
                                                 <TouchableOpacity
                                                     style={styles.whyScoreRow}
-                                                    onPress={() => setExpandNextActions((v) => !v)}
+                                                    onPress={() => setExpandNextActions(v => !v)}
                                                     activeOpacity={0.7}
                                                 >
-                                                    <Activity size={18} color={COLORS.primary} />
+                                                    <CheckCircle2 size={18} color={COLORS.primary} />
                                                     <Text style={styles.whyScoreLabel}>What to do next</Text>
                                                     {expandNextActions ? <ChevronUp size={18} color="#888" /> : <ChevronDown size={18} color="#888" />}
                                                 </TouchableOpacity>
                                                 {expandNextActions && (
                                                     <View style={styles.nextActionsBody}>
-                                                        {healthScoreDetail.recommendations.map((r: string, i: number) => (
+                                                        {healthScoreDetail.recommendations.map((r, i) => (
                                                             <View key={i} style={styles.nextActionItem}>
                                                                 <Text style={styles.nextActionText}>{r}</Text>
                                                             </View>
@@ -655,6 +945,7 @@ export const DetailsScreen = ({
                                                 )}
                                             </>
                                         )}
+
                                         {!healthScoreDetail && (
                                             <Text style={styles.healthLoadingHint}>Recalculate health from vehicle settings to see breakdown.</Text>
                                         )}
@@ -663,7 +954,7 @@ export const DetailsScreen = ({
 
                                 {subTab === 'Owner' && (
                                     <>
-                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || 'Unknown'} />
+                                        <InfoCard icon={User} label="Owner Name" value={rto?.ownerName || (rto as any)?.owner_name || 'Unknown'} />
                                         <InfoCard icon={Building} label="RTO" value={rto?.rto || 'N/A'} />
                                     </>
                                 )}
@@ -675,15 +966,113 @@ export const DetailsScreen = ({
                                         <InfoCard icon={Hash} label="Engine Number" value={rto?.engineNumber || rto?.engineNo || 'N/A'} />
                                         <InfoCard icon={Hash} label="Chassis Number" value={rto?.chassisNumber || rto?.chassisNo || activeVehicle.chassisNumber || 'N/A'} />
                                         <InfoCard icon={Droplets} label="Fuel Type" value={rto?.fuelType || activeVehicle.fuelType || 'Petrol'} />
+                                        <InfoCard icon={Droplets} label="Color" value={rto?.color ?? activeVehicle.color ?? 'N/A'} />
+                                        <InfoCard icon={Weight} label="Unladen Weight" value={rto?.unloadedWeight ?? activeVehicle.unloadedWeight ?? 'N/A'} />
+                                        
+                                        {/* Merged 'More' details */}
+                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
+                                        <InfoCard icon={Clock} label="RC EXPIRED" value={rto?.fitnessUpto || (rto as any)?.rc_expiry_date || 'N/A'} />
+                                        {(rto?.fuelNorms || activeVehicle.fuelNorms) && (
+                                            <InfoCard icon={Info} label="Fuel Norms" value={rto?.fuelNorms || activeVehicle.fuelNorms} />
+                                        )}
+                                        {(rto?.mileage || activeVehicle.mileage) && (
+                                            <InfoCard icon={Gauge} label="Mileage" value={rto?.mileage || activeVehicle.mileage} />
+                                        )}
+                                        {(rto?.transmission || activeVehicle.transmission) && (
+                                            <InfoCard icon={Cpu} label="Transmission" value={rto?.transmission || activeVehicle.transmission} />
+                                        )}
+                                        {(rto?.regDate || rto?.registrationDate || activeVehicle.registrationDate) && (
+                                            <InfoCard icon={Calendar} label="Registration Date" value={rto?.regDate || rto?.registrationDate || (activeVehicle.registrationDate ? new Date(activeVehicle.registrationDate).toLocaleDateString() : 'N/A')} />
+                                        )}
+                                        {((rto as any)?.presentAddress || (rto as any)?.present_address || (activeVehicle as any)?.presentAddress || (activeVehicle as any)?.present_address) && (
+                                            <InfoCard icon={Building} label="Registered Address" value={(rto as any)?.presentAddress || (rto as any)?.present_address || (activeVehicle as any)?.presentAddress || (activeVehicle as any)?.present_address} />
+                                        )}
+                                        <InfoCard icon={Calendar} label="Manufacturing Date" value={rto?.manufacturingMonthYear || activeVehicle.manufacturingMonthYear || 'N/A'} />
                                     </>
                                 )}
-                                {subTab === 'More' && (
-                                    <>
-                                        <InfoCard icon={Tag} label="Registration Number" value={rto?.registrationNumber || activeVehicle.registrationNumber || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="RC Status" value={rto?.rcStatus || 'ACTIVE'} />
-                                        <InfoCard icon={Clock} label="RC Expiry" value={rto?.fitnessUpto || 'N/A'} />
-                                        <InfoCard icon={ShieldCheck} label="Insurance Upto" value={rto?.insuranceUpto || 'N/A'} />
-                                    </>
+                                {subTab === 'Documents' && (
+                                    <View style={styles.documentsTab}>
+                                        {/* RC Mini Certificate (Production Style) */}
+                                        <View style={styles.certificate}>
+                                            <View style={styles.certHeader}>
+                                                <View style={styles.certHeaderTitleCol}>
+                                                    <Text style={styles.certTitleLine1}>UNION OF INDIA</Text>
+                                                    <Text style={styles.certTitleLine2}>REGISTRATION CERTIFICATE (RC)</Text>
+                                                </View>
+                                                <TouchableOpacity onPress={() => handleShareDoc(getDocByType('reg certificate'))} style={styles.certShareBtn}>
+                                                    <Share2 size={16} color={COLORS.primary} />
+                                                </TouchableOpacity>
+                                            </View>
+                                            
+                                            <View style={styles.certPlateRow}>
+                                                <Text style={styles.certPlateText}>{activeVehicle.registrationNumber}</Text>
+                                                <View style={styles.certStatusBadge}>
+                                                   <Text style={styles.certStatusText}>{rto?.rcStatus || 'ACTIVE'}</Text>
+                                                </View>
+                                            </View>
+
+                                            <View style={styles.certInfoGrid}>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>OWNER</Text>
+                                                    <Text style={styles.certValue}>{rto.ownerName || 'PENDING'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>CLASS</Text>
+                                                    <Text style={styles.certValue}>{rto.vehicleClass || activeVehicle.vehicleType || 'N/A'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>RC EXPIRED</Text>
+                                                    <Text style={styles.certValue}>{rto.fitnessUpto || 'N/A'}</Text>
+                                                </View>
+                                                <View style={styles.certRow}>
+                                                    <Text style={styles.certLabel}>ISSUING AUTHORITY</Text>
+                                                    <Text style={styles.certValue}>{rto.rto || 'LOCAL RTO'}</Text>
+                                                </View>
+                                            </View>
+
+                                            <TouchableOpacity 
+                                                style={styles.certViewDetailsBtn}
+                                                onPress={() => {
+                                                    const doc = getDocByType('reg certificate');
+                                                    if (doc) {
+                                                        setViewingDoc(doc);
+                                                    } else {
+                                                        // Pass a formal DB-only reference if no image exists
+                                                        setViewingDoc({ 
+                                                            type: 'RC', 
+                                                            isFormalOnly: true,
+                                                            registrationNumber: activeVehicle.registrationNumber 
+                                                        });
+                                                    }
+                                                    setShowViewerModal(true);
+                                                }}
+                                            >
+                                                <FileText size={14} color="#FFF" />
+                                                <Text style={styles.certViewDetailsText}>VIEW ORIGINAL DOCUMENT</Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        {/* Other Docs List */}
+                                        <View style={styles.otherDocsList}>
+                                            <Text style={styles.subSectionTitle}>OTHER DOCUMENTS</Text>
+                                            <TouchableOpacity style={styles.otherDocRow} onPress={() => navigation.navigate('DocumentList')}>
+                                                <ShieldCheck size={20} color="#8E8E93" />
+                                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                                    <Text style={styles.otherDocLabel}>Insurance Policy</Text>
+                                                    <Text style={styles.otherDocValue}>{rto?.insuranceUpto || 'Not Available'}</Text>
+                                                </View>
+                                                <ChevronRight size={18} color="#444" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.otherDocRow} onPress={() => navigation.navigate('DocumentList')}>
+                                                <Droplets size={20} color="#8E8E93" />
+                                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                                    <Text style={styles.otherDocLabel}>PUC Certificate</Text>
+                                                    <Text style={styles.otherDocValue}>{rto?.pollutionUpto || 'Not Available'}</Text>
+                                                </View>
+                                                <ChevronRight size={18} color="#444" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
                                 )}
                             </View>
                         </View>
@@ -742,7 +1131,111 @@ export const DetailsScreen = ({
                         minimumZoomScale={1}
                         bouncesZoom={true}
                     >
-                        {viewingDoc?.imageUri ? (
+                        {viewingDoc?.type?.toUpperCase() === 'RC' || viewingDoc?.type?.toLowerCase() === 'reg certificate' ? (
+                            <View style={styles.formalCertContainer}>
+                                <View style={styles.formalCert}>
+                                    <View style={styles.formalCertHeader}>
+                                        <Image source={IndianLion} style={styles.formalLionLogo} resizeMode="contain" />
+                                        <Text style={styles.formalCertTitle}>UNION OF INDIA REGISTRATION CERTIFICATE</Text>
+                                        <Text style={styles.formalCertSubtitle}>Issuing Authority: {activeVehicle?.rtoDetails?.rto || 'Transport Department'}</Text>
+                                        <View style={styles.formalCertDivider} />
+                                    </View>
+
+                                    <View style={styles.formalCertMeta}>
+                                        <View style={styles.formalCertMetaRow}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.formalCertMetaLabel}>Registration No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.registrationNumber}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                <Text style={styles.formalCertMetaLabelSmall}>Reg Date:</Text>
+                                                <Text style={styles.formalCertMetaValueSmall}>{activeVehicle?.registrationDate || activeVehicle?.rtoDetails?.regDate || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.formalCertMetaRow}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.formalCertMetaLabel}>Chassis No:</Text>
+                                                <Text style={styles.formalCertMetaValue}>{activeVehicle?.chassisNumber || activeVehicle?.rtoDetails?.chassisNo || 'N/A'}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                <Text style={styles.formalCertMetaLabelSmall}>Engine No:</Text>
+                                                <Text style={styles.formalCertMetaValueSmall}>{activeVehicle?.engineNumber || activeVehicle?.rtoDetails?.engineNumber || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.formalCertInfoGrid}>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Owner Name</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.ownerName || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Make / Model</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.make || rto.make || 'N/A'} / {activeVehicle.model || rto.model || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Vehicle Type</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.vehicleType || (rto as any).vehicleType || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Vehicle Class</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.vehicleClass || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>RTO Name</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.rto || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Fuel Norms</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.fuelNorms || rto.fuelNorms || activeVehicle.fuelType || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Engine No</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.engineNumber || rto.engineNumber || rto.engineNo || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Chassis No</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.chassisNumber || rto.chassisNumber || rto.chassisNo || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Color</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.color || rto.color || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>Mfg Date</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{activeVehicle.manufacturingMonthYear || rto.manufacturingMonthYear || 'N/A'}</Text>
+                                        </View>
+                                        <View style={styles.formalCertRow}>
+                                            <Text style={styles.formalCertLabel}>RC EXPIRED</Text>
+                                            <Text style={styles.formalCertSep}>:</Text>
+                                            <Text style={styles.formalCertValue}>{rto.fitnessUpto || 'N/A'}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.formalCertFooter}>
+                                        <MaterialCommunityIcons name="qrcode" size={70} color="#333" />
+                                        <View style={styles.formalCertNoteBox}>
+                                            <Text style={styles.formalCertPowered}>Powered by DigiLocker</Text>
+                                            <View style={styles.formalCertSignedBadge}>
+                                                <Text style={styles.formalCertSignedText}>Digitally signed on</Text>
+                                                <Text style={styles.formalCertSignedDate}>{new Date().toLocaleDateString('en-GB')}</Text>
+                                                <CheckCircle2 size={12} color="#22C55E" />
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : viewingDoc?.imageUri ? (
                             <Image
                                 source={{ uri: viewingDoc.imageUri }}
                                 style={styles.fullImage}
@@ -774,6 +1267,24 @@ export const DetailsScreen = ({
                     <ActivityIndicator size="large" color={COLORS.primary} />
                 </View>
             )}
+
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
+
+            <ConfirmModal
+                visible={confirmModal.visible}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                confirmText={confirmModal.confirmText}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+            />
         </SafeAreaView>
     );
 };
@@ -797,14 +1308,15 @@ const styles = StyleSheet.create({
     tabPillText: { fontSize: hp('1.5%'), fontFamily: 'Outfit-Black', color: '#888' },
 
     // Hero Section
-    heroSection: { alignItems: 'center', paddingBottom: hp('2%') },
-    heroImage: { width: wp('80%'), height: hp('20%'), marginBottom: hp('-1%') },
-    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase' },
+    heroSection: { alignItems: 'center', paddingBottom: hp('2%'), paddingHorizontal: wp('6%') },
+    heroImageFrame: { width: '100%', height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroImage: { width: '100%', height: '100%' },
+    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase', marginTop: hp('1%') },
     modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
     heroPlateBox: { marginTop: hp('1.5%') },
 
     // Switcher Row
-    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%') },
+    switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%'), paddingBottom: hp('3%') },
     addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)' },
     miniCircleWrap: { alignItems: 'center', gap: hp('0.5%') },
     miniCircleInner: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), padding: wp('1%'), borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
@@ -862,8 +1374,11 @@ const styles = StyleSheet.create({
     sectionPad: { paddingHorizontal: wp('6%'), paddingTop: hp('2.5%') },
     sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: hp('2%') },
 
-    // Status Boxes
-    statusGrid: { flexDirection: 'row', gap: wp('3%') },
+    // Status List Stack
+    statusVerticalStack: {
+        flexDirection: 'column',
+        gap: hp('1.5%')
+    },
     statusBox: {
         flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: 24,
         flexDirection: 'column', alignItems: 'center', gap: hp('2%'),
@@ -880,138 +1395,137 @@ const styles = StyleSheet.create({
     viewAllDocsText: { color: COLORS.primary, fontSize: hp('1.6%'), fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: 1.5 },
 
     // Health Score Styles
+    subTabNav: { flexDirection: 'row', paddingBottom: hp('3%'), gap: wp('2%'), justifyContent: 'center', alignItems: 'center' },
+    subTabItem: { paddingHorizontal: wp('4%'), paddingVertical: hp('1.2%'), borderRadius: 12, alignItems: 'center' },
+    subTabItemActive: { backgroundColor: 'rgba(255, 215, 0, 0.05)' },
+    subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', textTransform: 'uppercase' },
+    subTabTextActive: { color: COLORS.primary },
+    subTabIndicator: { width: 16, height: 2, backgroundColor: COLORS.primary, marginTop: 4, borderRadius: 1 },
+
+    // Health Score Styles
     healthScoreCard: {
-        backgroundColor: '#111',
-        padding: wp('6%'),
-        borderRadius: 24,
-        alignItems: 'center',
+        padding: wp(5),
+        borderRadius: 28,
         borderWidth: 1,
-        borderColor: '#222'
-    },
-    healthScoreValue: {
-        color: COLORS.primary,
-        fontSize: hp('6%'),
-        fontFamily: 'Outfit-Black'
-    },
-    healthScoreLabel: {
-        color: '#8E8E93',
-        fontSize: hp('1.8%'),
-        fontFamily: 'Outfit-Bold',
-        marginTop: hp('-0.6%')
-    },
-    healthBasedOnCard: {
-        backgroundColor: '#0A0A0A',
-        padding: wp('5%'),
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#1A1A1A'
-    },
-    healthBasedOnTitle: {
-        color: '#FFF',
-        fontSize: hp('1.8%'),
-        fontFamily: 'Outfit-Bold',
+        borderColor: 'rgba(255,255,255,0.06)',
         marginBottom: hp('1.5%')
     },
-    healthBasedOnItem: {
-        color: '#8E8E93',
-        fontSize: hp('1.5%'),
-        fontFamily: 'Outfit-Medium',
-        marginBottom: hp('0.8%')
-    },
-    healthComponentsRow: {
+    healthHeader: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: wp('3%')
-    },
-    healthComponentBox: {
-        flex: 1,
-        minWidth: wp('28%'),
-        backgroundColor: '#111',
-        padding: wp('4%'),
-        borderRadius: 16,
+        justifyContent: 'space-between',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#222'
+        marginBottom: hp(2)
     },
-    healthComponentLabel: {
-        color: '#8E8E8E',
-        fontSize: hp('1.2%'),
-        fontFamily: 'Outfit-Bold',
-        textTransform: 'uppercase',
-        marginBottom: hp('0.5%')
-    },
-    healthComponentValue: {
-        color: '#FFF',
-        fontSize: hp('2.1%'),
-        fontFamily: 'Outfit-Black'
-    },
-    whyScoreRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: wp('3%'),
-        backgroundColor: '#111',
-        padding: wp('4%'),
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#222'
-    },
-    whyScoreLabel: {
-        flex: 1,
-        color: '#FFF',
-        fontSize: hp('1.8%'),
-        fontFamily: 'Outfit-Medium'
-    },
-    whyScoreBody: {
-        backgroundColor: '#0A0A0A',
-        padding: wp('4%'),
-        borderRadius: 16,
-        marginTop: hp('-1%'),
-        borderWidth: 1,
-        borderColor: '#1A1A1A',
-        gap: hp('1%')
-    },
-    whyScoreText: {
-        color: '#FFF',
-        fontSize: hp('1.6%'),
-        fontFamily: 'Outfit-Medium',
-        lineHeight: hp('2.5%')
-    },
-    explanationItem: {
-        color: '#8E8E93',
-        fontSize: hp('1.5%'),
-        fontFamily: 'Outfit-Regular',
-        lineHeight: hp('2.3%')
-    },
-    nextActionsBody: {
-        gap: hp('1.5%'),
-        marginTop: hp('-1%')
-    },
-    nextActionItem: {
-        backgroundColor: '#0A0A0A',
-        padding: wp('4%'),
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#1A1A1A'
-    },
-    nextActionText: {
-        color: '#FFF',
-        fontSize: hp('1.6%'),
-        fontFamily: 'Outfit-Medium'
-    },
-    healthLoadingHint: {
+    healthTitle: {
         color: '#666',
-        fontSize: hp('1.5%'),
+        fontSize: 10,
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 1.5
+    },
+    liveBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+        gap: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(34, 197, 94, 0.2)'
+    },
+    livePulseContainer: { width: 8, height: 8, justifyContent: 'center', alignItems: 'center' },
+    liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E', position: 'absolute' },
+    liveDotPing: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22C55E', opacity: 0.4 },
+    liveText: { color: '#22C55E', fontSize: 10, fontFamily: 'Outfit-Bold', letterSpacing: 0.5 },
+
+    gaugeContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: hp(1)
+    },
+    gaugeCenterText: {
+        position: 'absolute',
+        bottom: wp(4),
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    healthScoreValue: {
+        color: '#FFF',
+        fontSize: wp(18),
+        fontFamily: 'Outfit-Black',
+        lineHeight: wp(18)
+    },
+    healthStatusLabel: {
+        fontSize: wp(4.5),
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 3,
+        marginTop: -hp(1)
+    },
+    healthDescription: {
+        color: '#888',
+        fontSize: 12,
         fontFamily: 'Outfit-Medium',
         textAlign: 'center',
-        marginTop: hp('2.5%')
+        lineHeight: 18,
+        marginTop: hp(2),
+        paddingHorizontal: wp(5),
+        marginBottom: hp(3)
+    },
+    partsRow: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        borderRadius: 20,
+        paddingVertical: hp(2),
+        paddingHorizontal: wp(4),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.04)',
+        gap: wp(4)
+    },
+    partStatBox: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: wp(3)
+    },
+    partIconBg: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.03)'
+    },
+    partNumber: {
+        fontSize: 18,
+        fontFamily: 'Outfit-Black',
+        color: '#FFF',
+        lineHeight: 22
+    },
+    partLabel: {
+        fontSize: 9,
+        fontFamily: 'Outfit-Bold',
+        color: '#666'
     },
 
-    // Details Sub-Tabs
-    subTabNav: { flexDirection: 'row', paddingBottom: hp('2.5%'), gap: wp('2.4%'), justifyContent: 'center' },
-    subTabItem: { paddingHorizontal: wp('3.5%'), paddingVertical: hp('1%'), borderRadius: 20, backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
-    subTabItemActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#888' },
-    subTabTextActive: { color: '#000' },
+    healthBasedOnCard: { backgroundColor: '#0A0A0A', padding: wp('5%'), borderRadius: 20, borderWidth: 1, borderColor: '#1A1A1A' },
+    healthBasedOnTitle: { color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Bold', marginBottom: hp('1.5%') },
+    healthBasedOnItem: { color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', marginBottom: hp('0.8%') },
+    healthComponentsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp('3%') },
+    healthComponentBox: {
+        flex: 1, minWidth: wp('28%'), backgroundColor: '#111', padding: wp('4.4%'), borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: '#222', gap: hp('1%')
+    },
+    healthComponentLabel: { color: '#8E8E8E', fontSize: 10, fontFamily: 'Outfit-Bold', textTransform: 'uppercase' },
+    healthComponentValue: { color: '#FFF', fontSize: hp('2.4%'), fontFamily: 'Outfit-Black' },
+    whyScoreRow: { flexDirection: 'row', alignItems: 'center', gap: wp('3%'), backgroundColor: '#111', padding: wp('4.5%'), borderRadius: 20, borderWidth: 1, borderColor: '#222', marginTop: hp('1%') },
+    whyScoreLabel: { flex: 1, color: '#FFF', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium' },
+    whyScoreBody: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: 20, marginTop: hp('-1%'), borderWidth: 1, borderColor: '#1A1A1A' },
+    whyScoreText: { color: '#FFF', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', lineHeight: hp('2.2%') },
+    explanationItem: { color: '#8E8E93', fontSize: hp('1.4%'), fontFamily: 'Outfit-Regular', lineHeight: hp('2%') },
+    nextActionsBody: { gap: hp('1%'), marginTop: hp('-1%') },
+    nextActionItem: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: 20, borderWidth: 1, borderColor: '#1A1A1A' },
+    nextActionText: { color: '#FFF', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium' },
+    healthLoadingHint: { color: '#666', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', textAlign: 'center', marginTop: hp('2.5%') },
 
     // RC Details section
     rcInfoSection: { marginTop: hp('3%'), paddingHorizontal: wp('1%') },
@@ -1075,5 +1589,299 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999
+    },
+
+    // Documents Tab Styles
+    documentsTab: {
+        gap: hp('2%')
+    },
+    certificate: {
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5
+    },
+    certHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+        paddingBottom: 12
+    },
+    certHeaderTitleCol: {
+        flex: 1
+    },
+    certTitleLine1: {
+        fontSize: 10,
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 2
+    },
+    certTitleLine2: {
+        fontSize: 14,
+        color: '#000',
+        fontFamily: 'Outfit-Black',
+        marginTop: 2
+    },
+    certShareBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    certPlateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F8F8F8',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16
+    },
+    certPlateText: {
+        fontSize: 18,
+        color: '#000',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 1
+    },
+    certStatusBadge: {
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4
+    },
+    certStatusText: {
+        fontSize: 10,
+        color: '#2E7D32',
+        fontFamily: 'Outfit-Bold'
+    },
+    certInfoGrid: {
+        gap: 8,
+        marginBottom: 20
+    },
+    certRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    certLabel: {
+        fontSize: 10,
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Bold'
+    },
+    certValue: {
+        fontSize: 12,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
+    },
+    certViewDetailsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000',
+        paddingVertical: 12,
+        borderRadius: 8,
+        gap: 8
+    },
+    certViewDetailsText: {
+        color: '#FFF',
+        fontSize: 10,
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 1
+    },
+    otherDocsList: {
+        marginTop: hp('2%'),
+        gap: 12
+    },
+    subSectionTitle: {
+        fontSize: 12,
+        fontFamily: 'Outfit-Bold',
+        color: '#8E8E93',
+        letterSpacing: 1,
+        marginBottom: 4
+    },
+    otherDocRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.surface,
+        padding: 16,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border
+    },
+    otherDocLabel: {
+        color: '#FFF',
+        fontSize: 14,
+        fontFamily: 'Outfit-Bold'
+    },
+    otherDocValue: {
+        color: '#8E8E93',
+        fontSize: 11,
+        fontFamily: 'Outfit-Medium',
+        marginTop: 2
+    },
+
+    // Formal Certificate Styles
+    formalCertContainer: {
+        width: wp('92%'),
+        padding: 5,
+        alignSelf: 'center'
+    },
+    formalCert: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+        elevation: 15
+    },
+    formalCertHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        position: 'relative',
+        paddingBottom: 25
+    },
+    formalLionLogo: {
+        width: wp('12%'),
+        height: wp('12%'),
+        marginRight: 15
+    },
+    formalTitleCol: {
+        flex: 1
+    },
+    formalCertTitle: {
+        fontSize: 14,
+        color: '#000',
+        fontFamily: 'Outfit-Bold',
+        textTransform: 'uppercase'
+    },
+    formalCertSubtitle: {
+        fontSize: 9,
+        color: '#666',
+        fontFamily: 'Outfit-Medium',
+        marginTop: 2
+    },
+    formalCertDivider: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 2,
+        backgroundColor: '#333'
+    },
+    formalCertMeta: {
+        marginBottom: 20
+    },
+    formalCertMetaRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+        paddingBottom: 5
+    },
+    formalCertMetaLabel: {
+        fontSize: 9,
+        color: '#666',
+        fontFamily: 'Outfit-Medium',
+        textTransform: 'uppercase'
+    },
+    formalCertMetaValue: {
+        fontSize: 11,
+        color: '#000',
+        fontFamily: 'Outfit-Black',
+        marginTop: 1
+    },
+    formalCertMetaLabelSmall: {
+        fontSize: 8,
+        color: '#666',
+        fontFamily: 'Outfit-Medium'
+    },
+    formalCertMetaValueSmall: {
+        fontSize: 10,
+        color: '#000',
+        fontFamily: 'Outfit-Bold'
+    },
+    formalCertInfoGrid: {
+        paddingTop: 5,
+        marginBottom: 25
+    },
+    formalCertInfoLayout: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    formalCertCols: {
+        flex: 1,
+        gap: 12
+    },
+    formalCertRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start'
+    },
+    formalCertLabel: {
+        width: wp('22%'),
+        fontSize: 10,
+        color: '#444',
+        fontFamily: 'Outfit-Bold'
+    },
+    formalCertSep: {
+        width: 12,
+        fontSize: 10,
+        color: '#444'
+    },
+    formalCertValue: {
+        flex: 1,
+        fontSize: 10,
+        color: '#000',
+        fontFamily: 'Outfit-Black'
+    },
+    formalCertFooter: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#F0F0F0',
+        paddingTop: 15
+    },
+    formalCertNoteBox: {
+        alignItems: 'flex-end',
+        gap: 6
+    },
+    formalCertPowered: {
+        fontSize: 9,
+        color: '#6366F1',
+        fontFamily: 'Outfit-Black',
+        textTransform: 'uppercase'
+    },
+    formalCertSignedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        borderWidth: 1,
+        borderColor: '#22C55E',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        backgroundColor: '#F0FDF4'
+    },
+    formalCertSignedText: {
+        fontSize: 8,
+        color: '#166534',
+        fontFamily: 'Outfit-Medium'
+    },
+    formalCertSignedDate: {
+        fontSize: 8,
+        color: '#166534',
+        fontFamily: 'Outfit-Black'
     }
 });

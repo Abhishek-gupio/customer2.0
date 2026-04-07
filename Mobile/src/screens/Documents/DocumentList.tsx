@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,10 @@ import {
   Alert,
   PermissionsAndroid,
   TouchableWithoutFeedback,
-  Share as RNShare,
+  Linking,
 } from 'react-native';
-import { generatePDF as convertToPDF } from 'react-native-html-to-pdf';
+// @ts-ignore
+import { generatePDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,16 +42,84 @@ import type { NativeStackNavigationProp } from '../../lib/react-navigation-nativ
 import type { RootStackParamList } from '../../navigation/types';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import type { RootState } from '../../store';
-import { fetchDocuments, addDocumentFromResponse, toDocItem, removeDocumentAsync } from '../../store/slices/documentsSlice';
-import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
+import {
+  fetchDocuments,
+  addDocumentFromResponse,
+  toDocItem,
+  removeDocumentAsync,
+  type DocumentItem,
+} from '../../store/slices/documentsSlice';
+import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
-import { uploadDocument } from '../../services/documentService';
+import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
+import { getNetworkOnlineState } from '../../services/api';
+import { getAccessToken } from '../../services/storage';
+import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/offlineMutationQueue';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+
+// @ts-ignore
+const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
 const BikeImage = require('../../assets/images/bike.png');
+const REQUIRED_DOCS = [
+  { type: 'RC', label: 'reg certificate' },
+  { type: 'Insurance', label: 'insurance policy' },
+  { type: 'PUC', label: 'puc certificate' },
+  { type: 'DL', label: 'driving license' },
+] as const;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
+
+function formatDocDate(date?: string | null): string {
+  if (!date) return 'No expiry found';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return 'No expiry found';
+  return parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function getDocumentStatusMeta(doc?: DocumentItem | null) {
+  if (!doc) {
+    return {
+      label: 'Missing',
+      caption: 'Tap to add',
+      tone: '#A1A1AA',
+      bg: 'rgba(255,255,255,0.06)',
+      border: 'rgba(255,255,255,0.08)',
+    };
+  }
+
+  if (doc.status === 'expired') {
+    return {
+      label: 'Expired',
+      caption: `Expired ${formatDocDate(doc.expiryDate)}`,
+      tone: '#FB7185',
+      bg: 'rgba(251,113,133,0.14)',
+      border: 'rgba(251,113,133,0.35)',
+    };
+  }
+
+  if (doc.status === 'expiring') {
+    return {
+      label: 'Expiring',
+      caption: `Due ${formatDocDate(doc.expiryDate)}`,
+      tone: '#F59E0B',
+      bg: 'rgba(245,158,11,0.14)',
+      border: 'rgba(245,158,11,0.35)',
+    };
+  }
+
+  return {
+    label: doc.verificationStatus === 'VERIFIED' ? 'Verified' : 'Stored',
+    caption: doc.expiryDate ? `Valid till ${formatDocDate(doc.expiryDate)}` : 'Ready in glovebox',
+    tone: '#22C55E',
+    bg: 'rgba(34,197,94,0.14)',
+    border: 'rgba(34,197,94,0.35)',
+  };
+}
 
 export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
@@ -62,10 +131,31 @@ export default function DocumentList() {
   const [selectedDocType, setSelectedDocType] = useState<string>('');
   const [viewingDoc, setViewingDoc] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'default' as 'default' | 'delete' | 'logout',
+    confirmText: 'Confirm',
+    onConfirm: () => { },
+  });
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   useEffect(() => {
     dispatch(fetchDocuments());
     loadPrimaryVehicle();
+    flushQueuedDocumentUploads((doc) => {
+      dispatch(addDocumentFromResponse(toDocItem(doc)));
+    }).catch(() => {});
   }, [dispatch]);
 
   const loadPrimaryVehicle = async () => {
@@ -131,47 +221,71 @@ export default function DocumentList() {
         performUpload(type, res[0].uri, res[0].name || `file_${Date.now()}`, res[0].type || 'application/octet-stream');
       }
     } catch (e: any) {
-      if (e?.code !== 'DOCUMENT_PICKER_CANCELED') {
-        Alert.alert('Error', 'Could not pick file');
+      const err = e as { code?: string };
+      if (err?.code !== 'DOCUMENT_PICKER_CANCELED') {
+        showStatus('Error', 'Could not pick file', 'error');
       }
     }
   };
 
   const handlePickImage = async (type: string) => {
+    setSelectedDocType(type);
     if (Platform.OS === 'android') {
-      const hasPermission = await requestAndroidPermissions();
-      if (!hasPermission) {
-        Alert.alert('Permission needed', 'Camera and photo library access are required.');
+      const camera = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+      const storage = Platform.Version >= 33 
+        ? await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES)
+        : await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+      
+      if (camera !== PermissionsAndroid.RESULTS.GRANTED || storage !== PermissionsAndroid.RESULTS.GRANTED) {
+        showStatus('Permission needed', 'Camera and photo library access are required.', 'error');
         return;
       }
     }
     try {
       const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
       if (res?.assets?.[0]) {
-        const asset = res.assets[0];
-        performUpload(type, asset.uri!, asset.fileName || `photo_${Date.now()}.jpg`, asset.type || 'image/jpeg');
+        uploadImageAsset(res.assets[0], type);
       }
     } catch {
-      Alert.alert('Error', 'Could not pick image');
+      showStatus('Error', 'Could not pick image', 'error');
     }
   };
 
   const handleTakePhoto = async (type: string) => {
+    setSelectedDocType(type);
     if (Platform.OS === 'android') {
-      const hasPermission = await requestAndroidPermissions();
-      if (!hasPermission) {
-        Alert.alert('Permission needed', 'Camera access is required.');
+      const camera = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+      if (camera !== PermissionsAndroid.RESULTS.GRANTED) {
+        showStatus('Permission needed', 'Camera access is required.', 'error');
         return;
       }
     }
     try {
       const res = await launchCamera({ mediaType: 'photo', quality: 0.8 });
       if (res?.assets?.[0]) {
-        const asset = res.assets[0];
-        performUpload(type, asset.uri!, asset.fileName || `camera_${Date.now()}.jpg`, asset.type || 'image/jpeg');
+        uploadImageAsset(res.assets[0], type);
       }
     } catch {
-      Alert.alert('Error', 'Could not take photo');
+      showStatus('Error', 'Could not take photo', 'error');
+    }
+  };
+
+  const uploadImageAsset = async (asset: any, type: string) => {
+    setIsUploading(true);
+    try {
+      const result = await uploadDocument({
+        type,
+        fileUri: asset.uri,
+        fileName: asset.fileName || `camera_${Date.now()}.jpg`,
+        mimeType: asset.type || 'image/jpeg',
+        documentNumber: primaryVehicle?.registrationNumber,
+      });
+      dispatch(addDocumentFromResponse(toDocItem(result)));
+      showStatus('Success', 'Document uploaded successfully');
+    } catch (err: any) {
+      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -183,32 +297,106 @@ export default function DocumentList() {
         fileUri: uri,
         fileName: name,
         mimeType: mime,
+        vehicleId: primaryVehicle?.id,
         documentNumber: primaryVehicle?.registrationNumber,
       });
 
       dispatch(addDocumentFromResponse(toDocItem(result)));
-      Alert.alert('Success', `${type} uploaded successfully`);
+      showStatus('Upload Successful', `${type} has been added to your glovebox.`);
     } catch (err: any) {
-      Alert.alert('Upload Failed', err.message || 'Something went wrong');
+      const message = String(err?.message ?? '');
+      const isNetworkError =
+        !getNetworkOnlineState() ||
+        /network error|network request failed|failed to fetch|server unreachable/i.test(message);
+
+      if (!isNetworkError) {
+        Alert.alert('Upload Failed', message || 'Something went wrong');
+        return;
+      }
+
+      try {
+        await queueDocumentUpload({
+          type,
+          fileUri: uri,
+          fileName: name,
+          mimeType: mime,
+          vehicleId: primaryVehicle?.id,
+          documentNumber: primaryVehicle?.registrationNumber,
+        });
+        Alert.alert('Saved offline', `${type} will upload automatically when network returns.`);
+      } catch {
+        Alert.alert('Upload Failed', message || 'Something went wrong');
+      }
+      showStatus('Upload Failed', err.message || 'Something went wrong', 'error');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const createPDFFromImage = async (doc: any) => {
+  const createPDFFromDocuments = async (docs: any[], fileName?: string) => {
     try {
+      const fetchImageAsBase64 = async (uri: string, retries = 2) => {
+        if (!uri) return '';
+
+        for (let i = 0; i <= retries; i++) {
+          try {
+            if (uri.startsWith('http')) {
+              const token = getAccessToken();
+              const tempPath = `${RNFS.CachesDirectoryPath}/pdf_tmp_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
+
+              const downloadResult = await RNFS.downloadFile({
+                fromUrl: uri,
+                toFile: tempPath,
+                connectionTimeout: 15000,
+                readTimeout: 15000,
+              }).promise;
+
+              if (downloadResult.statusCode === 200) {
+                const base64 = await RNFS.readFile(tempPath, 'base64');
+                await RNFS.unlink(tempPath).catch(() => { });
+                return `data:image/jpeg;base64,${base64}`;
+              } else {
+                throw new Error(`Status ${downloadResult.statusCode}`);
+              }
+            } else {
+              const cleanPath = uri.replace('file://', '');
+              if (await RNFS.exists(cleanPath)) {
+                const base64 = await RNFS.readFile(cleanPath, 'base64');
+                return `data:image/jpeg;base64,${base64}`;
+              }
+              return uri;
+            }
+          } catch (e) {
+            console.error(`Attempt ${i + 1} failed for ${uri}:`, e);
+            if (i === retries) return uri;
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+        return uri;
+      };
+
+      const pagesHtml = await Promise.all(docs.map(async (doc) => {
+        const base64Uri = await fetchImageAsBase64(doc.imageUri);
+        return `
+          <div style="page-break-after:always; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100vh; padding: 20px; box-sizing: border-box;">
+            <h1 style="font-family: Arial; margin-bottom: 20px;">${doc.type}</h1>
+            <p style="font-family: Arial; color: #666; margin-bottom: 20px;">Vehicle: ${primaryVehicle?.registrationNumber || 'N/A'}</p>
+            <img src="${base64Uri}" style="max-width:100%; max-height:80%; object-fit:contain; border: 1px solid #eee;" />
+          </div>
+        `;
+      }));
+
       const options = {
         html: `
           <html>
-            <body style="margin:0;padding:0;background-color:white;display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
-              <img src="${doc.imageUri}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            <body style="margin:0;padding:0;">
+              ${pagesHtml.join('')}
             </body>
           </html>
         `,
-        fileName: `${doc.type.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
-        directory: 'Documents',
+        fileName: fileName || `glovebox_docs_${Date.now()}`,
       };
-      const file = await convertToPDF(options);
+      const file = await generatePDF(options);
       return file.filePath;
     } catch (error) {
       console.error('PDF Generation Error:', error);
@@ -216,13 +404,82 @@ export default function DocumentList() {
     }
   };
 
+  const handleShareAll = async () => {
+    if (documents.length === 0) {
+      showStatus('No Documents', 'You have no documents to share.', 'error');
+      return;
+    }
+    try {
+      setIsUploading(true);
+      const pdfPath = await createPDFFromDocuments(documents, `all_documents_${primaryVehicle?.registrationNumber}`);
+      setIsUploading(false);
+
+      await RNShareCustom.open({
+        url: `file://${pdfPath}`,
+        type: 'application/pdf',
+        title: 'Share All Documents',
+        message: `Sharing all vehicle documents for ${primaryVehicle?.registrationNumber}`,
+      });
+    } catch (error: any) {
+      setIsUploading(false);
+      if (error?.message !== 'User did not share') {
+        showStatus('Error', 'Could not share documents', 'error');
+      }
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (documents.length === 0) {
+      showStatus('No Documents', 'You have no documents to download.', 'error');
+      return;
+    }
+    let localPath = '';
+    try {
+      setIsUploading(true);
+      localPath = await createPDFFromDocuments(documents, `all_documents_${primaryVehicle?.registrationNumber}`);
+      const fileName = localPath.split('/').pop() || `all_docs_${Date.now()}.pdf`;
+
+      if (Platform.OS === 'android') {
+        const downloadDir = `${RNFS.ExternalStorageDirectoryPath}/Download`;
+        const finalPath = `${downloadDir}/${fileName}`;
+        try {
+          const exists = await RNFS.exists(downloadDir);
+          if (!exists) await RNFS.mkdir(downloadDir);
+          await RNFS.copyFile(localPath, finalPath);
+          await RNFS.scanFile(finalPath);
+          setIsUploading(false);
+          showStatus('Download Complete', 'All documents saved to your Downloads folder.');
+          return;
+        } catch (copyErr) {
+          console.log('Download All Direct Copy Failed:', copyErr);
+        }
+      }
+
+      setIsUploading(false);
+      await RNShareCustom.open({
+        url: `file://${localPath}`,
+        type: 'application/pdf',
+        title: 'Save All Documents',
+        saveToFiles: true,
+      });
+    } catch (error: any) {
+      setIsUploading(false);
+      if (error?.message === 'User did not share') return;
+      if (localPath) {
+        try {
+          await RNShareCustom.open({ url: `file://${localPath}`, type: 'application/pdf' });
+        } catch { }
+      }
+    }
+  };
+
   const handleShareDoc = async (doc: any) => {
     if (!doc?.imageUri) return;
     try {
-      setIsUploading(true); // Reuse as a general "processing" state or add a new one
-      const pdfPath = await createPDFFromImage(doc);
+      setIsUploading(true);
+      const pdfPath = await createPDFFromDocuments([doc]);
       setIsUploading(false);
-      
+
       await RNShareCustom.open({
         url: `file://${pdfPath}`,
         type: 'application/pdf',
@@ -232,57 +489,33 @@ export default function DocumentList() {
     } catch (error: any) {
       setIsUploading(false);
       if (error?.message !== 'User did not share') {
-        Alert.alert('Error', 'Could not share document as PDF');
+        showStatus('Error', 'Could not share document as PDF', 'error');
       }
     }
   };
 
   const handleDownloadDoc = async (doc: any) => {
-    if (!doc?.imageUri) return;
+    if (!doc?.id) return;
     try {
       setIsUploading(true);
-
-      // Check permissions for Android
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download the PDF',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED && Platform.Version < 33) {
-           // For Android 13+ (API 33), WRITE_EXTERNAL_STORAGE is not used for media/docs
-           // But let's log and proceed or handle based on version if needed.
-        }
+        const pdfUrl = doc.imageUri.replace('/image', '/pdf');
+        await Linking.openURL(pdfUrl);
+        setIsUploading(false);
+        return;
       }
 
-      const tempPdfPath = await createPDFFromImage(doc);
-      
-      const fileName = tempPdfPath.split('/').pop();
-      let finalPath = tempPdfPath;
-
-      if (Platform.OS === 'android') {
-        const downloadDir = RNFS.DownloadDirectoryPath;
-        finalPath = `${downloadDir}/${fileName}`;
-        
-        // Use copy instead of move to avoid permission issues with different volumes/mounts
-        await RNFS.copyFile(tempPdfPath, finalPath);
-        // Delete the temp file from library cache
-        await RNFS.unlink(tempPdfPath);
-      } else if (Platform.OS === 'ios') {
-        // iOS handled differently usually via UIDocumentPicker or just internal docs.
-      }
-
+      const localPath = await createPDFFromDocuments([doc]);
+      await RNShareCustom.open({
+        url: `file://${localPath}`,
+        type: 'application/pdf',
+        title: 'Save Document',
+        saveToFiles: true,
+      });
       setIsUploading(false);
-      Alert.alert('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
     } catch (error: any) {
       setIsUploading(false);
-      console.error('Download Error:', error);
-      Alert.alert('Error', error.message || 'Could not download document as PDF');
+      showStatus('Download Error', 'Could not initiate download. Please use the Share button.', 'error');
     }
   };
 
@@ -290,36 +523,102 @@ export default function DocumentList() {
     return documents.find(d => d.type === type);
   };
 
-  const requiredDocTypes = ['RC', 'Insurance', 'PUC', 'DL'];
-  const uploadedDocsCount = documents.filter(d => requiredDocTypes.includes(d.type)).length;
+  const requiredDocTypes = REQUIRED_DOCS.map(doc => doc.type);
+  const uploadedDocsCount = documents.filter(d => (requiredDocTypes as string[]).includes(d.type)).length;
   const MAX_DOCS = 4;
   const totalDocs = Math.min(uploadedDocsCount, MAX_DOCS);
   const progressPercent = Math.round((totalDocs / MAX_DOCS) * 100);
+  const requiredDocuments = REQUIRED_DOCS.map(({ type, label }) => ({
+    type,
+    label,
+    document: getDocByType(type),
+  }));
+  const missingRequiredDocs = requiredDocuments.filter(item => !item.document);
+  const expiredRequiredDocs = requiredDocuments.filter(item => item.document?.status === 'expired');
+  const expiringRequiredDocs = requiredDocuments.filter(item => item.document?.status === 'expiring');
+  const healthyRequiredDocs = requiredDocuments.filter(item => item.document?.status === 'verified');
 
-  const handleDeleteDoc = async (id: string, type: string) => {
-    Alert.alert(
-      'Delete Document',
-      `Are you sure you want to delete your ${type}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
+  const openDocumentFlow = (type: string) => {
+    setSelectedDocType(type);
+    setShowSourceModal(true);
+  };
+
+  const handlePriorityAction = () => {
+    if (missingRequiredDocs[0]) {
+      openDocumentFlow(missingRequiredDocs[0].type);
+      return;
+    }
+
+    const attentionDoc = expiredRequiredDocs[0]?.document || expiringRequiredDocs[0]?.document;
+    if (attentionDoc) {
+      setViewingDoc(attentionDoc);
+      setShowViewerModal(true);
+      return;
+    }
+
+    handleConnectDigiLocker();
+  };
+
+  const handleDeleteDoc = (id: string, type: string) => {
+    setConfirmModal({
+      visible: true,
+      title: 'Delete Document',
+      message: `Are you sure you want to delete your ${type}? This action cannot be undone.`,
+      type: 'delete',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        try {
+          await dispatch(removeDocumentAsync(id)).unwrap();
+          showStatus('Deleted', `${type} has been removed.`, 'delete');
+        } catch (err: any) {
+          showStatus('Error', err.message || 'Failed to delete', 'error');
+        }
+      }
+    });
+  };
+
+  const handleConnectDigiLocker = async () => {
+    try {
+      setIsUploading(true);
+      const res = await connectDigiLocker();
+      setIsUploading(false);
+      if (res?.url && res?.client_id) {
+        navigation.navigate('DigiLockerKYC', { url: res.url, client_id: res.client_id });
+        return;
+      }
+      if (res?.url) {
+        await Linking.openURL(res.url);
+        setConfirmModal({
+          visible: true,
+          title: 'DigiLocker Linked',
+          message: 'Once you complete verification in your browser, tap Sync to update your documents.',
+          type: 'default',
+          confirmText: 'Sync Now',
+          onConfirm: async () => {
+            setConfirmModal(prev => ({ ...prev, visible: false }));
+            setIsUploading(true);
             try {
-              await dispatch(removeDocumentAsync(id)).unwrap();
-              Alert.alert('Success', `${type} deleted successfully`);
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete');
+              await syncDigiLocker(res.client_id);
+              dispatch(fetchDocuments());
+              showStatus('Synced', 'Documents updated from DigiLocker!');
+            } catch (err) {
+              showStatus('Error', 'Sync failed. Please try again.', 'error');
+            } finally {
+              setIsUploading(false);
             }
           }
-        }
-      ]
-    );
+        });
+      }
+    } catch (error: any) {
+      setIsUploading(false);
+      showStatus('Error', error.message || 'Could not connect to DigiLocker', 'error');
+    }
   };
 
   const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
     const doc = getDocByType(type);
+    const statusMeta = getDocumentStatusMeta(doc);
     return (
       <View style={styles.slotContainer}>
         <TouchableOpacity
@@ -336,9 +635,9 @@ export default function DocumentList() {
         >
           {doc ? (
             <View style={styles.imageWrapper}>
-              <Image 
-                source={{ uri: doc.imageUri }} 
-                style={styles.slotImage} 
+              <Image
+                source={{ uri: doc.imageUri }}
+                style={styles.slotImage}
                 resizeMode="cover"
                 onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
               />
@@ -348,6 +647,10 @@ export default function DocumentList() {
           )}
         </TouchableOpacity>
         <Text style={styles.slotLabel}>{label}</Text>
+        <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
+          <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
+        </View>
+        <Text style={styles.slotHint}>{statusMeta.caption}</Text>
       </View>
     );
   };
@@ -362,8 +665,8 @@ export default function DocumentList() {
           <Text style={styles.headerTitle}>glovebox</Text>
           {totalDocs > 0 ? (
             <View style={styles.progressHeaderRow}>
-               <Text style={styles.progressTextLeft}>{totalDocs} out of {MAX_DOCS} documents stored</Text>
-               <Text style={styles.progressTextRight}>{progressPercent}% COMPLETE</Text>
+              <Text style={styles.progressTextLeft}>{totalDocs} out of {MAX_DOCS} documents stored</Text>
+              <Text style={styles.progressTextRight}>{progressPercent}% COMPLETE</Text>
             </View>
           ) : (
             <Text style={styles.headerSubtitle}>one place for all your vehicle documents</Text>
@@ -371,7 +674,7 @@ export default function DocumentList() {
         </View>
         <View style={{ width: 44 }} />
       </View>
-      
+
       {totalDocs > 0 && (
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBarTrack}>
@@ -390,41 +693,93 @@ export default function DocumentList() {
           <Text style={styles.trustText}>100% safe and secure</Text>
         </View>
 
+        <View style={styles.healthOverviewRow}>
+          <View style={styles.healthMetricCard}>
+            <Text style={styles.healthMetricValue}>{healthyRequiredDocs.length}</Text>
+            <Text style={styles.healthMetricLabel}>Ready now</Text>
+          </View>
+          <View style={styles.healthMetricCard}>
+            <Text style={[styles.healthMetricValue, styles.healthMetricWarning]}>
+              {expiringRequiredDocs.length + expiredRequiredDocs.length}
+            </Text>
+            <Text style={styles.healthMetricLabel}>Need review</Text>
+          </View>
+          <View style={styles.healthMetricCard}>
+            <Text style={styles.healthMetricValue}>{missingRequiredDocs.length}</Text>
+            <Text style={styles.healthMetricLabel}>Missing</Text>
+          </View>
+        </View>
+
+        <View style={styles.nextActionCard}>
+          <View style={styles.nextActionHeader}>
+            <Text style={styles.nextActionTitle}>Document health</Text>
+            <Text style={styles.nextActionCaption}>
+              {missingRequiredDocs.length > 0
+                ? `${missingRequiredDocs.length} document${missingRequiredDocs.length === 1 ? '' : 's'} still missing`
+                : expiringRequiredDocs.length + expiredRequiredDocs.length > 0
+                  ? 'A few documents need attention soon'
+                  : 'Your glovebox is in good shape'}
+            </Text>
+          </View>
+
+          {missingRequiredDocs.length > 0 ? (
+            <Text style={styles.nextActionBody}>
+              Add {missingRequiredDocs.slice(0, 2).map(item => item.label).join(' and ')} to complete your core document set.
+            </Text>
+          ) : expiredRequiredDocs.length + expiringRequiredDocs.length > 0 ? (
+            <Text style={styles.nextActionBody}>
+              Review expiry dates and keep renewal documents ready before your next drive.
+            </Text>
+          ) : (
+            <Text style={styles.nextActionBody}>
+              Everything important is stored. Linking DigiLocker can still make future refreshes easier.
+            </Text>
+          )}
+
+          <View style={styles.nextActionButtons}>
+            <TouchableOpacity style={styles.nextActionPrimaryBtn} onPress={handlePriorityAction}>
+              <Text style={styles.nextActionPrimaryText}>
+                {missingRequiredDocs.length > 0
+                  ? `Add ${missingRequiredDocs[0].label}`
+                  : expiredRequiredDocs.length + expiringRequiredDocs.length > 0
+                    ? 'Review document'
+                    : 'Link DigiLocker'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.nextActionSecondaryBtn} onPress={handleConnectDigiLocker}>
+              <Text style={styles.nextActionSecondaryText}>Sync official docs</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* DigiLocker Banner */}
         <View style={styles.digiBanner}>
-          <View style={styles.digiTopRow}>
-            <View style={styles.digiTextSection}>
+          <View style={styles.digiRow}>
+            <View style={styles.digiContentLeft}>
               {totalDocs > 0 ? (
-                 <Text style={styles.digiTitle}>add your official driving license to your glovebox</Text>
+                <Text style={styles.digiTitle}>add your official driving license to your glovebox</Text>
               ) : (
-                 <Text style={styles.digiTitle}>accepted as official documents by traffic police everywhere</Text>
+                <Text style={styles.digiTitle}>accepted as official documents by traffic police everywhere</Text>
               )}
+
+              <TouchableOpacity style={styles.digiBtn} onPress={handleConnectDigiLocker}>
+                <View style={styles.digiBtnContent}>
+                  <View style={styles.digiLogoPlaceholder}>
+                    <FileText size={14} color="#FFF" />
+                  </View>
+                  <Text style={styles.digiBtnText}>Link to Digilocker</Text>
+                </View>
+                <ArrowRight size={18} color="#FFF" />
+              </TouchableOpacity>
             </View>
             <View style={styles.digiGraphic}>
-              <View style={styles.graphicRect}>
-                <FileText size={32} color="#DDD" />
-                <View style={styles.alertCircle}>
-                  <Text style={styles.alertText}>!</Text>
-                </View>
-              </View>
+              <Image
+                source={require('../../assets/images/document.png') as any}
+                style={styles.digiImage}
+                resizeMode="contain"
+              />
             </View>
           </View>
-
-          <View style={styles.dotRow}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-          </View>
-
-          <TouchableOpacity style={styles.digiBtn}>
-            <View style={styles.digiBtnContent}>
-              <View style={styles.digiLogoPlaceholder}>
-                <FileText size={16} color="#FFF" />
-              </View>
-              <Text style={styles.digiBtnText}>Link to Digilocker</Text>
-            </View>
-            <ArrowRight size={20} color="#FFF" />
-          </TouchableOpacity>
         </View>
 
         {/* Your Vehicle Documents */}
@@ -448,7 +803,10 @@ export default function DocumentList() {
               </View>
             </View>
             <TouchableOpacity
-              onPress={() => navigation.navigate('VehicleDetails', { vehicleId: primaryVehicle.id })}
+              onPress={() => navigation.navigate('VehicleDetails', {
+                vehicleId: primaryVehicle.id,
+                initialTab: 'Details'
+              })}
               style={styles.viewDetailsBtn}
             >
               <Text style={styles.viewDetailsText}>View details</Text>
@@ -457,9 +815,9 @@ export default function DocumentList() {
         )}
 
         <View style={styles.gloveboxGrid}>
-          <DocumentSlot label="reg certificate" type="RC" />
-          <DocumentSlot label="insurance policy" type="Insurance" />
-          <DocumentSlot label="puc certificate" type="PUC" />
+          <DocumentSlot label="RC Front" type="RC" />
+          <DocumentSlot label="Insurance" type="Insurance" />
+          <DocumentSlot label="PUC" type="PUC" />
         </View>
 
         {/* Your Personal Documents */}
@@ -468,43 +826,21 @@ export default function DocumentList() {
         </View>
 
         <View style={styles.personalGrid}>
-          <View style={[styles.slotContainer, { width: '100%', alignItems: 'flex-start' }]}>
-            <TouchableOpacity
-              style={[styles.slotBox, { width: '30%', aspectRatio: 1.2 }]}
-              onPress={() => {
-                const doc = getDocByType('DL');
-                if (doc) {
-                   setViewingDoc(doc);
-                   setShowViewerModal(true);
-                } else {
-                   setSelectedDocType('DL');
-                   setShowSourceModal(true);
-                }
-              }}
-            >
-              {getDocByType('DL') ? (
-                <View style={styles.imageWrapper}>
-                  <Image 
-                    source={{ uri: getDocByType('DL')?.imageUri }} 
-                    style={styles.slotImage} 
-                    resizeMode="cover"
-                    onError={(e) => console.log('DL Image Load Error:', e.nativeEvent.error)}
-                  />
-                </View>
-              ) : (
-                <Plus size={24} color="#333" />
-              )}
-            </TouchableOpacity>
-            <Text style={styles.slotLabel}>driving license</Text>
-          </View>
+          <DocumentSlot label="Driving License" type="DL" />
         </View>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={handleDownloadAll}
+          >
             <FileText size={20} color="#FFF" />
             <Text style={styles.actionBtnText}>Download All</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.actionBtnOutline]}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnOutline]}
+            onPress={handleShareAll}
+          >
             <ArrowRight size={20} color="#FFF" />
             <Text style={styles.actionBtnText}>Share Documents</Text>
           </TouchableOpacity>
@@ -607,8 +943,8 @@ export default function DocumentList() {
               >
                 <Trash2 size={22} color="#FF453A" />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.viewerHeaderIcon, { marginLeft: 16 }]} 
+              <TouchableOpacity
+                style={[styles.viewerHeaderIcon, { marginLeft: 16 }]}
                 onPress={() => setShowViewerModal(false)}
               >
                 <X size={24} color="#FFF" />
@@ -616,8 +952,8 @@ export default function DocumentList() {
             </View>
           </View>
 
-          <ScrollView 
-            contentContainerStyle={styles.viewerContent} 
+          <ScrollView
+            contentContainerStyle={styles.viewerContent}
             centerContent={true}
             showsVerticalScrollIndicator={false}
           >
@@ -648,6 +984,26 @@ export default function DocumentList() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* ── Status Feedback Modal (Success/Delete/Error) ── */}
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
+
+      {/* ── Confirmation Modal (Delete/DigiLocker) ── */}
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -672,25 +1028,106 @@ const styles = StyleSheet.create({
 
   trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   trustText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#00C853', fontWeight: '600' },
+  healthOverviewRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
+  healthMetricCard: {
+    flex: 1,
+    backgroundColor: '#0D0D0D',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  healthMetricValue: {
+    color: '#FFF',
+    fontSize: 24,
+    fontFamily: 'Outfit-Bold',
+  },
+  healthMetricWarning: {
+    color: '#F59E0B',
+  },
+  healthMetricLabel: {
+    marginTop: 4,
+    color: '#8E8E93',
+    fontSize: 11,
+    fontFamily: 'Outfit-Medium',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  nextActionCard: {
+    marginTop: 18,
+    backgroundColor: '#0E1218',
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#1B2230',
+  },
+  nextActionHeader: {
+    marginBottom: 10,
+  },
+  nextActionTitle: {
+    color: '#FFF',
+    fontSize: 17,
+    fontFamily: 'Outfit-Bold',
+  },
+  nextActionCaption: {
+    marginTop: 4,
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontFamily: 'Outfit-Medium',
+  },
+  nextActionBody: {
+    color: '#D1D5DB',
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: 'Outfit-Regular',
+  },
+  nextActionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  nextActionPrimaryBtn: {
+    flex: 1,
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nextActionPrimaryText: {
+    color: '#111827',
+    fontSize: 13,
+    fontFamily: 'Outfit-Bold',
+  },
+  nextActionSecondaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#2B3648',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  nextActionSecondaryText: {
+    color: '#E5E7EB',
+    fontSize: 13,
+    fontFamily: 'Outfit-Bold',
+  },
 
   // DigiLocker Banner
   digiBanner: { backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginTop: 32 },
-  digiTopRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-  digiTextSection: { flex: 1, paddingRight: 12 },
-  digiTitle: { fontSize: 18, fontFamily: 'Outfit-Bold', color: '#000', lineHeight: 24, fontWeight: '700' },
-  digiGraphic: { width: 80, alignItems: 'flex-end' },
-  graphicRect: { width: 68, height: 64, backgroundColor: '#F0F0F0', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#EEE' },
-  alertCircle: { position: 'absolute', bottom: -5, right: -5, width: 22, height: 22, borderRadius: 11, backgroundColor: '#6200EA', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
-  alertText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
+  digiRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  digiContentLeft: { flex: 1, paddingRight: 16 },
+  digiTitle: { fontSize: 16, fontFamily: 'Outfit-Bold', color: '#000', lineHeight: 22, fontWeight: '700', marginBottom: 12 },
+  digiGraphic: { width: 75, alignItems: 'flex-end', justifyContent: 'flex-start', marginTop: -10, marginRight: -4 },
+  digiImage: { width: 75, height: 75 },
 
-  dotRow: { flexDirection: 'row', gap: 6, marginBottom: 28 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#DDD' },
-  dotActive: { width: 14, backgroundColor: '#AAA' },
-
-  digiBtn: { backgroundColor: '#000', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 18 },
-  digiBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  digiLogoPlaceholder: { width: 24, height: 24, borderRadius: 6, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
-  digiBtnText: { color: '#FFF', fontSize: 15, fontFamily: 'Outfit-Bold', fontWeight: '600' },
+  digiBtn: { backgroundColor: '#111', borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, alignSelf: 'flex-start' },
+  digiBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  digiLogoPlaceholder: { width: 20, height: 20, borderRadius: 4, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
+  digiBtnText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Bold', fontWeight: '600', marginRight: 12 },
 
   // Sections
   sectionHeaderRow: { marginTop: 44, marginBottom: 24 },
@@ -714,12 +1151,34 @@ const styles = StyleSheet.create({
   viewDetailsBtn: { paddingVertical: 4 },
   viewDetailsText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Medium', borderBottomWidth: 1, borderBottomColor: '#FFF' },
 
-  gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  personalGrid: { flexDirection: 'row', gap: 12 },
+  gloveboxGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  personalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
 
   slotContainer: { width: (width - 72) / 3, gap: 12 },
   slotBox: { width: '100%', aspectRatio: 1, backgroundColor: '#0A0A0A', borderRadius: 14, borderWidth: 1, borderColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
   slotLabel: { fontSize: 11, fontFamily: 'Outfit-Medium', color: '#8E8E93', textTransform: 'lowercase', textAlign: 'center' },
+  slotStatusBadge: {
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: -4,
+  },
+  slotStatusText: {
+    fontSize: 10,
+    fontFamily: 'Outfit-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  slotHint: {
+    fontSize: 10,
+    fontFamily: 'Outfit-Regular',
+    color: '#666',
+    textAlign: 'center',
+    marginTop: -6,
+    lineHeight: 14,
+  },
 
   quickActions: { marginTop: 40, gap: 12 },
   actionBtn: {
@@ -850,7 +1309,7 @@ const styles = StyleSheet.create({
     borderColor: '#333'
   },
   viewerActionText: { color: '#FFF', fontSize: 15, fontFamily: 'Outfit-Bold' },
-  
+
   // Progress Bar
   progressHeaderRow: {
     flexDirection: 'row',
@@ -886,4 +1345,97 @@ const styles = StyleSheet.create({
   // New Styles
   imageWrapper: { width: '100%', height: '100%', borderRadius: 14, overflow: 'hidden' },
   slotImage: { width: '100%', height: '100%', backgroundColor: '#1A1A1A' },
+
+  // Status Modal Styles
+  statusModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  statusModalContent: {
+    width: '100%',
+    backgroundColor: '#121212',
+    borderRadius: 32,
+    padding: 32,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  statusIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  statusIconCircleSuccess: {
+    backgroundColor: 'rgba(0, 200, 83, 0.1)',
+  },
+  statusIconCircleDelete: {
+    backgroundColor: 'rgba(255, 69, 58, 0.1)',
+  },
+  statusTitle: {
+    fontSize: 22,
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  statusMessage: {
+    fontSize: 14,
+    fontFamily: 'Outfit-Regular',
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 20,
+  },
+  statusActionBtn: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  statusActionText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#000',
+    fontWeight: '700',
+  },
+
+  // Confirm Modal Specifics
+  confirmActionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  confirmCancelBtn: {
+    flex: 1,
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  confirmCancelText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#8E8E93',
+  },
+  confirmDeleteBtn: {
+    flex: 1,
+    backgroundColor: '#FF453A',
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  confirmDeleteText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
+  },
 });

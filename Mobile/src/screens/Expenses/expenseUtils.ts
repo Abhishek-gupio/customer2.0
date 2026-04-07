@@ -17,6 +17,8 @@ export const getExpenseIcon = (category: string) => {
             return 'file-invoice-dollar';
         case 'EMI':
             return 'money-check-alt';
+        case 'REPAIR':
+            return 'hammer';
         default:
             return 'receipt';
     }
@@ -39,6 +41,8 @@ export const getExpenseColor = (category: string) => {
             return '#f44336'; // Red
         case 'EMI':
             return '#3f51b5'; // Indigo
+        case 'REPAIR':
+            return '#ff5722'; // Deep Orange
         default:
             return '#9e9e9e'; // Grey
     }

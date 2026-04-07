@@ -13,11 +13,14 @@ import LoginSuccessfull from '../screens/Auth/LoginSuccessfull';
 import DocumentList from '../screens/Documents/DocumentList';
 import MyProfile from '../screens/Profile/MyProfile';
 import HelpSupport from '../screens/Profile/HelpSupport';
+import TermsConditions from '../screens/Profile/TermsConditions';
+import PrivacyPolicy from '../screens/Profile/PrivacyPolicy';
 import LiveChat from '../screens/Profile/LiveChat';
 import ContactSupport from '../screens/Profile/ContactSupport';
 import TicketHistory from '../screens/Profile/TicketHistory';
 import TicketDetail from '../screens/Profile/TicketDetail';
 import Settings from '../screens/Profile/Settings';
+import DigiLockerKYC from '../screens/Documents/DigiLockerKYC';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
 // NOTE: VehicleDetails and AddVehicle are self-contained inside GupioGarageApp.
 // Do not register them as separate stack screens — all vehicle navigation is
@@ -28,6 +31,7 @@ import ExpensesList from '../screens/Expenses/ExpenseList';
 import addExpense from '../screens/Expenses/AddExpense';
 import ExpenseAnalytics from '../screens/Expenses/ExpenseAnalytics';
 import BudgetSettings from '../screens/Expenses/BudgetSettings';
+import SyncQueue from '../screens/Profile/SyncQueue';
 import ServiceHistory from '../screens/ServiceAndWarrenty/ServiceHistory';
 import { WarrantyStatus } from '../screens/ServiceAndWarrenty/WarrantyStatus';
 import AiBotHome from '../screens/AiBot/HomeScreen';
@@ -38,6 +42,13 @@ import TripDetail from '../screens/Telematics/TripDetail';
 import SOSButton from '../components/SOSButton';
 import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
+import ValetService from '../screens/Main/ValetService';
+import VehicleSearch from '../screens/Main/VehicleSearch';
+import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
+import TripPlannerInsightsScreen from '../screens/Other/TripPlannerInsightsScreen';
+import DLVerification from '../screens/ServiceAndWarrenty/DLVerification';
+import Fastag from '../screens/ServiceAndWarrenty/Fastag';
+import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -51,7 +62,14 @@ export function RootNavigator() {
       <Stack.Screen name="Splash">
         {({ navigation }: NativeStackScreenProps<RootStackParamList, 'Splash'>) => (
           <SplashScreen
-            onComplete={() => navigation.replace('SigninFirst')}
+            onComplete={() => {
+              const { isAuthenticated } = store.getState().auth;
+              if (isAuthenticated) {
+                navigation.replace('Main', { screen: 'Home' });
+              } else {
+                navigation.replace('SigninFirst');
+              }
+            }}
           />
         )}
       </Stack.Screen>
@@ -62,6 +80,8 @@ export function RootNavigator() {
       <Stack.Screen name="OTP" component={OTP} />
       <Stack.Screen name="LoginSuccessfull" component={LoginSuccessfull} />
       <Stack.Screen name="DocumentList" component={DocumentList} />
+      <Stack.Screen name="DigiLockerKYC" component={DigiLockerKYC} />
+      <Stack.Screen name="Valet" component={ValetService} />
 
       {/* All vehicle screens are handled internally by GupioGarageApp */}
       <Stack.Screen name="VehicleList" component={GupioGarageApp} />
@@ -73,12 +93,15 @@ export function RootNavigator() {
       <Stack.Screen name="addExpense" component={addExpense} options={{ presentation: 'transparentModal' }} />
       <Stack.Screen name="MyProfile" component={MyProfile} />
       <Stack.Screen name="HelpSupport" component={HelpSupport} />
+      <Stack.Screen name="TermsConditions" component={TermsConditions} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
       <Stack.Screen name="LiveChat" component={LiveChat} />
       <Stack.Screen name="ContactSupport" component={ContactSupport} />
       <Stack.Screen name="TicketHistory" component={TicketHistory} />
       <Stack.Screen name="TicketDetail" component={TicketDetail} />
       <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen name="BudgetSettings" component={BudgetSettings} options={{ presentation: 'transparentModal' }} />
+      <Stack.Screen name="SyncQueue" component={SyncQueue} />
       <Stack.Screen name="ExpenseAnalytics" component={ExpenseAnalytics} />
       <Stack.Screen name="ServiceHistory" component={ServiceHistory} />
       <Stack.Screen name="WarrantyStatus" component={WarrantyStatus} />
@@ -87,9 +110,15 @@ export function RootNavigator() {
 
       <Stack.Screen name="DrivingSummary" component={DrivingSummary} />
       <Stack.Screen name="DrivingTimeline" component={DrivingTimeline} />
-      {/* <Stack.Screen name="TripDetail" component={TripDetail} /> */}
+      <Stack.Screen name="TripDetail" component={TripDetail} />
+      <Stack.Screen name="Alerts" component={Alerts} />
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
+      <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
+      <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
+      <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
+      <Stack.Screen name="DLVerification" component={DLVerification} />
+      <Stack.Screen name="Fastag" component={Fastag} />
     </Stack.Navigator>
   );
 }

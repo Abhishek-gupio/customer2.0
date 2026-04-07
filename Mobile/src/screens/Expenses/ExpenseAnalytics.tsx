@@ -82,6 +82,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   PARKING: "#ffeb3b",
   CHALLAN: "#f44336",
   EMI: "#4caf50",
+  REPAIR: "#ff5722",
   OTHER: "#00c853",
 };
 

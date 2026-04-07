@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, Easing, InteractionManager } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Svg, { Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface WarrantySummaryProps {
     active: number;
@@ -18,123 +19,146 @@ interface WarrantySummaryProps {
 export const WarrantySummary = ({ active, expired, health }: WarrantySummaryProps) => {
     const clampedHealth = Math.max(0, Math.min(100, Math.round(health || 0)));
     const animatedProgress = useRef(new Animated.Value(0)).current;
-    const gaugeSize = wp(30);
-    const strokeWidth = wp(2.2);
-    const svgSize = 160;
-    const center = svgSize / 2;
-    const radius = 62;
-    const circumference = 2 * Math.PI * radius;
 
-    const healthTone = useMemo(() => {
-        if (clampedHealth >= 70) {
-            return '#22C55E';
-        }
-        if (clampedHealth >= 40) {
-            return '#F59E0B';
-        }
-        return '#EF4444';
-    }, [clampedHealth]);
+    // Dimensions for the Semicircle Gauge
+    const R = wp(36); // Radius defining the size of the gauge
+    const strokeWidth = wp(4.5);
+    const padding = wp(5);
+    const svgWidth = R * 2 + padding * 2;
+    const svgHeight = R + padding * 1.5;
+
+    const startX = padding;
+    const startY = R + padding;
+    const endX = startX + R * 2;
+
+    const pathData = `M ${startX} ${startY} A ${R} ${R} 0 0 1 ${endX} ${startY}`;
+    const pathLength = Math.PI * R;
 
     useEffect(() => {
-        Animated.timing(animatedProgress, {
-            toValue: clampedHealth,
-            duration: 1200,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: false,
-        }).start();
-    }, [animatedProgress, clampedHealth]);
+        const task = InteractionManager.runAfterInteractions(() => {
+            Animated.timing(animatedProgress, {
+                toValue: clampedHealth,
+                duration: 1800,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: false, // SVG stroke dashoffset must run on the JS thread
+            }).start();
+        });
+
+        return () => {
+            task.cancel();
+        };
+    }, [clampedHealth, animatedProgress]);
 
     const strokeDashoffset = animatedProgress.interpolate({
-        inputRange: [0, 50, 100],
-        outputRange: [circumference, circumference / 2, 0],
+        inputRange: [0, 100],
+        outputRange: [pathLength, 0], // Animate from completely empty to completely filled
     });
+
+    const statusText = clampedHealth >= 80 ? 'EXCELLENT' : clampedHealth >= 50 ? 'GOOD' : 'CRITICAL';
+    const statusColor = clampedHealth >= 80 ? '#22C55E' : clampedHealth >= 50 ? '#F59E0B' : '#EF4444';
 
     return (
         <View style={styles.container}>
             <LinearGradient
-                colors={['#1a1a1a', '#0a0a0a']}
+                colors={['#171717', '#0A0A0A']}
                 style={styles.card}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+                end={{ x: 0, y: 1 }}
             >
+                {/* Header Row */}
                 <View style={styles.header}>
-                    <Text style={styles.title}>Service Status</Text>
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>Threshold: 15%</Text>
+                    <Text style={styles.title}>VEHICLE HEALTH SCORE</Text>
+                    <View style={styles.liveBadge}>
+                        <View style={styles.livePulseContainer}>
+                            <View style={styles.liveDot} />
+                            <View style={styles.liveDotPing} />
+                        </View>
+                        <Text style={styles.liveText}>LIVE</Text>
                     </View>
                 </View>
 
-                <View style={styles.contentRow}>
-                    <View style={styles.healthBlock}>
-                        <Text style={styles.healthTitle}>Vehicle Health</Text>
-                        <View style={[styles.circleWrap, { width: gaugeSize, height: gaugeSize }]}>
-                            <Svg width={gaugeSize} height={gaugeSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
-                                <Defs>
-                                    <SvgGradient
-                                        id="warrantyHealthGrad"
-                                        x1="0%"
-                                        y1="0%"
-                                        x2="100%"
-                                        y2="0%"
-                                    >
-                                        <Stop offset="0%" stopColor={healthTone} stopOpacity="0.35" />
-                                        <Stop offset="100%" stopColor={healthTone} />
-                                    </SvgGradient>
-                                </Defs>
-                                <Circle
-                                    cx={center}
-                                    cy={center}
-                                    r={radius}
-                                    stroke="rgba(255,255,255,0.08)"
-                                    strokeWidth={strokeWidth * 4}
-                                    fill="transparent"
-                                />
-                                <AnimatedCircle
-                                    cx={center}
-                                    cy={center}
-                                    r={radius}
-                                    stroke="url(#warrantyHealthGrad)"
-                                    strokeWidth={strokeWidth * 4}
-                                    fill="transparent"
-                                    strokeDasharray={circumference}
-                                    strokeDashoffset={strokeDashoffset}
-                                    strokeLinecap="round"
-                                    rotation="-90"
-                                    origin={`${center}, ${center}`}
-                                />
-                            </Svg>
-                            <View style={styles.circleCenter}>
-                                <Text style={[styles.healthValue, { color: healthTone }]}>
-                                    {clampedHealth}%
-                                </Text>
-                                <Text style={styles.circleLabel}>Health</Text>
-                            </View>
+                {/* Semicircle Gauge */}
+                <View style={styles.gaugeContainer}>
+                    <Svg width={svgWidth} height={svgHeight}>
+                        <Defs>
+                            <SvgGradient id="gaugeTrack" x1="0" y1="0" x2="1" y2="0">
+                                <Stop offset="0" stopColor="#EF4444" stopOpacity="0.15" />
+                                <Stop offset="0.4" stopColor="#F59E0B" stopOpacity="0.15" />
+                                <Stop offset="1" stopColor="#22C55E" stopOpacity="0.15" />
+                            </SvgGradient>
+                            <SvgGradient id="gaugeFill" x1="0" y1="0" x2="1" y2="0">
+                                <Stop offset="0" stopColor="#EF4444" />
+                                <Stop offset="0.4" stopColor="#F59E0B" />
+                                <Stop offset="1" stopColor="#22C55E" />
+                            </SvgGradient>
+                        </Defs>
+                        
+                        {/* Background Path */}
+                        <Path
+                            d={pathData}
+                            stroke="url(#gaugeTrack)"
+                            strokeWidth={strokeWidth}
+                            strokeLinecap="round"
+                            fill="transparent"
+                        />
+                        
+                        {/* Foreground Progress Path */}
+                        <AnimatedPath
+                            d={pathData}
+                            stroke="url(#gaugeFill)"
+                            strokeWidth={strokeWidth}
+                            strokeLinecap="round"
+                            fill="transparent"
+                            strokeDasharray={pathLength}
+                            strokeDashoffset={strokeDashoffset}
+                        />
+                    </Svg>
+                    
+                    {/* Centered Score Data inside the arc */}
+                    <View style={styles.gaugeDataContainer}>
+                        <View style={styles.scoreRow}>
+                            <Text style={styles.healthValue}>{clampedHealth}</Text>
                         </View>
-                        <Text style={styles.healthLabel}>
-                            {clampedHealth >= 70
-                                ? 'Healthy vehicle'
-                                : clampedHealth >= 40
-                                  ? 'Needs attention soon'
-                                  : 'Service recommended'}
-                        </Text>
+                        <Text style={[styles.healthSuffix, { color: statusColor }]}>{statusText}</Text>
                     </View>
+                </View>
 
-                    <View style={styles.statsColumn}>
-                        <View style={styles.statBox}>
-                            <View style={[styles.dot, { backgroundColor: '#22C55E' }]} />
-                            <Text style={styles.statVal}>{active}</Text>
-                            <Text style={styles.statLabel}>Active</Text>
+                {/* Descriptive Feedback below the gauge */}
+                <View style={styles.statusSection}>
+                    <Text style={styles.statusDescription}>
+                        {clampedHealth >= 80 
+                            ? "Your vehicle is in top shape. Maintenance is up to date."
+                            : clampedHealth >= 50
+                            ? "Some parts need your attention soon to maintain peak performance."
+                            : "Immediate service recommended. Essential parts are overdue."}
+                    </Text>
+                </View>
+
+                {/* Statistics Row (Boxes) */}
+                <View style={styles.statsRow}>
+                    <View style={styles.statBox}>
+                        <LinearGradient colors={['rgba(34, 197, 94, 0.15)', 'rgba(34, 197, 94, 0.02)']} style={styles.statIconBg}>
+                            <Icon name="shield-check" size={wp(5)} color="#22C55E" />
+                        </LinearGradient>
+                        <View style={styles.statInfo}>
+                            <Text style={styles.statNumber}>{active}</Text>
+                            <Text style={styles.statLabel}>Healthy Parts</Text>
                         </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.statBox}>
-                            <View style={[styles.dot, { backgroundColor: '#EF4444' }]} />
-                            <Text style={styles.statVal}>{expired}</Text>
-                            <Text style={styles.statLabel}>Expired</Text>
+                    </View>
+                    
+                    <View style={styles.divider} />
+                    
+                    <View style={styles.statBox}>
+                        <LinearGradient colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.02)']} style={styles.statIconBg}>
+                            <Icon name="alert-octagon" size={wp(5)} color="#EF4444" />
+                        </LinearGradient>
+                        <View style={styles.statInfo}>
+                            <Text style={styles.statNumberError}>{expired}</Text>
+                            <Text style={styles.statLabel}>Parts Due</Text>
                         </View>
                     </View>
                 </View>
+
             </LinearGradient>
         </View>
     );
@@ -142,113 +166,167 @@ export const WarrantySummary = ({ active, expired, health }: WarrantySummaryProp
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: wp(5),
         marginTop: hp(1),
+        marginBottom: hp(2),
     },
     card: {
-        padding: wp(5),
+        padding: wp(4.5),
         borderRadius: wp(6),
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: 'rgba(255,255,255,0.06)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 15,
+        overflow: 'hidden',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: hp(2.5),
+        marginBottom: hp(1), 
     },
     title: {
-        color: '#888',
-        fontSize: wp(3.8),
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        color: '#666',
+        fontSize: wp(3.2),
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 1.5,
     },
-    badge: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
+    liveBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
         paddingHorizontal: wp(2.5),
         paddingVertical: hp(0.5),
         borderRadius: wp(2),
-    },
-    badgeText: {
-        color: '#aaa',
-        fontSize: wp(2.5),
-        fontWeight: '600',
-    },
-    contentRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: wp(4),
-    },
-    healthBlock: {
-        flex: 1.2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    healthTitle: {
-        color: '#fff',
-        fontSize: wp(4.2),
-        fontWeight: '800',
-        marginBottom: hp(1.4),
-    },
-    circleWrap: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: hp(1.2),
-    },
-    circleCenter: {
-        position: 'absolute',
-        width: '72%',
-        height: '72%',
-        borderRadius: 999,
-        backgroundColor: '#111',
-        alignItems: 'center',
-        justifyContent: 'center',
+        gap: 6,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
+        borderColor: 'rgba(34, 197, 94, 0.2)',
+    },
+    livePulseContainer: {
+        width: 8,
+        height: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    liveDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#22C55E',
+        position: 'absolute',
+    },
+    liveDotPing: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#22C55E',
+        opacity: 0.4,
+    },
+    liveText: {
+        color: '#22C55E',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 0.5,
+    },
+    gaugeContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        marginTop: hp(1),
+    },
+    gaugeDataContainer: {
+        position: 'absolute',
+        bottom: wp(4.5),
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+    },
+    scoreRow: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
     },
     healthValue: {
-        fontSize: wp(7),
-        fontWeight: '900',
+        fontSize: wp(22),
+        fontFamily: 'Outfit-Black',
+        color: '#fff',
+        includeFontPadding: false,
+        lineHeight: wp(22),
     },
-    circleLabel: {
-        color: '#777',
-        fontSize: wp(2.8),
-        fontWeight: '700',
-        marginTop: 1,
+    healthSuffix: {
+        fontSize: wp(4.5),
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 3,
+        marginTop: -hp(1), // pull it closely under the giant number
     },
-    healthLabel: {
+    statusSection: {
+        alignItems: 'center',
+        marginBottom: hp(3.5),
+        marginTop: hp(1),
+        paddingHorizontal: wp(2),
+    },
+    statusDescription: {
         color: '#888',
-        fontSize: wp(3),
-        fontWeight: '600',
+        fontSize: wp(3.2),
+        fontFamily: 'Outfit-Medium',
         textAlign: 'center',
+        lineHeight: hp(2.2),
     },
-    statsColumn: {
-        flex: 1,
+    statsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        borderRadius: wp(5),
+        paddingVertical: hp(2),
+        paddingHorizontal: wp(5),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.04)',
     },
     statBox: {
-        alignItems: 'flex-start',
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        gap: wp(3.5),
     },
-    dot: {
-        width: wp(1.5),
-        height: wp(1.5),
-        borderRadius: wp(0.75),
-        marginBottom: hp(0.8),
+    statIconBg: {
+        width: wp(11),
+        height: wp(11),
+        borderRadius: wp(3.5),
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.03)',
     },
-    statVal: {
+    statInfo: {
+        justifyContent: 'center',
+        flex: 1,
+    },
+    statNumber: {
+        fontSize: wp(5.5),
+        fontFamily: 'Outfit-Black',
         color: '#fff',
-        fontSize: wp(6.5),
-        fontWeight: '900',
+        lineHeight: wp(6.5),
+    },
+    statNumberError: {
+        fontSize: wp(5.5),
+        fontFamily: 'Outfit-Black',
+        color: '#EF4444',
+        lineHeight: wp(6.5),
     },
     statLabel: {
-        color: '#666',
-        fontSize: wp(3.2),
-        fontWeight: '500',
-        marginTop: 2,
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Medium',
+        color: '#888',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     divider: {
-        height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        marginVertical: hp(1.8),
+        width: 1,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        height: '80%',
+        alignSelf: 'center',
+        marginHorizontal: wp(2),
     },
 });

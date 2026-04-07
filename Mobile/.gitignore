@@ -54,6 +54,7 @@ yarn-error.log
 **/fastlane/test_output
 
 # Bundle artifact
+.bundle/
 *.jsbundle
 
 # Ruby / CocoaPods
@@ -61,6 +62,7 @@ yarn-error.log
 /vendor/bundle/
 
 # Temporary files created by Metro to check the health of the file watcher
+.metro-cache/
 .metro-health-check*
 
 # testing
