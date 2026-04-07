@@ -114,7 +114,8 @@ export const adminController = {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
-    const data = await adminDashboardService.listExpenses({ page, limit, search });
+    const customerId = typeof req.query.customerId === "string" ? req.query.customerId : undefined;
+    const data = await adminDashboardService.listExpenses({ page, limit, search, customerId });
     success(res, data);
   }),
 

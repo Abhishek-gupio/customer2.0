@@ -103,11 +103,12 @@ export const adminApi = {
   },
   getCustomer: (id: string) => api<CustomerDetail>(`/v1/admin/customers/${id}`),
   getExpense: (id: string) => api<AdminExpenseDetail>(`/v1/admin/expenses/${id}`),
-  listExpenses: (params?: { page?: number; limit?: number; search?: string }) => {
+  listExpenses: (params?: { page?: number; limit?: number; search?: string; customerId?: string }) => {
     const sp = new URLSearchParams();
     if (params?.page) sp.set('page', String(params.page));
     if (params?.limit) sp.set('limit', String(params.limit));
     if (params?.search) sp.set('search', params.search);
+    if (params?.customerId) sp.set('customerId', params.customerId);
     const q = sp.toString();
     return api<{ data: AdminExpenseListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
       `/v1/admin/expenses${q ? `?${q}` : ''}`

@@ -29,11 +29,11 @@ export const adminDashboardService = {
 
     const where: any = {};
     if (params.search?.trim()) {
-      const q = `%${params.search.trim()}%`;
+      const q = params.search.trim();
       where.OR = [
         { fullName: { contains: q, mode: "insensitive" } },
         { email: { contains: q, mode: "insensitive" } },
-        { phoneNumber: { contains: params.search.trim() } },
+        { phoneNumber: { contains: q } },
       ];
     }
 
@@ -81,12 +81,12 @@ export const adminDashboardService = {
 
     const where: any = {};
     if (params.search?.trim()) {
-      const q = `%${params.search.trim()}%`;
+      const q = params.search.trim();
       where.OR = [
         { subject: { contains: q, mode: "insensitive" } },
         { description: { contains: q, mode: "insensitive" } },
         { customer: { fullName: { contains: q, mode: "insensitive" } } },
-        { customer: { phoneNumber: { contains: params.search.trim() } } },
+        { customer: { phoneNumber: { contains: q } } },
       ];
     }
 
@@ -153,13 +153,14 @@ export const adminDashboardService = {
     }
 
     if (params.search?.trim()) {
-      const q = `%${params.search.trim()}%`;
+      const q = params.search.trim();
       where.OR = [
         { registrationNumber: { contains: q, mode: "insensitive" } },
         { make: { contains: q, mode: "insensitive" } },
         { model: { contains: q, mode: "insensitive" } },
         { ownerName: { contains: q, mode: "insensitive" } },
         { customer: { fullName: { contains: q, mode: "insensitive" } } },
+        { customer: { phoneNumber: { contains: q } } },
       ];
     }
 
@@ -348,18 +349,24 @@ export const adminDashboardService = {
     page?: number;
     limit?: number;
     search?: string;
+    customerId?: string;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 20));
     const skip = (page - 1) * limit;
 
     const where: any = {};
+    if (params.customerId) {
+      where.customerId = params.customerId;
+    }
+    
     if (params.search?.trim()) {
-      const q = `%${params.search.trim()}%`;
+      const q = params.search.trim();
       where.OR = [
-        { category: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
+        { notes: { contains: q, mode: "insensitive" } },
+        { merchantName: { contains: q, mode: "insensitive" } },
         { customer: { fullName: { contains: q, mode: "insensitive" } } },
+        { customer: { phoneNumber: { contains: q } } },
       ];
     }
 
