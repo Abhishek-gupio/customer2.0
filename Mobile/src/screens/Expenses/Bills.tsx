@@ -63,8 +63,6 @@ const styles = StyleSheet.create({
       paddingVertical: 6,
       borderRadius: 16,
       borderWidth: 1,
-      // borderColor: "#4b5563",
-      // backgroundColor: "#1f2937",
     },
     toggleText: {
     color: '#4CAF50',
