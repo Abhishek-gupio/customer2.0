@@ -45,6 +45,7 @@ export type RootStackParamList = {
   Fastag: undefined;
   UploadDocument: undefined;
   TripPlannerInsights: undefined;
+  DIYGuides: undefined;
 };
 
 export type MainTabParamList = {

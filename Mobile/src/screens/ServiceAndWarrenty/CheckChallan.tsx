@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,8 @@ import BackButton from '../../components/BackButton';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { api } from '../../services/api';
 
+const PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
+
 export default function CheckChallan() {
   const navigation = useNavigation();
   const [regNumber, setRegNumber] = useState('');
@@ -31,15 +33,15 @@ export default function CheckChallan() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleCheckDetails = () => {
+  const handleCheckDetails = useCallback(() => {
     if (!regNumber.trim()) return;
-    navigation.navigate('Challans' as any, { 
-      vehicle: { 
-        registrationNumber: regNumber.trim().toUpperCase() 
-      } 
+    navigation.navigate('Challans' as any, {
+      vehicle: {
+        registrationNumber: regNumber.trim().toUpperCase()
+      }
     });
-  };
-  
+  }, [navigation, regNumber]);
+
   // Animations
   const floatAnim = useRef(new Animated.Value(0)).current;
   const scanAnim = useRef(new Animated.Value(0)).current;
@@ -48,7 +50,6 @@ export default function CheckChallan() {
 
   const [isFocused, setIsFocused] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
   useEffect(() => {
     // Floating movement
@@ -95,7 +96,7 @@ export default function CheckChallan() {
     // Keyboard listeners to auto-switch focus state
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    
+
     const showSub = Keyboard.addListener(showEvent, () => setIsFocused(true));
     const hideSub = Keyboard.addListener(hideEvent, () => setIsFocused(false));
 
@@ -113,14 +114,14 @@ export default function CheckChallan() {
     let timeout: any;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = PLACEHOLDERS[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
         currentIdx++;
         if (currentIdx === fullText.length) {
           isDeleting = true;
-          timeout = setTimeout(animatePlaceholder, 2000); // Wait before deleting
+          timeout = setTimeout(animatePlaceholder, 2000);
         } else {
           timeout = setTimeout(animatePlaceholder, 150);
         }
@@ -129,9 +130,8 @@ export default function CheckChallan() {
         currentIdx--;
         if (currentIdx === 0) {
           isDeleting = false;
-          // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
-          timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
+          placeholderIdx = (placeholderIdx + 1) % PLACEHOLDERS.length;
+          timeout = setTimeout(animatePlaceholder, 500);
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
         }
@@ -211,9 +211,9 @@ export default function CheckChallan() {
         >
           {/* Animated Hero Section */}
           <Animated.View style={[
-            styles.heroSection, 
-            { 
-              height: heroHeight, 
+            styles.heroSection,
+            {
+              height: heroHeight,
               opacity: heroOpacity,
               transform: [{ scale: heroScale }],
               overflow: 'hidden',
@@ -222,13 +222,13 @@ export default function CheckChallan() {
           ]}>
             <View style={styles.outerCircle}>
               {/* Pulsing Background Glow */}
-              <Animated.View 
+              <Animated.View
                 style={[
-                  styles.pulseGlow, 
+                  styles.pulseGlow,
                   { transform: [{ scale: pulseScale }], opacity: pulseOpacity }
-                ]} 
+                ]}
               />
-              
+
               <View style={styles.glassCircle}>
                 {/* Floating Search Icon */}
                 <Animated.View style={{ transform: [{ translateY }, { rotate }] }}>
@@ -238,17 +238,17 @@ export default function CheckChallan() {
                 </Animated.View>
 
                 {/* Radar/Scanning Beam */}
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.scanBeam, 
+                    styles.scanBeam,
                     { transform: [{ translateY: scanTranslateY }] }
-                  ]} 
+                  ]}
                 >
-                   <View style={styles.scanLineInner} />
+                  <View style={styles.scanLineInner} />
                 </Animated.View>
               </View>
             </View>
-            
+
             <Text style={styles.heroTitle}>Traffic Challan Search</Text>
             <Text style={styles.heroSub}>
               Instantly find pending traffic fines for any vehicle using its registration number.

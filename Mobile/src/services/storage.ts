@@ -355,3 +355,101 @@ export function getLastOdometerUpdate(vehicleId: string): number | undefined {
 export function setLastOdometerUpdate(vehicleId: string, msSinceEpoch: number): void {
   storage.set(`last_odometer_update_${vehicleId}`, String(Math.floor(msSinceEpoch)));
 }
+
+export function setVehicleHealthCache(vehicleId: string, data: any): void {
+  storage.set(`vehicle_health_cache_${vehicleId}`, JSON.stringify(data));
+}
+
+export function getVehicleHealthCache(vehicleId: string): any | null {
+  const s = storage.getString(`vehicle_health_cache_${vehicleId}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setServiceHistoryCache(vehicleId: string, data: any): void {
+  storage.set(`service_history_cache_${vehicleId}`, JSON.stringify(data));
+}
+
+export function getServiceHistoryCache(vehicleId: string): any | null {
+  const s = storage.getString(`service_history_cache_${vehicleId}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setDIYGuidesCache(data: any): void {
+  storage.set('diy_guides_cache', JSON.stringify(data));
+}
+
+export function getDIYGuidesCache(): any | null {
+  const s = storage.getString('diy_guides_cache');
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setDLCache(data: any): void {
+  storage.set('dl_cache', JSON.stringify(data));
+}
+
+export function getDLCache(): any | null {
+  const s = storage.getString('dl_cache');
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setFastagCache(data: any): void {
+  storage.set('fastag_cache', JSON.stringify(data));
+}
+
+export function getFastagCache(): any | null {
+  const s = storage.getString('fastag_cache');
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setNearbyPlacesCache(type: string, data: any): void {
+  storage.set(`nearby_places_cache_${type}`, JSON.stringify(data));
+}
+
+export function getNearbyPlacesCache(type: string): any | null {
+  const s = storage.getString(`nearby_places_cache_${type}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setChallansCache(regNo: string, data: any): void {
+  storage.set(`challans_cache_${regNo}`, JSON.stringify(data));
+}
+
+export function getChallansCache(regNo: string): any | null {
+  const s = storage.getString(`challans_cache_${regNo}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}

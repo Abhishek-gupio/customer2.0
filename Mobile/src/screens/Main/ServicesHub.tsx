@@ -40,7 +40,8 @@ type ServiceId =
   | 'CarSpa'
   | 'TripExpense'
   | 'DLVerification'
-  | 'Fastag';
+  | 'Fastag'
+  | 'DIYMode';
 
 type ServiceItem = {
   id: ServiceId;
@@ -50,7 +51,7 @@ type ServiceItem = {
 };
 
 const SERVICE_ITEMS: ServiceItem[] = [
-  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
+  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'heartbeat', iconSet: 'fa' },
   { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa' },
   { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa' },
   { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa' },
@@ -61,10 +62,13 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
+  { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
+  { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
+  { id: 'DIYMode', name: 'DIY Mode', icon: 'tools', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
@@ -211,6 +215,9 @@ export default function ServicesHub() {
         break;
       case 'Fastag':
         navigation.navigate('Fastag');
+        break;
+      case 'DIYMode':
+        navigation.navigate('DIYGuides');
         break;
       default:
         break;

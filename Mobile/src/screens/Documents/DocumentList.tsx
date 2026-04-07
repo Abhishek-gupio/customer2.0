@@ -124,13 +124,26 @@ function getDocumentStatusMeta(doc?: DocumentItem | null) {
 export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
   const dispatch = useAppDispatch();
-  const { documents, loading } = useAppSelector((state: RootState) => state.documents);
+  const { documents: allStoreDocuments, loading } = useAppSelector((state: RootState) => state.documents);
   const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [showViewerModal, setShowViewerModal] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<string>('');
   const [viewingDoc, setViewingDoc] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Filter documents to show only those belonging specifically to the primary vehicle
+  // Use robust, case-insensitive comparison for registration numbers
+  const documents = allStoreDocuments.filter(doc => {
+    if (!primaryVehicle) return false;
+    const primaryReg = (primaryVehicle.registrationNumber || '').trim().toUpperCase();
+    if (primaryReg === '') return false;
+    
+    const docReg = (doc.vehicle || '').trim().toUpperCase();
+    const docNum = (doc.documentNumber || '').trim().toUpperCase();
+    
+    return docReg === primaryReg || docNum === primaryReg;
+  });
   const [confirmModal, setConfirmModal] = useState({
     visible: false,
     title: '',
@@ -161,11 +174,26 @@ export default function DocumentList() {
   const loadPrimaryVehicle = async () => {
     try {
       const vehicles = await vehicleService.getVehicles();
-      const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
+      const primary = vehicles.find(v => v.isPrimary);
       setPrimaryVehicle(primary || null);
     } catch {
       setPrimaryVehicle(null);
     }
+  };
+
+  const checkPrimaryVehicle = () => {
+    if (!primaryVehicle) {
+      Alert.alert(
+        'Action Required',
+        'Please set a primary vehicle in your garage before uploading documents.',
+        [
+          { text: 'Go to Garage', onPress: () => navigation.navigate('VehicleList') },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+      return false;
+    }
+    return true;
   };
 
   const requestAndroidPermissions = async (): Promise<boolean> => {
@@ -212,6 +240,7 @@ export default function DocumentList() {
   };
 
   const handlePickDocument = async (type: string) => {
+    if (!checkPrimaryVehicle()) return;
     try {
       const res = await pickDocument({
         type: [docTypes.pdf, docTypes.images],
@@ -229,6 +258,7 @@ export default function DocumentList() {
   };
 
   const handlePickImage = async (type: string) => {
+    if (!checkPrimaryVehicle()) return;
     setSelectedDocType(type);
     if (Platform.OS === 'android') {
       const camera = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
@@ -252,6 +282,7 @@ export default function DocumentList() {
   };
 
   const handleTakePhoto = async (type: string) => {
+    if (!checkPrimaryVehicle()) return;
     setSelectedDocType(type);
     if (Platform.OS === 'android') {
       const camera = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
@@ -787,9 +818,12 @@ export default function DocumentList() {
           <Text style={styles.sectionTitle}>YOUR VEHICLE DOCUMENTS</Text>
         </View>
 
-        {primaryVehicle && (
+        {primaryVehicle ? (
           <View style={styles.vehicleSummaryCard}>
-            <View style={styles.vehicleIconCircle}>
+            <View style={styles.primaryBadge}>
+               <Text style={styles.primaryBadgeText}>ACTIVE PRIMARY</Text>
+            </View>
+            <View style={styles.vehicleThumbWrap}>
               <Image
                 source={(primaryVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) as any}
                 style={styles.vehicleThumb}
@@ -802,16 +836,32 @@ export default function DocumentList() {
                 <INDPlate number={primaryVehicle.registrationNumber} />
               </View>
             </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('VehicleDetails', {
-                vehicleId: primaryVehicle.id,
-                initialTab: 'Details'
-              })}
-              style={styles.viewDetailsBtn}
-            >
-              <Text style={styles.viewDetailsText}>View details</Text>
-            </TouchableOpacity>
+            <View style={styles.vehicleActions}>
+               <TouchableOpacity
+                 onPress={() => navigation.navigate('VehicleDetails', {
+                   vehicleId: primaryVehicle.id,
+                   initialTab: 'Details'
+                 })}
+                 style={styles.viewDetailsBtn}
+               >
+                 <Text style={styles.viewDetailsText}>View details</Text>
+               </TouchableOpacity>
+            </View>
           </View>
+        ) : (
+          <TouchableOpacity 
+            style={styles.noVehicleCard}
+            onPress={() => navigation.navigate('VehicleList')}
+          >
+            <View style={styles.noVehicleIcon}>
+               <MaterialIcon name="directions-car" size={32} color="#333" />
+            </View>
+            <View style={styles.noVehicleContent}>
+               <Text style={styles.noVehicleTitle}>No primary vehicle set</Text>
+               <Text style={styles.noVehicleDesc}>Tap to select a vehicle from your garage to manage documents.</Text>
+            </View>
+            <ArrowRight size={20} color="#666" />
+          </TouchableOpacity>
         )}
 
         <View style={styles.gloveboxGrid}>
@@ -1134,23 +1184,97 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 11, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1, fontWeight: '700' },
 
   vehicleSummaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#0F0F0F',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1A1A1A',
-    marginBottom: 32
+    borderColor: '#222',
+    marginBottom: 32,
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  vehicleIconCircle: { width: 56, height: 56, borderRadius: 12, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
-  vehicleThumb: { width: 40, height: 40 },
-  vehicleInfo: { flex: 1, marginLeft: 16 },
-  vehicleName: { color: '#FFF', fontSize: 16, fontFamily: 'Outfit-Bold', marginBottom: 2, fontWeight: '700' },
-  plateWrap: { alignSelf: 'flex-start', transform: [{ scale: 0.65 }], marginLeft: -24, marginTop: -4 },
-  viewDetailsBtn: { paddingVertical: 4 },
-  viewDetailsText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Medium', borderBottomWidth: 1, borderBottomColor: '#FFF' },
-
+  primaryBadge: {
+    position: 'absolute',
+    top: 0,
+    left: 16,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  primaryBadgeText: {
+    fontSize: 8,
+    fontFamily: 'Outfit-Black',
+    color: '#000',
+    letterSpacing: 1,
+  },
+  vehicleThumbWrap: { 
+    width: 80, 
+    height: 80, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+  },
+  vehicleThumb: { width: 70, height: 70 },
+  vehicleInfo: { flex: 1, marginLeft: 8, justifyContent: 'center' },
+  vehicleName: { color: '#FFF', fontSize: 20, fontFamily: 'Outfit-Bold', fontWeight: '800' },
+  plateWrap: { alignSelf: 'flex-start', transform: [{ scale: 0.75 }], marginLeft: -18, marginTop: 4 },
+  vehicleActions: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingRight: 4,
+  },
+  viewDetailsBtn: {
+    backgroundColor: '#222',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  viewDetailsText: { 
+    color: '#FFF', 
+    fontSize: 10, 
+    fontFamily: 'Outfit-Bold',
+  },
+  noVehicleCard: {
+    backgroundColor: '#0A0A0A',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+    gap: 16,
+  },
+  noVehicleIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  noVehicleContent: {
+    flex: 1,
+  },
+  noVehicleTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+  },
+  noVehicleDesc: {
+    color: '#666',
+    fontSize: 12,
+    fontFamily: 'Outfit-Medium',
+    marginTop: 4,
+    lineHeight: 18,
+  },
   gloveboxGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   personalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
 

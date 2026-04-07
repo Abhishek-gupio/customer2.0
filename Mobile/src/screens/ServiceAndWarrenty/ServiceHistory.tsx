@@ -64,23 +64,23 @@ function mapRecordToCard(record: any): any {
     const serviceLabel = serviceType.replace(/_/g, ' ');
     const partLabels = record.parts?.length
         ? record.parts.map((p: any) => {
-              const partType = p.partType || '';
-              return PART_TYPE_LABELS[partType] || partType.replace(/_/g, ' ') || partType;
-          })
+            const partType = p.partType || '';
+            return PART_TYPE_LABELS[partType] || partType.replace(/_/g, ' ') || partType;
+        })
         : [];
     const date = record.serviceDate
         ? new Date(record.serviceDate).toLocaleDateString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-          })
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        })
         : '';
     const parts = partLabels.join(', ');
     const nextService = record.nextServiceKm
         ? `Next at ${record.nextServiceKm.toLocaleString()} km`
         : record.nextServiceDate
-          ? new Date(record.nextServiceDate).toLocaleDateString('en-IN')
-          : '';
+            ? new Date(record.nextServiceDate).toLocaleDateString('en-IN')
+            : '';
 
     return {
         id: String(record.id),
@@ -241,7 +241,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                         contentContainerStyle={[
                             styles.listContent,
                             filteredRecords.length === 0 &&
-                                styles.listContentEmpty,
+                            styles.listContentEmpty,
                         ]}
                         ListHeaderComponent={
                             <ScrollView

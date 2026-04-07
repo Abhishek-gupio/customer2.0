@@ -20,25 +20,24 @@ type ServiceCardItem = {
 };
 
 const SERVICE_THEME: Record<string, { icon: string; accent: string; label: string }> = {
-  SERVICE: { icon: 'wrench', accent: '#FBBF24', label: 'Service' },
-  FULL_SERVICE: { icon: 'car-wrench', accent: '#FBBF24', label: 'Full Service' },
-  REPAIR: { icon: 'tools', accent: '#FB923C', label: 'Repair' },
-  PART_REPLACEMENT: { icon: 'cogs', accent: '#38BDF8', label: 'Part Replacement' },
-  INSPECTION: { icon: 'clipboard-check', accent: '#34D399', label: 'Inspection' },
+  SERVICE: { icon: 'wrench', accent: '#fff', label: 'Service' },
+  FULL_SERVICE: { icon: 'car-wrench', accent: '#fff', label: 'Full Service' },
+  REPAIR: { icon: 'tools', accent: '#fff', label: 'Repair' },
+  PART_REPLACEMENT: { icon: 'cogs', accent: '#fff', label: 'Part Replacement' },
+  INSPECTION: { icon: 'clipboard-check', accent: '#fff', label: 'Inspection' },
 };
 
 const getServiceTheme = (serviceType?: string) => {
   if (!serviceType) {
     return SERVICE_THEME.SERVICE;
   }
-
   return SERVICE_THEME[serviceType] || SERVICE_THEME.SERVICE;
 };
 
 function DetailRow({ icon, value }: { icon: string; value: string }) {
   return (
     <View style={styles.detailRow}>
-      <MaterialIcon name={icon} size={wp(4)} color="#A3A3A3" />
+      <MaterialIcon name={icon} size={wp(3.8)} color="#444" />
       <Text style={styles.detailText} numberOfLines={2}>
         {value}
       </Text>
@@ -52,24 +51,14 @@ export default function ServiceCard({ item }: { item: ServiceCardItem }) {
 
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={['#171717', '#101010']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.headerRow}>
           <View style={styles.titleRow}>
-            <View
-              style={[
-                styles.iconWrap,
-                { backgroundColor: `${theme.accent}1C`, borderColor: `${theme.accent}4A` },
-              ]}
-            >
+            <View style={styles.iconWrap}>
               <MaterialIcon
                 name={theme.icon}
-                size={wp(5.1)}
-                color={theme.accent}
+                size={wp(5)}
+                color="#fff"
               />
             </View>
 
@@ -77,7 +66,7 @@ export default function ServiceCard({ item }: { item: ServiceCardItem }) {
               <Text style={styles.title} numberOfLines={1}>
                 {item.title}
               </Text>
-              <Text style={[styles.serviceType, { color: theme.accent }]}>
+              <Text style={styles.serviceType}>
                 {serviceLabel}
               </Text>
             </View>
@@ -85,40 +74,32 @@ export default function ServiceCard({ item }: { item: ServiceCardItem }) {
 
           {item.date ? (
             <View style={styles.datePill}>
-              <MaterialIcon name="calendar" size={wp(3.6)} color="#9A9A9A" />
               <Text style={styles.dateText}>{item.date}</Text>
             </View>
           ) : null}
         </View>
 
         <View style={styles.detailsWrap}>
-          <DetailRow icon="map-marker" value={item.garage || '-'} />
-
+          <DetailRow icon="map-marker-radius" value={item.garage || '-'} />
           {item.odometer ? (
-            <DetailRow icon="speedometer" value={item.odometer} />
+            <DetailRow icon="speedometer-slow" value={item.odometer} />
           ) : null}
-
           {item.parts ? (
-            <DetailRow icon="cogs" value={`Parts: ${item.parts}`} />
+            <DetailRow icon="application-cog-outline" value={item.parts} />
           ) : null}
         </View>
 
         {item.nextService ? (
-          <LinearGradient
-            colors={['rgba(255,191,0,0.22)', 'rgba(255,191,0,0.08)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.nextServicePill}
-          >
+          <View style={styles.nextServicePill}>
             <MaterialIcon
-              name="calendar-clock"
-              size={wp(3.8)}
-              color="#FFBF00"
+              name="calendar-refresh"
+              size={wp(4)}
+              color="#000"
             />
             <Text style={styles.nextText}>{item.nextService}</Text>
-          </LinearGradient>
+          </View>
         ) : null}
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -126,25 +107,19 @@ export default function ServiceCard({ item }: { item: ServiceCardItem }) {
 const styles = StyleSheet.create({
   wrapper: {
     marginBottom: hp(1.8),
-    borderRadius: wp(5.2),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
-    elevation: 10,
   },
   card: {
-    borderRadius: wp(5.2),
+    backgroundColor: '#050505',
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: wp(4.2),
-    paddingVertical: hp(1.6),
+    borderColor: '#111',
+    padding: wp(4.5),
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: hp(1.2),
+    marginBottom: hp(1.8),
   },
   titleRow: {
     flexDirection: 'row',
@@ -155,75 +130,72 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: wp(11),
     height: wp(11),
-    borderRadius: wp(3.2),
+    borderRadius: 14,
+    backgroundColor: '#0a0a0a',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    marginRight: wp(3),
+    borderColor: '#111',
+    marginRight: wp(3.5),
   },
   titleBlock: {
     flex: 1,
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: wp(4.25),
+    color: '#FFF',
+    fontSize: wp(4.2),
     fontFamily: 'Outfit-Bold',
-    marginBottom: hp(0.3),
+    marginBottom: 2,
   },
   serviceType: {
-    fontSize: wp(3.15),
-    fontFamily: 'Outfit-SemiBold',
+    fontSize: wp(2.6),
+    fontFamily: 'Outfit-Black',
+    color: '#333',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   datePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: wp(3.8),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    paddingHorizontal: wp(2.8),
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(3),
     paddingVertical: hp(0.6),
-    gap: wp(1),
+    borderRadius: 10,
   },
   dateText: {
-    color: '#BBBBBB',
-    fontSize: wp(3),
-    fontFamily: 'Outfit-Medium',
+    color: '#000',
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Black',
   },
   detailsWrap: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.07)',
-    paddingTop: hp(1.2),
-    gap: hp(0.8),
+    backgroundColor: '#030303',
+    borderRadius: 20,
+    padding: wp(3.5),
+    gap: hp(1),
+    marginBottom: hp(1.5),
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(2),
+    gap: wp(2.5),
   },
   detailText: {
     flex: 1,
-    color: '#C3C3C3',
-    fontSize: wp(3.35),
-    fontFamily: 'Outfit-Regular',
-    lineHeight: hp(2.2),
+    color: '#666',
+    fontSize: wp(3.1),
+    fontFamily: 'Outfit-Medium',
   },
   nextServicePill: {
-    marginTop: hp(1.25),
-    borderRadius: wp(3.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.3)',
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.75),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(1.8),
+    gap: wp(2),
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 16,
+    alignSelf: 'flex-start',
   },
   nextText: {
-    color: '#F8DA7B',
-    fontSize: wp(3.15),
-    fontFamily: 'Outfit-SemiBold',
+    color: '#000',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Black',
   },
 });

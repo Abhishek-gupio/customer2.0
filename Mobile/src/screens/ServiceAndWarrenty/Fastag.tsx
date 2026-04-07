@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -51,29 +51,28 @@ export default function Fastag() {
     onConfirm: () => { }
   });
 
-  useEffect(() => {
-    fetchExistingFastag();
-  }, []);
-
-  const fetchExistingFastag = async () => {
+  const fetchExistingFastag = useCallback(async () => {
     try {
       const resp: any = await api.get('/v1/documents/get-fastag');
       if (resp && resp.success && resp.data) {
         setVerificationResult(resp.data);
       }
     } catch (err: any) {
-      // Supress console error during initial fetch if data doesn't exist yet
       if (__DEV__ && !err.message?.includes('404')) {
          console.log("Existing Fastag not found or error:", err.message || err);
       }
     } finally {
       setCheckingExisting(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchExistingFastag();
+  }, [fetchExistingFastag]);
 
   const handleBack = () => navigation.goBack();
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     setConfirmModal({
       visible: true,
       title: 'Delete Verification',
@@ -93,9 +92,9 @@ export default function Fastag() {
         }
       }
     });
-  };
+  }, [showStatus]);
 
-  const handleVerify = async () => {
+  const handleVerify = useCallback(async () => {
     if (!accountNumber || !ifscCode) {
       showStatus('Missing Info', 'Please enter both Account Number and IFSC Code', 'error');
       return;
@@ -119,7 +118,7 @@ export default function Fastag() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accountNumber, ifscCode, showStatus]);
 
   const renderResult = () => {
     if (!verificationResult) return null;

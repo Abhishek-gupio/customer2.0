@@ -48,6 +48,7 @@ import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
 import TripPlannerInsightsScreen from '../screens/Other/TripPlannerInsightsScreen';
 import DLVerification from '../screens/ServiceAndWarrenty/DLVerification';
 import Fastag from '../screens/ServiceAndWarrenty/Fastag';
+import DIYGuides from '../screens/ServiceAndWarrenty/DIYGuides';
 import { store } from '../store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -119,6 +120,7 @@ export function RootNavigator() {
       <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
       <Stack.Screen name="DLVerification" component={DLVerification} />
       <Stack.Screen name="Fastag" component={Fastag} />
+      <Stack.Screen name="DIYGuides" component={DIYGuides} />
     </Stack.Navigator>
   );
 }

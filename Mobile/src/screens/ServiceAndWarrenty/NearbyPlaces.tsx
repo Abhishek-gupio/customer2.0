@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -479,7 +479,7 @@ export default function NearbyPlaces() {
     else navigation.goBack();
   };
 
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'ios') {
       try {
         if (Geolocation?.requestAuthorization) {
@@ -494,9 +494,9 @@ export default function NearbyPlaces() {
     if (has) return true;
     const result = await PermissionsAndroid.request(fine);
     return result === PermissionsAndroid.RESULTS.GRANTED;
-  };
+  }, []);
 
-  const fetchLocation = (): Promise<{ lat: number; lon: number } | null> => {
+  const fetchLocation = useCallback((): Promise<{ lat: number; lon: number } | null> => {
     return new Promise((resolve) => {
       if (!Geolocation) {
         setLocationError('Location is not available.');
@@ -522,12 +522,12 @@ export default function NearbyPlaces() {
         { enableHighAccuracy: true, timeout: 15000 },
       );
     });
-  };
+  }, []);
 
-  const getCacheKey = (service: PlaceType, coords: { lat: number; lon: number }) =>
-    `${service}:${coords.lat.toFixed(3)}:${coords.lon.toFixed(3)}:${MAP_RADIUS_METERS}`;
+  const getCacheKey = useCallback((service: PlaceType, coords: { lat: number; lon: number }) =>
+    `${service}:${coords.lat.toFixed(3)}:${coords.lon.toFixed(3)}:${MAP_RADIUS_METERS}`, []);
 
-  const fetchOneServiceForMap = async (
+  const fetchOneServiceForMap = useCallback(async (
     coords: { lat: number; lon: number },
     service: PlaceType,
     force = false,
@@ -549,9 +549,9 @@ export default function NearbyPlaces() {
     const list = await placesService.getNearby(coords.lat, coords.lon, apiType, MAP_RADIUS_METERS);
     cacheRef.current[cacheKey] = { ts: Date.now(), data: list };
     setMapResults((prev) => ({ ...prev, [service]: list }));
-  };
+  }, [getCacheKey]);
 
-  const fetchServicesForMap = async (
+  const fetchServicesForMap = useCallback(async (
     coords: { lat: number; lon: number },
     services: PlaceType[],
     force = false,
@@ -566,9 +566,9 @@ export default function NearbyPlaces() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [fetchOneServiceForMap]);
 
-  const initData = async (force = false) => {
+  const initData = useCallback(async (force = false) => {
     const permitted = await requestLocationPermission();
     if (!permitted) return;
     const coords = await fetchLocation();
@@ -576,18 +576,18 @@ export default function NearbyPlaces() {
       setLocation(coords);
       await fetchServicesForMap(coords, selectedServices, force);
     }
-  };
+  }, [requestLocationPermission, fetchLocation, fetchServicesForMap, selectedServices]);
 
   useEffect(() => {
     initData();
-  }, []);
+  }, [initData]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     initData(true);
-  };
+  }, [initData]);
 
-  const toggleService = async (service: PlaceType) => {
+  const toggleService = useCallback(async (service: PlaceType) => {
     const exists = selectedServices.includes(service);
     const nextServices = exists
       ? selectedServices.filter((item) => item !== service)
@@ -595,11 +595,11 @@ export default function NearbyPlaces() {
     setSelectedServices(nextServices);
     if (!location || nextServices.length === 0 || exists) return;
     await fetchServicesForMap(location, [service]);
-  };
+  }, [selectedServices, location, fetchServicesForMap]);
 
-  const mapMarkers = selectedServices.flatMap((service) =>
-    (mapResults[service] || []).map((place) => ({ ...place, service })),
-  );
+  const mapMarkers = useMemo(() => selectedServices.flatMap((service) =>
+    (mapResults[service] || []).map((place: NearbyPlace) => ({ ...place, service })),
+  ), [selectedServices, mapResults]);
 
   if (placeType) {
     const apiType = PLACE_API_TYPE[placeType];
