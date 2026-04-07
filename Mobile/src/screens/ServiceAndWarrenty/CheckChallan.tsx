@@ -22,9 +22,20 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 
+const REG_PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'] as const;
+
 export default function CheckChallan() {
   const navigation = useNavigation();
   const [regNumber, setRegNumber] = useState('');
+
+  const handleCheckDetails = () => {
+    if (!regNumber.trim()) return;
+    navigation.navigate('Challans' as any, { 
+      vehicle: { 
+        registrationNumber: regNumber.trim().toUpperCase() 
+      } 
+    });
+  };
   
   // Animations
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -34,7 +45,6 @@ export default function CheckChallan() {
 
   const [isFocused, setIsFocused] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
   useEffect(() => {
     // Floating movement
@@ -99,7 +109,7 @@ export default function CheckChallan() {
     let timeout: any;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = REG_PLACEHOLDERS[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
@@ -116,7 +126,7 @@ export default function CheckChallan() {
         if (currentIdx === 0) {
           isDeleting = false;
           // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+          placeholderIdx = (placeholderIdx + 1) % REG_PLACEHOLDERS.length;
           timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
@@ -176,10 +186,6 @@ export default function CheckChallan() {
     outputRange: [-wp(15), wp(15)],
   });
 
-  const handleCheckDetails = () => {
-    if (!regNumber.trim()) return;
-    // API call logic would go here
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -190,11 +196,11 @@ export default function CheckChallan() {
       </View>
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, isFocused && { paddingTop: hp(2) }]}
+          contentContainerStyle={[styles.scrollContent, isFocused && styles.scrollContentFocused]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           scrollEnabled={!isFocused}
@@ -202,13 +208,13 @@ export default function CheckChallan() {
           {/* Animated Hero Section */}
           <Animated.View style={[
             styles.heroSection, 
+            styles.heroAnimatedFrame,
             { 
               height: heroHeight, 
               opacity: heroOpacity,
               transform: [{ scale: heroScale }],
-              overflow: 'hidden',
-              marginBottom: isFocused ? 0 : hp(4)
             }
+            , isFocused ? styles.heroSectionCollapsed : styles.heroSectionExpanded
           ]}>
             <View style={styles.outerCircle}>
               {/* Pulsing Background Glow */}
@@ -315,9 +321,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(6),
     paddingBottom: hp(4),
   },
+  scrollContentFocused: {
+    paddingTop: hp(2),
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
   heroSection: {
     alignItems: 'center',
     marginTop: hp(4),
+  },
+  heroAnimatedFrame: {
+    overflow: 'hidden',
+  },
+  heroSectionExpanded: {
+    marginBottom: hp(4),
+  },
+  heroSectionCollapsed: {
+    marginBottom: 0,
   },
   outerCircle: {
     width: wp(34),
@@ -474,9 +495,104 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   trustText: {
-    color: '#444',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
     letterSpacing: 1,
+  },
+  resultsSection: {
+    marginTop: hp(2),
+  },
+  challanCard: {
+    backgroundColor: '#111',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: hp(2),
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  challanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  challanNumber: {
+    color: COLORS.primary,
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.5),
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  paidBadge: {
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+  },
+  unpaidBadge: {
+    backgroundColor: 'rgba(244, 67, 54, 0.15)',
+  },
+  statusText: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  violationTitle: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.2),
+    marginBottom: 16,
+    lineHeight: wp(6),
+  },
+  challanMeta: {
+    flexDirection: 'row',
+    gap: 32,
+    marginBottom: 16,
+  },
+  metaCol: {
+    gap: 4,
+  },
+  metaLabel: {
+    color: '#555',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Bold',
+  },
+  amountText: {
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontFamily: 'Outfit-Black',
+  },
+  dateText: {
+    color: '#eee',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Medium',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#222',
+    paddingTop: 12,
+  },
+  locationText: {
+    color: '#888',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(255, 77, 77, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.5),
+    flex: 1,
   },
 });

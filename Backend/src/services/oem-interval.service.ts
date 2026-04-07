@@ -63,7 +63,8 @@ Task: Return a JSON array of intervals. Each object must have:
 - intervalMonths: number (e.g. 6 or 12)
 - source: "AI_SUGGESTED"
 
-Include the main parts: ENGINE_OIL, OIL_FILTER, AIR_FILTER, BRAKE_PADS, BATTERY, SPARK_PLUGS, COOLANT, AC_FILTER, WIPER_BLADES. Skip part types you have no data for.
+Include as many parts as possible from this list: ENGINE_OIL, OIL_FILTER, AIR_FILTER, BRAKE_PADS, BRAKE_DISCS, BATTERY, TYRES_FRONT, TYRES_REAR, CLUTCH_PLATE, SPARK_PLUGS, COOLANT, TIMING_BELT, AC_FILTER, WIPER_BLADES, HEADLIGHT_BULB.
+Skip part types you Have absolutely no data for, but prioritize getting a complete set for common Indian vehicles.
 Return ONLY valid JSON array, no markdown or extra text. Example: [{"partType":"ENGINE_OIL","intervalKm":10000,"intervalMonths":6,"source":"AI_SUGGESTED"}]
 `;
 

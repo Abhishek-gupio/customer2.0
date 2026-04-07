@@ -8,11 +8,15 @@ import {
   Pressable,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import {
+  serviceOptionItems,
+  type ServiceHubId,
+} from "../../config/servicesConfig";
 
 interface ServiceOptionsOverlayProps {
   visible: boolean;
   onClose: () => void;
-  onSelect: (screen: "ServiceHistory" | "WarrantyStatus") => void;
+  onSelect: (serviceId: ServiceHubId) => void;
 }
 
 export default function ServiceOptionsOverlay({
@@ -38,33 +42,22 @@ export default function ServiceOptionsOverlay({
             </TouchableOpacity>
           </View>
 
+          {serviceOptionItems.map((item) => (
             <TouchableOpacity
-            style={styles.optionRow}
-            onPress={() => onSelect("ServiceHistory")}
+              key={item.serviceId}
+              style={styles.optionRow}
+              onPress={() => onSelect(item.serviceId)}
             >
-            <Ionicons
-                name="time-outline"
+              <Ionicons
+                name={item.icon}
                 size={22}
                 color="#fff"
                 style={styles.leftIcon}
-            />
-            <Text style={styles.optionText}>Service History</Text>
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
+              />
+              <Text style={styles.optionText}>{item.title}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#aaa" />
             </TouchableOpacity>
-
-            <TouchableOpacity
-            style={styles.optionRow}
-            onPress={() => onSelect("WarrantyStatus")}
-            >
-            <Ionicons
-                name="shield-checkmark-outline"
-                size={22}
-                color="#fff"
-                style={styles.leftIcon}
-            />
-            <Text style={styles.optionText}>Parts Warranty Status</Text>
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
-            </TouchableOpacity>
+          ))}
         </Pressable>
       </Pressable>
     </Modal>

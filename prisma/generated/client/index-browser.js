@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.3.0
- * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+ * Prisma Client JS version: 7.5.0
+ * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
  */
 Prisma.prismaVersion = {
-  client: "7.3.0",
-  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
+  client: "7.5.0",
+  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -161,25 +161,48 @@ exports.Prisma.CustomerDeviceScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.CustomerDocumentScalarFieldEnum = {
+exports.Prisma.VehicleDocumentScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   vehicleId: 'vehicleId',
   type: 'type',
   documentNumber: 'documentNumber',
-  issueDate: 'issueDate',
   expiryDate: 'expiryDate',
-  issuerName: 'issuerName',
+  fileContent: 'fileContent',
   fileUrl: 'fileUrl',
-  thumbnailUrl: 'thumbnailUrl',
-  fileSize: 'fileSize',
   mimeType: 'mimeType',
-  ocrData: 'ocrData',
-  extractedFields: 'extractedFields',
-  verificationStatus: 'verificationStatus',
-  verifiedAt: 'verifiedAt',
-  verifiedBy: 'verifiedBy',
-  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DrivingLicenseScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  dlNumber: 'dlNumber',
+  fullName: 'fullName',
+  dob: 'dob',
+  referenceNumber: 'referenceNumber',
+  dateOfIssue: 'dateOfIssue',
+  originalLA: 'originalLA',
+  dateOfFirstIssue: 'dateOfFirstIssue',
+  validityTransport: 'validityTransport',
+  validityNonTransport: 'validityNonTransport',
+  registeredAddress: 'registeredAddress',
+  rawResponse: 'rawResponse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FastagDocumentScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  creditorAccountId: 'creditorAccountId',
+  ifscCode: 'ifscCode',
+  creditorName: 'creditorName',
+  transactionReferenceNumber: 'transactionReferenceNumber',
+  transactionId: 'transactionId',
+  status: 'status',
+  rawResponse: 'rawResponse',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -205,8 +228,6 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   registrationNumber: 'registrationNumber',
   make: 'make',
   model: 'model',
-  variant: 'variant',
-  year: 'year',
   fuelType: 'fuelType',
   vehicleType: 'vehicleType',
   currentOdometer: 'currentOdometer',
@@ -223,9 +244,6 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   rto: 'rto',
   vehicleClass: 'vehicleClass',
   fuelNorms: 'fuelNorms',
-  transmission: 'transmission',
-  priceRange: 'priceRange',
-  rating: 'rating',
   rcStatus: 'rcStatus',
   unloadedWeight: 'unloadedWeight',
   fitnessUpto: 'fitnessUpto',
@@ -234,13 +252,32 @@ exports.Prisma.CustomerVehicleScalarFieldEnum = {
   mileage: 'mileage',
   brand: 'brand',
   color: 'color',
-  seatingCapacity: 'seatingCapacity',
-  cylinderCount: 'cylinderCount',
-  cubicCapacity: 'cubicCapacity',
-  grossWeight: 'grossWeight',
-  bodyType: 'bodyType',
-  ownerAddress: 'ownerAddress',
-  permanentAddress: 'permanentAddress'
+  manufacturingMonthYear: 'manufacturingMonthYear'
+};
+
+exports.Prisma.VehicleCatalogScalarFieldEnum = {
+  id: 'id',
+  vehicleType: 'vehicleType',
+  make: 'make',
+  model: 'model',
+  variant: 'variant',
+  normalizedKey: 'normalizedKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VehicleAssetScalarFieldEnum = {
+  id: 'id',
+  catalogId: 'catalogId',
+  type: 'type',
+  assetIndex: 'assetIndex',
+  assetUrl: 'assetUrl',
+  assetHash: 'assetHash',
+  mimeType: 'mimeType',
+  s3Key: 's3Key',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.OdometerLogScalarFieldEnum = {
@@ -478,8 +515,25 @@ exports.Prisma.DrivingTripScalarFieldEnum = {
   safetyScore: 'safetyScore',
   startLocation: 'startLocation',
   endLocation: 'endLocation',
+  scores: 'scores',
+  statistics: 'statistics',
   status: 'status',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.PlannedTripScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  tripId: 'tripId',
+  origin: 'origin',
+  destination: 'destination',
+  waypoints: 'waypoints',
+  vehicleType: 'vehicleType',
+  fuelType: 'fuelType',
+  result: 'result',
+  planning: 'planning',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.DrivingEventScalarFieldEnum = {
@@ -1187,23 +1241,16 @@ exports.DocumentType = exports.$Enums.DocumentType = {
   OTHER: 'OTHER'
 };
 
-exports.VerificationStatus = exports.$Enums.VerificationStatus = {
-  PENDING: 'PENDING',
-  VERIFIED: 'VERIFIED',
-  REJECTED: 'REJECTED'
-};
-
-exports.DocumentSource = exports.$Enums.DocumentSource = {
-  UPLOAD: 'UPLOAD',
-  DIGILOCKER: 'DIGILOCKER',
-  PARIVAHAN: 'PARIVAHAN'
-};
-
 exports.DigiLockerStatus = exports.$Enums.DigiLockerStatus = {
   CONNECTED: 'CONNECTED',
   DISCONNECTED: 'DISCONNECTED',
   EXPIRED: 'EXPIRED',
   REVOKED: 'REVOKED'
+};
+
+exports.VehicleAssetType = exports.$Enums.VehicleAssetType = {
+  HERO: 'HERO',
+  ANGLE: 'ANGLE'
 };
 
 exports.AccessRole = exports.$Enums.AccessRole = {
@@ -1221,6 +1268,7 @@ exports.ExpenseCategory = exports.$Enums.ExpenseCategory = {
   INSURANCE: 'INSURANCE',
   CHALLAN: 'CHALLAN',
   EMI: 'EMI',
+  REPAIR: 'REPAIR',
   OTHER: 'OTHER'
 };
 
@@ -1229,7 +1277,8 @@ exports.ExpenseSource = exports.$Enums.ExpenseSource = {
   SMS: 'SMS',
   NOTIFICATION: 'NOTIFICATION',
   VOICE: 'VOICE',
-  RECEIPT: 'RECEIPT'
+  RECEIPT: 'RECEIPT',
+  UPI: 'UPI'
 };
 
 exports.ServicePartType = exports.$Enums.ServicePartType = {
@@ -1547,9 +1596,13 @@ exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
-  CustomerDocument: 'CustomerDocument',
+  VehicleDocument: 'VehicleDocument',
+  DrivingLicense: 'DrivingLicense',
+  FastagDocument: 'FastagDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
+  VehicleCatalog: 'VehicleCatalog',
+  VehicleAsset: 'VehicleAsset',
   OdometerLog: 'OdometerLog',
   Challan: 'Challan',
   VehicleAccess: 'VehicleAccess',
@@ -1568,6 +1621,7 @@ exports.Prisma.ModelName = {
   PartReplacementInterval: 'PartReplacementInterval',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
+  PlannedTrip: 'PlannedTrip',
   DrivingEvent: 'DrivingEvent',
   SOSRequest: 'SOSRequest',
   EmergencyContact: 'EmergencyContact',

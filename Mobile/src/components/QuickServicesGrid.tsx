@@ -1,49 +1,47 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import QuickServiceButton from './QuickServiceButton';
-
-const SERVICES = [
-  { icon: 'wrench', label: 'Service' },
-  { icon: 'map-marker-alt', label: 'Near By' },
-  { icon: 'tachometer-alt', label: 'Driving' },
-  { icon: 'comments', label: 'Support' },
-  { icon: 'car', label: 'My Garage' },
-  { icon: 'file-alt', label: 'Document' },
-  { icon: 'wallet', label: 'Expense' },
-  { icon: 'parking', label: 'Valet' },
-];
+import {
+  quickServices,
+  type QuickServiceId,
+} from '../config/servicesConfig';
 
 type QuickServicesGridProps = {
-  onServicePress?: (label: string) => void;
+  onServicePress?: (id: QuickServiceId) => void;
 };
 
 export default function QuickServicesGrid({ onServicePress }: QuickServicesGridProps) {
+  const rows: Array<(typeof quickServices)[number][]> = [];
+  for (let index = 0; index < quickServices.length; index += 4) {
+    rows.push(quickServices.slice(index, index + 4));
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        {SERVICES.slice(0, 4).map((item) => (
-          <QuickServiceButton
-            key={item.label}
-            icon={item.icon}
-            label={item.label}
-            onPress={() => onServicePress?.(item.label)}
-          />
-        ))}
-      </View>
-      <View style={[styles.row, { marginTop: hp(1.5) }]}>
-        {SERVICES.slice(4, 8).map((item) => (
-          <QuickServiceButton
-            key={item.label}
-            icon={item.icon}
-            label={item.label}
-            onPress={() => onServicePress?.(item.label)}
-          />
-        ))}
-      </View>
+      {rows.map((row, rowIndex) => (
+        <View
+          key={`row-${rowIndex}`}
+          style={rowIndex === 0 ? styles.row : [styles.row, { marginTop: hp(1.5) }]}
+        >
+          {row.map((item) => (
+            <QuickServiceButton
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              onPress={() => onServicePress?.(item.id)}
+            />
+          ))}
+          {row.length < 4
+            ? [...Array(4 - row.length)].map((_, index) => (
+                <View key={`empty-${rowIndex}-${index}`} style={styles.emptySlot} />
+              ))
+            : null}
+        </View>
+      ))}
     </View>
   );
 }
@@ -58,6 +56,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
+  },
+  emptySlot: {
+    flex: 1,
   },
   label: {
     fontFamily: 'Outfit-Medium',

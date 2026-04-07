@@ -19,4 +19,11 @@ export const notificationController = {
     await notificationService.markAsRead(req.customer.id, id as string);
     success(res, { success: true });
   }),
+
+  remove: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const { id } = req.params;
+    await notificationService.remove(req.customer.id, id as string);
+    success(res, { success: true });
+  }),
 };

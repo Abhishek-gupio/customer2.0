@@ -1,7 +1,7 @@
-import { dbInstances } from "@repo/db-customer";
+import { dbInstances, ServicePartType } from "@repo/db-customer";
 import { logger } from "../config/logger";
 
-const db = dbInstances as any;
+const db = dbInstances;
 
 /**
  * WARRANTY & PARTS TRACKER SERVICE
@@ -13,29 +13,7 @@ const db = dbInstances as any;
  * - Predict when parts need replacement based on driving patterns
  */
 
-// In-memory fallback when DB has no PartReplacementInterval (e.g. before seed)
-const PART_LIFECYCLE_FALLBACK: Record<
-  string,
-  { months: number; km: number; defaultWarrantyMonths: number }
-> = {
-  ENGINE_OIL: { months: 6, km: 10000, defaultWarrantyMonths: 0 },
-  OIL_FILTER: { months: 6, km: 10000, defaultWarrantyMonths: 0 },
-  AIR_FILTER: { months: 12, km: 15000, defaultWarrantyMonths: 0 },
-  BRAKE_PADS: { months: 24, km: 30000, defaultWarrantyMonths: 6 },
-  BRAKE_DISCS: { months: 36, km: 60000, defaultWarrantyMonths: 12 },
-  BATTERY: { months: 36, km: 80000, defaultWarrantyMonths: 24 },
-  TYRES: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
-  TYRES_FRONT: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
-  TYRES_REAR: { months: 36, km: 40000, defaultWarrantyMonths: 12 },
-  CLUTCH_PLATE: { months: 48, km: 60000, defaultWarrantyMonths: 6 },
-  SPARK_PLUGS: { months: 24, km: 30000, defaultWarrantyMonths: 0 },
-  COOLANT: { months: 24, km: 40000, defaultWarrantyMonths: 0 },
-  TIMING_BELT: { months: 48, km: 60000, defaultWarrantyMonths: 6 },
-  AC_FILTER: { months: 12, km: 15000, defaultWarrantyMonths: 0 },
-  WIPER_BLADES: { months: 12, km: 20000, defaultWarrantyMonths: 3 },
-  HEADLIGHT_BULB: { months: 24, km: 50000, defaultWarrantyMonths: 6 },
-  OTHER_PART: { months: 12, km: 20000, defaultWarrantyMonths: 0 },
-};
+import { fetchAndSaveIntervalsForVehicle } from "./oem-scraper.service";
 
 export interface CreateServiceRecordInput {
   vehicleId: string;
@@ -58,6 +36,44 @@ export interface CreateServicePartInput {
   warrantyKm?: number;
 }
 
+export interface FailedServicePart {
+  partType: string;
+  reason: string;
+}
+
+function normalizeServiceParts(parts: CreateServicePartInput[]): CreateServicePartInput[] {
+  const normalized: CreateServicePartInput[] = [];
+  const seen = new Set<string>();
+
+  for (const part of parts) {
+    const baseType = String(part.partType || "").trim().toUpperCase();
+    const expandedTypes =
+      baseType === "TYRES"
+        ? ["TYRES_FRONT", "TYRES_REAR"]
+        : [baseType || "OTHER_PART"];
+
+    for (const partType of expandedTypes) {
+      const key = [
+        partType,
+        part.partName ?? "",
+        part.brand ?? "",
+        part.cost ?? "",
+        part.warrantyMonths ?? "",
+        part.warrantyKm ?? "",
+      ].join("|");
+
+      if (seen.has(key)) continue;
+      seen.add(key);
+      normalized.push({
+        ...part,
+        partType,
+      });
+    }
+  }
+
+  return normalized;
+}
+
 /** Lifecycle for one part type (months, km, warranty). */
 export type PartLifecycle = {
   months: number;
@@ -76,24 +92,31 @@ async function getLifecycleForVehiclePart(
 ): Promise<PartLifecycle> {
   const vehicle = await db.customerVehicle.findUnique({
     where: { id: vehicleId },
-    select: { make: true, model: true, year: true },
+    select: { make: true, model: true, manufacturingMonthYear: true, registrationDate: true },
   });
 
   const make = (vehicle?.make ?? "").trim() || null;
   const model = (vehicle?.model ?? "").trim() || null;
-  const year = vehicle?.year ?? null;
+  
+  // Use explicit year first; fallback to registration year.
+  let year: number | null = null;
+  if (vehicle?.manufacturingMonthYear) {
+    const parts = vehicle.manufacturingMonthYear.split("/");
+    if (parts.length === 2) {
+      year = parseInt(parts[1], 10);
+    } else if (parts.length === 1) {
+      year = parseInt(parts[0], 10);
+    }
+  }
+  if (!year && vehicle?.registrationDate) {
+    year = new Date(vehicle.registrationDate).getFullYear();
+    if (!Number.isFinite(year)) year = null;
+  }
 
   try {
-    if (!db.partReplacementInterval) {
-      const fallback =
-        PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
-      return { ...fallback, source: "FALLBACK" };
-    }
-
-    // Prisma ServicePartType has TYRES_FRONT/TYRES_REAR but not TYRES; use TYRES_FRONT for DB lookup
     const partTypeForDb =
-      partType === "TYRES" ? "TYRES_FRONT" : (partType as any);
-    const rows = await db.partReplacementInterval.findMany({
+      partType === "TYRES" ? "TYRES_FRONT" : (partType as ServicePartType);
+    let rows = await db.partReplacementInterval.findMany({
       where: { partType: partTypeForDb },
     });
 
@@ -115,9 +138,48 @@ async function getLifecycleForVehiclePart(
     });
 
     if (matches.length === 0) {
-      const fallback =
-        PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
-      return { ...fallback, source: "FALLBACK" };
+      // Check if we already have ANY intervals for this make/model (excluding DEFAULT)
+      // to avoid calling AI repeatedly for part types that AI doesn't know about.
+      const existingForVehicle = make ? await db.partReplacementInterval.findFirst({
+        where: {
+          make: { equals: make, mode: "insensitive" },
+          model: model ? { equals: model, mode: "insensitive" } : undefined,
+        },
+      }) : null;
+
+      if (existingForVehicle) {
+        logger.debug({ vehicleId, make, model, partType }, "Some intervals already exist for vehicle, skipping redundant fetch for missing part type");
+      } else {
+        // Trigger OEM/AI fetch on-the-fly if no matching intervals found at all for this vehicle
+        logger.info({ vehicleId, make, model, partType }, "No DB intervals found for this vehicle, triggering OEM/AI fetch");
+        const fetchResult = await fetchAndSaveIntervalsForVehicle(vehicleId);
+        
+        if (fetchResult.saved > 0) {
+          // Retry fetch after save
+          rows = await db.partReplacementInterval.findMany({
+            where: { partType: partTypeForDb },
+          });
+          // Filter again with new rows
+          const newMatches = rows.filter((r: any) => {
+            if (r.make === "DEFAULT") return true;
+            if (!make) return r.make === "Generic";
+            if (r.make.toLowerCase() !== make.toLowerCase()) return false;
+            return true;
+          });
+          if (newMatches.length > 0) {
+            matches.push(...newMatches);
+          }
+        }
+      }
+    }
+
+    if (matches.length === 0) {
+      return { 
+        months: 12, 
+        km: 10000, 
+        defaultWarrantyMonths: 0, 
+        source: "FALLBACK" 
+      };
     }
 
     // Prefer OEM_WEBSITE (scraped from original OEM) over DEFAULT or other sources; then by specificity
@@ -139,11 +201,28 @@ async function getLifecycleForVehiclePart(
       source: best.source ?? (best.make === "DEFAULT" ? "DEFAULT" : "OEM"),
     };
   } catch (e) {
-    logger.warn({ err: e, vehicleId, partType }, "PartReplacementInterval lookup failed, using fallback");
-    const fallback =
-      PART_LIFECYCLE_FALLBACK[partType] || PART_LIFECYCLE_FALLBACK.OTHER_PART;
-    return { ...fallback, source: "FALLBACK" };
+    logger.warn({ err: e, vehicleId, partType }, "PartReplacementInterval lookup failed");
+    return { 
+      months: 12, 
+      km: 10000, 
+      defaultWarrantyMonths: 0, 
+      source: "FALLBACK" 
+    };
   }
+}
+
+function pickLatestSavedPart(existing: any, candidate: any) {
+  if (!existing) return candidate;
+
+  const existingCreatedAt = new Date(existing.createdAt || 0).getTime();
+  const candidateCreatedAt = new Date(candidate.createdAt || 0).getTime();
+  if (candidateCreatedAt !== existingCreatedAt) {
+    return candidateCreatedAt > existingCreatedAt ? candidate : existing;
+  }
+
+  const existingReplacedAt = new Date(existing.lastReplacedAt || 0).getTime();
+  const candidateReplacedAt = new Date(candidate.lastReplacedAt || 0).getTime();
+  return candidateReplacedAt > existingReplacedAt ? candidate : existing;
 }
 
 export const warrantyService = {
@@ -154,6 +233,11 @@ export const warrantyService = {
     const serviceDate = input.serviceDate
       ? new Date(input.serviceDate)
       : new Date();
+    const normalizedParts = normalizeServiceParts(input.parts);
+
+    if (normalizedParts.length === 0) {
+      throw new Error("No valid parts provided for service record");
+    }
 
     // 1. Create the Service Record
     const record = await db.serviceRecord.create({
@@ -171,49 +255,72 @@ export const warrantyService = {
 
     // 2. Add Parts (use vehicle-specific interval when available)
     const partsCreated = [];
-    for (const part of input.parts) {
-      const lifecycle = await getLifecycleForVehiclePart(
-        input.vehicleId,
-        part.partType,
-      );
-      const warrantyMonths =
-        part.warrantyMonths ?? lifecycle.defaultWarrantyMonths;
+    const failedParts: FailedServicePart[] = [];
+    for (const part of normalizedParts) {
+      try {
+        const lifecycle = await getLifecycleForVehiclePart(
+          input.vehicleId,
+          part.partType,
+        );
+        const warrantyMonths =
+          part.warrantyMonths ?? lifecycle.defaultWarrantyMonths;
 
-      // Calculate warranty expiry
-      let warrantyExpiresAt: Date | null = null;
-      if (warrantyMonths > 0) {
-        warrantyExpiresAt = new Date(serviceDate);
-        warrantyExpiresAt.setMonth(
-          warrantyExpiresAt.getMonth() + warrantyMonths,
+        let warrantyExpiresAt: Date | null = null;
+        if (warrantyMonths > 0) {
+          warrantyExpiresAt = new Date(serviceDate);
+          warrantyExpiresAt.setMonth(
+            warrantyExpiresAt.getMonth() + warrantyMonths,
+          );
+        }
+
+        const nextReplacementDue = new Date(serviceDate);
+        nextReplacementDue.setMonth(
+          nextReplacementDue.getMonth() + lifecycle.months,
+        );
+
+        const createdPart = await db.servicePart.create({
+          data: {
+            serviceRecordId: record.id,
+            partType: part.partType as ServicePartType,
+            partName: part.partName || null,
+            brand: part.brand || null,
+            cost: part.cost || null,
+            warrantyMonths,
+            warrantyKm: part.warrantyKm ?? lifecycle.km,
+            warrantyExpiresAt,
+            lastReplacedAt: serviceDate,
+            nextReplacementDue,
+          },
+        });
+        partsCreated.push(createdPart);
+      } catch (err) {
+        failedParts.push({
+          partType: part.partType,
+          reason: err instanceof Error ? err.message : "Unknown error",
+        });
+        logger.warn(
+          { err, vehicleId: input.vehicleId, partType: part.partType, expenseId: input.expenseId },
+          "Skipping invalid service part while creating service record",
         );
       }
+    }
 
-      // Calculate next replacement due (based on lifecycle)
-      const nextReplacementDue = new Date(serviceDate);
-      nextReplacementDue.setMonth(
-        nextReplacementDue.getMonth() + lifecycle.months,
-      );
-
-      const createdPart = await db.servicePart.create({
-        data: {
-          serviceRecordId: record.id,
-          partType: part.partType,
-          partName: part.partName || null,
-          brand: part.brand || null,
-          cost: part.cost || null,
-          warrantyMonths,
-          warrantyKm: part.warrantyKm ?? lifecycle.km,
-          warrantyExpiresAt,
-          lastReplacedAt: serviceDate,
-          nextReplacementDue,
-        },
+    if (partsCreated.length === 0) {
+      await db.serviceRecord.delete({
+        where: { id: record.id },
+      }).catch((err: unknown) => {
+        logger.warn(
+          { err, serviceRecordId: record.id, vehicleId: input.vehicleId },
+          "Failed to clean up empty service record after part creation failure",
+        );
       });
-      partsCreated.push(createdPart);
+      throw new Error("Failed to create any service parts for this record");
     }
 
     return {
       ...record,
       parts: partsCreated,
+      failedParts,
     };
   },
 
@@ -250,15 +357,16 @@ export const warrantyService = {
           select: { vehicleId: true, serviceDate: true, garageName: true },
         },
       },
-      orderBy: { lastReplacedAt: "desc" },
+      orderBy: [{ lastReplacedAt: "desc" }, { createdAt: "desc" }],
     });
 
     // Deduplicate — only keep latest entry per partType
     const latestParts = new Map<string, any>();
     for (const part of allParts) {
-      if (!latestParts.has(part.partType)) {
-        latestParts.set(part.partType, part);
-      }
+      latestParts.set(
+        part.partType,
+        pickLatestSavedPart(latestParts.get(part.partType), part),
+      );
     }
 
     const active: any[] = [];
@@ -335,31 +443,39 @@ export const warrantyService = {
           },
         },
       },
-      orderBy: { lastReplacedAt: "desc" },
+      orderBy: [{ lastReplacedAt: "desc" }, { createdAt: "desc" }],
     });
 
     // Deduplicate
     const latestParts = new Map<string, any>();
     for (const part of allParts) {
-      if (!latestParts.has(part.partType)) {
-        latestParts.set(part.partType, part);
-      }
+      latestParts.set(
+        part.partType,
+        pickLatestSavedPart(latestParts.get(part.partType), part),
+      );
     }
+
+    const latestTyresAggregate = [latestParts.get("TYRES_FRONT"), latestParts.get("TYRES_REAR")]
+      .filter(Boolean)
+      .sort((a: any, b: any) => {
+        const createdDiff =
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (createdDiff !== 0) return createdDiff;
+        return new Date(b.lastReplacedAt).getTime() - new Date(a.lastReplacedAt).getTime();
+      })[0];
 
     const due: any[] = [];
     const trackedPartTypes = [
-      "ENGINE_OIL",
-      "BATTERY",
-      "TYRES",
-      "TYRES_FRONT",
-      "TYRES_REAR",
-      "BRAKE_PADS",
-      "AIR_FILTER",
-      "COOLANT",
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
     ];
 
     for (const partType of trackedPartTypes) {
-      let part = latestParts.get(partType);
+      let part =
+        partType === "TYRES"
+          ? latestTyresAggregate ?? latestParts.get(partType)
+          : latestParts.get(partType);
       const lifecycle = await getLifecycleForVehiclePart(vehicleId, partType);
 
       let replacedAt: Date;
@@ -467,7 +583,7 @@ export const warrantyService = {
     // Calculate Average Daily Running (ADR) to predict future dates
     const adr = await this.calculateAverageDailyRunning(vehicleId);
 
-    return due.map((d) => {
+    const dueWithPredictions = due.map((d) => {
       // If we have ADR and it's a KM-based due, predict the date
       if (adr > 0 && d.kmSinceReplacement < d.lifecycleKm) {
         const kmRemaining = d.lifecycleKm - d.kmSinceReplacement;
@@ -490,6 +606,29 @@ export const warrantyService = {
       }
       return d;
     });
+
+    // Final Deduplication: Only one entry per partType (keep the most urgent)
+    const finalMap = new Map<string, any>();
+    for (const d of dueWithPredictions) {
+      const existing = finalMap.get(d.partType);
+      if (!existing) {
+        finalMap.set(d.partType, d);
+        continue;
+      }
+      // If candidate is OVERDUE but existing is not, prefer candidate
+      if (d.urgency === "OVERDUE" && existing.urgency !== "OVERDUE") {
+        finalMap.set(d.partType, d);
+      }
+    }
+
+    return Array.from(finalMap.values()).sort((a, b) => {
+      const order: Record<string, number> = {
+        OVERDUE: 0,
+        DUE_BY_KM: 1,
+        DUE_SOON: 2,
+      };
+      return (order[a.urgency] || 3) - (order[b.urgency] || 3);
+    });
   },
 
   /**
@@ -500,7 +639,7 @@ export const warrantyService = {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    const logs = await (dbInstances as any).odometerLog.findMany({
+    const logs = await dbInstances.odometerLog.findMany({
       where: {
         vehicleId,
         date: { gte: ninetyDaysAgo },
@@ -571,11 +710,15 @@ export const warrantyService = {
    * For vehicle-specific intervals use getLifecycleForVehiclePart(vehicleId, partType).
    */
   getPartLifecycleInfo() {
-    return Object.entries(PART_LIFECYCLE_FALLBACK).map(([partType, lifecycle]) => ({
+    return [
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
+    ].map((partType) => ({
       partType,
-      recommendedIntervalMonths: lifecycle.months,
-      recommendedIntervalKm: lifecycle.km,
-      defaultWarrantyMonths: lifecycle.defaultWarrantyMonths,
+      recommendedIntervalMonths: 12,
+      recommendedIntervalKm: 10000,
+      defaultWarrantyMonths: 0,
     }));
   },
 
@@ -588,6 +731,8 @@ export const warrantyService = {
    * Get list of service providers (garages) used by the customer
    */
   async getServiceProviders(customerId: string): Promise<string[]> {
+    const serviceExpenseCategories = ["SERVICE", "REPAIR"] as const;
+
     // 1. From Service Records
     const records = await db.serviceRecord.findMany({
       where: { vehicle: { customerId: customerId }, garageName: { not: null } },
@@ -599,7 +744,7 @@ export const warrantyService = {
     const expenses = await db.expense.findMany({
       where: {
         customerId,
-        category: { in: ["SERVICE", "REPAIR"] },
+        category: { in: [...serviceExpenseCategories] as any },
         merchantName: { not: null },
       },
       distinct: ["merchantName"],
@@ -616,4 +761,38 @@ export const warrantyService = {
 
     return Array.from(names).sort();
   },
+
+  /**
+   * Automatically initializes all tracked parts to 100% health at the current odometer reading.
+   * Useful when adding a new vehicle to establish a baseline.
+   */
+  async initializeMaintenance(vehicleId: string, odometer: number) {
+    const trackedPartTypes = [
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
+    ];
+
+    logger.info({ vehicleId, odometer }, "Initializing maintenance state for new vehicle");
+    
+    try {
+      return await this.createServiceRecord({
+        vehicleId,
+        serviceType: "INITIAL_CHECKUP",
+        garageName: "System Initialization",
+        odometerAtService: odometer,
+        serviceDate: new Date().toISOString(),
+        notes: "Auto-initialized: All parts assumed healthy at time of addition.",
+        parts: trackedPartTypes.map(pt => ({ 
+          partType: pt, 
+          brand: "Original/Genuine",
+          warrantyMonths: 0,
+          warrantyKm: 0
+        }))
+      });
+    } catch (err) {
+      logger.warn({ err, vehicleId }, "Maintenance initialization failed (non-critical)");
+      return null;
+    }
+  }
 };

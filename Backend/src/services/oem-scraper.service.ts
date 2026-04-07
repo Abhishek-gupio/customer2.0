@@ -23,6 +23,31 @@ const OEM_URL_CONFIG: { makeKey: string; url: string; type: "html" | "pdf" }[] =
     type: "html",
   },
   {
+    makeKey: "mahindra",
+    url: "https://www.withyouhamesha.com/care-maintenance.aspx",
+    type: "html",
+  },
+  {
+    makeKey: "honda",
+    url: "https://www.hondacarindia.com/honda-services/periodic-maintenance-schedule",
+    type: "html",
+  },
+  {
+    makeKey: "toyota",
+    url: "https://www.toyotabharat.com/toyota-connect/book-your-service/maintenance-schedule/",
+    type: "html",
+  },
+  {
+    makeKey: "hero",
+    url: "https://www.heromotocorp.com/en-in/services/service-maintenance-schedule.html",
+    type: "html",
+  },
+  {
+    makeKey: "bajaj",
+    url: "https://www.bajajauto.com/service/periodic-maintenance",
+    type: "html",
+  },
+  {
     makeKey: "maruti",
     url: "https://marutistoragenew.blob.core.windows.net/msilintiwebpdf/Alto_OM_Website.pdf",
     type: "pdf",
@@ -31,6 +56,26 @@ const OEM_URL_CONFIG: { makeKey: string; url: string; type: "html" | "pdf" }[] =
     makeKey: "tata",
     url: "https://tmlcars.tatamotors.com/images/service/owners/owners-manual/pdf/nexon/Nexon_EV.pdf",
     type: "pdf",
+  },
+  {
+    makeKey: "tvs",
+    url: "https://www.tvsmotor.com/our-service/user-manual",
+    type: "html",
+  },
+  {
+    makeKey: "royalenfield",
+    url: "https://www.royalenfield.com/in/en/support/owners-manual/",
+    type: "html",
+  },
+  {
+    makeKey: "suzuki",
+    url: "https://www.suzukimotorcycle.co.in/service-schedule",
+    type: "html",
+  },
+  {
+    makeKey: "ktm",
+    url: "https://www.ktmindia.com/service-maintenance",
+    type: "html",
   },
 ];
 
@@ -68,7 +113,8 @@ function columnToPartTypes(header: string): string[] {
 }
 
 /** Parse Hyundai PMS HTML page and return intervals. Optionally filter by model (e.g. "i20", "Creta"). */
-function parseHyundaiPmsHtml(html: string, modelHint?: string): SuggestedInterval[] {
+/** Parse generic OEM HTML page and return intervals. Optionally filter by model hint. */
+function parseOemHtml(html: string, modelHint?: string): SuggestedInterval[] {
   const intervals: SuggestedInterval[] = [];
   const seen = new Set<string>();
 
@@ -78,53 +124,68 @@ function parseHyundaiPmsHtml(html: string, modelHint?: string): SuggestedInterva
     const $allTr = $table.find("tr");
     if ($allTr.length < 2) return;
 
-    const $headerRow = $allTr.first();
+    // Try to find header row (contains 'km' or 'mileage' or 'period')
+    let headerRowIndex = 0;
     const headers: { text: string; index: number }[] = [];
-    $headerRow.find("th, td").each((i, el) => {
-      const text = $(el).text().trim();
-      if (text && !/^models?$/i.test(text)) headers.push({ text, index: i });
+    
+    $allTr.each((i, row) => {
+      const $cells = $(row).find("th, td");
+      let isHeader = false;
+      $cells.each((___, cell) => {
+        const text = $(cell).text().toLowerCase();
+        if (text.includes("km") || text.includes("month") || text.includes("year") || text.includes("interval")) {
+          isHeader = true;
+        }
+      });
+      if (isHeader) {
+        headerRowIndex = i;
+        $cells.each((j, cell) => {
+          const text = $(cell).text().trim();
+          if (text) headers.push({ text, index: j });
+        });
+        return false; // stop looking for header
+      }
     });
 
     if (headers.length === 0) return;
 
-    let bestRow: { cells: string[] } | null = null;
-    const dataRows = $allTr.slice(1).get();
-    for (let i = 0; i < dataRows.length; i++) {
-      const tr = dataRows[i];
+    const dataRows = $allTr.slice(headerRowIndex + 1).get();
+    for (const tr of dataRows) {
       const cells: string[] = [];
       $(tr).find("td, th").each((__, td) => { cells.push($(td).text().trim()); });
       if (cells.length < 2) continue;
-      const modelCell = cells[0] || "";
-      if (modelHint && modelCell.toLowerCase().includes(modelHint.toLowerCase())) {
-        bestRow = { cells };
-        break;
+
+      const firstCell = cells[0] || "";
+      // If we have a modelHint, only consider rows that mention it
+      if (modelHint && !firstCell.toLowerCase().includes(modelHint.toLowerCase())) {
+        continue;
       }
-      if (!bestRow) bestRow = { cells };
-    }
 
-    if (!bestRow) return;
-
-    headers.forEach(({ text, index }) => {
-      const cellText = bestRow!.cells[index] || "";
-      const parsed = parseIntervalText(cellText);
-      if (!parsed) return;
-      const partTypes = columnToPartTypes(text);
-      partTypes.forEach((partType) => {
-        const key = `${partType}-${parsed.km}-${parsed.months}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        intervals.push({
-          partType,
-          intervalKm: parsed.km,
-          intervalMonths: parsed.months,
-          source: "OEM_WEBSITE",
+      headers.forEach(({ text, index }) => {
+        const cellText = cells[index] || "";
+        const parsed = parseIntervalText(cellText);
+        if (!parsed) return;
+        
+        const partTypes = columnToPartTypes(text || firstCell); // Check header or first cell for part name
+        partTypes.forEach((partType) => {
+          const key = `${partType}-${parsed.km}-${parsed.months}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+          intervals.push({
+            partType,
+            intervalKm: parsed.km,
+            intervalMonths: parsed.months,
+            source: "OEM_WEBSITE",
+          });
         });
       });
-    });
+    }
   });
 
   return intervals;
 }
+
+import { suggestIntervalsFromAI } from "./oem-interval.service";
 
 /**
  * Fetch OEM intervals from the internet for the given vehicle (make/model/year)
@@ -136,7 +197,7 @@ export async function fetchAndSaveIntervalsForVehicle(
 ): Promise<{ saved: number; source: string; errors?: string[] }> {
   const vehicle = await db.customerVehicle.findUnique({
     where: { id: vehicleId },
-    select: { make: true, model: true, year: true },
+    select: { id: true, make: true, model: true, manufacturingMonthYear: true },
   });
 
   if (!vehicle) {
@@ -146,7 +207,15 @@ export async function fetchAndSaveIntervalsForVehicle(
 
   const make = (vehicle.make ?? "").trim() || "";
   const model = (vehicle.model ?? "").trim() || "";
-  const year = vehicle.year ?? null;
+
+  // Extract year from manufacturingMonthYear (format: "MM/YYYY")
+  let year: number | null = null;
+  if (vehicle?.manufacturingMonthYear) {
+    const parts = vehicle.manufacturingMonthYear.split("/");
+    const yearStr = parts.length > 1 ? parts[1] : parts[0];
+    const parsedYear = parseInt(yearStr);
+    if (!isNaN(parsedYear)) year = parsedYear;
+  }
   const makeKey = normalizeMake(make);
 
   if (!make) {
@@ -155,16 +224,40 @@ export async function fetchAndSaveIntervalsForVehicle(
   }
 
   const config = OEM_URL_CONFIG.find((c) => makeKey.includes(c.makeKey));
+
+  // Helper for falling back to AI suggest
+  const fallbackToAI = async (reason: string) => {
+    logger.info({ vehicleId, make, model, reason }, "Falling back to AI for vehicle intervals");
+    const intervals = await suggestIntervalsFromAI(make, model, year);
+    if (intervals.length === 0) return { saved: 0, source: "NONE" };
+    const { saved, errors } = await saveSuggestedIntervals(make, model, year, intervals);
+    return { saved, source: "AI_SUGGESTED", errors: errors.length ? errors : undefined };
+  };
+
   if (!config) {
-    logger.debug({ makeKey, vehicleId }, "No OEM URL config for make, skip fetch");
-    return { saved: 0, source: "NONE" };
+    logger.info({ makeKey, vehicleId }, "No OEM URL config for make, use AI suggest");
+    return fallbackToAI("NO_URL_CONFIG");
   }
 
   const cacheKey = `${makeKey}:${(model || "").toLowerCase()}`;
   const lastFetch = cache.get(cacheKey);
   if (lastFetch != null && Date.now() - lastFetch < CACHE_TTL_MS) {
-    logger.debug({ cacheKey, vehicleId }, "OEM interval fetch skipped (cache)");
+    logger.debug({ cacheKey, vehicleId }, "OEM interval fetch skipped (memory cache)");
     return { saved: 0, source: "CACHE" };
+  }
+
+  // Check DB before external fetch to reuse across vehicles
+  const existingInDb = await db.partReplacementInterval.findFirst({
+    where: {
+      make: { equals: make, mode: "insensitive" },
+      model: model ? { equals: model, mode: "insensitive" } : undefined,
+    },
+  });
+
+  if (existingInDb) {
+    logger.info({ make, model, vehicleId }, "OEM intervals already exist in DB, reusing");
+    cache.set(cacheKey, Date.now());
+    return { saved: 0, source: "DB" };
   }
 
   const fetchWithRetries = async <T>(
@@ -202,10 +295,10 @@ export async function fetchAndSaveIntervalsForVehicle(
         "HTML",
       );
       const html = res.data as string;
-      const intervals = parseHyundaiPmsHtml(html, model || undefined);
+      const intervals = parseOemHtml(html, model || undefined);
       if (intervals.length === 0) {
-        logger.debug({ vehicleId, makeKey }, "No intervals parsed from OEM HTML");
-        return { saved: 0, source: "OEM_WEBSITE" };
+        logger.debug({ vehicleId, makeKey }, "No intervals parsed from OEM HTML, fallback to AI");
+        return fallbackToAI("HTML_PARSE_EMPTY");
       }
       const saveMake = make || "Hyundai";
       const saveModel = model || "All";
@@ -230,7 +323,7 @@ export async function fetchAndSaveIntervalsForVehicle(
         () =>
           axios.get(config.url, {
             responseType: "arraybuffer",
-            timeout: 25000,
+            timeout: 30000,
             maxRedirects: 5,
             headers: {
               "User-Agent":
@@ -244,8 +337,8 @@ export async function fetchAndSaveIntervalsForVehicle(
       const pdfBuffer = Buffer.from(res.data);
       const intervals = await parsePdfIntervals(pdfBuffer);
       if (intervals.length === 0) {
-        logger.debug({ vehicleId, makeKey }, "No intervals parsed from OEM PDF");
-        return { saved: 0, source: "OEM_WEBSITE" };
+        logger.debug({ vehicleId, makeKey }, "No intervals parsed from OEM PDF, fallback to AI");
+        return fallbackToAI("PDF_PARSE_EMPTY");
       }
       const saveMake = make || "Unknown";
       const saveModel = model || "All";
@@ -265,9 +358,9 @@ export async function fetchAndSaveIntervalsForVehicle(
   } catch (err: any) {
     logger.error(
       { err: err?.message || err, vehicleId, makeKey, url: config?.url },
-      "OEM interval fetch failed",
+      "OEM interval fetch failed, trying AI fallback",
     );
-    return { saved: 0, source: "OEM_WEBSITE", errors: [err?.message || "Fetch failed"] };
+    return fallbackToAI(`FETCH_FAILED:${err?.message || "unknown"}`);
   }
 
   return { saved: 0, source: "NONE" };
@@ -288,7 +381,7 @@ async function parsePdfIntervals(pdfBuffer: Buffer): Promise<SuggestedInterval[]
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = `
 From this vehicle manual / service schedule text, extract maintenance intervals.
-Return a JSON array. Each object: { "partType": "ENGINE_OIL" | "OIL_FILTER" | "AIR_FILTER" | "BRAKE_PADS" | "COOLANT" | "SPARK_PLUGS" | "AC_FILTER" | "OTHER_PART", "intervalKm": number, "intervalMonths": number }.
+Return a JSON array. Each object: { "partType": "ENGINE_OIL" | "OIL_FILTER" | "AIR_FILTER" | "BRAKE_PADS" | "BRAKE_DISCS" | "BATTERY" | "TYRES_FRONT" | "TYRES_REAR" | "CLUTCH_PLATE" | "SPARK_PLUGS" | "COOLANT" | "TIMING_BELT" | "AC_FILTER" | "WIPER_BLADES" | "HEADLIGHT_BULB" | "OTHER_PART", "intervalKm": number, "intervalMonths": number }.
 Use partType only from the list. intervalKm in km (e.g. 10000), intervalMonths in months (e.g. 6 or 12).
 Return ONLY the JSON array, no markdown.
 

@@ -15,14 +15,6 @@ export const addVehicleSchema = z.object({
   make: jsonOptionalString,
   model: jsonOptionalString,
   variant: jsonOptionalString,
-  year: z.preprocess(
-    (v) => (v === null ? undefined : v),
-    z.coerce
-      .number()
-      .min(1900)
-      .max(new Date().getFullYear() + 1)
-      .optional(),
-  ),
   fuelType: z.preprocess(
     (val) => {
       if (val === null || val === undefined) return undefined;
@@ -70,12 +62,7 @@ export const addVehicleSchema = z.object({
   mileage: jsonOptionalString,
   brand: jsonOptionalString,
   color: jsonOptionalString,
-  seatingCapacity: jsonOptionalString,
-  cylinderCount: jsonOptionalString,
-  cubicCapacity: jsonOptionalString,
-  grossWeight: jsonOptionalString,
-  bodyType: jsonOptionalString,
-  ownerAddress: jsonOptionalString,
+  manufacturingMonthYear: jsonOptionalString,
 });
 
 export const updateVehicleSchema = addVehicleSchema.partial();

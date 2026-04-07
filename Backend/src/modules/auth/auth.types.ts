@@ -36,6 +36,7 @@ export interface AuthSuccessResponse {
   message: string;
   requiresOtpVerification?: boolean;
   otpExpiresIn?: number; // seconds
+  otpResendIn?: number; // seconds
   accessToken?: string;
   refreshToken?: string;
   expiresIn?: number;

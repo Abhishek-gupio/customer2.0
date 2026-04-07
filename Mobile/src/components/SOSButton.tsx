@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, Alert, ScrollView, Linking, Platform, TextInput, PermissionsAndroid, Animated, Easing, Vibration, Share, KeyboardAvoidingView } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient';
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../theme/colors'
@@ -11,6 +12,8 @@ import type { RootStackParamList } from '../navigation/types';
 import { vehicleService, type Vehicle } from '../services/vehicleService';
 import { sosService, type EmergencyContact, type NearbyHelpItem, type SOSType } from '../services/sosService';
 import { getProfile, type ProfileResponse } from '../services/profileService';
+import { getAbsoluteUrl } from '../config';
+import BackButton from './BackButton';
 
 let Geolocation: any = null;
 try {
@@ -359,8 +362,8 @@ const SOSButton = () => {
 
   const handleAddContact = useCallback(async () => {
     if (addingContact) return;
-    if (!newContactName.trim() || !newContactPhone.trim()) {
-      Alert.alert('Missing details', 'Name and phone number are required.');
+    if (!newContactName.trim() || !newContactPhone.trim() || !newContactEmail.trim()) {
+      Alert.alert('Missing details', 'Name, phone number, and email are required.');
       return;
     }
     setAddingContact(true);
@@ -368,7 +371,7 @@ const SOSButton = () => {
       await sosService.addContact({
         name: newContactName.trim(),
         phoneNumber: newContactPhone.trim(),
-        email: newContactEmail.trim() || undefined,
+        email: newContactEmail.trim(),
         relation: newContactRelation.trim() || undefined,
       });
       setNewContactName('');
@@ -382,7 +385,7 @@ const SOSButton = () => {
     } finally {
       setAddingContact(false);
     }
-  }, [addingContact, newContactName, newContactPhone, newContactRelation, loadContacts]);
+  }, [addingContact, newContactName, newContactPhone, newContactEmail, newContactRelation, loadContacts]);
 
   const handleDeleteContact = useCallback(async (id: string) => {
     try {
@@ -482,13 +485,23 @@ const SOSButton = () => {
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1, backgroundColor: '#000' }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
     >
     <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#000000', '#0a0a0a', '#111111']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.header}>
         <View style={styles.profileRow}>
+          <BackButton onPress={() => navigation.goBack()} />
           <Image
-            source={{ uri: userData?.profilePic || "https://api.dicebear.com/9.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4&scale=90" }}
+            source={{
+              uri: userData?.profilePic
+                ? getAbsoluteUrl(userData.profilePic)
+                : 'https://api.dicebear.com/9.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4&scale=90'
+            }}
             style={styles.avatar}
           />
           <View>
@@ -496,16 +509,6 @@ const SOSButton = () => {
             <Text style={styles.subTitle}>Stay protected wherever you are</Text>
           </View>
         </View>
-        <TouchableOpacity 
-          onPress={() => {
-            navigation.navigate('Main', {
-              screen: 'Alerts',
-            });
-          }} 
-          style={styles.iconButton}
-        >
-          <Ionicons name="notifications-outline" size={20} color="#FFD700" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -652,7 +655,7 @@ const SOSButton = () => {
             />
           </View>
           
-          <View style={[styles.row, {marginTop: 15}]}>
+          <View style={[styles.row, {marginTop: hp(2.5)}]}>
             <ActionButton
               icon="medical-outline"
               label={"Medical\nHelp"}
@@ -731,42 +734,38 @@ const SOSButton = () => {
             <Text style={styles.sectionMeta}>Trusted people</Text>
           </View>
 
-          <View style={styles.inputRow}>
-            <TextInput
-              placeholder="Name"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              value={newContactName}
-              onChangeText={setNewContactName}
-            />
-            <TextInput
-              placeholder="Phone"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              keyboardType="phone-pad"
-              value={newContactPhone}
-              onChangeText={setNewContactPhone}
-            />
-          </View>
-          <View style={styles.inputRow}>
-            <TextInput
-              placeholder="Relation (optional)"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              value={newContactRelation}
-              onChangeText={setNewContactRelation}
-            />
-            <TextInput
-              placeholder="Email (optional)"
-              placeholderTextColor="#7c7c7c"
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={newContactEmail}
-              onChangeText={setNewContactEmail}
-            />
-          </View>
-          <View style={styles.inputActionRow}>
+          <TextInput
+            placeholder="Name"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            value={newContactName}
+            onChangeText={setNewContactName}
+          />
+          <TextInput
+            placeholder="Phone"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            keyboardType="phone-pad"
+            value={newContactPhone}
+            onChangeText={setNewContactPhone}
+          />
+          <TextInput
+            placeholder="Relation (e.g. Brother, Friend)"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            value={newContactRelation}
+            onChangeText={setNewContactRelation}
+          />
+          <TextInput
+            placeholder="Email Address"
+            placeholderTextColor="#7c7c7c"
+            style={[styles.input, { marginBottom: hp(1.5) }]}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={newContactEmail}
+            onChangeText={setNewContactEmail}
+          />
+          <View style={styles.inputActionRow} collapsable={false}>
             <TouchableOpacity
               style={[styles.addButton, addingContact && styles.addButtonDisabled, { width: '100%' }]}
               onPress={handleAddContact}
@@ -831,7 +830,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: hp(4),
+    paddingBottom: hp(8), // Reduced for a natural look, but still enough for keyboard
   },
   header: {
     flexDirection: "row",
@@ -1011,7 +1010,7 @@ const styles = StyleSheet.create({
   sectionCard: {
     backgroundColor: "rgba(255, 255, 255, 0.03)",
     marginHorizontal: wp(5),
-    marginTop: hp(2.5),
+    marginTop: hp(3.5),
     padding: wp(5),
     borderRadius: wp(6),
     borderWidth: 0.5,
@@ -1036,16 +1035,17 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap: wp(3),
   },
   action: {
+    flex: 1,
     alignItems: "center",
-    width: 95,
-    backgroundColor: "#1a1a1a",
-    paddingVertical: hp(1.5),
-    borderRadius: wp(4.5),
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(1),
+    borderRadius: wp(5),
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   circle: {
     width: 58,
@@ -1090,6 +1090,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: wp(3),
     marginBottom: hp(1.5),
+    alignItems: 'center',
   },
   input: {
     flex: 1,
@@ -1098,10 +1099,12 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
     borderRadius: wp(3),
     paddingHorizontal: wp(4),
-    paddingVertical: hp(1.2),
+    paddingVertical: 0,
+    height: 50,
     color: "#fff",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.8),
+    textAlignVertical: 'center',
   },
   addButton: {
     flex: 0.4,
