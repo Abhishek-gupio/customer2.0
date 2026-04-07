@@ -141,6 +141,7 @@
   margin-bottom: 24px;
   color: rgba(0, 0, 0, 0.5);
   display: block;
+  text-align: center;
 }
 
 .auth-body .form-container {
@@ -638,6 +639,34 @@
   .mobile-only a {
     text-decoration: underline;
     font-weight: 700;
+  }
+}
+
+/* Tablet / Intermediate Responsive View for Overlay (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .auth-body .container {
+    width: 95%;
+    min-height: 650px;
+  }
+
+  .auth-body .overlay-panel h1,
+  .auth-body .split-parent.text-white {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+  }
+
+  .auth-body .overlay-panel p {
+    font-size: 13px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .auth-body .module-grid {
+    gap: 12px !important;
+    margin: 16px 0 !important;
+  }
+
+  .auth-body .module-item {
+    padding: 16px 12px !important;
   }
 }
 

@@ -101,6 +101,24 @@ export const adminController = {
     success(res, data);
   }),
 
+  getExpenseDetail: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const expenseId = typeof req.params.id === "string" ? req.params.id : "";
+    if (!expenseId) throw AppError.badRequest("Expense ID required");
+    const data = await adminDashboardService.getExpenseDetail(expenseId);
+    success(res, data);
+  }),
+
+  listExpenses: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const customerId = typeof req.query.customerId === "string" ? req.query.customerId : undefined;
+    const data = await adminDashboardService.listExpenses({ page, limit, search, customerId });
+    success(res, data);
+  }),
+
   catalogVehicles: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
     const type = typeof req.query.type === 'string' ? req.query.type : undefined;
@@ -118,8 +136,8 @@ export const adminController = {
     // optional array of imageType from body (e.g. HERO, ANGLE)
     const imageTypes = Array.isArray(req.body.imageTypes) ? req.body.imageTypes : [req.body.imageTypes || "HERO"];
 
-    const data = await adminDashboardService.createCatalogVehicle({ 
-      make, model, type, files, imageTypes 
+    const data = await adminDashboardService.createCatalogVehicle({
+      make, model, type, files, imageTypes
     });
     success(res, data, 201);
   }),
@@ -185,7 +203,7 @@ export const adminController = {
     if (!req.admin) throw AppError.unauthorized();
     const documentId = req.params.id as string;
     const { buffer, mimeType, filename } = await adminDashboardService.downloadDocument(documentId);
-    
+
     const finalMime = (Array.isArray(mimeType) ? mimeType[0] : mimeType) || "application/octet-stream";
     res.setHeader("Content-Type", String(finalMime));
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
@@ -232,9 +250,9 @@ export const adminController = {
     }
     const customerId = typeof req.params.id === "string" ? req.params.id : "";
     if (!customerId) throw AppError.badRequest("Customer ID required");
-    
+
     const { fullName, email, phoneNumber } = req.body;
-    
+
     const data = await adminDashboardService.updateCustomer(customerId, {
       fullName,
       email,
