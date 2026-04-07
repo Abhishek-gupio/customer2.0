@@ -297,6 +297,13 @@ export default function TripDetail({ navigation, route }: Props) {
                     const lon = Number(p.lon);
                     if (isNaN(lat) || isNaN(lon)) return null;
 
+                    // Only show markers for start, end, or specific events
+                    const isStart = index === 0;
+                    const isEnd = index === path.length - 1;
+                    const isEvent = !!p.eventType;
+
+                    if (!isStart && !isEnd && !isEvent) return null;
+
                     let timeLabel = undefined;
                     try {
                       if (p.timestamp) timeLabel = format(new Date(p.timestamp), 'HH:mm:ss');
@@ -306,14 +313,14 @@ export default function TripDetail({ navigation, route }: Props) {
                       <Marker
                         key={`marker-${tripId}-${index}`}
                         coordinate={{ latitude: lat, longitude: lon }}
-                        title={p.eventType || 'Point'}
+                        title={isStart ? 'Start' : (isEnd ? 'Finish' : (p.eventType || 'Event'))}
                         description={timeLabel}
                       >
                         <View style={[
                           styles.markerDot,
-                          p.eventType ? styles.eventMarker : styles.pathMarker
+                          isEvent ? styles.eventMarker : (isStart ? styles.startMarker : styles.endMarker)
                         ]}>
-                          {p.eventType && <Icon name="exclamation" size={8} color="#fff" />}
+                          {isEvent && <Icon name="exclamation" size={8} color="#fff" />}
                         </View>
                       </Marker>
                     );
@@ -408,8 +415,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pathMarker: { backgroundColor: '#ffbf00' },
-  eventMarker: { backgroundColor: '#ef4444', width: 16, height: 16, borderRadius: 8 },
+  startMarker: { backgroundColor: '#4ade80' },
+  endMarker: { backgroundColor: '#ef4444' },
+  eventMarker: { backgroundColor: '#f97316', width: 14, height: 14, borderRadius: 7 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: hp(20) },
   footer: { paddingHorizontal: wp(5), paddingVertical: hp(1.5) },
   footerText: { color: '#aaa', fontSize: wp(3.4) },

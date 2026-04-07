@@ -34,7 +34,8 @@
         android:preserveLegacyExternalStorage="true">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBsSrCp8Icp5h2vnyd7J1Ob99Nk4sxschU" />
+            android:value="AIzaSyBsSrCp8Icp5h2vnyd7J1Ob99Nk4sxschU"
+            tools:replace="android:value" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
