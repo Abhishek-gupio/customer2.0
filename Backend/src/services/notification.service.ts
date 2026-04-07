@@ -293,10 +293,10 @@ export const notificationService = {
       await this.sendDailyOdometerReminders();
     });
 
-    // Run daily at 10:00 AM – document expiry + challan sync
+    // Run daily at 10:00 AM – document expiry sync (Manual sync for now to avoid costs)
     cron.schedule("0 10 * * *", async () => {
       await this.checkExpiringDocuments();
-      await challanService.syncAllVehicles();
+      // await challanService.syncAllVehicles(); 
     });
 
     // Run every 5 minutes – Telematics Sync (Pull method)
