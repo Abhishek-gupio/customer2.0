@@ -31,7 +31,11 @@ const config = {
   ],
   cacheVersion: 'mobile-monorepo-v1',
   projectRoot,
-  watchFolders: [workspaceRoot],
+  // Watching the entire monorepo on Windows can stall Metro's native watcher
+  // long enough to trip "Failed to start watch mode". The app only needs the
+  // workspace-level package store outside `Mobile/`, so keep the watch scope
+  // narrow and let pnpm junctions inside `Mobile/node_modules` resolve there.
+  watchFolders: fs.existsSync(workspaceNodeModules) ? [workspaceNodeModules] : [],
   resolver: {
     nodeModulesPaths: [appNodeModules, workspaceNodeModules],
     extraNodeModules: {
