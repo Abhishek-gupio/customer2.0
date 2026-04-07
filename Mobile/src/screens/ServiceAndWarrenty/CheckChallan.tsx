@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
-  ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import {
@@ -22,14 +21,12 @@ import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
-import { api } from '../../services/api';
+
+const REG_PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'] as const;
 
 export default function CheckChallan() {
   const navigation = useNavigation();
   const [regNumber, setRegNumber] = useState('');
-  const [challans, setChallans] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleCheckDetails = () => {
     if (!regNumber.trim()) return;
@@ -48,7 +45,6 @@ export default function CheckChallan() {
 
   const [isFocused, setIsFocused] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
   useEffect(() => {
     // Floating movement
@@ -113,7 +109,7 @@ export default function CheckChallan() {
     let timeout: any;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = REG_PLACEHOLDERS[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
@@ -130,7 +126,7 @@ export default function CheckChallan() {
         if (currentIdx === 0) {
           isDeleting = false;
           // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+          placeholderIdx = (placeholderIdx + 1) % REG_PLACEHOLDERS.length;
           timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
@@ -200,11 +196,11 @@ export default function CheckChallan() {
       </View>
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, isFocused && { paddingTop: hp(2) }]}
+          contentContainerStyle={[styles.scrollContent, isFocused && styles.scrollContentFocused]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           scrollEnabled={!isFocused}
@@ -212,13 +208,13 @@ export default function CheckChallan() {
           {/* Animated Hero Section */}
           <Animated.View style={[
             styles.heroSection, 
+            styles.heroAnimatedFrame,
             { 
               height: heroHeight, 
               opacity: heroOpacity,
               transform: [{ scale: heroScale }],
-              overflow: 'hidden',
-              marginBottom: isFocused ? 0 : hp(4)
             }
+            , isFocused ? styles.heroSectionCollapsed : styles.heroSectionExpanded
           ]}>
             <View style={styles.outerCircle}>
               {/* Pulsing Background Glow */}
@@ -280,17 +276,13 @@ export default function CheckChallan() {
             <TouchableOpacity
               style={[
                 styles.primaryBtn,
-                (!regNumber.trim() || loading) && styles.primaryBtnDisabled
+                !regNumber.trim() && styles.primaryBtnDisabled
               ]}
               onPress={handleCheckDetails}
               activeOpacity={0.85}
-              disabled={!regNumber.trim() || loading}
+              disabled={!regNumber.trim()}
             >
-              {loading ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.primaryBtnText}>CHECK DETAILS</Text>
-              )}
+              <Text style={styles.primaryBtnText}>CHECK DETAILS</Text>
             </TouchableOpacity>
           </View>
 
@@ -329,9 +321,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(6),
     paddingBottom: hp(4),
   },
+  scrollContentFocused: {
+    paddingTop: hp(2),
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
   heroSection: {
     alignItems: 'center',
     marginTop: hp(4),
+  },
+  heroAnimatedFrame: {
+    overflow: 'hidden',
+  },
+  heroSectionExpanded: {
+    marginBottom: hp(4),
+  },
+  heroSectionCollapsed: {
+    marginBottom: 0,
   },
   outerCircle: {
     width: wp(34),

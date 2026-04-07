@@ -15,6 +15,7 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import type { MainTabParamList } from './types';
+import { navigateToServicesHome } from './serviceNavigation';
 import Home from '../screens/Main/Home';
 import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
@@ -26,7 +27,6 @@ const GupioLogoAI = require('../assets/images/gupio-logo-ai.png') as any;
 
 const AI_GRADIENT = ['#4f46e5', '#7c3aed', '#06b6d4', '#4f46e5'] as const;
 const FLOW_DURATION_MS = 3000;
-const AGENT_PULSE_MS = 5600;
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -37,6 +37,47 @@ const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   AIAssistant: 'robot',
   Odometer: 'tachometer-alt',
 };
+
+function TabBarIcon({
+  icon,
+  color,
+}: {
+  icon: string;
+  color: string;
+}) {
+  return <Icon name={icon} size={18} color={color} />;
+}
+
+function renderHomeTabIcon({ color }: { color: string }) {
+  return <TabBarIcon icon={TAB_ICONS.Home} color={color} />;
+}
+
+function renderGarageTabIcon({ color }: { color: string }) {
+  return <TabBarIcon icon={TAB_ICONS.my_garage} color={color} />;
+}
+
+function renderServicesTabIcon({ color }: { color: string }) {
+  return <TabBarIcon icon={TAB_ICONS.Services} color={color} />;
+}
+
+function renderOdometerTabIcon({ color }: { color: string }) {
+  return <TabBarIcon icon={TAB_ICONS.Odometer} color={color} />;
+}
+
+function renderEmpty() {
+  return null;
+}
+
+function renderCenterTabBarButton(props: any) {
+  return (
+    <CenterTabButton
+      onPress={props.onPress as (e: unknown) => void}
+      accessibilityState={props.accessibilityState}
+    >
+      {props.children}
+    </CenterTabButton>
+  );
+}
 
 function CenterTabButton({
   onPress,
@@ -91,7 +132,7 @@ function CenterTabButton({
           <View style={styles.centerButtonIconWrap}>
             <Image 
               source={GupioLogoAI} 
-              style={{ width: wp(7.5), height: wp(7.5) }} 
+              style={styles.centerButtonLogo} 
               resizeMode="contain"
             />
           </View>
@@ -103,7 +144,7 @@ function CenterTabButton({
 
 export function MainBottomTabs() {
   return (
-    <View style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
+    <View style={styles.container}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -120,9 +161,7 @@ export function MainBottomTabs() {
           component={Home}
           options={{
             tabBarLabel: 'Home',
-            tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Home} size={18} color={color} />
-            ),
+            tabBarIcon: renderHomeTabIcon,
           }}
         />
         <Tab.Screen
@@ -130,26 +169,17 @@ export function MainBottomTabs() {
           component={GupioGarageApp}
           options={{
             tabBarLabel: 'My Garage',
-            tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.my_garage} size={18} color={color} />
-            ),
+            tabBarIcon: renderGarageTabIcon,
           }}
         />
         <Tab.Screen
           name="AIAssistant"
           component={AIAssistant}
           options={{
-            tabBarLabel: () => null,
-            tabBarIcon: () => null,
-            tabBarStyle: { display: 'none' },
-            tabBarButton: (props) => (
-              <CenterTabButton
-                onPress={props.onPress as (e: unknown) => void}
-                accessibilityState={props.accessibilityState}
-              >
-                {props.children}
-              </CenterTabButton>
-            ),
+            tabBarLabel: renderEmpty,
+            tabBarIcon: renderEmpty,
+            tabBarStyle: styles.hiddenTabBar,
+            tabBarButton: renderCenterTabBarButton,
           }}
         />
         <Tab.Screen
@@ -157,13 +187,11 @@ export function MainBottomTabs() {
           component={ServiceNavigator}
           options={{
             tabBarLabel: 'Services',
-            tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Services} size={18} color={color} />
-            ),
+            tabBarIcon: renderServicesTabIcon,
           }}
           listeners={({ navigation }) => ({
             tabPress: () => {
-              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
+              navigateToServicesHome(navigation as any);
             },
           })}
         />
@@ -172,9 +200,7 @@ export function MainBottomTabs() {
           component={Odometer}
           options={{
             tabBarLabel: 'Odometer',
-            tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Odometer} size={18} color={color} />
-            ),
+            tabBarIcon: renderOdometerTabIcon,
           }}
         />
       </Tab.Navigator>
@@ -184,6 +210,10 @@ export function MainBottomTabs() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
   tabBar: {
     backgroundColor: '#111',
     borderTopWidth: 1,
@@ -203,6 +233,9 @@ const styles = StyleSheet.create({
     marginTop: hp(0.2),
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  hiddenTabBar: {
+    display: 'none',
   },
   centerWrapper: {
     width: wp(20),
@@ -252,5 +285,9 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centerButtonLogo: {
+    width: wp(7.5),
+    height: wp(7.5),
   },
 });

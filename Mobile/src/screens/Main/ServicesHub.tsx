@@ -18,100 +18,15 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { navigateToServiceDestination } from '../../navigation/serviceNavigation';
+import {
+  getServiceHubItemById,
+  serviceHubAds,
+  serviceHubCategories,
+  type ServiceHubId,
+  type ServiceIconSet,
+} from '../../config/servicesConfig';
 
-type ServiceId =
-  | 'PartsWarranty'
-  | 'ServiceHistory'
-  | 'NearbyPlaces'
-  | 'CheckChallan'
-  | 'FuelStations'
-  | 'Hospital'
-  | 'PoliceStation'
-  | 'Hotel'
-  | 'ChargingStation'
-  | 'Mechanics'
-  | 'RTO'
-  | 'Towing'
-  | 'CarWash'
-  | 'Insurance'
-  | 'Parking'
-  | 'TyreShop'
-  | 'DocumentServices'
-  | 'CarSpa'
-  | 'TripExpense'
-  | 'DLVerification'
-  | 'Fastag';
-
-type ServiceItem = {
-  id: ServiceId;
-  name: string;
-  icon: string;
-  iconSet: 'fa' | 'mc';
-};
-
-const SERVICE_ITEMS: ServiceItem[] = [
-  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
-  { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa' },
-  { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa' },
-  { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa' },
-  { id: 'FuelStations', name: 'Fuel Nearby', icon: 'gas-station', iconSet: 'mc' },
-  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa' },
-  { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa' },
-  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
-  { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
-  { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
-];
-
-const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory'], color: '#ef4444' }, // Red
-  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
-  { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
-];
-
-const ADS_DATA = [
-  {
-    id: '1',
-    title: 'Traffic Challans',
-    subtitle: 'Check & Settle Fines',
-    desc: 'Avoid late fees and court visits. Check your vehicle status now.',
-    theme: '#fbbf24',
-    icon: 'gavel',
-    iconSet: 'fa',
-    target: 'CheckChallan',
-  },
-  {
-    id: '2',
-    title: 'Smart Parking',
-    subtitle: 'Nearby parking',
-    desc: 'See parking options around you and jump straight into directions.',
-    theme: '#60a5fa',
-    icon: 'parking',
-    iconSet: 'parking',
-    target: 'Parking',
-  },
-  {
-    id: '3',
-    title: 'Nearby Mechanics',
-    subtitle: 'Quick local help',
-    desc: 'Browse mechanics around you when you need service support fast.',
-    theme: '#94a3b8',
-    icon: 'mechanic',
-    iconSet: 'mechanic',
-    target: 'Mechanics', 
-  },
-  {
-    id: '4',
-    title: 'Vehicle Health',
-    subtitle: 'Smart Tracking',
-    desc: 'Monitor your vehicle health score and parts lifecycle easily.',
-    theme: '#4ade80',
-    icon: 'heartbeat',
-    target: 'WarrantyStatus',
-  },
-];
-
-const getItemById = (id: ServiceId) => SERVICE_ITEMS.find((i) => i.id === id);
 function renderParkingIcon(color: string, size: number, large = false) {
   return (
     <View style={large ? styles.parkingIconLargeWrap : styles.parkingIconWrap}>
@@ -142,7 +57,7 @@ function renderTowingIcon(color: string, size: number, large = false) {
 }
 
 function renderServiceIcon(
-  item: { icon: string; iconSet: 'fa' | 'mc' | 'mechanic' | 'parking' | 'towing' },
+  item: { icon: string; iconSet: ServiceIconSet | 'fa' },
   color: string,
   size: number,
   large = false
@@ -172,7 +87,7 @@ export default function ServicesHub() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      let nextIndex = (adIndex + 1) % ADS_DATA.length;
+      let nextIndex = (adIndex + 1) % serviceHubAds.length;
       setAdIndex(nextIndex);
       flatListRef.current?.scrollToIndex({
         index: nextIndex,
@@ -183,48 +98,30 @@ export default function ServicesHub() {
     return () => clearInterval(interval);
   }, [adIndex]);
 
-  const onServicePress = useCallback((id: string) => {
-    if (id === 'PartsWarranty' || id === 'WarrantyStatus') {
+  const onServicePress = useCallback((id: ServiceHubId) => {
+    const service = getServiceHubItemById(id);
+    if (!service) return;
+
+    if (id === 'PartsWarranty') {
       setNavLoading(true);
       setTimeout(() => {
         setNavLoading(false);
-        navigation.navigate('WarrantyStatus');
+        navigateToServiceDestination(navigation as any, service.destination, 'services');
       }, 300); // Brief transition delay for better animation feel
       return;
     }
 
-    switch (id) {
-      case 'ServiceHistory':
-        navigation.navigate('ServiceHistory');
-        break;
-      case 'NearbyPlaces':
-        navigation.navigate('NearbyPlaces');
-        break;
-      case 'CheckChallan':
-        navigation.navigate('CheckChallan');
-        break;
-      case 'TripExpense':
-        navigation.navigate('TripExpense');
-        break;
-      case 'DLVerification':
-        navigation.navigate('DLVerification');
-        break;
-      case 'Fastag':
-        navigation.navigate('Fastag');
-        break;
-      default:
-        break;
-    }
+    navigateToServiceDestination(navigation as any, service.destination, 'services');
   }, [navigation]);
 
-  const adKeyExtractor = useCallback((item: typeof ADS_DATA[number]) => item.id, []);
+  const adKeyExtractor = useCallback((item: typeof serviceHubAds[number]) => item.id, []);
 
   const renderAdItem = useCallback(
-    ({ item }: { item: typeof ADS_DATA[number] }) => (
+    ({ item }: { item: typeof serviceHubAds[number] }) => (
       <TouchableOpacity
         style={styles.adCard}
         activeOpacity={0.9}
-        onPress={() => onServicePress(item.target)}
+        onPress={() => onServicePress(item.targetId)}
       >
         <View style={styles.adContent}>
           <View style={styles.adLeft}>
@@ -248,9 +145,9 @@ export default function ServicesHub() {
   );
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
-  const filteredCategories = CATEGORIES.map((cat) => {
+  const filteredCategories = serviceHubCategories.map((cat) => {
     const filteredIds = cat.itemIds.filter((id) => {
-      const item = getItemById(id);
+      const item = getServiceHubItemById(id);
       if (!item) return false;
       return (
         item.name.toLowerCase().includes(normalizedSearch) ||
@@ -324,7 +221,7 @@ export default function ServicesHub() {
         <View style={styles.adsWrapper}>
           <FlatList
             ref={flatListRef}
-            data={ADS_DATA}
+            data={serviceHubAds}
             keyExtractor={adKeyExtractor}
             horizontal
             pagingEnabled
@@ -337,12 +234,12 @@ export default function ServicesHub() {
           />
           {/* Indicators */}
           <View style={styles.indicators}>
-            {ADS_DATA.map((ad, i) => (
+            {serviceHubAds.map((ad, i) => (
               <View
                 key={ad.id}
                 style={[
                   styles.dot,
-                  adIndex === i ? { backgroundColor: '#fff', width: 14 } : { backgroundColor: '#444' }
+                  adIndex === i ? styles.dotActive : styles.dotInactive
                 ]}
               />
             ))}
@@ -355,7 +252,7 @@ export default function ServicesHub() {
               <Text style={[styles.categoryTitle, { borderLeftColor: cat.color }]}>{cat.title}</Text>
               <View style={styles.row}>
                 {cat.itemIds.map((id) => {
-                  const item = getItemById(id);
+                  const item = getServiceHubItemById(id);
                   if (!item) return null;
                   return (
                       <TouchableOpacity
@@ -641,6 +538,13 @@ const styles = StyleSheet.create({
     height: 4,
     width: 6,
     borderRadius: 2,
+  },
+  dotActive: {
+    backgroundColor: '#fff',
+    width: 14,
+  },
+  dotInactive: {
+    backgroundColor: '#444',
   },
   content: {
     paddingHorizontal: wp(4),

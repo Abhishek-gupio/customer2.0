@@ -8,6 +8,7 @@ import { getProfile, updateProfile, type ProfileResponse, type UpdateProfilePayl
 import { googleMapsService } from './googleMapsService';
 import { placesService, type NearbyPlaceType } from './placesService';
 import { sosService, type SOSType } from './sosService';
+import { warrantyService } from './warrantyService';
 
 // ============================================================================
 // Types
@@ -1122,49 +1123,13 @@ async function tryResolveLocalWarrantyStatus(
     if (!vehicle?.id || !isWarrantyStatusQuery(message)) return null;
 
     try {
-        const [statusRes, upcomingRes] = await Promise.all([
-            api.get<any>(`/v1/expenses/warranty/vehicles/${vehicle.id}/status`),
-            api.get<any[]>(`/v1/expenses/warranty/vehicles/${vehicle.id}/upcoming`),
-        ]);
-
-        const statusData = (statusRes as any)?.data ?? statusRes;
-        const upcomingData = (upcomingRes as any)?.data ?? upcomingRes;
-        const items = Array.isArray(upcomingData) ? upcomingData : [];
-
-        const overdueCount = items.filter((item: any) => item?.urgency === 'OVERDUE').length;
-        const dueSoonCount = items.filter((item: any) => item?.urgency === 'DUE_SOON' || item?.urgency === 'DUE_BY_KM').length;
-        const activeCount = items.filter((item: any) => item?.urgency === 'ACTIVE').length;
-
-        const summaryParts: string[] = [];
-        if (typeof statusData?.activeCount === 'number') {
-            summaryParts.push(`${statusData.activeCount} active`);
-        } else if (activeCount > 0) {
-            summaryParts.push(`${activeCount} active`);
-        }
-        if (typeof statusData?.expiredCount === 'number') {
-            summaryParts.push(`${statusData.expiredCount} expired`);
-        } else if (overdueCount > 0) {
-            summaryParts.push(`${overdueCount} overdue`);
-        }
-        if (dueSoonCount > 0) {
-            summaryParts.push(`${dueSoonCount} due soon`);
-        }
-
-        const firstUpcoming = items.find((item: any) => item?.message);
-        const detail = firstUpcoming?.message ? ` ${firstUpcoming.message}` : '';
-
-        const messageText =
-            summaryParts.length > 0
-                ? `Your warranty status is ${summaryParts.join(', ')}.${detail}`.trim()
-                : items.length > 0
-                  ? `I found ${items.length} warranty items for your vehicle.${detail}`
-                  : 'I could not find any warranty status details right now.';
+        const summary = await warrantyService.getLocalWarrantyStatusSummary(vehicle.id);
 
         return {
             sessionId,
-            message: messageText,
+            message: summary.message,
             voiceUrl: null,
-            contextUsed: items.length,
+            contextUsed: summary.contextUsed,
             toolResults: [],
             agentSteps: [],
         };
@@ -1242,7 +1207,7 @@ async function tryResolveLocalExpenseCreate(
         !warrantySyncError &&
         !serviceRecord
     ) {
-        await api.post('/v1/expenses/warranty/service-records', {
+        await warrantyService.syncExpenseToWarrantyRecord({
             vehicleId: vehicle.id,
             expenseId: responseData?.expense?.id,
             serviceType: 'REGULAR_SERVICE',

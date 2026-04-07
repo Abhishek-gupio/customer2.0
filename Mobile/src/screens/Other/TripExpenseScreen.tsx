@@ -16,9 +16,6 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import MapView, { Polyline, Marker } from 'react-native-maps';
-import Share from 'react-native-share';
-// @ts-ignore
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useNavigation } from '../../lib/react-navigation-native';
 import { tripExpenseService, type TripRoute, type TripExpenseResult } from '../../services/tripExpenseService';
 import { placesService, type SearchSuggestion } from '../../services/placesService';
@@ -26,7 +23,7 @@ import { vehicleService, type Vehicle } from '../../services/vehicleService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decodePolyline } from '../../utils/polyline';
 import LinearGradient from 'react-native-linear-gradient';
-import { Clock, HeartPulse, Zap, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Share2, Maximize2, X, MapPin, Navigation, List, Sparkles, History, BarChart3 } from 'lucide-react-native';
+import { HeartPulse, ChevronRight, ArrowLeft, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Receipt, Route, Timer, Maximize2, X, MapPin, Navigation, List, Sparkles, History, BarChart3 } from 'lucide-react-native';
 import TripPlannerFlow from './TripPlannerFlow';
 import { loadPlanningState } from '../../services/tripPlannerPersistence';
 import { PlanningState } from './tripPlannerTypes';
@@ -320,7 +317,7 @@ export default function TripExpenseScreen() {
                   }
                 : null,
             };
-          } catch (e) {
+          } catch {
             return { vehicleId: vehicle.id, cost: null };
           }
         })
@@ -850,7 +847,7 @@ export default function TripExpenseScreen() {
           >
             <ArrowLeft size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { marginLeft: 8 }]}>Trip Planner</Text>
+          <Text style={[s.headerTitle, s.headerTitleSpaced]}>Trip Planner</Text>
         </View>
         <View style={s.headerActions}>
           <TouchableOpacity
@@ -1033,7 +1030,7 @@ export default function TripExpenseScreen() {
             onPress={handleCalculate}
             disabled={loading}
             activeOpacity={0.85}
-            style={{ marginTop: hp(2) }}
+            style={s.calculateButtonWrapper}
             accessibilityRole="button"
             accessibilityLabel="Calculate trip manifest"
             accessibilityHint="Generates routes and estimated trip costs"
@@ -1084,7 +1081,7 @@ export default function TripExpenseScreen() {
                   </View>
                 </View>
 
-                {result.waypoints?.map((wp: string, i: number) => (
+                {result.waypoints?.map((waypoint: string, i: number) => (
                   <View key={`ov-wp-${i}`} style={s.timelineItem}>
                     <View style={s.timelineLeft}>
                       <View style={s.timelineDot} />
@@ -1092,7 +1089,7 @@ export default function TripExpenseScreen() {
                     </View>
                     <View style={s.timelineRight}>
                       <Text style={s.timelineLabel}>Stop {i + 1}</Text>
-                      <Text style={s.timelineValue}>{wp}</Text>
+                      <Text style={s.timelineValue}>{waypoint}</Text>
                     </View>
                   </View>
                 ))}
@@ -1194,7 +1191,7 @@ export default function TripExpenseScreen() {
                       <View style={s.healthExpBox}>
                         {primaryVehicle.healthScore.explanations.slice(0, 2).map((exp: string, idx: number) => (
                           <View key={idx} style={s.expRow}>
-                            <View style={[s.dotSmall, { backgroundColor: C.textMuted, marginTop: 6 }]} />
+                            <View style={[s.dotSmall, s.healthExplanationDot]} />
                             <Text style={s.healthExpText}>{exp}</Text>
                           </View>
                         ))}
@@ -1328,7 +1325,7 @@ export default function TripExpenseScreen() {
                         accessibilityHint="Toggles live traffic overlay on map"
                         accessibilityState={{ selected: showTraffic }}
                       >
-                         <Text style={{ fontSize: 16 }}>{showTraffic ? '🚥' : '⚪'}</Text>
+                         <Text style={s.utilityPillEmoji}>{showTraffic ? '🚥' : '⚪'}</Text>
                       </TouchableOpacity>
 
                       {result?.id && (
@@ -1344,7 +1341,7 @@ export default function TripExpenseScreen() {
                           {refreshing ? (
                             <ActivityIndicator size="small" color="#000" />
                           ) : (
-                            <Text style={{ fontSize: 16 }}>🔄</Text>
+                            <Text style={s.utilityPillEmoji}>🔄</Text>
                           )}
                         </TouchableOpacity>
                       )}
@@ -1436,11 +1433,11 @@ export default function TripExpenseScreen() {
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
-                  {searchingAmenities && <ActivityIndicator size="small" color={C.accent} style={{ marginTop: 10 }} />}
+                  {searchingAmenities && <ActivityIndicator size="small" color={C.accent} style={s.amenityLoader} />}
                 </View>
 
                 {/* Expandable Breakdown Section - Premium Accordion */}
-                <View style={[s.premiumBreakdownCard, { paddingBottom: showDetailedBreakdown ? hp(1.2) : 0 }]}>
+                <View style={[s.premiumBreakdownCard, showDetailedBreakdown ? s.premiumBreakdownCardExpanded : s.premiumBreakdownCardCollapsed]}>
                   <TouchableOpacity 
                     style={s.breakdownHeader}
                     onPress={handleToggleBreakdown}
@@ -1468,11 +1465,11 @@ export default function TripExpenseScreen() {
 
 
                   {showDetailedBreakdown && (
-                    <View style={{ marginTop: hp(1.2), paddingHorizontal: wp(4.5), paddingBottom: hp(0.8) }}>
+                    <View style={s.breakdownBody}>
                       <View style={s.divider} />
                       
                       {/* Cost Breakdown Sub-Section */}
-                      <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginTop: hp(0.6), marginBottom: hp(1.2) }]}>Cost Breakdown</Text>
+                      <Text style={[s.sectionTitle, s.sectionTitleCompact, s.sectionTitleTopSpacing]}>Cost Breakdown</Text>
                       <CostRow
                         icon="⛽"
                         label="Fuel Cost"
@@ -1525,7 +1522,7 @@ export default function TripExpenseScreen() {
                       {selectedRoute.tolls.length > 0 && (
                         <>
                           <View style={s.divider} />
-                          <Text style={[s.sectionTitle, { fontSize: wp(3.8), marginBottom: hp(1) }]}>
+                          <Text style={[s.sectionTitle, s.sectionTitleCompact, s.sectionTitleBottomSpacing]}>
                             Toll Plazas ({selectedRoute.tolls.length})
                           </Text>
                           {selectedRoute.tolls.map((toll, idx) => (
@@ -1577,14 +1574,14 @@ export default function TripExpenseScreen() {
                     : ['rgba(255, 215, 0, 0.15)', 'rgba(255, 159, 10, 0.05)']}
                   style={s.planningCtaInner}
                 >
-                  <View style={[s.iconCircle, hasItinerarySelections && { backgroundColor: 'rgba(50, 215, 75, 0.1)' }]}>
+                  <View style={[s.iconCircle, hasItinerarySelections && s.iconCircleCompleted]}>
                     {hasItinerarySelections ? (
                       <CheckCircle2 size={20} color={C.green} />
                     ) : (
                       <Sparkles size={20} color={C.accent} />
                     )}
                   </View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View style={s.planningCtaContent}>
                     <Text style={s.planningCtaTitle}>
                       {hasItinerarySelections
                         ? 'Itinerary Ready. Tap to Open'
@@ -1596,7 +1593,7 @@ export default function TripExpenseScreen() {
                         : 'Tap here to add hotels, activities, and transport for this trip.'}
                     </Text>
                   </View>
-                  <View style={[s.planningCtaBadge, hasItinerarySelections && { backgroundColor: C.green }]}>
+                  <View style={[s.planningCtaBadge, hasItinerarySelections && s.planningCtaBadgeCompleted]}>
                     <Text style={s.planningCtaBadgeText}>OPEN</Text>
                     <ChevronRight size={14} color="#000" />
                   </View>
@@ -1606,7 +1603,7 @@ export default function TripExpenseScreen() {
           </>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={s.bottomSpacer} />
       </ScrollView>
 
       {/* Trip Planning Flow Overlay */}
@@ -1695,7 +1692,7 @@ function CostRow({
   return (
     <View style={s.costRow}>
       <View style={[s.costIcon, { backgroundColor: bgColor }]}>
-        <Text style={{ fontSize: wp(4.5) }}>{icon}</Text>
+        <Text style={s.costIconText}>{icon}</Text>
       </View>
       <View style={s.costInfo}>
         <Text style={s.costLabel}>{label}</Text>
@@ -1739,6 +1736,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: { fontSize: 22, fontFamily: 'Outfit-Bold', color: '#FFF' },
+  headerTitleSpaced: {
+    marginLeft: 8,
+  },
   backBtn: {
     width: 44, height: 44,
     alignItems: 'center', justifyContent: 'center',
@@ -1748,6 +1748,9 @@ const s = StyleSheet.create({
   // Scroll
   scroll: { flex: 1 },
   scrollContent: { padding: wp(5), paddingTop: hp(1) },
+  calculateButtonWrapper: {
+    marginTop: hp(2),
+  },
 
   // Card
   card: {
@@ -2010,6 +2013,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  planningCtaBadgeCompleted: {
+    backgroundColor: C.green,
+  },
   planningCtaBadgeText: {
     fontSize: wp(2.3),
     fontFamily: 'Outfit-Black',
@@ -2022,6 +2028,13 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255, 215, 0, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconCircleCompleted: {
+    backgroundColor: 'rgba(50, 215, 75, 0.1)',
+  },
+  planningCtaContent: {
+    flex: 1,
+    marginLeft: 12,
   },
   calcBtnContent: {
     flexDirection: 'row',
@@ -2223,6 +2236,9 @@ const s = StyleSheet.create({
   utilityPillDisabled: {
     opacity: 0.5,
   },
+  utilityPillEmoji: {
+    fontSize: 16,
+  },
 
   // Section
   sectionTitle: {
@@ -2230,6 +2246,16 @@ const s = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     color: C.text,
     marginBottom: hp(2),
+  },
+  sectionTitleCompact: {
+    fontSize: wp(3.8),
+  },
+  sectionTitleTopSpacing: {
+    marginTop: hp(0.6),
+    marginBottom: hp(1.2),
+  },
+  sectionTitleBottomSpacing: {
+    marginBottom: hp(1),
   },
 
   // Cost Row
@@ -2240,6 +2266,9 @@ const s = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  costIconText: {
+    fontSize: wp(4.5),
   },
   costInfo: { flex: 1, marginLeft: wp(3) },
   costLabel: { fontSize: wp(3.8), fontFamily: 'Outfit-SemiBold', color: C.text },
@@ -2452,6 +2481,12 @@ const s = StyleSheet.create({
     marginBottom: hp(3),
     overflow: 'hidden',
   },
+  premiumBreakdownCardExpanded: {
+    paddingBottom: hp(1.2),
+  },
+  premiumBreakdownCardCollapsed: {
+    paddingBottom: 0,
+  },
   breakdownHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -2486,6 +2521,7 @@ const s = StyleSheet.create({
   breakdownBody: {
     marginTop: hp(1.2),
     paddingHorizontal: wp(4.5),
+    paddingBottom: hp(0.8),
     gap: hp(1),
   },
   manifestQuickStats: {
@@ -2848,6 +2884,10 @@ const s = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
+  healthExplanationDot: {
+    backgroundColor: C.textMuted,
+    marginTop: 6,
+  },
   navBtn: {
     backgroundColor: '#1A1A1A',
     marginTop: 16,
@@ -2875,5 +2915,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  amenityLoader: {
+    marginTop: 10,
+  },
+  bottomSpacer: {
+    height: 40,
   },
 });

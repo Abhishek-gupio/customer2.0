@@ -1,5 +1,30 @@
 import type { NavigatorScreenParams } from '../lib/react-navigation-native';
 
+export type NearbyPlaceRouteType =
+  | 'FuelStations'
+  | 'Hospital'
+  | 'PoliceStation'
+  | 'Hotel'
+  | 'ChargingStation'
+  | 'Mechanics'
+  | 'RTO'
+  | 'Towing'
+  | 'CarWash'
+  | 'Insurance'
+  | 'Parking'
+  | 'TyreShop'
+  | 'DocumentServices'
+  | 'CarSpa'
+  | 'TouristAttraction';
+
+export type ServiceStackParamList = {
+  ServicesHome: undefined;
+  ServiceHistory: { selectedPartType?: string } | undefined;
+  WarrantyStatus: undefined;
+  NearbyPlaces: { fromHome?: boolean; placeType?: NearbyPlaceRouteType } | undefined;
+  CheckChallan: undefined;
+};
+
 export type RootStackParamList = {
   Splash: undefined;
   SigninFirst: undefined;
@@ -30,8 +55,8 @@ export type RootStackParamList = {
   Settings: undefined;
   BudgetSettings: undefined;
   SyncQueue: undefined;
-  ServiceHistory: { selectedPartType?: string } | undefined;
-  WarrantyStatus: undefined;
+  ServiceHistory: ServiceStackParamList['ServiceHistory'];
+  WarrantyStatus: ServiceStackParamList['WarrantyStatus'];
   AiBotHome: undefined;
   ChatSessions: undefined;
   DrivingSummary: undefined;
@@ -43,6 +68,8 @@ export type RootStackParamList = {
   TripExpense: undefined;
   DLVerification: undefined;
   Fastag: undefined;
+  NearbyPlaces: ServiceStackParamList['NearbyPlaces'];
+  CheckChallan: ServiceStackParamList['CheckChallan'];
   UploadDocument: undefined;
   TripPlannerInsights: undefined;
 };
@@ -50,7 +77,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   my_garage: undefined;
-  Services: undefined;
+  Services: NavigatorScreenParams<ServiceStackParamList> | undefined;
   AIAssistant: {
     userMessage?: string;
     sessionId?: string;

@@ -9,8 +9,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
@@ -88,9 +86,9 @@ export default function Fastag() {
           setAccountNumber('');
           setIfscCode('');
           showStatus('Deleted', 'Fastag profile removed successfully');
-        } catch (error) {
-          showStatus('Error', 'Failed to delete Fastag profile', 'error');
-        }
+    } catch {
+      showStatus('Error', 'Failed to delete Fastag profile', 'error');
+    }
       }
     });
   };
@@ -136,7 +134,7 @@ export default function Fastag() {
           </View>
           <Text style={styles.verifiedTitle}>Fastag Account Verified</Text>
           <Text style={styles.verifiedSubtitle}>
-            Status: <Text style={{ color: '#22c55e', fontFamily: 'Outfit-Bold' }}>{meta.status || 'SUCCESS'}</Text>
+            Status: <Text style={styles.verifiedStatusText}>{meta.status || 'SUCCESS'}</Text>
           </Text>
         </View>
 
@@ -198,7 +196,7 @@ export default function Fastag() {
       <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        style={styles.keyboardContainer}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -218,7 +216,7 @@ export default function Fastag() {
               </>
             )}
             {!verificationResult && (
-              <View style={{ width: 40 }} />
+              <View style={styles.headerSpacer} />
             )}
           </View>
         </View>
@@ -270,7 +268,7 @@ export default function Fastag() {
               <TouchableOpacity
                 style={[
                   styles.verifyButton,
-                  { opacity: accountNumber.length > 5 && ifscCode.length === 11 && !loading ? 1 : 0.6 }
+                  !(accountNumber.length > 5 && ifscCode.length === 11 && !loading) && styles.verifyButtonDisabled
                 ]}
                 disabled={accountNumber.length <= 5 || ifscCode.length !== 11 || loading}
                 onPress={handleVerify}
@@ -342,6 +340,9 @@ const styles = StyleSheet.create({
     minWidth: 40,
     justifyContent: 'flex-end',
   },
+  headerSpacer: {
+    width: 40,
+  },
   headerIconBtn: {
     width: 36,
     height: 36,
@@ -354,6 +355,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   scrollContent: {
     paddingHorizontal: wp(8),
@@ -432,6 +436,9 @@ const styles = StyleSheet.create({
     fontSize: wp(4.2),
     fontFamily: 'Outfit-Bold',
   },
+  verifyButtonDisabled: {
+    opacity: 0.6,
+  },
   infoCard: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255, 191, 0, 0.05)',
@@ -476,6 +483,10 @@ const styles = StyleSheet.create({
       color: 'rgba(255,255,255,0.5)',
       fontFamily: 'Outfit-Regular',
       fontSize: wp(3.8),
+  },
+  verifiedStatusText: {
+      color: '#22c55e',
+      fontFamily: 'Outfit-Bold',
   },
   resultCard: {
       backgroundColor: '#111',

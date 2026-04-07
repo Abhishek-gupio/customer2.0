@@ -43,8 +43,21 @@ import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { api } from '../../services/api';
 import { getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
+import { warrantyService } from '../../services/warrantyService';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
+import { navigateToServiceDestination as navigateToConfiguredServiceDestination } from '../../navigation/serviceNavigation';
+import {
+  comingSoonServiceItems,
+  getQuickServiceById,
+  getServiceHubItemById,
+  homeCarouselPromos,
+  homeServicePromos,
+  type HomePromoAction,
+  type QuickServiceId,
+  type ServiceDestination,
+  type ServiceHubId,
+} from '../../config/servicesConfig';
 
 import { getLastOdometerUpdate } from '../../services/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -58,6 +71,8 @@ try {
 } catch {
   Geolocation = null;
 }
+
+const NumberPlatePlaceholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'] as const;
 
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
 const AUTO_SCROLL_INTERVAL_MS = 9000;
@@ -141,7 +156,7 @@ function HealthDisplay({ score }: { score: number }) {
     ]).start();
 
     return () => { countAnim.removeListener(countListener); };
-  }, [score]);
+  }, [score, barAnim, countAnim, fadeAnim]);
 
   const color = score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
   const label = score >= 80 ? 'EXCELLENT' : score >= 50 ? 'GOOD' : 'CRITICAL';
@@ -216,11 +231,122 @@ const healthStyles = StyleSheet.create({
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
+function PromoSplitSlide({
+  width,
+  onPress,
+  subtitle,
+  subtitleColor,
+  title,
+  description,
+  ctaLabel,
+  ctaColor,
+  imageSource,
+}: {
+  width: number;
+  onPress: () => void;
+  subtitle: string;
+  subtitleColor: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaColor: string;
+  imageSource: ImageSourcePropType;
+}) {
+  return (
+    <View style={[styles.slideFull, { width }]}>
+      <TouchableOpacity
+        style={styles.slideFull}
+        activeOpacity={0.9}
+        onPress={onPress}
+      >
+        <View style={styles.promoSlide}>
+          <View style={styles.promoLeft}>
+            <Text style={[styles.promoSubtitle, { color: subtitleColor }]}>{subtitle}</Text>
+            <Text style={styles.promoTitle}>{title}</Text>
+            <Text style={styles.promoDesc}>{description}</Text>
+            <View style={styles.promoAction}>
+              <Text style={[styles.promoActionText, { color: ctaColor }]}>{ctaLabel}</Text>
+              <MaterialIcon name="chevron-right" size={18} color={ctaColor} />
+            </View>
+          </View>
+          <View style={styles.promoRight}>
+            <Image
+              source={imageSource}
+              style={styles.adImage}
+              resizeMode="contain"
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function PromoBackgroundSlide({
+  width,
+  onPress,
+  imageSource,
+  gradientColors,
+  subtitle,
+  subtitleStyle,
+  title,
+  description,
+  ctaLabel,
+  ctaColor,
+  ctaTextStyle,
+}: {
+  width: number;
+  onPress: () => void;
+  imageSource: ImageSourcePropType;
+  gradientColors: [string, string, string];
+  subtitle: string;
+  subtitleStyle?: object;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaColor: string;
+  ctaTextStyle?: object;
+}) {
+  return (
+    <View style={[styles.slideFull, { width }]}>
+      <TouchableOpacity
+        style={styles.slideFull}
+        activeOpacity={0.9}
+        onPress={onPress}
+      >
+        <View style={styles.slideFull}>
+          <FastImage
+            source={imageSource as any}
+            style={styles.promoBackgroundImage}
+            resizeMode={FastImage.resizeMode.cover}
+          />
+          <LinearGradient
+            colors={gradientColors}
+            locations={[0, 0.5, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.promoBackgroundOverlay}
+          >
+            <View style={styles.promoBackgroundContent}>
+              <Text style={[styles.promoSubtitle, subtitleStyle]}>{subtitle}</Text>
+              <Text style={styles.promoTitle}>{title}</Text>
+              <Text style={styles.promoDesc}>{description}</Text>
+              <View style={styles.promoAction}>
+                <Text style={[styles.promoActionText, ctaTextStyle]}>{ctaLabel}</Text>
+                <MaterialIcon name="chevron-right" size={18} color={ctaColor} />
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function Home() {
   const dispatch = useAppDispatch();
   const documents = useAppSelector((state) => state.documents.documents);
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
-  const [numberPlate, setNumberPlate] = useState('');
   const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
   const [selectedState, setSelectedState] = useState('Detecting...');
   const [userLocationDisplay, setUserLocationDisplay] = useState('Detecting...');
@@ -261,7 +387,6 @@ export default function Home() {
   const timelineEntranceAnim = useRef(new Animated.Value(0)).current;
   /** After user picks a state for fuel prices, do not overwrite from GPS/IP (async location often arrived late). */
   const fuelStateLockedByUserRef = useRef(false);
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const carouselSlides = useMemo<HomeCarouselSlide[]>(() => {
@@ -470,14 +595,14 @@ export default function Home() {
     fetchDiscoveryContent();
     fetchUserLocationWithRetry(0);
     dispatch(fetchDocuments());
-  }, [dispatch]);
+  }, [dispatch, fetchUserLocationWithRetry]);
 
   // Fetch fuel prices when state changes
   useEffect(() => {
     if (selectedState && selectedState !== 'Detecting...' && STATES.includes(selectedState)) {
       fetchFuelPrices();
     }
-  }, [selectedState]);
+  }, [fetchFuelPrices, selectedState]);
 
   useEffect(() => {
     if (selectedVideo) {
@@ -538,7 +663,7 @@ export default function Home() {
     } finally {
       setRefreshing(false);
     }
-  }, [dispatch, selectedState]);
+  }, [dispatch, fetchFuelPrices, fetchUserLocationWithRetry, selectedState]);
 
   const carouselIndexRef = useRef(0);
 
@@ -571,7 +696,7 @@ export default function Home() {
           offset: nextIndex * bannerWidth,
           animated: true,
         });
-      } catch (_) {
+      } catch {
         // guard against layout-not-ready race
       }
     }, AUTO_SCROLL_INTERVAL_MS);
@@ -603,7 +728,7 @@ export default function Home() {
     let timeout: any;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = NumberPlatePlaceholders[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
@@ -620,7 +745,7 @@ export default function Home() {
         if (currentIdx === 0) {
           isDeleting = false;
           // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+          placeholderIdx = (placeholderIdx + 1) % NumberPlatePlaceholders.length;
           timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
@@ -724,32 +849,10 @@ export default function Home() {
 
         // Also fetch upcoming service to show in header footer
         try {
-          const upcoming = await api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
-          const rawData = (upcoming as any).data || upcoming;
-
-          if (Array.isArray(rawData)) {
-            const overdue = rawData.find((p: any) => p.urgency === 'OVERDUE');
-            const overdueCount = rawData.filter((p: any) => p.urgency === 'OVERDUE').length;
-            const dueSoonCount = rawData.filter((p: any) => p.urgency === 'DUE_SOON' || p.urgency === 'UPCOMING').length;
-            setServiceAlertCount(overdueCount);
-            setServiceDueSoonCount(dueSoonCount);
-            if (overdue) {
-              setServiceDueText('Overdue!');
-            } else {
-              const first = rawData[0];
-              if (first) {
-                const kmLeft = (first.lifecycleKm || 10000) - (first.kmSinceReplacement || 0);
-                setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
-              } else {
-                setServiceDueText('Healthy');
-              }
-            }
-          } else {
-            console.warn('Unexpected upcoming service response format', rawData);
-            setServiceDueText('Healthy');
-            setServiceAlertCount(0);
-            setServiceDueSoonCount(0);
-          }
+          const warrantySummary = await warrantyService.getWarrantyHomeSummary(primary.id);
+          setServiceDueText(warrantySummary.serviceDueText);
+          setServiceAlertCount(warrantySummary.serviceAlertCount);
+          setServiceDueSoonCount(warrantySummary.serviceDueSoonCount);
         } catch (err) {
           console.warn('Could not fetch upcoming service for home', err);
           setServiceDueText('Checking...');
@@ -778,7 +881,7 @@ export default function Home() {
   };
   fetchPrimaryVehicleRef.current = fetchPrimaryVehicle;
 
-  const fetchFuelPrices = async () => {
+  const fetchFuelPrices = useCallback(async () => {
     try {
       setFuelLoading(true);
       const cacheKey = `${HOME_FUEL_CACHE_PREFIX}${selectedState}`;
@@ -807,9 +910,9 @@ export default function Home() {
     } finally {
       setFuelLoading(false);
     }
-  };
+  }, [selectedState]);
 
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       try {
         const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
@@ -832,9 +935,9 @@ export default function Home() {
       }
     }
     return true;
-  };
+  }, []);
 
-  const reverseGeocode = async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
+  const reverseGeocode = useCallback(async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
     try {
       const cachedLocation = getCachedValue<{ display: string; state: string }>(HOME_LOCATION_CACHE_KEY);
       if (cachedLocation) return cachedLocation;
@@ -861,11 +964,11 @@ export default function Home() {
       if (staleLocation) return staleLocation;
       return null;
     }
-  };
+  }, []);
 
   const [isGpsPrecise, setIsGpsPrecise] = useState(false);
 
-  const fetchUserLocationWithRetry = async (attempt = 0) => {
+  const fetchUserLocationWithRetry = useCallback(async (attempt = 0) => {
     const maxAttempts = 20; // Try for ~4 minutes if needed
     try {
       setLocationLoading(true);
@@ -936,9 +1039,7 @@ export default function Home() {
         setLocationLoading(false);
       }
     }
-  };
-
-  const fetchUserLocation = () => fetchUserLocationWithRetry(0);
+  }, [isGpsPrecise, requestLocationPermission, reverseGeocode, userLocationDisplay]);
 
   const handleProfilePress = () => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
@@ -968,16 +1069,7 @@ export default function Home() {
     }
   };
 
-  const handleHelpPress = () => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    if (rootNav) {
-      rootNav.navigate('HelpSupport');
-    } else {
-      navigation.navigate('HelpSupport');
-    }
-  };
-
-  const navigateToRootScreen = (screenName: keyof RootStackParamList, params?: any) => {
+  const navigateToRootScreen = useCallback((screenName: keyof RootStackParamList, params?: any) => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     if (rootNav) {
       if (params) {
@@ -992,23 +1084,40 @@ export default function Home() {
         navigation.navigate(screenName as any);
       }
     }
-  };
+  }, [navigation]);
 
-  const navigateToServicesScreen = (
-    screen:
-      | 'ServicesHome'
-      | 'NearbyPlaces'
-      | 'CheckChallan'
-      | 'ServiceHistory'
-      | 'WarrantyStatus',
-    params?: any
-  ) => {
-    if (params) {
-      navigation.navigate('Services' as any, { screen, params });
-      return;
+  const navigateToServiceDestination = useCallback((destination: ServiceDestination) => {
+    navigateToConfiguredServiceDestination(navigation as any, destination, 'root');
+  }, [navigation]);
+
+  const handleQuickServicePress = useCallback((serviceId: QuickServiceId) => {
+    const service = getQuickServiceById(serviceId);
+    if (!service) return;
+    navigateToServiceDestination(service.destination);
+  }, [navigateToServiceDestination]);
+
+  const openServiceHubItem = useCallback((serviceId: ServiceHubId) => {
+    const service = getServiceHubItemById(serviceId);
+    if (!service) return;
+    navigateToServiceDestination(service.destination);
+  }, [navigateToServiceDestination]);
+
+  const handleHomePromoAction = useCallback((action: HomePromoAction) => {
+    switch (action.type) {
+      case 'destination':
+        navigateToServiceDestination(action.destination);
+        return;
+      case 'serviceHub':
+        openServiceHubItem(action.serviceId);
+        return;
+      case 'serviceOptions':
+        setServiceModalVisible(true);
+        return;
+      case 'externalUrl':
+        Linking.openURL(action.url);
+        return;
     }
-    navigation.navigate('Services' as any, { screen });
-  };
+  }, [navigateToServiceDestination, openServiceHubItem]);
 
   const navigateToGarageTab = useCallback(() => {
     const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
@@ -1153,13 +1262,13 @@ export default function Home() {
     }
   };
 
-  const openAiAssistant = (userMessage?: string) => {
+  const openAiAssistant = useCallback((userMessage?: string) => {
     if (userMessage) {
       (navigation as any).navigate('AIAssistant', { userMessage });
       return;
     }
     (navigation as any).navigate('AIAssistant');
-  };
+  }, [navigation]);
 
   const lastOdometerUpdate = vehicle?.id ? getLastOdometerUpdate(vehicle.id) : null;
   const currentTimeMs = Date.now();
@@ -1247,7 +1356,7 @@ export default function Home() {
     ? `${expenseHeadline} ${fuelSummary}`
     : expenseHeadline;
 
-  const ownershipTimelineItems: TimelineItem[] = [
+  const ownershipTimelineItems = useMemo<TimelineItem[]>(() => [
     {
       id: 'health',
       eyebrow: vehicle ? 'Vehicle health' : 'Garage setup',
@@ -1261,7 +1370,7 @@ export default function Home() {
       stage: serviceAlertCount > 0 ? 'Now' : serviceDueSoonCount > 0 ? 'Next' : 'Later',
       priority: serviceAlertCount > 0 ? 'urgent' : serviceDueSoonCount > 0 ? 'normal' : 'good',
       priorityScore: serviceAlertCount > 0 ? 100 : serviceDueSoonCount > 0 ? 80 : 40,
-      onPress: () => vehicle ? navigateToRootScreen('WarrantyStatus') : navigateToRootScreen('VehicleList'),
+      onPress: () => vehicle ? openServiceHubItem('PartsWarranty') : navigateToRootScreen('VehicleList'),
     },
     {
       id: 'documents',
@@ -1327,7 +1436,7 @@ export default function Home() {
       stage: 'Later',
       priority: 'normal',
       priorityScore: 20,
-      onPress: () => navigateToRootScreen('TripExpense'),
+      onPress: () => openServiceHubItem('TripExpense'),
     },
     {
       id: 'ai',
@@ -1350,7 +1459,37 @@ export default function Home() {
           : 'Help me set up my garage and tell me the first three things I should complete in the app.'
       ),
     },
-  ];
+  ], [
+    documentAccent,
+    documentBadge,
+    documentSummary,
+    documentTitle,
+    documentsNeedingReview.length,
+    expenseAlertCount,
+    fuelLoading,
+    getBannerVehicleShortName,
+    lastOdometerUpdate,
+    missingDocumentTypes.length,
+    monthlyExpenseCount,
+    navigation,
+    navigateToRootScreen,
+    odometerAgeDays,
+    odometerSummary,
+    openAiAssistant,
+    openServiceHubItem,
+    serviceAccent,
+    serviceAlertCount,
+    serviceBadge,
+    serviceDueSoonCount,
+    serviceSummary,
+    serviceTitle,
+    spendAccent,
+    spendBadge,
+    spendSummary,
+    spendTitle,
+    userLocationDisplay,
+    vehicle,
+  ]);
 
   const sortedOwnershipTimelineItems = useMemo(
     () => [...ownershipTimelineItems].sort((a, b) => b.priorityScore - a.priorityScore),
@@ -1459,7 +1598,7 @@ export default function Home() {
                           <View style={styles.bannerBottomRow}>
                             {/* Left: vehicle info + health */}
                             {vehicleLoading ? (
-                              <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-end' }} />
+                              <ActivityIndicator color="#fff" style={styles.vehicleBannerLoader} />
                             ) : vehicle ? (
                               <View style={styles.vehicleBannerContent}>
                                 {/* Real Indian number plate */}
@@ -1495,63 +1634,33 @@ export default function Home() {
 
               if (item === 'expenses') {
                 return (
-                  <View style={[styles.slideFull, { width: bannerWidth }]}>
-                    <TouchableOpacity
-                      style={styles.slideFull}
-                      activeOpacity={0.9}
-                      onPress={() => navigateToRootScreen('Expenses')}
-                    >
-                      <View style={styles.promoSlide}>
-                        <View style={styles.promoLeft}>
-                          <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
-                          <Text style={styles.promoTitle}>Expense Tracker</Text>
-                          <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
-                          <View style={styles.promoAction}>
-                            <Text style={styles.promoActionText}>Try Now</Text>
-                            <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
-                          </View>
-                        </View>
-                        <View style={styles.promoRight}>
-                          <Image
-                            source={require('../../assets/images/expense_AD.png') as any}
-                            style={styles.adImage}
-                            resizeMode="contain"
-                          />
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                  <PromoSplitSlide
+                    width={bannerWidth}
+                    onPress={() => handleHomePromoAction(homeCarouselPromos.expenseTracker.action)}
+                    subtitle={homeCarouselPromos.expenseTracker.subtitle}
+                    subtitleColor={homeCarouselPromos.expenseTracker.accent}
+                    title={homeCarouselPromos.expenseTracker.title}
+                    description={homeCarouselPromos.expenseTracker.desc}
+                    ctaLabel={homeCarouselPromos.expenseTracker.ctaLabel}
+                    ctaColor={homeCarouselPromos.expenseTracker.accent}
+                    imageSource={homeCarouselPromos.expenseTracker.image}
+                  />
                 );
               }
 
               if (item === 'services') {
                 return (
-                  <View style={[styles.slideFull, { width: bannerWidth }]}>
-                    <TouchableOpacity
-                      style={styles.slideFull}
-                      activeOpacity={0.9}
-                      onPress={() => setServiceModalVisible(true)}
-                    >
-                      <View style={styles.promoSlide}>
-                        <View style={styles.promoLeft}>
-                          <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
-                          <Text style={styles.promoTitle}>Featured Services</Text>
-                          <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
-                          <View style={styles.promoAction}>
-                            <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
-                            <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
-                          </View>
-                        </View>
-                        <View style={styles.promoRight}>
-                          <Image
-                            source={require('../../assets/images/vehicle_AD.png') as any}
-                            style={styles.adImage}
-                            resizeMode="contain"
-                          />
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                  <PromoSplitSlide
+                    width={bannerWidth}
+                    onPress={() => handleHomePromoAction(homeServicePromos.featuredServices.action)}
+                    subtitle={homeServicePromos.featuredServices.subtitle}
+                    subtitleColor={homeServicePromos.featuredServices.accent}
+                    title={homeServicePromos.featuredServices.title}
+                    description={homeServicePromos.featuredServices.desc}
+                    ctaLabel={homeServicePromos.featuredServices.ctaLabel}
+                    ctaColor={homeServicePromos.featuredServices.accent}
+                    imageSource={homeServicePromos.featuredServices.image}
+                  />
                 );
               }
 
@@ -1560,28 +1669,34 @@ export default function Home() {
                   <View style={[styles.slideFull, { width: bannerWidth }]}>
                     <View style={styles.promoSlide}>
                       <View style={styles.promoLeft}>
-                        <Text style={styles.promoSubtitle}>Stay Connected</Text>
-                        <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
+                        <Text style={styles.promoSubtitle}>{homeCarouselPromos.social.subtitle}</Text>
+                        <Text style={styles.promoTitle}>{homeCarouselPromos.social.title}</Text>
                         <View style={styles.promoButtons}>
-                          <TouchableOpacity
-                            style={styles.promoBtn}
-                            onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
-                          >
-                            <Icon name="instagram" size={14} color="#000" />
-                            <Text style={styles.promoBtnText}>Instagram</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.promoBtn, { backgroundColor: '#333' }]}
-                            onPress={() => Linking.openURL('https://gupio.in/')}
-                          >
-                            <MaterialIcon name="earth" size={14} color="#fff" />
-                            <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
-                          </TouchableOpacity>
+                          {homeCarouselPromos.social.actions.map((action) => (
+                            <TouchableOpacity
+                              key={action.id}
+                              style={[
+                                styles.promoBtn,
+                                action.variant === 'secondary' ? styles.promoBtnSecondary : null,
+                              ]}
+                              onPress={() => handleHomePromoAction(action.action)}
+                            >
+                              {action.iconSet === 'fa' ? (
+                                <Icon name={action.icon} size={14} color={action.variant === 'secondary' ? '#fff' : '#000'} />
+                              ) : (
+                                <MaterialIcon name={action.icon as any} size={14} color={action.variant === 'secondary' ? '#fff' : '#000'} />
+                              )}
+                              <Text style={[
+                                styles.promoBtnText,
+                                action.variant === 'secondary' ? styles.promoBtnTextSecondary : null,
+                              ]}>{action.label}</Text>
+                            </TouchableOpacity>
+                          ))}
                         </View>
                       </View>
                       <View style={styles.promoRight}>
                         <Image
-                          source={require('../../assets/images/insta&website_AD.png') as any}
+                          source={homeCarouselPromos.social.image}
                           style={styles.adImage}
                           resizeMode="contain"
                         />
@@ -1593,75 +1708,37 @@ export default function Home() {
 
               if (item === 'drivingBehavior') {
                 return (
-                  <View style={[styles.slideFull, { width: bannerWidth }]}>
-                    <TouchableOpacity
-                      style={styles.slideFull}
-                      activeOpacity={0.9}
-                      onPress={() => navigateToRootScreen('DrivingSummary')}
-                    >
-                      <View style={styles.slideFull}>
-                        <FastImage
-                          source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
-                          style={styles.promoBackgroundImage}
-                          resizeMode={FastImage.resizeMode.cover}
-                        />
-                        <LinearGradient
-                          colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
-                          locations={[0, 0.5, 1]}
-                          start={{ x: 0, y: 0.5 }}
-                          end={{ x: 1, y: 0.5 }}
-                          style={styles.promoBackgroundOverlay}
-                        >
-                          <View style={styles.promoBackgroundContent}>
-                            <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
-                            <Text style={styles.promoTitle}>Driving Behavior</Text>
-                            <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
-                            <View style={styles.promoAction}>
-                              <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
-                              <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
-                            </View>
-                          </View>
-                        </LinearGradient>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                  <PromoBackgroundSlide
+                    width={bannerWidth}
+                    onPress={() => handleHomePromoAction(homeCarouselPromos.drivingBehavior.action)}
+                    imageSource={homeCarouselPromos.drivingBehavior.image}
+                    gradientColors={homeCarouselPromos.drivingBehavior.gradientColors}
+                    subtitle={homeCarouselPromos.drivingBehavior.subtitle}
+                    subtitleStyle={styles.drivingPromoSubtitle}
+                    title={homeCarouselPromos.drivingBehavior.title}
+                    description={homeCarouselPromos.drivingBehavior.desc}
+                    ctaLabel={homeCarouselPromos.drivingBehavior.ctaLabel}
+                    ctaColor={homeCarouselPromos.drivingBehavior.accent}
+                    ctaTextStyle={styles.drivingPromoActionText}
+                  />
                 );
               }
 
               if (item === 'tripPlanner') {
                 return (
-                  <View style={[styles.slideFull, { width: bannerWidth }]}>
-                    <TouchableOpacity
-                      style={styles.slideFull}
-                      activeOpacity={0.9}
-                      onPress={() => navigateToRootScreen('TripExpense')}
-                    >
-                      <View style={styles.slideFull}>
-                        <FastImage
-                          source={require('../../assets/images/trip_planner_banner.png') as any}
-                          style={styles.promoBackgroundImage}
-                          resizeMode={FastImage.resizeMode.cover}
-                        />
-                        <LinearGradient
-                          colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
-                          locations={[0, 0.5, 1]}
-                          start={{ x: 0, y: 0.5 }}
-                          end={{ x: 1, y: 0.5 }}
-                          style={styles.promoBackgroundOverlay}
-                        >
-                          <View style={styles.promoBackgroundContent}>
-                            <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
-                            <Text style={styles.promoTitle}>Trip Planner</Text>
-                            <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
-                            <View style={styles.promoAction}>
-                              <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
-                              <MaterialIcon name="chevron-right" size={18} color="#34D399" />
-                            </View>
-                          </View>
-                        </LinearGradient>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                  <PromoBackgroundSlide
+                    width={bannerWidth}
+                    onPress={() => handleHomePromoAction(homeServicePromos.tripPlanner.action)}
+                    imageSource={homeServicePromos.tripPlanner.image}
+                    gradientColors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
+                    subtitle={homeServicePromos.tripPlanner.subtitle}
+                    subtitleStyle={styles.tripPlannerPromoSubtitle}
+                    title={homeServicePromos.tripPlanner.title}
+                    description={homeServicePromos.tripPlanner.desc}
+                    ctaLabel={homeServicePromos.tripPlanner.ctaLabel}
+                    ctaColor={homeServicePromos.tripPlanner.accent}
+                    ctaTextStyle={styles.tripPlannerPromoActionText}
+                  />
                 );
               }
 
@@ -1679,11 +1756,11 @@ export default function Home() {
                       activeOpacity={0.9}
                       onPress={() => (navigation as any).navigate('Odometer')}
                     >
-                      <View style={[styles.promoSlide, isOverAWeekNum ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
+                      <View style={[styles.promoSlide, isOverAWeekNum ? styles.odometerAlertSlide : styles.odometerDefaultSlide]}>
                         <View style={styles.promoLeft}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
+                          <View style={styles.odometerTitleRow}>
                             {isOverAWeekNum && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
-                            <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                            <Text style={[styles.promoTitle, styles.odometerTitleNoMargin, isOverAWeekNum ? styles.odometerTitleWarning : undefined]}>
                               {isOverAWeekNum ? 'ODOMETER ALERT' : 'Update Odometer'}
                             </Text>
                           </View>
@@ -1692,11 +1769,11 @@ export default function Home() {
                             <View>
                               <View style={styles.odometerInfoRow}>
                                 <MaterialIcon name="calendar-month" size={14} color={isOverAWeekNum ? '#ff4d4d' : '#888'} />
-                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? styles.odometerInfoTextWarning : undefined]}>
                                   {new Date(lastUpdateNum).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                                 </Text>
                                 <MaterialIcon name="clock-outline" size={14} color={isOverAWeekNum ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
-                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? { color: '#ff4d4d' } : undefined]}>
+                                <Text style={[styles.odometerInfoText, isOverAWeekNum ? styles.odometerInfoTextWarning : undefined]}>
                                   {new Date(lastUpdateNum).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                 </Text>
                               </View>
@@ -1753,7 +1830,7 @@ export default function Home() {
             <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
               <Icon name="user" size={wp(5.2)} color="#fff" />
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.headerOverlayActionsRow}>
               <TouchableOpacity onPress={handleAlertsPress} style={styles.overlayIconButton}>
                 <Icon name="bell" size={wp(4.6)} color="#fff" />
               </TouchableOpacity>
@@ -1788,30 +1865,7 @@ export default function Home() {
         </View>
 
         <QuickServicesGrid
-          onServicePress={id => {
-            if (id === 'document') {
-              navigateToRootScreen('DocumentList');
-            } else if (id === 'garage') {
-              navigateToRootScreen('VehicleList');
-            } else if (id === 'expense') {
-              navigateToRootScreen('Expenses');
-            } else if (id === 'valet') {
-              navigateToRootScreen('Valet');
-            } else if (id === 'service') {
-              navigateToServicesScreen('ServicesHome');
-            } else if (id === 'driving') {
-              navigateToRootScreen('DrivingSummary');
-            } else if (id === 'nearby') {
-              navigation.navigate('Services' as any, {
-                screen: 'NearbyPlaces',
-                params: { fromHome: true }
-              });
-            } else if (id === 'support') {
-              handleHelpPress();
-            } else if (id === 'tripcost' || id === 'trip_planner') {
-              navigateToRootScreen('TripExpense');
-            }
-          }}
+          onServicePress={handleQuickServicePress}
         />
 
         <View style={styles.section}>
@@ -1909,18 +1963,18 @@ export default function Home() {
         <View style={styles.bannerSection}>
           <View style={styles.insuranceBanner}>
             <Image
-              source={require('../../assets/images/challan.png') as any}
+              source={homeServicePromos.challanBanner.image}
               style={styles.bannerImage}
               resizeMode="contain"
             />
             <View style={styles.bannerContent}>
-              <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
-              <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
+              <Text style={styles.bannerTitle}>{homeServicePromos.challanBanner.title}</Text>
+              <Text style={styles.bannerDesc}>{homeServicePromos.challanBanner.desc}</Text>
               <TouchableOpacity
                 style={styles.payNowButton}
-                onPress={() => navigateToServicesScreen('CheckChallan')}
+                onPress={() => handleHomePromoAction(homeServicePromos.challanBanner.action)}
               >
-                <Text style={styles.payNowText}>Check Now</Text>
+                <Text style={styles.payNowText}>{homeServicePromos.challanBanner.ctaLabel}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -2119,7 +2173,7 @@ export default function Home() {
           />
           <TouchableOpacity
             style={styles.exploreAdButton}
-            onPress={() => navigation.navigate('Services' as any, { screen: 'ServicesHome' })}
+            onPress={() => navigateToServicesHome(navigation as any)}
           >
             <Text style={styles.exploreAdButtonText}>Explore</Text>
           </TouchableOpacity>
@@ -2129,18 +2183,12 @@ export default function Home() {
         <View style={styles.section}>
           <Text style={styles.sectionTitleCenter}>Coming Soon</Text>
           <View style={styles.featureRow}>
-            <View style={styles.featureCard}>
-              <MaterialIcon name="car-electric" size={wp(8)} color="#555" />
-              <Text style={styles.featureTitle}>EV Charging</Text>
-            </View>
-            <View style={styles.featureCard}>
-              <MaterialIcon name="car-wash" size={wp(8)} color="#555" />
-              <Text style={styles.featureTitle}>Car Wash</Text>
-            </View>
-            <View style={styles.featureCard}>
-              <MaterialIcon name="tow-truck" size={wp(8)} color="#555" />
-              <Text style={styles.featureTitle}>Emergency</Text>
-            </View>
+            {comingSoonServiceItems.map((item) => (
+              <View key={item.id} style={styles.featureCard}>
+                <MaterialIcon name={item.icon as any} size={wp(8)} color="#555" />
+                <Text style={styles.featureTitle}>{item.title}</Text>
+              </View>
+            ))}
           </View>
           <Image
             source={require('../../assets/images/coming_soon.png') as any}
@@ -2364,9 +2412,9 @@ export default function Home() {
       <ServiceOptionsOverlay
         visible={serviceModalVisible}
         onClose={() => setServiceModalVisible(false)}
-        onSelect={(screen) => {
+        onSelect={(serviceId) => {
           setServiceModalVisible(false);
-          navigateToServicesScreen(screen);
+          openServiceHubItem(serviceId);
         }}
       />
 
@@ -2621,6 +2669,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: hp(2),
   },
+  vehicleBannerLoader: {
+    alignSelf: 'flex-end',
+  },
   // Authentic licence plate badge
   regBadge: {
     alignSelf: 'flex-start',
@@ -2795,6 +2846,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     zIndex: 10,
   },
+  headerOverlayActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   overlayIconButton: {
     width: wp(11),
     height: wp(11),
@@ -2950,10 +3005,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     gap: wp(1),
   },
+  promoBtnSecondary: {
+    backgroundColor: '#333',
+  },
   promoBtnText: {
     color: '#000',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
+  },
+  promoBtnTextSecondary: {
+    color: '#fff',
   },
   promoAction: {
     flexDirection: 'row',
@@ -3017,6 +3078,9 @@ const styles = StyleSheet.create({
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Medium',
   },
+  odometerInfoTextWarning: {
+    color: '#ff4d4d',
+  },
   odometerBadge: {
     backgroundColor: 'rgba(255,215,0,0.1)',
     paddingHorizontal: wp(2.5),
@@ -3048,6 +3112,21 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(2),
     marginVertical: hp(1),
     borderRadius: 20,
+  },
+  odometerDefaultSlide: {
+    backgroundColor: '#1A1A1A',
+  },
+  odometerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginBottom: hp(1),
+  },
+  odometerTitleNoMargin: {
+    marginBottom: 0,
+  },
+  odometerTitleWarning: {
+    color: '#ff4d4d',
   },
 
   indicatorContainer: {

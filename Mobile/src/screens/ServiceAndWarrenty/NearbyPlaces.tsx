@@ -25,6 +25,13 @@ import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import { placesService, type NearbyPlace, type NearbyPlaceType } from '../../services/placesService';
 import BackButton from '../../components/BackButton';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import type { NearbyPlaceRouteType } from '../../navigation/types';
+import {
+  nearbyPickerServices,
+  nearbyServiceApiTypes,
+  nearbyServiceLabels,
+  nearbyServiceMarkerStyles,
+} from '../../config/servicesConfig';
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
@@ -42,57 +49,7 @@ try {
   Geolocation = null;
 }
 
-type PlaceType =
-  | 'FuelStations'
-  | 'Hospital'
-  | 'PoliceStation'
-  | 'Hotel'
-  | 'ChargingStation'
-  | 'Mechanics'
-  | 'RTO'
-  | 'Towing'
-  | 'CarWash'
-  | 'Insurance'
-  | 'Parking'
-  | 'TyreShop'
-  | 'DocumentServices'
-  | 'CarSpa'
-  | 'TouristAttraction';
-
-const PLACE_LABELS: Record<string, string> = {
-  FuelStations: 'Fuel Stations',
-  Hospital: 'Hospital',
-  PoliceStation: 'Police Station',
-  Hotel: 'Hotel',
-  ChargingStation: 'Charging Station',
-  Mechanics: 'Mechanics',
-  RTO: 'RTO',
-  Towing: 'Towing',
-  CarWash: 'Car Wash',
-  Insurance: 'Insurance',
-  Parking: 'Parking',
-  TyreShop: 'Tyre Shop',
-  DocumentServices: 'Document Services',
-  CarSpa: 'Car Spa',
-  TouristAttraction: 'Places to Visit',
-};
-
-type PlaceItem = { id: PlaceType; name: string; icon: string; iconSet: 'fa' | 'mc' };
-
-const PLACE_ITEMS: PlaceItem[] = [
-  { id: 'FuelStations', name: 'Fuel', icon: 'gas-station', iconSet: 'mc' },
-  { id: 'Hospital', name: 'Hospital', icon: 'hospital', iconSet: 'fa' },
-  { id: 'PoliceStation', name: 'Police', icon: 'building', iconSet: 'fa' },
-  { id: 'Hotel', name: 'Hotel', icon: 'hotel', iconSet: 'fa' },
-  { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'Mechanics', name: 'Mechanic', icon: 'wrench', iconSet: 'fa' },
-  { id: 'TouristAttraction', name: 'Visit', icon: 'map-marked-alt', iconSet: 'fa' },
-  { id: 'RTO', name: 'RTO', icon: 'landmark', iconSet: 'fa' },
-  { id: 'Towing', name: 'Towing', icon: 'truck-pickup', iconSet: 'fa' },
-  { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
-  { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
-  { id: 'TyreShop', name: 'Tyre Shop', icon: 'car-tire-alert', iconSet: 'mc' },
-];
+type PlaceType = NearbyPlaceRouteType;
 
 function openMapsNavigation(lat: number, lng: number, label?: string) {
   const dest = `${lat},${lng}`;
@@ -108,42 +65,6 @@ function openMapsNavigation(lat: number, lng: number, label?: string) {
     Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${dest}`).catch(() => {});
   }
 }
-
-const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyPlaceType>> = {
-  FuelStations: 'gas_station',
-  CarWash: 'car_wash',
-  ChargingStation: 'electric_charging_station',
-  Mechanics: 'car_repair',
-  Hospital: 'hospital',
-  PoliceStation: 'police',
-  Parking: 'parking',
-  Hotel: 'lodging',
-  TouristAttraction: 'tourist_attraction',
-  TyreShop: 'car_repair',
-  Towing: 'car_repair',
-  CarSpa: 'car_wash',
-  RTO: 'local_government_office',
-  DocumentServices: 'local_government_office',
-  Insurance: 'insurance_agency',
-};
-
-const SERVICE_MARKER_STYLE: Record<PlaceType, { iconSet: 'fa' | 'mc'; icon: string; bg: string; fg: string }> = {
-  FuelStations: { iconSet: 'mc', icon: 'gas-station', bg: '#FFBF00', fg: '#111111' },
-  ChargingStation: { iconSet: 'mc', icon: 'ev-station', bg: '#22c55e', fg: '#0a0a0a' },
-  Mechanics: { iconSet: 'fa', icon: 'wrench', bg: '#60a5fa', fg: '#0a0a0a' },
-  CarWash: { iconSet: 'mc', icon: 'car-wash', bg: '#38bdf8', fg: '#0a0a0a' },
-  Hospital: { iconSet: 'fa', icon: 'hospital', bg: '#ef4444', fg: '#ffffff' },
-  PoliceStation: { iconSet: 'fa', icon: 'building', bg: '#6366f1', fg: '#ffffff' },
-  Hotel: { iconSet: 'fa', icon: 'hotel', bg: '#f59e0b', fg: '#111111' },
-  TouristAttraction: { iconSet: 'fa', icon: 'map-marked-alt', bg: '#e879f9', fg: '#111111' },
-  Parking: { iconSet: 'fa', icon: 'parking', bg: '#a3e635', fg: '#111111' },
-  RTO: { iconSet: 'fa', icon: 'landmark', bg: '#f97316', fg: '#111111' },
-  Towing: { iconSet: 'fa', icon: 'truck-pickup', bg: '#94a3b8', fg: '#111111' },
-  TyreShop: { iconSet: 'mc', icon: 'car-tire-alert', bg: '#fb7185', fg: '#111111' },
-  Insurance: { iconSet: 'fa', icon: 'shield-alt', bg: '#34d399', fg: '#0a0a0a' },
-  DocumentServices: { iconSet: 'fa', icon: 'file-alt', bg: '#c084fc', fg: '#111111' },
-  CarSpa: { iconSet: 'mc', icon: 'car-wash', bg: '#2dd4bf', fg: '#111111' },
-};
 
 function NearbyPlacesListScreen({
   onBack,
@@ -467,6 +388,7 @@ export default function NearbyPlaces() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedServices, setSelectedServices] = useState<PlaceType[]>(['FuelStations']);
+  const selectedServicesRef = useRef<PlaceType[]>(['FuelStations']);
   const [mapResults, setMapResults] = useState<Record<PlaceType, NearbyPlace[]>>({} as Record<PlaceType, NearbyPlace[]>);
   
   const fromHome = route.params?.fromHome;
@@ -479,7 +401,7 @@ export default function NearbyPlaces() {
     else navigation.goBack();
   };
 
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'ios') {
       try {
         if (Geolocation?.requestAuthorization) {
@@ -494,9 +416,9 @@ export default function NearbyPlaces() {
     if (has) return true;
     const result = await PermissionsAndroid.request(fine);
     return result === PermissionsAndroid.RESULTS.GRANTED;
-  };
+  }, []);
 
-  const fetchLocation = (): Promise<{ lat: number; lon: number } | null> => {
+  const fetchLocation = useCallback((): Promise<{ lat: number; lon: number } | null> => {
     return new Promise((resolve) => {
       if (!Geolocation) {
         setLocationError('Location is not available.');
@@ -522,21 +444,17 @@ export default function NearbyPlaces() {
         { enableHighAccuracy: true, timeout: 15000 },
       );
     });
-  };
+  }, []);
 
   const getCacheKey = (service: PlaceType, coords: { lat: number; lon: number }) =>
     `${service}:${coords.lat.toFixed(3)}:${coords.lon.toFixed(3)}:${MAP_RADIUS_METERS}`;
 
-  const fetchOneServiceForMap = async (
+  const fetchOneServiceForMap = useCallback(async (
     coords: { lat: number; lon: number },
     service: PlaceType,
     force = false,
   ) => {
-    const apiType = PLACE_API_TYPE[service];
-    if (!apiType) {
-      setMapResults((prev) => ({ ...prev, [service]: [] }));
-      return;
-    }
+    const apiType = nearbyServiceApiTypes[service];
 
     const cacheKey = getCacheKey(service, coords);
     const cached = cacheRef.current[cacheKey];
@@ -549,9 +467,9 @@ export default function NearbyPlaces() {
     const list = await placesService.getNearby(coords.lat, coords.lon, apiType, MAP_RADIUS_METERS);
     cacheRef.current[cacheKey] = { ts: Date.now(), data: list };
     setMapResults((prev) => ({ ...prev, [service]: list }));
-  };
+  }, [MAP_CACHE_TTL_MS, MAP_RADIUS_METERS]);
 
-  const fetchServicesForMap = async (
+  const fetchServicesForMap = useCallback(async (
     coords: { lat: number; lon: number },
     services: PlaceType[],
     force = false,
@@ -566,26 +484,30 @@ export default function NearbyPlaces() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [fetchOneServiceForMap]);
 
-  const initData = async (force = false) => {
+  useEffect(() => {
+    selectedServicesRef.current = selectedServices;
+  }, [selectedServices]);
+
+  const initData = useCallback(async (force = false) => {
     const permitted = await requestLocationPermission();
     if (!permitted) return;
     const coords = await fetchLocation();
     if (coords) {
       setLocation(coords);
-      await fetchServicesForMap(coords, selectedServices, force);
+      await fetchServicesForMap(coords, selectedServicesRef.current, force);
     }
-  };
+  }, [fetchLocation, fetchServicesForMap, requestLocationPermission]);
 
   useEffect(() => {
     initData();
-  }, []);
+  }, [initData]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     initData(true);
-  };
+  }, [initData]);
 
   const toggleService = async (service: PlaceType) => {
     const exists = selectedServices.includes(service);
@@ -602,7 +524,7 @@ export default function NearbyPlaces() {
   );
 
   if (placeType) {
-    const apiType = PLACE_API_TYPE[placeType];
+    const apiType = nearbyServiceApiTypes[placeType];
     if (!apiType) {
       return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -623,7 +545,7 @@ export default function NearbyPlaces() {
     return (
       <NearbyPlacesListScreen
         onBack={handleBack}
-        title={PLACE_LABELS[placeType]}
+        title={nearbyServiceLabels[placeType]}
         placeType={placeType}
         apiType={apiType}
       />
@@ -659,13 +581,13 @@ export default function NearbyPlaces() {
             >
                 {mapMarkers.map((place, index) => (
                   (() => {
-                    const marker = SERVICE_MARKER_STYLE[place.service] || { iconSet: 'fa', icon: 'map-pin', bg: '#1f2937', fg: '#fff' };
+                    const marker = nearbyServiceMarkerStyles[place.service as PlaceType] || { iconSet: 'fa', icon: 'map-pin', bg: '#1f2937', fg: '#fff' };
                     return (
                   <Marker
                     key={`${place.placeId || place.name}-${place.service}-${index}`}
                     coordinate={{ latitude: place.latitude, longitude: place.longitude }}
                     title={place.name}
-                    description={`${PLACE_LABELS[place.service]}${place.distanceText ? ` • ${place.distanceText} from you` : ''}`}
+                    description={`${nearbyServiceLabels[place.service as PlaceType] ?? place.service}${place.distanceText ? ` • ${place.distanceText} from you` : ''}`}
                     onCalloutPress={() => openMapsNavigation(place.latitude, place.longitude, place.name)}
                   >
                     <View style={[styles.mapMarkerPin, { backgroundColor: marker.bg, borderColor: marker.bg }]}>
@@ -697,7 +619,7 @@ export default function NearbyPlaces() {
         <View style={styles.gridSection}>
           <Text style={styles.sectionHeading}>Services</Text>
           <View style={styles.gridRow}>
-            {PLACE_ITEMS.map((item) => {
+            {nearbyPickerServices.map((item) => {
               const selected = selectedServices.includes(item.id);
               return (
                 <TouchableOpacity
@@ -713,7 +635,7 @@ export default function NearbyPlaces() {
                       <Icon name={item.icon as any} size={wp(4.2)} color={selected ? '#000' : '#fff'} />
                     )}
                   </View>
-                  <Text style={[styles.serviceChipText, selected ? styles.serviceChipTextActive : null]}>{item.name}</Text>
+                  <Text style={[styles.serviceChipText, selected ? styles.serviceChipTextActive : null]}>{item.shortName}</Text>
                 </TouchableOpacity>
               );
             })}

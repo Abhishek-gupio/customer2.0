@@ -9,7 +9,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
   Image,
 } from 'react-native';
@@ -26,7 +25,36 @@ import {
 } from 'react-native-responsive-screen';
 import { generatePDF as RNGeneratePDF } from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
-import RNFS from 'react-native-fs';
+
+type DlDetails = {
+  issueDate: string;
+  expiryDate: string;
+  authority: string;
+  name: string;
+  dobValue: string;
+  fatherName: string;
+  address: string;
+  vehicleClasses: string[];
+  licenseNumber: string;
+};
+
+function getDlDetails(data: any): DlDetails {
+  const details = data?.details_of_driving_licence || data?.details_of_driving_license || {};
+  const validity = data?.dl_validity || {};
+  const badgeDetails = data?.badge_details?.[0] || {};
+  return {
+    issueDate: details.date_of_issue || validity.non_transport?.from || 'N/A',
+    expiryDate: validity.non_transport?.to || 'N/A',
+    authority: details.ola_name || data?.ola_name || 'RTO,HASSAN',
+    name: details.name || 'N/A',
+    dobValue: data?.dob || 'N/A',
+    fatherName: details.father_or_husband_name || 'N/A',
+    address: details.address || data?.address || 'N/A',
+    vehicleClasses: badgeDetails.class_of_vehicle || data?.class_of_vehicle || [],
+    licenseNumber: data?.dl_number || data?.dl_no || 'N/A',
+  };
+}
+
 export default function DLVerification() {
   const navigation = useNavigation();
   const [dlNumber, setDlNumber] = useState('');
@@ -89,7 +117,7 @@ export default function DLVerification() {
           setDlNumber('');
           setDob('');
           showStatus('Success', 'License removed successfully');
-        } catch (e) {
+        } catch {
           showStatus('Error', 'Failed to delete license', 'error');
         }
       }
@@ -102,18 +130,17 @@ export default function DLVerification() {
     try {
       setLoading(true);
       const data = verificationResult;
-      const details = data.details_of_driving_licence || data.details_of_driving_license || {};
-      const validity = data.dl_validity || {};
-      const badgeDetails = data.badge_details?.[0] || {};
-      const vehicleClasses = badgeDetails.class_of_vehicle || data.class_of_vehicle || [];
-      
-      const issueDate = details.date_of_issue || validity.non_transport?.from || 'N/A';
-      const expiryDate = validity.non_transport?.to || 'N/A';
-      const authority = details.ola_name || data.ola_name || 'RTO,HASSAN';
-      const name = details.name || 'N/A';
-      const dobValue = data.dob || 'N/A';
-      const fatherName = details.father_or_husband_name || 'N/A';
-      const address = details.address || data.address || 'N/A';
+      const {
+        issueDate,
+        expiryDate,
+        authority,
+        name,
+        dobValue,
+        fatherName,
+        address,
+        vehicleClasses,
+        licenseNumber,
+      } = getDlDetails(data);
 
       const htmlContent = `
         <html>
@@ -149,7 +176,7 @@ export default function DLVerification() {
               </div>
               <div class="meta-row">
                 <div><span>Authorization to Drive:</span> <span>${vehicleClasses.join(', ')}</span></div>
-                <div><span>License No:</span> <span>${data.dl_number || data.dl_no}</span></div>
+                <div><span>License No:</span> <span>${licenseNumber}</span></div>
               </div>
               <div class="meta-row" style="font-size: 11px; color: #555; margin-top: 10px;">
                 <div><span>Date of Issue:</span> <span>${issueDate}</span></div>
@@ -185,9 +212,9 @@ export default function DLVerification() {
 
       const file = await RNGeneratePDF(options);
       return file?.filePath;
-    } catch (e: any) {
+    } catch (error: any) {
       setLoading(false);
-      showStatus('Error', e.message || 'Could not generate certificate PDF.', 'error');
+      showStatus('Error', error.message || 'Could not generate certificate PDF.', 'error');
       return null;
     } finally {
       setLoading(false);
@@ -202,7 +229,7 @@ export default function DLVerification() {
         url: `file://${path}`,
         type: 'application/pdf',
       });
-    } catch (e: any) {
+    } catch {
       showStatus('Share Failed', 'Unable to open share sheet.', 'error');
     }
   };
@@ -236,18 +263,17 @@ export default function DLVerification() {
     if (!verificationResult) return null;
 
     const data = verificationResult;
-    const details = data.details_of_driving_licence || data.details_of_driving_license || {};
-    const validity = data.dl_validity || {};
-    const badgeDetails = data.badge_details?.[0] || {};
-    const vehicleClasses = badgeDetails.class_of_vehicle || data.class_of_vehicle || [];
-    
-    const issueDate = details.date_of_issue || validity.non_transport?.from || 'N/A';
-    const expiryDate = validity.non_transport?.to || 'N/A';
-    const authority = details.ola_name || data.ola_name || 'RTO,HASSAN';
-    const name = details.name || 'N/A';
-    const dobValue = data.dob || 'N/A';
-    const fatherName = details.father_or_husband_name || 'N/A';
-    const address = details.address || data.address || 'N/A';
+    const {
+      issueDate,
+      expiryDate,
+      authority,
+      name,
+      dobValue,
+      fatherName,
+      address,
+      vehicleClasses,
+      licenseNumber,
+    } = getDlDetails(data);
 
     return (
       <ScrollView contentContainerStyle={styles.certificateWrapper} showsVerticalScrollIndicator={false}>
@@ -256,7 +282,7 @@ export default function DLVerification() {
              <View style={styles.pillarContainer}>
                 <Image 
                   source={require('../../assets/images/indian_lion.png') as any} 
-                  style={{ width: wp(12), height: wp(12) }} 
+                  style={styles.pillarImage} 
                   resizeMode="contain" 
                 />
              </View>
@@ -268,14 +294,14 @@ export default function DLVerification() {
              <View style={styles.certMetaRow}>
                 <Text style={styles.certMetaLabel}>Authorization to Drive :</Text>
                 <Text style={styles.certMetaValue}>{vehicleClasses.join(', ') || 'N/A'}</Text>
-                <View style={{ flex: 1 }} />
+                <View style={styles.flexSpacer} />
                 <Text style={styles.certMetaLabelSmall}>Date of Issue :</Text>
                 <Text style={styles.certMetaValueSmall}>{issueDate}</Text>
              </View>
              <View style={styles.certMetaRow}>
                 <Text style={styles.certMetaLabel}>License No. :</Text>
-                <Text style={styles.certMetaValue}>{data.dl_number || data.dl_no || 'N/A'}</Text>
-                <View style={{ flex: 1 }} />
+                <Text style={styles.certMetaValue}>{licenseNumber}</Text>
+                <View style={styles.flexSpacer} />
                 <Text style={styles.certMetaLabelSmall}>Date of Expiry :</Text>
                 <Text style={styles.certMetaValueSmall}>{expiryDate}</Text>
              </View>
@@ -327,9 +353,9 @@ export default function DLVerification() {
              </View>
              
              <View style={styles.digilockerPowered}>
-                <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#6366f1' }}>Powered by</Text>
-                <View style={{ backgroundColor: '#6366f1', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                   <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>DigiLocker</Text>
+                <Text style={styles.poweredByText}>Powered by</Text>
+                <View style={styles.poweredByBadge}>
+                   <Text style={styles.poweredByBadgeText}>DigiLocker</Text>
                 </View>
              </View>
 
@@ -367,7 +393,7 @@ export default function DLVerification() {
       <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        style={styles.keyboardContainer}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -386,14 +412,14 @@ export default function DLVerification() {
                  </TouchableOpacity>
                  <TouchableOpacity 
                    onPress={() => setVerificationResult(null)} 
-                   style={[styles.actionIcon, { marginLeft: 15 }]}
+                   style={[styles.actionIcon, styles.actionIconSpacing]}
                    disabled={loading}
                  >
                      <Icon name="plus" size={24} color={loading ? "#444" : "#fff"} />
                  </TouchableOpacity>
                  <TouchableOpacity 
                    onPress={handleDelete} 
-                   style={[styles.actionIcon, { marginLeft: 15 }]}
+                   style={[styles.actionIcon, styles.actionIconSpacing]}
                    disabled={loading}
                  >
                      <Icon name="trash-2" size={22} color={loading ? "#444" : "#ff453a"} />
@@ -449,7 +475,7 @@ export default function DLVerification() {
               <TouchableOpacity
                 style={[
                   styles.verifyButton,
-                  { opacity: dlNumber.length > 5 && !loading ? 1 : 0.6 }
+                  !(dlNumber.length > 5 && !loading) && styles.verifyButtonDisabled
                 ]}
                 disabled={dlNumber.length <= 5 || loading}
                 onPress={handleVerify}
@@ -523,8 +549,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  keyboardContainer: {
+    flex: 1,
+  },
   actionIcon: {
       padding: 5,
+  },
+  actionIconSpacing: {
+      marginLeft: 15,
   },
   disabledActionIcon: {
       opacity: 0.5,
@@ -656,6 +688,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pillarImage: {
+    width: wp(12),
+    height: wp(12),
+  },
   certTitleLine1: {
     color: '#000',
     fontSize: wp(4),
@@ -697,6 +733,9 @@ const styles = StyleSheet.create({
     fontSize: wp(2.2),
     fontFamily: 'Outfit-Bold',
     color: '#000',
+  },
+  flexSpacer: {
+    flex: 1,
   },
   certInfoGrid: {
     flexDirection: 'row',
@@ -771,6 +810,22 @@ const styles = StyleSheet.create({
   digilockerPowered: {
     alignItems: 'center',
   },
+  poweredByText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#6366f1',
+  },
+  poweredByBadge: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  poweredByBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   signedBadge: {
     borderWidth: 1,
     borderColor: '#eee',
@@ -808,5 +863,8 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Outfit-Regular',
     marginBottom: 1,
+  },
+  verifyButtonDisabled: {
+    opacity: 0.6,
   },
 });

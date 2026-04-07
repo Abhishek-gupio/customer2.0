@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Modal,
   View,
@@ -18,6 +18,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
+import { warrantyService } from "../../services/warrantyService";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
@@ -151,7 +152,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     setStatusModal({ visible: true, type, title, message });
   };
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     try {
       const data = await vehicleService.getVehicles();
       setVehicles(data);
@@ -165,16 +166,9 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     } catch (err) {
       console.error("Failed to fetch vehicles:", err);
     }
-  };
+  }, []);
 
-  React.useEffect(() => {
-    if (visible) {
-      fetchVehicles();
-      fetchCurrentPlace();
-    }
-  }, [visible]);
-
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === "ios") {
       try {
         if (Geolocation?.requestAuthorization) {
@@ -206,9 +200,9 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     } catch {
       return false;
     }
-  };
+  }, []);
 
-  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+  const getGpsPosition = useCallback(async (): Promise<{ latitude: number; longitude: number } | null> => {
     if (!Geolocation) return null;
 
     const permitted = await requestLocationPermission();
@@ -241,9 +235,9 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       maximumAge: 60000,
       forceRequestLocation: true,
     });
-  };
+  }, [requestLocationPermission]);
 
-  const fetchCurrentPlace = async () => {
+  const fetchCurrentPlace = useCallback(async () => {
     try {
       setPlaceSearch("Fetching...");
       setSelectedPlace(null);
@@ -266,7 +260,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       console.log("Place detection failed:", error);
       setPlaceSearch("Location not available");
     }
-  };
+  }, [getGpsPosition]);
+
+  React.useEffect(() => {
+    if (visible) {
+      fetchVehicles();
+      fetchCurrentPlace();
+    }
+  }, [fetchCurrentPlace, fetchVehicles, visible]);
 
   React.useEffect(() => {
     if (visible && initialData) {
@@ -316,7 +317,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const [loading, setLoading] = useState(false);
 
   const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Repair', 'Insurance', 'Challan', 'Emi', 'Other'];
-  const isValid = amount.trim().length > 0;
+  const isAmountValid = amount.trim().length > 0;
 
   const openDatePicker = () => {
     const parsed = parseManualDate(date);
@@ -345,7 +346,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   }, [calendarMonth]);
 
   const handleSave = async () => {
-    if (!isValid) return;
+    if (!isAmountValid) return;
 
     setLoading(true);
     let payload: any;
@@ -355,7 +356,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         try {
           const d = parse(date, "dd-MM-yyyy", new Date());
           if (!isNaN(d.getTime())) parsedDate = d.toISOString();
-        } catch (_) { }
+        } catch { }
       }
 
       const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other';
@@ -412,7 +413,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         !warrantySyncError &&
         !serviceRecord
       ) {
-        await api.post('/v1/expenses/warranty/service-records', {
+        await warrantyService.syncExpenseToWarrantyRecord({
           vehicleId: targetVehicleId,
           expenseId: responseData?.expense?.id,
           serviceType: 'REGULAR_SERVICE',
@@ -489,7 +490,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         <Pressable style={styles.backdrop} onPress={() => { if (!loading) onClose(); }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ width: "100%", alignItems: "center" }}
+            style={styles.keyboardCenter}
           >
             <Pressable style={styles.panel} onPress={() => { }}>
 
@@ -825,6 +826,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.95)",
     justifyContent: "center",
+    alignItems: "center",
+  },
+  keyboardCenter: {
+    width: "100%",
     alignItems: "center",
   },
   panel: {

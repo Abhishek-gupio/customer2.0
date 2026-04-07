@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -19,90 +19,25 @@ import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { vehicleService, Vehicle } from '../../services/vehicleService';
-import { api } from '../../services/api';
 import type { RootStackParamList } from '../../navigation/types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-
-const PART_TYPE_OPTIONS = [
-    { label: 'Battery', value: 'BATTERY' },
-    { label: 'Engine Oil', value: 'ENGINE_OIL' },
-    { label: 'Oil Filter', value: 'OIL_FILTER' },
-    { label: 'Air Filter', value: 'AIR_FILTER' },
-    { label: 'Brake Pads', value: 'BRAKE_PADS' },
-    { label: 'Brake Discs', value: 'BRAKE_DISCS' },
-    // { label: 'Tyres (All)', value: 'TYRES' },
-    { label: 'Tyres (Front)', value: 'TYRES_FRONT' },
-    { label: 'Tyres (Rear)', value: 'TYRES_REAR' },
-    { label: 'Clutch Plate', value: 'CLUTCH_PLATE' },
-    { label: 'Spark Plugs', value: 'SPARK_PLUGS' },
-    { label: 'Coolant', value: 'COOLANT' },
-    { label: 'AC Filter', value: 'AC_FILTER' },
-    { label: 'Wiper Blades', value: 'WIPER_BLADES' },
-    { label: 'Headlight Bulb', value: 'HEADLIGHT_BULB' },
-    { label: 'Other Part', value: 'OTHER_PART' },
-];
-
-const PART_TYPE_LABELS = PART_TYPE_OPTIONS.reduce<Record<string, string>>(
-    (acc, item) => {
-        acc[item.value] = item.label;
-        return acc;
-    },
-    {}
-);
+import { PART_TYPE_OPTIONS, getPartTypeLabel } from '../../constants/partTypes';
+import { warrantyService } from '../../services/warrantyService';
+import { subscribeWarrantyStatusRefresh } from '../../utils/refreshManager';
 
 const getPartLabel = (partType?: string) => {
     if (!partType) {
         return 'All';
     }
 
-    return PART_TYPE_LABELS[partType] || partType.replace(/_/g, ' ') || 'All';
+    return getPartTypeLabel(partType) || 'All';
 };
-
-function mapRecordToCard(record: any): any {
-    const serviceType = record.serviceType || 'SERVICE';
-    const serviceLabel = serviceType.replace(/_/g, ' ');
-    const partLabels = record.parts?.length
-        ? record.parts.map((p: any) => {
-              const partType = p.partType || '';
-              return PART_TYPE_LABELS[partType] || partType.replace(/_/g, ' ') || partType;
-          })
-        : [];
-    const date = record.serviceDate
-        ? new Date(record.serviceDate).toLocaleDateString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-          })
-        : '';
-    const parts = partLabels.join(', ');
-    const nextService = record.nextServiceKm
-        ? `Next at ${record.nextServiceKm.toLocaleString()} km`
-        : record.nextServiceDate
-          ? new Date(record.nextServiceDate).toLocaleDateString('en-IN')
-          : '';
-
-    return {
-        id: String(record.id),
-        title: serviceLabel || 'Service',
-        serviceType,
-        serviceLabel,
-        partLabels,
-        garage: record.garageName || '-',
-        date,
-        odometer: record.odometerAtService
-            ? `${record.odometerAtService.toLocaleString()} km`
-            : undefined,
-        parts: parts || undefined,
-        nextService: nextService || undefined,
-    };
-}
 
 type ServiceHistoryProps = NativeStackScreenProps<RootStackParamList, 'ServiceHistory'>;
 
 export default function ServiceHistoryScreen({ navigation, route }: ServiceHistoryProps) {
     const [loading, setLoading] = useState(true);
-    const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+    const [vehicle, setVehicle] = useState<{ registrationNumber?: string } | null>(null);
     const [records, setRecords] = useState<any[]>([]);
     const [selectedFilter, setSelectedFilter] = useState('All');
 
@@ -142,23 +77,16 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
         const nextSelectedFilter = getPartLabel(route?.params?.selectedPartType);
         setLoading(true);
         try {
-            const vehicles = await vehicleService.getVehicles();
-            const primary =
-                vehicles.find((v: Vehicle) => v.isPrimary) || vehicles[0];
-
-            if (!primary) {
+            const history = await warrantyService.fetchPrimaryWarrantyHistory();
+            if (!history.vehicle) {
                 setVehicle(null);
                 setRecords([]);
                 setSelectedFilter(nextSelectedFilter);
                 return;
             }
 
-            setVehicle(primary);
-            const res = await api.get<any>(
-                `/v1/expenses/warranty/vehicles/${primary.id}/history`
-            );
-            const data = (res as any).data ?? res;
-            setRecords(Array.isArray(data) ? data.map(mapRecordToCard) : []);
+            setVehicle(history.vehicle);
+            setRecords(history.records);
             setSelectedFilter(nextSelectedFilter);
         } catch (err) {
             console.error('Service history fetch failed:', err);
@@ -174,6 +102,13 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
             fetchData();
         }, [fetchData])
     );
+
+    useEffect(() => {
+        const unsubscribe = subscribeWarrantyStatusRefresh(() => {
+            fetchData();
+        });
+        return unsubscribe;
+    }, [fetchData]);
 
     return (
         <SafeAreaView style={styles.safe}>
