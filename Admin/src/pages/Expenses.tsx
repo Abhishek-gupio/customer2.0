@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   type ColumnDef,
   getCoreRowModel,
@@ -28,8 +28,12 @@ type ViewMode = 'CUSTOMERS' | 'TRANSACTIONS';
 
 export default function Expenses() {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>('CUSTOMERS');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const customerIdParam = searchParams.get('customerId');
+
+  const [viewMode, setViewMode] = useState<ViewMode>(customerIdParam ? 'TRANSACTIONS' : 'CUSTOMERS');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerListItem | null>(null);
+
   
   const [customerData, setCustomerData] = useState<{
     data: CustomerListItem[];
@@ -86,6 +90,35 @@ export default function Expenses() {
       ignore = true;
     };
   }, [page, debouncedSearch, viewMode, selectedCustomer]);
+
+  // Sync viewMode with customerIdParam
+  useEffect(() => {
+    if (customerIdParam) {
+      setViewMode('TRANSACTIONS');
+      // If we have the ID but no customer object, fetch it
+      if (!selectedCustomer || selectedCustomer.id !== customerIdParam) {
+        adminApi.getCustomer(customerIdParam).then(res => {
+          if (res.success) {
+            // Map CustomerDetail to CustomerListItem (or enough of it)
+            const d = res.data;
+            setSelectedCustomer({
+              id: d.id,
+              fullName: d.fullName,
+              phoneNumber: d.phoneNumber,
+              email: d.email,
+              profilePic: d.profilePic,
+              createdAt: d.createdAt,
+              _count: d._count
+            });
+          }
+        });
+      }
+    } else {
+      setViewMode('CUSTOMERS');
+      setSelectedCustomer(null);
+    }
+  }, [customerIdParam]);
+
 
   const customerColumns = useMemo<ColumnDef<CustomerListItem>[]>(
     () => [
@@ -215,8 +248,7 @@ export default function Expenses() {
   };
 
   const resetView = () => {
-     setViewMode('CUSTOMERS');
-     setSelectedCustomer(null);
+     setSearchParams({});
      setPage(1);
      setSearch('');
   };
@@ -224,9 +256,12 @@ export default function Expenses() {
   const selectCustomer = (customer: CustomerListItem) => {
      setSelectedCustomer(customer);
      setViewMode('TRANSACTIONS');
+     setSearchParams({ customerId: customer.id });
      setPage(1);
      setSearch('');
   };
+
+
 
   return (
     <div className="flex-1 flex flex-col min-h-0 space-y-4 pb-8 h-full">

@@ -8,7 +8,9 @@ interface Admin {
   email: string;
   name?: string | null;
   role: AdminRole;
+  canAccessCustomers?: boolean;
 }
+
 
 interface AuthState {
   admin: Admin | null;

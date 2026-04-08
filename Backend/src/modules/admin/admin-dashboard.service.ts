@@ -3,7 +3,9 @@ import axios from "axios";
 import crypto from 'crypto';
 import { storageService } from "../../services/storage.service";
 import { AppError } from "../../utils/AppError";
+import { adminPermissionsService } from "../../services/admin-permissions.service";
 import type { AdminRole } from "@repo/db-customer";
+
 
 async function withReadablePic<T extends { profilePic?: string | null }>(obj: T): Promise<T> {
   if (!obj.profilePic) return obj;
@@ -869,4 +871,76 @@ export const adminDashboardService = {
       assetIndex: updated.assetIndex,
     };
   },
+
+  /** List all admin users with pagination and search. SUPER_ADMIN only. */
+  async listAdmins(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (params.search?.trim()) {
+      const q = params.search.trim();
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const [admins, total] = await Promise.all([
+      dbInstances.adminUser.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      }),
+      dbInstances.adminUser.count({ where }),
+    ]);
+
+    // Enrichment with permissions
+    const enrichedAdmins = admins.map((admin: any) => ({
+      ...admin,
+      canAccessCustomers: admin.role === 'SUPPORT' 
+        ? adminPermissionsService.hasCustomerAccess(admin.id)
+        : true
+    }));
+
+
+    return {
+      data: enrichedAdmins,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  },
+
+
+  /** Delete one or more admin users. SUPER_ADMIN only. */
+  async deleteAdmins(adminIds: string[], currentAdminId: string) {
+    if (!adminIds.length) return { count: 0 };
+
+    // Prevent self-deletion
+    const filteredIds = adminIds.filter(id => id !== currentAdminId);
+    
+    if (filteredIds.length === 0) {
+      throw AppError.badRequest("You cannot delete your own account.");
+    }
+
+    const result = await dbInstances.adminUser.deleteMany({
+      where: { id: { in: filteredIds } }
+    });
+
+    return { count: result.count };
+  },
 };
+

@@ -8,20 +8,29 @@ import {
   Ticket,
   CarFront,
   LibraryBig,
+  UserCircle,
+  Shield,
 } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 import ShinyText from './ui/ShinyText/ShinyText';
 import { ConfirmationModal } from './ui/ConfirmationModal';
+import { ProfileModal } from './ui/ProfileModal';
+import logo from '../assets/images/logo.png';
+
+
 
 const navItems = [
-  { to: '/',               label: 'Dashboard',  icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'white'  },
-  { to: '/customers',      label: 'Customers',  icon: Users,           roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'emerald'},
-  { to: '/vehicles',       label: 'Vehicles',   icon: CarFront,        roles: ['SUPER_ADMIN', 'ADMIN'],           color: 'blue'   },
-  { to: '/car-library',    label: 'Car Library',icon: LibraryBig,      roles: ['ADMIN'],           color: 'violet' },
-  { to: '/tickets',        label: 'Tickets',    icon: Ticket,          roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red'    },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'white' },
+  { to: '/customers', label: 'Customers', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'emerald' },
+  { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
+  { to: '/car-library', label: 'Car Library', icon: LibraryBig, roles: ['ADMIN'], color: 'violet' },
+  { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red' },
+  { to: '/manage-admins', label: 'Admins', icon: Shield, roles: ['SUPER_ADMIN'], color: 'white' },
 ];
+
+
 
 const colorStyles: Record<string, { glow: string; border: string; bg: string; icon: string }> = {
   white: {
@@ -71,6 +80,8 @@ export default function Shell() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  const [showProfileModal, setShowProfileModal] = React.useState(false);
+
 
   // Redirect SUPPORT role to /tickets if they land on /
   React.useEffect(() => {
@@ -102,113 +113,176 @@ export default function Shell() {
     return (
       <div className="flex h-full flex-col bg-[#050505] p-3">
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between pb-6 pt-3 px-3">
+        <div className={cn(
+          "flex flex-col pb-6 pt-10",
+          isCollapsed ? "gap-8 px-0 items-center" : "gap-10 px-4"
+
+        )}>
+
+          {/* Logo Row */}
           <div className={cn(
-            "flex flex-col pt-1 transition-all duration-300 origin-left overflow-hidden",
-            isCollapsed ? "max-w-0 opacity-0 -translate-x-4" : "max-w-[200px] opacity-100 translate-x-0"
+            "flex items-center",
+            isCollapsed && "justify-center"
           )}>
-            <div className="text-[13px] text-[#a1a1aa] font-medium leading-tight whitespace-nowrap uppercase tracking-wider">Customer</div>
-            <ShinyText 
-              text="Admin Dashboard" 
-              disabled={false} 
-              speed={3} 
-              className="text-[19px] font-extrabold text-white tracking-tight mt-0.5 whitespace-nowrap"
+            <img
+              src={logo}
+              alt="Logo"
+              className={cn(
+                "h-11 w-auto object-contain brightness-110 contrast-125 transition-all duration-300",
+                isCollapsed && "h-6"
+
+
+              )}
             />
           </div>
-          {!isMobile && (
+
+
+          {/* Text & Toggle Row */}
+          <div className={cn(
+            "flex items-center justify-between transition-all duration-300 origin-top overflow-hidden",
+            isCollapsed ? "max-h-0 opacity-0 -translate-y-2" : "max-h-[70px] opacity-100 translate-y-0"
+
+          )}>
+            <div className="flex flex-col">
+              <div className="text-[12px] text-[#a1a1aa] font-black leading-none uppercase tracking-[0.25em]">Customer</div>
+              <div className="text-[20px] font-black text-white tracking-tighter leading-none mt-2">
+                Dashboard
+
+              </div>
+            </div>
+
+
+            {!isMobile && (
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 bg-transparent"
+                title="Collapse"
+              >
+                <div className="transition-transform duration-500 ease-out">
+                  <PanelLeftClose className="h-5 w-5 text-white" />
+                </div>
+              </button>
+            )}
+          </div>
+
+          {/* Visible Toggle when collapsed */}
+          {isCollapsed && !isMobile && (
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className={cn(
-                "flex h-[28px] w-[28px] flex-shrink-0 items-center justify-center rounded-md border border-white/10 hover:bg-white/10 transition-all duration-300",
-                isCollapsed ? "bg-white/5 translate-x-0" : "bg-transparent translate-x-0"
-              )}
-              title={isCollapsed ? "Expand" : "Collapse"}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 bg-white/5"
+              title="Expand"
             >
-              <div className="transition-transform duration-500 ease-out" style={{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                <PanelLeftClose className="h-[14px] w-[14px] text-white" />
+              <div className="rotate-180 transition-transform duration-500 ease-out">
+                <PanelLeftClose className="h-5 w-5 text-white" />
               </div>
             </button>
           )}
+
+
         </div>
 
+
         {/* Navigation Links */}
-        <nav className="flex-1 space-y-1.5 pt-2">
+        <nav className={cn(
+          "flex-1 pt-2 space-y-1.5",
+          isCollapsed ? "flex flex-col items-center" : "block"
+        )}>
+
           {navItems
-            .filter((item) => !admin || (item.roles as string[]).includes(admin.role))
+            .filter((item) => {
+              if (!admin) return false;
+
+              // Standard role check
+              const hasRole = (item.roles as string[]).includes(admin.role);
+              if (!hasRole) return false;
+
+              // Special logic for SUPPORT
+              if (admin.role === 'SUPPORT') {
+                // Support can ONLY see Tickets and Customers (if activated)
+                if (item.to === '/tickets') return true;
+                if (item.to === '/customers') return !!(admin as any).canAccessCustomers;
+                return false;
+              }
+
+              return true;
+            })
+
             .map((item) => {
-            const Icon = item.icon;
-            const sourceContext = location.state?.sourceContext;
-            const isActive = sourceContext 
-              ? item.to === `/${sourceContext}`
-              : (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to));
+              const Icon = item.icon;
+              const sourceContext = location.state?.sourceContext;
+              const isActive = sourceContext
+                ? item.to === `/${sourceContext}`
+                : (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to));
 
-            const styles = colorStyles[item.color];
+              const styles = colorStyles[item.color];
 
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  "group relative flex h-[46px] items-center gap-[14px] transition-all duration-200 rounded-xl",
-                  isActive
-                    ? `bg-gradient-to-r ${styles.bg} to-transparent`
-                    : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
-                  isCollapsed ? "justify-center px-0" : "px-4"
-                )}
-              >
-                {/* Fade Colored Glow Border */}
-                {isActive && (
-                  <>
-                    <div
-                      className="pointer-events-none absolute inset-0 rounded-xl ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_15px_rgba(0,0,0,0.05)]"
-                      style={{
-                        boxShadow: `0 0 15px ${styles.glow}25, inset 0 0 15px ${styles.glow}15`,
-                        maskImage: 'linear-gradient(to right, white 10%, transparent 90%)',
-                        WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)'
-                      }}
-                    />
-                    <div
-                      className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
-                      style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
-                    />
-                    {/* Thick glowing left line */}
-                    <div
-                      className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full"
-                      style={{
-                        backgroundColor: styles.border,
-                        boxShadow: `0 0 10px 2px ${styles.border}80`
-                      }}
-                    />
-                  </>
-                )}
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "group relative flex h-[46px] items-center transition-all duration-200 rounded-xl",
+                    isActive
+                      ? `bg-gradient-to-r ${styles.bg} to-transparent`
+                      : "text-[#e4e4e7] hover:text-white hover:bg-white/[0.03]",
+                    isCollapsed ? "w-[46px] justify-center px-0 gap-0" : "w-full px-4 gap-[14px]"
+                  )}
 
-                <Icon className={cn(
-                  "transition-colors duration-200 z-10",
-                  isActive ? styles.icon : "text-white/80 group-hover:text-white",
-                  isCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
-                )} />
 
-                <span className={cn(
-                  "text-[14px] transition-all duration-300 z-10 text-white tracking-[0.01em] whitespace-nowrap overflow-hidden",
-                  isCollapsed ? "max-w-0 opacity-0 translate-x-2" : "max-w-[200px] opacity-100 translate-x-0",
-                  isActive ? "font-semibold" : "font-medium"
-                )}>
-                  {item.label}
-                </span>
+                >
+                  {/* Fade Colored Glow Border */}
+                  {isActive && (
+                    <>
+                      <div
+                        className="pointer-events-none absolute inset-0 rounded-xl ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_15px_rgba(0,0,0,0.05)]"
+                        style={{
+                          boxShadow: `0 0 15px ${styles.glow}25, inset 0 0 15px ${styles.glow}15`,
+                          maskImage: 'linear-gradient(to right, white 10%, transparent 90%)',
+                          WebkitMaskImage: 'linear-gradient(to right, white 10%, transparent 90%)'
+                        }}
+                      />
+                      <div
+                        className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/10"
+                        style={{ maskImage: 'linear-gradient(to left, white 20%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to left, white 20%, transparent 80%)' }}
+                      />
+                      {/* Thick glowing left line */}
+                      <div
+                        className="absolute -left-[1px] top-[15%] bottom-[15%] w-[2px] rounded-r-full"
+                        style={{
+                          backgroundColor: styles.border,
+                          boxShadow: `0 0 10px 2px ${styles.border}80`
+                        }}
+                      />
+                    </>
+                  )}
 
-                {/* Tooltip for Collapsed Sidebar */}
-                {isCollapsed && (
-                  <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">
-                      <span className="text-[12px] font-semibold text-[#e4e4e7] whitespace-nowrap leading-none tracking-wide text-shadow-sm">{item.label}</span>
-                      <div className="absolute -left-[5px] top-[50%] -translate-y-1/2 h-[10px] w-[10px] bg-[#0c0c0c] border-l border-t border-white/10 -rotate-45 rounded-sm" />
+                  <Icon className={cn(
+                    "transition-colors duration-200 z-10",
+                    isActive ? styles.icon : "text-white/80 group-hover:text-white",
+                    isCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
+                  )} />
+
+                  <span className={cn(
+                    "text-[14px] transition-all duration-300 z-10 text-white tracking-[0.01em] whitespace-nowrap overflow-hidden",
+                    isCollapsed ? "max-w-0 opacity-0 translate-x-2" : "max-w-[200px] opacity-100 translate-x-0",
+                    isActive ? "font-semibold" : "font-medium"
+                  )}>
+                    {item.label}
+                  </span>
+
+                  {/* Tooltip for Collapsed Sidebar */}
+                  {isCollapsed && (
+                    <div className="absolute left-[calc(100%+16px)] hidden group-hover:flex items-center z-50 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="relative rounded-[8px] bg-[#0c0c0c] border border-white/10 px-3 py-2.5 shadow-2xl flex items-center shadow-black/50">
+                        <span className="text-[12px] font-semibold text-[#e4e4e7] whitespace-nowrap leading-none tracking-wide text-shadow-sm">{item.label}</span>
+                        <div className="absolute -left-[5px] top-[50%] -translate-y-1/2 h-[10px] w-[10px] bg-[#0c0c0c] border-l border-t border-white/10 -rotate-45 rounded-sm" />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </NavLink>
-            );
-          })}
+                  )}
+                </NavLink>
+              );
+            })}
         </nav>
 
         {/* Bottom Profile Section */}
@@ -218,8 +292,8 @@ export default function Shell() {
 
           <div className={cn(
             "relative z-10 rounded-2xl border transition-all duration-500 overflow-hidden",
-            isCollapsed 
-              ? "border-transparent bg-transparent p-0" 
+            isCollapsed
+              ? "border-transparent bg-transparent p-0"
               : "border-white/[0.08] bg-[#0c0c0c] p-4 shadow-xl"
           )}>
             {/* Expanded Content (Fades Out) */}
@@ -227,23 +301,20 @@ export default function Shell() {
               "transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
               isCollapsed ? "max-h-0 opacity-0 scale-95 pointer-events-none" : "max-h-[300px] opacity-100 scale-100"
             )}>
-              <div className="text-[13px] font-normal text-[#a1a1aa] whitespace-nowrap">Signed in as</div>
-              <div className="mt-1 truncate text-[15px] font-bold text-white tracking-tight">{admin?.email || 'admin@example.com'}</div>
-
-              <div className="mt-3">
-                <span className="inline-flex h-[24px] items-center rounded-lg bg-white/5 px-2.5 text-[11px] font-bold tracking-wide text-white/50 border border-white/5 uppercase">
-                  {admin?.role || 'SUPER ADMIN'}
-                </span>
+              <div className="group/profile">
+                <div className="truncate text-[14px] font-bold text-white tracking-tight">{admin?.email || 'admin@example.com'}</div>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="mt-6 flex h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.03] border border-white/5 text-[14px] font-bold text-white hover:bg-white/[0.08] transition-all active:scale-[0.98] group/btn"
+                className="mt-4 flex h-[40px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.03] border border-white/5 text-[13px] font-bold text-white hover:bg-white/[0.08] transition-all active:scale-[0.98] group/btn"
               >
-                <LogOut className="h-[18px] w-[18px] text-white/40 group-hover/btn:text-white transition-colors" />
+                <LogOut className="h-[16px] w-[16px] text-white/40 group-hover/btn:text-white transition-colors" />
                 <span>Logout</span>
               </button>
             </div>
+
+
 
             {/* Collapsed Content (Fades In) */}
             <div className={cn(
@@ -327,10 +398,10 @@ export default function Shell() {
             <header className="mb-6 lg:flex items-center justify-between hidden">
               <div>
                 <h2 className="text-[32px] font-black tracking-tight text-white uppercase leading-none">
-                  <ShinyText 
-                    text={getPageTitle(location.pathname).title} 
-                    disabled={false} 
-                    speed={3} 
+                  <ShinyText
+                    text={getPageTitle(location.pathname).title}
+                    disabled={false}
+                    speed={3}
                   />
                 </h2>
                 <p className="mt-2 text-[14px] text-[#71717a] font-medium">
@@ -342,13 +413,14 @@ export default function Shell() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => navigate('/customers')}
+                  onClick={() => setShowProfileModal(true)}
                   className="bg-white/5 border-[#ffffff0a] hover:bg-white/10 text-white font-bold h-[40px] px-5 transition-all active:scale-[0.98]"
                 >
-                  <Users className="h-4 w-4 mr-2 text-[#00f2ff]" />
-                  Customers
+                  <UserCircle className="h-4 w-4 mr-2 text-[#00f2ff]" />
+                  Profile
                 </Button>
               </div>
+
             </header>
 
             <Outlet />
@@ -366,18 +438,25 @@ export default function Shell() {
         confirmIcon={LogOut}
         confirmVariant="danger"
       />
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        admin={admin}
+      />
     </div>
+
   );
 }
 
 function getPageTitle(pathname: string) {
   switch (pathname) {
-    case '/':            return { title: 'Dashboard',   sub: 'Production-grade overview of customer app data' };
-    case '/customers':   return { title: 'Customers',   sub: 'Manage and view all registered customers' };
-    case '/vehicles':    return { title: 'Vehicles',    sub: 'Fleet management and registration tracking' };
+    case '/': return { title: 'Dashboard', sub: 'Production-grade overview of customer app data' };
+    case '/customers': return { title: 'Customers', sub: 'Manage and view all registered customers' };
+    case '/vehicles': return { title: 'Vehicles', sub: 'Fleet management and registration tracking' };
     case '/car-library': return { title: 'Car Library', sub: 'Browse vehicle catalog with S3 model imagery' };
-    case '/tickets':     return { title: 'Tickets',     sub: 'Global support and issue management' };
-    default:             return { title: 'Admin',       sub: 'System Management' };
+    case '/tickets': return { title: 'Tickets', sub: 'Global support and issue management' };
+    default: return { title: 'Admin', sub: 'System Management' };
   }
 }
 

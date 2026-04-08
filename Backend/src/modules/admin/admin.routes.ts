@@ -42,4 +42,13 @@ router.post("/catalog/vehicles", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), upl
 router.post("/catalog/vehicles/:id/assets", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), upload.single("file"), adminController.createCatalogVehicleAsset);
 router.patch("/catalog/vehicles/:id/assets/:assetId", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), upload.single("file"), adminController.updateCatalogVehicleAsset);
 
+// Admin Management (Super Admin only)
+router.get("/manage/admins", requireAdminRole(["SUPER_ADMIN"]), adminController.listAdmins);
+router.delete("/manage/admins", requireAdminRole(["SUPER_ADMIN"]), adminController.deleteAdmins);
+router.patch("/manage/admins/:id/toggle-support-customers", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleSupportCustomerAccess);
+router.post("/manage/admins/:id/toggle-support-customers", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleSupportCustomerAccess);
+
+
+
+
 export const adminRoutes = router;

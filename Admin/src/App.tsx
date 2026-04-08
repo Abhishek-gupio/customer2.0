@@ -11,6 +11,7 @@ import Vehicles from './pages/Vehicles';
 import VehicleCatalog from './pages/VehicleCatalog';
 import ExpenseDetail from './pages/ExpenseDetail';
 import Expenses from './pages/Expenses';
+import ManageAdmins from './pages/ManageAdmins';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
 
@@ -47,11 +48,19 @@ function RoleProtectedRoute({
   if (!token) return <Navigate to="/login" replace />;
   
   if (!admin || !allowedRoles.includes(admin.role)) {
-    return <Navigate to="/" replace />;
+    const redirectPath = admin?.role === 'SUPPORT' ? '/tickets' : '/';
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  // Special check for Support role and Customers access
+  if (admin.role === 'SUPPORT' && (window.location.pathname.startsWith('/customers')) && !admin.canAccessCustomers) {
+    return <Navigate to="/tickets" replace />;
   }
 
   return <>{children}</>;
 }
+
+
 
 export default function App() {
   const { isSplashScreenVisible, setSplashScreenVisible } = useAuth();
@@ -88,9 +97,32 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="customers/:id" element={<CustomerDetail />} />
+            <Route 
+              index 
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+                  <Dashboard />
+                </RoleProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="customers" 
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'SUPPORT']}>
+                  <Customers />
+                </RoleProtectedRoute>
+              } 
+            />
+            <Route 
+              path="customers/:id" 
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'SUPPORT']}>
+                  <CustomerDetail />
+                </RoleProtectedRoute>
+              } 
+            />
+
             <Route path="tickets" element={<Tickets />} />
             <Route path="vehicles" element={<Vehicles />} />
             <Route 
@@ -101,7 +133,16 @@ export default function App() {
                 </RoleProtectedRoute>
               } 
             />
+            <Route 
+              path="manage-admins" 
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                  <ManageAdmins />
+                </RoleProtectedRoute>
+              } 
+            />
             <Route path="expenses/:id" element={<ExpenseDetail />} />
+
             <Route path="expenses" element={<Expenses />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
