@@ -21,10 +21,10 @@ import { fetchAndSaveIntervalsForVehicle } from "../services/oem-scraper.service
 
 const db = dbInstances as any;
 
-const DEMO_REG = "DEMO-TATA-NEXON-01";
-const DEMO_MAKE = "Tata";
-const DEMO_MODEL = "Nexon";
-const DEMO_YEAR = 2023;
+const DEMO_REG = "DEMO-TVS-JUPITER-01";
+const DEMO_MAKE = "Tvs Motor Company Ltd";
+const DEMO_MODEL = "Jupiter";
+const DEMO_YEAR = 2021;
 
 async function run(cleanup: boolean) {
   if (cleanup) {
@@ -49,7 +49,7 @@ async function run(cleanup: boolean) {
         registrationNumber: DEMO_REG,
         make: DEMO_MAKE,
         model: DEMO_MODEL,
-        year: DEMO_YEAR,
+        manufacturingMonthYear: `01/${DEMO_YEAR}`,
       },
     });
     console.log("Created demo vehicle:", vehicle.id, DEMO_MAKE, DEMO_MODEL, DEMO_YEAR);

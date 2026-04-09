@@ -1,4 +1,5 @@
 import { api } from './api';
+import { clearCachedValue, getCachedValue, setCachedValue, getStaleCachedValue } from './cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,8 +9,6 @@ export interface Vehicle {
     registrationNumber: string;
     make?: string;
     model?: string;
-    variant?: string;
-    year?: number;
     fuelType?: string;
     vehicleType?: string;
     engineNumber?: string;
@@ -20,7 +19,11 @@ export interface Vehicle {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    color?: string;
+    unloadedWeight?: string;
+    manufacturingMonthYear?: string;
     healthScore?: VehicleHealthScore;
+    telematicsDevice?: { id: string; isActive: boolean };
     // AI-enriched data from Gemini RTO lookup (stored client-side, not in DB)
     rtoDetails?: RTODetails;
     // Optimistic UI flag — never sent to backend
@@ -55,15 +58,9 @@ export interface RTODetails {
     chassisNumber?: string;
     registrationDate?: string;
     color?: string;
-    seatingCapacity?: string;
-    cylinderCount?: string;
-    cubicCapacity?: string;
-    grossWeight?: string;
-    bodyType?: string;
     registrationNumber?: string;
-    ownerAddress?: string;
+    manufacturingMonthYear?: string;
     present_address?: string;
-    year?: number;
 }
 
 export interface VehicleHealthScore {
@@ -76,12 +73,15 @@ export interface VehicleHealthScore {
     [key: string]: any;
 }
 
+export interface VehicleAssets {
+    heroUrl: string | null;
+    angles: string[]; // expected order: assetIndex 0..11
+}
+
 export interface AddVehicleInput {
     registrationNumber: string;
     make?: string;
     model?: string;
-    variant?: string;
-    year?: number;
     fuelType?: 'PETROL' | 'DIESEL' | 'CNG' | 'EV' | 'HYBRID' | 'OTHER';
     vehicleType?: 'LUV' | 'SUV' | 'SEDAN' | 'BIKE' | 'HATCHBACK' | 'TRUCK';
     engineNumber?: string;
@@ -100,12 +100,7 @@ export interface AddVehicleInput {
     mileage?: string;
     brand?: string;
     color?: string;
-    seatingCapacity?: string;
-    cylinderCount?: string;
-    cubicCapacity?: string;
-    grossWeight?: string;
-    bodyType?: string;
-    ownerAddress?: string;
+    manufacturingMonthYear?: string;
 }
 
 export type UpdateVehicleInput = Partial<AddVehicleInput>;
@@ -122,6 +117,10 @@ export interface OdometerLog {
     date: string;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface OdometerExtraction {
+    reading: number;
 }
 
 export interface Challan {
@@ -145,6 +144,42 @@ const RTO_PLATE_REGEX = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/;
 export const isValidIndianPlate = (plate: string): boolean =>
     RTO_PLATE_REGEX.test(plate.toUpperCase().replace(/\s/g, ''));
 
+const normalizeVehicleHealthScore = (vehicle: Vehicle): Vehicle => {
+    const hs = vehicle?.healthScore as (VehicleHealthScore & { recommendations?: string[] }) | undefined;
+    if (!hs || typeof hs.overallScore !== 'number') return vehicle;
+
+    // Fallback guard: if backend returns ~100 while explanations mention compliance issues,
+    // adjust displayed score so UI doesn't misleadingly show perfect health.
+    if (hs.overallScore < 99) return vehicle;
+
+    const explanations = Array.isArray(hs.explanations) ? hs.explanations : [];
+    const recommendations = Array.isArray(hs.recommendations) ? hs.recommendations : [];
+    const textBlob = `${explanations.join(' ')} ${recommendations.join(' ')}`.toLowerCase();
+
+    const insuranceExpired = /insurance\s+is\s+expired|valid\s+insurance\s+not\s+found/.test(textBlob);
+    const insuranceMissing = /insurance\s+expiry\s+not\s+found|renew\s+insurance/.test(textBlob);
+    const pucExpired = /puc\s+is\s+expired|valid\s+puc\s+not\s+found/.test(textBlob);
+    const pucMissing = /puc\s+expiry\s+not\s+found|pollution\s+check/.test(textBlob);
+
+    let penalty = 0;
+    if (insuranceExpired) penalty += 50;
+    else if (insuranceMissing) penalty += 25;
+
+    if (pucExpired) penalty += 20;
+    else if (pucMissing) penalty += 10;
+
+    if (penalty === 0) return vehicle;
+
+    const adjustedScore = Math.max(0, Math.round(hs.overallScore - penalty));
+    return {
+        ...vehicle,
+        healthScore: {
+            ...hs,
+            overallScore: adjustedScore,
+        },
+    };
+};
+
 // ─── Gemini Config ────────────────────────────────────────────────────────────
 
 // ─── Vehicle Service ──────────────────────────────────────────────────────────
@@ -156,32 +191,53 @@ export const vehicleService = {
     addVehicle: async (data: AddVehicleInput): Promise<Vehicle> => {
         // Backend now generates + saves imageUrl automatically via Gemini
         const response = await api.post<{ success: boolean; data: Vehicle }>('/v1/vehicles', data);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     getVehicles: async (): Promise<Vehicle[]> => {
-        const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicles');
-        return response.data || [];
+        try {
+            const response = await api.get<{ success: boolean; data: Vehicle[] }>('/v1/vehicles');
+            const list = (response.data || []).map(normalizeVehicleHealthScore);
+            setCachedValue(VEHICLES_CACHE_KEY, list, VEHICLES_CACHE_TTL_MS);
+            return list;
+        } catch (error) {
+            const cached = getCachedValue<Vehicle[]>(VEHICLES_CACHE_KEY) || getStaleCachedValue<Vehicle[]>(VEHICLES_CACHE_KEY);
+            if (cached) return cached.map(normalizeVehicleHealthScore);
+            throw error;
+        }
     },
 
     getVehicleById: async (id: string): Promise<Vehicle> => {
         const response = await api.get<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`);
         const raw = response as unknown as { data?: Vehicle; success?: boolean };
-        return raw?.data ?? (response as unknown as Vehicle);
+        const vehicle = raw?.data ?? (response as unknown as Vehicle);
+        return normalizeVehicleHealthScore(vehicle);
+    },
+
+    getVehicleAssets: async (vehicleId: string): Promise<VehicleAssets> => {
+        const response = await api.get<{ success: boolean; data: VehicleAssets }>(
+            `/v1/vehicles/${vehicleId}/assets`,
+        );
+        const raw = response as unknown as { data?: VehicleAssets; success?: boolean };
+        return raw?.data ?? (response as unknown as VehicleAssets);
     },
 
     updateVehicle: async (id: string, data: UpdateVehicleInput): Promise<Vehicle> => {
         const response = await api.put<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}`, data);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     deleteVehicle: async (id: string): Promise<any> => {
         const response = await api.delete<{ success: boolean; data: any }>(`/v1/vehicles/${id}`);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     setPrimaryVehicle: async (id: string): Promise<Vehicle> => {
         const response = await api.put<{ success: boolean; data: Vehicle }>(`/v1/vehicles/${id}/primary`);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
@@ -196,11 +252,21 @@ export const vehicleService = {
 
     addOdometer: async (id: string, data: AddOdometerInput): Promise<OdometerLog> => {
         const response = await api.post<{ success: boolean; data: OdometerLog }>(`/v1/vehicles/${id}/odometer`, data);
+        clearCachedValue(VEHICLES_CACHE_KEY);
         return response.data;
     },
 
     addOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerLog> => {
         const response = await api.upload<{ success: boolean; data: OdometerLog }>(`/v1/vehicles/${id}/odometer-ai`, photo);
+        clearCachedValue(VEHICLES_CACHE_KEY);
+        return response.data;
+    },
+
+    extractOdometerViaAI: async (id: string, photo: FormData): Promise<OdometerExtraction> => {
+        const response = await api.upload<{ success: boolean; data: OdometerExtraction }>(
+            `/v1/vehicles/${id}/odometer-ai/extract`,
+            photo,
+        );
         return response.data;
     },
 
@@ -247,9 +313,13 @@ export const vehicleService = {
             pollutionUpto: raw.pollutionUpto,
             mileage: raw.mileage,
             brand: raw.make,
+            color: raw.color,
+            manufacturingMonthYear: raw.manufacturingMonthYear,
         };
     },
 };
 
 export const FALLBACK_CAR_IMAGE =
-    'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';
+    'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800';
+const VEHICLES_CACHE_KEY = 'cache:vehicles:list';
+const VEHICLES_CACHE_TTL_MS = 5 * 60 * 1000;

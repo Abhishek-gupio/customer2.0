@@ -26,12 +26,39 @@ function normalizePhone(phone: string): string {
   return digits.slice(-10);
 }
 
+async function findCustomerByPhone(phoneNumber: string) {
+  return dbInstances.customer.findUnique({
+    where: { phoneNumber: normalizePhone(phoneNumber) },
+  });
+}
+
+function buildOtpResponse(otp: string, requiresOtpVerification = false) {
+  return {
+    message: "OTP sent to your phone",
+    ...(requiresOtpVerification && { requiresOtpVerification: true }),
+    otpExpiresIn: env.OTP_EXPIRY_SEC,
+    otpResendIn: env.OTP_RATE_LIMIT_WINDOW_SEC,
+    ...(process.env.NODE_ENV === "development" && { otp }),
+  };
+}
+
 export const authService = {
+  async checkUser(phoneNumber: string) {
+    const customer = await findCustomerByPhone(phoneNumber);
+    if (!customer) {
+      throw AppError.notFound("User not found");
+    }
+
+    return {
+      exists: true,
+      userId: customer.id,
+      message: "User found",
+    };
+  },
+
   async signup(input: SignupInput) {
     const phone = normalizePhone(input.phoneNumber);
-    const existing = await dbInstances.customer.findUnique({
-      where: { phoneNumber: phone },
-    });
+    const existing = await findCustomerByPhone(input.phoneNumber);
     if (existing) {
       throw AppError.conflict("Phone number already registered");
     }
@@ -60,15 +87,15 @@ export const authService = {
       console.error(`❌ SMS Service Error:`, error);
     }
     
-    return {
-      message: "OTP sent to your phone",
-      requiresOtpVerification: true,
-      otpExpiresIn: env.OTP_EXPIRY_SEC,
-      ...(process.env.NODE_ENV === "development" && { otp }),
-    };
+    return buildOtpResponse(otp, true);
   },
 
   async sendOtp(phoneNumber: string) {
+    const customer = await findCustomerByPhone(phoneNumber);
+    if (!customer) {
+      throw AppError.notFound("User not found");
+    }
+
     const canSend = await otpStore.checkRateLimit(phoneNumber);
     if (!canSend) {
       throw AppError.tooManyRequests(
@@ -87,11 +114,7 @@ export const authService = {
       console.error(`❌ SMS Service Error:`, error);
     }
     
-    return {
-      message: "OTP sent to your phone",
-      otpExpiresIn: env.OTP_EXPIRY_SEC,
-      ...(process.env.NODE_ENV === "development" && { otp }),
-    };
+    return buildOtpResponse(otp);
   },
 
   async verifyOtp(input: VerifyOtpInput) {
@@ -101,13 +124,11 @@ export const authService = {
     }
     await otpStore.delete(input.phoneNumber);
     const phone = normalizePhone(input.phoneNumber);
-    let customer = await dbInstances.customer.findUnique({
+    const customer = await dbInstances.customer.findUnique({
       where: { phoneNumber: phone },
     });
     if (!customer) {
-      customer = await dbInstances.customer.create({
-        data: { phoneNumber: phone },
-      });
+      throw AppError.notFound("User not found");
     }
     const payload = { id: customer.id, phoneNumber: customer.phoneNumber };
     const accessToken = signAccess(payload);
@@ -122,40 +143,8 @@ export const authService = {
   },
 
   async login(phoneNumber: string) {
-    const phone = normalizePhone(phoneNumber);
-    let existing = await dbInstances.customer.findUnique({
-      where: { phoneNumber: phone },
-    });
-    if (!existing) {
-      // Auto-register a minimal customer record for this phone
-      existing = await dbInstances.customer.create({
-        data: { phoneNumber: phone },
-      });
-    }
-    const canSend = await otpStore.checkRateLimit(phoneNumber);
-    if (!canSend) {
-      throw AppError.tooManyRequests(
-        "Please wait before requesting another OTP",
-      );
-    }
-    const otp = generateOtp();
-    console.log(`📱 Generating OTP for ${phoneNumber}: ${otp}`);
-    await otpStore.set(phoneNumber, otp);
-    console.log(`✅ OTP stored for ${phoneNumber}`);
-    
-    try {
-      const result = await getSMSService().sendOTP(phoneNumber, otp);
-      console.log(`📤 SMS Service Result: ${result ? "Success" : "Failed"}`);
-    } catch (error) {
-      console.error(`❌ SMS Service Error:`, error);
-    }
-    
-    return {
-      message: "OTP sent to your phone",
-      requiresOtpVerification: true,
-      otpExpiresIn: env.OTP_EXPIRY_SEC,
-      ...(process.env.NODE_ENV === "development" && { otp }),
-    };
+    await this.checkUser(phoneNumber);
+    return this.sendOtp(phoneNumber);
   },
 
   async refresh(refreshToken: string) {

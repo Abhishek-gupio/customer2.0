@@ -8,15 +8,18 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
 import { telematicsApi } from '../../api/telematics';
 import { vehicleService, type Vehicle } from '../../services/vehicleService';
 import BackButton from '../../components/BackButton';
+import LinearGradient from 'react-native-linear-gradient';
 
 type DrivingTrip = {
   id: string;
@@ -33,16 +36,12 @@ type DrivingTrip = {
   endLocation?: any;
 };
 
-type Props = {
-  navigation: any;
-};
-
 const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-export default function DrivingTimeline({ navigation }: Props) {
+export default function DrivingTimeline({ navigation }: { navigation: any }) {
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
   const [allTrips, setAllTrips] = useState<DrivingTrip[]>([]);
@@ -51,13 +50,9 @@ export default function DrivingTimeline({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const loadTrips = useCallback(
-    async (opts?: { refreshing?: boolean }) => {
+    async (isRefresh = false) => {
       try {
-        if (opts?.refreshing) {
-          setRefreshing(true);
-        } else {
-          setLoading(true);
-        }
+        if (!isRefresh) setLoading(true);
         setError(null);
 
         const vehicles = await vehicleService.getVehicles();
@@ -89,15 +84,11 @@ export default function DrivingTimeline({ navigation }: Props) {
           damoovScores: t.damoovScores ?? t.Scores ?? null,
           startLocation: t.startLocation ?? t.StartLocation ?? null,
           endLocation: t.endLocation ?? t.EndLocation ?? null,
-        }))
-          // Filter out malformed rows without timestamps
-          .filter((trip: DrivingTrip) => !!trip.startTime && !!trip.endTime);
+        })).filter((trip: DrivingTrip) => !!trip.startTime && !!trip.endTime);
 
         setAllTrips(mapped);
       } catch (e: any) {
-        console.error('DrivingTimeline loadTrips error', e);
         setError(e?.message || 'Failed to load trips');
-        setAllTrips([]);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -110,25 +101,24 @@ export default function DrivingTimeline({ navigation }: Props) {
     loadTrips();
   }, [loadTrips]);
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadTrips(true);
+  };
+
   const tripsForDay = useMemo(() => {
     if (!allTrips.length) return [];
     return allTrips.filter(trip => {
       const d = new Date(trip.startTime);
       return sameDay(d, selectedDate);
-    });
+    }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
   }, [allTrips, selectedDate]);
 
   const daySummary = useMemo(() => {
-    if (!tripsForDay.length) {
-      return { totalDistance: 0, totalMinutes: 0, tripCount: 0, avgScore: null as number | null };
-    }
     const totalDistance = tripsForDay.reduce((sum, t) => sum + (t.distanceKm || 0), 0);
     const totalMinutes = tripsForDay.reduce((sum, t) => sum + (t.durationMin || 0), 0);
     const scored = tripsForDay.filter(t => t.safetyScore != null);
-    const avgScore =
-      scored.length > 0
-        ? scored.reduce((sum, t) => sum + (t.safetyScore || 0), 0) / scored.length
-        : null;
+    const avgScore = scored.length > 0 ? scored.reduce((sum, t) => sum + (t.safetyScore || 0), 0) / scored.length : null;
     return { totalDistance, totalMinutes, tripCount: tripsForDay.length, avgScore };
   }, [tripsForDay]);
 
@@ -142,45 +132,54 @@ export default function DrivingTimeline({ navigation }: Props) {
     });
   };
 
-  const renderTrip = ({ item }: { item: DrivingTrip }) => {
+  const renderTrip = ({ item, index }: { item: DrivingTrip; index: number }) => {
     const start = new Date(item.startTime);
     const end = new Date(item.endTime);
-    const timeRange = `${format(start, 'HH:mm')} → ${format(end, 'HH:mm')}`;
+    const timeRange = `${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`;
+    const durationLabel = `${Math.floor(item.durationMin / 60)}h ${Math.floor(item.durationMin % 60)}m`;
 
-    const hours = Math.floor(item.durationMin / 60);
-    const minutes = Math.floor(item.durationMin % 60);
-    const durationLabel = `${hours}h ${minutes}m`;
-
-    const startParts = item.startLocation?.Parts || {};
-    const endParts = item.endLocation?.Parts || {};
-    const cityStart = startParts?.City || null;
-    const cityFinish = endParts?.City || null;
-    const addressStart = item.startLocation?.Full || null;
-    const addressEnd = item.endLocation?.Full || null;
-
-    const startLabel = (cityStart || addressStart) ?? '—';
-    const endLabel = (cityFinish || addressEnd) ?? '—';
+    const startLabel = item.startLocation?.Full || item.startLocation?.Parts?.City || 'Unknown Start';
+    const endLabel = item.endLocation?.Full || item.endLocation?.Parts?.City || 'Unknown End';
 
     return (
       <TouchableOpacity
+        style={styles.tripCard}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('TripDetail', { tripId: item.id })}
       >
-        <View style={styles.tripCard}>
-          <View style={styles.tripHeaderRow}>
-            <Text style={styles.tripTime}>{timeRange}</Text>
-          </View>
-          <View style={styles.tripMetaRow}>
-            <View style={styles.tripMetaItem}>
-              <Icon name="clock" size={wp(3.5)} color="#aaa" />
-              <Text style={styles.tripMetaText}>{durationLabel}</Text>
-            </View>
+        <View style={styles.timelineSide}>
+           <View style={styles.timelineDot} />
+           {index < tripsForDay.length - 1 && <View style={styles.timelineLine} />}
+        </View>
+
+        <View style={styles.tripContent}>
+          <View style={styles.tripHeader}>
+            <Text style={styles.tripTimeText}>{timeRange}</Text>
+            {item.safetyScore != null && (
+               <View style={[styles.miniScore, { backgroundColor: item.safetyScore >= 80 ? 'rgba(16,185,129,0.1)' : 'rgba(255,191,0,0.1)' }]}>
+                  <Text style={[styles.miniScoreText, { color: item.safetyScore >= 80 ? '#10B981' : '#FFBF00' }]}>{Math.round(item.safetyScore)}</Text>
+               </View>
+            )}
           </View>
 
-          {/* Start/End only */}
-          <View style={{ marginTop: hp(0.6) }}>
-            <Text style={styles.tripMetaText}>Start: {startLabel}</Text>
-            <Text style={styles.tripMetaText}>End: {endLabel}</Text>
+          <View style={styles.locRow}>
+             <Icon name="play-circle" size={wp(3)} color="#10B981" />
+             <Text style={styles.locText} numberOfLines={1}>{startLabel}</Text>
+          </View>
+          <View style={[styles.locRow, { marginTop: hp(0.5) }]}>
+             <Icon name="stop-circle" size={wp(3)} color="#EF4444" />
+             <Text style={styles.locText} numberOfLines={1}>{endLabel}</Text>
+          </View>
+
+          <View style={styles.tripFooter}>
+            <View style={styles.featItem}>
+               <Icon name="route" size={wp(3)} color="#666" />
+               <Text style={styles.featText}>{item.distanceKm.toFixed(1)} km</Text>
+            </View>
+            <View style={styles.featItem}>
+               <Icon name="clock" size={wp(3)} color="#666" />
+               <Text style={styles.featText}>{durationLabel}</Text>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -189,96 +188,77 @@ export default function DrivingTimeline({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0a0a0a' : undefined} />
+      <StatusBar barStyle="light-content" />
+      
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
-        <Text style={styles.headerTitle}>Driving Timeline</Text>
-      </View>
-
-      <View style={styles.dateBar}>
-        <TouchableOpacity style={styles.dateArrow} onPress={() => shiftDay(-1)}>
-          <Ionicons name="chevron-back" size={18} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.dateLabel}>{dayTitle}</Text>
-        <TouchableOpacity style={styles.dateArrow} onPress={() => shiftDay(1)}>
-          <Ionicons name="chevron-forward" size={18} color="#fff" />
+        <Text style={styles.headerTitle}>Trips Log</Text>
+        <TouchableOpacity style={styles.syncBtn} onPress={() => loadTrips(true)}>
+           <Icon name="sync-alt" size={wp(4)} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
-        {loading && !refreshing ? (
-          <View style={styles.center}>
-            <ActivityIndicator color="#fff" />
-            <Text style={styles.loadingText}>Loading trips…</Text>
-          </View>
-        ) : (
-          <>
-            {error && (
-              <View style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
+      <LinearGradient colors={['#111', '#0a0a0a']} style={styles.dateSelector}>
+        <TouchableOpacity onPress={() => shiftDay(-1)} style={styles.arrowBox}>
+          <Ionicons name="chevron-back" size={wp(5)} color="#FFBF00" />
+        </TouchableOpacity>
+        <View style={styles.dateInfo}>
+           <Text style={styles.dateText}>{dayTitle}</Text>
+        </View>
+        <TouchableOpacity onPress={() => shiftDay(1)} style={styles.arrowBox}>
+          <Ionicons name="chevron-forward" size={wp(5)} color="#FFBF00" />
+        </TouchableOpacity>
+      </LinearGradient>
 
-            {!error && tripsForDay.length > 0 && (
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>Day summary</Text>
-                <View style={styles.summaryRow}>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>Trips</Text>
-                    <Text style={styles.summaryValue}>{daySummary.tripCount}</Text>
-                  </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>Distance</Text>
-                    <Text style={styles.summaryValue}>
-                      {daySummary.totalDistance < 1
-                        ? `${Math.round(daySummary.totalDistance * 1000)} m`
-                        : `${daySummary.totalDistance.toFixed(1)} km`}
-                    </Text>
-                  </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>Time</Text>
-                    <Text style={styles.summaryValue}>
-                      {`${Math.floor(daySummary.totalMinutes / 60)}h ${Math.floor(
-                        daySummary.totalMinutes % 60,
-                      )}m`}
-                    </Text>
-                  </View>
-                  {daySummary.avgScore != null && (
-                    <View style={styles.summaryItem}>
-                      <Text style={styles.summaryLabel}>Avg score</Text>
-                      <Text style={styles.summaryValue}>{Math.round(daySummary.avgScore)}</Text>
-                    </View>
-                  )}
+      {loading && !refreshing ? (
+        <View style={styles.centerWrap}>
+          <ActivityIndicator color="#FFBF00" size="large" />
+          <Text style={styles.loadLabel}>Organizing your drives...</Text>
+        </View>
+      ) : (
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={tripsForDay}
+            keyExtractor={item => item.id}
+            renderItem={renderTrip}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+            ListHeaderComponent={
+              tripsForDay.length > 0 ? (
+                <View style={styles.dayStatsCard}>
+                   <View style={styles.statsRow}>
+                      <View style={styles.statItem}>
+                         <Text style={styles.statVal}>{daySummary.tripCount}</Text>
+                         <Text style={styles.statLab}>TRIPS</Text>
+                      </View>
+                      <View style={styles.statDivider} />
+                      <View style={styles.statItem}>
+                         <Text style={styles.statVal}>{daySummary.totalDistance.toFixed(1)}</Text>
+                         <Text style={styles.statLab}>KM</Text>
+                      </View>
+                      <View style={styles.statDivider} />
+                      <View style={styles.statItem}>
+                         <Text style={styles.statVal}>{Math.round(daySummary.avgScore || 0)}</Text>
+                         <Text style={styles.statLab}>SCORE</Text>
+                      </View>
+                   </View>
                 </View>
+              ) : null
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                 <Icon name="road" size={wp(15)} color="#1a1a1a" />
+                 <Text style={styles.emptyTitle}>No drives found</Text>
+                 <Text style={styles.emptySub}>No trips were recorded on this date.</Text>
+                 <TouchableOpacity style={styles.retryBtn} onPress={() => loadTrips(true)}>
+                    <Text style={styles.retryText}>REFRESH NOW</Text>
+                 </TouchableOpacity>
               </View>
-            )}
-
-            {!primaryVehicle && !loading && !error && (
-              <View style={styles.center}>
-                <Text style={styles.emptyText}>Add a vehicle to view driving timeline.</Text>
-              </View>
-            )}
-
-            {primaryVehicle && tripsForDay.length === 0 && !loading && !error && (
-              <View style={styles.center}>
-                <Text style={styles.emptyText}>No trips recorded for this day.</Text>
-                <Text style={styles.subtleText}>
-                  Make sure this phone is linked for telematics in Driving Behavior.
-                </Text>
-              </View>
-            )}
-
-            <FlatList
-              data={tripsForDay}
-              keyExtractor={item => item.id}
-              renderItem={renderTrip}
-              contentContainerStyle={styles.listContent}
-              refreshing={refreshing}
-              onRefresh={() => loadTrips({ refreshing: true })}
-            />
-          </>
-        )}
-      </View>
+            }
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -294,152 +274,208 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
   },
-  headerBack: {
-    width: wp(10),
-    height: wp(10),
-    justifyContent: 'center',
-  },
   headerTitle: {
     flex: 1,
+    fontFamily: 'Outfit-Bold',
     fontSize: wp(5.5),
-    fontWeight: '700',
     color: '#fff',
     marginLeft: wp(3),
   },
-  dateBar: {
+  syncBtn: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  dateSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
-    borderTopWidth: 1,
+    paddingHorizontal: wp(5),
     borderBottomWidth: 1,
-    borderColor: '#1a1a1a',
-    gap: 12,
+    borderBottomColor: '#1a1a1a',
   },
-  dateArrow: {
-    padding: 6,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  dateLabel: {
-    color: '#f5f5f5',
-    fontSize: wp(4),
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: wp(4),
-    paddingTop: hp(2),
-  },
-  listContent: {
-    paddingBottom: hp(4),
-  },
-  center: {
+  arrowBox: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,191,0,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: hp(5),
   },
-  loadingText: {
-    marginTop: 8,
-    color: '#ccc',
+  dateInfo: {
+    flex: 1,
+    alignItems: 'center',
   },
-  emptyText: {
-    color: '#aaa',
-    fontSize: wp(3.6),
-    textAlign: 'center',
+  dateText: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4),
+    color: '#fff',
   },
-  subtleText: {
-    marginTop: hp(0.8),
-    color: '#666',
-    fontSize: wp(3.2),
-    textAlign: 'center',
-    paddingHorizontal: wp(5),
+  listContainer: {
+    padding: wp(5),
+    paddingBottom: hp(10),
   },
-  errorBox: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#3b0b0b',
-    marginBottom: 8,
-  },
-  errorText: {
-    color: '#ffb3b3',
-  },
-  summaryCard: {
-    backgroundColor: '#111318',
-    borderRadius: wp(4),
-    paddingVertical: hp(1.4),
-    paddingHorizontal: wp(4),
-    marginBottom: hp(1.5),
+  dayStatsCard: {
+    backgroundColor: '#111',
+    borderRadius: 24,
+    padding: wp(6),
+    marginBottom: hp(3),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
   },
-  summaryTitle: {
-    color: '#e5e5e5',
-    fontSize: wp(3.6),
-    fontWeight: '600',
-    marginBottom: hp(0.6),
-  },
-  summaryRow: {
+  statsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  summaryItem: {
-    minWidth: '23%',
-    marginTop: hp(0.4),
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
   },
-  summaryLabel: {
-    color: '#888',
-    fontSize: wp(2.9),
-  },
-  summaryValue: {
+  statVal: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(6),
     color: '#fff',
-    fontSize: wp(3.6),
-    fontWeight: '600',
+  },
+  statLab: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(2.8),
+    color: '#FFBF00',
     marginTop: 2,
+    letterSpacing: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: hp(4),
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   tripCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: wp(4),
-    paddingVertical: hp(1.6),
-    paddingHorizontal: wp(4),
-    marginBottom: hp(1.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    flexDirection: 'row',
+    marginBottom: hp(2.5),
   },
-  tripHeaderRow: {
+  timelineSide: {
+    width: wp(8),
+    alignItems: 'center',
+  },
+  timelineDot: {
+    width: wp(2.5),
+    height: wp(2.5),
+    borderRadius: wp(1.25),
+    backgroundColor: '#FFBF00',
+    marginTop: hp(0.8),
+    zIndex: 2,
+  },
+  timelineLine: {
+    position: 'absolute',
+    top: hp(2),
+    bottom: -hp(2.5),
+    width: 2,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  tripContent: {
+    flex: 1,
+    backgroundColor: '#111',
+    borderRadius: 20,
+    padding: wp(4),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.04)',
+  },
+  tripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: hp(1.2),
   },
-  tripTime: {
+  tripTimeText: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.8),
     color: '#fff',
-    fontSize: wp(4),
-    fontWeight: '600',
   },
-  tripDistance: {
-    color: '#ffbf00',
-    fontSize: wp(3.4),
-    fontWeight: '600',
+  miniScore: {
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+    borderRadius: 8,
   },
-  tripMetaRow: {
-    marginTop: hp(0.8),
+  miniScoreText: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(3),
+  },
+  locRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: wp(4),
+    gap: wp(2),
   },
-  tripMetaItem: {
+  locText: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.2),
+    color: '#888',
+    flex: 1,
+  },
+  tripFooter: {
+    flexDirection: 'row',
+    marginTop: hp(1.5),
+    paddingTop: hp(1.2),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.04)',
+    gap: wp(5),
+  },
+  featItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(1.5),
   },
-  tripMetaText: {
-    color: '#aaa',
+  featText: {
+    fontFamily: 'Outfit-Bold',
     fontSize: wp(3.2),
+    color: '#666',
+  },
+  centerWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: hp(10),
+  },
+  loadLabel: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.8),
+    color: '#666',
+    marginTop: hp(2),
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: hp(10),
+  },
+  emptyTitle: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(5.5),
+    color: '#fff',
+    marginTop: hp(2),
+  },
+  emptySub: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.8),
+    color: '#555',
+    marginTop: hp(0.5),
+  },
+  retryBtn: {
+    marginTop: hp(4),
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(8),
+    backgroundColor: '#111',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  retryText: {
+    fontFamily: 'Outfit-Black',
+    fontSize: wp(3.5),
+    color: '#FFBF00',
+    letterSpacing: 1,
   },
 });
-

@@ -12,7 +12,7 @@ const db = dbInstances as any;
  */
 
 const BROWSER_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
@@ -23,7 +23,10 @@ const BROWSER_HEADERS = {
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-Site": "none",
     "Sec-Fetch-User": "?1",
-    "Cache-Control": "max-age=0"
+    "Cache-Control": "max-age=0",
+    "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"'
 };
 
 export const contentScraperService = {
@@ -54,41 +57,77 @@ export const contentScraperService = {
         return totalSaved;
     },
 
-    async scrapeFromUrl(url: string, fuelType: "PETROL" | "DIESEL" | "CNG"): Promise<number> {
+    async scrapeFromUrl(url: string, fuelType: "PETROL" | "DIESEL" | "CNG", isFallback = false): Promise<number> {
         let savedCount = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const response = await axios.get(url, {
-            headers: {
-                ...BROWSER_HEADERS,
-                "Referer": "https://www.google.com/"
-            },
-            timeout: 15000
-        });
-        const $ = cheerio.load(response.data);
-        const promises: Promise<any>[] = [];
+        try {
+            const response = await axios.get(url, {
+                headers: {
+                    ...BROWSER_HEADERS,
+                    "Referer": isFallback ? "https://www.google.com/" : "https://www.google.com/"
+                },
+                timeout: 15000
+            });
+            const $ = cheerio.load(response.data);
+            const promises: Promise<any>[] = [];
 
-        // Updated selector based on actual website structure
-        // div.gold_rate_table_inner is the container for city-wise tables
-        $("div.gold_rate_table_inner table tr, div.gold_silver_table tr, table tr").each((_, tr) => {
-            const cells = $(tr).find("td");
-            if (cells.length >= 2) {
-                const name = $(cells[0]).text().trim();
-                const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
-                const price = parseFloat(priceText);
+            // Selectors for GoodReturns
+            const goodReturnsSelectors = "div.gold_rate_table_inner table tr, div.gold_silver_table tr, table tr";
+            // Selectors for alternative sources (placeholder for now, matching common patterns)
+            const fallbackSelectors = "table.table tr, .fuel-price-table tr, .city-wise-price tr";
 
-                // Validation: City name exists, price is reasonable, not a header row
-                if (name && !isNaN(price) && price > 30 && name !== "City" && name !== "State" && name !== "City Name") {
-                    promises.push(this.savePriceToCache(name, fuelType, price, today).then(ok => {
-                        if (ok) savedCount++;
-                    }));
+            const selectors = isFallback ? `${goodReturnsSelectors}, ${fallbackSelectors}` : goodReturnsSelectors;
+
+            $(selectors).each((_, tr) => {
+                const cells = $(tr).find("td");
+                if (cells.length >= 2) {
+                    const name = $(cells[0]).text().trim();
+                    const priceText = $(cells[1]).text().replace(/[^\d.]/g, "");
+                    const price = parseFloat(priceText);
+
+                    // Validation: City name exists, price is reasonable, not a header row
+                    if (name && !isNaN(price) && price > 30 && name !== "City" && name !== "State" && name !== "City Name") {
+                        promises.push(this.savePriceToCache(name, fuelType, price, today).then(ok => {
+                            if (ok) savedCount++;
+                        }));
+                    }
                 }
-            }
-        });
+            });
 
-        await Promise.all(promises);
-        return savedCount;
+            await Promise.all(promises);
+            
+            // If GoodReturns failed to provide data (even if 200 OK), try a specific fallback if not already fallback
+            if (savedCount === 0 && !isFallback) {
+                return this.attemptFallbackScrape(fuelType);
+            }
+
+            return savedCount;
+        } catch (err: any) {
+            if (err.response?.status === 403 && !isFallback) {
+                logger.warn(`⚠️ 403 Forbidden on ${url}. Attempting fallback...`);
+                return this.attemptFallbackScrape(fuelType);
+            }
+            throw err;
+        }
+    },
+
+    /**
+     * Fallback scraping from alternative source (Economic Times / India Today)
+     */
+    async attemptFallbackScrape(fuelType: "PETROL" | "DIESEL" | "CNG"): Promise<number> {
+        const fallbacks: Record<string, string> = {
+            "PETROL": "https://economictimes.indiatimes.com/wealth/fuel-depot/petrol-price-in-india",
+            "DIESEL": "https://economictimes.indiatimes.com/wealth/fuel-depot/diesel-price-in-india",
+            "CNG": "https://economictimes.indiatimes.com/wealth/fuelprices/CNG"
+        };
+
+        const url = fallbacks[fuelType];
+        if (!url) return 0;
+
+        logger.info(`🔄 Attempting fallback scrape for ${fuelType} from ${url}`);
+        return this.scrapeFromUrl(url, fuelType, true);
     },
 
     async savePriceToCache(city: string, fuelType: string, price: number, date: Date): Promise<boolean> {
@@ -122,26 +161,63 @@ export const contentScraperService = {
      * Updated to return exactly 2 items as requested.
      */
     async fetchCarNews(): Promise<any[]> {
-        logger.info("🗞️ Fetching Car News from Google News RSS...");
+        logger.info("🗞️ Fetching Car News from Rushlane...");
         try {
-            const url = "https://news.google.com/rss/search?q=car+india+launch+rushlane+autocar&hl=en-IN&gl=IN&ceid=IN:en";
+            const url = "https://www.rushlane.com/feed";
             const response = await axios.get(url, { headers: BROWSER_HEADERS });
             const $ = cheerio.load(response.data, { xmlMode: true });
 
-            const news: any[] = [];
+            type RawNews = { title: string; source: string; url: string; pubDateRaw: string; image?: string };
+            const raw: RawNews[] = [];
+            
             $("item").each((i, item) => {
-                if (i >= 2) return; // Only 2 news items
-                const fullTitle = $(item).find("title").text();
-                const [title, source] = fullTitle.split(" - ");
+                if (i >= 10) return; 
 
-                news.push({
-                    id: i.toString(),
-                    title: title.trim(),
-                    source: source || "Auto News",
-                    url: $(item).find("link").text(),
-                    time: this.formatNewsTime($(item).find("pubDate").text()),
-                    snippet: "Latest update on new car launches and automotive trends in India.",
+                const fullTitle = $(item).find("title").text();
+                const link = $(item).find("link").text();
+                const pubDateRaw = $(item).find("pubDate").text();
+                const description = $(item).find("description").text();
+                
+                // Extract image from <media:content> or <img> in description
+                let image = "";
+                const mediaContent = $(item).find("media\\:content, media\\:thumbnail");
+                if (mediaContent.length > 0) {
+                    image = mediaContent.attr("url") || "";
+                }
+                
+                if (!image && description) {
+                    const imgMatch = description.match(/<img[^>]+src="([^">]+)"/);
+                    if (imgMatch) image = imgMatch[1];
+                }
+
+                raw.push({
+                    title: fullTitle.trim(),
+                    source: "Rushlane",
+                    url: link,
+                    pubDateRaw,
+                    image
                 });
+            });
+
+            raw.sort((a, b) => {
+                const ta = new Date(a.pubDateRaw).getTime();
+                const tb = new Date(b.pubDateRaw).getTime();
+                return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+            });
+
+            const news = raw.map((item, idx) => {
+                const published = new Date(item.pubDateRaw);
+                const publishedAt = Number.isFinite(published.getTime()) ? published.toISOString() : null;
+                return {
+                    id: `news-${idx}-${Date.now()}`,
+                    title: item.title,
+                    source: item.source,
+                    url: item.url,
+                    image: item.image,
+                    publishedAt,
+                    time: this.formatNewsTime(item.pubDateRaw),
+                    snippet: "Latest automotive updates and car launches in India.",
+                };
             });
 
             return news;
@@ -163,52 +239,71 @@ export const contentScraperService = {
 
     /**
      * Fetches trending automotive videos
-     * Updated to return 5 items as requested.
+     * Dynamically scrapes YouTube search and enriches with oEmbed.
      */
     async fetchCarVideos(): Promise<any[]> {
         logger.info("🎥 Fetching Trending Car Videos...");
-        return [
-            {
-                id: "1",
-                title: "2026 Mercedes CLA review - Electric Luxury Sedan With 792km Range | First Drive",
-                views: "71K",
-                tag: "Autocar India",
-                url: "https://www.youtube.com/watch?v=DaWiczwucSg",
-                thumbnail: "https://img.youtube.com/vi/DaWiczwucSg/hqdefault.jpg"
-            },
-            {
-                id: "2",
-                title: "Venue vs Nexon vs Brezza vs XUV3XO vs Kylaq vs Sonet vs Syros",
-                views: "141K",
-                tag: "Comparison",
-                url: "https://www.youtube.com/watch?v=eHhFbfwYADo",
-                thumbnail: "https://img.youtube.com/vi/eHhFbfwYADo/hqdefault.jpg"
-            },
-            {
-                id: "3",
-                title: "Citroen Basalt vs Mahindra XUV 3XO – Which One Should You Buy?",
-                views: "4.9K",
-                tag: "MotorBeam",
-                url: "https://www.youtube.com/watch?v=8NPXGH3GVXA",
-                thumbnail: "https://img.youtube.com/vi/8NPXGH3GVXA/hqdefault.jpg"
-            },
-            {
-                id: "4",
-                title: "Toyota Urban Cruiser Taisor Drive Impressions | Zigwheels",
-                views: "7.1K",
-                tag: "First Drive",
-                url: "https://www.youtube.com/watch?v=kooveWXO3ys",
-                thumbnail: "https://img.youtube.com/vi/kooveWXO3ys/hqdefault.jpg"
-            },
-            {
-                id: "5",
-                title: "Maruti Brezza VXI CNG Walkaround | Features, Engine & Price",
-                views: "15K",
-                tag: "Trending",
-                url: "https://www.youtube.com/watch?v=E6gVh9nYWos",
-                thumbnail: "https://img.youtube.com/vi/E6gVh9nYWos/hqdefault.jpg"
-            }
+        const queries = [
+            "latest car review india",
+            "new car launch india 2026",
+            "india ev car review",
         ];
+
+        try {
+            // 1) Collect candidate video ids from live YouTube search pages.
+            const idSet = new Set<string>();
+            for (const q of queries) {
+                const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+                const response = await axios.get(searchUrl, { headers: BROWSER_HEADERS, timeout: 15000 });
+                const html = typeof response.data === "string" ? response.data : String(response.data || "");
+                const matches = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/g) || [];
+                for (const m of matches) {
+                    const id = m.replace(/.*"videoId":"([a-zA-Z0-9_-]{11})".*/, "$1");
+                    if (id && !idSet.has(id)) idSet.add(id);
+                    if (idSet.size >= 18) break;
+                }
+                if (idSet.size >= 18) break;
+            }
+
+            const ids = Array.from(idSet).slice(0, 12);
+            if (ids.length === 0) return [];
+
+            // 2) Resolve title/channel dynamically via oEmbed.
+            const resolved = await Promise.all(
+                ids.map(async (videoId, index) => {
+                    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`;
+                    try {
+                        const metaRes = await axios.get(oembedUrl, { headers: BROWSER_HEADERS, timeout: 10000 });
+                        const meta = metaRes.data || {};
+                        const author = typeof meta.author_name === "string" ? meta.author_name : "YouTube";
+                        const title = typeof meta.title === "string" ? meta.title : "Trending automotive video";
+                        return {
+                            id: `${videoId}-${index}`,
+                            title,
+                            views: "Latest",
+                            tag: author,
+                            url: watchUrl,
+                            thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                        };
+                    } catch {
+                        return {
+                            id: `${videoId}-${index}`,
+                            title: "Trending automotive video",
+                            views: "Latest",
+                            tag: "YouTube",
+                            url: watchUrl,
+                            thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                        };
+                    }
+                }),
+            );
+
+            return resolved.slice(0, 8);
+        } catch (err) {
+            logger.error({ err }, "❌ Video feed fetch failed");
+            return [];
+        }
     },
 
 
@@ -217,33 +312,34 @@ export const contentScraperService = {
             // Maharashtra
             Mumbai: "Maharashtra", Pune: "Maharashtra", Nagpur: "Maharashtra", Thane: "Maharashtra", Nashik: "Maharashtra",
             // Karnataka
-            Bangalore: "Karnataka", Bengaluru: "Karnataka", Mysore: "Karnataka", Hubli: "Karnataka",
+            // Karnataka
+            Bangalore: "Karnataka", Bengaluru: "Karnataka", Mysore: "Karnataka", Hubli: "Karnataka", Mangalore: "Karnataka", Mangaluru: "Karnataka", Belgaum: "Karnataka",
             // Tamil Nadu
-            Chennai: "Tamil Nadu", Coimbatore: "Tamil Nadu", Madurai: "Tamil Nadu",
+            Chennai: "Tamil Nadu", Coimbatore: "Tamil Nadu", Madurai: "Tamil Nadu", Salem: "Tamil Nadu",
             // West Bengal
-            Kolkata: "West Bengal",
+            Kolkata: "West Bengal", Howrah: "West Bengal",
             // Telangana
-            Hyderabad: "Telangana",
+            Hyderabad: "Telangana", Warangal: "Telangana",
             // Gujarat
             Ahmedabad: "Gujarat", Surat: "Gujarat", Vadodara: "Gujarat", Rajkot: "Gujarat",
             // Rajasthan
-            Jaipur: "Rajasthan", Jodhpur: "Rajasthan", Udaipur: "Rajasthan",
+            Jaipur: "Rajasthan", Jodhpur: "Rajasthan", Udaipur: "Rajasthan", Kota: "Rajasthan",
             // Uttar Pradesh
-            Lucknow: "Uttar Pradesh", Noida: "Uttar Pradesh", Kanpur: "Uttar Pradesh", Agra: "Uttar Pradesh", Varanasi: "Uttar Pradesh",
+            Lucknow: "Uttar Pradesh", Noida: "Uttar Pradesh", "Greater Noida": "Uttar Pradesh", Kanpur: "Uttar Pradesh", Agra: "Uttar Pradesh", Varanasi: "Uttar Pradesh", Ghaziabad: "Uttar Pradesh",
             // Delhi
             Delhi: "Delhi", "New Delhi": "Delhi",
             // Haryana
-            Gurgaon: "Haryana", Gurugram: "Haryana", Faridabad: "Haryana",
+            Gurgaon: "Haryana", Gurugram: "Haryana", Faridabad: "Haryana", Ambala: "Haryana",
             // Bihar
-            Patna: "Bihar",
+            Patna: "Bihar", Gaya: "Bihar",
             // Madhya Pradesh
-            Bhopal: "Madhya Pradesh", Indore: "Madhya Pradesh",
+            Bhopal: "Madhya Pradesh", Indore: "Madhya Pradesh", Gwalior: "Madhya Pradesh",
             // Kerala
-            Kochi: "Kerala", Trivandrum: "Kerala", Thiruvananthapuram: "Kerala", Kozhikode: "Kerala",
+            Kochi: "Kerala", Trivandrum: "Kerala", Thiruvananthapuram: "Kerala", Kozhikode: "Kerala", Thrissur: "Kerala",
             // Punjab
-            Chandigarh: "Punjab", Ludhiana: "Punjab", Amritsar: "Punjab",
+            Chandigarh: "Punjab", Ludhiana: "Punjab", Amritsar: "Punjab", Jalandhar: "Punjab",
             // Andhra Pradesh
-            Visakhapatnam: "Andhra Pradesh", Vijayawada: "Andhra Pradesh",
+            Visakhapatnam: "Andhra Pradesh", Vijayawada: "Andhra Pradesh", Guntur: "Andhra Pradesh",
         };
         return map[city] || "General";
     }

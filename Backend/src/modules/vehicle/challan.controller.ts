@@ -26,14 +26,19 @@ export const challanController = {
     success(res, updated);
   }),
 
+  listByPlate: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const { regNo } = req.params;
+    const challans = await challanService.checkChallansByPlate(regNo as string);
+    success(res, challans);
+  }),
+
   sync: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
     const { vehicleId } = req.params;
 
     await vehicleService.getVehicle(req.customer.id, vehicleId as string);
-    await challanService.syncChallans(vehicleId as string);
-
-    const challans = await challanService.getChallans(vehicleId as string);
-    success(res, challans);
+    const synced = await challanService.syncChallans(vehicleId as string);
+    success(res, synced);
   }),
 };

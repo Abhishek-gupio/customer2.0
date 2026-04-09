@@ -10,6 +10,7 @@ import {
     IdCard, Weight, Building
 } from 'lucide-react-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
+import LoaderButton from '../../components/Button';
 
 const { width } = Dimensions.get('window');
 
@@ -33,7 +34,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1533473359331-0135ef1b
 const INDPlate = ({ number }: { number: string }) => (
     <View style={styles.plate}>
         <View style={styles.indStrip}>
-            <View style={styles.dot} />
+            <Text style={styles.flag}>🇮🇳</Text>
             <Text style={styles.indText}>IND</Text>
         </View>
         <Text style={styles.plateNo}>{number}</Text>
@@ -115,7 +116,7 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
                     <Text style={styles.inputLabel}>Enter Vehicle Number</Text>
                     <View style={styles.plateInputContainer}>
                         <View style={[styles.indStrip, { borderRadius: 4 }]}>
-                            <View style={styles.dot} />
+                            <Text style={styles.flag}>🇮🇳</Text>
                             <Text style={styles.indText}>IND</Text>
                         </View>
                         <TextInput
@@ -125,6 +126,7 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
                             value={vNo}
                             onChangeText={setVNo}
                             autoCapitalize="characters"
+                            editable={!loading}
                         />
                     </View>
                 </View>
@@ -136,26 +138,26 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
                         placeholderTextColor="#666"
                         value={model}
                         onChangeText={setModel}
+                        editable={!loading}
                     />
                 </View>
 
-                <TouchableOpacity
+                <LoaderButton
+                    title="CONTINUE"
+                    loading={loading}
+                    loadingTitle="Saving..."
+                    titleStyle={[styles.primaryBtnText, (!vNo || loading) && { color: '#666' }]}
+                    loadingTitleStyle={styles.primaryBtnText}
                     style={[styles.primaryBtn, (!vNo || loading) && { backgroundColor: '#333' }]}
                     onPress={handleAdd}
-                    disabled={loading || !vNo}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#000" />
-                    ) : (
-                        <Text style={[styles.primaryBtnText, (!vNo || loading) && { color: '#666' }]}>CONTINUE</Text>
-                    )}
-                </TouchableOpacity>
+                    disabled={!vNo}
+                />
             </View>
         </View>
     );
 };
 
-const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
+const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete, deleteLoadingId }: any) => {
     // Calculate average health from vehicle health scores
     const avgHealth = Math.round(
         vehicles.reduce((acc: number, v: Vehicle) => acc + (v.healthScore?.overallScore || 0), 0) / (vehicles.length || 1)
@@ -200,7 +202,7 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
                             onPress={() => onSelect(v)}
                         >
                             <View style={styles.listImgBox}>
-                                <Image source={{ uri: FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                                <Image source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.listTitle}>{v.registrationNumber}</Text>
@@ -209,8 +211,13 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
                             <TouchableOpacity
                                 onPress={() => onDelete(v.id)}
                                 style={styles.delBtn}
+                                disabled={deleteLoadingId === v.id}
                             >
-                                <Trash2 size={20} color="#FF453A" />
+                                {deleteLoadingId === v.id ? (
+                                    <ActivityIndicator size="small" color="#FF453A" />
+                                ) : (
+                                    <Trash2 size={20} color="#FF453A" />
+                                )}
                             </TouchableOpacity>
                             <ChevronRight size={20} color="#666" />
                         </TouchableOpacity>
@@ -231,7 +238,7 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete }: any) => {
     );
 };
 
-const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete }: any) => {
+const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAddNew, onDelete, deleteLoadingId }: any) => {
     const [mainTab, setMainTab] = useState('Alerts');
     const [subTab, setSubTab] = useState('Vehicle');
     const [rating, setRating] = useState(0);
@@ -244,12 +251,10 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
     const handleFeedbackSubmit = () => {
         if (!rating) return;
         setIsSubmitting(true);
-        setTimeout(() => {
-            setSubmittedFeedback({ rating, text: feedback });
-            setIsSubmitting(false);
-            setRating(0);
-            setFeedback('');
-        }, 1500);
+        setSubmittedFeedback({ rating, text: feedback });
+        setIsSubmitting(false);
+        setRating(0);
+        setFeedback('');
     };
 
     return (
@@ -272,8 +277,12 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                         <Text style={[styles.tabPillText, mainTab === 'Details' && { color: '#000' }]}>Details</Text>
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={() => onDelete(activeVehicle.id)} style={styles.topRoundBtn}>
-                    <Trash2 size={22} color={COLORS.textMuted} />
+                <TouchableOpacity onPress={() => onDelete(activeVehicle.id)} style={styles.topRoundBtn} disabled={deleteLoadingId === activeVehicle.id}>
+                    {deleteLoadingId === activeVehicle.id ? (
+                        <ActivityIndicator size="small" color={COLORS.textMuted} />
+                    ) : (
+                        <Trash2 size={22} color={COLORS.textMuted} />
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -281,7 +290,9 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                 <View style={styles.detailHero}>
                     <View style={styles.heroImgBox}>
                         <View style={styles.heroGlow} />
-                        <Image source={{ uri: FALLBACK_IMAGE }} style={styles.heroFallbackImage} resizeMode="cover" />
+                        <View style={styles.heroFallbackFrame}>
+                            <Image source={{ uri: details.imageUrl || details.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={styles.heroFallbackImage} resizeMode="cover" />
+                        </View>
                     </View>
                     <Text style={styles.detailModel}>{details.model || details.make || "Vehicle"}</Text>
                     <View style={{ marginTop: 16 }}><INDPlate number={details.registrationNumber} /></View>
@@ -297,7 +308,7 @@ const DetailsScreen = ({ vehicles, activeVehicle, setActiveVehicle, onBack, onAd
                                 style={[styles.miniAvatarWrap, activeVehicle.id === v.id && styles.miniAvatarActive]}
                             >
                                 <View style={styles.miniAvatar}>
-                                    <Image source={{ uri: FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                                    <Image source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
                                 </View>
                             </TouchableOpacity>
                         ))}
@@ -438,6 +449,7 @@ export default function GupioGarageApp() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [activeVehicle, setActiveVehicle] = useState<Vehicle | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchVehicles();
@@ -464,7 +476,9 @@ export default function GupioGarageApp() {
     };
 
     const handleDelete = async (id: string) => {
+        if (deleteLoadingId) return;
         try {
+            setDeleteLoadingId(id);
             await vehicleService.deleteVehicle(id);
             await fetchVehicles();
             if (activeVehicle?.id === id) {
@@ -473,52 +487,85 @@ export default function GupioGarageApp() {
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setDeleteLoadingId(null);
         }
     };
 
-    if (initialLoading) {
-        return (
-            <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-            </View>
-        );
+    let content: React.ReactNode = null;
+    if (vehicles.length === 0 && screen === 'GARAGE' && !initialLoading) {
+        content = <AddVehicleScreen isFirst={true} onDone={handleAdd} />;
+    } else {
+        switch (screen) {
+            case 'GARAGE':
+                content = (
+                    <GarageScreen
+                        vehicles={vehicles}
+                        onAdd={() => setScreen('ADD')}
+                        onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }}
+                        onDelete={handleDelete}
+                        deleteLoadingId={deleteLoadingId}
+                    />
+                );
+                break;
+            case 'ADD':
+                content = <AddVehicleScreen onBack={() => setScreen('GARAGE')} onDone={handleAdd} />;
+                break;
+            case 'DETAILS':
+                content = (
+                    <DetailsScreen
+                        vehicles={vehicles}
+                        activeVehicle={activeVehicle}
+                        setActiveVehicle={setActiveVehicle}
+                        onBack={() => setScreen('GARAGE')}
+                        onAddNew={() => setScreen('ADD')}
+                        onDelete={handleDelete}
+                        deleteLoadingId={deleteLoadingId}
+                    />
+                );
+                break;
+            default:
+                content = null;
+                break;
+        }
     }
 
-    if (vehicles.length === 0 && screen === 'GARAGE') {
-        return <AddVehicleScreen isFirst={true} onDone={handleAdd} />;
-    }
-
-    switch (screen) {
-        case 'GARAGE':
-            return <GarageScreen vehicles={vehicles} onAdd={() => setScreen('ADD')} onSelect={(v: Vehicle) => { setActiveVehicle(v); setScreen('DETAILS'); }} onDelete={handleDelete} />;
-        case 'ADD':
-            return <AddVehicleScreen onBack={() => setScreen('GARAGE')} onDone={handleAdd} />;
-        case 'DETAILS':
-            return (
-                <DetailsScreen
-                    vehicles={vehicles}
-                    activeVehicle={activeVehicle}
-                    setActiveVehicle={setActiveVehicle}
-                    onBack={() => setScreen('GARAGE')}
-                    onAddNew={() => setScreen('ADD')}
-                    onDelete={handleDelete}
-                />
-            );
-        default:
-            return null;
-    }
+    return (
+        <View style={styles.screen}>
+            {initialLoading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <Text style={styles.loadingText}>Loading garage data...</Text>
+                </View>
+            ) : null}
+            {content}
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: COLORS.background },
+    loadingContainer: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.background,
+        zIndex: 10,
+    },
+    loadingText: {
+        color: '#b5b5b5',
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 8,
+    },
     header: { padding: 24, paddingTop: 48, minHeight: 80 },
     backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
 
     // Plate
     plate: { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 6, alignSelf: 'center', borderWidth: 1, borderColor: '#DDD', overflow: 'hidden' },
-    indStrip: { backgroundColor: '#003399', padding: 4, alignItems: 'center', justifyContent: 'center' },
-    dot: { width: 4, height: 4, backgroundColor: '#8BC34A', borderRadius: 2, marginBottom: 2 },
-    indText: { color: '#FFF', fontSize: 6, fontFamily: 'Outfit-Bold' },
+    indStrip: { backgroundColor: '#003399', paddingHorizontal: 4, paddingVertical: 6, alignItems: 'center', justifyContent: 'center', gap: 1 },
+    flag: { fontSize: 8, lineHeight: 10 },
+    indText: { color: '#FFF', fontSize: 6, fontFamily: 'Outfit-Black', letterSpacing: 0.5 },
     plateNo: { paddingHorizontal: 16, paddingVertical: 6, color: '#000', fontSize: 18, fontFamily: 'Outfit-Bold', letterSpacing: 2 },
 
     // Info Card
@@ -572,10 +619,11 @@ const styles = StyleSheet.create({
     tabPillActive: { backgroundColor: COLORS.primary },
     tabPillText: { fontSize: 12, fontFamily: 'Outfit-Bold', color: '#888' },
     detailHero: { alignItems: 'center', paddingHorizontal: 24, marginTop: 20 },
-    heroImgBox: { width: '100%', height: 200, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    heroFallbackImage: { width: 280, height: 160, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    heroImgBox: { width: '100%', height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    heroFallbackFrame: { width: '90%', height: 230, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroFallbackImage: { width: '100%', height: '100%' },
     heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderRadius: 150 },
-    detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', fontStyle: 'italic', textAlign: 'center' },
+    detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', fontStyle: 'italic', textAlign: 'center', marginTop: 12 },
     horizVehicleList: { paddingHorizontal: 24, paddingVertical: 24, gap: 16, alignItems: 'center' },
     addMiniBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(255, 215, 0, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)', alignItems: 'center', justifyContent: 'center' },
     miniAvatarWrap: { width: 68, height: 68, borderRadius: 34, padding: 4, borderWidth: 2, borderColor: 'transparent', backgroundColor: COLORS.surface },

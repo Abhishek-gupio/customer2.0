@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import {
@@ -21,11 +22,26 @@ import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
+import { api } from '../../services/api';
+
+const PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
 export default function CheckChallan() {
   const navigation = useNavigation();
   const [regNumber, setRegNumber] = useState('');
-  
+  const [challans, setChallans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleCheckDetails = useCallback(() => {
+    if (!regNumber.trim()) return;
+    navigation.navigate('Challans' as any, {
+      vehicle: {
+        registrationNumber: regNumber.trim().toUpperCase()
+      }
+    });
+  }, [navigation, regNumber]);
+
   // Animations
   const floatAnim = useRef(new Animated.Value(0)).current;
   const scanAnim = useRef(new Animated.Value(0)).current;
@@ -34,7 +50,6 @@ export default function CheckChallan() {
 
   const [isFocused, setIsFocused] = useState(false);
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
   useEffect(() => {
     // Floating movement
@@ -81,7 +96,7 @@ export default function CheckChallan() {
     // Keyboard listeners to auto-switch focus state
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    
+
     const showSub = Keyboard.addListener(showEvent, () => setIsFocused(true));
     const hideSub = Keyboard.addListener(hideEvent, () => setIsFocused(false));
 
@@ -99,14 +114,14 @@ export default function CheckChallan() {
     let timeout: any;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = PLACEHOLDERS[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
         currentIdx++;
         if (currentIdx === fullText.length) {
           isDeleting = true;
-          timeout = setTimeout(animatePlaceholder, 2000); // Wait before deleting
+          timeout = setTimeout(animatePlaceholder, 2000);
         } else {
           timeout = setTimeout(animatePlaceholder, 150);
         }
@@ -115,9 +130,8 @@ export default function CheckChallan() {
         currentIdx--;
         if (currentIdx === 0) {
           isDeleting = false;
-          // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
-          timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
+          placeholderIdx = (placeholderIdx + 1) % PLACEHOLDERS.length;
+          timeout = setTimeout(animatePlaceholder, 500);
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
         }
@@ -176,10 +190,6 @@ export default function CheckChallan() {
     outputRange: [-wp(15), wp(15)],
   });
 
-  const handleCheckDetails = () => {
-    if (!regNumber.trim()) return;
-    // API call logic would go here
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -201,9 +211,9 @@ export default function CheckChallan() {
         >
           {/* Animated Hero Section */}
           <Animated.View style={[
-            styles.heroSection, 
-            { 
-              height: heroHeight, 
+            styles.heroSection,
+            {
+              height: heroHeight,
               opacity: heroOpacity,
               transform: [{ scale: heroScale }],
               overflow: 'hidden',
@@ -212,13 +222,13 @@ export default function CheckChallan() {
           ]}>
             <View style={styles.outerCircle}>
               {/* Pulsing Background Glow */}
-              <Animated.View 
+              <Animated.View
                 style={[
-                  styles.pulseGlow, 
+                  styles.pulseGlow,
                   { transform: [{ scale: pulseScale }], opacity: pulseOpacity }
-                ]} 
+                ]}
               />
-              
+
               <View style={styles.glassCircle}>
                 {/* Floating Search Icon */}
                 <Animated.View style={{ transform: [{ translateY }, { rotate }] }}>
@@ -228,17 +238,17 @@ export default function CheckChallan() {
                 </Animated.View>
 
                 {/* Radar/Scanning Beam */}
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.scanBeam, 
+                    styles.scanBeam,
                     { transform: [{ translateY: scanTranslateY }] }
-                  ]} 
+                  ]}
                 >
-                   <View style={styles.scanLineInner} />
+                  <View style={styles.scanLineInner} />
                 </Animated.View>
               </View>
             </View>
-            
+
             <Text style={styles.heroTitle}>Traffic Challan Search</Text>
             <Text style={styles.heroSub}>
               Instantly find pending traffic fines for any vehicle using its registration number.
@@ -270,13 +280,17 @@ export default function CheckChallan() {
             <TouchableOpacity
               style={[
                 styles.primaryBtn,
-                !regNumber.trim() && styles.primaryBtnDisabled
+                (!regNumber.trim() || loading) && styles.primaryBtnDisabled
               ]}
               onPress={handleCheckDetails}
               activeOpacity={0.85}
-              disabled={!regNumber.trim()}
+              disabled={!regNumber.trim() || loading}
             >
-              <Text style={styles.primaryBtnText}>CHECK DETAILS</Text>
+              {loading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.primaryBtnText}>CHECK DETAILS</Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -474,9 +488,104 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   trustText: {
-    color: '#444',
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Bold',
     letterSpacing: 1,
+  },
+  resultsSection: {
+    marginTop: hp(2),
+  },
+  challanCard: {
+    backgroundColor: '#111',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: hp(2),
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  challanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  challanNumber: {
+    color: COLORS.primary,
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(3.5),
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  paidBadge: {
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+  },
+  unpaidBadge: {
+    backgroundColor: 'rgba(244, 67, 54, 0.15)',
+  },
+  statusText: {
+    fontSize: wp(2.8),
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  violationTitle: {
+    color: '#fff',
+    fontFamily: 'Outfit-Bold',
+    fontSize: wp(4.2),
+    marginBottom: 16,
+    lineHeight: wp(6),
+  },
+  challanMeta: {
+    flexDirection: 'row',
+    gap: 32,
+    marginBottom: 16,
+  },
+  metaCol: {
+    gap: 4,
+  },
+  metaLabel: {
+    color: '#555',
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Bold',
+  },
+  amountText: {
+    color: '#fff',
+    fontSize: wp(4.5),
+    fontFamily: 'Outfit-Black',
+  },
+  dateText: {
+    color: '#eee',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Medium',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#222',
+    paddingTop: 12,
+  },
+  locationText: {
+    color: '#888',
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Regular',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(255, 77, 77, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(3.5),
+    flex: 1,
   },
 });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -56,6 +57,8 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
   const [invitePhone, setInvitePhone] = useState('');
   const [inviteRole, setInviteRole] = useState<'Editor' | 'Viewer' | 'Driver'>('Viewer');
   const [isInviting, setIsInviting] = useState(false);
+  const [revokingUserId, setRevokingUserId] = useState<number | null>(null);
+  const isBusy = isLoading || isInviting || revokingUserId !== null;
 
   const handleInvite = async () => {
     if (invitePhone.length < 10) {
@@ -86,6 +89,8 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
   };
 
   const handleRevoke = (userId: number, userName: string) => {
+    if (isBusy) return;
+
     Alert.alert(
       'Revoke Access',
       `Are you sure you want to revoke ${userName}'s access?`,
@@ -94,7 +99,14 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
         {
           text: 'Revoke',
           style: 'destructive',
-          onPress: () => onRevoke(userId),
+          onPress: async () => {
+            setRevokingUserId(userId);
+            try {
+              await onRevoke(userId);
+            } finally {
+              setRevokingUserId((current) => (current === userId ? null : current));
+            }
+          },
         },
       ],
     );
@@ -212,9 +224,14 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                       <TouchableOpacity
                         onPress={() => handleRevoke(user.id, user.name)}
                         style={styles.revokeBtn}
+                        disabled={isBusy}
                         activeOpacity={0.7}
                       >
-                        <FontAwesome5 name="trash" size={14} color="#ef4444" />
+                        {revokingUserId === user.id ? (
+                          <ActivityIndicator size="small" color="#ef4444" />
+                        ) : (
+                          <FontAwesome5 name="trash" size={14} color="#ef4444" />
+                        )}
                       </TouchableOpacity>
                     )}
                   </View>
@@ -252,6 +269,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                       placeholderTextColor="#3a3a3a"
                       keyboardType="phone-pad"
                       maxLength={10}
+                      editable={!isBusy}
                     />
                     <FontAwesome5 name="phone" size={14} color="#444" />
                   </View>
@@ -266,6 +284,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                         styles.roleBtn,
                         inviteRole === 'Viewer' && styles.roleBtnActive,
                       ]}
+                      disabled={isBusy}
                       activeOpacity={0.7}
                     >
                       <View
@@ -298,6 +317,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                         styles.roleBtn,
                         inviteRole === 'Editor' && styles.roleBtnActive,
                       ]}
+                      disabled={isBusy}
                       activeOpacity={0.7}
                     >
                       <View
@@ -330,6 +350,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                         styles.roleBtn,
                         inviteRole === 'Driver' && styles.roleBtnActive,
                       ]}
+                      disabled={isBusy}
                       activeOpacity={0.7}
                     >
                       <View
@@ -361,10 +382,10 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
 
                 <TouchableOpacity
                   onPress={handleInvite}
-                  disabled={isInviting || invitePhone.length < 10}
+                  disabled={isBusy || invitePhone.length < 10}
                   style={[
                     styles.shareBtn,
-                    (isInviting || invitePhone.length < 10) &&
+                    (isBusy || invitePhone.length < 10) &&
                       styles.shareBtnDisabled,
                   ]}
                   activeOpacity={0.8}

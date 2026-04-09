@@ -5,6 +5,7 @@ import cron from "node-cron";
 import { challanService } from "./challan.service";
 import { telematicsService } from "./telematics.service";
 import * as OneSignal from '@onesignal/node-onesignal';
+import * as admin from 'firebase-admin'; // FCM
 
 // Initialize OneSignal with API keys from environment
 const configuration = OneSignal.createConfiguration({
@@ -13,6 +14,21 @@ const configuration = OneSignal.createConfiguration({
 const onesignalClient = new OneSignal.DefaultApi(configuration);
 
 export const notificationService = {
+  async cleanupOldNotifications() {
+    const cutoff = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+
+    const result = await (dbInstances as any).inAppNotification.deleteMany({
+      where: {
+        createdAt: { lt: cutoff },
+      },
+    });
+
+    logger.info(
+      { deletedCount: result.count, cutoff: cutoff.toISOString() },
+      "Old in-app notifications cleanup completed",
+    );
+  },
+
   /**
    * Send notification across all channels (Custom In-App, OneSignal Push, SMS Fallback)
    */
@@ -74,6 +90,55 @@ export const notificationService = {
         const smsService = getSMSService();
         await smsService.sendSMS(payload.phoneNumber, payload.body);
       }
+
+      // 4. Firebase Cloud Messaging (FCM)
+      try {
+        if (admin.apps.length > 0) {
+          const devicesInProgress = await (dbInstances as any).customerDevice.findMany({
+            where: { customerId, deviceToken: { not: null } },
+          });
+
+          if (devicesInProgress.length > 0) {
+            const tokens = devicesInProgress.map((d: any) => d.deviceToken).filter(Boolean);
+            const fcmPayload: admin.messaging.MulticastMessage = {
+              tokens,
+              notification: {
+                title: payload.title,
+                body: payload.body,
+              },
+              data: {
+                type: payload.type,
+                link: payload.link || "",
+                metadata: JSON.stringify(payload.metadata || {}),
+              },
+              android: {
+                priority: "high",
+                notification: {
+                  sound: "default",
+                  channelId: "gupio_notifications", // Must match notification channels on Android
+                },
+              },
+            };
+
+            const response = await admin.messaging().sendEachForMulticast(fcmPayload);
+            logger.info({ customerId, successCount: response.successCount, failureCount: response.failureCount }, "Triggered FCM multicast.");
+            
+            // Cleanup invalid tokens if any (optional; usually handled by failures)
+            if (response.failureCount > 0) {
+              response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                   logger.warn({ error: resp.error, token: tokens[idx] }, "FCM delivery failed for token");
+                }
+              });
+            }
+          }
+        } else {
+          logger.debug({ customerId }, "Skipping FCM: Firebase Admin not initialized");
+        }
+      } catch (fcmError) {
+        logger.error({ fcmError, customerId }, "Failed to complete FCM delivery flow");
+      }
+
     } catch (error) {
       logger.error({ error, customerId }, "Failed to complete notification delivery flow");
     }
@@ -96,7 +161,7 @@ export const notificationService = {
       const nextDay = new Date(targetDate);
       nextDay.setDate(nextDay.getDate() + 1);
 
-      const expiringDocs = await dbInstances.customerDocument.findMany({
+      const expiringDocs = await dbInstances.vehicleDocument.findMany({
         where: {
           expiryDate: {
             gte: targetDate,
@@ -204,19 +269,34 @@ export const notificationService = {
     });
   },
 
+  async remove(customerId: string, notificationId: string) {
+    return (dbInstances as any).inAppNotification.deleteMany({
+      where: { id: notificationId, customerId },
+    });
+  },
+
   /**
    * Initialize the background cron jobs
    */
   initCronJobs() {
+    // Run every day at 12:30 AM – delete in-app notifications older than 2 days
+    cron.schedule("30 0 * * *", async () => {
+      try {
+        await this.cleanupOldNotifications();
+      } catch (err) {
+        logger.error({ err }, "Failed to cleanup old in-app notifications");
+      }
+    });
+
     // Run daily at 9:00 AM – odometer update reminder (one per customer per day)
     cron.schedule("0 9 * * *", async () => {
       await this.sendDailyOdometerReminders();
     });
 
-    // Run daily at 10:00 AM – document expiry + challan sync
+    // Run daily at 10:00 AM – document expiry sync (Manual sync for now to avoid costs)
     cron.schedule("0 10 * * *", async () => {
       await this.checkExpiringDocuments();
-      await challanService.syncAllVehicles();
+      // await challanService.syncAllVehicles(); 
     });
 
     // Run every 5 minutes – Telematics Sync (Pull method)
@@ -236,7 +316,7 @@ export const notificationService = {
     }
 
     logger.info(
-      "Background cron jobs initialized (Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",
+      "Background cron jobs initialized (Notification Cleanup 12:30 AM; Odometer 9 AM; Docs 10 AM; Telematics Every 5 Mins)",
     );
   },
 };

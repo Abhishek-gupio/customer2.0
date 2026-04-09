@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
@@ -22,6 +23,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import { api } from '../../services/api';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { PartStatusCard } from '../../components/ServiceAndWarranty/PartStatusCard';
@@ -32,8 +34,10 @@ import {
   setWarrantyStatusNeedsRefresh,
 } from '../../utils/refreshManager';
 import BackButton from '../../components/BackButton';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import type { RootStackParamList } from '../../navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { PART_TYPE_OPTIONS, getPartTypeLabel } from '../../constants/partTypes';
 
 interface PartData {
   id: string;
@@ -59,6 +63,28 @@ interface PartData {
   intervalSource?: string;
 }
 
+const OEM_WARNING_EXCLUDED_PART_TYPES = new Set(["OTHER_PART"]);
+const OEM_INTERVAL_SOURCES = new Set(["OEM_WEBSITE", "OEM"]);
+
+const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
+  const normalized = new Set<string>();
+
+  for (const partType of partTypes) {
+    const value = String(partType || '').trim().toUpperCase();
+    if (!value) continue;
+
+    if (value === 'TYRES') {
+      normalized.add('TYRES_FRONT');
+      normalized.add('TYRES_REAR');
+      continue;
+    }
+
+    normalized.add(value);
+  }
+
+  return Array.from(normalized);
+};
+
 export const WarrantyStatus = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(true);
@@ -72,7 +98,18 @@ export const WarrantyStatus = () => {
   const [updateOdometer, setUpdateOdometer] = useState('');
   const [updateDate, setUpdateDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [updateNotes, setUpdateNotes] = useState('');
+  const [selectedPartTypes, setSelectedPartTypes] = useState<string[]>([]);
+  const [showPartPicker, setShowPartPicker] = useState(false);
   const [savingUpdate, setSavingUpdate] = useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const getPartIcon = (type: string) => {
     switch (type) {
@@ -106,26 +143,41 @@ export const WarrantyStatus = () => {
     }
   };
 
-  const fetchData = async () => {
+  const isFetchingRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
     try {
       const vehicles = await vehicleService.getVehicles();
       const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
-      if (!primary) {
+      if (!primary || !isMountedRef.current) {
         setLoading(false);
+        isFetchingRef.current = false;
         return;
       }
+      
       setVehicle(primary);
 
-      // Refresh OEM manual intervals for primary vehicle (fire-and-forget) so part intervals match OEM e.g. 60k km for tyres
       api.post('/v1/expenses/warranty/primary/refresh-oem').catch(() => {});
 
-      const [warrantyRes, upcomingRes] = await Promise.all([
+      const [statusRes, upcomingRes, _] = await Promise.all([
         api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/status`),
         api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`),
+        vehicleService.recalculateHealth(primary.id).catch(() => null)
       ]);
 
-      // Handle both {data: []} and [] formats depending on api service behavior
-      const warrantyData = (warrantyRes as any).data || warrantyRes;
+      if (!isMountedRef.current) return;
+
       const upcomingData = (upcomingRes as any).data || upcomingRes;
 
       const processedParts: PartData[] = Array.isArray(upcomingData) ? upcomingData.map((item: any) => {
@@ -135,7 +187,7 @@ export const WarrantyStatus = () => {
 
         return {
           id: item.partType,
-          title: item.partType.replace(/_/g, ' '),
+          title: getPartTypeLabel(item.partType),
           subtitle: item.message,
           percentage: Math.max(0, Math.min(100, percentage)),
           statusText: getUrgencyLabel(item.urgency),
@@ -164,18 +216,27 @@ export const WarrantyStatus = () => {
       setSummary({
         active: activeCount,
         expired: expiredCount,
-        critical: 0 // No longer used in summary UI but kept in state for now
+        critical: 0
       });
+
+      const refreshed = await vehicleService.getVehicleById(primary.id).catch(() => null);
+      if (refreshed && isMountedRef.current) setVehicle(refreshed);
 
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, []);
 
-  const openUpdateModal = (part: PartData) => {
+  const handlePressHistory = useCallback((partId: string) => {
+    navigation.navigate('ServiceHistory', { selectedPartType: partId });
+  }, [navigation]);
+
+  const openUpdateModal = useCallback((part: PartData) => {
     setSelectedPart(part);
+    setSelectedPartTypes([part.id]);
     setUpdateAmount('');
     setUpdateOdometer(vehicle?.currentOdometer ? String(vehicle.currentOdometer) : '');
     setUpdateDate(new Date().toISOString().slice(0, 10));
@@ -183,43 +244,56 @@ export const WarrantyStatus = () => {
     requestAnimationFrame(() => {
       setIsUpdateModalVisible(true);
     });
-  };
+  }, [vehicle?.currentOdometer]);
 
-  const closeUpdateModal = () => {
+  const handlePressUpdate = useCallback((item: PartData) => {
+    openUpdateModal(item);
+  }, [openUpdateModal]);
+
+  const closeUpdateModal = useCallback(() => {
     setIsUpdateModalVisible(false);
     setSelectedPart(null);
+    setSelectedPartTypes([]);
+    setShowPartPicker(false);
     setUpdateAmount('');
     setUpdateOdometer('');
     setUpdateDate(new Date().toISOString().slice(0, 10));
     setUpdateNotes('');
-  };
+  }, []);
 
-  const handlePartUpdate = async () => {
+  const handlePartUpdate = useCallback(async () => {
     if (!vehicle || !selectedPart) {
       return;
     }
 
+    const normalizedPartTypes = normalizeSelectedPartTypes(selectedPartTypes);
+
     const parsedAmount = Number(updateAmount);
     const parsedOdometer = Number(updateOdometer);
 
+    if (normalizedPartTypes.length === 0) {
+      showStatus('Missing parts', 'Select at least one part to update.', 'error');
+      return;
+    }
+
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Invalid amount', 'Enter a valid part cost.');
+      showStatus('Invalid amount', 'Enter a valid part cost.', 'error');
       return;
     }
 
     if (!Number.isFinite(parsedOdometer) || parsedOdometer <= 0) {
-      Alert.alert('Invalid odometer', 'Enter a valid odometer reading.');
+      showStatus('Invalid odometer', 'Enter a valid odometer reading.', 'error');
       return;
     }
 
     if (!updateDate.trim()) {
-      Alert.alert('Missing date', 'Enter the service date in YYYY-MM-DD format.');
+      showStatus('Missing date', 'Enter the service date in YYYY-MM-DD format.', 'error');
       return;
     }
 
     const parsedDate = new Date(updateDate);
     if (Number.isNaN(parsedDate.getTime())) {
-      Alert.alert('Invalid date', 'Enter the service date in YYYY-MM-DD format.');
+      showStatus('Invalid date', 'Enter the service date in YYYY-MM-DD format.', 'error');
       return;
     }
 
@@ -233,40 +307,42 @@ export const WarrantyStatus = () => {
         date: parsedDate.toISOString(),
         source: 'MANUAL',
         odometerReading: parsedOdometer,
-        parts: [
-          {
-            partType: selectedPart.id,
-            cost: parsedAmount,
-          },
-        ],
+        parts: normalizedPartTypes.map((partType) => ({
+          partType,
+          cost: parsedAmount,
+        })),
       });
 
       setExpenseListNeedsRefresh();
       setWarrantyStatusNeedsRefresh();
       closeUpdateModal();
       await fetchData();
-      Alert.alert('Success', `${selectedPart.title} updated successfully.`);
+      showStatus(
+        'Success',
+        normalizedPartTypes.length === 1
+          ? `${getPartTypeLabel(normalizedPartTypes[0])} updated successfully.`
+          : `${normalizedPartTypes.length} parts updated successfully.`
+      );
     } catch (error: any) {
       console.error('Part update failed:', error);
-      Alert.alert('Error', error?.message || 'Failed to update part.');
+      showStatus('Error', error?.message || 'Failed to update part.', 'error');
     } finally {
       setSavingUpdate(false);
     }
-  };
+  }, [vehicle, selectedPart, selectedPartTypes, updateAmount, updateOdometer, updateDate, updateNotes, closeUpdateModal, fetchData]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
-  }, []);
+  }, [fetchData]);
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [])
+    }, [fetchData])
   );
 
-  // Periodic check or manual trigger check since FocusEffect might not catch Modal closes
   useEffect(() => {
     const timer = setInterval(() => {
       if (getAndClearWarrantyStatusRefresh()) {
@@ -274,12 +350,12 @@ export const WarrantyStatus = () => {
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [fetchData]);
 
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#FFBF00" />
+        <LoadingSpinner visible={true} />
       </SafeAreaView>
     );
   }
@@ -289,7 +365,7 @@ export const WarrantyStatus = () => {
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
-          <Text style={styles.headerTitle}>Warranty Status</Text>
+          <Text style={styles.headerTitle}>Vehicle Health</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Icon name="car" size={wp(15)} color="#333" />
@@ -308,28 +384,21 @@ export const WarrantyStatus = () => {
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Warranty Status</Text>
+            <Text style={styles.headerTitle}>Vehicle Health</Text>
             {vehicle && <Text style={styles.vehicleSub}>{vehicle.registrationNumber}</Text>}
           </View>
         </View>
-        <WarrantySummary
-          active={summary.active}
-          expired={summary.expired}
-          health={vehicle?.healthScore?.overallScore ?? 0}
-        />
-        
       </View>
-
-      {parts.some(p => (p.intervalSource || '').toUpperCase() !== 'OEM_WEBSITE') && (
-        <View style={styles.oemWarningBanner}>
-          <Icon name="exclamation-triangle" size={wp(4)} color="#F59E0B" style={styles.oemWarningIcon} />
-          <Text style={styles.oemWarningText}>
-            Intervals not from OEM manual — data may be incorrect. Set vehicle make/model and pull to refresh to fetch from manufacturer.
-          </Text>
-        </View>
-      )}
-
       <FlatList
+        ListHeaderComponent={
+          <View style={{ marginBottom: 15 }}>
+            <WarrantySummary
+              active={summary.active}
+              expired={summary.expired}
+              health={vehicle?.healthScore?.overallScore ?? 0}
+            />
+          </View>
+        }
         data={parts}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
@@ -340,10 +409,8 @@ export const WarrantyStatus = () => {
         renderItem={({ item }) => (
           <PartStatusCard
             {...item}
-            onPressHistory={() =>
-              navigation.navigate('ServiceHistory', { selectedPartType: item.id })
-            }
-            onPressUpdate={() => openUpdateModal(item)}
+            onPressHistory={() => handlePressHistory(item.id)}
+            onPressUpdate={() => handlePressUpdate(item)}
           />
         )}
         style={styles.list}
@@ -359,12 +426,41 @@ export const WarrantyStatus = () => {
               <View style={styles.modalHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalTitle}>Update Part</Text>
-                  <Text style={styles.modalSubtitle}>{selectedPart?.title || ''}</Text>
+                  <Text style={styles.modalSubtitle}>
+                    {selectedPartTypes.length > 0
+                      ? PART_TYPE_OPTIONS
+                          .filter((part) => selectedPartTypes.includes(part.value))
+                          .map((part) => part.label)
+                          .join(', ')
+                      : selectedPart?.title || ''}
+                  </Text>
                 </View>
                 <TouchableOpacity onPress={closeUpdateModal} disabled={savingUpdate}>
                   <Icon name="times" size={wp(5)} color="#fff" />
                 </TouchableOpacity>
               </View>
+
+              <Text style={styles.inputLabel}>Parts Serviced</Text>
+              <TouchableOpacity
+                style={styles.selectorInput}
+                onPress={() => setShowPartPicker(true)}
+                disabled={savingUpdate}
+              >
+                <Text
+                  style={[
+                    styles.selectorInputText,
+                    selectedPartTypes.length === 0 && styles.selectorPlaceholderText,
+                  ]}
+                >
+                  {selectedPartTypes.length > 0
+                    ? PART_TYPE_OPTIONS
+                        .filter((part) => selectedPartTypes.includes(part.value))
+                        .map((part) => part.label)
+                        .join(', ')
+                    : 'Select parts'}
+                </Text>
+                <Icon name="chevron-down" size={wp(3.5)} color="#999" />
+              </TouchableOpacity>
 
               <Text style={styles.inputLabel}>Part Cost</Text>
               <TextInput
@@ -410,9 +506,7 @@ export const WarrantyStatus = () => {
                 onPress={handlePartUpdate}
                 disabled={savingUpdate}
               >
-                {savingUpdate ? (
-                  <ActivityIndicator color="#000" />
-                ) : (
+                {savingUpdate ? null : (
                   <Text style={styles.updateButtonText}>Save Update</Text>
                 )}
               </TouchableOpacity>
@@ -420,6 +514,59 @@ export const WarrantyStatus = () => {
           </KeyboardAvoidingView>
         </Pressable>
       </Modal>
+
+      <Modal transparent visible={showPartPicker} animationType="fade" statusBarTranslucent>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowPartPicker(false)}>
+          <Pressable style={styles.partPickerPanel} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.partPickerTitle}>Select Parts</Text>
+            <ScrollView style={styles.partPickerScroll} showsVerticalScrollIndicator={false}>
+              {PART_TYPE_OPTIONS.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={[
+                    styles.partPickerItem,
+                    selectedPartTypes.includes(item.value) && styles.partPickerItemSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedPartTypes((prev) =>
+                      prev.includes(item.value)
+                        ? prev.filter((value) => value !== item.value)
+                        : [...prev, item.value],
+                    );
+                  }}
+                >
+                  <Text style={styles.partPickerItemText}>
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.partPickerActions}>
+              <TouchableOpacity
+                style={styles.partPickerActionButton}
+                onPress={() => setSelectedPartTypes(selectedPart ? [selectedPart.id] : [])}
+              >
+                <Text style={styles.partPickerActionText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.partPickerActionButton}
+                onPress={() => setShowPartPicker(false)}
+              >
+                <Text style={styles.partPickerActionText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };
@@ -432,6 +579,19 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingBottom: hp(2),
     backgroundColor: '#000',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+  },
+  loadingBarText: {
+    color: '#b5b5b5',
+    fontSize: wp(3.3),
+    fontFamily: 'Outfit-Medium',
+    textAlign: 'center',
+    marginTop: hp(1.4),
   },
   header: {
     flexDirection: 'row',
@@ -540,9 +700,84 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.5),
     marginBottom: hp(1.8),
   },
+  selectorInput: {
+    backgroundColor: '#0f0f0f',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: wp(4),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.7),
+    marginBottom: hp(1.8),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: wp(3),
+  },
+  selectorInputText: {
+    flex: 1,
+    color: '#fff',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Regular',
+  },
+  selectorPlaceholderText: {
+    color: '#666',
+  },
   notesInput: {
     minHeight: hp(10),
     textAlignVertical: 'top',
+  },
+  partPickerPanel: {
+    width: '100%',
+    maxWidth: wp(90),
+    maxHeight: hp(65),
+    backgroundColor: '#151515',
+    borderRadius: wp(6),
+    padding: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  partPickerTitle: {
+    color: '#fff',
+    fontSize: wp(4.8),
+    fontFamily: 'Outfit-Bold',
+    marginBottom: hp(1.5),
+  },
+  partPickerScroll: {
+    maxHeight: hp(45),
+  },
+  partPickerItem: {
+    paddingVertical: hp(1.6),
+    paddingHorizontal: wp(4),
+    borderRadius: wp(3.5),
+    backgroundColor: '#0f0f0f',
+    marginBottom: hp(1),
+  },
+  partPickerItemSelected: {
+    borderWidth: 1,
+    borderColor: '#FFBF00',
+    backgroundColor: 'rgba(255,191,0,0.12)',
+  },
+  partPickerItemText: {
+    color: '#fff',
+    fontSize: wp(3.8),
+    fontFamily: 'Outfit-Medium',
+  },
+  partPickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: wp(3),
+    marginTop: hp(1),
+  },
+  partPickerActionButton: {
+    backgroundColor: '#242424',
+    borderRadius: wp(3.5),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
+  },
+  partPickerActionText: {
+    color: '#fff',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
   },
   updateButton: {
     backgroundColor: '#FFBF00',
