@@ -58,13 +58,13 @@ import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { getAbsoluteUrl } from '../../config';
 
 // @ts-ignore
 const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
 
 const { width } = Dimensions.get('window');
-const CarImage = require('../../assets/images/car_vehicle_demo.png');
-const BikeImage = require('../../assets/images/bike.png');
+const FALLBACK_ICON_SIZE = 40;
 const REQUIRED_DOCS = [
   { type: 'RC', label: 'reg certificate' },
   { type: 'Insurance', label: 'insurance policy' },
@@ -121,16 +121,62 @@ function getDocumentStatusMeta(doc?: DocumentItem | null) {
   };
 }
 
+interface DocumentSlotProps {
+  label: string;
+  type: string;
+  documents: DocumentItem[];
+  onView: (doc: DocumentItem) => void;
+  onUpload: (type: string) => void;
+}
+
+const DocumentSlot = ({ label, type, documents, onView, onUpload }: DocumentSlotProps) => {
+  const doc = documents.find(d => d.type === type);
+  const statusMeta = getDocumentStatusMeta(doc);
+  return (
+    <View style={styles.slotContainer}>
+      <TouchableOpacity
+        style={styles.slotBox}
+        onPress={() => {
+          if (doc) {
+            onView(doc);
+          } else {
+            onUpload(type);
+          }
+        }}
+      >
+        {doc ? (
+          <View style={styles.imageWrapper}>
+            <Image
+              source={{ uri: doc.imageUri }}
+              style={styles.slotImage}
+              resizeMode="cover"
+              onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
+            />
+          </View>
+        ) : (
+          <Plus size={24} color="#333" />
+        )}
+      </TouchableOpacity>
+      <Text style={styles.slotLabel}>{label}</Text>
+      <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
+        <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
+      </View>
+      <Text style={styles.slotHint}>{statusMeta.caption}</Text>
+    </View>
+  );
+};
+
 export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
   const dispatch = useAppDispatch();
-  const { documents: allStoreDocuments, loading } = useAppSelector((state: RootState) => state.documents);
+  const { documents: allStoreDocuments = [], loading = false } = useAppSelector((state: RootState) => state.documents) || {};
   const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [showViewerModal, setShowViewerModal] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<string>('');
   const [viewingDoc, setViewingDoc] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [loaderMessage, setLoaderMessage] = useState('Uploading document...');
 
   // Filter documents to show only those belonging specifically to the primary vehicle
   // Use robust, case-insensitive comparison for registration numbers
@@ -138,10 +184,10 @@ export default function DocumentList() {
     if (!primaryVehicle) return false;
     const primaryReg = (primaryVehicle.registrationNumber || '').trim().toUpperCase();
     if (primaryReg === '') return false;
-    
+
     const docReg = (doc.vehicle || '').trim().toUpperCase();
     const docNum = (doc.documentNumber || '').trim().toUpperCase();
-    
+
     return docReg === primaryReg || docNum === primaryReg;
   });
   const [confirmModal, setConfirmModal] = useState({
@@ -168,7 +214,7 @@ export default function DocumentList() {
     loadPrimaryVehicle();
     flushQueuedDocumentUploads((doc) => {
       dispatch(addDocumentFromResponse(toDocItem(doc)));
-    }).catch(() => {});
+    }).catch(() => { });
   }, [dispatch]);
 
   const loadPrimaryVehicle = async () => {
@@ -262,10 +308,10 @@ export default function DocumentList() {
     setSelectedDocType(type);
     if (Platform.OS === 'android') {
       const camera = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
-      const storage = Platform.Version >= 33 
+      const storage = Platform.Version >= 33
         ? await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES)
         : await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
-      
+
       if (camera !== PermissionsAndroid.RESULTS.GRANTED || storage !== PermissionsAndroid.RESULTS.GRANTED) {
         showStatus('Permission needed', 'Camera and photo library access are required.', 'error');
         return;
@@ -302,6 +348,7 @@ export default function DocumentList() {
   };
 
   const uploadImageAsset = async (asset: any, type: string) => {
+    setLoaderMessage('Uploading document...');
     setIsUploading(true);
     try {
       const result = await uploadDocument({
@@ -321,6 +368,7 @@ export default function DocumentList() {
   };
 
   const performUpload = async (type: string, uri: string, name: string, mime: string) => {
+    setLoaderMessage('Uploading document...');
     setIsUploading(true);
     try {
       const result = await uploadDocument({
@@ -441,6 +489,7 @@ export default function DocumentList() {
       return;
     }
     try {
+      setLoaderMessage('Preparing documents...');
       setIsUploading(true);
       const pdfPath = await createPDFFromDocuments(documents, `all_documents_${primaryVehicle?.registrationNumber}`);
       setIsUploading(false);
@@ -466,6 +515,7 @@ export default function DocumentList() {
     }
     let localPath = '';
     try {
+      setLoaderMessage('Downloading documents...');
       setIsUploading(true);
       localPath = await createPDFFromDocuments(documents, `all_documents_${primaryVehicle?.registrationNumber}`);
       const fileName = localPath.split('/').pop() || `all_docs_${Date.now()}.pdf`;
@@ -507,6 +557,7 @@ export default function DocumentList() {
   const handleShareDoc = async (doc: any) => {
     if (!doc?.imageUri) return;
     try {
+      setLoaderMessage('Preparing share...');
       setIsUploading(true);
       const pdfPath = await createPDFFromDocuments([doc]);
       setIsUploading(false);
@@ -528,6 +579,7 @@ export default function DocumentList() {
   const handleDownloadDoc = async (doc: any) => {
     if (!doc?.id) return;
     try {
+      setLoaderMessage('Downloading document...');
       setIsUploading(true);
       if (Platform.OS === 'android') {
         const pdfUrl = doc.imageUri.replace('/image', '/pdf');
@@ -611,6 +663,7 @@ export default function DocumentList() {
 
   const handleConnectDigiLocker = async () => {
     try {
+      setLoaderMessage('Connecting to DigiLocker...');
       setIsUploading(true);
       const res = await connectDigiLocker();
       setIsUploading(false);
@@ -628,6 +681,7 @@ export default function DocumentList() {
           confirmText: 'Sync Now',
           onConfirm: async () => {
             setConfirmModal(prev => ({ ...prev, visible: false }));
+            setLoaderMessage('Syncing documents...');
             setIsUploading(true);
             try {
               await syncDigiLocker(res.client_id);
@@ -647,44 +701,7 @@ export default function DocumentList() {
     }
   };
 
-  const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
-    const doc = getDocByType(type);
-    const statusMeta = getDocumentStatusMeta(doc);
-    return (
-      <View style={styles.slotContainer}>
-        <TouchableOpacity
-          style={styles.slotBox}
-          onPress={() => {
-            if (doc) {
-              setViewingDoc(doc);
-              setShowViewerModal(true);
-            } else {
-              setSelectedDocType(type);
-              setShowSourceModal(true);
-            }
-          }}
-        >
-          {doc ? (
-            <View style={styles.imageWrapper}>
-              <Image
-                source={{ uri: doc.imageUri }}
-                style={styles.slotImage}
-                resizeMode="cover"
-                onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
-              />
-            </View>
-          ) : (
-            <Plus size={24} color="#333" />
-          )}
-        </TouchableOpacity>
-        <Text style={styles.slotLabel}>{label}</Text>
-        <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
-          <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
-        </View>
-        <Text style={styles.slotHint}>{statusMeta.caption}</Text>
-      </View>
-    );
-  };
+
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -722,65 +739,6 @@ export default function DocumentList() {
         <View style={styles.trustBadge}>
           <ShieldCheck size={14} color="#00C853" />
           <Text style={styles.trustText}>100% safe and secure</Text>
-        </View>
-
-        <View style={styles.healthOverviewRow}>
-          <View style={styles.healthMetricCard}>
-            <Text style={styles.healthMetricValue}>{healthyRequiredDocs.length}</Text>
-            <Text style={styles.healthMetricLabel}>Ready now</Text>
-          </View>
-          <View style={styles.healthMetricCard}>
-            <Text style={[styles.healthMetricValue, styles.healthMetricWarning]}>
-              {expiringRequiredDocs.length + expiredRequiredDocs.length}
-            </Text>
-            <Text style={styles.healthMetricLabel}>Need review</Text>
-          </View>
-          <View style={styles.healthMetricCard}>
-            <Text style={styles.healthMetricValue}>{missingRequiredDocs.length}</Text>
-            <Text style={styles.healthMetricLabel}>Missing</Text>
-          </View>
-        </View>
-
-        <View style={styles.nextActionCard}>
-          <View style={styles.nextActionHeader}>
-            <Text style={styles.nextActionTitle}>Document health</Text>
-            <Text style={styles.nextActionCaption}>
-              {missingRequiredDocs.length > 0
-                ? `${missingRequiredDocs.length} document${missingRequiredDocs.length === 1 ? '' : 's'} still missing`
-                : expiringRequiredDocs.length + expiredRequiredDocs.length > 0
-                  ? 'A few documents need attention soon'
-                  : 'Your glovebox is in good shape'}
-            </Text>
-          </View>
-
-          {missingRequiredDocs.length > 0 ? (
-            <Text style={styles.nextActionBody}>
-              Add {missingRequiredDocs.slice(0, 2).map(item => item.label).join(' and ')} to complete your core document set.
-            </Text>
-          ) : expiredRequiredDocs.length + expiringRequiredDocs.length > 0 ? (
-            <Text style={styles.nextActionBody}>
-              Review expiry dates and keep renewal documents ready before your next drive.
-            </Text>
-          ) : (
-            <Text style={styles.nextActionBody}>
-              Everything important is stored. Linking DigiLocker can still make future refreshes easier.
-            </Text>
-          )}
-
-          <View style={styles.nextActionButtons}>
-            <TouchableOpacity style={styles.nextActionPrimaryBtn} onPress={handlePriorityAction}>
-              <Text style={styles.nextActionPrimaryText}>
-                {missingRequiredDocs.length > 0
-                  ? `Add ${missingRequiredDocs[0].label}`
-                  : expiredRequiredDocs.length + expiringRequiredDocs.length > 0
-                    ? 'Review document'
-                    : 'Link DigiLocker'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.nextActionSecondaryBtn} onPress={handleConnectDigiLocker}>
-              <Text style={styles.nextActionSecondaryText}>Sync official docs</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* DigiLocker Banner */}
@@ -821,14 +779,22 @@ export default function DocumentList() {
         {primaryVehicle ? (
           <View style={styles.vehicleSummaryCard}>
             <View style={styles.primaryBadge}>
-               <Text style={styles.primaryBadgeText}>ACTIVE PRIMARY</Text>
+              <Text style={styles.primaryBadgeText}>ACTIVE PRIMARY</Text>
             </View>
             <View style={styles.vehicleThumbWrap}>
-              <Image
-                source={(primaryVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) as any}
-                style={styles.vehicleThumb}
-                resizeMode="contain"
-              />
+              {primaryVehicle.imageUrl ? (
+                <Image
+                  source={{ uri: getAbsoluteUrl(primaryVehicle.imageUrl) }}
+                  style={styles.vehicleThumb}
+                  resizeMode="contain"
+                />
+              ) : (
+                <MaterialIcon 
+                  name={primaryVehicle.vehicleType === 'BIKE' ? 'motorcycle' : 'directions-car'} 
+                  size={FALLBACK_ICON_SIZE} 
+                  color="#444" 
+                />
+              )}
             </View>
             <View style={styles.vehicleInfo}>
               <Text style={styles.vehicleName}>{primaryVehicle.model?.toUpperCase() || 'SXL'}</Text>
@@ -837,37 +803,55 @@ export default function DocumentList() {
               </View>
             </View>
             <View style={styles.vehicleActions}>
-               <TouchableOpacity
-                 onPress={() => navigation.navigate('VehicleDetails', {
-                   vehicleId: primaryVehicle.id,
-                   initialTab: 'Details'
-                 })}
-                 style={styles.viewDetailsBtn}
-               >
-                 <Text style={styles.viewDetailsText}>View details</Text>
-               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('VehicleDetails', {
+                  vehicleId: primaryVehicle.id,
+                  initialTab: 'Details'
+                })}
+                style={styles.viewDetailsBtn}
+              >
+                <Text style={styles.viewDetailsText}>View details</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ) : (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.noVehicleCard}
             onPress={() => navigation.navigate('VehicleList')}
           >
             <View style={styles.noVehicleIcon}>
-               <MaterialIcon name="directions-car" size={32} color="#333" />
+              <MaterialIcon name="directions-car" size={32} color="#333" />
             </View>
             <View style={styles.noVehicleContent}>
-               <Text style={styles.noVehicleTitle}>No primary vehicle set</Text>
-               <Text style={styles.noVehicleDesc}>Tap to select a vehicle from your garage to manage documents.</Text>
+              <Text style={styles.noVehicleTitle}>No primary vehicle set</Text>
+              <Text style={styles.noVehicleDesc}>Tap to select a vehicle from your garage to manage documents.</Text>
             </View>
             <ArrowRight size={20} color="#666" />
           </TouchableOpacity>
         )}
 
         <View style={styles.gloveboxGrid}>
-          <DocumentSlot label="RC Front" type="RC" />
-          <DocumentSlot label="Insurance" type="Insurance" />
-          <DocumentSlot label="PUC" type="PUC" />
+          <DocumentSlot 
+            label="RC Front" 
+            type="RC" 
+            documents={documents}
+            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
+            onUpload={openDocumentFlow}
+          />
+          <DocumentSlot 
+            label="Insurance" 
+            type="Insurance" 
+            documents={documents}
+            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
+            onUpload={openDocumentFlow}
+          />
+          <DocumentSlot 
+            label="PUC" 
+            type="PUC" 
+            documents={documents}
+            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
+            onUpload={openDocumentFlow}
+          />
         </View>
 
         {/* Your Personal Documents */}
@@ -876,7 +860,13 @@ export default function DocumentList() {
         </View>
 
         <View style={styles.personalGrid}>
-          <DocumentSlot label="Driving License" type="DL" />
+          <DocumentSlot 
+            label="Driving License" 
+            type="DL" 
+            documents={documents}
+            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
+            onUpload={openDocumentFlow}
+          />
         </View>
 
         <View style={styles.quickActions}>
@@ -902,7 +892,7 @@ export default function DocumentList() {
       {isUploading || loading ? (
         <View style={styles.loaderOverlay}>
           <ActivityIndicator size="large" color="#FFC107" />
-          {isUploading && <Text style={styles.loaderText}>Uploading document...</Text>}
+          {isUploading && <Text style={styles.loaderText}>{loaderMessage}</Text>}
         </View>
       ) : null}
 
@@ -1078,93 +1068,7 @@ const styles = StyleSheet.create({
 
   trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   trustText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#00C853', fontWeight: '600' },
-  healthOverviewRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
-  healthMetricCard: {
-    flex: 1,
-    backgroundColor: '#0D0D0D',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: '#1A1A1A',
-  },
-  healthMetricValue: {
-    color: '#FFF',
-    fontSize: 24,
-    fontFamily: 'Outfit-Bold',
-  },
-  healthMetricWarning: {
-    color: '#F59E0B',
-  },
-  healthMetricLabel: {
-    marginTop: 4,
-    color: '#8E8E93',
-    fontSize: 11,
-    fontFamily: 'Outfit-Medium',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  nextActionCard: {
-    marginTop: 18,
-    backgroundColor: '#0E1218',
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#1B2230',
-  },
-  nextActionHeader: {
-    marginBottom: 10,
-  },
-  nextActionTitle: {
-    color: '#FFF',
-    fontSize: 17,
-    fontFamily: 'Outfit-Bold',
-  },
-  nextActionCaption: {
-    marginTop: 4,
-    color: '#9CA3AF',
-    fontSize: 12,
-    fontFamily: 'Outfit-Medium',
-  },
-  nextActionBody: {
-    color: '#D1D5DB',
-    fontSize: 13,
-    lineHeight: 20,
-    fontFamily: 'Outfit-Regular',
-  },
-  nextActionButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  nextActionPrimaryBtn: {
-    flex: 1,
-    backgroundColor: '#F59E0B',
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nextActionPrimaryText: {
-    color: '#111827',
-    fontSize: 13,
-    fontFamily: 'Outfit-Bold',
-  },
-  nextActionSecondaryBtn: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#2B3648',
-    backgroundColor: 'rgba(255,255,255,0.02)',
-  },
-  nextActionSecondaryText: {
-    color: '#E5E7EB',
-    fontSize: 13,
-    fontFamily: 'Outfit-Bold',
-  },
+
 
   // DigiLocker Banner
   digiBanner: { backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginTop: 32 },
@@ -1211,33 +1115,51 @@ const styles = StyleSheet.create({
     color: '#000',
     letterSpacing: 1,
   },
-  vehicleThumbWrap: { 
-    width: 80, 
-    height: 80, 
-    alignItems: 'center', 
+  vehicleThumbWrap: {
+    width: 70,
+    height: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#111',
+    borderRadius: 12,
+  },
+  vehicleThumb: { width: 60, height: 60 },
+  vehicleInfo: {
+    flex: 1,
+    marginLeft: 16,
     justifyContent: 'center',
   },
-  vehicleThumb: { width: 70, height: 70 },
-  vehicleInfo: { flex: 1, marginLeft: 8, justifyContent: 'center' },
-  vehicleName: { color: '#FFF', fontSize: 20, fontFamily: 'Outfit-Bold', fontWeight: '800' },
-  plateWrap: { alignSelf: 'flex-start', transform: [{ scale: 0.75 }], marginLeft: -18, marginTop: 4 },
+  vehicleName: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+    marginBottom: 4
+  },
+  plateWrap: {
+    alignSelf: 'flex-start',
+    transform: [{ scale: 0.65 }],
+    marginLeft: -35,
+    marginTop: -2,
+  },
   vehicleActions: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingRight: 4,
+    paddingLeft: 8,
   },
   viewDetailsBtn: {
-    backgroundColor: '#222',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#333',
   },
-  viewDetailsText: { 
-    color: '#FFF', 
-    fontSize: 10, 
+  viewDetailsText: {
+    color: '#EEE',
+    fontSize: 9,
     fontFamily: 'Outfit-Bold',
+    textTransform: 'uppercase',
   },
   noVehicleCard: {
     backgroundColor: '#0A0A0A',

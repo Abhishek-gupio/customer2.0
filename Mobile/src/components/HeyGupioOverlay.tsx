@@ -343,7 +343,9 @@ export default function HeyGupioOverlay() {
       continuousModeRef.current = false;
     }
     Voice.stop().catch(() => {});
-    Tts.stop();
+    if (Platform.OS === 'android') {
+      Tts.stop();
+    }
     if (isMountedRef.current) {
       setOverlayStatus('idle');
     }
@@ -388,7 +390,9 @@ export default function HeyGupioOverlay() {
       restartDelayRef.current = null;
       if (!isMountedRef.current || !continuousModeRef.current || !canListenRef.current) return;
       setOverlayStatus('idle');
-      Tts.stop();
+      if (Platform.OS === 'android') {
+        Tts.stop();
+      }
       const doStart = () => {
         if (!isMountedRef.current || !continuousModeRef.current) return;
         startListeningRef.current();
@@ -734,7 +738,9 @@ export default function HeyGupioOverlay() {
       }
       appSub.remove();
       Tts.removeAllListeners('tts-finish');
-      Tts.stop();
+      if (Platform.OS === 'android') {
+        Tts.stop();
+      }
       try {
         Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => {});
       } catch (_) {}
@@ -775,7 +781,9 @@ export default function HeyGupioOverlay() {
       ttsFallbackRef.current = null;
     }
     ttsFinishRef.current = null;
-    Tts.stop();
+    if (Platform.OS === 'android') {
+      Tts.stop();
+    }
     setOverlayStatus('idle');
 
     const begin = () => {
