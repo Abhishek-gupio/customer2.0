@@ -23,6 +23,15 @@ echo "Step 4: Preparing Android Build..."
 cd "$MOBILE_DIR/android"
 ./gradlew clean
 
-echo "Recovery complete. You can now build the APK."
-echo "Debug APK: ./gradlew assembleDebug"
-echo "Release APK: ./gradlew assembleRelease"
+if [ "$1" == "debug" ]; then
+    echo "Step 5: Building Debug APK..."
+    ./gradlew assembleDebug
+    echo "Build Complete! Path: Mobile/android/app/build/outputs/apk/debug/app-debug.apk"
+elif [ "$1" == "release" ]; then
+    echo "Step 5: Building Release APK..."
+    ./gradlew assembleRelease
+    echo "Build Complete! Path: Mobile/android/app/build/outputs/apk/release/app-release.apk"
+else
+    echo "Recovery complete. The environment is now fixed."
+    echo "To build an APK, you can run: ./scripts/build-recovery.sh [debug|release]"
+fi
