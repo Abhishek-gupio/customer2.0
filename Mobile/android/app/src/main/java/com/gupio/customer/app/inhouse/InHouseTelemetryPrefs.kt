@@ -1,4 +1,4 @@
-package com.mobile1.inhouse
+package com.gupio.customer.app.inhouse
 
 import android.content.Context
 

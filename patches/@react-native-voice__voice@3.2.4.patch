@@ -1,11 +1,42 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 8fce879dcf7a0d92209550aebde7be63b0aba530..4144c6caef81a53fb94d502dc2e2fd3a897ac4c3 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
+ 
+ repositories {
+     mavenLocal()
+-    jcenter()
++    mavenCentral()
+     maven {
+         // For developing the library outside the context of the example app, expect `react-native`
+         // to be installed at `./node_modules`.
+@@ -40,7 +40,7 @@ android {
+ buildscript {
+     if (project == rootProject) {
+         repositories {
+-            jcenter()
++            mavenCentral()
+         }
+         dependencies {
+             classpath 'com.android.tools.build:gradle:3.3.2'
+@@ -53,7 +53,7 @@ buildscript {
+ 
+ allprojects {
+     repositories {
+-        jcenter()
++        mavenCentral()
+     }
+ }
+ 
 diff --git a/android/src/main/java/com/wenkesj/voice/VoiceModule.java b/android/src/main/java/com/wenkesj/voice/VoiceModule.java
+index f22833ee4ab674c94d23af731f41c3c4d330298b..9b1d695e39026140fb0055a2a4ac5b1c0138aab7 100644
 --- a/android/src/main/java/com/wenkesj/voice/VoiceModule.java
 +++ b/android/src/main/java/com/wenkesj/voice/VoiceModule.java
-@@ -269,6 +269,16 @@
-   public void isRecognizing(Callback callback) {
+@@ -271,6 +271,16 @@ public class VoiceModule extends ReactContextBaseJavaModule implements Recogniti
      callback.invoke(isRecognizing);
    }
-+
+ 
 +  @ReactMethod
 +  public void addListener(String eventName) {
 +    // Required for NativeEventEmitter on newer React Native versions.
@@ -15,13 +46,15 @@ diff --git a/android/src/main/java/com/wenkesj/voice/VoiceModule.java b/android/
 +  public void removeListeners(Integer count) {
 +    // Required for NativeEventEmitter on newer React Native versions.
 +  }
- 
++
    private void sendEvent(String eventName, @Nullable WritableMap params) {
      this.reactContext
+       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
 diff --git a/dist/index.js b/dist/index.js
+index a10af138184cc1b2a39d68e89e59c5c5f7320d5f..4e2c5706d19c0af0c208a35ff33b23aeebca6017 100644
 --- a/dist/index.js
 +++ b/dist/index.js
-@@ -6,5 +6,9 @@
+@@ -6,8 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
  const react_native_1 = require("react-native");
  const invariant_1 = __importDefault(require("invariant"));
  const Voice = react_native_1.NativeModules.Voice;
@@ -32,10 +65,17 @@ diff --git a/dist/index.js b/dist/index.js
  // NativeEventEmitter is only availabe on React Native platforms, so this conditional is used to avoid import conflicts in the browser/server
 -const voiceEmitter = react_native_1.Platform.OS !== 'web' ? new react_native_1.NativeEventEmitter(Voice) : null;
 +const voiceEmitter = react_native_1.Platform.OS !== 'web' && Voice != null ? new react_native_1.NativeEventEmitter(Voice) : null;
+ class RCTVoice {
+     constructor() {
+         this._loaded = false;
 diff --git a/src/index.ts b/src/index.ts
+index 8b51121310c23cfd67366d264dd6c728120e4f2a..5c32afda31800b706c691b21907e55af69931e8c 100644
 --- a/src/index.ts
 +++ b/src/index.ts
-@@ -14,5 +14,15 @@
+@@ -11,11 +11,21 @@ import {
+   SpeechVolumeChangeEvent,
+ } from './VoiceModuleTypes';
+ 
 -const Voice = NativeModules.Voice as VoiceModule;
 +const Voice = NativeModules.Voice as
 +  | (VoiceModule & {
@@ -53,3 +93,6 @@ diff --git a/src/index.ts b/src/index.ts
  const voiceEmitter =
 -  Platform.OS !== 'web' ? new NativeEventEmitter(Voice) : null;
 +  Platform.OS !== 'web' && Voice != null ? new NativeEventEmitter(Voice) : null;
+ type SpeechEvent = keyof SpeechEvents;
+ 
+ class RCTVoice {

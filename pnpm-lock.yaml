@@ -13,7 +13,7 @@ overrides:
 
 patchedDependencies:
   '@react-native-voice/voice@3.2.4':
-    hash: uqiigv2533zuu5nyamq2jbds4y
+    hash: 5tdzvrwbgnmrg7s5twho7anqnm
     path: patches/@react-native-voice__voice@3.2.4.patch
   react-native-tts@4.1.1:
     hash: wmsqw4gtfflojlp2xjpln7eh6m
@@ -368,26 +368,26 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       '@react-native-firebase/analytics':
-        specifier: ^23.8.6
-        version: 23.8.8(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
+        specifier: ^24.0.0
+        version: 24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
       '@react-native-firebase/app':
-        specifier: ^23.8.6
-        version: 23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
+        specifier: ^24.0.0
+        version: 24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       '@react-native-firebase/auth':
         specifier: ^24.0.0
-        version: 24.0.0(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
+        version: 24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
       '@react-native-firebase/messaging':
-        specifier: ^23.8.8
-        version: 23.8.8(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
+        specifier: ^24.0.0
+        version: 24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
       '@react-native-firebase/perf':
-        specifier: ^23.8.6
-        version: 23.8.8(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
+        specifier: ^24.0.0
+        version: 24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))
       '@react-native-google-signin/google-signin':
         specifier: ^16.1.2
         version: 16.1.2(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       '@react-native-voice/voice':
         specifier: ^3.2.4
-        version: 3.2.4(patch_hash=uqiigv2533zuu5nyamq2jbds4y)(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))
+        version: 3.2.4(patch_hash=5tdzvrwbgnmrg7s5twho7anqnm)(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))
       '@react-native/codegen':
         specifier: ^0.83.1
         version: 0.83.4(@babel/core@7.29.0)
@@ -2964,13 +2964,13 @@ packages:
       react: 19.2.0
       react-native: '>=0.79.0'
 
-  '@react-native-firebase/analytics@23.8.8':
-    resolution: {integrity: sha512-hNGUzxZvtgERO5DABUq7Bt/U/3RH8kgiKr2pCmYjNnITv6VlPp3/FxNCz9kBTtXAmxEa7JojFqZ/Z0QNKRLdpQ==}
+  '@react-native-firebase/analytics@24.0.0':
+    resolution: {integrity: sha512-Hg8xbnpjn56L7uwYKZ9QIffx5YTsqtPUS5C7Y207MSwi+qVFp0GHWJ/onAk5JOvPPPtM3pVm3Nn+b/EQomFOcA==}
     peerDependencies:
-      '@react-native-firebase/app': 23.8.8
+      '@react-native-firebase/app': 24.0.0
 
-  '@react-native-firebase/app@23.8.8':
-    resolution: {integrity: sha512-9KeKToqsEPhaL+KlTYIdUB0bsXYAcKk0Zzpu608zf2qsXbyTscuYs1caLWxk8AdGtt3+j7ZsoOFt/8qnlo4Ugg==}
+  '@react-native-firebase/app@24.0.0':
+    resolution: {integrity: sha512-rLWNd8/4FjKYV7PeDR9uiT5vwYWdJ7dJ1yiIIaZ/eL+Y56Ij2iXbqRCUu4zWkvu/ZrJfaGOyT12Vhy1SLy0NMg==}
     peerDependencies:
       expo: '>=47.0.0'
       react: 19.2.0
@@ -2988,19 +2988,19 @@ packages:
       expo:
         optional: true
 
-  '@react-native-firebase/messaging@23.8.8':
-    resolution: {integrity: sha512-7Po3/0M9SjYftWFZDueNqvbYDgycE/p7rYrcPDBjxWXsVPO98woLPIFRDuYIJDlTVFyYFjpCTF8kDIGBWPTFzQ==}
+  '@react-native-firebase/messaging@24.0.0':
+    resolution: {integrity: sha512-rODaV83e8mR+Y9EPDblfSpy4rM+alriiq5306RyzPryhsyu+guj4fhGwZpESWwhmk9fKjsnshv++aFA50xFjhg==}
     peerDependencies:
-      '@react-native-firebase/app': 23.8.8
+      '@react-native-firebase/app': 24.0.0
       expo: '>=47.0.0'
     peerDependenciesMeta:
       expo:
         optional: true
 
-  '@react-native-firebase/perf@23.8.8':
-    resolution: {integrity: sha512-wirlkatqbZR97fPOs8y1arFVvL7WoynzXYn6bIRWS0ozbKqjKzGrjckcT/bU30ZwZ7m7WLUvhAodg/wb2BKkyQ==}
+  '@react-native-firebase/perf@24.0.0':
+    resolution: {integrity: sha512-Sad85xBo/KFZz9xJHxT7KamgDs0Wa59xEzugJzEJdsJgjKek5Lb4kr7m4z1sCJurswUppEiPAYRPQIBCPWiaew==}
     peerDependencies:
-      '@react-native-firebase/app': 23.8.8
+      '@react-native-firebase/app': 24.0.0
       expo: '>=47.0.0'
     peerDependenciesMeta:
       expo:
@@ -12081,12 +12081,12 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)
 
-  '@react-native-firebase/analytics@23.8.8(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
+  '@react-native-firebase/analytics@24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
     dependencies:
-      '@react-native-firebase/app': 23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
+      '@react-native-firebase/app': 24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       superstruct: 2.0.2
 
-  '@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)':
+  '@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)':
     dependencies:
       firebase: 12.10.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))
       react: 19.2.0
@@ -12094,25 +12094,25 @@ snapshots:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
 
-  '@react-native-firebase/auth@24.0.0(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
+  '@react-native-firebase/auth@24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
     dependencies:
-      '@react-native-firebase/app': 23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
+      '@react-native-firebase/app': 24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       plist: 3.1.0
 
-  '@react-native-firebase/messaging@23.8.8(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
+  '@react-native-firebase/messaging@24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
     dependencies:
-      '@react-native-firebase/app': 23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
+      '@react-native-firebase/app': 24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
 
-  '@react-native-firebase/perf@23.8.8(@react-native-firebase/app@23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
+  '@react-native-firebase/perf@24.0.0(@react-native-firebase/app@24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))':
     dependencies:
-      '@react-native-firebase/app': 23.8.8(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
+      '@react-native-firebase/app': 24.0.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)))(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
 
   '@react-native-google-signin/google-signin@16.1.2(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)':
     dependencies:
       react: 19.2.0
       react-native: 0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)
 
-  '@react-native-voice/voice@3.2.4(patch_hash=uqiigv2533zuu5nyamq2jbds4y)(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))':
+  '@react-native-voice/voice@3.2.4(patch_hash=5tdzvrwbgnmrg7s5twho7anqnm)(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))':
     dependencies:
       '@expo/config-plugins': 2.0.4
       invariant: 2.2.4

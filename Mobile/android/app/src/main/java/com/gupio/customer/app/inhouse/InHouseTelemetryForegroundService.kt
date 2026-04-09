@@ -1,4 +1,4 @@
-package com.mobile1.inhouse
+package com.gupio.customer.app.inhouse
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -16,7 +16,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.mobile1.R
+import com.gupio.customer.app.R
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
@@ -38,10 +38,10 @@ data class InHouseTelemetryServiceStatus(
 
 class InHouseTelemetryForegroundService : Service(), LocationListener {
   companion object {
-    const val ACTION_SYNC_CONFIG = "com.mobile1.inhouse.action.SYNC_CONFIG"
-    const val ACTION_START = "com.mobile1.inhouse.action.START"
-    const val ACTION_STOP = "com.mobile1.inhouse.action.STOP"
-    const val ACTION_STOP_ALL = "com.mobile1.inhouse.action.STOP_ALL"
+    const val ACTION_SYNC_CONFIG = "com.gupio.customer.app.inhouse.action.SYNC_CONFIG"
+    const val ACTION_START = "com.gupio.customer.app.inhouse.action.START"
+    const val ACTION_STOP = "com.gupio.customer.app.inhouse.action.STOP"
+    const val ACTION_STOP_ALL = "com.gupio.customer.app.inhouse.action.STOP_ALL"
 
     private const val CHANNEL_ID = "inhouse_telematics_tracking"
     private const val CHANNEL_NAME = "In-house Telematics"
