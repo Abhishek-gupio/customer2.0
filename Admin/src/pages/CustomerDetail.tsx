@@ -499,21 +499,39 @@ export default function CustomerDetail() {
             <ArrowLeft className="h-3.5 w-3.5 text-[var(--accent)] group-hover:-translate-x-0.5 transition-transform" />
             Back to customers
           </Link>
-          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-tight">{displayName}</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-white/60">
-                <span className="inline-flex items-center gap-1"><Phone className="h-4 w-4" /> {customer.phoneNumber}</span>
-                {customer.email && <span>· {customer.email}</span>}
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-2xl font-extrabold tracking-tight">{displayName}</h1>
+                {isSuperAdmin && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="md:hidden h-9 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-white border-white/10 font-bold text-xs"
+                    onClick={() => setIsEditModalOpen(true)}
+                  >
+                    <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/50">
+                <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--accent)]" /> {customer.phoneNumber}</span>
+                {customer.email && (
+                  <span className="inline-flex items-center gap-1.5 group">
+                    <span className="h-1 w-1 rounded-full bg-white/20" />
+                    {customer.email}
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center gap-3">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
               {isSuperAdmin && (
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="h-11 px-4 rounded-xl bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] border-[var(--accent)]/20 font-bold"
+                  className="hidden md:flex h-11 px-4 rounded-xl bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] border-[var(--accent)]/20 font-bold"
                   onClick={() => setIsEditModalOpen(true)}
                 >
                   <Edit2 className="h-4 w-4 mr-2" />
@@ -521,27 +539,27 @@ export default function CustomerDetail() {
                 </Button>
               )}
 
-              {/* Glossy Tab Navigation */}
-            <div className="flex gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-              {(['overview', 'vehicles', 'expenses', 'documents', 'tickets'] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all duration-300",
-                    tab === t
-                      ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30 shadow-[0_4px_12px_-2px_rgba(var(--accent-rgb),0.2)]"
-                      : "text-white/40 hover:text-white/70 hover:bg-white/[0.02]"
-                  )}
-                >
-                  {t}
-                </button>
-              ))}
+              {/* Glossy Tab Navigation - Scrollable on mobile */}
+              <div className="flex items-center overflow-x-auto hide-scrollbar gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                {(['overview', 'vehicles', 'expenses', 'documents', 'tickets'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={cn(
+                      "px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all duration-300 whitespace-nowrap",
+                      tab === t
+                        ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30 shadow-[0_4px_12px_-2px_rgba(var(--accent-rgb),0.2)]"
+                        : "text-white/40 hover:text-white/70 hover:bg-white/[0.02]"
+                    )}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
       {/* Scrollable Content Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10 space-y-4">

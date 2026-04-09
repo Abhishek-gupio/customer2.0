@@ -13,26 +13,113 @@ import { fetchAndSaveIntervalsForVehicle } from "../../services/oem-scraper.serv
 import { rcVerificationService } from "../../services/rc-verification.service";
 import { warrantyService } from "../../services/warranty.service";
 
+// ─────────────────────────────────────────────────────────────────
+// CORPORATE NOISE – words to strip before ANY comparison
+// ─────────────────────────────────────────────────────────────────
+const CORPORATE_STOP = [
+  "india", "ltd", "limited", "pvt", "private", "vehicles", "auto",
+  "motorcycle", "scooter", "and", "motors", "passenger", "unit", "of",
+  "company", "corp", "corporation", "industries", "enterprise", "group",
+];
+
+// Emission / variant junk that adds no identity value
+const VARIANT_NOISE_RE =
+  /\b(bs\s*iv|bs\s*vi|bs\s*4|bs\s*6|vdi|vxi|zxi|dlx|std|spl|drk|spoke|cast|alloy|drum|disc|fi|dts|si|ug|ks|es|sp|self)\b/gi;
+
+// RTO API leading acronym junk: "R/E/", "M/S/", "P/U/" etc.
+const LEADING_ACRONYM_RE = /^([a-z]\/)+/i;
+
+// ─────────────────────────────────────────────────────────────────
+// CORE NORMALIZER
+// ─────────────────────────────────────────────────────────────────
 function normalizeForMatch(s: string | null | undefined): string {
   return (s ?? "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function tokenizeForFuzzyMatch(s: string | null | undefined): string[] {
-  return normalizeForMatch(s)
-    .replace(/[^a-z0-9 ]+/g, " ")
+/**
+ * Strips all corporate noise, bracketed text, leading acronym prefixes,
+ * and variant junk from a raw RTO / API string and returns a clean token set.
+ *
+ * Example:
+ *   "Royal-Enfield (Unit Of Eicher Ltd)"  → ["royal", "enfield"]
+ *   "Bajaj Auto Ltd"                       → ["bajaj"]
+ *   "R/E/Classic 350 Bs 4"                → ["classic", "350"]
+ *   "Ktm 250 Duke"                         → ["ktm", "250", "duke"]
+ */
+function buildIdentityTokens(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .replace(/\(.*?\)/g, " ")          // drop bracketed text
+    .replace(/\[.*?\]/g, " ")          // drop square-bracketed text
+    .replace(LEADING_ACRONYM_RE, "")   // drop R/E/ style prefix
+    .replace(VARIANT_NOISE_RE, " ")    // drop emission/variant junk
+    .replace(/[^a-z0-9 ]+/gi, " ")    // replace all punctuation with space
+    .toLowerCase()
     .split(" ")
     .map((w) => w.trim())
-    .filter(Boolean);
+    .filter((w) => w.length > 1 && !CORPORATE_STOP.includes(w)); // drop 1-char tokens + stop-words
 }
 
-function overlapCount(a: string[], b: string[]): number {
-  if (a.length === 0 || b.length === 0) return 0;
-  const setB = new Set(b);
-  let count = 0;
-  for (const token of new Set(a)) {
-    if (setB.has(token)) count += 1;
-  }
-  return count;
+// Color words should never be used as model identifiers
+const COLOR_WORDS = new Set([
+  "white", "black", "red", "blue", "grey", "gray", "silver",
+  "yellow", "green", "orange", "purple", "brown", "gold", "pearl",
+  "matte", "glossy", "metallic", "colour", "color",
+]);
+
+/**
+ * Given a user's (make, model) and a catalog entry's (make, model),
+ * returns a similarity score in the range [0, 1].
+ *
+ * Rules:
+ *   1. Build U = identity tokens from user make + model, minus color words.
+ *   2. Build C_make = catalog make tokens, C_model = catalog model tokens.
+ *   3. HARD GATE: if ZERO C_model tokens appear in U → return 0 immediately.
+ *      This prevents "Bajaj Platina" from matching when user typed "Pu Tc Ktm White"
+ *      because "platina" is not in U at all.
+ *   4. score = overlap(C_make + C_model, U) / |C_make + C_model|
+ *
+ * Cross-brand example:
+ *   User   = "Bajaj Auto Ltd" + "Ktm 250 Duke"
+ *   U      = ["bajaj", "ktm", "250", "duke"]
+ *   KTM 250 Duke: C_model=["250","duke"], both in U → score = 3/3 = 1.0 ✅
+ *   Bajaj Platina: C_model=["platina"], NOT in U → score = 0 ❌ (hard rejected)
+ *
+ * Junk-model example:
+ *   User   = "Bajaj Auto Ltd" + "Pu Tc Ktm White"
+ *   U      = ["bajaj", "pu", "tc", "ktm"]  (white stripped as color)
+ *   KTM 250 Duke: C_model=["250","duke"], neither in U → score = 0 (no image shown)
+ *   Bajaj Platina: C_model=["platina"], not in U → score = 0 (no image shown)
+ *   → Correctly returns null instead of showing Platina!
+ */
+function catalogMatchScore(
+  userMake: string | null | undefined,
+  userModel: string | null | undefined,
+  catMake: string | null | undefined,
+  catModel: string | null | undefined,
+): number {
+  // Build user token set, filtering out color words
+  const rawU = [
+    ...buildIdentityTokens(userMake),
+    ...buildIdentityTokens(userModel),
+  ];
+  const U = new Set(rawU.filter((t) => !COLOR_WORDS.has(t)));
+
+  const C_make = buildIdentityTokens(catMake);
+  const C_model = buildIdentityTokens(catModel);
+  const C = [...C_make, ...C_model];
+
+  if (C.length === 0) return 0;
+
+  // HARD GATE: at least one catalog MODEL token must appear in U.
+  // Without this, a pure brand match (bajaj→platina) can win even when
+  // the user's model string has zero relevance to Platina.
+  const modelOverlap = C_model.filter((t) => U.has(t)).length;
+  if (modelOverlap === 0) return 0;
+
+  const totalOverlap = C.filter((t) => U.has(t)).length;
+  return totalOverlap / C.length;
+
 }
 
 function isLegacyUnsplashUrl(url: string | null | undefined): boolean {
@@ -51,8 +138,9 @@ function normalizeForKey(s: string): string {
 
 function cleanMake(make: string): string {
   return make
+    .replace(/\(.*?\)/g, "")
     .replace(
-      /\b(india|ltd|limited|pvt|private|vehicles|auto|motorcycle|scooter|and|&|\(p\)|\.|motors|passenger)\b/gi,
+      /\b(india|ltd|limited|pvt|private|vehicles|auto|motorcycle|scooter|and|&|\(p\)|\.\|motors|passenger)\b/gi,
       " ",
     )
     .replace(/\s+/g, " ")
@@ -60,17 +148,19 @@ function cleanMake(make: string): string {
 }
 
 function cleanModel(model: string, make?: string): string {
-  let cleaned = model.replace(
-    /\b(bs\s*iv|bs\s*vi|bs4|bs6|vdi|vxi|zxi|dlx|std)\b/gi,
-    " ",
-  );
+  let cleaned = model
+    .replace(LEADING_ACRONYM_RE, "")
+    .replace(VARIANT_NOISE_RE, " ");
 
-  // Remove make from model if it starts with it (e.g. "Tata Nexon" -> "Nexon")
   if (make) {
-    const makeWords = make.toLowerCase().split(' ');
-    const firstWordOfMake = makeWords[0];
-    if (cleaned.toLowerCase().startsWith(firstWordOfMake)) {
-      cleaned = cleaned.substring(firstWordOfMake.length).trim();
+    const makeClean = make.toLowerCase().replace(/\(.*?\)/g, "").trim();
+    if (cleaned.toLowerCase().startsWith(makeClean)) {
+      cleaned = cleaned.substring(makeClean.length).trim();
+    } else {
+      const firstWord = makeClean.split(" ")[0];
+      if (firstWord && cleaned.toLowerCase().startsWith(firstWord)) {
+        cleaned = cleaned.substring(firstWord.length).trim();
+      }
     }
   }
 
@@ -79,7 +169,7 @@ function cleanModel(model: string, make?: string): string {
 
 function vehicleTypeBucket(vehicleType?: string | null): "CAR" | "BIKE" {
   const v = (vehicleType ?? "").toUpperCase();
-  if (v.includes("BIKE") || v.includes("MOTORCYCLE")) return "BIKE";
+  if (v.includes("BIKE") || v.includes("MOTORCYCLE") || v.includes("2W")) return "BIKE";
   return "CAR";
 }
 
@@ -93,6 +183,44 @@ function makeCatalogNormalizedKey(args: {
   const md = normalizeForKey(cleanModel(args.model ?? "", args.make ?? ""));
   const v = args.variant ? normalizeForKey(cleanModel(args.variant, args.make ?? "")) : "";
   return `${args.vehicleType}|${mk}|${md}|${v}`;
+}
+
+// Minimum score for a fuzzy catalog match to be accepted.
+// 0.5 means at least 50% of the catalog entry's identity tokens must be
+// present in the user's fused make+model string.
+const MIN_MATCH_SCORE = 0.5;
+
+/**
+ * Core catalog finder: fetches every catalog entry for the vehicle type,
+ * scores each one using catalogMatchScore(), and returns the best match
+ * that meets MIN_MATCH_SCORE. Returns null if nothing is good enough.
+ */
+async function findBestCatalogEntry(
+  vehicleType: "CAR" | "BIKE",
+  userMake: string,
+  userModel: string,
+): Promise<any | null> {
+  // Fetch ALL catalog entries for the bucket – there are typically < 300.
+  const allCatalog = await dbInstances.vehicleCatalog.findMany({
+    where: { vehicleType },
+    select: { id: true, make: true, model: true, variant: true, normalizedKey: true },
+  });
+
+  let bestScore = -1;
+  let bestEntry: any = null;
+
+  for (const entry of allCatalog) {
+    const score = catalogMatchScore(userMake, userModel, entry.make, entry.model);
+    if (score > bestScore) {
+      bestScore = score;
+      bestEntry = entry;
+    }
+  }
+
+  if (bestEntry && bestScore >= MIN_MATCH_SCORE) {
+    return bestEntry;
+  }
+  return null;
 }
 
 async function resolveCatalogHeroImageUrl(args: {
@@ -110,81 +238,18 @@ async function resolveCatalogHeroImageUrl(args: {
   });
 
   if (!catalog) {
-    const makeNeedle = normalizeForMatch(cleanMake(args.make));
-    const modelNeedle = normalizeForMatch(cleanModel(args.model, args.make ?? undefined));
-    const variantNeedle = args.variant
-      ? normalizeForMatch(cleanModel(args.variant, args.make ?? undefined))
-      : null;
-    const makeTokens = tokenizeForFuzzyMatch(makeNeedle);
-    const modelTokens = tokenizeForFuzzyMatch(modelNeedle);
-    const variantTokens = tokenizeForFuzzyMatch(variantNeedle);
-    const makeFirst = makeTokens[0] ?? null;
-    const modelFirst = modelTokens[0] ?? null;
-    const modelFirstTwo = modelTokens.slice(0, 2).join(" ");
-
-    let candidates = await dbInstances.vehicleCatalog.findMany({
+    catalog = await dbInstances.vehicleCatalog.findFirst({
       where: {
         vehicleType: args.vehicleType,
-        ...(makeFirst
-          ? { make: { contains: makeFirst, mode: "insensitive" } }
-          : {}),
-        ...(modelFirst
-          ? { model: { contains: modelFirst, mode: "insensitive" } }
-          : {}),
-      },
-      take: 250,
-      orderBy: { updatedAt: "desc" },
+        make: { equals: args.make.trim(), mode: "insensitive" },
+        model: { equals: cleanModel(args.model, args.make ?? undefined), mode: "insensitive" }
+      }
     });
+  }
 
-    // If model's first word is too different, widen to same make bucket only.
-    if (candidates.length === 0 && makeFirst) {
-      candidates = await dbInstances.vehicleCatalog.findMany({
-        where: {
-          vehicleType: args.vehicleType,
-          make: { contains: makeFirst, mode: "insensitive" },
-        },
-        take: 250,
-        orderBy: { updatedAt: "desc" },
-      });
-    }
-
-    let bestScore = -1;
-    let bestCatalog: any = null;
-
-    for (const c of candidates) {
-      const cMake = normalizeForMatch(cleanMake(c.make ?? ""));
-      const cModel = normalizeForMatch(cleanModel(c.model ?? "", c.make ?? undefined));
-      const cVariant = normalizeForMatch(cleanModel(c.variant ?? "", c.make ?? undefined));
-      const cModelTokens = tokenizeForFuzzyMatch(cModel);
-      const cVariantTokens = tokenizeForFuzzyMatch(cVariant);
-
-      let score = 0;
-
-      if (cMake === makeNeedle) score += 40;
-      if (makeFirst && (cMake.includes(makeFirst) || makeFirst.includes(cMake))) score += 16;
-      if (cMake && makeNeedle && (cMake.includes(makeNeedle) || makeNeedle.includes(cMake))) score += 12;
-
-      if (cModel === modelNeedle) score += 90;
-      if (modelFirstTwo && (cModel.includes(modelFirstTwo) || modelFirstTwo.includes(cModel))) score += 48;
-      if (modelFirst && (cModel.includes(modelFirst) || modelFirst.includes(cModel))) score += 24;
-      score += overlapCount(modelTokens, cModelTokens) * 8;
-
-      if (variantNeedle) {
-        if (cVariant && (cVariant.includes(variantNeedle) || variantNeedle.includes(cVariant))) score += 18;
-        score += overlapCount(variantTokens, cVariantTokens) * 5;
-      }
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestCatalog = c;
-      }
-    }
-
-    // Threshold tuned so "same make + nearby first 1-2 model words" matches,
-    // while reducing accidental wrong-model picks.
-    if (bestCatalog && bestScore >= 48) {
-      catalog = bestCatalog;
-    }
+  // Fallback: full catalog scan with fused identity token scoring
+  if (!catalog) {
+    catalog = await findBestCatalogEntry(args.vehicleType, args.make, args.model);
   }
 
   if (!catalog) return null;
@@ -442,11 +507,8 @@ export const vehicleService = {
     // Ensure vehicle image comes from catalog assets when available.
     return Promise.all(
       vehicles.map(async (v: any) => {
-        const shouldResolveFromCatalog = !v.imageUrl || isLegacyUnsplashUrl(v.imageUrl);
-        const catalogHero = shouldResolveFromCatalog
-          ? await resolveCatalogHeroForVehicleRecord(v)
-          : null;
-        const resolvedImageUrl = catalogHero ?? (shouldResolveFromCatalog ? null : v.imageUrl);
+        const catalogHero = await resolveCatalogHeroForVehicleRecord(v);
+        const resolvedImageUrl = catalogHero ?? v.imageUrl ?? null;
 
         // Backfill DB once catalog hero is found, so future reads stay consistent.
         if (catalogHero && catalogHero !== v.imageUrl) {
@@ -530,12 +592,13 @@ export const vehicleService = {
       };
     }
 
-    const shouldResolveFromCatalog = !vehicle?.imageUrl || isLegacyUnsplashUrl(vehicle?.imageUrl);
-    const catalogHero = shouldResolveFromCatalog
-      ? await resolveCatalogHeroForVehicleRecord(vehicle)
-      : null;
-    const resolvedImageUrl = catalogHero ?? (shouldResolveFromCatalog ? null : vehicle?.imageUrl ?? null);
+    // Always attempt catalog resolution — this ensures stale/wrong images get corrected
+    // on next load even if an imageUrl was previously set from an incorrect match.
+    const catalogHero = await resolveCatalogHeroForVehicleRecord(vehicle);
+    const resolvedImageUrl = catalogHero ?? vehicle?.imageUrl ?? null;
 
+    // Backfill: write the resolved URL to DB whenever it is different from what's stored.
+    // This corrects wrong images on next app load without needing manual intervention.
     if (catalogHero && catalogHero !== vehicle?.imageUrl) {
       dbInstances.customerVehicle.update({
         where: { id: vehicle.id },
@@ -578,36 +641,20 @@ export const vehicleService = {
       where: { normalizedKey },
     });
 
-    // 2) Fallback fuzzy lookup (in case make/model strings differ slightly)
+    // 2) Fallback raw string exact match (protect against fuzzy collision)
     if (!catalog) {
-      const makeNeedle = normalizeForMatch(cleanMake(make));
-      const modelNeedle = normalizeForMatch(cleanModel(model));
-      const variantNeedle = variant ? normalizeForMatch(cleanModel(variant)) : null;
-
-      // Pass 1: variant-aware fuzzy match.
       catalog = await dbInstances.vehicleCatalog.findFirst({
         where: {
           vehicleType: bucket,
-          make: { contains: makeNeedle, mode: "insensitive" },
-          model: { contains: modelNeedle, mode: "insensitive" },
-          ...(variantNeedle
-            ? { variant: { contains: variantNeedle, mode: "insensitive" } }
-            : {}),
-        },
-        orderBy: { updatedAt: "desc" },
+          make: { equals: make.trim(), mode: "insensitive" },
+          model: { equals: cleanModel(model, make ?? undefined), mode: "insensitive" }
+        }
       });
+    }
 
-      // Pass 2: ignore variant for broader make+model match.
-      if (!catalog) {
-        catalog = await dbInstances.vehicleCatalog.findFirst({
-          where: {
-            vehicleType: bucket,
-            make: { contains: makeNeedle, mode: "insensitive" },
-            model: { contains: modelNeedle, mode: "insensitive" },
-          },
-          orderBy: { updatedAt: "desc" },
-        });
-      }
+    // 3) Fallback: full catalog scan with fused identity token scoring
+    if (!catalog) {
+      catalog = await findBestCatalogEntry(bucket, make, model);
     }
 
     if (!catalog) {

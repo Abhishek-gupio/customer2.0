@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -143,35 +143,41 @@ export const WarrantyStatus = () => {
     }
   };
 
-  const fetchData = async () => {
+  const isFetchingRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
     try {
       const vehicles = await vehicleService.getVehicles();
       const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
-      if (!primary) {
+      if (!primary || !isMountedRef.current) {
         setLoading(false);
+        isFetchingRef.current = false;
         return;
       }
-      let latestPrimary = primary;
-      try {
-        // Keep health score fresh whenever this screen opens.
-        await vehicleService.recalculateHealth(primary.id);
-        const refreshed = await vehicleService.getVehicleById(primary.id);
-        if (refreshed) latestPrimary = refreshed;
-      } catch {
-        // Non-blocking: continue with the current primary data if recalc fails.
-      }
-      setVehicle(latestPrimary);
+      
+      setVehicle(primary);
 
-      // Refresh OEM manual intervals for primary vehicle (fire-and-forget) so part intervals match OEM e.g. 60k km for tyres
       api.post('/v1/expenses/warranty/primary/refresh-oem').catch(() => {});
 
-      const [warrantyRes, upcomingRes] = await Promise.all([
+      const [statusRes, upcomingRes, _] = await Promise.all([
         api.get<any>(`/v1/expenses/warranty/vehicles/${primary.id}/status`),
         api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`),
+        vehicleService.recalculateHealth(primary.id).catch(() => null)
       ]);
 
-      // Handle both {data: []} and [] formats depending on api service behavior
-      const warrantyData = (warrantyRes as any).data || warrantyRes;
+      if (!isMountedRef.current) return;
+
       const upcomingData = (upcomingRes as any).data || upcomingRes;
 
       const processedParts: PartData[] = Array.isArray(upcomingData) ? upcomingData.map((item: any) => {
@@ -197,7 +203,7 @@ export const WarrantyStatus = () => {
           lifecycleKm: item.lifecycleKm,
           lifecycleMonths: item.lifecycleMonths,
           lastReplacedAt: item.lastReplacedAt,
-          currentOdo: latestPrimary.currentOdometer,
+          currentOdo: primary.currentOdometer,
           overdueByKm: item.overdueByKm,
           intervalSource: item.intervalSource,
         };
@@ -210,17 +216,25 @@ export const WarrantyStatus = () => {
       setSummary({
         active: activeCount,
         expired: expiredCount,
-        critical: 0 // No longer used in summary UI but kept in state for now
+        critical: 0
       });
+
+      const refreshed = await vehicleService.getVehicleById(primary.id).catch(() => null);
+      if (refreshed && isMountedRef.current) setVehicle(refreshed);
 
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, []);
 
-  const openUpdateModal = (part: PartData) => {
+  const handlePressHistory = useCallback((partId: string) => {
+    navigation.navigate('ServiceHistory', { selectedPartType: partId });
+  }, [navigation]);
+
+  const openUpdateModal = useCallback((part: PartData) => {
     setSelectedPart(part);
     setSelectedPartTypes([part.id]);
     setUpdateAmount('');
@@ -230,9 +244,13 @@ export const WarrantyStatus = () => {
     requestAnimationFrame(() => {
       setIsUpdateModalVisible(true);
     });
-  };
+  }, [vehicle?.currentOdometer]);
 
-  const closeUpdateModal = () => {
+  const handlePressUpdate = useCallback((item: PartData) => {
+    openUpdateModal(item);
+  }, [openUpdateModal]);
+
+  const closeUpdateModal = useCallback(() => {
     setIsUpdateModalVisible(false);
     setSelectedPart(null);
     setSelectedPartTypes([]);
@@ -241,9 +259,9 @@ export const WarrantyStatus = () => {
     setUpdateOdometer('');
     setUpdateDate(new Date().toISOString().slice(0, 10));
     setUpdateNotes('');
-  };
+  }, []);
 
-  const handlePartUpdate = async () => {
+  const handlePartUpdate = useCallback(async () => {
     if (!vehicle || !selectedPart) {
       return;
     }
@@ -311,21 +329,20 @@ export const WarrantyStatus = () => {
     } finally {
       setSavingUpdate(false);
     }
-  };
+  }, [vehicle, selectedPart, selectedPartTypes, updateAmount, updateOdometer, updateDate, updateNotes, closeUpdateModal, fetchData]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
-  }, []);
+  }, [fetchData]);
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [])
+    }, [fetchData])
   );
 
-  // Periodic check or manual trigger check since FocusEffect might not catch Modal closes
   useEffect(() => {
     const timer = setInterval(() => {
       if (getAndClearWarrantyStatusRefresh()) {
@@ -333,7 +350,7 @@ export const WarrantyStatus = () => {
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -392,10 +409,8 @@ export const WarrantyStatus = () => {
         renderItem={({ item }) => (
           <PartStatusCard
             {...item}
-            onPressHistory={() =>
-              navigation.navigate('ServiceHistory', { selectedPartType: item.id })
-            }
-            onPressUpdate={() => openUpdateModal(item)}
+            onPressHistory={() => handlePressHistory(item.id)}
+            onPressUpdate={() => handlePressUpdate(item)}
           />
         )}
         style={styles.list}

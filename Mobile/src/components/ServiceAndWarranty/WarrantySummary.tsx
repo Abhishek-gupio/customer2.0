@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, InteractionManager } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Svg, { Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import {
@@ -16,13 +15,13 @@ interface WarrantySummaryProps {
     health: number;
 }
 
-export const WarrantySummary = ({ active, expired, health }: WarrantySummaryProps) => {
+export const WarrantySummary = React.memo(({ active, expired, health }: WarrantySummaryProps) => {
     const clampedHealth = Math.max(0, Math.min(100, Math.round(health || 0)));
     const animatedProgress = useRef(new Animated.Value(0)).current;
 
     // Dimensions for the Semicircle Gauge
-    const R = wp(36); // Radius defining the size of the gauge
-    const strokeWidth = wp(4.5);
+    const R = wp(36); 
+    const strokeWidth = wp(4);
     const padding = wp(5);
     const svgWidth = R * 2 + padding * 2;
     const svgHeight = R + padding * 1.5;
@@ -35,77 +34,62 @@ export const WarrantySummary = ({ active, expired, health }: WarrantySummaryProp
     const pathLength = Math.PI * R;
 
     useEffect(() => {
-        const task = InteractionManager.runAfterInteractions(() => {
-            Animated.timing(animatedProgress, {
-                toValue: clampedHealth,
-                duration: 1800,
-                easing: Easing.out(Easing.cubic),
-                useNativeDriver: false, // SVG stroke dashoffset must run on the JS thread
-            }).start();
+        const animation = Animated.timing(animatedProgress, {
+            toValue: clampedHealth,
+            duration: 1200,
+            easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            useNativeDriver: false,
         });
-
-        return () => {
-            task.cancel();
-        };
+        
+        animation.start();
+        
+        return () => animation.stop();
     }, [clampedHealth, animatedProgress]);
 
     const strokeDashoffset = animatedProgress.interpolate({
         inputRange: [0, 100],
-        outputRange: [pathLength, 0], // Animate from completely empty to completely filled
+        outputRange: [pathLength, 0],
     });
 
-    const statusText = clampedHealth >= 80 ? 'EXCELLENT' : clampedHealth >= 50 ? 'GOOD' : 'CRITICAL';
-    const statusColor = clampedHealth >= 80 ? '#22C55E' : clampedHealth >= 50 ? '#F59E0B' : '#EF4444';
+    const statusText = clampedHealth >= 80 ? 'SUPREME' : clampedHealth >= 50 ? 'STABLE' : 'CRITICAL';
+    const statusColor = clampedHealth >= 80 ? '#FFF' : clampedHealth >= 50 ? '#888' : '#EF4444';
 
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={['#171717', '#0A0A0A']}
-                style={styles.card}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-            >
-                {/* Header Row */}
+            <View style={styles.card}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>VEHICLE HEALTH SCORE</Text>
-                    <View style={styles.liveBadge}>
-                        <View style={styles.livePulseContainer}>
-                            <View style={styles.liveDot} />
-                            <View style={styles.liveDotPing} />
-                        </View>
-                        <Text style={styles.liveText}>LIVE</Text>
+                    <Text style={styles.title}>VEHICLE RESONANCE</Text>
+                    <View style={styles.liveTag}>
+                        <View style={styles.dot} />
+                        <Text style={styles.liveText}>READY</Text>
                     </View>
                 </View>
 
-                {/* Semicircle Gauge */}
-                <View style={styles.gaugeContainer}>
+                <View style={styles.gaugeArea}>
                     <Svg width={svgWidth} height={svgHeight}>
                         <Defs>
-                            <SvgGradient id="gaugeTrack" x1="0" y1="0" x2="1" y2="0">
-                                <Stop offset="0" stopColor="#EF4444" stopOpacity="0.15" />
-                                <Stop offset="0.4" stopColor="#F59E0B" stopOpacity="0.15" />
-                                <Stop offset="1" stopColor="#22C55E" stopOpacity="0.15" />
+                            <SvgGradient id="trackGrad" x1="0" y1="0" x2="1" y2="0">
+                                <Stop offset="0" stopColor="#111" />
+                                <Stop offset="1" stopColor="#0a0a0a" />
                             </SvgGradient>
-                            <SvgGradient id="gaugeFill" x1="0" y1="0" x2="1" y2="0">
-                                <Stop offset="0" stopColor="#EF4444" />
-                                <Stop offset="0.4" stopColor="#F59E0B" />
-                                <Stop offset="1" stopColor="#22C55E" />
+                            <SvgGradient id="fillGrad" x1="0" y1="0" x2="1" y2="0">
+                                <Stop offset="0" stopColor="#444" />
+                                <Stop offset="0.5" stopColor="#FFF" />
+                                <Stop offset="1" stopColor="#FFBF00" />
                             </SvgGradient>
                         </Defs>
                         
-                        {/* Background Path */}
                         <Path
                             d={pathData}
-                            stroke="url(#gaugeTrack)"
+                            stroke="url(#trackGrad)"
                             strokeWidth={strokeWidth}
                             strokeLinecap="round"
                             fill="transparent"
                         />
                         
-                        {/* Foreground Progress Path */}
                         <AnimatedPath
                             d={pathData}
-                            stroke="url(#gaugeFill)"
+                            stroke="url(#fillGrad)"
                             strokeWidth={strokeWidth}
                             strokeLinecap="round"
                             fill="transparent"
@@ -114,218 +98,171 @@ export const WarrantySummary = ({ active, expired, health }: WarrantySummaryProp
                         />
                     </Svg>
                     
-                    {/* Centered Score Data inside the arc */}
-                    <View style={styles.gaugeDataContainer}>
-                        <View style={styles.scoreRow}>
-                            <Text style={styles.healthValue}>{clampedHealth}</Text>
-                        </View>
-                        <Text style={[styles.healthSuffix, { color: statusColor }]}>{statusText}</Text>
+                    <View style={styles.centerArea}>
+                        <Text style={styles.healthNum}>{clampedHealth}</Text>
+                        <Text style={[styles.statusLab, { color: statusColor }]}>{statusText}</Text>
                     </View>
                 </View>
 
-                {/* Descriptive Feedback below the gauge */}
-                <View style={styles.statusSection}>
-                    <Text style={styles.statusDescription}>
+                <View style={styles.detailsBox}>
+                    <Text style={styles.desc}>
                         {clampedHealth >= 80 
-                            ? "Your vehicle is in top shape. Maintenance is up to date."
+                            ? "OPTIMIZED. ALL SYSTEMS OPERATING AT PEAK CAPACITY."
                             : clampedHealth >= 50
-                            ? "Some parts need your attention soon to maintain peak performance."
-                            : "Immediate service recommended. Essential parts are overdue."}
+                            ? "STABLE. SCHEDULE ROUTINE MAINTENANCE SOON."
+                            : "ALERT. CRITICAL COMPONENTS REQUIRE IMMEDIATE ACTION."}
                     </Text>
                 </View>
 
-                {/* Statistics Row (Boxes) */}
-                <View style={styles.statsRow}>
-                    <View style={styles.statBox}>
-                        <LinearGradient colors={['rgba(34, 197, 94, 0.15)', 'rgba(34, 197, 94, 0.02)']} style={styles.statIconBg}>
-                            <Icon name="shield-check" size={wp(5)} color="#22C55E" />
-                        </LinearGradient>
-                        <View style={styles.statInfo}>
-                            <Text style={styles.statNumber}>{active}</Text>
-                            <Text style={styles.statLabel}>Healthy Parts</Text>
+                <View style={styles.footerStats}>
+                    <View style={styles.stat}>
+                        <View style={styles.iconCircle}>
+                            <Icon name="check-decagram" size={wp(5)} color="#FFF" />
+                        </View>
+                        <View>
+                            <Text style={styles.num}>{active}</Text>
+                            <Text style={styles.lab}>HEALTHY</Text>
                         </View>
                     </View>
                     
-                    <View style={styles.divider} />
+                    <View style={styles.sep} />
                     
-                    <View style={styles.statBox}>
-                        <LinearGradient colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.02)']} style={styles.statIconBg}>
-                            <Icon name="alert-octagon" size={wp(5)} color="#EF4444" />
-                        </LinearGradient>
-                        <View style={styles.statInfo}>
-                            <Text style={styles.statNumberError}>{expired}</Text>
-                            <Text style={styles.statLabel}>Parts Due</Text>
+                    <View style={styles.stat}>
+                        <View style={styles.iconCircle}>
+                            <Icon name="alert-circle" size={wp(5)} color="#EF4444" />
+                        </View>
+                        <View>
+                            <Text style={[styles.num, { color: '#EF4444' }]}>{expired}</Text>
+                            <Text style={styles.lab}>DUE NOW</Text>
                         </View>
                     </View>
                 </View>
-
-            </LinearGradient>
+            </View>
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {
         marginTop: hp(1),
-        marginBottom: hp(2),
     },
     card: {
-        padding: wp(4.5),
-        borderRadius: wp(6),
+        backgroundColor: '#0a0a0a',
+        borderRadius: 32,
+        padding: wp(6),
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
-        elevation: 15,
-        overflow: 'hidden',
+        borderColor: '#111',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: hp(1), 
+        marginBottom: hp(2), 
     },
     title: {
-        color: '#666',
-        fontSize: wp(3.2),
-        fontFamily: 'Outfit-Bold',
-        letterSpacing: 1.5,
+        color: '#444',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Black',
+        letterSpacing: 2,
     },
-    liveBadge: {
+    liveTag: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        gap: 6,
+        backgroundColor: '#111',
         paddingHorizontal: wp(2.5),
         paddingVertical: hp(0.5),
-        borderRadius: wp(2),
-        gap: 6,
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: 'rgba(34, 197, 94, 0.2)',
+        borderColor: '#1a1a1a',
     },
-    livePulseContainer: {
-        width: 8,
-        height: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    liveDot: {
+    dot: {
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#22C55E',
-        position: 'absolute',
-    },
-    liveDotPing: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#22C55E',
-        opacity: 0.4,
+        backgroundColor: '#FFBF00',
     },
     liveText: {
-        color: '#22C55E',
-        fontSize: wp(2.5),
-        fontFamily: 'Outfit-Bold',
-        letterSpacing: 0.5,
+        color: '#fff',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
     },
-    gaugeContainer: {
+    gaugeArea: {
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'relative',
         marginTop: hp(1),
     },
-    gaugeDataContainer: {
+    centerArea: {
         position: 'absolute',
-        bottom: wp(4.5),
+        bottom: wp(4),
         alignItems: 'center',
-        justifyContent: 'center',
         width: '100%',
     },
-    scoreRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-    },
-    healthValue: {
-        fontSize: wp(22),
+    healthNum: {
+        fontSize: wp(20),
         fontFamily: 'Outfit-Black',
         color: '#fff',
-        includeFontPadding: false,
         lineHeight: wp(22),
     },
-    healthSuffix: {
-        fontSize: wp(4.5),
+    statusLab: {
+        fontSize: wp(3.8),
         fontFamily: 'Outfit-Black',
-        letterSpacing: 3,
-        marginTop: -hp(1), // pull it closely under the giant number
+        letterSpacing: 4,
+        marginTop: -hp(1),
     },
-    statusSection: {
+    detailsBox: {
         alignItems: 'center',
-        marginBottom: hp(3.5),
-        marginTop: hp(1),
-        paddingHorizontal: wp(2),
-    },
-    statusDescription: {
-        color: '#888',
-        fontSize: wp(3.2),
-        fontFamily: 'Outfit-Medium',
-        textAlign: 'center',
-        lineHeight: hp(2.2),
-    },
-    statsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: 'rgba(255,255,255,0.02)',
-        borderRadius: wp(5),
-        paddingVertical: hp(2),
+        marginVertical: hp(3),
         paddingHorizontal: wp(5),
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.04)',
     },
-    statBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
-        gap: wp(3.5),
-    },
-    statIconBg: {
-        width: wp(11),
-        height: wp(11),
-        borderRadius: wp(3.5),
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.03)',
-    },
-    statInfo: {
-        justifyContent: 'center',
-        flex: 1,
-    },
-    statNumber: {
-        fontSize: wp(5.5),
-        fontFamily: 'Outfit-Black',
-        color: '#fff',
-        lineHeight: wp(6.5),
-    },
-    statNumberError: {
-        fontSize: wp(5.5),
-        fontFamily: 'Outfit-Black',
-        color: '#EF4444',
-        lineHeight: wp(6.5),
-    },
-    statLabel: {
-        fontSize: wp(2.8),
-        fontFamily: 'Outfit-Medium',
-        color: '#888',
-        textTransform: 'uppercase',
+    desc: {
+        color: '#444',
+        fontSize: wp(2.6),
+        fontFamily: 'Outfit-Bold',
+        textAlign: 'center',
+        lineHeight: hp(1.8),
         letterSpacing: 0.5,
     },
-    divider: {
+    footerStats: {
+        flexDirection: 'row',
+        backgroundColor: '#050505',
+        borderRadius: 20,
+        padding: wp(4),
+        borderWidth: 1,
+        borderColor: '#111',
+    },
+    stat: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: wp(3),
+        justifyContent: 'center',
+    },
+    iconCircle: {
+        width: wp(10),
+        height: wp(10),
+        borderRadius: 12,
+        backgroundColor: '#111',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#1a1a1a',
+    },
+    num: {
+        fontSize: wp(4.5),
+        fontFamily: 'Outfit-Black',
+        color: '#fff',
+    },
+    lab: {
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        color: '#444',
+        marginTop: -2,
+    },
+    sep: {
         width: 1,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        height: '80%',
+        height: '60%',
+        backgroundColor: '#111',
         alignSelf: 'center',
         marginHorizontal: wp(2),
     },

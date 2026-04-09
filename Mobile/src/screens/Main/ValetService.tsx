@@ -31,9 +31,9 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Linking } from 'react-native';
 
 const STATUS_STEPS = [
-  { key: 'REQUESTED', label: 'Requested' },
-  { key: 'PICKED_UP', label: 'Picked up' },
-  { key: 'DROPPED_OFF', label: 'Delivered' },
+  { key: 'PENDING', label: 'Requested' },
+  { key: 'ACCEPTED', label: 'Picked up' },
+  { key: 'COMPLETED', label: 'Delivered' },
 ] as const;
 
 export default function ValetService() {
@@ -125,26 +125,26 @@ export default function ValetService() {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'REQUESTED': return '#FFBF00';
-      case 'PICKED_UP': return '#10B981';
-      case 'DROPPED_OFF': return '#3B82F6';
+      case 'PENDING': return '#FFBF00';
+      case 'ACCEPTED': return '#10B981';
+      case 'COMPLETED': return '#3B82F6';
       default: return '#64748B';
     }
   };
 
   const getStatusSummary = (status?: string) => {
     switch (status) {
-      case 'REQUESTED':
+      case 'PENDING':
         return {
           title: 'Driver assigned and moving',
           description: 'Your valet request is active. Stay available in case the driver calls for a quick confirmation.',
         };
-      case 'PICKED_UP':
+      case 'ACCEPTED':
         return {
           title: 'Vehicle is with the valet team',
           description: 'Your vehicle has been picked up. You can call the driver or open the latest location on the map.',
         };
-      case 'DROPPED_OFF':
+      case 'COMPLETED':
         return {
           title: 'Drop is complete',
           description: 'Your vehicle has been delivered. Refresh if you want to verify the latest assignment details.',
@@ -157,7 +157,7 @@ export default function ValetService() {
     }
   };
 
-  const activeStepIndex = STATUS_STEPS.findIndex((step) => step.key === data?.requestStatus);
+  const activeStepIndex = STATUS_STEPS.findIndex((step) => step.key === (data?.requestStatus as string));
   const statusSummary = getStatusSummary(data?.requestStatus);
 
   return (

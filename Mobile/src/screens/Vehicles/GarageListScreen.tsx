@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { Plus, Trash2, ChevronRight, Car, Clock } from 'lucide-react-native';
-import { COLORS, FALLBACK_IMAGE } from '../../../components/Vehicles/VehicleUI';
-import { Vehicle } from '../../../services/vehicleService';
+import { COLORS, FALLBACK_IMAGE } from '../../components/Vehicles/VehicleUI';
+import { Vehicle } from '../../services/vehicleService';
 import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 
 type GarageListScreenProps = {
     vehicles: Vehicle[];
@@ -51,9 +52,9 @@ export const GarageListScreen = ({ vehicles, onAdd, onSelect, onDelete }: Garage
                 </TouchableOpacity>
             </View>
 
-            <FlashList
+            <FlashListAny
                 data={vehicles}
-                keyExtractor={(v) => v.id}
+                keyExtractor={(v: Vehicle) => v.id}
                 estimatedItemSize={124}
                 contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
                 ListHeaderComponent={

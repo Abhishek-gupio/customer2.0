@@ -14,7 +14,7 @@ export const expenseBudgetService = {
           customerId,
           category: input.category,
         },
-      },
+      } as any,
       update: {
         amount: input.amount,
         period: input.period,
@@ -24,7 +24,7 @@ export const expenseBudgetService = {
       create: {
         customerId,
         ...input,
-      },
+      } as any,
     });
   },
 
@@ -76,7 +76,7 @@ export const expenseBudgetService = {
   ) {
     // Find active budget
     const budget = await db.expenseBudget.findUnique({
-      where: { customerId_category: { customerId, category } },
+      where: { customerId_category: { customerId, category } } as any,
     });
 
     if (!budget || !budget.isActive) return;
@@ -91,11 +91,11 @@ export const expenseBudgetService = {
         customerId,
         category,
         date: { gte: start, lte: end },
-      },
+      } as any,
       _sum: { amount: true },
     });
 
-    const currentTotal = total._sum.amount || 0;
+    const currentTotal = total._sum?.amount || 0;
     const percentage = (currentTotal / budget.amount) * 100;
 
     // Trigger Alert if crossed threshold

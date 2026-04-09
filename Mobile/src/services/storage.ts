@@ -3,14 +3,24 @@ const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
 const AUTH_PERSISTED_AT_KEY = 'auth_persisted_at_ms';
 const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
-const TELEMATICS_PROVIDER_KEY = 'telematics_provider';
-const TELEMATICS_AUTO_MODE_KEY = 'telematics_auto_mode_enabled';
+const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
+const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
+const LAST_RECEIVED_OTP_KEY = 'last_received_otp';
+const LAST_RECEIVED_OTP_AT_KEY = 'last_received_otp_at_ms';
 
 const AUTH_KEYS = new Set([
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   USER_ID_KEY,
   AUTH_PERSISTED_AT_KEY,
+]);
+
+const SHARED_PERSISTED_KEYS = new Set([
+  ...AUTH_KEYS,
+  AUTO_EXPENSE_ENABLED_KEY,
+  PRIMARY_VEHICLE_ID_KEY,
+  LAST_RECEIVED_OTP_KEY,
+  LAST_RECEIVED_OTP_AT_KEY,
 ]);
 
 /** Serialize auth AsyncStorage I/O (async-auth only) so login/refresh can await durability. */
@@ -33,37 +43,19 @@ type StorageImpl = {
 };
 
 type AsyncStorageModule = {
+  getItem: (key: string) => Promise<string | null>;
   setItem: (key: string, value: string) => Promise<unknown>;
   removeItem: (key: string) => Promise<unknown>;
   multiGet: (keys: readonly string[]) => Promise<Array<[string, string | null]>>;
 };
-
-type MmkvRuntimeStatus = 'ready' | 'missing-native-module' | 'missing-sync-hook' | 'missing-install';
 
 let storage: StorageImpl;
 let storageBackend: 'mmkv' | 'async-auth' | 'memory' = 'memory';
 let mmkvLoadError: unknown = null;
 let asyncStorageLoadError: unknown = null;
 
-const authAsyncCache: Record<string, string> = {};
+const persistedAsyncCache: Record<string, string> = {};
 const miscMem: Record<string, string> = {};
-
-function getMmkvRuntimeStatus(): MmkvRuntimeStatus {
-  try {
-    const { NativeModules } = require('react-native') as {
-      NativeModules?: { MMKV?: { install?: unknown } };
-    };
-    const mmkvModule = NativeModules?.MMKV;
-    if (mmkvModule == null) return 'missing-native-module';
-    if ((globalThis as { nativeCallSyncHook?: unknown }).nativeCallSyncHook == null) {
-      return 'missing-sync-hook';
-    }
-    if (mmkvModule.install == null) return 'missing-install';
-    return 'ready';
-  } catch {
-    return 'missing-native-module';
-  }
-}
 
 function getAsyncStorage(): AsyncStorageModule | null {
   try {
@@ -77,18 +69,7 @@ function getAsyncStorage(): AsyncStorageModule | null {
   }
 }
 
-const mmkvRuntimeStatus = getMmkvRuntimeStatus();
-
 try {
-  if (mmkvRuntimeStatus !== 'ready') {
-    throw new Error(
-      mmkvRuntimeStatus === 'missing-sync-hook'
-        ? 'MMKV requires synchronous native calls (JSI), which are unavailable in the current JS runtime.'
-        : mmkvRuntimeStatus === 'missing-install'
-          ? 'MMKV native install hook is unavailable.'
-          : 'MMKV native module is unavailable.',
-    );
-  }
   const MMKV = (require('react-native-mmkv') as { MMKV: new () => StorageImpl }).MMKV;
   storage = new MMKV();
   storageBackend = 'mmkv';
@@ -98,14 +79,14 @@ try {
   storageBackend = asyncStorage ? 'async-auth' : 'memory';
   storage = {
     set(k: string, v: string) {
-      if (AUTH_KEYS.has(k)) {
+      if (SHARED_PERSISTED_KEYS.has(k)) {
         if (v === '') {
-          delete authAsyncCache[k];
+          delete persistedAsyncCache[k];
           enqueueAuthAsyncDisk(() =>
             asyncStorage ? asyncStorage.removeItem(k).then(() => {}) : Promise.resolve(),
           );
         } else {
-          authAsyncCache[k] = v;
+          persistedAsyncCache[k] = v;
           enqueueAuthAsyncDisk(() =>
             asyncStorage ? asyncStorage.setItem(k, v).then(() => {}) : Promise.resolve(),
           );
@@ -115,12 +96,12 @@ try {
       }
     },
     getString(k: string) {
-      if (AUTH_KEYS.has(k)) return authAsyncCache[k];
+      if (SHARED_PERSISTED_KEYS.has(k)) return persistedAsyncCache[k];
       return miscMem[k];
     },
     remove(k: string) {
-      if (AUTH_KEYS.has(k)) {
-        delete authAsyncCache[k];
+      if (SHARED_PERSISTED_KEYS.has(k)) {
+        delete persistedAsyncCache[k];
         enqueueAuthAsyncDisk(() =>
           asyncStorage ? asyncStorage.removeItem(k).then(() => {}) : Promise.resolve(),
         );
@@ -139,17 +120,12 @@ try {
       : asyncStorageLoadError instanceof Error
         ? `${asyncStorageLoadError.name}: ${asyncStorageLoadError.message}`
         : String(asyncStorageLoadError);
-    const isExpectedDevFallback = mmkvRuntimeStatus === 'missing-sync-hook' && asyncStorage != null;
-    if (isExpectedDevFallback) {
-      console.log('[storage] Using AsyncStorage auth fallback because MMKV requires on-device JSI.');
-    } else {
-      console.warn(`[storage] MMKV unavailable. ${mmkvMsg}`);
-      console.warn(
-        asyncStorage
-          ? `[storage] ${asyncMsg}`
-          : `[storage] AsyncStorage unavailable; using in-memory storage only. ${asyncMsg}`,
-      );
-    }
+    console.warn(`[storage] MMKV unavailable. ${mmkvMsg}`);
+    console.warn(
+      asyncStorage
+        ? `[storage] ${asyncMsg}`
+        : `[storage] AsyncStorage unavailable; using in-memory storage only. ${asyncMsg}`,
+    );
   }
 }
 
@@ -162,10 +138,10 @@ export async function hydrateAuthFromPersistedStorage(): Promise<void> {
   try {
     const asyncStorage = getAsyncStorage();
     if (!asyncStorage) return;
-    const keys = [...AUTH_KEYS];
+    const keys = [...SHARED_PERSISTED_KEYS];
     const pairs = await asyncStorage.multiGet(keys);
     for (const [k, v] of pairs) {
-      if (v != null && v !== '') authAsyncCache[k] = v;
+      if (v != null && v !== '') persistedAsyncCache[k] = v;
     }
   } catch {
     // keep empty cache
@@ -272,8 +248,7 @@ export function removeStorageValue(key: string): void {
   storage.set(key, '');
 }
 
-const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
-const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
+
 
 export function getAutoExpenseEnabled(): boolean {
   const s = storage.getString(AUTO_EXPENSE_ENABLED_KEY);
@@ -302,6 +277,63 @@ export function getPrimaryVehicleId(): string | null {
   return s && s.length > 0 ? s : null;
 }
 
+export function setLastReceivedOtp(otp: string, receivedAt = Date.now()): void {
+  storage.set(LAST_RECEIVED_OTP_KEY, otp);
+  storage.set(LAST_RECEIVED_OTP_AT_KEY, String(Math.floor(receivedAt)));
+}
+
+export function getLastReceivedOtp():
+  | { otp: string; receivedAt: number }
+  | null {
+  const otp = storage.getString(LAST_RECEIVED_OTP_KEY);
+  const receivedAtRaw = storage.getString(LAST_RECEIVED_OTP_AT_KEY);
+  if (!otp || !/^\d{4,8}$/.test(otp)) return null;
+  const receivedAt = receivedAtRaw ? parseInt(receivedAtRaw, 10) : 0;
+  return {
+    otp,
+    receivedAt: Number.isFinite(receivedAt) && receivedAt > 0 ? receivedAt : 0,
+  };
+}
+
+export async function getLastReceivedOtpAsync():
+  Promise<{ otp: string; receivedAt: number } | null> {
+  if (storageBackend === 'async-auth') {
+    try {
+      const asyncStorage = getAsyncStorage();
+      if (asyncStorage) {
+        const [otp, receivedAtRaw] = await Promise.all([
+          asyncStorage.getItem(LAST_RECEIVED_OTP_KEY),
+          asyncStorage.getItem(LAST_RECEIVED_OTP_AT_KEY),
+        ]);
+        if (!otp || !/^\d{4,8}$/.test(otp)) return null;
+        const receivedAt = receivedAtRaw ? parseInt(receivedAtRaw, 10) : 0;
+        persistedAsyncCache[LAST_RECEIVED_OTP_KEY] = otp;
+        if (receivedAtRaw) {
+          persistedAsyncCache[LAST_RECEIVED_OTP_AT_KEY] = receivedAtRaw;
+        }
+        return {
+          otp,
+          receivedAt: Number.isFinite(receivedAt) && receivedAt > 0 ? receivedAt : 0,
+        };
+      }
+    } catch {
+      // fall back to in-memory/cache path below
+    }
+  }
+
+  return getLastReceivedOtp();
+}
+
+export function clearLastReceivedOtp(): void {
+  if (storage.remove) {
+    storage.remove(LAST_RECEIVED_OTP_KEY);
+    storage.remove(LAST_RECEIVED_OTP_AT_KEY);
+  } else {
+    storage.set(LAST_RECEIVED_OTP_KEY, '');
+    storage.set(LAST_RECEIVED_OTP_AT_KEY, '');
+  }
+}
+
 export function getTelematicsLinked(vehicleId: string | null | undefined): boolean {
   if (!vehicleId) return false;
   const s = storage.getString(`telematics_linked_${vehicleId}`);
@@ -324,23 +356,100 @@ export function setLastOdometerUpdate(vehicleId: string, msSinceEpoch: number): 
   storage.set(`last_odometer_update_${vehicleId}`, String(Math.floor(msSinceEpoch)));
 }
 
-export type TelematicsProvider = 'damoov' | 'inhouse';
-
-export function getTelematicsProvider(): TelematicsProvider {
-  const provider = storage.getString(TELEMATICS_PROVIDER_KEY);
-  return provider === 'inhouse' ? 'inhouse' : 'damoov';
+export function setVehicleHealthCache(vehicleId: string, data: any): void {
+  storage.set(`vehicle_health_cache_${vehicleId}`, JSON.stringify(data));
 }
 
-export function setTelematicsProvider(provider: TelematicsProvider): void {
-  storage.set(TELEMATICS_PROVIDER_KEY, provider);
+export function getVehicleHealthCache(vehicleId: string): any | null {
+  const s = storage.getString(`vehicle_health_cache_${vehicleId}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
 }
 
-export function getTelematicsAutoModeEnabled(): boolean {
-  const value = storage.getString(TELEMATICS_AUTO_MODE_KEY);
-  if (value == null || value === '') return true;
-  return value === 'true';
+export function setServiceHistoryCache(vehicleId: string, data: any): void {
+  storage.set(`service_history_cache_${vehicleId}`, JSON.stringify(data));
 }
 
-export function setTelematicsAutoModeEnabled(enabled: boolean): void {
-  storage.set(TELEMATICS_AUTO_MODE_KEY, enabled ? 'true' : 'false');
+export function getServiceHistoryCache(vehicleId: string): any | null {
+  const s = storage.getString(`service_history_cache_${vehicleId}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setDIYGuidesCache(data: any): void {
+  storage.set('diy_guides_cache', JSON.stringify(data));
+}
+
+export function getDIYGuidesCache(): any | null {
+  const s = storage.getString('diy_guides_cache');
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setDLCache(data: any): void {
+  storage.set('dl_cache', JSON.stringify(data));
+}
+
+export function getDLCache(): any | null {
+  const s = storage.getString('dl_cache');
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setFastagCache(data: any): void {
+  storage.set('fastag_cache', JSON.stringify(data));
+}
+
+export function getFastagCache(): any | null {
+  const s = storage.getString('fastag_cache');
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setNearbyPlacesCache(type: string, data: any): void {
+  storage.set(`nearby_places_cache_${type}`, JSON.stringify(data));
+}
+
+export function getNearbyPlacesCache(type: string): any | null {
+  const s = storage.getString(`nearby_places_cache_${type}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setChallansCache(regNo: string, data: any): void {
+  storage.set(`challans_cache_${regNo}`, JSON.stringify(data));
+}
+
+export function getChallansCache(regNo: string): any | null {
+  const s = storage.getString(`challans_cache_${regNo}`);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
 }

@@ -450,7 +450,11 @@ export default function AIAssistant() {
 
     return () => {
       isMounted = false;
-      try { Tts.stop(); } catch (e) {}
+      try {
+        if (Platform.OS === 'android') {
+          Tts.stop();
+        }
+      } catch (e) {}
     };
   }, []);
 
@@ -458,13 +462,17 @@ export default function AIAssistant() {
     const onFinish = () => setTtsSpeakingId(null);
     const onCancel = () => setTtsSpeakingId(null);
     const onError = () => setTtsSpeakingId(null);
+
     const finishSub = Tts.addEventListener('tts-finish', onFinish);
     const cancelSub = Tts.addEventListener('tts-cancel', onCancel);
-    const errorSub = Tts.addEventListener('tts-error', onError);
+    let errorSub: any = null;
+    if (Platform.OS === 'android') {
+      errorSub = Tts.addEventListener('tts-error', onError);
+    }
 
     return () => {
-      finishSub?.remove?.();
-      cancelSub?.remove?.();
+      (finishSub as any)?.remove?.();
+      (cancelSub as any)?.remove?.();
       errorSub?.remove?.();
     };
   }, []);
@@ -668,8 +676,6 @@ export default function AIAssistant() {
 
     setMessages((prev) => [...prev, userMsg]);
     if (!text) setMessage('');
-    scrollToBottom();
-
     const botMsgId = `bot-${Date.now()}`;
     const botMsg: UIMessage = {
       id: botMsgId,
@@ -683,45 +689,6 @@ export default function AIAssistant() {
     setIsStreaming(true);
     scrollToBottom();
 
-    let fallbackAttempted = false;
-    const runFallback = async () => {
-      if (fallbackAttempted) return;
-      fallbackAttempted = true;
-      try {
-        const response = await chatService.sendMessage(languageAwareMessage, sessionId);
-        const profileUpdated = Array.isArray(response.toolResults)
-          ? response.toolResults.some((item: any) => item?.kind === 'profile_updated')
-          : false;
-        const safeResponseMessage =
-          looksLikeProfileUpdateCommand(messageText) && !profileUpdated
-            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
-            : response.message;
-        setSessionId(response.sessionId);
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === botMsgId
-              ? {
-                  ...m,
-                  text: safeResponseMessage,
-                  isStreaming: false,
-                  voiceUrl: response.voiceUrl,
-                  toolResults: response.toolResults,
-                  agentSteps: response.agentSteps,
-                  suggestedActions: (response as any).suggestedActions,
-                }
-              : m,
-          ),
-        );
-        if (profileUpdated) {
-          refreshDisplayedUserName().catch(() => {});
-        }
-      } catch {
-        if (!sessionId) setSessionId(`local-${Date.now()}`);
-        await streamLocalReply(botMsgId, getLocalBotReply(messageText));
-      }
-      setIsStreaming(false);
-    };
-
     try {
       const isPlaceholderApi = API_BASE_URL.includes('your-api.com');
       if (isPlaceholderApi) {
@@ -730,95 +697,140 @@ export default function AIAssistant() {
         return;
       }
 
-      await chatService.sendMessageStream(
-        languageAwareMessage,
-        sessionId,
-        async (chunk: SSEChunk) => {
-          switch (chunk.type) {
-            case 'session':
-              if (chunk.sessionId) setSessionId(chunk.sessionId);
-              break;
-
-            case 'chunk':
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? { ...m, text: m.text + (chunk.text || '') }
-                    : m,
-                ),
-              );
-              scrollToBottom();
-              break;
-
-            case 'tool_start':
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? { ...m, text: m.text + `\nRunning ${chunk.tool || 'tool'}...` }
-                    : m,
-                ),
-              );
-              break;
-
-            case 'tool_result':
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? {
-                        ...m,
-                        text: m.text + `\nDone: ${chunk.message || 'Success'}`,
-                        toolResults: [...(m.toolResults || []), chunk.result],
-                      }
-                    : m,
-                ),
-              );
-              scrollToBottom();
-              break;
-
-            case 'tool_error':
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? { ...m, text: m.text + `\nError: ${chunk.error || 'Failed'}` }
-                    : m,
-                ),
-              );
-              break;
-
-            case 'done':
-              if (Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated')) {
-                refreshDisplayedUserName().catch(() => {});
-              }
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? {
-                        ...m,
-                        text:
-                          looksLikeProfileUpdateCommand(messageText) &&
-                          !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated'))
-                            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
-                            : m.text,
-                        isStreaming: false,
-                        voiceUrl: chunk.voiceUrl,
-                        toolResults: chunk.toolResults || m.toolResults,
-                        suggestedActions: chunk.suggestedActions,
-                      }
-                    : m,
-                ),
-              );
-              setIsStreaming(false);
-              break;
-
-            case 'error':
-              runFallback().catch(() => {});
-              break;
+      let fallbackAttempted = false;
+      const runFallback = async () => {
+        if (fallbackAttempted) return;
+        fallbackAttempted = true;
+        try {
+          const response = await chatService.sendMessage(languageAwareMessage, sessionId);
+          const profileUpdated = Array.isArray(response.toolResults)
+            ? response.toolResults.some((item: any) => item?.kind === 'profile_updated')
+            : false;
+          const safeResponseMessage =
+            looksLikeProfileUpdateCommand(messageText) && !profileUpdated
+              ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+              : response.message;
+          setSessionId(response.sessionId);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === botMsgId
+                ? {
+                    ...m,
+                    text: safeResponseMessage,
+                    isStreaming: false,
+                    voiceUrl: response.voiceUrl,
+                    toolResults: response.toolResults,
+                    agentSteps: response.agentSteps,
+                    suggestedActions: (response as any).suggestedActions,
+                  }
+                : m,
+            ),
+          );
+          if (profileUpdated) {
+            refreshDisplayedUserName().catch(() => {});
           }
-        },
-      );
-    } catch (error) {
-      console.error('Stream error:', error);
-      await runFallback();
+        } catch {
+          if (!sessionId) setSessionId(`local-${Date.now()}`);
+          await streamLocalReply(botMsgId, getLocalBotReply(messageText));
+        } finally {
+          setIsStreaming(false);
+        }
+      };
+
+      try {
+        await chatService.sendMessageStream(
+          languageAwareMessage,
+          sessionId,
+          async (chunk: SSEChunk) => {
+            switch (chunk.type) {
+              case 'session':
+                if (chunk.sessionId) setSessionId(chunk.sessionId);
+                break;
+
+              case 'chunk':
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMsgId
+                      ? { ...m, text: m.text + (chunk.text || '') }
+                      : m,
+                  ),
+                );
+                scrollToBottom();
+                break;
+
+              case 'tool_start':
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMsgId
+                      ? { ...m, text: m.text + `\nRunning ${chunk.tool || 'tool'}...` }
+                      : m,
+                  ),
+                );
+                break;
+
+              case 'tool_result':
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMsgId
+                      ? {
+                          ...m,
+                          text: m.text + `\nDone: ${chunk.message || 'Success'}`,
+                          toolResults: [...(m.toolResults || []), chunk.result],
+                        }
+                      : m,
+                  ),
+                );
+                scrollToBottom();
+                break;
+
+              case 'tool_error':
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMsgId
+                      ? { ...m, text: m.text + `\nError: ${chunk.error || 'Failed'}` }
+                      : m,
+                  ),
+                );
+                break;
+
+              case 'done':
+                if (Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated')) {
+                  refreshDisplayedUserName().catch(() => {});
+                }
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === botMsgId
+                      ? {
+                          ...m,
+                          text:
+                            looksLikeProfileUpdateCommand(messageText) &&
+                            !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated'))
+                              ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+                              : m.text,
+                          isStreaming: false,
+                          voiceUrl: chunk.voiceUrl,
+                          toolResults: chunk.toolResults || m.toolResults,
+                          suggestedActions: chunk.suggestedActions,
+                        }
+                      : m,
+                  ),
+                );
+                setIsStreaming(false);
+                break;
+
+              case 'error':
+                await runFallback();
+                break;
+            }
+          },
+        );
+        setIsStreaming(false);
+      } catch (error) {
+        console.error('Stream error:', error);
+        await runFallback();
+      }
+    } finally {
+      setIsStreaming(false);
     }
   };
 
@@ -841,11 +853,15 @@ export default function AIAssistant() {
         return;
       }
       if (ttsSpeakingId === msgId) {
-        Tts.stop();
+        if (Platform.OS === 'android') {
+          Tts.stop();
+        }
         setTtsSpeakingId(null);
         return;
       }
-      Tts.stop();
+      if (Platform.OS === 'android') {
+        Tts.stop();
+      }
       setTtsSpeakingId(msgId);
       const detectedSpeechLocale = getSpeechLocaleForText(text);
       const preferredSpeechLocale =

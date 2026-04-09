@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Compass, Clock, MapPin, Navigation } from 'lucide-react-native';
 import { PlanningState, Activity, Preference, SelectedActivityDetails } from '../tripPlannerTypes';
 import { placesService } from '../../../services/placesService';
 import { TripExpenseResult } from '../../../services/tripExpenseService';
 import { decodePolyline } from '../../../utils/polyline';
 import { tripPlannerAnalytics } from '../../../services/analytics';
+const FlashListAny = FlashList as any;
 
 interface Props {
   planning: PlanningState;
@@ -141,14 +143,21 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
     }
   };
 
-  const getCategoryCount = (catId: string) => {
-    if (catId === 'all') return allActivities.length;
-    const cat = CATEGORIES.find(c => c.id === catId);
-    if (!cat) return 0;
-    return allActivities.filter(a => cat.types.includes(a.originalType)).length;
-  };
+  const categoryCounts = useMemo(() => (
+    CATEGORIES.reduce<Record<string, number>>((acc, category) => {
+      acc[category.id] = category.id === 'all'
+        ? allActivities.length
+        : allActivities.filter((activity) => category.types.includes(activity.originalType)).length;
+      return acc;
+    }, {})
+  ), [allActivities]);
 
-  const toggleActivity = (activityId: string) => {
+  const getCategoryCount = useCallback(
+    (catId: string) => categoryCounts[catId] ?? 0,
+    [categoryCounts]
+  );
+
+  const toggleActivity = useCallback((activityId: string) => {
     const current = planning.selectedActivities || [];
     const currentDetails = planning.selectedActivityDetails || [];
     const selected = current.includes(activityId);
@@ -188,17 +197,22 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
       category: selectedItem?.category || 'unknown',
       total_selected: selected ? Math.max(current.length - 1, 0) : current.length + 1,
     });
-  };
+  }, [allActivities, onChange, planning.selectedActivities, planning.selectedActivityDetails]);
 
-  const filteredActivities = allActivities.filter((a) => {
-    const cat = CATEGORIES.find(c => c.id === selectedCategory) || CATEGORIES[0];
-    const matchesCategory = selectedCategory === 'all' || cat.types.includes(a.originalType);
-    const matchesOpenNow = !openNowOnly || a.openNow === true;
-    const matchesBudget = activityBudget === 0 || a.price === 0 || a.price <= dailyActivityBudget;
-    return matchesCategory && matchesOpenNow && matchesBudget;
-  });
+  const filteredActivities = useMemo(() => (
+    allActivities.filter((activity) => {
+      const category = CATEGORIES.find((item) => item.id === selectedCategory) || CATEGORIES[0];
+      const matchesCategory = selectedCategory === 'all' || category.types.includes(activity.originalType);
+      const matchesOpenNow = !openNowOnly || activity.openNow === true;
+      const matchesBudget = activityBudget === 0 || activity.price === 0 || activity.price <= dailyActivityBudget;
+      return matchesCategory && matchesOpenNow && matchesBudget;
+    })
+  ), [activityBudget, allActivities, dailyActivityBudget, openNowOnly, selectedCategory]);
 
-  const renderActivity = ({ item }: { item: Activity }) => {
+  const activityKeyExtractor = useCallback((item: Activity) => item.id, []);
+  const categoryKeyExtractor = useCallback((item: typeof CATEGORIES[number]) => item.id, []);
+
+  const renderActivity = useCallback(({ item }: { item: Activity }) => {
     const isSelected = planning.selectedActivities?.includes(item.id);
     const priceText = item.price > 0
       ? `Est. ₹${item.price.toLocaleString('en-IN')} per person`
@@ -257,7 +271,21 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [planning.selectedActivities, toggleActivity, tripResult?.to]);
+
+  const renderCategoryItem = useCallback(
+    ({ item }: { item: typeof CATEGORIES[number] }) => (
+      <TouchableOpacity 
+        style={[styles.catChip, selectedCategory === item.id && styles.activeChip]}
+        onPress={() => setSelectedCategory(item.id)}
+      >
+        <Text style={[styles.catLabel, selectedCategory === item.id && styles.activeCatLabel]}>
+          {item.label} ({getCategoryCount(item.id)})
+        </Text>
+      </TouchableOpacity>
+    ),
+    [getCategoryCount, selectedCategory]
+  );
 
   return (
     <View style={styles.container}>
@@ -289,18 +317,9 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
           horizontal
           data={CATEGORIES}
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
+          keyExtractor={categoryKeyExtractor}
           contentContainerStyle={styles.catList}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.catChip, selectedCategory === item.id && styles.activeChip]}
-              onPress={() => setSelectedCategory(item.id)}
-            >
-              <Text style={[styles.catLabel, selectedCategory === item.id && styles.activeCatLabel]}>
-                {item.label} ({getCategoryCount(item.id)})
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderCategoryItem}
         />
       </View>
 
@@ -312,10 +331,11 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlashListAny
           data={filteredActivities}
           renderItem={renderActivity}
-          keyExtractor={(item) => item.id}
+          keyExtractor={activityKeyExtractor}
+          estimatedItemSize={260}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
         />

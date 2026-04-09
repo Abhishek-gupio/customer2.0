@@ -127,22 +127,28 @@ export const storageService = {
       region &&
       (trimmed.startsWith(`https://${bucket}.s3.`) || trimmed.startsWith(`https://s3.${region}.amazonaws.com/${bucket}/`))
     ) {
-      let key: string;
       try {
         const parsed = new URL(trimmed);
-        key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
+        let key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
         // Format s3.region.amazonaws.com/bucket/key → key is path without leading bucket segment
         if (key.startsWith(`${bucket}/`)) key = key.slice(bucket.length + 1);
-      } catch {
-        return trimmed;
-      }
-      try {
         return await this.getSignedUrl(key, expiresIn, disposition);
-      } catch (error) {
-        logger.warn({ error, urlOrKey }, "Failed to get signed URL for profile pic, returning original");
+      } catch {
+        // If it was a URL but couldn't be parsed or signed, returning original
         return trimmed;
       }
     }
+
+    // For any other case where it's not a full URL, treat it as a key (S3 or local)
+    if (!trimmed.startsWith("http")) {
+      try {
+        return await this.getSignedUrl(trimmed, expiresIn, disposition);
+      } catch (error) {
+        logger.warn({ error, urlOrKey: trimmed }, "Failed to get readable URL for key");
+        return trimmed;
+      }
+    }
+
     return trimmed;
   },
 

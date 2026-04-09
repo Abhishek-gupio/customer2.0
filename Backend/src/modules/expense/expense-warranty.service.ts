@@ -92,7 +92,8 @@ export const expenseWarrantyService = {
     });
 
     if (!expense) throw AppError.notFound("Expense not found");
-    if (expense.category !== "SERVICE" && expense.category !== "REPAIR") {
+    const expenseCategory = String(expense.category);
+    if (expenseCategory !== "SERVICE" && expenseCategory !== "REPAIR") {
       throw AppError.badRequest("This expense is not a service/repair expense");
     }
 

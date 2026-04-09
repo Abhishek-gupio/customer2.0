@@ -3,7 +3,7 @@ import { env } from "./env";
 import { logger } from "./logger";
 import { getRedisStatus } from "./redis";
 
-const redisUrl = env.REDIS_URL;
+const redisUrl = env.REDIS_ENABLED === false ? undefined : env.REDIS_URL;
 let redisConfig:
   | {
       host: string;

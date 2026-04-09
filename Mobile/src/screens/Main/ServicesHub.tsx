@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -40,7 +40,8 @@ type ServiceId =
   | 'CarSpa'
   | 'TripExpense'
   | 'DLVerification'
-  | 'Fastag';
+  | 'Fastag'
+  | 'DIYMode';
 
 type ServiceItem = {
   id: ServiceId;
@@ -50,7 +51,7 @@ type ServiceItem = {
 };
 
 const SERVICE_ITEMS: ServiceItem[] = [
-  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'shield-alt', iconSet: 'fa' },
+  { id: 'PartsWarranty', name: 'Vehicle Health', icon: 'heartbeat', iconSet: 'fa' },
   { id: 'ServiceHistory', name: 'Service History', icon: 'history', iconSet: 'fa' },
   { id: 'NearbyPlaces', name: 'Nearby Finder', icon: 'map-marker-alt', iconSet: 'fa' },
   { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa' },
@@ -61,10 +62,13 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
+  { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
+  { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
+  { id: 'DIYMode', name: 'DIY Mode', icon: 'tools', iconSet: 'fa' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
@@ -183,7 +187,7 @@ export default function ServicesHub() {
     return () => clearInterval(interval);
   }, [adIndex]);
 
-  const onServicePress = (id: string) => {
+  const onServicePress = useCallback((id: string) => {
     if (id === 'PartsWarranty' || id === 'WarrantyStatus') {
       setNavLoading(true);
       setTimeout(() => {
@@ -212,10 +216,43 @@ export default function ServicesHub() {
       case 'Fastag':
         navigation.navigate('Fastag');
         break;
+      case 'DIYMode':
+        navigation.navigate('DIYGuides');
+        break;
       default:
         break;
     }
-  };
+  }, [navigation]);
+
+  const adKeyExtractor = useCallback((item: typeof ADS_DATA[number]) => item.id, []);
+
+  const renderAdItem = useCallback(
+    ({ item }: { item: typeof ADS_DATA[number] }) => (
+      <TouchableOpacity
+        style={styles.adCard}
+        activeOpacity={0.9}
+        onPress={() => onServicePress(item.target)}
+      >
+        <View style={styles.adContent}>
+          <View style={styles.adLeft}>
+            <Text style={[styles.adSubtitle, { color: item.theme }]}>{item.subtitle}</Text>
+            <Text style={styles.adTitle}>{item.title}</Text>
+            <Text style={styles.adDesc} numberOfLines={2}>{item.desc}</Text>
+            <View style={styles.tryNowBtn}>
+              <Text style={[styles.tryNowText, { color: item.theme }]}>Try Now</Text>
+              <Icon name="chevron-right" size={10} color={item.theme} />
+            </View>
+          </View>
+          <View style={styles.adRight}>
+            <View style={[styles.adIconCircle, { backgroundColor: `${item.theme}20` }]}>
+              {renderServiceIcon(item as any, item.theme, wp(10), true)}
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    ),
+    [onServicePress]
+  );
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredCategories = CATEGORIES.map((cat) => {
@@ -295,7 +332,7 @@ export default function ServicesHub() {
           <FlatList
             ref={flatListRef}
             data={ADS_DATA}
-            keyExtractor={(item) => item.id}
+            keyExtractor={adKeyExtractor}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -303,36 +340,13 @@ export default function ServicesHub() {
               const index = Math.round(e.nativeEvent.contentOffset.x / wp(90));
               setAdIndex(index);
             }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.adCard}
-                activeOpacity={0.9}
-                onPress={() => onServicePress(item.target)}
-              >
-                <View style={styles.adContent}>
-                  <View style={styles.adLeft}>
-                    <Text style={[styles.adSubtitle, { color: item.theme }]}>{item.subtitle}</Text>
-                    <Text style={styles.adTitle}>{item.title}</Text>
-                    <Text style={styles.adDesc} numberOfLines={2}>{item.desc}</Text>
-                    <View style={styles.tryNowBtn}>
-                      <Text style={[styles.tryNowText, { color: item.theme }]}>Try Now</Text>
-                      <Icon name="chevron-right" size={10} color={item.theme} />
-                    </View>
-                  </View>
-                  <View style={styles.adRight}>
-                    <View style={[styles.adIconCircle, { backgroundColor: `${item.theme}20` }]}>
-                      {renderServiceIcon(item as any, item.theme, wp(10), true)}
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
+            renderItem={renderAdItem}
           />
           {/* Indicators */}
           <View style={styles.indicators}>
-            {ADS_DATA.map((_, i) => (
+            {ADS_DATA.map((ad, i) => (
               <View
-                key={i}
+                key={ad.id}
                 style={[
                   styles.dot,
                   adIndex === i ? { backgroundColor: '#fff', width: 14 } : { backgroundColor: '#444' }

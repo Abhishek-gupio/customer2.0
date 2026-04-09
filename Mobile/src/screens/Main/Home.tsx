@@ -14,6 +14,7 @@ import {
   Modal,
   Linking,
   Image,
+  RefreshControl,
   Animated,
   Easing,
   BackHandler,
@@ -165,7 +166,7 @@ function HealthDisplay({ score }: { score: number }) {
       <View style={healthStyles.barBg}>
         <Animated.View style={[healthStyles.barFill, { width: barWidth, backgroundColor: color, shadowColor: color }]} />
       </View>
-      <Text style={healthStyles.subLabel}>VEHICLE HEALTH</Text>
+      <Text style={healthStyles.subLabel}>VEHICLE HEALT</Text>
     </View>
   );
 }
@@ -245,6 +246,7 @@ export default function Home() {
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showOdometerSlide, setShowOdometerSlide] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const videoBaseX = useRef(new Animated.Value(0)).current;
   const videoBaseY = useRef(new Animated.Value(0)).current;
   const videoDragX = useRef(new Animated.Value(0)).current;
@@ -252,7 +254,7 @@ export default function Home() {
   const videoModalOffset = useRef({ x: 0, y: 0 });
   const lastMiniVideoOffset = useRef({ x: 0, y: 0 });
   const isVideoExpandedRef = useRef(false);
-  const carouselRef = useRef<FlatList>(null);
+  const carouselRef = useRef<FlatList<HomeCarouselSlide>>(null);
   const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -381,14 +383,14 @@ export default function Home() {
 
     const nextOffset = isVideoExpandedRef.current
       ? clampVideoOffset(
-          videoModalOffset.current.x + translationX,
-          videoModalOffset.current.y + translationY,
-          true
-        )
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY,
+        true
+      )
       : snapMiniVideoOffset(
-          videoModalOffset.current.x + translationX,
-          videoModalOffset.current.y + translationY
-        );
+        videoModalOffset.current.x + translationX,
+        videoModalOffset.current.y + translationY
+      );
 
     videoModalOffset.current = nextOffset;
     videoDragX.setValue(0);
@@ -520,6 +522,23 @@ export default function Home() {
       return () => subscription.remove();
     }, [selectedVideo])
   );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.allSettled([
+        fetchPrimaryVehicleRef.current?.() ?? Promise.resolve(),
+        fetchDiscoveryContent(),
+        fetchUserLocationWithRetry(0),
+        dispatch(fetchDocuments()) as unknown as Promise<unknown>,
+        selectedState && selectedState !== 'Detecting...' && STATES.includes(selectedState)
+          ? fetchFuelPrices()
+          : Promise.resolve(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch, selectedState]);
 
   const carouselIndexRef = useRef(0);
 
@@ -945,7 +964,7 @@ export default function Home() {
     if (rootNav) {
       rootNav.navigate('Alerts');
     } else {
-      navigation.navigate('Alerts');   
+      navigation.navigate('Alerts');
     }
   };
 
@@ -1361,6 +1380,14 @@ export default function Home() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFBF00"
+            colors={['#FFBF00']}
+          />
+        }
       >
         {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>
@@ -1374,12 +1401,12 @@ export default function Home() {
             snapToAlignment="start"
             disableIntervalMomentum
             bounces={false}
-            getItemLayout={(_, index) => ({
+            getItemLayout={(_: any, index: number) => ({
               length: bannerWidth,
               offset: bannerWidth * index,
               index,
             })}
-            onScrollToIndexFailed={(info) => {
+            onScrollToIndexFailed={(info: any) => {
               carouselRef.current?.scrollToOffset({
                 offset: info.index * bannerWidth,
                 animated: true,
@@ -1392,19 +1419,16 @@ export default function Home() {
             onScrollBeginDrag={pauseAutoScrollTemporarily}
             onMomentumScrollEnd={handleBannerMomentumEnd}
             data={carouselSlides}
-            keyExtractor={(item) => item}
+            keyExtractor={(item: any) => item}
             onTouchStart={() => {
               pauseAutoScrollTemporarily();
             }}
-            renderItem={({ item }) => {
+            renderItem={({ item }: { item: any }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
-              const fallbackHeroImage = (vehicle?.vehicleType === 'BIKE'
-                ? require('../../assets/images/bike.png')
-                : require('../../assets/images/car_vehicle_demo.png')) as ImageSourcePropType;
-              const heroImageSource: ImageSourcePropType =
+              const heroImageSource: ImageSourcePropType | null =
                 vehicleImageUrl && vehicleImageUrl.length > 0
                   ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
-                  : fallbackHeroImage;
+                  : null;
 
               if (item === 'vehicle') {
                 const isAddVehicleBanner = !vehicleLoading && !vehicle;
@@ -1418,11 +1442,21 @@ export default function Home() {
                       onPress={navigateToGarageTab}
                     >
                       <View style={styles.primaryImageWrap}>
-                        <FastImage
-                          source={heroImageSource as any}
-                          style={styles.primaryImageFull}
-                          resizeMode={FastImage.resizeMode.cover}
-                        />
+                        {heroImageSource ? (
+                          <FastImage
+                            source={heroImageSource as any}
+                            style={styles.primaryImageFull}
+                            resizeMode={FastImage.resizeMode.cover}
+                          />
+                        ) : (
+                          <View style={[styles.primaryImageFull, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' }]}>
+                            <MaterialIcon 
+                              name={vehicle?.vehicleType === 'BIKE' ? 'motorcycle' : 'directions-car'} 
+                              size={80} 
+                              color="#222" 
+                            />
+                          </View>
+                        )}
                         {/* Bottom-up gradient scrim for text legibility */}
                         <LinearGradient
                           colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}
@@ -2016,8 +2050,8 @@ export default function Home() {
           ) : (
             <View style={styles.fuelContentCard}>
               <Text style={styles.loadingText}>
-                {selectedState === 'Detecting...' 
-                  ? 'Finding your city...' 
+                {selectedState === 'Detecting...'
+                  ? 'Finding your city...'
                   : `No fuel data for ${selectedState || 'current state'}`}
               </Text>
             </View>

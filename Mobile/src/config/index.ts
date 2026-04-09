@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 // ─── API ─────────────────────────────────────────────────────────────────
 /** Set to true to use production API even when running in dev (Metro). Use for testing prod. */
-const FORCE_USE_PRODUCTION_API = false;
+const FORCE_USE_PRODUCTION_API = true;
 
 const DEV_PORT = 9000;
 const DEV_HOST = `http://localhost:${DEV_PORT}`;
@@ -32,7 +32,7 @@ export function getAbsoluteUrl(path: string | null | undefined): string {
 }
 
 /** Google Sign-In: OAuth 2.0 Web client ID (for ID token). Same as backend GOOGLE_CLIENT_ID. */
-export const GOOGLE_WEB_CLIENT_ID = '789540291597-vlbm38kh3a2ruk1egkajgfq9untkjqp0.apps.googleusercontent.com';
+export const GOOGLE_WEB_CLIENT_ID = '1024404965563-segb2pqhssinho0a4m74nq4d9e0tg569.apps.googleusercontent.com';
 
 // ─── Location / Geo (reverse geocode + IP fallback) – all URLs and user agent from config ───
 export const GEO = {

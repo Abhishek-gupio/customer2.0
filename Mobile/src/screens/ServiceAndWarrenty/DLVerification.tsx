@@ -106,7 +106,7 @@ export default function DLVerification() {
       const validity = data.dl_validity || {};
       const badgeDetails = data.badge_details?.[0] || {};
       const vehicleClasses = badgeDetails.class_of_vehicle || data.class_of_vehicle || [];
-      
+
       const issueDate = details.date_of_issue || validity.non_transport?.from || 'N/A';
       const expiryDate = validity.non_transport?.to || 'N/A';
       const authority = details.ola_name || data.ola_name || 'RTO,HASSAN';
@@ -220,7 +220,7 @@ export default function DLVerification() {
         dlNumber: cleanDl,
         dob,
       });
-      
+
       if (response.success) {
         setVerificationResult(response.data);
       }
@@ -240,7 +240,7 @@ export default function DLVerification() {
     const validity = data.dl_validity || {};
     const badgeDetails = data.badge_details?.[0] || {};
     const vehicleClasses = badgeDetails.class_of_vehicle || data.class_of_vehicle || [];
-    
+
     const issueDate = details.date_of_issue || validity.non_transport?.from || 'N/A';
     const expiryDate = validity.non_transport?.to || 'N/A';
     const authority = details.ola_name || data.ola_name || 'RTO,HASSAN';
@@ -253,99 +253,99 @@ export default function DLVerification() {
       <ScrollView contentContainerStyle={styles.certificateWrapper} showsVerticalScrollIndicator={false}>
         <View style={styles.certificate}>
           <View style={styles.certHeader}>
-             <View style={styles.pillarContainer}>
-                <Image 
-                  source={require('../../assets/images/indian_lion.png') as any} 
-                  style={{ width: wp(12), height: wp(12) }} 
-                  resizeMode="contain" 
-                />
-             </View>
-             <Text style={styles.certTitleLine1}>UNION OF INDIA DRIVING LICENSE</Text>
-             <Text style={styles.certTitleLine2}>Issuing Authority : {authority}</Text>
+            <View style={styles.pillarContainer}>
+              <Image
+                source={require('../../assets/images/indian_lion.png') as any}
+                style={{ width: wp(12), height: wp(12) }}
+                resizeMode="contain"
+              />
+            </View>
+            <Text style={styles.certTitleLine1}>UNION OF INDIA DRIVING LICENSE</Text>
+            <Text style={styles.certTitleLine2}>Issuing Authority : {authority}</Text>
           </View>
-          
+
           <View style={styles.certMainMeta}>
-             <View style={styles.certMetaRow}>
-                <Text style={styles.certMetaLabel}>Authorization to Drive :</Text>
-                <Text style={styles.certMetaValue}>{vehicleClasses.join(', ') || 'N/A'}</Text>
-                <View style={{ flex: 1 }} />
-                <Text style={styles.certMetaLabelSmall}>Date of Issue :</Text>
-                <Text style={styles.certMetaValueSmall}>{issueDate}</Text>
-             </View>
-             <View style={styles.certMetaRow}>
-                <Text style={styles.certMetaLabel}>License No. :</Text>
-                <Text style={styles.certMetaValue}>{data.dl_number || data.dl_no || 'N/A'}</Text>
-                <View style={{ flex: 1 }} />
-                <Text style={styles.certMetaLabelSmall}>Date of Expiry :</Text>
-                <Text style={styles.certMetaValueSmall}>{expiryDate}</Text>
-             </View>
+            <View style={styles.certMetaRow}>
+              <Text style={styles.certMetaLabel}>Authorization to Drive :</Text>
+              <Text style={styles.certMetaValue}>{vehicleClasses.join(', ') || 'N/A'}</Text>
+              <View style={{ flex: 1 }} />
+              <Text style={styles.certMetaLabelSmall}>Date of Issue :</Text>
+              <Text style={styles.certMetaValueSmall}>{issueDate}</Text>
+            </View>
+            <View style={styles.certMetaRow}>
+              <Text style={styles.certMetaLabel}>License No. :</Text>
+              <Text style={styles.certMetaValue}>{data.dl_number || data.dl_no || 'N/A'}</Text>
+              <View style={{ flex: 1 }} />
+              <Text style={styles.certMetaLabelSmall}>Date of Expiry :</Text>
+              <Text style={styles.certMetaValueSmall}>{expiryDate}</Text>
+            </View>
           </View>
 
           <View style={styles.certInfoGrid}>
-             <View style={styles.certLeftInfo}>
-                <View style={styles.certInfoRow}>
-                   <Text style={styles.certRowLabel}>Name</Text>
-                   <Text style={styles.certRowSeparator}>:</Text>
-                   <Text style={styles.certRowValue}>{name}</Text>
-                </View>
-                <View style={styles.certInfoRow}>
-                   <Text style={styles.certRowLabel}>DOB</Text>
-                   <Text style={styles.certRowSeparator}>:</Text>
-                   <Text style={styles.certRowValue}>{dobValue}</Text>
-                </View>
-                <View style={styles.certInfoRow}>
-                   <Text style={styles.certRowLabel}>Blood Group</Text>
-                   <Text style={styles.certRowSeparator}>:</Text>
-                   <Text style={styles.certRowValue}>N/A</Text>
-                </View>
-                <View style={styles.certInfoRow}>
-                   <Text style={styles.certRowLabel}>S/W/D</Text>
-                   <Text style={styles.certRowSeparator}>:</Text>
-                   <Text style={styles.certRowValue}>{fatherName}</Text>
-                </View>
-                <View style={styles.certInfoRow}>
-                   <Text style={styles.certRowLabel}>Present Address</Text>
-                   <Text style={styles.certRowSeparator}>:</Text>
-                   <Text style={styles.certRowValueSmall}>{address}</Text>
-                </View>
-                <View style={styles.certInfoRow}>
-                   <Text style={styles.certRowLabel}>Permanent Address</Text>
-                   <Text style={styles.certRowSeparator}>:</Text>
-                   <Text style={styles.certRowValueSmall}>{address}</Text>
-                </View>
-             </View>
-             <View style={styles.certPhotoBox}>
-                <View style={styles.photoPlaceholder}>
-                   <Icon name="user" size={hp(6)} color="#ccc" />
-                </View>
-             </View>
+            <View style={styles.certLeftInfo}>
+              <View style={styles.certInfoRow}>
+                <Text style={styles.certRowLabel}>Name</Text>
+                <Text style={styles.certRowSeparator}>:</Text>
+                <Text style={styles.certRowValue}>{name}</Text>
+              </View>
+              <View style={styles.certInfoRow}>
+                <Text style={styles.certRowLabel}>DOB</Text>
+                <Text style={styles.certRowSeparator}>:</Text>
+                <Text style={styles.certRowValue}>{dobValue}</Text>
+              </View>
+              <View style={styles.certInfoRow}>
+                <Text style={styles.certRowLabel}>Blood Group</Text>
+                <Text style={styles.certRowSeparator}>:</Text>
+                <Text style={styles.certRowValue}>N/A</Text>
+              </View>
+              <View style={styles.certInfoRow}>
+                <Text style={styles.certRowLabel}>S/W/D</Text>
+                <Text style={styles.certRowSeparator}>:</Text>
+                <Text style={styles.certRowValue}>{fatherName}</Text>
+              </View>
+              <View style={styles.certInfoRow}>
+                <Text style={styles.certRowLabel}>Present Address</Text>
+                <Text style={styles.certRowSeparator}>:</Text>
+                <Text style={styles.certRowValueSmall}>{address}</Text>
+              </View>
+              <View style={styles.certInfoRow}>
+                <Text style={styles.certRowLabel}>Permanent Address</Text>
+                <Text style={styles.certRowSeparator}>:</Text>
+                <Text style={styles.certRowValueSmall}>{address}</Text>
+              </View>
+            </View>
+            <View style={styles.certPhotoBox}>
+              <View style={styles.photoPlaceholder}>
+                <Icon name="user" size={hp(6)} color="#ccc" />
+              </View>
+            </View>
           </View>
 
           <View style={styles.certFooterTop}>
-             <View style={styles.qrPlaceholder}>
-                <MaterialIcon name="qrcode" size={hp(6)} color="#333" />
-             </View>
-             
-             <View style={styles.digilockerPowered}>
-                <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#6366f1' }}>Powered by</Text>
-                <View style={{ backgroundColor: '#6366f1', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                   <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>DigiLocker</Text>
-                </View>
-             </View>
+            <View style={styles.qrPlaceholder}>
+              <MaterialIcon name="qrcode" size={hp(6)} color="#333" />
+            </View>
 
-             <View style={styles.signedBadge}>
-                <Text style={styles.signedAtText}>Digitally signed on</Text>
-                <Text style={styles.signedDateText}>{new Date().toLocaleDateString('en-GB')}</Text>
-                <Icon name="check-circle" size={14} color="#22c55e" />
-             </View>
+            <View style={styles.digilockerPowered}>
+              <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#6366f1' }}>Powered by</Text>
+              <View style={{ backgroundColor: '#6366f1', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>DigiLocker</Text>
+              </View>
+            </View>
+
+            <View style={styles.signedBadge}>
+              <Text style={styles.signedAtText}>Digitally signed on</Text>
+              <Text style={styles.signedDateText}>{new Date().toLocaleDateString('en-GB')}</Text>
+              <Icon name="check-circle" size={14} color="#22c55e" />
+            </View>
           </View>
 
           <View style={styles.certNoteBox}>
-             <Text style={styles.noteTitle}>Note:</Text>
-             <Text style={styles.noteLine}>1. This Driving License Certificate data is accessed using DigiLocker.</Text>
-             <Text style={styles.noteLine}>2. This certificate is generated by Gupio through IDSPay verified records.</Text>
-             <Text style={styles.noteLine}>3. This digitally signed document is valid as per IT Act.</Text>
-             <Text style={styles.noteLine}>4. To verify the authenticity, scan the QR code on the printed certificate.</Text>
+            <Text style={styles.noteTitle}>Note:</Text>
+            <Text style={styles.noteLine}>1. This Driving License Certificate data is accessed using DigiLocker.</Text>
+            <Text style={styles.noteLine}>2. This certificate is generated by Gupio through IDSPay verified records.</Text>
+            <Text style={styles.noteLine}>3. This digitally signed document is valid as per IT Act.</Text>
+            <Text style={styles.noteLine}>4. To verify the authenticity, scan the QR code on the printed certificate.</Text>
           </View>
         </View>
       </ScrollView>
@@ -354,11 +354,11 @@ export default function DLVerification() {
 
   if (checkingExisting) {
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.loaderCenter}>
-                <ActivityIndicator size="large" color="#FFBF00" />
-            </View>
-        </SafeAreaView>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loaderCenter}>
+          <ActivityIndicator size="large" color="#FFBF00" />
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -376,29 +376,29 @@ export default function DLVerification() {
           <Text style={styles.headerTitle}>DL Verification</Text>
           <View style={styles.headerActions}>
             {verificationResult ? (
-                <>
-                 <TouchableOpacity 
-                   onPress={handleShare} 
-                   style={[styles.actionIcon, loading && styles.disabledActionIcon]}
-                   disabled={loading}
-                 >
-                     <Icon name="share-2" size={22} color={loading ? "#444" : "#FFBF00"} />
-                 </TouchableOpacity>
-                 <TouchableOpacity 
-                   onPress={() => setVerificationResult(null)} 
-                   style={[styles.actionIcon, { marginLeft: 15 }]}
-                   disabled={loading}
-                 >
-                     <Icon name="plus" size={24} color={loading ? "#444" : "#fff"} />
-                 </TouchableOpacity>
-                 <TouchableOpacity 
-                   onPress={handleDelete} 
-                   style={[styles.actionIcon, { marginLeft: 15 }]}
-                   disabled={loading}
-                 >
-                     <Icon name="trash-2" size={22} color={loading ? "#444" : "#ff453a"} />
-                 </TouchableOpacity>
-                </>
+              <>
+                <TouchableOpacity
+                  onPress={handleShare}
+                  style={[styles.actionIcon, loading && styles.disabledActionIcon]}
+                  disabled={loading}
+                >
+                  <Icon name="share-2" size={22} color={loading ? "#444" : "#FFBF00"} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setVerificationResult(null)}
+                  style={[styles.actionIcon, { marginLeft: 15 }]}
+                  disabled={loading}
+                >
+                  <Icon name="plus" size={24} color={loading ? "#444" : "#fff"} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  style={[styles.actionIcon, { marginLeft: 15 }]}
+                  disabled={loading}
+                >
+                  <Icon name="trash-2" size={22} color={loading ? "#444" : "#ff453a"} />
+                </TouchableOpacity>
+              </>
             ) : null}
           </View>
         </View>
@@ -524,15 +524,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionIcon: {
-      padding: 5,
+    padding: 5,
   },
   disabledActionIcon: {
-      opacity: 0.5,
+    opacity: 0.5,
   },
   loaderCenter: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: wp(8),

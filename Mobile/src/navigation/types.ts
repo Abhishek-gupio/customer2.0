@@ -5,7 +5,7 @@ export type RootStackParamList = {
   SigninFirst: undefined;
   Signin: undefined;
   Signup: undefined;
-  OTP: { phone?: string; otp?: string; otpExpiresIn?: number };
+  OTP: { phone?: string; otp?: string; otpExpiresIn?: number; otpRequestedAt?: number; otpResendIn?: number };
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   Valet: undefined;
@@ -43,7 +43,9 @@ export type RootStackParamList = {
   TripExpense: undefined;
   DLVerification: undefined;
   Fastag: undefined;
+
   TripPlannerInsights: undefined;
+  DIYGuides: undefined;
 };
 
 export type MainTabParamList = {

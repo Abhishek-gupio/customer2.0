@@ -15,16 +15,17 @@ import {
 } from "react-native";
 import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { api, getNetworkOnlineState } from "../../services/api";
+import { api } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 import { googleMapsService } from "../../services/googleMapsService";
-import LoaderButton from "../../components/Button";
 import { queueExpenseCreate } from "../../services/offlineMutationQueue";
-import { clearCachedValue } from "../../services/cache";
+import { getNetworkOnlineState } from '../../services/api';
+import { clearCachedValue } from '../../services/cache';
+import LoaderButton from "../../components/Button";
 
 let Geolocation: any = null;
 try {
@@ -176,7 +177,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const requestLocationPermission = async (): Promise<boolean> => {
     if (Platform.OS === "ios") {
       try {
-          if (Geolocation?.requestAuthorization) {
+        if (Geolocation?.requestAuthorization) {
           const status = await Geolocation.requestAuthorization("whenInUse");
           return (
             status === "granted" ||
@@ -271,7 +272,6 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     if (visible && initialData) {
       if (initialData.amount) setAmount(initialData.amount);
       if (initialData.category) {
-        // Simple case matching or default
         const cat = initialData.category.charAt(0).toUpperCase() + initialData.category.slice(1).toLowerCase();
         setCategory(cat);
       }
@@ -347,29 +347,15 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const handleSave = async () => {
     if (!isValid) return;
 
-    let payload: any = null;
     setLoading(true);
+    let payload: any;
     try {
-      // Parse date from supported text formats.
-      let parsedDate: string;
-
-      if (date && date.trim().length > 0) {
-        const parsed = parseManualDate(date);
-        if (!parsed) {
-          showStatus("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).", "error");
-          setLoading(false);
-          return;
-        }
-        const now = new Date();
-        parsed.setHours(
-          now.getHours(),
-          now.getMinutes(),
-          now.getSeconds(),
-          now.getMilliseconds(),
-        );
-        parsedDate = parsed.toISOString();
-      } else {
-        parsedDate = new Date().toISOString();
+      let parsedDate: string | undefined;
+      if (date) {
+        try {
+          const d = parse(date, "dd-MM-yyyy", new Date());
+          if (!isNaN(d.getTime())) parsedDate = d.toISOString();
+        } catch (_) { }
       }
 
       const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other';
@@ -380,7 +366,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
       payload = {
         amount: parseFloat(amount),
-        category: category.toUpperCase(), // Backend expects uppercase
+        category: category.toUpperCase(),
         vehicleId: targetVehicleId,
         notes: description,
         date: parsedDate,
@@ -390,7 +376,6 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         odometerReading: odometer ? parseFloat(odometer) : undefined,
       };
 
-      // Attach structured Google Places info if driver selected a place
       if (selectedPlace) {
         payload.placeId = selectedPlace.placeId;
         payload.placeName = selectedPlace.name;
@@ -401,7 +386,6 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         if (typeof selectedPlace.lng === "number") {
           payload.placeLng = selectedPlace.lng;
         }
-        // Keep free-text location aligned for older analytics
         if (!payload.location && selectedPlace.address) {
           payload.location = selectedPlace.address;
         }
@@ -442,13 +426,11 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         });
       }
 
-      // Mark expense list for refresh
       setExpenseListNeedsRefresh();
       if (isPartCategory) {
         setWarrantyStatusNeedsRefresh();
       }
 
-      // Reset Form
       setCategory("Fuel");
       setAmount("");
       setDescription("");
@@ -460,10 +442,8 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       setPlaceSearch("Fetching...");
       setSelectedPlace(null);
 
-      // Close modal first
       onClose();
 
-      // Show success and trigger callback after modal closes
       setTimeout(() => {
         const failedPartText = failedParts.length
           ? `\n\nThese selected parts could not be updated: ${failedParts
@@ -489,11 +469,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }
 
       try {
-        if (payload) {
-          await queueExpenseCreate(payload as any);
-        } else {
-          throw new Error(message || "Failed to add expense");
-        }
+        await queueExpenseCreate(payload);
         onClose();
         Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
         if (onSuccess) onSuccess();

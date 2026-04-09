@@ -5,8 +5,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { 
-    AlertTriangle, CheckCircle, RefreshCcw, 
+import {
+    AlertTriangle, CheckCircle, RefreshCcw,
     Calendar, MapPin, Receipt, ExternalLink, ShieldAlert
 } from 'lucide-react-native';
 import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
@@ -31,8 +31,8 @@ const ChallansScreen = () => {
             let method: 'get' | 'post' = isSync ? 'post' : 'get';
 
             if (vehicle.id) {
-                endpoint = isSync 
-                    ? `/v1/vehicles/${vehicle.id}/challans/sync` 
+                endpoint = isSync
+                    ? `/v1/vehicles/${vehicle.id}/challans/sync`
                     : `/v1/vehicles/${vehicle.id}/challans`;
             } else if (vehicle.registrationNumber) {
                 endpoint = `/v1/vehicles/plate/${vehicle.registrationNumber}/challans`;
@@ -40,16 +40,16 @@ const ChallansScreen = () => {
             } else {
                 throw new Error('No vehicle identifier provided');
             }
-            
+
             const response = await api[method](endpoint);
             const data = (response as any).data || response;
-            
+
             const list = Array.isArray(data) ? data : [];
             setChallans(list);
-            
+
             const unpaid = list.filter((c: any) => c.status !== 'PAID');
             const totalAmount = unpaid.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
-            
+
             setStats({
                 total: list.length,
                 unpaid: unpaid.length,
@@ -79,90 +79,92 @@ const ChallansScreen = () => {
             'Redirecting to government portal to pay this challan.',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Proceed', onPress: () => {
-                    // In a real app, open browser with payment URL
-                }}
+                {
+                    text: 'Proceed', onPress: () => {
+                        // In a real app, open browser with payment URL
+                    }
+                }
             ]
         );
     };
 
-const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void }) => {
-    const [expanded, setExpanded] = useState(false);
-    const offences = (item.violationType || '').split(' | ');
-    const hasMore = offences.length > 1;
+    const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void }) => {
+        const [expanded, setExpanded] = useState(false);
+        const offences = (item.violationType || '').split(' | ');
+        const hasMore = offences.length > 1;
 
-    return (
-        <View style={styles.challanCard}>
-            <View style={styles.cardHeader}>
-                <View style={[styles.statusBadge, { backgroundColor: item.status === 'PAID' ? '#1B3921' : '#3D1C1C' }]}>
-                    <Text style={[styles.statusText, { color: item.status === 'PAID' ? '#32D74B' : '#FF453A' }]}>
-                        {item.status === 'PAID' ? 'PAID' : 'UNPAID'}
-                    </Text>
-                </View>
-                <Text style={styles.challanNumber}>#{item.challanNumber}</Text>
-            </View>
-
-            <View style={styles.cardBody}>
-                {/* Vertical Metadata */}
-                <View style={styles.mainInfoList}>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Owner:</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.ownerName || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Date:</Text>
-                        <Text style={styles.infoValue}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Location:</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>{item.location || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>RTO:</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.rtoName || 'N/A'}</Text>
-                    </View>
-                </View>
-
-                <View style={styles.divider} />
-
-                {/* Offence & Amount */}
-                <View style={styles.offenceSection}>
-                    <Text style={styles.offenceTitle}>{offences[0]}</Text>
-                    {expanded && offences.slice(1).map((off: string, idx: number) => (
-                        <Text key={idx} style={[styles.offenceTitle, { marginTop: 8, color: COLORS.primary }]}>
-                            {off}
+        return (
+            <View style={styles.challanCard}>
+                <View style={styles.cardHeader}>
+                    <View style={[styles.statusBadge, { backgroundColor: item.status === 'PAID' ? '#1B3921' : '#3D1C1C' }]}>
+                        <Text style={[styles.statusText, { color: item.status === 'PAID' ? '#32D74B' : '#FF453A' }]}>
+                            {item.status === 'PAID' ? 'PAID' : 'UNPAID'}
                         </Text>
-                    ))}
-                    
-                    <View style={styles.amountContainer}>
-                        <Text style={styles.amountLabel}>Total Fine:</Text>
-                        <Text style={styles.amountValue}>₹{item.amount}</Text>
+                    </View>
+                    <Text style={styles.challanNumber}>#{item.challanNumber}</Text>
+                </View>
+
+                <View style={styles.cardBody}>
+                    {/* Vertical Metadata */}
+                    <View style={styles.mainInfoList}>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Owner:</Text>
+                            <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.ownerName || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Date:</Text>
+                            <Text style={styles.infoValue}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Location:</Text>
+                            <Text style={styles.infoValue} numberOfLines={1}>{item.location || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>RTO:</Text>
+                            <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.rtoName || 'N/A'}</Text>
+                        </View>
                     </View>
 
-                    <View style={styles.actionRow}>
-                        {hasMore && (
-                            <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.detailsToggle}>
-                                <Text style={styles.detailsToggleText}>
-                                    {expanded ? 'Hide Details' : 'View Details'}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
-                        {item.status !== 'PAID' && (
-                            <TouchableOpacity style={styles.payButton} onPress={() => onPay(item)}>
-                                <Text style={styles.payButtonText}>PAY NOW</Text>
-                            </TouchableOpacity>
-                        )}
+                    <View style={styles.divider} />
+
+                    {/* Offence & Amount */}
+                    <View style={styles.offenceSection}>
+                        <Text style={styles.offenceTitle}>{offences[0]}</Text>
+                        {expanded && offences.slice(1).map((off: string, idx: number) => (
+                            <Text key={idx} style={[styles.offenceTitle, { marginTop: 8, color: COLORS.primary }]}>
+                                {off}
+                            </Text>
+                        ))}
+
+                        <View style={styles.amountContainer}>
+                            <Text style={styles.amountLabel}>Total Fine:</Text>
+                            <Text style={styles.amountValue}>₹{item.amount}</Text>
+                        </View>
+
+                        <View style={styles.actionRow}>
+                            {hasMore && (
+                                <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.detailsToggle}>
+                                    <Text style={styles.detailsToggleText}>
+                                        {expanded ? 'Hide Details' : 'View Details'}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                            {item.status !== 'PAID' && (
+                                <TouchableOpacity style={styles.payButton} onPress={() => onPay(item)}>
+                                    <Text style={styles.payButtonText}>PAY NOW</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
-    );
-};
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="light-content" />
-            
+
             {/* Header */}
             <View style={styles.header}>
                 <BackButton onPress={() => navigation.goBack()} />
@@ -174,7 +176,7 @@ const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void })
                 </TouchableOpacity>
             </View>
 
-            <ScrollView 
+            <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
@@ -218,10 +220,10 @@ const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void })
                 ) : (
                     <View style={styles.listContainer}>
                         {challans.map(item => (
-                            <ChallanCard 
-                                key={item.id} 
-                                item={item} 
-                                onPay={handlePayChallan} 
+                            <ChallanCard
+                                key={item.id}
+                                item={item}
+                                onPay={handlePayChallan}
                             />
                         ))}
                     </View>
@@ -344,9 +346,9 @@ const styles = StyleSheet.create({
     infoValue: { color: '#FFF', fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', flex: 1, textAlign: 'right', marginLeft: wp('4%') },
     offenceSection: { gap: hp('1%') },
     offenceTitle: { color: COLORS.primary, fontSize: hp('1.7%'), fontFamily: 'Outfit-Bold', lineHeight: hp('2.2%') },
-    amountContainer: { 
-        flexDirection: 'row', alignItems: 'center', gap: wp('2%'), 
-        marginTop: hp('0.5%'), backgroundColor: '#222', padding: wp('3%'), borderRadius: 12 
+    amountContainer: {
+        flexDirection: 'row', alignItems: 'center', gap: wp('2%'),
+        marginTop: hp('0.5%'), backgroundColor: '#222', padding: wp('3%'), borderRadius: 12
     },
     actionRow: {
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp('1%')

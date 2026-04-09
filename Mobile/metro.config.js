@@ -1,23 +1,39 @@
+const fs = require('fs');
 const path = require('path');
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const {FileStore} = require('metro-cache');
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
 /**
- * Metro configuration for pnpm monorepo
- * https://reactnative.dev/docs/metro
+ * Metro configuration for the mobile app inside the workspace.
  *
- * @type {import('@react-native/metro-config').MetroConfig}
+ * Keep this minimal: pnpm installs package dependencies inside nested
+ * `.pnpm/.../node_modules` directories, so Metro needs normal hierarchical
+ * resolution plus symlink support instead of a custom package redirector.
  */
 const projectRoot = __dirname;
-const monorepoRoot = path.resolve(projectRoot, '..');
+const workspaceRoot = path.resolve(projectRoot, '..');
 const appNodeModules = path.resolve(projectRoot, 'node_modules');
-const rootNodeModules = path.resolve(monorepoRoot, 'node_modules');
+const workspaceNodeModules = path.resolve(workspaceRoot, 'node_modules');
+// Keep Metro caches inside the app so stale temp-cache state doesn't leak
+// across workspace changes or other React Native projects on the machine.
+const metroCacheRoot = path.resolve(projectRoot, '.metro-cache');
+const fileMapCacheDirectory = path.resolve(metroCacheRoot, 'file-map');
+const transformerCacheDirectory = path.resolve(metroCacheRoot, 'transformer');
+
+fs.mkdirSync(fileMapCacheDirectory, {recursive: true});
+fs.mkdirSync(transformerCacheDirectory, {recursive: true});
 
 const config = {
+  cacheStores: [
+    new FileStore({
+      root: transformerCacheDirectory,
+    }),
+  ],
+  cacheVersion: 'mobile-monorepo-v1',
   projectRoot,
-  watchFolders: [monorepoRoot],
+  watchFolders: [workspaceRoot],
   resolver: {
-    disableHierarchicalLookup: true,
-    nodeModulesPaths: [appNodeModules, rootNodeModules],
+    nodeModulesPaths: [appNodeModules, workspaceNodeModules],
     extraNodeModules: {
       react: path.resolve(appNodeModules, 'react'),
       'react-native': path.resolve(appNodeModules, 'react-native'),
@@ -27,4 +43,12 @@ const config = {
   },
 };
 
-module.exports = mergeConfig(getDefaultConfig(projectRoot), config);
+const finalConfig = mergeConfig(getDefaultConfig(projectRoot), config);
+
+Object.defineProperty(finalConfig, 'fileMapCacheDirectory', {
+  configurable: true,
+  enumerable: false,
+  value: fileMapCacheDirectory,
+});
+
+module.exports = finalConfig;

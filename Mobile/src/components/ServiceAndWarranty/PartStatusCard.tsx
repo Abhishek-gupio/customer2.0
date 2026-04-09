@@ -30,13 +30,12 @@ interface PartStatusCardProps {
     lastReplacedAt?: string;
     currentOdo?: number;
     overdueByKm?: number;
-    /** OEM_WEBSITE = from OEM manual; AI_SUGGESTED = AI data */
     intervalSource?: string;
     onPressHistory?: () => void;
     onPressUpdate?: () => void;
 }
 
-export const PartStatusCard = ({
+export const PartStatusCard = React.memo(({
     title,
     subtitle,
     percentage,
@@ -60,161 +59,125 @@ export const PartStatusCard = ({
     onPressUpdate,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
-    const isCritical = urgency === 'OVERDUE';
     const displayPercentage = Math.max(0, Math.min(100, percentage));
     const isOemIntervalSource = ['OEM_WEBSITE', 'OEM'].includes((intervalSource || '').toUpperCase());
     const isAiSource = (intervalSource || '').toUpperCase() === 'AI_SUGGESTED';
 
     const toggleExpand = () => {
-        LayoutAnimation.configureNext({
-            duration: 300,
-            create: { type: 'easeInEaseOut', property: 'opacity' },
-            update: { type: 'spring', springDamping: 0.7 },
-        });
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setExpanded(!expanded);
     };
 
     const kmRemaining = lifecycleKm && kmSinceReplacement !== undefined ? Math.max(0, lifecycleKm - kmSinceReplacement) : null;
 
     return (
-        <View style={styles.cardContainer}>
-            <LinearGradient
-                colors={['#1a1a1a', '#111111']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.card}
-            >
+        <View style={styles.cardWrapper}>
+            <View style={styles.card}>
                 <TouchableOpacity activeOpacity={0.9} onPress={toggleExpand} style={styles.mainAction}>
                     <View style={styles.topRow}>
                         <View style={styles.leftInfo}>
-                            <LinearGradient
-                                colors={[`${color}30`, `${color}10`]}
-                                style={styles.iconContainer}
-                            >
-                                <Icon name={icon} size={wp(6)} color={color} />
-                            </LinearGradient>
-                            <View style={styles.titleContainer}>
+                            <View style={styles.iconBox}>
+                                <Icon name={icon} size={wp(5.5)} color="#FFF" />
+                            </View>
+                            <View style={styles.titleArea}>
                                 <Text style={styles.title}>{title}</Text>
                                 <View style={styles.statusRow}>
-                                    <View style={[styles.pulse, { backgroundColor: color }]} />
-                                    <Text style={[styles.subtitle, { color }]}>{statusText}</Text>
+                                    <View style={[styles.dot, { backgroundColor: color || '#FFBF00' }]} />
+                                    <Text style={styles.statusLabel}>{statusText}</Text>
                                     {warrantyMonths != null && warrantyMonths > 0 && (
-                                        <View style={styles.warrantyBadge}>
-                                            <Icon name="shield-check" size={wp(3)} color="#22C55E" />
-                                            <Text style={styles.warrantyText}>Under Warranty</Text>
-                                        </View>
+                                        <Text style={styles.warrantyTag}>• WARRANTY</Text>
                                     )}
                                 </View>
                             </View>
                         </View>
-
-                        <View style={styles.rightInfo}>
-                            <Text style={[styles.percentageText, { color }]}>{displayPercentage}%</Text>
-                        </View>
+                        <Text style={styles.percentageVal}>{displayPercentage}%</Text>
                     </View>
 
-                    <View style={styles.progressSection}>
-                        <View style={styles.progressBarContainer}>
-                            <LinearGradient
-                                colors={[color, `${color}80`]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={[styles.progressBar, { width: `${displayPercentage}%` }]}
-                            >
-                                <View style={styles.progressShine} />
-                            </LinearGradient>
+                    <View style={styles.progressContainer}>
+                        <View style={styles.track}>
+                            <View style={[styles.bar, { width: `${displayPercentage}%`, backgroundColor: color || '#FFBF00' }]} />
                         </View>
-                        <View style={styles.dueInfo}>
-                            {overdueByKm != null && overdueByKm > 0 ? (
-                                <Text style={styles.odoStatusText}>
-                                    <Text style={styles.overdueBold}>{overdueByKm.toLocaleString()} km overdue</Text>
-                                </Text>
-                            ) : kmRemaining !== null ? (
-                                <Text style={styles.odoStatusText}>
-                                    {kmRemaining.toLocaleString()} km remaining
-                                </Text>
-                            ) : null}
-                            <Text style={styles.intervalText}>{lifecycleKm?.toLocaleString()} km interval</Text>
+                        <View style={styles.dueRow}>
+                            <Text style={styles.odoText}>
+                                {overdueByKm != null && overdueByKm > 0 ? (
+                                    <Text style={styles.alertText}>{overdueByKm.toLocaleString()} KM OVERDUE</Text>
+                                ) : kmRemaining !== null ? (
+                                    <Text>{kmRemaining.toLocaleString()} KM REMAINING</Text>
+                                ) : null}
+                            </Text>
+                            <Text style={styles.intervalLab}>{lifecycleKm?.toLocaleString()} KM INTERVAL</Text>
                         </View>
                     </View>
                 </TouchableOpacity>
 
                 <View style={styles.actionRow}>
                     <TouchableOpacity style={styles.secondaryBtn} onPress={onPressHistory}>
-                        <Icon name="history" size={wp(4.5)} color="#888" />
-                        <Text style={styles.secondaryBtnText}>History</Text>
+                        <Icon name="history" size={wp(4.2)} color="#444" />
+                        <Text style={styles.secondaryBtnText}>HISTORY</Text>
                     </TouchableOpacity>
                     
-                    <View style={styles.dividerVertical} />
+                    <View style={styles.divider} />
                     
-                    <TouchableOpacity style={[styles.secondaryBtn, styles.primarySubBtn]} onPress={onPressUpdate}>
-                        <Icon name="plus-circle" size={wp(4.5)} color="#FFBF00" />
-                        <Text style={[styles.secondaryBtnText, { color: '#FFBF00' }]}>Update</Text>
+                    <TouchableOpacity style={styles.secondaryBtn} onPress={onPressUpdate}>
+                        <Icon name="plus-circle" size={wp(4.2)} color="#FFBF00" />
+                        <Text style={styles.updateBtnText}>UPDATE</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.expandBtn} onPress={toggleExpand}>
-                        <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
+                        <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#222" />
                     </TouchableOpacity>
                 </View>
 
                 {expanded && (
-                    <View style={styles.detailsContainer}>
-                        <View style={styles.dividerHorizontal} />
-                        
+                    <View style={styles.detailsArea}>
                         <View style={styles.grid}>
                             <View style={styles.gridItem}>
-                                <Text style={styles.detailLabel}>Last Service</Text>
-                                <Text style={styles.detailValue}>{lastReplacedOdo || 0} km</Text>
-                                <Text style={styles.detailSub}>{lastReplacedAt ? new Date(lastReplacedAt).toLocaleDateString('en-IN') : 'N/A'}</Text>
+                                <Text style={styles.lab}>LAST REPLACED</Text>
+                                <Text style={styles.val}>{lastReplacedOdo || 0} km</Text>
+                                <Text style={styles.subVal}>{lastReplacedAt ? new Date(lastReplacedAt).toLocaleDateString() : '-'}</Text>
                             </View>
                             <View style={styles.gridItem}>
-                                <Text style={styles.detailLabel}>Lifespan</Text>
-                                <Text style={styles.detailValue}>{lifecycleKm || 0} km</Text>
-                                <Text style={styles.detailSub}>{lifecycleMonths || 0} months</Text>
+                                <Text style={styles.lab}>EXPECTED LIFE</Text>
+                                <Text style={styles.val}>{lifecycleKm || 0} km</Text>
+                                <Text style={styles.subVal}>{lifecycleMonths || 0} months</Text>
                             </View>
                             <View style={styles.gridItem}>
-                                <Text style={styles.detailLabel}>Vendor</Text>
-                                <Text style={styles.detailValue} numberOfLines={1}>{garageName || 'Owner DIY'}</Text>
-                                <Text style={styles.detailSub}>{serviceType ? serviceType.replace(/_/g, ' ') : 'General'}</Text>
+                                <Text style={styles.lab}>LAST GARAGE</Text>
+                                <Text style={styles.val} numberOfLines={1}>{garageName || 'Owner DIY'}</Text>
+                                <Text style={styles.subVal}>{serviceType?.replace(/_/g, ' ') || 'General'}</Text>
                             </View>
                             <View style={styles.gridItem}>
-                                <Text style={styles.detailLabel}>Data Source</Text>
-                                <Text style={styles.detailValue}>
-                                    {isOemIntervalSource ? 'OEM Official' : isAiSource ? 'AI Suggested' : 'Internal Base'}
+                                <Text style={styles.lab}>SPEC SOURCE</Text>
+                                <Text style={styles.val}>
+                                    {isOemIntervalSource ? 'OFFICIAL OEM' : isAiSource ? 'SMART AI' : 'BASE DATA'}
                                 </Text>
                             </View>
                         </View>
                     </View>
                 )}
-            </LinearGradient>
+            </View>
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
-    cardContainer: {
+    cardWrapper: {
         marginBottom: hp(2),
-        borderRadius: wp(5),
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 10,
     },
     card: {
-        borderRadius: wp(5),
+        backgroundColor: '#0a0a0a',
+        borderRadius: 24,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: '#111',
         overflow: 'hidden',
     },
     mainAction: {
-        padding: wp(4.5),
-        paddingBottom: hp(1.5),
+        padding: wp(5),
     },
     topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         marginBottom: hp(2),
     },
     leftInfo: {
@@ -222,172 +185,146 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
     },
-    iconContainer: {
-        width: wp(12),
-        height: wp(12),
-        borderRadius: wp(3.5),
-        justifyContent: 'center',
+    iconBox: {
+        width: wp(11),
+        height: wp(11),
+        borderRadius: 14,
+        backgroundColor: '#111',
         alignItems: 'center',
-        marginRight: wp(4),
+        justifyContent: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: '#1a1a1a',
     },
-    titleContainer: {
+    titleArea: {
+        marginLeft: wp(3.5),
         flex: 1,
     },
     title: {
         color: '#fff',
-        fontSize: wp(4.2),
-        fontWeight: '700',
-        marginBottom: 2,
+        fontSize: wp(3.8),
+        fontFamily: 'Outfit-Bold',
     },
     statusRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: wp(1.5),
+        marginTop: 2,
     },
-    pulse: {
+    dot: {
         width: 6,
         height: 6,
         borderRadius: 3,
+        marginRight: 6,
     },
-    subtitle: {
-        fontSize: wp(3.2),
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    warrantyBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        paddingHorizontal: wp(2),
-        paddingVertical: hp(0.3),
-        borderRadius: wp(1.5),
-        marginLeft: wp(2),
-        gap: 4,
-    },
-    warrantyText: {
-        color: '#22C55E',
+    statusLabel: {
+        color: '#444',
         fontSize: wp(2.5),
-        fontWeight: '700',
+        fontFamily: 'Outfit-Black',
+        textTransform: 'uppercase',
     },
-    rightInfo: {
-        alignItems: 'flex-end',
+    warrantyTag: {
+        color: '#22C55E',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        marginLeft: 6,
     },
-    percentageText: {
-        fontSize: wp(5.5),
-        fontWeight: '900',
+    percentageVal: {
+        color: '#fff',
+        fontSize: wp(5),
+        fontFamily: 'Outfit-Black',
     },
-    progressSection: {
+    progressContainer: {
         marginTop: hp(0.5),
     },
-    progressBarContainer: {
-        height: hp(1),
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: hp(0.5),
+    track: {
+        height: 6,
+        backgroundColor: '#111',
+        borderRadius: 3,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.02)',
     },
-    progressBar: {
+    bar: {
         height: '100%',
-        borderRadius: hp(0.5),
+        borderRadius: 3,
     },
-    progressShine: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '40%',
-        backgroundColor: 'rgba(255,255,255,0.15)',
-    },
-    dueInfo: {
+    dueRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: hp(1),
     },
-    odoStatusText: {
-        color: '#aaa',
-        fontSize: wp(3.2),
-        fontWeight: '500',
+    odoText: {
+        color: '#555',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Bold',
     },
-    overdueBold: {
+    alertText: {
         color: '#EF4444',
-        fontWeight: '800',
     },
-    intervalText: {
-        color: '#666',
-        fontSize: wp(3.2),
+    intervalLab: {
+        color: '#333',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Bold',
     },
     actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.02)',
-        paddingVertical: hp(1.2),
-        paddingHorizontal: wp(4.5),
+        paddingVertical: hp(1.5),
+        paddingHorizontal: wp(5),
+        backgroundColor: '#050505',
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.05)',
+        borderTopColor: '#111',
     },
     secondaryBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: hp(0.5),
         gap: 6,
     },
-    primarySubBtn: {
-        marginLeft: wp(4),
-    },
     secondaryBtnText: {
-        color: '#888',
-        fontSize: wp(3.2),
-        fontWeight: '700',
+        color: '#444',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Black',
     },
-    dividerVertical: {
+    updateBtnText: {
+        color: '#FFBF00',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Black',
+    },
+    divider: {
         width: 1,
-        height: hp(2),
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        marginLeft: wp(4),
+        height: hp(1.5),
+        backgroundColor: '#111',
+        marginHorizontal: wp(4),
     },
     expandBtn: {
         marginLeft: 'auto',
     },
-    detailsContainer: {
-        padding: wp(4.5),
-        paddingTop: 0,
-    },
-    dividerHorizontal: {
-        height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        marginBottom: hp(2),
+    detailsArea: {
+        padding: wp(5),
+        backgroundColor: '#030303',
+        borderTopWidth: 1,
+        borderTopColor: '#111',
     },
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: hp(2),
+        gap: hp(2.5),
     },
     gridItem: {
         width: '45%',
     },
-    detailLabel: {
-        color: '#666',
-        fontSize: wp(2.8),
-        textTransform: 'uppercase',
-        marginBottom: 4,
-        letterSpacing: 0.5,
+    lab: {
+        color: '#333',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Black',
     },
-    detailValue: {
+    val: {
         color: '#fff',
-        fontSize: wp(3.8),
-        fontWeight: '700',
+        fontSize: wp(3.4),
+        fontFamily: 'Outfit-Bold',
+        marginTop: 1,
     },
-    detailSub: {
-        color: '#888',
-        fontSize: wp(3),
-        marginTop: 2,
-    },
-    sourceWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    subVal: {
+        color: '#444',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Medium',
+        marginTop: 1,
     },
 });

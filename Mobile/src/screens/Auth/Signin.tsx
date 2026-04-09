@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
   type ImageSourcePropType,
   Animated as RNAnimated,
 } from 'react-native';
@@ -47,12 +48,11 @@ export default function Signin() {
   const [buttonScale] = useState(() => new RNAnimated.Value(1));
 
   useEffect(() => {
-    if (GOOGLE_WEB_CLIENT_ID) {
-      GoogleSignin.configure({
-        webClientId: GOOGLE_WEB_CLIENT_ID,
-        offlineAccess: true,
-      });
-    }
+    GoogleSignin.configure({
+      webClientId: GOOGLE_WEB_CLIENT_ID,
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
+    });
   }, []);
 
   const handlePressIn = () => {
@@ -82,16 +82,21 @@ export default function Signin() {
 
     setError('');
     const phoneNumber = formatPhoneNumber(phone);
+    const otpRequestedAt = Date.now();
     setLoading(true);
     try {
-      await login(phoneNumber);
+      const data = await login(phoneNumber);
       navigation.navigate('OTP', {
         phone: phoneNumber,
+        otpRequestedAt,
+        ...(typeof data.otpExpiresIn === 'number' && { otpExpiresIn: data.otpExpiresIn }),
+        ...(typeof data.otpResendIn === 'number' && { otpResendIn: data.otpResendIn }),
       });
     } catch (e) {
       if (isOtpCooldownError(e)) {
         navigation.navigate('OTP', {
           phone: phoneNumber,
+          otpRequestedAt,
         });
         return;
       }
@@ -114,18 +119,28 @@ export default function Signin() {
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const signInResult = await GoogleSignin.signIn();
-      const tokens = await GoogleSignin.getTokens().catch(() => null);
-      const idToken = signInResult.data?.idToken ?? tokens?.idToken;
+      const idToken = signInResult.data?.idToken;
+
       if (!idToken) {
-        if (signInResult.data?.user === null) return; // user cancelled
-        throw new Error('No ID token from Google');
+        if (signInResult.data?.user === null) return;
+        throw new Error('Google Sign-In failed: No ID token received');
       }
+
       const result = await loginWithGoogle(idToken);
       dispatch(setUser({ id: result.userId ?? '' }));
       navigation.replace('LoginSuccessfull');
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Google sign-in failed';
-      if (message.includes('SIGN_IN_CANCELLED') || message.includes('cancel')) return;
+    } catch (error: any) {
+      console.log('Google Sign-In Error Details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        full: error
+      });
+      const message = error instanceof Error ? error.message : 'Google sign-in failed';
+      if (message.includes('SIGN_IN_CANCELLED') || message.includes('cancel')) {
+        setGoogleLoading(false);
+        return;
+      }
       setError(message);
       Alert.alert('Google Sign-In failed', message);
     } finally {
@@ -189,7 +204,7 @@ export default function Signin() {
           <View style={styles.orLine} />
         </View>
 
-        {/* <TouchableOpacity
+        <TouchableOpacity
           activeOpacity={0.85}
           style={[styles.socialButton, googleLoading && styles.submitButtonDisabled]}
           onPress={handleGoogleSignIn}
@@ -207,7 +222,7 @@ export default function Signin() {
               <Text style={styles.socialText}>Sign in with Google</Text>
             </>
           )}
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
     
 
