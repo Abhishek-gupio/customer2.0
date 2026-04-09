@@ -254,7 +254,7 @@ export default function Home() {
   const videoModalOffset = useRef({ x: 0, y: 0 });
   const lastMiniVideoOffset = useRef({ x: 0, y: 0 });
   const isVideoExpandedRef = useRef(false);
-  const carouselRef = useRef<FlatList>(null);
+  const carouselRef = useRef<FlatList<HomeCarouselSlide>>(null);
   const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
   const autoScrollStoppedRef = useRef(false);
   const autoScrollResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1401,12 +1401,12 @@ export default function Home() {
             snapToAlignment="start"
             disableIntervalMomentum
             bounces={false}
-            getItemLayout={(_, index) => ({
+            getItemLayout={(_: any, index: number) => ({
               length: bannerWidth,
               offset: bannerWidth * index,
               index,
             })}
-            onScrollToIndexFailed={(info) => {
+            onScrollToIndexFailed={(info: any) => {
               carouselRef.current?.scrollToOffset({
                 offset: info.index * bannerWidth,
                 animated: true,
@@ -1419,19 +1419,16 @@ export default function Home() {
             onScrollBeginDrag={pauseAutoScrollTemporarily}
             onMomentumScrollEnd={handleBannerMomentumEnd}
             data={carouselSlides}
-            keyExtractor={(item) => item}
+            keyExtractor={(item: any) => item}
             onTouchStart={() => {
               pauseAutoScrollTemporarily();
             }}
-            renderItem={({ item }) => {
+            renderItem={({ item }: { item: any }) => {
               const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
-              const fallbackHeroImage = (vehicle?.vehicleType === 'BIKE'
-                ? require('../../assets/images/bike.png')
-                : require('../../assets/images/car_vehicle_demo.png')) as ImageSourcePropType;
-              const heroImageSource: ImageSourcePropType =
+              const heroImageSource: ImageSourcePropType | null =
                 vehicleImageUrl && vehicleImageUrl.length > 0
                   ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
-                  : fallbackHeroImage;
+                  : null;
 
               if (item === 'vehicle') {
                 const isAddVehicleBanner = !vehicleLoading && !vehicle;
@@ -1445,11 +1442,21 @@ export default function Home() {
                       onPress={navigateToGarageTab}
                     >
                       <View style={styles.primaryImageWrap}>
-                        <FastImage
-                          source={heroImageSource as any}
-                          style={styles.primaryImageFull}
-                          resizeMode={FastImage.resizeMode.cover}
-                        />
+                        {heroImageSource ? (
+                          <FastImage
+                            source={heroImageSource as any}
+                            style={styles.primaryImageFull}
+                            resizeMode={FastImage.resizeMode.cover}
+                          />
+                        ) : (
+                          <View style={[styles.primaryImageFull, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' }]}>
+                            <MaterialIcon 
+                              name={vehicle?.vehicleType === 'BIKE' ? 'motorcycle' : 'directions-car'} 
+                              size={80} 
+                              color="#222" 
+                            />
+                          </View>
+                        )}
                         {/* Bottom-up gradient scrim for text legibility */}
                         <LinearGradient
                           colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.72)', 'rgba(0,0,0,0.92)']}

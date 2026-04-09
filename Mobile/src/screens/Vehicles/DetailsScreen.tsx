@@ -42,8 +42,8 @@ import { RootState } from '../../store';
 import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
 import LoaderButton from '../../components/Button';
 
-const CarImage = require('../../assets/images/car_vehicle_demo.png') as any;
-const BikeImage = require('../../assets/images/bike.png') as any;
+const CarImage = { uri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400' };
+const BikeImage = { uri: 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?auto=format&fit=crop&q=80&w=400' };
 const IndianLion = require('../../assets/images/indian_lion.png') as any;
 
 type DetailsScreenProps = {
@@ -1292,34 +1292,34 @@ export const DetailsScreen = ({
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: '#000000' },
     header: { paddingHorizontal: wp('5%'), paddingVertical: hp('1%'), minHeight: hp('8%') },
-    topRoundBtn: { width: wp('11%'), height: wp('11%'), borderRadius: wp('5.5%'), backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
+    topRoundBtn: { width: wp('11%'), height: wp('11%'), borderRadius: wp('5.5%'), backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: hp('0.1%'), borderColor: '#333' },
     tabPillContainer: {
         flexDirection: 'row',
         backgroundColor: COLORS.surface,
-        borderRadius: 30,
-        padding: 4,
-        borderWidth: 1,
+        borderRadius: wp('8%'),
+        padding: wp('1%'),
+        borderWidth: hp('0.1%'),
         borderColor: COLORS.border,
         width: wp('45%'),
         marginHorizontal: wp('4%')
     },
-    tabPill: { flex: 1, paddingVertical: hp('1%'), alignItems: 'center', borderRadius: 30 },
+    tabPill: { flex: 1, paddingVertical: hp('1%'), alignItems: 'center', borderRadius: wp('8%') },
     tabPillActive: { backgroundColor: COLORS.primary },
     tabPillText: { fontSize: hp('1.5%'), fontFamily: 'Outfit-Black', color: '#888' },
 
     // Hero Section
     heroSection: { alignItems: 'center', paddingBottom: hp('2%'), paddingHorizontal: wp('6%') },
-    heroImageFrame: { width: '100%', height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: 14, overflow: 'hidden', backgroundColor: '#0B0B0B' },
+    heroImageFrame: { width: '100%', height: hp('28%'), marginBottom: hp('1.5%'), borderRadius: wp('3.5%'), overflow: 'hidden', backgroundColor: '#0B0B0B' },
     heroImage: { width: '100%', height: '100%' },
-    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 4, textTransform: 'uppercase', marginTop: hp('1%') },
+    brandName: { fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: wp('1%'), textTransform: 'uppercase', marginTop: hp('1%') },
     modelName: { fontSize: hp('2.8%'), fontWeight: '900', color: '#FFF', marginTop: hp('-0.5%') },
     heroPlateBox: { marginTop: hp('1.5%') },
 
     // Switcher Row
     switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%'), paddingBottom: hp('3%') },
-    addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)' },
+    addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: hp('0.15%'), borderColor: 'rgba(255, 215, 0, 0.2)' },
     miniCircleWrap: { alignItems: 'center', gap: hp('0.5%') },
-    miniCircleInner: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), padding: wp('1%'), borderWidth: 2, borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
+    miniCircleInner: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), padding: wp('1%'), borderWidth: hp('0.2%'), borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
     miniCircleActive: { transform: [{ scale: 1.1 }] },
     miniModelOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: wp('8%') },
     miniModelText: { color: '#FFF', fontSize: hp('1.2%'), fontFamily: 'Outfit-Black', textAlign: 'center', paddingHorizontal: wp('1%') },
@@ -1334,7 +1334,7 @@ const styles = StyleSheet.create({
         borderRadius: wp('2.25%'),
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
+        borderWidth: hp('0.1%'),
         borderColor: '#000'
     },
 
@@ -1345,24 +1345,24 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
         paddingHorizontal: wp('4%'),
         paddingVertical: hp('0.8%'),
-        borderRadius: 20,
+        borderRadius: wp('5%'),
         marginTop: hp('2%')
     },
     primaryBadgeText: {
         color: '#000',
         fontSize: hp('1.4%'),
         fontFamily: 'Outfit-Black',
-        letterSpacing: 0.5
+        letterSpacing: wp('0.15%')
     },
     setPrimaryBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: wp('1.5%'),
-        borderWidth: 1,
+        borderWidth: hp('0.15%'),
         borderColor: COLORS.primary,
         paddingHorizontal: wp('4%'),
         paddingVertical: hp('0.8%'),
-        borderRadius: 20,
+        borderRadius: wp('5%'),
         marginTop: hp('2%')
     },
     setPrimaryBtnText: {
@@ -1372,7 +1372,7 @@ const styles = StyleSheet.create({
     },
 
     sectionPad: { paddingHorizontal: wp('6%'), paddingTop: hp('2.5%') },
-    sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1.5, marginBottom: hp('2%') },
+    sectionHeading: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: wp('0.4%'), marginBottom: hp('2%') },
 
     // Status List Stack
     statusVerticalStack: {
@@ -1380,33 +1380,33 @@ const styles = StyleSheet.create({
         gap: hp('1.5%')
     },
     statusBox: {
-        flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: 24,
+        flex: 1, backgroundColor: '#0A0A0A', padding: wp('6%'), borderRadius: wp('6%'),
         flexDirection: 'column', alignItems: 'center', gap: hp('2%'),
-        borderWidth: 1, borderColor: '#1F1F1F'
+        borderWidth: hp('0.15%'), borderColor: '#1F1F1F'
     },
 
     // Glovebox
     gloveboxGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: wp('3%') },
     gloveboxItem: { width: (wp('100%') - wp('21%')) / 4, alignItems: 'center', gap: hp('1%') },
-    gloveboxIconBox: { width: '100%', aspectRatio: 1, backgroundColor: '#1A1A1A', borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
+    gloveboxIconBox: { width: '100%', aspectRatio: 1, backgroundColor: '#1A1A1A', borderRadius: wp('4%'), alignItems: 'center', justifyContent: 'center', borderWidth: hp('0.15%'), borderColor: '#333' },
     gloveboxLabel: { color: '#AAA', fontSize: hp('1.3%'), fontWeight: '600', textAlign: 'center', fontFamily: 'Outfit' },
-    gloveboxPreview: { width: '100%', height: '100%', borderRadius: 16 },
-    viewAllDocsBtn: { marginTop: hp('3%'), borderWidth: 1, borderColor: '#333', borderRadius: 12, paddingVertical: hp('1.8%'), alignItems: 'center', backgroundColor: '#1A1A1A' },
-    viewAllDocsText: { color: COLORS.primary, fontSize: hp('1.6%'), fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: 1.5 },
+    gloveboxPreview: { width: '100%', height: '100%', borderRadius: wp('4%') },
+    viewAllDocsBtn: { marginTop: hp('3%'), borderWidth: hp('0.15%'), borderColor: '#333', borderRadius: wp('3.5%'), paddingVertical: hp('1.8%'), alignItems: 'center', backgroundColor: '#1A1A1A' },
+    viewAllDocsText: { color: COLORS.primary, fontSize: hp('1.6%'), fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: wp('0.4%') },
 
     // Health Score Styles
     subTabNav: { flexDirection: 'row', paddingBottom: hp('3%'), gap: wp('2%'), justifyContent: 'center', alignItems: 'center' },
-    subTabItem: { paddingHorizontal: wp('4%'), paddingVertical: hp('1.2%'), borderRadius: 12, alignItems: 'center' },
+    subTabItem: { paddingHorizontal: wp('4%'), paddingVertical: hp('1.2%'), borderRadius: wp('3%'), alignItems: 'center' },
     subTabItemActive: { backgroundColor: 'rgba(255, 215, 0, 0.05)' },
     subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', textTransform: 'uppercase' },
     subTabTextActive: { color: COLORS.primary },
-    subTabIndicator: { width: 16, height: 2, backgroundColor: COLORS.primary, marginTop: 4, borderRadius: 1 },
+    subTabIndicator: { width: wp('4%'), height: hp('0.25%'), backgroundColor: COLORS.primary, marginTop: hp('0.5%'), borderRadius: wp('1%') },
 
     // Health Score Styles
     healthScoreCard: {
-        padding: wp(5),
-        borderRadius: 28,
-        borderWidth: 1,
+        padding: wp('5%'),
+        borderRadius: wp('7%'),
+        borderWidth: hp('0.15%'),
         borderColor: 'rgba(255,255,255,0.06)',
         marginBottom: hp('1.5%')
     },
@@ -1414,29 +1414,29 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: hp(2)
+        marginBottom: hp('2%')
     },
     healthTitle: {
         color: '#666',
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         fontFamily: 'Outfit-Bold',
-        letterSpacing: 1.5
+        letterSpacing: wp('0.4%')
     },
     liveBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 8,
-        gap: 6,
-        borderWidth: 1,
+        paddingHorizontal: wp('2.5%'),
+        paddingVertical: hp('0.5%'),
+        borderRadius: wp('2%'),
+        gap: wp('1.5%'),
+        borderWidth: hp('0.15%'),
         borderColor: 'rgba(34, 197, 94, 0.2)'
     },
-    livePulseContainer: { width: 8, height: 8, justifyContent: 'center', alignItems: 'center' },
-    liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E', position: 'absolute' },
-    liveDotPing: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22C55E', opacity: 0.4 },
-    liveText: { color: '#22C55E', fontSize: 10, fontFamily: 'Outfit-Bold', letterSpacing: 0.5 },
+    livePulseContainer: { width: wp('2%'), height: wp('2%'), justifyContent: 'center', alignItems: 'center' },
+    liveDot: { width: wp('1.5%'), height: wp('1.5%'), borderRadius: wp('0.75%'), backgroundColor: '#22C55E', position: 'absolute' },
+    liveDotPing: { width: wp('2%'), height: wp('2%'), borderRadius: wp('1%'), backgroundColor: '#22C55E', opacity: 0.4 },
+    liveText: { color: '#22C55E', fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', letterSpacing: wp('0.15%') },
 
     gaugeContainer: {
         alignItems: 'center',
@@ -1463,76 +1463,76 @@ const styles = StyleSheet.create({
     },
     healthDescription: {
         color: '#888',
-        fontSize: 12,
+        fontSize: hp('1.5%'),
         fontFamily: 'Outfit-Medium',
         textAlign: 'center',
-        lineHeight: 18,
-        marginTop: hp(2),
-        paddingHorizontal: wp(5),
-        marginBottom: hp(3)
+        lineHeight: hp('2.2%'),
+        marginTop: hp('2%'),
+        paddingHorizontal: wp('5%'),
+        marginBottom: hp('3%')
     },
     partsRow: {
         flexDirection: 'row',
         backgroundColor: 'rgba(255,255,255,0.02)',
-        borderRadius: 20,
-        paddingVertical: hp(2),
-        paddingHorizontal: wp(4),
-        borderWidth: 1,
+        borderRadius: wp('5%'),
+        paddingVertical: hp('2%'),
+        paddingHorizontal: wp('4%'),
+        borderWidth: hp('0.15%'),
         borderColor: 'rgba(255,255,255,0.04)',
-        gap: wp(4)
+        gap: wp('4%')
     },
     partStatBox: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: wp(3)
+        gap: wp('3%')
     },
     partIconBg: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: wp('10%'),
+        height: wp('10%'),
+        borderRadius: wp('3%'),
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
+        borderWidth: hp('0.15%'),
         borderColor: 'rgba(255,255,255,0.03)'
     },
     partNumber: {
-        fontSize: 18,
+        fontSize: hp('2.2%'),
         fontFamily: 'Outfit-Black',
         color: '#FFF',
-        lineHeight: 22
+        lineHeight: hp('2.6%')
     },
     partLabel: {
-        fontSize: 9,
+        fontSize: hp('1.1%'),
         fontFamily: 'Outfit-Bold',
         color: '#666'
     },
 
-    healthBasedOnCard: { backgroundColor: '#0A0A0A', padding: wp('5%'), borderRadius: 20, borderWidth: 1, borderColor: '#1A1A1A' },
+    healthBasedOnCard: { backgroundColor: '#0A0A0A', padding: wp('5%'), borderRadius: wp('5%'), borderWidth: hp('0.15%'), borderColor: '#1A1A1A' },
     healthBasedOnTitle: { color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Bold', marginBottom: hp('1.5%') },
     healthBasedOnItem: { color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', marginBottom: hp('0.8%') },
     healthComponentsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp('3%') },
     healthComponentBox: {
-        flex: 1, minWidth: wp('28%'), backgroundColor: '#111', padding: wp('4.4%'), borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: '#222', gap: hp('1%')
+        flex: 1, minWidth: wp('28%'), backgroundColor: '#111', padding: wp('4.4%'), borderRadius: wp('5%'), alignItems: 'center', borderWidth: hp('0.15%'), borderColor: '#222', gap: hp('1%')
     },
-    healthComponentLabel: { color: '#8E8E8E', fontSize: 10, fontFamily: 'Outfit-Bold', textTransform: 'uppercase' },
+    healthComponentLabel: { color: '#8E8E8E', fontSize: hp('1.2%'), fontFamily: 'Outfit-Bold', textTransform: 'uppercase' },
     healthComponentValue: { color: '#FFF', fontSize: hp('2.4%'), fontFamily: 'Outfit-Black' },
-    whyScoreRow: { flexDirection: 'row', alignItems: 'center', gap: wp('3%'), backgroundColor: '#111', padding: wp('4.5%'), borderRadius: 20, borderWidth: 1, borderColor: '#222', marginTop: hp('1%') },
+    whyScoreRow: { flexDirection: 'row', alignItems: 'center', gap: wp('3%'), backgroundColor: '#111', padding: wp('4.5%'), borderRadius: wp('5%'), borderWidth: hp('0.15%'), borderColor: '#222', marginTop: hp('1%') },
     whyScoreLabel: { flex: 1, color: '#FFF', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium' },
-    whyScoreBody: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: 20, marginTop: hp('-1%'), borderWidth: 1, borderColor: '#1A1A1A' },
+    whyScoreBody: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: wp('5%'), marginTop: hp('-1%'), borderWidth: hp('0.15%'), borderColor: '#1A1A1A' },
     whyScoreText: { color: '#FFF', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', lineHeight: hp('2.2%') },
     explanationItem: { color: '#8E8E93', fontSize: hp('1.4%'), fontFamily: 'Outfit-Regular', lineHeight: hp('2%') },
     nextActionsBody: { gap: hp('1%'), marginTop: hp('-1%') },
-    nextActionItem: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: 20, borderWidth: 1, borderColor: '#1A1A1A' },
+    nextActionItem: { backgroundColor: '#0A0A0A', padding: wp('4.5%'), borderRadius: wp('5%'), borderWidth: hp('0.15%'), borderColor: '#1A1A1A' },
     nextActionText: { color: '#FFF', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium' },
     healthLoadingHint: { color: '#666', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', textAlign: 'center', marginTop: hp('2.5%') },
 
     // RC Details section
     rcInfoSection: { marginTop: hp('3%'), paddingHorizontal: wp('1%') },
     rcGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp('3%'), marginTop: hp('2%') },
-    rcItem: { width: wp('45.5%'), flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', padding: wp('3%'), borderRadius: 12, borderWidth: 1, borderColor: '#222' },
+    rcItem: { width: wp('45.5%'), flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', padding: wp('3%'), borderRadius: wp('3%'), borderWidth: hp('0.15%'), borderColor: '#222' },
     rcItemLabel: { fontSize: hp('1.2%'), color: '#666', fontFamily: 'Outfit-Medium' },
-    rcItemValue: { fontSize: hp('1.7%'), color: '#FFF', fontFamily: 'Outfit-Bold', marginTop: 1 },
+    rcItemValue: { fontSize: hp('1.7%'), color: '#FFF', fontFamily: 'Outfit-Bold', marginTop: hp('0.15%') },
 
     detailsSpecsContainer: { gap: hp('2%'), marginTop: hp('1.2%') },
 
@@ -1550,7 +1550,7 @@ const styles = StyleSheet.create({
     viewerHeaderLeft: { flex: 1 },
     viewerHeaderRight: { flexDirection: 'row', alignItems: 'center' },
     viewerTitle: { color: '#FFF', fontSize: hp('2.5%'), fontFamily: 'Outfit-Bold', textTransform: 'lowercase' },
-    viewerSubtitle: { color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', marginTop: 2, textTransform: 'uppercase' },
+    viewerSubtitle: { color: '#8E8E93', fontSize: hp('1.5%'), fontFamily: 'Outfit-Medium', marginTop: hp('0.25%'), textTransform: 'uppercase' },
     viewerHeaderIcon: { padding: wp('1%') },
     viewerContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: wp('6%') },
     fullImage: { width: '100%', height: '100%' },
@@ -1574,8 +1574,8 @@ const styles = StyleSheet.create({
         gap: wp('2.5%'),
         backgroundColor: '#1A1A1A',
         paddingVertical: hp('2%'),
-        borderRadius: 14,
-        borderWidth: 1,
+        borderRadius: wp('3.5%'),
+        borderWidth: hp('0.15%'),
         borderColor: '#333'
     },
     viewerActionBtnOutline: {
@@ -1597,42 +1597,42 @@ const styles = StyleSheet.create({
     },
     certificate: {
         backgroundColor: '#FFF',
-        borderRadius: 16,
-        padding: 20,
+        borderRadius: wp('4%'),
+        padding: wp('5%'),
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: hp('0.5%') },
         shadowOpacity: 0.1,
-        shadowRadius: 10,
+        shadowRadius: wp('2.5%'),
         elevation: 5
     },
     certHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: 16,
-        borderBottomWidth: 1,
+        marginBottom: hp('2%'),
+        borderBottomWidth: hp('0.15%'),
         borderBottomColor: '#EEE',
-        paddingBottom: 12
+        paddingBottom: hp('1.5%')
     },
     certHeaderTitleCol: {
         flex: 1
     },
     certTitleLine1: {
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         color: '#8E8E93',
         fontFamily: 'Outfit-Bold',
-        letterSpacing: 2
+        letterSpacing: wp('0.5%')
     },
     certTitleLine2: {
-        fontSize: 14,
+        fontSize: hp('1.8%'),
         color: '#000',
         fontFamily: 'Outfit-Black',
-        marginTop: 2
+        marginTop: hp('0.25%')
     },
     certShareBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: wp('9%'),
+        height: wp('9%'),
+        borderRadius: wp('4.5%'),
         backgroundColor: 'rgba(255, 215, 0, 0.1)',
         alignItems: 'center',
         justifyContent: 'center'
@@ -1642,42 +1642,42 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: '#F8F8F8',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16
+        padding: wp('3%'),
+        borderRadius: wp('2%'),
+        marginBottom: hp('2%')
     },
     certPlateText: {
-        fontSize: 18,
+        fontSize: hp('2.2%'),
         color: '#000',
         fontFamily: 'Outfit-Bold',
-        letterSpacing: 1
+        letterSpacing: wp('0.25%')
     },
     certStatusBadge: {
         backgroundColor: '#E8F5E9',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4
+        paddingHorizontal: wp('2%'),
+        paddingVertical: hp('0.5%'),
+        borderRadius: wp('1%')
     },
     certStatusText: {
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         color: '#2E7D32',
         fontFamily: 'Outfit-Bold'
     },
     certInfoGrid: {
-        gap: 8,
-        marginBottom: 20
+        gap: hp('1%'),
+        marginBottom: hp('2.5%')
     },
     certRow: {
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
     certLabel: {
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         color: '#8E8E93',
         fontFamily: 'Outfit-Bold'
     },
     certValue: {
-        fontSize: 12,
+        fontSize: hp('1.5%'),
         color: '#000',
         fontFamily: 'Outfit-Bold'
     },
@@ -1686,135 +1686,135 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#000',
-        paddingVertical: 12,
-        borderRadius: 8,
-        gap: 8
+        paddingVertical: hp('1.5%'),
+        borderRadius: wp('2%'),
+        gap: wp('2%')
     },
     certViewDetailsText: {
         color: '#FFF',
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         fontFamily: 'Outfit-Black',
-        letterSpacing: 1
+        letterSpacing: wp('0.25%')
     },
     otherDocsList: {
         marginTop: hp('2%'),
-        gap: 12
+        gap: hp('1.5%')
     },
     subSectionTitle: {
-        fontSize: 12,
+        fontSize: hp('1.5%'),
         fontFamily: 'Outfit-Bold',
         color: '#8E8E93',
-        letterSpacing: 1,
-        marginBottom: 4
+        letterSpacing: wp('0.25%'),
+        marginBottom: hp('0.5%')
     },
     otherDocRow: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: COLORS.surface,
-        padding: 16,
-        borderRadius: 20,
-        borderWidth: 1,
+        padding: wp('4%'),
+        borderRadius: wp('5%'),
+        borderWidth: hp('0.15%'),
         borderColor: COLORS.border
     },
     otherDocLabel: {
         color: '#FFF',
-        fontSize: 14,
+        fontSize: hp('1.8%'),
         fontFamily: 'Outfit-Bold'
     },
     otherDocValue: {
         color: '#8E8E93',
-        fontSize: 11,
+        fontSize: hp('1.4%'),
         fontFamily: 'Outfit-Medium',
-        marginTop: 2
+        marginTop: hp('0.25%')
     },
 
     // Formal Certificate Styles
     formalCertContainer: {
         width: wp('92%'),
-        padding: 5,
+        padding: wp('1%'),
         alignSelf: 'center'
     },
     formalCert: {
         backgroundColor: '#FFF',
-        borderRadius: 12,
-        padding: 24,
+        borderRadius: wp('3%'),
+        padding: wp('6%'),
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
+        shadowOffset: { width: 0, height: hp('1.2%') },
         shadowOpacity: 0.2,
-        shadowRadius: 20,
+        shadowRadius: wp('5%'),
         elevation: 15
     },
     formalCertHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: hp('2.5%'),
         position: 'relative',
-        paddingBottom: 25
+        paddingBottom: hp('3%')
     },
     formalLionLogo: {
         width: wp('12%'),
         height: wp('12%'),
-        marginRight: 15
+        marginRight: wp('4%')
     },
     formalTitleCol: {
         flex: 1
     },
     formalCertTitle: {
-        fontSize: 14,
+        fontSize: hp('1.8%'),
         color: '#000',
         fontFamily: 'Outfit-Bold',
         textTransform: 'uppercase'
     },
     formalCertSubtitle: {
-        fontSize: 9,
+        fontSize: hp('1.1%'),
         color: '#666',
         fontFamily: 'Outfit-Medium',
-        marginTop: 2
+        marginTop: hp('0.25%')
     },
     formalCertDivider: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        height: 2,
+        height: hp('0.25%'),
         backgroundColor: '#333'
     },
     formalCertMeta: {
-        marginBottom: 20
+        marginBottom: hp('2.5%')
     },
     formalCertMetaRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 15,
-        borderBottomWidth: 1,
+        marginBottom: hp('1.8%'),
+        borderBottomWidth: hp('0.1%'),
         borderBottomColor: '#F0F0F0',
-        paddingBottom: 5
+        paddingBottom: hp('0.6%')
     },
     formalCertMetaLabel: {
-        fontSize: 9,
+        fontSize: hp('1.1%'),
         color: '#666',
         fontFamily: 'Outfit-Medium',
         textTransform: 'uppercase'
     },
     formalCertMetaValue: {
-        fontSize: 11,
+        fontSize: hp('1.4%'),
         color: '#000',
         fontFamily: 'Outfit-Black',
-        marginTop: 1
+        marginTop: hp('0.12%')
     },
     formalCertMetaLabelSmall: {
-        fontSize: 8,
+        fontSize: hp('1%'),
         color: '#666',
         fontFamily: 'Outfit-Medium'
     },
     formalCertMetaValueSmall: {
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         color: '#000',
         fontFamily: 'Outfit-Bold'
     },
     formalCertInfoGrid: {
-        paddingTop: 5,
-        marginBottom: 25
+        paddingTop: hp('0.6%'),
+        marginBottom: hp('3%')
     },
     formalCertInfoLayout: {
         flexDirection: 'row',
@@ -1822,7 +1822,7 @@ const styles = StyleSheet.create({
     },
     formalCertCols: {
         flex: 1,
-        gap: 12
+        gap: hp('1.5%')
     },
     formalCertRow: {
         flexDirection: 'row',
@@ -1830,18 +1830,18 @@ const styles = StyleSheet.create({
     },
     formalCertLabel: {
         width: wp('22%'),
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         color: '#444',
         fontFamily: 'Outfit-Bold'
     },
     formalCertSep: {
-        width: 12,
-        fontSize: 10,
+        width: wp('3%'),
+        fontSize: hp('1.2%'),
         color: '#444'
     },
     formalCertValue: {
         flex: 1,
-        fontSize: 10,
+        fontSize: hp('1.2%'),
         color: '#000',
         fontFamily: 'Outfit-Black'
     },
@@ -1849,16 +1849,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        borderTopWidth: 1,
+        borderTopWidth: hp('0.1%'),
         borderTopColor: '#F0F0F0',
-        paddingTop: 15
+        paddingTop: hp('1.8%')
     },
     formalCertNoteBox: {
         alignItems: 'flex-end',
-        gap: 6
+        gap: hp('0.7%')
     },
     formalCertPowered: {
-        fontSize: 9,
+        fontSize: hp('1.1%'),
         color: '#6366F1',
         fontFamily: 'Outfit-Black',
         textTransform: 'uppercase'
@@ -1866,21 +1866,21 @@ const styles = StyleSheet.create({
     formalCertSignedBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
-        borderWidth: 1,
+        gap: wp('1%'),
+        borderWidth: hp('0.15%'),
         borderColor: '#22C55E',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 6,
+        paddingHorizontal: wp('2.5%'),
+        paddingVertical: hp('0.8%'),
+        borderRadius: wp('1.5%'),
         backgroundColor: '#F0FDF4'
     },
     formalCertSignedText: {
-        fontSize: 8,
+        fontSize: hp('1%'),
         color: '#166534',
         fontFamily: 'Outfit-Medium'
     },
     formalCertSignedDate: {
-        fontSize: 8,
+        fontSize: hp('1%'),
         color: '#166534',
         fontFamily: 'Outfit-Black'
     }

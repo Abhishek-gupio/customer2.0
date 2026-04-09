@@ -49,6 +49,8 @@
 	<string>This app needs permission to save photos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photo library access to select document images</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to convert your voice commands into text for assistant and expense management.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
