@@ -707,22 +707,30 @@ const SOSButton = () => {
             <>
               <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("100")}>
                 <Ionicons name="shield-checkmark-outline" size={22} color="#3b82f6" />
-                <Text style={styles.safeZoneText}>Police Station</Text>
+                <View style={styles.safeZoneTextWrap}>
+                  <Text style={styles.safeZoneText}>Police Station</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("102")}>
                 <Ionicons name="medkit-outline" size={22} color="#ef4444" />
-                <Text style={styles.safeZoneText}>Hospital / Ambulance</Text>
+                <View style={styles.safeZoneTextWrap}>
+                  <Text style={styles.safeZoneText}>Hospital / Ambulance</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("101")}>
                 <Ionicons name="flame-outline" size={22} color="#f97316" />
-                <Text style={styles.safeZoneText}>Fire Station</Text>
+                <View style={styles.safeZoneTextWrap}>
+                  <Text style={styles.safeZoneText}>Fire Station</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.safeZoneItem} onPress={() => makeCall("112")}>
                 <Ionicons name="call-outline" size={22} color="#22c55e" />
-                <Text style={styles.safeZoneText}>National Emergency</Text>
+                <View style={styles.safeZoneTextWrap}>
+                  <Text style={styles.safeZoneText}>National Emergency</Text>
+                </View>
               </TouchableOpacity>
             </>
           )}

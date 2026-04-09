@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Image,
   Linking,
-  Platform,
   RefreshControl,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
@@ -31,6 +31,67 @@ interface DIYGuide {
   videoUrl: string;
   duration: string;
   category: 'MAINTENANCE' | 'REPAIR' | 'CLEANING' | 'ESSENTIALS';
+}
+
+const FALLBACK_THUMBNAILS: Record<DIYGuide['category'], any> = {
+  MAINTENANCE: require('../../assets/images/car_service.jpg'),
+  REPAIR: require('../../assets/images/mechanic_icon.jpg'),
+  CLEANING: require('../../assets/images/yellow_car_in_sv.png'),
+  ESSENTIALS: require('../../assets/images/service_custom.jpg'),
+};
+
+function getYouTubeVideoId(url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return null;
+
+  try {
+    const parsedUrl = new URL(trimmedUrl);
+    const hostname = parsedUrl.hostname.replace(/^www\./, '').replace(/^m\./, '');
+
+    if (hostname === 'youtu.be') {
+      const shortId = parsedUrl.pathname.split('/').filter(Boolean)[0] ?? '';
+      return shortId.length === 11 ? shortId : null;
+    }
+
+    const watchId = parsedUrl.searchParams.get('v');
+    if (watchId?.length === 11) return watchId;
+
+    const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+    const pathPrefixIndex = pathSegments.findIndex((segment) =>
+      ['embed', 'shorts', 'v'].includes(segment)
+    );
+
+    if (pathPrefixIndex >= 0) {
+      const pathId = pathSegments[pathPrefixIndex + 1] ?? '';
+      return pathId.length === 11 ? pathId : null;
+    }
+
+    const fallbackMatch = trimmedUrl.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|v\/|u\/\w\/))([A-Za-z0-9_-]{11})/
+    );
+    return fallbackMatch?.[1] ?? null;
+  } catch {
+    const fallbackMatch = trimmedUrl.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|v\/|u\/\w\/))([A-Za-z0-9_-]{11})/
+    );
+    return fallbackMatch?.[1] ?? null;
+  }
+}
+
+function getGuidePreviewSource(guide: DIYGuide) {
+  const youtubeId = getYouTubeVideoId(guide.videoUrl);
+  if (youtubeId) {
+    return { uri: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` };
+  }
+
+  const trimmedThumbnail = typeof guide.thumbnail === 'string' ? guide.thumbnail.trim() : '';
+  if (trimmedThumbnail) {
+    return { uri: trimmedThumbnail };
+  }
+
+  return null;
 }
 
 export default function DIYGuides() {
@@ -146,11 +207,29 @@ export default function DIYGuides() {
               activeOpacity={0.9}
             >
               <View style={styles.thumbnailContainer}>
-                <FastImage
-                  source={{ uri: guide.thumbnail, priority: FastImage.priority.high }}
-                  style={styles.cardThumbnail}
-                  resizeMode={FastImage.resizeMode.cover}
-                />
+                {(() => {
+                  const previewSource = getGuidePreviewSource(guide);
+                  return (
+                    <>
+                      <Image
+                        source={FALLBACK_THUMBNAILS[guide.category]}
+                        style={styles.fallbackThumbnail}
+                        resizeMode="cover"
+                      />
+                      {previewSource ? (
+                        <FastImage
+                          source={{
+                            ...(previewSource as any),
+                            priority: FastImage.priority.high,
+                          }}
+                          style={styles.cardThumbnail}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                      ) : null}
+                    </>
+                  );
+                })()}
+                <View style={styles.thumbnailShade} />
                 <View style={styles.playOverlay}>
                   <IconMC name="play" size={wp(5)} color="#000" />
                 </View>
@@ -233,8 +312,29 @@ const styles = StyleSheet.create({
   countBadge: { color: '#222', fontSize: wp(2.5), fontFamily: 'Outfit-Black' },
   
   guideCard: { backgroundColor: '#050505', borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#111', marginBottom: hp(3) },
-  thumbnailContainer: { height: hp(20), width: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  cardThumbnail: { width: '100%', height: '100%', opacity: 0.8 },
+  thumbnailContainer: {
+    height: hp(20),
+    width: '100%',
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  fallbackThumbnail: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  cardThumbnail: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    opacity: 1,
+  },
+  thumbnailShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+  },
   playOverlay: { position: 'absolute', width: wp(12), height: wp(12), borderRadius: wp(6), backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   durationBadge: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.8)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   durationText: { color: '#fff', fontSize: wp(2.5), fontFamily: 'Outfit-Bold' },
