@@ -24,6 +24,7 @@ fs.mkdirSync(fileMapCacheDirectory, {recursive: true});
 fs.mkdirSync(transformerCacheDirectory, {recursive: true});
 
 const config = {
+  maxWorkers: 1,
   cacheStores: [
     new FileStore({
       root: transformerCacheDirectory,
@@ -31,7 +32,7 @@ const config = {
   ],
   cacheVersion: 'mobile-monorepo-v1',
   projectRoot,
-  watchFolders: [workspaceRoot],
+  watchFolders: [workspaceNodeModules],
   resolver: {
     nodeModulesPaths: [appNodeModules, workspaceNodeModules],
     extraNodeModules: {

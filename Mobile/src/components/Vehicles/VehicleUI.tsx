@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     plate: {
         flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 8,
         alignSelf: 'center', borderWidth: 1, borderColor: '#EEE', overflow: 'hidden',
-        height: hp('5.5%'), elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+        minHeight: hp('5.5%'), elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1, shadowRadius: 2
     },
     indStrip: { backgroundColor: '#003399', width: wp('8%'), alignItems: 'center', justifyContent: 'center', gap: 1 },
@@ -84,7 +84,10 @@ const styles = StyleSheet.create({
     plateNo: { 
         paddingHorizontal: wp('4%'), justifyContent: 'center', color: '#000', 
         fontSize: hp('2.5%'), fontFamily: 'Outfit-Bold', letterSpacing: 1, textAlignVertical: 'center',
-        paddingVertical: Platform.OS === 'ios' ? hp('1%') : 0
+        paddingVertical: Platform.OS === 'ios' ? hp('1%') : hp('0.6%'),
+        lineHeight: hp('3%'),
+        flexShrink: 1,
+        includeFontPadding: false,
     },
     card: {
         backgroundColor: COLORS.surface, padding: wp('5%'), borderRadius: 24,

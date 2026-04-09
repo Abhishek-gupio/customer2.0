@@ -223,10 +223,9 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
       <View style={styles.exportCaptureContainer}>
         <ViewShot
           ref={lineChartRef}
-          collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
-          <View style={[styles.exportCard, { width: lineChartWidth }]}>
+          <View collapsable={false} style={[styles.exportCard, { width: lineChartWidth }]}>
             <Text style={styles.exportTitle}>Spending Trend ({timeFrame})</Text>
             {lineData && (
               <LineChart
@@ -244,10 +243,9 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
 
         <ViewShot
           ref={pieChartRef}
-          collapsable={false}
           options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
         >
-          <View style={styles.exportCard}>
+          <View collapsable={false} style={styles.exportCard}>
             <Text style={styles.exportTitle}>Spending Breakdown ({timeFrame})</Text>
             {pieData && (
               <PieChart

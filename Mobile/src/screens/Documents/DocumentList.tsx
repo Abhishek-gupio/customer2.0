@@ -15,7 +15,11 @@ import {
   PermissionsAndroid,
   TouchableWithoutFeedback,
   Linking,
+  Animated,
+  Easing,
+  useWindowDimensions,
 } from 'react-native';
+import Svg, {Circle} from 'react-native-svg';
 // @ts-ignore
 import { generatePDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
@@ -24,11 +28,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ShieldCheck,
   FileText,
-  ArrowRight,
-  Plus,
+  ChevronRight,
+  Clock3,
+  IdCard,
+  Lock,
+  Cloud,
   Camera,
   Image as ImageIcon,
   FileUp,
+  Link,
   X,
   Download,
   Share2,
@@ -53,14 +61,11 @@ import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
 import { getNetworkOnlineState } from '../../services/api';
-import { getAccessToken } from '../../services/storage';
 import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/offlineMutationQueue';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-
-// @ts-ignore
-const RNHTMLtoPDF: any = require('react-native-html-to-pdf');
+import { getAbsoluteUrl } from '../../config';
 
 const { width } = Dimensions.get('window');
 const CarImage = require('../../assets/images/car_vehicle_demo.png');
@@ -71,6 +76,31 @@ const REQUIRED_DOCS = [
   { type: 'PUC', label: 'puc certificate' },
   { type: 'DL', label: 'driving license' },
 ] as const;
+
+const DOC_ROW_META = {
+  RC: {
+    title: 'RC Front',
+    subtitle: 'Registration certificate',
+    icon: FileText,
+  },
+  Insurance: {
+    title: 'Insurance',
+    subtitle: 'Vehicle insurance policy',
+    icon: ShieldCheck,
+  },
+  PUC: {
+    title: 'PUC Certificate',
+    subtitle: 'Pollution under control',
+    icon: Clock3,
+  },
+  DL: {
+    title: 'Driving License',
+    subtitle: 'Personal ID - required for driving',
+    icon: IdCard,
+  },
+} as const;
+
+const DOC_ROW_ORDER = ['RC', 'Insurance', 'PUC', 'DL'] as const;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -125,7 +155,10 @@ export default function DocumentList() {
   const navigation = useNavigation<DocListNavProp>();
   const dispatch = useAppDispatch();
   const { documents: allStoreDocuments, loading } = useAppSelector((state: RootState) => state.documents);
+  const { width: windowWidth } = useWindowDimensions();
+  const healthSpin = React.useRef(new Animated.Value(0)).current;
   const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle | null>(null);
+  const [vehicleImageError, setVehicleImageError] = useState(false);
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [showViewerModal, setShowViewerModal] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<string>('');
@@ -170,6 +203,19 @@ export default function DocumentList() {
       dispatch(addDocumentFromResponse(toDocItem(doc)));
     }).catch(() => {});
   }, [dispatch]);
+
+  useEffect(() => {
+    Animated.timing(healthSpin, {
+      toValue: 1,
+      duration: 1200,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [healthSpin]);
+
+  useEffect(() => {
+    setVehicleImageError(false);
+  }, [primaryVehicle?.id, primaryVehicle?.imageUrl]);
 
   const loadPrimaryVehicle = async () => {
     try {
@@ -372,7 +418,6 @@ export default function DocumentList() {
         for (let i = 0; i <= retries; i++) {
           try {
             if (uri.startsWith('http')) {
-              const token = getAccessToken();
               const tempPath = `${RNFS.CachesDirectoryPath}/pdf_tmp_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
 
               const downloadResult = await RNFS.downloadFile({
@@ -554,11 +599,6 @@ export default function DocumentList() {
     return documents.find(d => d.type === type);
   };
 
-  const requiredDocTypes = REQUIRED_DOCS.map(doc => doc.type);
-  const uploadedDocsCount = documents.filter(d => (requiredDocTypes as string[]).includes(d.type)).length;
-  const MAX_DOCS = 4;
-  const totalDocs = Math.min(uploadedDocsCount, MAX_DOCS);
-  const progressPercent = Math.round((totalDocs / MAX_DOCS) * 100);
   const requiredDocuments = REQUIRED_DOCS.map(({ type, label }) => ({
     type,
     label,
@@ -647,262 +687,579 @@ export default function DocumentList() {
     }
   };
 
-  const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
+  const verifiedDocumentsCount = healthyRequiredDocs.length;
+  const reviewDocumentsCount =
+    expiringRequiredDocs.length + expiredRequiredDocs.length;
+  const missingDocumentsCount = missingRequiredDocs.length;
+  const documentHealthScore = Math.max(
+    0,
+    Math.min(100, verifiedDocumentsCount * 25),
+  );
+  const documentHealthScoreText = String(documentHealthScore).padStart(2, '0');
+  const documentHealthSubtitle =
+    missingDocumentsCount > 0
+      ? `${missingDocumentsCount} document${missingDocumentsCount === 1 ? '' : 's'} still missing`
+      : reviewDocumentsCount > 0
+        ? `${reviewDocumentsCount} document${reviewDocumentsCount === 1 ? '' : 's'} need review`
+        : 'Everything important is stored';
+  const documentHealthBadgeText =
+    missingDocumentsCount > 0
+      ? `${missingDocumentsCount} missing`
+      : reviewDocumentsCount > 0
+        ? `${reviewDocumentsCount} review${reviewDocumentsCount === 1 ? '' : 's'}`
+        : 'ready';
+  const documentHealthBadgeTone =
+    missingDocumentsCount > 0
+      ? '#f59e0b'
+      : reviewDocumentsCount > 0
+        ? '#fb7185'
+        : '#22c55e';
+  const documentHealthBadgeBg =
+    missingDocumentsCount > 0
+      ? 'rgba(245,158,11,0.14)'
+      : reviewDocumentsCount > 0
+        ? 'rgba(251,113,133,0.14)'
+        : 'rgba(34,197,94,0.14)';
+  const documentHealthBadgeBorder =
+    missingDocumentsCount > 0
+      ? 'rgba(245,158,11,0.35)'
+      : reviewDocumentsCount > 0
+        ? 'rgba(251,113,133,0.35)'
+        : 'rgba(34,197,94,0.35)';
+  const healthRingColor =
+    missingDocumentsCount > 0 || reviewDocumentsCount > 0
+      ? '#f59e0b'
+      : '#22c55e';
+  const healthRingRotation = healthSpin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['-90deg', '270deg'],
+  });
+  const pageWidth = Math.max(0, Math.min(windowWidth - 44, 430));
+  const digiLockerHeadlineSize = Math.max(16, Math.min(22, Math.round(pageWidth * 0.058)));
+  const digiLockerBrandTitleSize = Math.max(16, Math.min(20, Math.round(pageWidth * 0.048)));
+  const digiLockerBrandSubtitleSize = Math.max(9, Math.min(11, Math.round(pageWidth * 0.028)));
+  const digiLockerLogoSize = Math.max(50, Math.min(60, Math.round(pageWidth * 0.17)));
+  const digiLockerSheetSize = Math.max(34, Math.min(42, Math.round(digiLockerLogoSize * 0.72)));
+  const digiLockerChipTextSize = Math.max(12, Math.min(14, Math.round(pageWidth * 0.04)));
+  const digiLockerCompact = pageWidth < 360;
+  const statsRowGap = 12;
+  const statCardWidth = Math.max(0, Math.floor((pageWidth - statsRowGap * 2) / 3));
+  const statCardHeight = Math.max(86, Math.round(statCardWidth * 0.88));
+  const statValueSize = Math.max(26, Math.min(44, Math.round(statCardWidth * 0.36)));
+  const statValueLineHeight = statValueSize + 2;
+  const statLabelSize = Math.max(9, Math.min(12, Math.round(statCardWidth * 0.1)));
+  const documentGridGap = 8;
+  const documentSectionCardPadding = 10;
+  const documentGridCardWidth = Math.max(0, Math.floor((pageWidth - documentSectionCardPadding * 2 - documentGridGap) / 2));
+  const documentGridCardHeight = Math.max(118, Math.round(documentGridCardWidth * 0.68));
+  const documentGridRows = [
+    DOC_ROW_ORDER.slice(0, 2),
+    DOC_ROW_ORDER.slice(2, 4),
+  ] as const;
+  const healthSegmentCount = 5;
+  const filledHealthSegments =
+    documentHealthScore > 0
+      ? Math.min(
+          healthSegmentCount,
+          Math.max(1, Math.round((documentHealthScore / 100) * healthSegmentCount)),
+        )
+      : 0;
+  const primaryHealthActionLabel =
+    missingDocumentsCount > 0
+      ? '+ Add Documents'
+      : reviewDocumentsCount > 0
+        ? 'Review document'
+        : 'Connect DigiLocker';
+
+  const vehicleImageUrl = primaryVehicle?.imageUrl || primaryVehicle?.rtoDetails?.imageUrl;
+  const vehicleImageSource =
+    !vehicleImageError && vehicleImageUrl
+      ? { uri: getAbsoluteUrl(vehicleImageUrl) }
+      : (primaryVehicle?.vehicleType === 'BIKE' ? BikeImage : CarImage);
+
+  const DocumentHealthRing = ({score}: {score: number}) => {
+    const size = 104;
+    const strokeWidth = 8;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const safeScore = Math.max(0, Math.min(100, score));
+    const renderScore =
+      safeScore > 0 ? safeScore : missingDocumentsCount > 0 ? 4 : 0;
+    const dashOffset = circumference - (circumference * renderScore) / 100;
+
+    return (
+      <View style={styles.docHealthRing}>
+        <Animated.View style={[styles.docHealthRingSpin, {transform: [{rotate: healthRingRotation}]}]}>
+          <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+            <Circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              stroke="#2c2c33"
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            <Circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              stroke={healthRingColor}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={`${circumference} ${circumference}`}
+              strokeDashoffset={dashOffset}
+              fill="transparent"
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            />
+          </Svg>
+        </Animated.View>
+        <View style={styles.docHealthRingCenter}>
+          <Text style={styles.docHealthRingText}>
+            {safeScore.toFixed(0)}%
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  const DocumentRow = ({type}: {type: keyof typeof DOC_ROW_META}) => {
     const doc = getDocByType(type);
     const statusMeta = getDocumentStatusMeta(doc);
+    const rowMeta = DOC_ROW_META[type];
+    const RowIcon = rowMeta.icon;
+    const isMissing = !doc;
+    const rowTone = isMissing
+      ? '#ef4444'
+      : doc?.status === 'expiring'
+        ? '#f59e0b'
+        : doc?.status === 'expired'
+          ? '#ef4444'
+          : '#22c55e';
+    const rowBg = isMissing
+      ? 'rgba(239,68,68,0.10)'
+      : doc?.status === 'expiring'
+        ? 'rgba(245,158,11,0.10)'
+        : doc?.status === 'expired'
+          ? 'rgba(239,68,68,0.10)'
+          : 'rgba(34,197,94,0.08)';
+    const rowBorder = isMissing
+      ? 'rgba(239,68,68,0.25)'
+      : doc?.status === 'expiring'
+        ? 'rgba(245,158,11,0.25)'
+        : doc?.status === 'expired'
+          ? 'rgba(239,68,68,0.25)'
+          : 'rgba(34,197,94,0.20)';
+    const rowSubtitle = doc ? statusMeta.caption : rowMeta.subtitle;
+    const rowStatusLabel = statusMeta.label.toUpperCase();
+
     return (
-      <View style={styles.slotContainer}>
-        <TouchableOpacity
-          style={styles.slotBox}
-          onPress={() => {
-            if (doc) {
-              setViewingDoc(doc);
-              setShowViewerModal(true);
-            } else {
-              setSelectedDocType(type);
-              setShowSourceModal(true);
-            }
-          }}
-        >
-          {doc ? (
-            <View style={styles.imageWrapper}>
-              <Image
-                source={{ uri: doc.imageUri }}
-                style={styles.slotImage}
-                resizeMode="cover"
-                onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
-              />
-            </View>
-          ) : (
-            <Plus size={24} color="#333" />
-          )}
-        </TouchableOpacity>
-        <Text style={styles.slotLabel}>{label}</Text>
-        <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
-          <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={[
+          styles.documentGridItem,
+          {borderColor: rowBorder, borderStyle: isMissing ? 'dashed' : 'solid'},
+          {width: documentGridCardWidth, minHeight: documentGridCardHeight},
+        ]}
+        onPress={() => {
+          if (doc) {
+            setViewingDoc(doc);
+            setShowViewerModal(true);
+          } else {
+            setSelectedDocType(type);
+            setShowSourceModal(true);
+          }
+        }}
+      >
+        <View style={styles.documentGridTop}>
+          <View
+            style={[
+              styles.documentIconWrap,
+              {backgroundColor: rowBg, borderColor: rowBorder},
+            ]}
+          >
+            <RowIcon size={22} color={rowTone} />
+          </View>
+          <View style={styles.documentGridTextWrap}>
+            <Text style={styles.documentTitle} numberOfLines={1}>{rowMeta.title}</Text>
+            <Text style={styles.documentSubtitle} numberOfLines={2}>{rowSubtitle}</Text>
+          </View>
         </View>
-        <Text style={styles.slotHint}>{statusMeta.caption}</Text>
-      </View>
+        <View style={styles.documentGridBottom}>
+          <View style={[styles.documentStatusPill, {backgroundColor: rowBg, borderColor: rowBorder}]}>
+            <Text style={[styles.documentStatusText, {color: rowTone}]}>
+              {rowStatusLabel}
+            </Text>
+          </View>
+          <ChevronRight size={18} color="rgba(255,255,255,0.28)" />
+        </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" />
-
-      <View style={styles.header}>
-        <BackButton onPress={() => navigation.goBack()} />
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>glovebox</Text>
-          {totalDocs > 0 ? (
-            <View style={styles.progressHeaderRow}>
-              <Text style={styles.progressTextLeft}>{totalDocs} out of {MAX_DOCS} documents stored</Text>
-              <Text style={styles.progressTextRight}>{progressPercent}% COMPLETE</Text>
-            </View>
-          ) : (
-            <Text style={styles.headerSubtitle}>one place for all your vehicle documents</Text>
-          )}
-        </View>
-        <View style={{ width: 44 }} />
-      </View>
-
-      {totalDocs > 0 && (
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarTrack}>
-            <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-          </View>
-        </View>
-      )}
+      <StatusBar barStyle="light-content" backgroundColor="#050505" />
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.screenContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.trustBadge}>
-          <ShieldCheck size={14} color="#00C853" />
-          <Text style={styles.trustText}>100% safe and secure</Text>
-        </View>
+        <View style={styles.page}>
+          <View style={styles.heroHeader}>
+            <BackButton onPress={() => navigation.goBack()} />
 
-        <View style={styles.healthOverviewRow}>
-          <View style={styles.healthMetricCard}>
-            <Text style={styles.healthMetricValue}>{healthyRequiredDocs.length}</Text>
-            <Text style={styles.healthMetricLabel}>Ready now</Text>
-          </View>
-          <View style={styles.healthMetricCard}>
-            <Text style={[styles.healthMetricValue, styles.healthMetricWarning]}>
-              {expiringRequiredDocs.length + expiredRequiredDocs.length}
-            </Text>
-            <Text style={styles.healthMetricLabel}>Need review</Text>
-          </View>
-          <View style={styles.healthMetricCard}>
-            <Text style={styles.healthMetricValue}>{missingRequiredDocs.length}</Text>
-            <Text style={styles.healthMetricLabel}>Missing</Text>
-          </View>
-        </View>
+            <View style={styles.heroHeaderTextWrap}>
+              <Text style={styles.heroTitle}>glovebox</Text>
+              <Text style={styles.heroSubtitle}>vehicle document hub</Text>
+            </View>
 
-        <View style={styles.nextActionCard}>
-          <View style={styles.nextActionHeader}>
-            <Text style={styles.nextActionTitle}>Document health</Text>
-            <Text style={styles.nextActionCaption}>
-              {missingRequiredDocs.length > 0
-                ? `${missingRequiredDocs.length} document${missingRequiredDocs.length === 1 ? '' : 's'} still missing`
-                : expiringRequiredDocs.length + expiredRequiredDocs.length > 0
-                  ? 'A few documents need attention soon'
-                  : 'Your glovebox is in good shape'}
-            </Text>
+            <View style={styles.securedBadge}>
+              <Lock size={14} color="#00d084" />
+              <Text style={styles.securedBadgeText}>secured</Text>
+            </View>
           </View>
 
-          {missingRequiredDocs.length > 0 ? (
-            <Text style={styles.nextActionBody}>
-              Add {missingRequiredDocs.slice(0, 2).map(item => item.label).join(' and ')} to complete your core document set.
-            </Text>
-          ) : expiredRequiredDocs.length + expiringRequiredDocs.length > 0 ? (
-            <Text style={styles.nextActionBody}>
-              Review expiry dates and keep renewal documents ready before your next drive.
-            </Text>
-          ) : (
-            <Text style={styles.nextActionBody}>
-              Everything important is stored. Linking DigiLocker can still make future refreshes easier.
-            </Text>
-          )}
-
-          <View style={styles.nextActionButtons}>
-            <TouchableOpacity style={styles.nextActionPrimaryBtn} onPress={handlePriorityAction}>
-              <Text style={styles.nextActionPrimaryText}>
-                {missingRequiredDocs.length > 0
-                  ? `Add ${missingRequiredDocs[0].label}`
-                  : expiredRequiredDocs.length + expiringRequiredDocs.length > 0
-                    ? 'Review document'
-                    : 'Link DigiLocker'}
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, styles.statCardNeutral, { width: statCardWidth, height: statCardHeight }]}>
+              <Text style={[styles.statValue, { fontSize: statValueSize, lineHeight: statValueLineHeight }]}>
+                {verifiedDocumentsCount}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.nextActionSecondaryBtn} onPress={handleConnectDigiLocker}>
-              <Text style={styles.nextActionSecondaryText}>Sync official docs</Text>
+              <Text style={[styles.statLabel, { fontSize: statLabelSize, lineHeight: statLabelSize + 3 }]}>READY</Text>
+            </View>
+            <View style={[styles.statCard, styles.statCardReview, { width: statCardWidth, height: statCardHeight }]}>
+              <Text style={[styles.statValue, styles.statValueAmber, { fontSize: statValueSize, lineHeight: statValueLineHeight }]}>
+                {reviewDocumentsCount}
+              </Text>
+              <Text style={[styles.statLabel, { fontSize: statLabelSize, lineHeight: statLabelSize + 3 }]}>REVIEW</Text>
+            </View>
+            <View style={[styles.statCard, styles.statCardDanger, { width: statCardWidth, height: statCardHeight }]}>
+              <Text style={[styles.statValue, styles.statValueRed, { fontSize: statValueSize, lineHeight: statValueLineHeight }]}>
+                {missingDocumentsCount}
+              </Text>
+              <Text style={[styles.statLabel, { fontSize: statLabelSize, lineHeight: statLabelSize + 3 }]}>MISSING</Text>
+            </View>
+          </View>
+
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>YOUR VEHICLE</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('VehicleList')}>
+              <Text style={styles.sectionActionLink}>+ Add vehicle</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* DigiLocker Banner */}
-        <View style={styles.digiBanner}>
-          <View style={styles.digiRow}>
-            <View style={styles.digiContentLeft}>
-              {totalDocs > 0 ? (
-                <Text style={styles.digiTitle}>add your official driving license to your glovebox</Text>
-              ) : (
-                <Text style={styles.digiTitle}>accepted as official documents by traffic police everywhere</Text>
-              )}
-
-              <TouchableOpacity style={styles.digiBtn} onPress={handleConnectDigiLocker}>
-                <View style={styles.digiBtnContent}>
-                  <View style={styles.digiLogoPlaceholder}>
-                    <FileText size={14} color="#FFF" />
-                  </View>
-                  <Text style={styles.digiBtnText}>Link to Digilocker</Text>
+          {primaryVehicle ? (
+            <View style={styles.vehicleCard}>
+              <View style={styles.vehicleCardTop}>
+                <View style={styles.primaryChip}>
+                  <View style={styles.primaryChipDot} />
+                  <Text style={styles.primaryChipText}>ACTIVE PRIMARY</Text>
                 </View>
-                <ArrowRight size={18} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.digiGraphic}>
-              <Image
-                source={require('../../assets/images/document.png') as any}
-                style={styles.digiImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-        </View>
 
-        {/* Your Vehicle Documents */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>YOUR VEHICLE DOCUMENTS</Text>
-        </View>
+                <TouchableOpacity
+                  style={styles.vehicleDetailsChip}
+                  onPress={() =>
+                    navigation.navigate('VehicleDetails', {
+                      vehicleId: primaryVehicle.id,
+                      initialTab: 'Details',
+                    })
+                  }
+                >
+                  <Text style={styles.vehicleDetailsChipText}>View details {'>'}</Text>
+                </TouchableOpacity>
+              </View>
 
-        {primaryVehicle ? (
-          <View style={styles.vehicleSummaryCard}>
-            <View style={styles.primaryBadge}>
-               <Text style={styles.primaryBadgeText}>ACTIVE PRIMARY</Text>
-            </View>
-            <View style={styles.vehicleThumbWrap}>
-              <Image
-                source={(primaryVehicle.vehicleType === 'BIKE' ? BikeImage : CarImage) as any}
-                style={styles.vehicleThumb}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.vehicleName}>{primaryVehicle.model?.toUpperCase() || 'SXL'}</Text>
-              <View style={styles.plateWrap}>
-                <INDPlate number={primaryVehicle.registrationNumber} />
+              <View style={styles.vehicleCardDivider} />
+
+              <View style={styles.vehicleCardBody}>
+                <View style={styles.vehicleIllustrationWrap}>
+                  <Image
+                    source={vehicleImageSource as any}
+                    style={styles.vehicleIllustration}
+                    resizeMode="contain"
+                    onError={() => setVehicleImageError(true)}
+                  />
+                </View>
+
+                <View style={styles.vehicleCardCenter}>
+                  <Text style={styles.vehicleCardTitle}>
+                    {primaryVehicle.model?.toUpperCase() ||
+                      primaryVehicle.registrationNumber ||
+                      'VEHICLE'}
+                  </Text>
+                  <View style={styles.vehiclePlateWrap}>
+                    <INDPlate number={primaryVehicle.registrationNumber} />
+                  </View>
+                </View>
               </View>
             </View>
-            <View style={styles.vehicleActions}>
-               <TouchableOpacity
-                 onPress={() => navigation.navigate('VehicleDetails', {
-                   vehicleId: primaryVehicle.id,
-                   initialTab: 'Details'
-                 })}
-                 style={styles.viewDetailsBtn}
-               >
-                 <Text style={styles.viewDetailsText}>View details</Text>
-               </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.vehicleEmptyCard}
+              onPress={() => navigation.navigate('VehicleList')}
+            >
+              <View style={styles.vehicleEmptyTopRow}>
+                <View style={styles.primaryChip}>
+                  <View style={styles.primaryChipDot} />
+                  <Text style={styles.primaryChipText}>NO PRIMARY VEHICLE</Text>
+                </View>
+                <Text style={styles.vehicleDetailsChipText}>View details {'>'}</Text>
+              </View>
+              <View style={styles.vehicleCardDivider} />
+              <View style={styles.vehicleEmptyBody}>
+                <View style={styles.vehicleEmptyIconWrap}>
+                  <MaterialIcon name="directions-car" size={30} color="#f59e0b" />
+                </View>
+                <View style={styles.vehicleEmptyTextWrap}>
+                  <Text style={styles.vehicleEmptyTitle}>Add your first vehicle</Text>
+                  <Text style={styles.vehicleEmptySubtitle}>
+                    Select a vehicle from your garage to manage documents.
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.docHealthCard}>
+            <View style={styles.docHealthTopRow}>
+              <View style={styles.docHealthCopy}>
+                <Text style={styles.docHealthEyebrow}>DOC HEALTH SCORE</Text>
+                <View style={styles.docHealthScoreRow}>
+                  <Text style={styles.docHealthScoreValue}>
+                    {documentHealthScoreText}
+                  </Text>
+                  <Text style={styles.docHealthScoreSuffix}>/ 100</Text>
+                </View>
+                <Text style={styles.docHealthSummary}>{documentHealthSubtitle}</Text>
+              </View>
+
+              <View style={styles.docHealthRingColumn}>
+                <DocumentHealthRing score={documentHealthScore} />
+                <View
+                  style={[
+                    styles.docHealthBadge,
+                    {
+                      backgroundColor: documentHealthBadgeBg,
+                      borderColor: documentHealthBadgeBorder,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.docHealthBadgeText,
+                      {color: documentHealthBadgeTone},
+                    ]}
+                  >
+                    {documentHealthBadgeText}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.docHealthBars}>
+              {Array.from({length: healthSegmentCount}).map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.docHealthBar,
+                    index < filledHealthSegments && styles.docHealthBarActive,
+                  ]}
+                />
+              ))}
+            </View>
+
+            <View style={styles.docHealthActions}>
+              <TouchableOpacity
+                style={styles.docHealthPrimaryAction}
+                onPress={handlePriorityAction}
+              >
+                <Text style={styles.docHealthPrimaryActionText}>
+                  {primaryHealthActionLabel}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
-        ) : (
-          <TouchableOpacity 
-            style={styles.noVehicleCard}
-            onPress={() => navigation.navigate('VehicleList')}
-          >
-            <View style={styles.noVehicleIcon}>
-               <MaterialIcon name="directions-car" size={32} color="#333" />
+
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>VEHICLE DOCUMENTS</Text>
+          </View>
+
+          <View style={styles.documentSectionCard}>
+            <View style={styles.documentList}>
+              {documentGridRows.map((row, rowIndex) => (
+                <View
+                  key={`doc-row-${rowIndex}`}
+                  style={[
+                    styles.documentGridRow,
+                    rowIndex > 0 && styles.documentGridRowSpacing,
+                  ]}
+                >
+                  {row.map(type => (
+                    <DocumentRow key={type} type={type} />
+                  ))}
+                </View>
+              ))}
             </View>
-            <View style={styles.noVehicleContent}>
-               <Text style={styles.noVehicleTitle}>No primary vehicle set</Text>
-               <Text style={styles.noVehicleDesc}>Tap to select a vehicle from your garage to manage documents.</Text>
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.92}
+            style={styles.digiLockerCard}
+            onPress={handleConnectDigiLocker}
+          >
+            <View style={styles.digiLockerHeadlineWrap}>
+              <Text
+                style={[
+                  styles.digiLockerHeadline,
+                  {
+                    fontSize: digiLockerHeadlineSize,
+                    lineHeight: digiLockerHeadlineSize + 8,
+                  },
+                ]}
+              >
+                Link your RC, Insurance & DL from your DigiLocker account
+              </Text>
             </View>
-            <ArrowRight size={20} color="#666" />
+
+            <View
+              style={[
+                styles.digiLockerBottomRow,
+                digiLockerCompact && styles.digiLockerBottomRowCompact,
+              ]}
+            >
+              <View
+                style={[
+                  styles.digiLockerLeft,
+                  digiLockerCompact && styles.digiLockerLeftCompact,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.digiLockerLogoWrap,
+                    {
+                      width: digiLockerLogoSize,
+                      height: digiLockerLogoSize,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.digiLockerLogoSheet,
+                      {
+                        width: digiLockerSheetSize,
+                        height: digiLockerSheetSize,
+                        borderRadius: Math.round(digiLockerSheetSize * 0.28),
+                      },
+                    ]}
+                  >
+                    <View style={styles.digiLockerLogoFold} />
+                    <FileText
+                      size={Math.max(20, Math.round(digiLockerSheetSize * 0.58))}
+                      color="#f4f2ff"
+                      strokeWidth={2.15}
+                    />
+                  </View>
+                  <View style={styles.digiLockerLogoBadge}>
+                    <Cloud size={12} color="#5f43f7" strokeWidth={2.6} />
+                    <Lock size={8} color="#5f43f7" strokeWidth={2.8} style={styles.digiLockerLogoLock} />
+                  </View>
+                </View>
+                <View style={styles.digiLockerTextWrap}>
+                  <Text
+                    style={[
+                      styles.digiLockerTitle,
+                      {
+                        fontSize: digiLockerBrandTitleSize,
+                        lineHeight: digiLockerBrandTitleSize + 3,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    DigiLocker
+                  </Text>
+                  <Text
+                    style={[
+                      styles.digiLockerSubtitle,
+                      {
+                        fontSize: digiLockerBrandSubtitleSize,
+                        lineHeight: digiLockerBrandSubtitleSize + 4,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    Document Wallet to Empower Citizens
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.digiLockerActionWrap,
+                  digiLockerCompact && styles.digiLockerActionWrapCompact,
+                ]}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[
+                    styles.digiLockerActionChip,
+                    digiLockerCompact && styles.digiLockerActionChipCompact,
+                  ]}
+                  onPress={handleConnectDigiLocker}
+                  accessibilityRole="button"
+                >
+                  <Link size={15} color="#f4f2ff" strokeWidth={2.5} />
+                  <Text
+                    style={[
+                      styles.digiLockerActionText,
+                      {
+                        fontSize: digiLockerChipTextSize,
+                        lineHeight: digiLockerChipTextSize + 4,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    Link DigiLocker
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </TouchableOpacity>
-        )}
 
-        <View style={styles.gloveboxGrid}>
-          <DocumentSlot label="RC Front" type="RC" />
-          <DocumentSlot label="Insurance" type="Insurance" />
-          <DocumentSlot label="PUC" type="PUC" />
+          <View style={styles.bottomActions}>
+            <TouchableOpacity
+              style={[
+                styles.bottomActionButton,
+                documents.length === 0 && styles.bottomActionButtonMuted,
+              ]}
+              onPress={handleDownloadAll}
+            >
+              <Download size={18} color="#FFF" />
+              <Text style={styles.bottomActionText}>Download all</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.bottomActionButton,
+                styles.bottomActionButtonOutline,
+                documents.length === 0 && styles.bottomActionButtonMuted,
+              ]}
+              onPress={handleShareAll}
+            >
+              <Share2 size={18} color="#FFF" />
+              <Text style={styles.bottomActionText}>Share docs</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{height: 32}} />
         </View>
-
-        {/* Your Personal Documents */}
-        <View style={[styles.sectionHeaderRow, { marginTop: 40 }]}>
-          <Text style={styles.sectionTitle}>YOUR PERSONAL DOCUMENTS</Text>
-        </View>
-
-        <View style={styles.personalGrid}>
-          <DocumentSlot label="Driving License" type="DL" />
-        </View>
-
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={handleDownloadAll}
-          >
-            <FileText size={20} color="#FFF" />
-            <Text style={styles.actionBtnText}>Download All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnOutline]}
-            onPress={handleShareAll}
-          >
-            <ArrowRight size={20} color="#FFF" />
-            <Text style={styles.actionBtnText}>Share Documents</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ height: 60 }} />
       </ScrollView>
 
       {isUploading || loading ? (
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#FFC107" />
-          {isUploading && <Text style={styles.loaderText}>Uploading document...</Text>}
+          <ActivityIndicator size="large" color="#f59e0b" />
+          {isUploading ? (
+            <Text style={styles.loaderText}>Uploading document...</Text>
+          ) : null}
         </View>
       ) : null}
 
@@ -1035,7 +1392,7 @@ export default function DocumentList() {
         </SafeAreaView>
       </Modal>
 
-      {/* ── Status Feedback Modal (Success/Delete/Error) ── */}
+      {/* Status Feedback Modal (Success/Delete/Error) */}
       <StatusModal
         visible={statusModal.visible}
         type={statusModal.type}
@@ -1044,7 +1401,7 @@ export default function DocumentList() {
         onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
       />
 
-      {/* ── Confirmation Modal (Delete/DigiLocker) ── */}
+      {/* Confirmation Modal (Delete/DigiLocker) */}
       <ConfirmModal
         visible={confirmModal.visible}
         title={confirmModal.title}
@@ -1059,7 +1416,682 @@ export default function DocumentList() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: '#050505' },
+  screenContent: {
+    paddingHorizontal: 22,
+    paddingTop: 14,
+    paddingBottom: 28,
+  },
+  page: {
+    width: '100%',
+    maxWidth: 430,
+    alignSelf: 'center',
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 18,
+  },
+  heroHeaderTextWrap: {
+    flex: 1,
+    marginLeft: 12,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  heroTitle: {
+    color: '#fff',
+    fontSize: Math.max(24, Math.min(30, width * 0.072)),
+    lineHeight: 31,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    textTransform: 'lowercase',
+    textAlign: 'left',
+  },
+  heroSubtitle: {
+    color: '#666a73',
+    fontSize: Math.max(10, Math.min(12, width * 0.03)),
+    lineHeight: 15,
+    fontFamily: 'Outfit-Medium',
+    marginLeft: 0,
+    marginTop: 3,
+    textTransform: 'lowercase',
+    textAlign: 'left',
+  },
+  securedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.20)',
+    backgroundColor: 'rgba(16,185,129,0.10)',
+  },
+  securedBadgeText: {
+    color: '#16c784',
+    fontSize: 13,
+    lineHeight: 16,
+    fontFamily: 'Outfit-Medium',
+    textTransform: 'lowercase',
+  },
+  docHealthCard: {
+    backgroundColor: '#131313',
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: '#2a2a2f',
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    marginTop: 16,
+  },
+  docHealthTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 14,
+  },
+  docHealthCopy: {
+    flex: 1,
+    paddingRight: 4,
+  },
+  docHealthEyebrow: {
+    color: '#7f7f88',
+    fontSize: 12,
+    lineHeight: 15,
+    fontFamily: 'Outfit-Medium',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  docHealthScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 6,
+  },
+  docHealthScoreValue: {
+    color: '#fff',
+    fontSize: 72,
+    lineHeight: 72,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+    letterSpacing: -3,
+  },
+  docHealthScoreSuffix: {
+    color: '#6d6d74',
+    fontSize: 20,
+    lineHeight: 24,
+    fontFamily: 'Outfit-Medium',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  docHealthSummary: {
+    color: '#8b8b93',
+    fontSize: 15,
+    lineHeight: 19,
+    fontFamily: 'Outfit-Regular',
+    marginTop: 8,
+  },
+  docHealthRingColumn: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: 104,
+    paddingTop: 6,
+  },
+  docHealthRing: {
+    width: 104,
+    height: 104,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  docHealthRingSpin: {
+    width: 104,
+    height: 104,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  docHealthRingCenter: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  docHealthRingText: {
+    color: '#f59e0b',
+    fontSize: 28,
+    lineHeight: 30,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+  },
+  docHealthBadge: {
+    marginTop: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minWidth: 86,
+    alignItems: 'center',
+  },
+  docHealthBadgeText: {
+    fontSize: 13,
+    lineHeight: 16,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+    textTransform: 'lowercase',
+  },
+  docHealthBars: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 20,
+  },
+  docHealthBar: {
+    flex: 1,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: '#26262d',
+  },
+  docHealthBarActive: {
+    backgroundColor: '#f59e0b',
+  },
+  docHealthActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 18,
+  },
+  docHealthPrimaryAction: {
+    flex: 1,
+    minHeight: 58,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.24)',
+    backgroundColor: 'rgba(34,197,94,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  docHealthPrimaryActionText: {
+    color: '#22c55e',
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  docHealthSecondaryAction: {
+    flex: 1,
+    minHeight: 58,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  docHealthSecondaryActionText: {
+    color: '#60606a',
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+    alignItems: 'stretch',
+  },
+  statCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    flexGrow: 0,
+    flexShrink: 0,
+  },
+  statCardNeutral: {
+    backgroundColor: '#111214',
+    borderColor: '#2b2b31',
+  },
+  statCardReview: {
+    backgroundColor: 'rgba(245,158,11,0.18)',
+    borderColor: 'rgba(245,158,11,0.28)',
+  },
+  statCardDanger: {
+    backgroundColor: 'rgba(239,68,68,0.18)',
+    borderColor: 'rgba(239,68,68,0.28)',
+  },
+  statValue: {
+    color: '#fff',
+    fontSize: 44,
+    lineHeight: 46,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+  },
+  statValueAmber: {
+    color: '#f59e0b',
+  },
+  statValueRed: {
+    color: '#ef4444',
+  },
+  statLabel: {
+    marginTop: 4,
+    color: '#6e6e76',
+    fontSize: 12,
+    lineHeight: 15,
+    fontFamily: 'Outfit-Medium',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  sectionActionLink: {
+    color: '#f59e0b',
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+  },
+  vehicleCard: {
+    marginTop: 8,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: '#2b2b31',
+    backgroundColor: '#141414',
+    overflow: 'hidden',
+  },
+  vehicleCardTop: {
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  primaryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.35)',
+    backgroundColor: 'rgba(16,185,129,0.10)',
+  },
+  primaryChipDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 99,
+    backgroundColor: '#16c784',
+  },
+  primaryChipText: {
+    color: '#16c784',
+    fontSize: 12,
+    lineHeight: 14,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  vehicleDetailsChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  vehicleDetailsChipText: {
+    color: '#404047',
+    fontSize: 13,
+    lineHeight: 16,
+    fontFamily: 'Outfit-Medium',
+  },
+  vehicleCardDivider: {
+    height: 1,
+    backgroundColor: '#2a2a30',
+  },
+  vehicleCardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    gap: 10,
+  },
+  vehicleIllustrationWrap: {
+    width: 118,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vehicleIllustration: {
+    width: 106,
+    height: 76,
+  },
+  vehicleCardCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 0,
+    paddingHorizontal: 4,
+  },
+  vehicleCardTitle: {
+    color: '#fff',
+    fontSize: 30,
+    lineHeight: 32,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+  },
+  vehiclePlateWrap: {
+    marginTop: 10,
+    alignSelf: 'center',
+    transform: [{scale: 0.86}],
+  },
+  vehicleEmptyCard: {
+    marginTop: 8,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: '#2b2b31',
+    backgroundColor: '#141414',
+    overflow: 'hidden',
+  },
+  vehicleEmptyTopRow: {
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  vehicleEmptyBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    gap: 14,
+  },
+  vehicleEmptyIconWrap: {
+    width: 70,
+    height: 70,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.22)',
+    backgroundColor: 'rgba(245,158,11,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vehicleEmptyTextWrap: {
+    flex: 1,
+  },
+  vehicleEmptyTitle: {
+    color: '#fff',
+    fontSize: 20,
+    lineHeight: 24,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+  },
+  vehicleEmptySubtitle: {
+    color: '#7a7a82',
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: 'Outfit-Regular',
+    marginTop: 4,
+  },
+  documentList: {
+    marginTop: 0,
+  },
+  documentGridRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  documentGridRowSpacing: {
+    marginTop: 8,
+  },
+  documentSectionCard: {
+    marginTop: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#24242b',
+    backgroundColor: '#111214',
+    padding: 10,
+    overflow: 'hidden',
+  },
+  documentGridItem: {
+    borderRadius: 16,
+    borderWidth: 1,
+    backgroundColor: '#151515',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  documentGridTop: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    gap: 8,
+  },
+  documentIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  documentGridTextWrap: {
+    alignSelf: 'stretch',
+    gap: 2,
+  },
+  documentTitle: {
+    color: '#fff',
+    fontSize: 13,
+    lineHeight: 16,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+  },
+  documentSubtitle: {
+    color: '#7c7c84',
+    fontSize: 9,
+    lineHeight: 12,
+    fontFamily: 'Outfit-Regular',
+  },
+  documentGridBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  documentStatusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginBottom: 0,
+  },
+  documentStatusText: {
+    fontSize: 8,
+    lineHeight: 10,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  digiLockerCard: {
+    marginTop: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(111, 88, 255, 0.34)',
+    backgroundColor: '#10162a',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 14,
+  },
+  digiLockerHeadlineWrap: {
+    width: '100%',
+    paddingRight: 8,
+  },
+  digiLockerHeadline: {
+    color: '#f4f2ff',
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  digiLockerBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  digiLockerBottomRowCompact: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
+  },
+  digiLockerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingRight: 8,
+    minWidth: 0,
+  },
+  digiLockerLeftCompact: {
+    flex: 0,
+    width: '100%',
+    paddingRight: 0,
+  },
+  digiLockerLogoWrap: {
+    width: 58,
+    height: 58,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(158, 144, 255, 0.34)',
+    backgroundColor: 'rgba(99, 73, 244, 0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  digiLockerLogoSheet: {
+    borderRadius: 12,
+    backgroundColor: '#6a4cff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#6a4cff',
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  digiLockerLogoFold: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 10,
+    height: 10,
+    borderTopRightRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  digiLockerLogoBadge: {
+    position: 'absolute',
+    left: 2,
+    bottom: 2,
+    width: 24,
+    height: 18,
+    borderRadius: 10,
+    backgroundColor: '#f4f2ff',
+    borderWidth: 1,
+    borderColor: 'rgba(111, 88, 255, 0.32)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  digiLockerLogoLock: {
+    position: 'absolute',
+    bottom: 1,
+    left: 8,
+  },
+  digiLockerTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  digiLockerTitle: {
+    color: '#8e7bff',
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '800',
+    letterSpacing: 0.1,
+  },
+  digiLockerSubtitle: {
+    color: '#b7c0f8',
+    fontFamily: 'Outfit-Regular',
+    marginTop: 2,
+  },
+  digiLockerActionWrap: {
+    flexShrink: 0,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    minWidth: 0,
+  },
+  digiLockerActionWrapCompact: {
+    alignSelf: 'stretch',
+    width: '100%',
+    alignItems: 'stretch',
+  },
+  digiLockerActionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#111111',
+  },
+  digiLockerActionChipCompact: {
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+  },
+  digiLockerActionText: {
+    color: '#f4f2ff',
+    lineHeight: 18,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+  },
+  bottomActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 18,
+  },
+  bottomActionButton: {
+    flex: 1,
+    minHeight: 58,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  bottomActionButtonOutline: {
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+  bottomActionButtonMuted: {
+    opacity: 0.38,
+  },
+  bottomActionText: {
+    color: '#e5e7eb',
+    fontSize: 15,
+    lineHeight: 18,
+    fontFamily: 'Outfit-Bold',
+    fontWeight: '700',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1180,8 +2212,22 @@ const styles = StyleSheet.create({
   digiBtnText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Bold', fontWeight: '600', marginRight: 12 },
 
   // Sections
-  sectionHeaderRow: { marginTop: 44, marginBottom: 24 },
-  sectionTitle: { fontSize: 11, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1, fontWeight: '700' },
+  sectionHeaderRow: {
+    marginTop: 28,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontFamily: 'Outfit-Bold',
+    color: '#6d6d76',
+    letterSpacing: 1.4,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
 
   vehicleSummaryCard: {
     backgroundColor: '#0F0F0F',
