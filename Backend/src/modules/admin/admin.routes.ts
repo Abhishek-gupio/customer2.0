@@ -47,6 +47,7 @@ router.get("/manage/admins", requireAdminRole(["SUPER_ADMIN"]), adminController.
 router.delete("/manage/admins", requireAdminRole(["SUPER_ADMIN"]), adminController.deleteAdmins);
 router.patch("/manage/admins/:id/toggle-support-customers", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleSupportCustomerAccess);
 router.post("/manage/admins/:id/toggle-support-customers", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleSupportCustomerAccess);
+router.patch("/manage/admins/:id/toggle-status", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleAdminStatus);
 
 
 

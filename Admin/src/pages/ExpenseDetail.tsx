@@ -122,6 +122,7 @@ export default function ExpenseDetail() {
                  </div>
                  <Link 
                    to={`/customers/${expense.customerId}`}
+                   state={{ sourceContext: 'expenses' }}
                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-white/40 hover:bg-[var(--accent)]/10 hover:text-[var(--accent)] transition-all border border-white/5"
                  >
                    <ExternalLink className="h-5 w-5" />

@@ -106,13 +106,61 @@ export const adminDashboardService = {
             select: { id: true, fullName: true, phoneNumber: true, email: true },
           },
           _count: { select: { messages: true } },
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: { content: true, senderId: true, senderRole: true }
+          }
         },
       }),
       db.supportTicket.count({ where }),
     ]);
 
+    // 1. Identify all unique admin IDs that might be resolvers
+    const adminIds = new Set<string>();
+    tickets.forEach((t: any) => {
+      if (t.status === 'RESOLVED' || t.status === 'CLOSED') {
+        const lastSupportMsg = t.messages?.find((m: any) => m.senderRole === 'SUPPORT');
+        if (lastSupportMsg) adminIds.add(lastSupportMsg.senderId);
+      }
+    });
+
+    // 2. Fetch admin names in bulk
+    const adminMap = new Map<string, string>();
+    if (adminIds.size > 0) {
+      const admins = await dbInstances.adminUser.findMany({
+        where: { id: { in: Array.from(adminIds) } },
+        select: { id: true, name: true, email: true }
+      });
+      admins.forEach(a => {
+        adminMap.set(a.id, a.name || a.email);
+      });
+    }
+
+    // 3. Enrich tickets with the resolver name
+    const enrichedTickets = tickets.map((t: any) => {
+      let resolvedBy = null;
+      if (t.status === 'RESOLVED' || t.status === 'CLOSED') {
+        // Try the special message first
+        const resolutionMsg = t.messages?.find((m: any) => m.content.startsWith('✅ TICKET_RESOLVED_BY:'));
+        if (resolutionMsg) {
+          resolvedBy = resolutionMsg.content.replace('✅ TICKET_RESOLVED_BY:', '').trim();
+        } else {
+          // Fallback to the last support sender's name from our adminMap
+          const lastSupportMsg = t.messages?.find((m: any) => m.senderRole === 'SUPPORT');
+          if (lastSupportMsg) {
+            resolvedBy = adminMap.get(lastSupportMsg.senderId) || null;
+          }
+        }
+      }
+      return {
+        ...t,
+        resolvedBy
+      };
+    });
+
     return {
-      data: tickets,
+      data: enrichedTickets,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   },
@@ -877,6 +925,7 @@ export const adminDashboardService = {
     page?: number;
     limit?: number;
     search?: string;
+    role?: string;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 20));
@@ -889,6 +938,10 @@ export const adminDashboardService = {
         { name: { contains: q, mode: "insensitive" } },
         { email: { contains: q, mode: "insensitive" } },
       ];
+    }
+
+    if (params.role) {
+      where.role = params.role;
     }
 
     const [admins, total] = await Promise.all([
@@ -941,6 +994,21 @@ export const adminDashboardService = {
     });
 
     return { count: result.count };
+  },
+
+  /** Toggle admin user active status. SUPER_ADMIN only. */
+  async toggleAdminStatus(adminId: string) {
+    const admin = await dbInstances.adminUser.findUnique({
+      where: { id: adminId }
+    });
+    if (!admin) throw AppError.notFound("Admin user not found");
+
+    const updated = await dbInstances.adminUser.update({
+      where: { id: adminId },
+      data: { isActive: !admin.isActive }
+    });
+
+    return { isActive: updated.isActive };
   },
 };
 

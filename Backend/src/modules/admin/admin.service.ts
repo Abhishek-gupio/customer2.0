@@ -49,7 +49,7 @@ export const adminService = {
     if (!valid) {
       throw AppError.unauthorized("Invalid email or password");
     }
-    const payload = { id: admin.id, email: admin.email, role: admin.role };
+    const payload = { id: admin.id, email: admin.email, name: admin.name, role: admin.role };
     const accessToken = signAdminAccess(payload);
     return {
       accessToken,
@@ -84,6 +84,7 @@ export const adminService = {
         passwordHash,
         name: data.name ?? null,
         role: (data.role ?? "ADMIN") as any,
+        isActive: false,
       },
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });

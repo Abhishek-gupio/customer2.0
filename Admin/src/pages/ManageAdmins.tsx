@@ -20,6 +20,14 @@ import { cn } from '../lib/cn';
 import { formatDate } from '../lib/dateUtils';
 import { ConfirmationModal } from '../components/ui/ConfirmationModal';
 import LoadingScreen from '../components/LoadingScreen/LoadingScreen';
+import { AdminManagementModal } from '../components/ui/AdminManagementModal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/Select";
 
 const PAGE_SIZE = 20;
 
@@ -38,7 +46,8 @@ export default function ManageAdmins() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [selectedAdminForManage, setSelectedAdminForManage] = useState<AdminUserListItem | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>('');
 
 
   const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
@@ -48,7 +57,12 @@ export default function ManageAdmins() {
   useEffect(() => {
     let ignore = false;
     setLoading(true);
-    adminApi.listAdmins({ page, limit: PAGE_SIZE, search: debouncedSearch || undefined }).then((res) => {
+    adminApi.listAdmins({ 
+        page, 
+        limit: PAGE_SIZE, 
+        search: debouncedSearch || undefined, 
+        role: roleFilter || undefined 
+    }).then((res) => {
       if (ignore) return;
       setLoading(false);
       if (res.success) setData(res.data);
@@ -57,7 +71,7 @@ export default function ManageAdmins() {
     return () => {
       ignore = true;
     };
-  }, [page, debouncedSearch, refreshKey]);
+  }, [page, debouncedSearch, roleFilter, refreshKey]);
 
   const rows = useMemo(() => data?.data ?? [], [data]);
 
@@ -176,17 +190,23 @@ export default function ManageAdmins() {
         id: 'status',
         header: 'Status',
         accessorFn: (r) => r.isActive,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <div className={cn(
-              "h-1.5 w-1.5 rounded-full",
-              row.original.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-white/20"
-            )} />
-            <span className="text-xs text-white/50 uppercase font-bold tracking-widest leading-none">
-              {row.original.isActive ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-        )
+        cell: ({ row }) => {
+          const c = row.original;
+          return (
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                c.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-white/20"
+              )} />
+              <span className={cn(
+                "text-[10px] uppercase font-black tracking-widest leading-none",
+                c.isActive ? "text-emerald-500" : "text-white/30"
+              )}>
+                {c.isActive ? 'Active' : 'Pending'}
+              </span>
+            </div>
+          );
+        }
       },
       {
         id: 'customerAccess',
@@ -194,35 +214,18 @@ export default function ManageAdmins() {
         cell: ({ row }) => {
           const c = row.original;
           if (c.role !== 'SUPPORT') return (
-            <span className="text-[10px] text-white/20 uppercase font-bold tracking-widest">Full Access</span>
+            <span className="text-[10px] text-white/10 uppercase font-black tracking-widest">Full Access</span>
           );
 
-          const isProcessing = togglingId === c.id;
-
           return (
-            <Button
-              variant="secondary"
-              size="sm"
-              className={cn(
-                "h-7 px-3 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
-                c.canAccessCustomers 
-                  ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/10" 
-                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border-emerald-500/10"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleAccess(c.id);
-              }}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : c.canAccessCustomers ? (
-                'Deactivate'
-              ) : (
-                'Activate'
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+               <span className={cn(
+                 "text-[10px] font-black uppercase tracking-widest",
+                 c.canAccessCustomers ? "text-emerald-500/60" : "text-red-500/60"
+               )}>
+                 {c.canAccessCustomers ? 'Activated' : 'Locked'}
+               </span>
+            </div>
           );
         }
       },
@@ -257,18 +260,35 @@ export default function ManageAdmins() {
 
   const handleToggleAccess = async (id: string) => {
     try {
-      setTogglingId(id);
       const res = await adminApi.toggleSupportCustomerAccess(id);
       if (res.success) {
         setRefreshKey(prev => prev + 1);
+        // Update local state if this is the selected admin
+        if (selectedAdminForManage?.id === id) {
+          setSelectedAdminForManage(prev => prev ? { ...prev, canAccessCustomers: !prev.canAccessCustomers } : null);
+        }
       } else {
         setError(res.error.message);
       }
     } catch (err: any) {
       setError(err?.message || 'Failed to update access');
-    } finally {
+    }
+  };
 
-      setTogglingId(null);
+  const handleToggleStatus = async (id: string) => {
+    try {
+      const res = await adminApi.toggleAdminStatus(id);
+      if (res.success) {
+        setRefreshKey(prev => prev + 1);
+        // Update local state if this is the selected admin
+        if (selectedAdminForManage?.id === id) {
+          setSelectedAdminForManage(prev => prev ? { ...prev, isActive: !prev.isActive } : null);
+        }
+      } else {
+        setError(res.error.message);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to update status');
     }
   };
 
@@ -332,18 +352,35 @@ export default function ManageAdmins() {
               )}
             </Button>
           )}
-          <div className="relative w-full max-w-[420px]">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
-            <input
-              type="search"
-              placeholder="Search by name or email…"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              className="h-11 w-full rounded-2xl border border-white/[0.07] bg-white/[0.04] pl-9 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-[var(--accent)]/50 focus:ring-2 focus:ring-[var(--accent)]/20"
-            />
+          <div className="flex items-center gap-2">
+            <Select value={roleFilter} onValueChange={(val) => {
+              setRoleFilter(val === 'ALL' ? '' : val);
+              setPage(1);
+            }}>
+              <SelectTrigger className="h-11 min-w-[160px] rounded-2xl bg-white/[0.05] border-white/10 text-xs font-black uppercase tracking-widest hover:bg-white/[0.08] focus:ring-0 text-white transition-all">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0c0c0e]/95 backdrop-blur-xl border-white/10 text-white min-w-[160px] rounded-2xl">
+                <SelectItem value="ALL" className="text-[10px] font-black uppercase tracking-widest focus:bg-white/10 focus:text-white cursor-pointer py-3">All Roles</SelectItem>
+                <SelectItem value="SUPER_ADMIN" className="text-[10px] font-black uppercase tracking-widest focus:bg-white/10 focus:text-white cursor-pointer py-3">Super Admin</SelectItem>
+                <SelectItem value="ADMIN" className="text-[10px] font-black uppercase tracking-widest focus:bg-white/10 focus:text-white cursor-pointer py-3">Admin</SelectItem>
+                <SelectItem value="SUPPORT" className="text-[10px] font-black uppercase tracking-widest focus:bg-white/10 focus:text-white cursor-pointer py-3">Support</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="relative w-full max-w-[320px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+              <input
+                type="search"
+                placeholder="Search by name or email…"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="h-11 w-full rounded-2xl bg-white/[0.05] border border-white/10 pl-10 pr-4 text-sm text-white placeholder:text-white/30 hover:bg-white/[0.08] focus:bg-white/[0.08] focus:border-[var(--accent)]/50 focus:outline-none transition-all"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -429,7 +466,8 @@ export default function ManageAdmins() {
                   table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className="border-b border-white/[0.07] transition-colors hover:bg-white/[0.04]"
+                      className="border-b border-white/[0.07] transition-colors hover:bg-white/[0.04] cursor-pointer group/row"
+                      onClick={() => setSelectedAdminForManage(row.original)}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-5 py-5">
@@ -501,6 +539,15 @@ export default function ManageAdmins() {
         confirmIcon={Trash2}
         confirmVariant="danger"
         isProcessing={isDeleting}
+      />
+
+      <AdminManagementModal
+        isOpen={!!selectedAdminForManage}
+        onClose={() => setSelectedAdminForManage(null)}
+        admin={selectedAdminForManage}
+        onToggleStatus={handleToggleStatus}
+        onToggleAccess={handleToggleAccess}
+        isSelf={selectedAdminForManage?.id === admin?.id}
       />
     </div>
   );

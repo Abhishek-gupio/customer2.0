@@ -19,7 +19,7 @@ export function signAdminAccess(payload: AdminPayload): string {
 
 export function verifyAdminAccess(token: string): AdminPayload {
   const decoded = jwt.verify(token, SECRET) as jwt.JwtPayload & AdminPayload;
-  return { id: decoded.id, email: decoded.email, role: decoded.role };
+  return { id: decoded.id, email: decoded.email, name: decoded.name ?? null, role: decoded.role };
 }
 
 export function getAdminAccessExpirySeconds(): number {

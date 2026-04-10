@@ -18,6 +18,7 @@ import ShinyText from './ui/ShinyText/ShinyText';
 import { ConfirmationModal } from './ui/ConfirmationModal';
 import { ProfileModal } from './ui/ProfileModal';
 import logo from '../assets/images/logo.png';
+import logoSmall from '../assets/images/gupio-logo-ai.png';
 
 
 
@@ -125,13 +126,11 @@ export default function Shell() {
             isCollapsed && "justify-center"
           )}>
             <img
-              src={logo}
+              src={isCollapsed ? logoSmall : logo}
               alt="Logo"
               className={cn(
                 "h-11 w-auto object-contain brightness-110 contrast-125 transition-all duration-300",
-                isCollapsed && "h-6"
-
-
+                isCollapsed && "h-7"
               )}
             />
           </div>

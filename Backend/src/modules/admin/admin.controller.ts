@@ -221,7 +221,8 @@ export const adminController = {
     if (!status) throw AppError.badRequest("Status is required");
 
     const { supportService } = require("../support/support.service");
-    const data = await supportService.updateTicketStatus(ticketId, status);
+    const adminName = req.admin.name || req.admin.email;
+    const data = await supportService.updateTicketStatus(ticketId, status, req.admin.id, adminName);
     success(res, data);
   }),
 
@@ -305,8 +306,9 @@ export const adminController = {
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const role = typeof req.query.role === "string" ? req.query.role : undefined;
     
-    const data = await adminDashboardService.listAdmins({ page, limit, search });
+    const data = await adminDashboardService.listAdmins({ page, limit, search, role });
     success(res, data);
   }),
 
@@ -343,6 +345,17 @@ export const adminController = {
 
     const enabled = adminPermissionsService.toggleCustomerAccess(adminId);
     success(res, { enabled }, 200);
+  }),
+
+  toggleAdminStatus: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can manage account status");
+    }
+    const adminId = typeof req.params.id === 'string' ? req.params.id : '';
+    if (!adminId) throw AppError.badRequest("Admin ID required");
+
+    const data = await adminDashboardService.toggleAdminStatus(adminId);
+    success(res, data, 200);
   }),
 };
 
