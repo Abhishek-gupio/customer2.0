@@ -1,0 +1,26 @@
+diff --git a/src/node-haste/DependencyGraph.js b/src/node-haste/DependencyGraph.js
+index f5c4fd8..9f4fc28 100644
+--- a/src/node-haste/DependencyGraph.js
++++ b/src/node-haste/DependencyGraph.js
+@@ -34,6 +34,7 @@ class DependencyGraph extends _events.default {
+   constructor(config, options) {
+     super();
+     this._config = config;
++    this._resolutionCache = new Map();
+     const { hasReducedPerformance, watch } = options ?? {};
+     const initializingMetroLogEntry = log(
+       createActionStartEntry("Initializing Metro"),
+@@ -239,7 +240,12 @@ class DependencyGraph extends _events.default {
+     const originKey = isSensitiveToOriginFolder
+       ? _path.default.dirname(originModulePath)
+       : "";
+-    const mapByResolverOptions = this._resolutionCache;
++    // Metro can receive a bundle request before the file map has fully
++    // finished initializing on some workspace + pnpm setups. Keep the
++    // resolution cache defensively initialized so dependency resolution
++    // never crashes while initialization settles.
++    const mapByResolverOptions = this._resolutionCache ?? new Map();
++    this._resolutionCache = mapByResolverOptions;
+     const mapByOrigin = getOrCreateMap(
+       mapByResolverOptions,
+       resolverOptionsKey,

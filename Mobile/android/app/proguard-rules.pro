@@ -10,54 +10,9 @@
 # Damoov Telematics SDK
 -keep public class com.telematicssdk.tracking.** {*;}
 
-# React Native
--keep class com.facebook.react.bridge.CatalystInstanceImpl { *; }
--keep class com.facebook.react.bridge.WritableNativeArray { *; }
--keep class com.facebook.react.bridge.WritableNativeMap { *; }
-
-# Firebase
--keep class com.google.firebase.** { *; }
--dontwarn com.google.firebase.**
-
-# OneSignal
--keep class com.onesignal.** { *; }
--dontwarn com.onesignal.**
-
-# Sentry
--keep class io.sentry.** { *; }
--dontwarn io.sentry.**
-
-# OkHttp/Okio
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn javax.annotation.**
--dontwarn org.conscrypt.**
--keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
-
-# Animated GIF (Fresco)
--keep class com.facebook.imagepipeline.animated.factory.AnimatedFactoryImpl {
-  public <init>(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.imagepipeline.core.ExecutorSupplier, com.facebook.imagepipeline.cache.CountingMemoryCache, boolean);
-}
-
-# Vector Icons
--keep class com.oblador.vectoricons.** { *; }
-
-# WebView
--keep class com.reactnativecommunity.webview.** { *; }
-
-# FastImage (Glide)
--keep class com.dylanvann.fastimage.** { *; }
--dontwarn com.dylanvann.fastimage.**
-
-# MMKV
--keep class com.tencent.mmkv.** { *; }
-
-# Maps
--keep class com.google.android.gms.maps.** { *; }
--keep interface com.google.android.gms.maps.** { *; }
-# Please add these rules to your existing keep rules in order to suppress warnings.
-# This is generated automatically by the Android Gradle plugin.
--dontwarn com.gemalto.jp2.JP2Decoder
+# Damoov pulls in HiveMQ/Netty, which reference several optional integrations
+# (websocket, proxy, epoll, native SSL, SLF4J, BlockHound). Release builds with
+# R8 need these warnings suppressed unless those optional modules are added.
 -dontwarn com.google.auto.value.AutoValue$CopyAnnotations
 -dontwarn io.netty.channel.epoll.Epoll
 -dontwarn io.netty.channel.epoll.EpollEventLoopGroup
@@ -112,4 +67,8 @@
 -dontwarn org.slf4j.helpers.NOPLoggerFactory
 -dontwarn org.slf4j.spi.LocationAwareLogger
 -dontwarn reactor.blockhound.integration.BlockHoundIntegration
--ignorewarnings
+
+# PDFBox references JPEG2000 support via an optional decoder library.
+-dontwarn com.gemalto.jp2.JP2Decoder
+
+# Add any project specific keep options here:

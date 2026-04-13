@@ -57,7 +57,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'CheckChallan', name: 'Challan Check', icon: 'gavel', iconSet: 'fa' },
   { id: 'FuelStations', name: 'Fuel Nearby', icon: 'gas-station', iconSet: 'mc' },
   { id: 'ChargingStation', name: 'EV Charge', icon: 'ev-station', iconSet: 'mc' },
-  { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa' },
+  // { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa' },
   { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
   { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
@@ -69,7 +69,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
   { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode'], color: '#ef4444' }, // Red
-  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
+  { title: 'Information & RTO', itemIds: ['CheckChallan', /* 'RTO', */ 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
 

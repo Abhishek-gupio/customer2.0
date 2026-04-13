@@ -1606,29 +1606,23 @@ export default function Home() {
                       activeOpacity={0.9}
                       onPress={() => navigateToRootScreen('DrivingSummary')}
                     >
-                      <View style={styles.slideFull}>
-                        <FastImage
-                          source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
-                          style={styles.promoBackgroundImage}
-                          resizeMode={FastImage.resizeMode.cover}
-                        />
-                        <LinearGradient
-                          colors={['rgba(5,7,10,0.82)', 'rgba(5,7,10,0.46)', 'rgba(5,7,10,0.14)']}
-                          locations={[0, 0.5, 1]}
-                          start={{ x: 0, y: 0.5 }}
-                          end={{ x: 1, y: 0.5 }}
-                          style={styles.promoBackgroundOverlay}
-                        >
-                          <View style={styles.promoBackgroundContent}>
-                            <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
-                            <Text style={styles.promoTitle}>Driving Behavior</Text>
-                            <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
-                            <View style={styles.promoAction}>
-                              <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
-                              <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
-                            </View>
+                      <View style={styles.promoSlide}>
+                        <View style={styles.promoLeft}>
+                          <Text style={[styles.promoSubtitle, styles.drivingPromoSubtitle]}>Drive Safely</Text>
+                          <Text style={styles.promoTitle}>Driving Behavior</Text>
+                          <Text style={styles.promoDesc}>Check speeding, braking, and trip safety insights in one place.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, styles.drivingPromoActionText]}>View Driving Score</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#60A5FA" />
                           </View>
-                        </LinearGradient>
+                        </View>
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/driving_behavior_banner_v2.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
+                        </View>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -1643,29 +1637,23 @@ export default function Home() {
                       activeOpacity={0.9}
                       onPress={() => navigateToRootScreen('TripExpense')}
                     >
-                      <View style={styles.slideFull}>
-                        <FastImage
-                          source={require('../../assets/images/trip_planner_banner.png') as any}
-                          style={styles.promoBackgroundImage}
-                          resizeMode={FastImage.resizeMode.cover}
-                        />
-                        <LinearGradient
-                          colors={['rgba(8,12,18,0.84)', 'rgba(8,12,18,0.48)', 'rgba(8,12,18,0.16)']}
-                          locations={[0, 0.5, 1]}
-                          start={{ x: 0, y: 0.5 }}
-                          end={{ x: 1, y: 0.5 }}
-                          style={styles.promoBackgroundOverlay}
-                        >
-                          <View style={styles.promoBackgroundContent}>
-                            <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
-                            <Text style={styles.promoTitle}>Trip Planner</Text>
-                            <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
-                            <View style={styles.promoAction}>
-                              <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
-                              <MaterialIcon name="chevron-right" size={18} color="#34D399" />
-                            </View>
+                      <View style={styles.promoSlide}>
+                        <View style={styles.promoLeft}>
+                          <Text style={[styles.promoSubtitle, styles.tripPlannerPromoSubtitle]}>Plan Your Journey</Text>
+                          <Text style={styles.promoTitle}>Trip Planner</Text>
+                          <Text style={styles.promoDesc}>Build your route, estimate costs, and organize stops before you travel.</Text>
+                          <View style={styles.promoAction}>
+                            <Text style={[styles.promoActionText, styles.tripPlannerPromoActionText]}>Start Planning</Text>
+                            <MaterialIcon name="chevron-right" size={18} color="#34D399" />
                           </View>
-                        </LinearGradient>
+                        </View>
+                        <View style={styles.promoRight}>
+                          <Image
+                            source={require('../../assets/images/trip_planner_banner.png') as any}
+                            style={styles.adImage}
+                            resizeMode="contain"
+                          />
+                        </View>
                       </View>
                     </TouchableOpacity>
                   </View>
