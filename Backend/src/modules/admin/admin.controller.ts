@@ -1,11 +1,16 @@
 import type { Request, Response } from "express";
+import fs from "fs";
+import path from "path";
 import { asyncHandler } from "../../utils/asyncHandler";
+
 import { success } from "../../utils/apiResponse";
 import { dbInstances } from "@repo/db-customer";
 import { adminService } from "./admin.service";
 import { adminDashboardService } from "./admin-dashboard.service";
 import { adminLoginSchema } from "./admin.validators";
 import { AppError } from "../../utils/AppError";
+import { adminPermissionsService } from "../../services/admin-permissions.service";
+
 
 function parseBody<T>(
   req: Request,
@@ -23,8 +28,17 @@ export const adminController = {
   login: asyncHandler(async (req: Request, res: Response) => {
     const body = parseBody(req, adminLoginSchema);
     const data = await adminService.login(body);
+    
+    // Inject custom permissions
+    if (data.admin.role === 'SUPPORT') {
+      (data.admin as any).canAccessCustomers = adminPermissionsService.hasCustomerAccess(data.admin.id);
+    } else {
+      (data.admin as any).canAccessCustomers = true;
+    }
+    
     success(res, data, 200);
   }),
+
 
   signup: asyncHandler(async (req: Request, res: Response) => {
     const { email, password, name, role } = req.body;
@@ -35,11 +49,26 @@ export const adminController = {
 
   me: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
-    success(res, { admin: req.admin });
+    
+    const admin = { ...req.admin } as any;
+    if (admin.role === 'SUPPORT') {
+      admin.canAccessCustomers = adminPermissionsService.hasCustomerAccess(admin.id);
+    } else {
+      admin.canAccessCustomers = true;
+    }
+    
+    success(res, { admin });
   }),
+
 
   listCustomers: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
+    
+    // Support role check
+    if (req.admin.role === 'SUPPORT' && !adminPermissionsService.hasCustomerAccess(req.admin.id)) {
+      throw AppError.forbidden("You do not have permission to access customers");
+    }
+
     const page = req.query.page ? Number(req.query.page) : undefined;
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
@@ -52,13 +81,21 @@ export const adminController = {
     success(res, data);
   }),
 
+
   getCustomerDetail: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
+    
+    // Support role check
+    if (req.admin.role === 'SUPPORT' && !adminPermissionsService.hasCustomerAccess(req.admin.id)) {
+      throw AppError.forbidden("You do not have permission to access customers");
+    }
+
     const customerId = typeof req.params.id === "string" ? req.params.id : "";
     if (!customerId) throw AppError.badRequest("Customer ID required");
     const data = await adminDashboardService.getCustomerDetail(customerId, req.admin.role);
     success(res, data);
   }),
+
 
   getOverviewStats: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
@@ -184,7 +221,8 @@ export const adminController = {
     if (!status) throw AppError.badRequest("Status is required");
 
     const { supportService } = require("../support/support.service");
-    const data = await supportService.updateTicketStatus(ticketId, status);
+    const adminName = req.admin.name || req.admin.email;
+    const data = await supportService.updateTicketStatus(ticketId, status, req.admin.id, adminName);
     success(res, data);
   }),
 
@@ -260,5 +298,68 @@ export const adminController = {
     });
     success(res, data, 200);
   }),
+
+  listAdmins: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can manage other admins");
+    }
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Number(req.query.limit) : 20;
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const role = typeof req.query.role === "string" ? req.query.role : undefined;
+    
+    const data = await adminDashboardService.listAdmins({ page, limit, search, role });
+    success(res, data);
+  }),
+
+  deleteAdmins: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can delete other admins");
+    }
+    const { adminIds } = req.body;
+    if (!Array.isArray(adminIds) || !adminIds.length) {
+      throw AppError.badRequest("Admin IDs must be a non-empty array");
+    }
+    const data = await adminDashboardService.deleteAdmins(adminIds, req.admin.id);
+    success(res, data, 200);
+  }),
+
+  toggleSupportCustomerAccess: asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const debugLog = `[${new Date().toISOString()}] Toggle request for ID: ${req.params.id} by admin: ${req.admin?.id}\n`;
+      fs.appendFileSync(path.join(process.cwd(), 'debug_toggle.log'), debugLog);
+    } catch (e) {
+      console.error("Debug log failed", e);
+    }
+
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can manage permissions");
+    }
+    const adminId = typeof req.params.id === 'string' ? req.params.id : '';
+    if (!adminId) throw AppError.badRequest("Admin ID required");
+    
+    // Verify admin exists and is a support role
+    const admin = await dbInstances.adminUser.findUnique({ where: { id: adminId } });
+    if (!admin) throw AppError.notFound("Admin user not found");
+    if (admin.role !== 'SUPPORT') throw AppError.badRequest("Can only toggle customer access for Support role");
+
+    const enabled = adminPermissionsService.toggleCustomerAccess(adminId);
+    success(res, { enabled }, 200);
+  }),
+
+  toggleAdminStatus: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin || req.admin.role !== 'SUPER_ADMIN') {
+      throw AppError.forbidden("Only Super Admins can manage account status");
+    }
+    const adminId = typeof req.params.id === 'string' ? req.params.id : '';
+    if (!adminId) throw AppError.badRequest("Admin ID required");
+
+    const data = await adminDashboardService.toggleAdminStatus(adminId);
+    success(res, data, 200);
+  }),
 };
+
+
+
+
 

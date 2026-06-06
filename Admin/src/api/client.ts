@@ -26,7 +26,10 @@ export async function api<T>(
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    const fullUrl = `${API_BASE}${path}`;
+    console.log(`API Call: ${method} ${fullUrl}`);
+    const res = await fetch(fullUrl, { ...options, headers });
+
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       return {
@@ -184,7 +187,34 @@ export const adminApi = {
       // The API wrapper should NOT set Content-Type header when body is FormData
     });
   },
+  listAdmins: (params?: { page?: number; limit?: number; search?: string; role?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.search) sp.set('search', params.search);
+    if (params?.role) sp.set('role', params.role);
+    const q = sp.toString();
+    return api<{ data: AdminUserListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/manage/admins${q ? `?${q}` : ''}`
+    );
+  },
+  deleteAdmins: (adminIds: string[]) =>
+    api<{ count: number }>(`/v1/admin/manage/admins`, {
+      method: 'DELETE',
+      body: JSON.stringify({ adminIds }),
+    }),
+  toggleSupportCustomerAccess: (id: string) =>
+    api<{ enabled: boolean }>(`/v1/admin/manage/admins/${id}/toggle-support-customers`, {
+      method: 'POST',
+    }),
+  toggleAdminStatus: (id: string) =>
+    api<{ isActive: boolean }>(`/v1/admin/manage/admins/${id}/toggle-status`, {
+      method: 'PATCH',
+    }),
+
 };
+
+
 
 export interface CustomerListItem {
   id: string;
@@ -398,6 +428,7 @@ export interface SupportTicketListItem {
   createdAt: string;
   updatedAt: string;
   resolvedAt?: string;
+  resolvedBy?: string | null;
   customer: { id: string; fullName: string | null; phoneNumber: string; email: string | null };
   _count: { messages: number };
 }
@@ -442,3 +473,23 @@ export interface CatalogVehicle {
   normalizedKey: string;
   images: { id: string; assetUrl: string; type: string; assetIndex: number }[];
 }
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  isActive: boolean;
+  canAccessCustomers: boolean;
+  createdAt: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  canAccessCustomers?: boolean;
+}
+
+

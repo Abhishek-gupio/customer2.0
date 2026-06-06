@@ -58,7 +58,7 @@ export default function ExpenseDetail() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
         <AlertCircle className="h-12 w-12 text-red-500/50" />
         <p className="text-sm font-bold text-white/50">{error || 'Expense not found'}</p>
-        <Button onClick={() => navigate(-1)} variant="secondary" className="gap-2">
+        <Button onClick={() => navigate('/expenses')} variant="secondary" className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Go Back
         </Button>
       </div>
@@ -71,7 +71,7 @@ export default function ExpenseDetail() {
       <div className="flex-none flex flex-col gap-4 md:flex-row md:items-center md:justify-between px-1 pb-6 pt-2">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/expenses?customerId=${expense.customerId}`)}
             className="group flex h-10 w-10 items-center justify-center rounded-2xl bg-white/5 text-white/40 transition hover:bg-white/10 hover:text-white border border-white/5"
           >
             <ArrowLeft className="h-5 w-5 transition group-hover:-translate-x-0.5" />
@@ -122,6 +122,7 @@ export default function ExpenseDetail() {
                  </div>
                  <Link 
                    to={`/customers/${expense.customerId}`}
+                   state={{ sourceContext: 'expenses' }}
                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-white/40 hover:bg-[var(--accent)]/10 hover:text-[var(--accent)] transition-all border border-white/5"
                  >
                    <ExternalLink className="h-5 w-5" />

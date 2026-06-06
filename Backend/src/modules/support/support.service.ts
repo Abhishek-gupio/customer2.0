@@ -112,11 +112,23 @@ export const supportService = {
     return message;
   },
 
-  async updateTicketStatus(ticketId: string, status: string) {
+  async updateTicketStatus(ticketId: string, status: string, adminId?: string, adminName?: string) {
     const ticket = await (dbInstances as any).supportTicket.update({
       where: { id: ticketId },
       data: { status, updatedAt: new Date() }
     });
+
+    // If ticket is being resolved, add a system message to track who did it without schema changes
+    if ((status === 'RESOLVED' || status === 'CLOSED') && adminId && adminName) {
+      await (dbInstances as any).ticketMessage.create({
+        data: {
+          ticketId,
+          senderId: adminId,
+          senderRole: 'SUPPORT',
+          content: `✅ TICKET_RESOLVED_BY: ${adminName}`
+        }
+      });
+    }
 
     // Emit status change notification
     try {

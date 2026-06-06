@@ -32,6 +32,8 @@ export default function Login() {
   const [isRightPanelActive, setIsRightPanelActive] = useState(false);
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [shouldShake, setShouldShake] = useState(false);
 
   // --- Forgot password flow state ---
   const [view, setView] = useState<View>('main');
@@ -57,11 +59,17 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setSubmitting(true);
     const res = await login(email.trim(), password);
     setSubmitting(false);
-    if (res.ok) setShowSuccess(true);
-    else setError(res.error ?? 'Login failed');
+    if (res.ok) {
+      setShowSuccess(true);
+    } else {
+      setError(res.error ?? 'Invalid email or password');
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -75,9 +83,10 @@ export default function Login() {
     const res = await signup({ email: email.trim(), password, name: name.trim(), role });
     setSubmitting(false);
     if (res.ok) {
-      const loginRes = await login(email.trim(), password);
-      if (loginRes.ok) setShowSuccess(true);
-      else setError('Account created but login failed. Please sign in manually.');
+      setSuccessMessage('Signup is complete successfully! You can sign in after the approval of the permissions by Super Admin.');
+      setIsRightPanelActive(false);
+      setName('');
+      setPassword('');
     } else {
       setError(res.error ?? 'Registration failed');
     }
@@ -457,7 +466,7 @@ export default function Login() {
         </div>
 
         {/* Sign In Container */}
-        <div className="form-container sign-in-container">
+        <div className={`form-container sign-in-container ${shouldShake ? 'shake' : ''}`}>
           <form onSubmit={handleSubmit}>
             <SplitText
               text="Sign In"
@@ -469,6 +478,7 @@ export default function Login() {
               textAlign="center"
             />
             <span className="auth-subtitle">Use your admin email and password</span>
+            {successMessage && <p className="success-msg-info">{successMessage}</p>}
             <input
               type="email"
               placeholder="admin@gmail.com"
@@ -519,7 +529,12 @@ export default function Login() {
             <button type="submit" disabled={submitting}>{submitting ? 'Signing in…' : 'Sign In'}</button>
             <div className="mobile-only">
               <span>Don't have an account?</span>
-              <a href="#" onClick={(e) => { e.preventDefault(); setIsRightPanelActive(true); }}>Sign Up</a>
+              <a href="#" onClick={(e) => { 
+                e.preventDefault(); 
+                setIsRightPanelActive(true);
+                setError('');
+                setSuccessMessage('');
+              }}>Sign Up</a>
             </div>
           </form>
 
@@ -543,7 +558,11 @@ export default function Login() {
                 <div className="module-item"><i className="fas fa-shield-alt"></i><p>SECURITY</p></div>
                 <div className="module-item"><i className="fas fa-terminal"></i><p>SYSTEM</p></div>
               </div>
-              <button className="ghost" id="signIn" onClick={() => setIsRightPanelActive(false)}>Sign In</button>
+              <button className="ghost" id="signIn" onClick={() => {
+                setIsRightPanelActive(false);
+                setError('');
+                setSuccessMessage('');
+              }}>Sign In</button>
             </div>
             <div className="overlay-panel overlay-right">
 
@@ -563,7 +582,11 @@ export default function Login() {
                 <div className="module-item"><i className="fas fa-file-invoice"></i><p>EXPENSES</p></div>
                 <div className="module-item"><i className="fas fa-headset"></i><p>SUPPORT</p></div>
               </div>
-              <button className="ghost" id="signUp" onClick={() => setIsRightPanelActive(true)}>Sign Up</button>
+              <button className="ghost" id="signUp" onClick={() => {
+                setIsRightPanelActive(true);
+                setError('');
+                setSuccessMessage('');
+              }}>Sign Up</button>
             </div>
           </div>
         </div>

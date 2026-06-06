@@ -290,7 +290,7 @@ export default function Tickets() {
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-[11px] text-white/30 font-semibold uppercase tracking-wider">
                     <Clock className="h-3 w-3" />
-                    {activeTab === 'CLOSED' ? `Resolved: ${formatDate(t.updatedAt)}` : formatDate(t.createdAt)}
+                    {activeTab === 'CLOSED' ? (t.resolvedBy ? `Resolved by ${t.resolvedBy}` : `Resolved: ${formatDate(t.updatedAt)}`) : formatDate(t.createdAt)}
                   </div>
                   <div className="flex items-center gap-1 text-[11px] text-white/40 bg-white/5 px-2 py-0.5 rounded-full"><MessageSquare className="h-3 w-3" />{t._count.messages}</div>
                 </div>
@@ -343,6 +343,24 @@ export default function Tickets() {
                 <div className="flex flex-col items-center justify-center h-full text-white/20 font-bold uppercase tracking-widest text-[10px]">No messages in this ticket history.</div>
               ) : (
                 messages.map((msg) => {
+                  if (msg.content.startsWith('✅ TICKET_RESOLVED_BY:')) {
+                    const resolverName = msg.content.replace('✅ TICKET_RESOLVED_BY:', '').trim();
+                    return (
+                      <div key={msg.id} className="flex flex-col items-center justify-center my-8 animate-in zoom-in-95 duration-500">
+                        <div className="flex flex-col items-center gap-3 px-6 py-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 shadow-lg">
+                          <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                          <div className="flex flex-col items-center">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/60">Ticket Finalized</span>
+                            <span className="text-sm font-black text-emerald-400 mt-1">Resolved by {resolverName}</span>
+                            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest mt-2">
+                              {formatTime(msg.createdAt)} • {formatDate(msg.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const isMe = msg.senderRole !== 'CUSTOMER';
                   return (
                     <div key={msg.id} className={cn("flex flex-col animate-in fade-in slide-in-from-bottom-2", isMe ? "items-end" : "items-start")}>
@@ -430,8 +448,8 @@ export default function Tickets() {
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Priority</th>
-                  <th className="px-6 py-4">Messages</th>
-                  <th className="px-6 py-4">Created</th>
+                  <th className="px-6 py-4">{activeTab === 'CLOSED' ? 'Resolved By' : 'Messages'}</th>
+                  <th className="px-6 py-4">{activeTab === 'CLOSED' ? 'Resolved At' : 'Created'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.05]">
@@ -508,10 +526,19 @@ export default function Tickets() {
                           </span>
                         </td>
                         <td className="px-6 py-5">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="h-3.5 w-3.5 text-white/30" />
-                            <span className="text-xs font-bold text-white/60">{t._count.messages}</span>
-                          </div>
+                          {activeTab === 'CLOSED' ? (
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                              </div>
+                              <span className="text-xs font-bold text-emerald-400 capitalize">{t.resolvedBy || 'System'}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <MessageSquare className="h-3.5 w-3.5 text-white/30" />
+                              <span className="text-xs font-bold text-white/60">{t._count.messages}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-5">
                           <span className="text-[11px] text-white/40 font-semibold">
@@ -580,6 +607,23 @@ export default function Tickets() {
                 ) : (
                   <div className="space-y-6 py-2">
                     {messages.map((msg) => {
+                      if (msg.content.startsWith('✅ TICKET_RESOLVED_BY:')) {
+                        const resolverName = msg.content.replace('✅ TICKET_RESOLVED_BY:', '').trim();
+                        return (
+                          <div key={msg.id} className="flex flex-col items-center justify-center py-6 my-4 animate-in zoom-in-95 duration-500">
+                             <div className="h-14 w-14 rounded-full border border-emerald-500/20 flex items-center justify-center bg-emerald-500/5 mb-4 shadow-2xl shadow-emerald-500/10">
+                               <CheckCircle2 className="h-7 w-7 text-emerald-500" />
+                             </div>
+                             <div className="flex flex-col items-center">
+                               <span className="text-[11px] font-black uppercase tracking-[0.4em] text-emerald-500/60 text-center">Finalized</span>
+                               <p className="text-sm font-black text-white mt-2 text-center">Resolved by {resolverName}</p>
+                               <p className="text-[9px] uppercase tracking-[0.2em] mt-2 opacity-30 text-center">
+                                 {formatTime(msg.createdAt)} • {formatDate(msg.createdAt)}
+                               </p>
+                             </div>
+                          </div>
+                        );
+                      }
                       const isMe = msg.senderRole !== 'CUSTOMER';
                       return (
                         <div key={msg.id} className={cn("flex flex-col transition-all", isMe ? "items-end" : "items-start group/msg")}>
