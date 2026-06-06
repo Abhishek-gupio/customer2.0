@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    StatusBar, ActivityIndicator, RefreshControl, Alert
+    StatusBar, ActivityIndicator, Alert, Image,
+    Animated, Easing
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -24,26 +25,8 @@ const ChallansScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [challans, setChallans] = useState<any[]>([]);
     const [stats, setStats] = useState({ total: 0, unpaid: 0, amount: 0 });
-
-    const reportChallanError = useCallback((error: unknown, surface: string, fallbackMessage: string) => {
-        const { correlationId } = reportHandledError(error, {
-            surface,
-            level: 'feature',
-            extras: {
-                vehicleId: vehicle.id,
-                registrationNumber: vehicle.registrationNumber,
-            },
-        });
-
-        return appendCorrelationId(
-            getNetworkAwareErrorMessage(
-                error,
-                fallbackMessage,
-                'You are offline. Reconnect to load challans and try again.',
-            ),
-            correlationId,
-        );
-    }, [vehicle.id, vehicle.registrationNumber]);
+    const spinValue = useRef(new Animated.Value(0)).current;
+    const refreshSpinAnim = useRef<Animated.CompositeAnimation | null>(null);
 
     const fetchChallans = useCallback(async (isSync = false) => {
         if (!isSync) setLoading(true);
@@ -57,6 +40,9 @@ const ChallansScreen = () => {
                     : `/v1/vehicles/${vehicle.id}/challans`;
             } else if (vehicle.registrationNumber) {
                 endpoint = `/v1/vehicles/plate/${vehicle.registrationNumber}/challans`;
+                if (isSync) {
+                    endpoint += `?refresh=1&t=${Date.now()}`;
+                }
                 method = 'get'; // Plate endpoint is always GET for now
             } else {
                 throw new Error('No vehicle identifier provided');
@@ -91,10 +77,37 @@ const ChallansScreen = () => {
         fetchChallans(true);
     }, [fetchChallans]);
 
-    const onRefresh = () => {
+    useEffect(() => {
+        if (refreshing) {
+            spinValue.setValue(0);
+            refreshSpinAnim.current = Animated.loop(
+                Animated.timing(spinValue, {
+                    toValue: 1,
+                    duration: 900,
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                })
+            );
+            refreshSpinAnim.current.start();
+            return () => {
+                refreshSpinAnim.current?.stop();
+            };
+        }
+
+        refreshSpinAnim.current?.stop();
+        spinValue.setValue(0);
+        return undefined;
+    }, [refreshing, spinValue]);
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchChallans(true);
+        await fetchChallans(true);
     };
+
+    const spinRotation = spinValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
 
     const handlePayChallan = (_challan: any) => {
         Alert.alert(
@@ -194,16 +207,21 @@ const ChallansScreen = () => {
                 <View style={styles.titleContainer}>
                     <Text style={styles.headerTitle}>Traffic Challans</Text>
                 </View>
-                <TouchableOpacity onPress={() => fetchChallans(true)} style={styles.syncBtn}>
-                    <RefreshCcw size={20} color={COLORS.primary} />
+                <TouchableOpacity
+                    onPress={onRefresh}
+                    style={[styles.syncBtn, (loading || refreshing) && styles.syncBtnDisabled]}
+                    activeOpacity={0.8}
+                    disabled={loading || refreshing}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Animated.View style={{ transform: [{ rotate: spinRotation }] }}>
+                        <RefreshCcw size={20} color={COLORS.primary} />
+                    </Animated.View>
                 </TouchableOpacity>
             </View>
 
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
-                }
             >
                 {/* Vehicle Mini Info */}
                 <View style={styles.vehicleInfo}>
@@ -284,6 +302,9 @@ const styles = StyleSheet.create({
         width: wp('11%'), height: wp('11%'), borderRadius: wp('5.5%'),
         backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: '#333'
+    },
+    syncBtnDisabled: {
+        opacity: 0.7,
     },
     headerTitle: {
         color: '#FFF', fontSize: hp('2.2%'), fontFamily: 'Outfit-Bold'

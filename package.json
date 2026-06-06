@@ -29,6 +29,7 @@
     "pnpm": {
         "patchedDependencies": {
             "@react-native-voice/voice@3.2.4": "patches/@react-native-voice__voice@3.2.4.patch",
+            "metro@0.83.5": "patches/metro@0.83.5.patch",
             "react-native-tts@4.1.1": "patches/react-native-tts@4.1.1.patch",
             "react-native@0.83.1": "patches/react-native@0.83.1.patch"
         },

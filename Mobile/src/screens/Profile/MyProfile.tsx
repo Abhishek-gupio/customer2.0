@@ -40,7 +40,6 @@ import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type 
 import { getAbsoluteUrl } from '../../config';
 import { googleMapsService } from '../../services/googleMapsService';
 import BackButton from '../../components/BackButton';
-import { getQueuedActionSummary } from '../../services/offlineMutationQueue';
 import LoaderButton from '../../components/Button';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
@@ -125,12 +124,6 @@ export default function MyProfile() {
   };
 
   const dispatch = useDispatch();
-  const queuedSummary = getQueuedActionSummary();
-  const queuedTotal =
-    queuedSummary.documentUploads +
-    queuedSummary.expenseCreates +
-    queuedSummary.inHouseTripUploads;
-
   const handleLogout = () => {
     setConfirmModal({
       visible: true,
@@ -1054,15 +1047,6 @@ export default function MyProfile() {
               color="#FFBF00"
               bgColor="rgba(255, 191, 0, 0.1)"
               borderColor="#FFBF00"
-            />
-            <MenuRow
-              icon="sync-alt"
-              label="Sync Queue"
-              onPress={() => handleMenuPress('SyncQueue')}
-              color="#4ADE80"
-              bgColor="rgba(74, 222, 128, 0.1)"
-              borderColor="#4ADE80"
-              badgeCount={queuedTotal}
             />
             <MenuRow
               icon="sign-out-alt"

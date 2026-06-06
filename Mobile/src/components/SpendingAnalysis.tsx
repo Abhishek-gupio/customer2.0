@@ -45,9 +45,10 @@ type SpendingAnalysisProps = {
   analytics: AnalyticsPayload | null;
   loading?: boolean;
   onTimeFrameChange?: (timeFrame: TimeFrame) => void;
+  enableExportCapture?: boolean;
 };
 
-const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProps>(({ analytics, loading, onTimeFrameChange }, ref): JSX.Element => {
+const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProps>(({ analytics, loading, onTimeFrameChange, enableExportCapture = false }, ref): JSX.Element => {
   const [view, setView] = useState<ViewMode>("trend");
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("Month");
   const lineChartRef = useRef<ViewShot>(null);
@@ -220,51 +221,53 @@ const SpendingAnalysis = forwardRef<SpendingAnalysisHandle, SpendingAnalysisProp
   )}
       </View>
 
-      <View style={styles.exportCaptureContainer}>
-        <ViewShot
-          ref={lineChartRef}
-          collapsable={false}
-          options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
-        >
-          <View style={[styles.exportCard, { width: lineChartWidth }]}>
-            <Text style={styles.exportTitle}>Spending Trend ({timeFrame})</Text>
-            {lineData && (
-              <LineChart
-                data={lineData}
-                width={lineChartWidth}
-                height={hp(36)}
-                chartConfig={chartConfig}
-                bezier
-                horizontalLabelRotation={-35}
-                style={styles.chart}
-              />
-            )}
-          </View>
-        </ViewShot>
+      {enableExportCapture && (
+        <View style={styles.exportCaptureContainer}>
+          <ViewShot
+            ref={lineChartRef}
+            collapsable={false}
+            options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
+          >
+            <View style={[styles.exportCard, { width: lineChartWidth }]}>
+              <Text style={styles.exportTitle}>Spending Trend ({timeFrame})</Text>
+              {lineData && (
+                <LineChart
+                  data={lineData}
+                  width={lineChartWidth}
+                  height={hp(36)}
+                  chartConfig={chartConfig}
+                  bezier
+                  horizontalLabelRotation={-35}
+                  style={styles.chart}
+                />
+              )}
+            </View>
+          </ViewShot>
 
-        <ViewShot
-          ref={pieChartRef}
-          collapsable={false}
-          options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
-        >
-          <View style={styles.exportCard}>
-            <Text style={styles.exportTitle}>Spending Breakdown ({timeFrame})</Text>
-            {pieData && (
-              <PieChart
-                data={pieData}
-                width={screenWidth - wp(10)}
-                height={hp(32)}
-                chartConfig={chartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft={String(wp(21))}
-                hasLegend={false}
-                absolute={false}
-              />
-            )}
-          </View>
-        </ViewShot>
-      </View>
+          <ViewShot
+            ref={pieChartRef}
+            collapsable={false}
+            options={{ format: "jpg", quality: 0.95, result: "tmpfile" }}
+          >
+            <View style={styles.exportCard}>
+              <Text style={styles.exportTitle}>Spending Breakdown ({timeFrame})</Text>
+              {pieData && (
+                <PieChart
+                  data={pieData}
+                  width={screenWidth - wp(10)}
+                  height={hp(32)}
+                  chartConfig={chartConfig}
+                  accessor="population"
+                  backgroundColor="transparent"
+                  paddingLeft={String(wp(21))}
+                  hasLegend={false}
+                  absolute={false}
+                />
+              )}
+            </View>
+          </ViewShot>
+        </View>
+      )}
     </View>
   );
 });

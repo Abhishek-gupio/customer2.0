@@ -96,13 +96,7 @@ export default function HelpSupport() {
       >
         {/* ─── Unified Header ─── */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.85}
-          >
-            <Icon name="arrow-left" size={wp(4.5)} color="#fff" />
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
           <View style={styles.headerTitleWrap}>
             <Text style={styles.headerTitle}>Help & Support</Text>
             <Text style={styles.headerSubtitle}>We're here to assist you</Text>
@@ -298,16 +292,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingTop: hp(1.5),
     paddingBottom: hp(2.5), // Space below the header
-  },
-  backBtn: {
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5),
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerTitleWrap: {
     marginLeft: wp(4),
