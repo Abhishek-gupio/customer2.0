@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { api } from "../../services/api";
+import { api, getNetworkOnlineState } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
 import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
@@ -23,7 +23,6 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
 import { googleMapsService } from "../../services/googleMapsService";
 import { queueExpenseCreate } from "../../services/offlineMutationQueue";
-import { getNetworkOnlineState } from '../../services/api';
 import { clearCachedValue } from '../../services/cache';
 import LoaderButton from "../../components/Button";
 
@@ -177,7 +176,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const requestLocationPermission = async (): Promise<boolean> => {
     if (Platform.OS === "ios") {
       try {
-        if (Geolocation?.requestAuthorization) {
+          if (Geolocation?.requestAuthorization) {
           const status = await Geolocation.requestAuthorization("whenInUse");
           return (
             status === "granted" ||
@@ -347,8 +346,8 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const handleSave = async () => {
     if (!isValid) return;
 
+    let payload: any = null;
     setLoading(true);
-    let payload: any;
     try {
       let parsedDate: string | undefined;
       if (date) {
@@ -469,7 +468,11 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }
 
       try {
-        await queueExpenseCreate(payload);
+        if (payload) {
+          await queueExpenseCreate(payload as any);
+        } else {
+          throw new Error(message || "Failed to add expense");
+        }
         onClose();
         Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
         if (onSuccess) onSuccess();

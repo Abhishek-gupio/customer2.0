@@ -8,6 +8,7 @@ const db = dbInstances as any;
 const genAI = env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
     : null;
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 /**
  * PROACTIVE CHAT SERVICE
@@ -144,7 +145,7 @@ export const proactiveChatService = {
     ): Promise<string | null> {
         if (!genAI || alerts.length === 0) return null;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
         const prompt = `You are Gupio, a friendly AI car assistant. Generate a SHORT notification message (2-3 sentences max) for ${userName}.
 

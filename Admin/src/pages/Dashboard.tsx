@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, Clock, TrendingUp, Activity, PieChart } from 'lucide-react';
 import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart, Pie, Cell, PieChart as RePieChart } from 'recharts';
@@ -13,6 +13,8 @@ import { formatDate } from '../lib/dateUtils';
 import { pdf } from '@react-pdf/renderer';
 import { DashboardReport } from '../components/reports/DashboardReport';
 import logoImg from '../assets/images/logo.png';
+import BoundarySection from '../components/BoundarySection';
+import { appendCorrelationId, reportHandledError } from '../lib/errorReporting';
 
 export default function Dashboard() {
   const { hasRole } = useAuth();
@@ -41,9 +43,30 @@ export default function Dashboard() {
   const [selectedHealth, setSelectedHealth] = useState<string | null>(null);
   const [healthVehicles, setHealthVehicles] = useState<any[]>([]);
   const [loadingHealth, setLoadingHealth] = useState(false);
+  const reportDashboardError = useCallback(
+    (
+      error: unknown,
+      surface: string,
+      userMessage?: string,
+      extras?: Record<string, unknown>,
+    ) => {
+      const { correlationId } = reportHandledError(error, {
+        surface,
+        level: 'feature',
+        extras,
+      });
+
+      if (userMessage) {
+        window.alert(appendCorrelationId(userMessage, correlationId));
+      }
+
+      return correlationId;
+    },
+    [],
+  );
 
 
-  const fetchHealthVehicles = async (status: string) => {
+  const fetchHealthVehicles = useCallback(async (status: string) => {
 
     if (selectedHealth === status) {
       setSelectedHealth(null);
@@ -56,13 +79,25 @@ export default function Dashboard() {
       const res = await adminApi.listVehicles({ healthStatus: status, limit: 10 });
       if (res.success) {
         setHealthVehicles(res.data.data);
+      } else {
+        reportDashboardError(
+          new Error(res.error.message),
+          'admin-dashboard-health-vehicles',
+          'Vehicle health details could not be loaded.',
+          { status },
+        );
       }
     } catch (err) {
-      console.error(err);
+      reportDashboardError(
+        err,
+        'admin-dashboard-health-vehicles',
+        'Vehicle health details could not be loaded.',
+        { status },
+      );
     } finally {
       setLoadingHealth(false);
     }
-  };
+  }, [reportDashboardError, selectedHealth]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -88,17 +123,46 @@ export default function Dashboard() {
       return;
     }
     let ignore = false;
-    setLoading(true);
-    adminApi.stats(selectedRange).then((res) => {
-      if (ignore) return;
-      setLoading(false);
-      if (res.success) setStats(res.data);
-      else setError(res.error.message);
-    });
+    const loadStats = async () => {
+      setLoading(true);
+      try {
+        const res = await adminApi.stats(selectedRange);
+        if (ignore) return;
+
+        if (res.success) {
+          setStats(res.data);
+          setError('');
+          return;
+        }
+
+        const correlationId = reportDashboardError(
+          new Error(res.error.message),
+          'admin-dashboard-stats',
+          undefined,
+          { selectedRange },
+        );
+        setError(appendCorrelationId(res.error.message, correlationId));
+      } catch (error) {
+        if (ignore) return;
+        const correlationId = reportDashboardError(
+          error,
+          'admin-dashboard-stats',
+          undefined,
+          { selectedRange },
+        );
+        setError(appendCorrelationId('Dashboard stats could not be loaded.', correlationId));
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadStats();
     return () => {
       ignore = true;
     };
-  }, [canSeeStats, selectedRange]);
+  }, [canSeeStats, reportDashboardError, selectedRange]);
 
   if (loading) {
     return (
@@ -561,6 +625,11 @@ export default function Dashboard() {
 
       {/* VEHICLE HEALTH MONITOR - Now full width at the bottom */}
       <div className="grid grid-cols-1 gap-4">
+        <BoundarySection
+          boundaryName="admin-dashboard-vehicle-health-widget"
+          fallbackTitle="Vehicle health monitoring is unavailable"
+          fallbackMessage="Retry this monitoring widget or refresh the section if it keeps failing."
+        >
         <Card className="border-none bg-gradient-to-b from-white/[0.02] to-transparent">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -714,6 +783,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        </BoundarySection>
       </div>
 
     </div>

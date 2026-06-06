@@ -9,6 +9,7 @@ const genAI = env.GEMINI_API_KEY
 const db = dbInstances as any;
 
 const EMBED_MODEL = "gemini-embedding-001";
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 /** PostgreSQL error code for undefined_column */
 const PG_UNDEFINED_COLUMN = "42703";
@@ -304,7 +305,7 @@ export const vectorService = {
     if (!genAI || documents.length <= 1) return documents;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
       const docList = documents
         .map(

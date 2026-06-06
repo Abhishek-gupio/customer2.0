@@ -41,7 +41,16 @@ export default function TripDetail({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<MapView>(null);
+  const getLocationCoordinate = (location: any, fallback?: PathPoint | null) => {
+    const latitude = Number(location?.Latitude ?? location?.latitude ?? fallback?.lat);
+    const longitude = Number(location?.Longitude ?? location?.longitude ?? fallback?.lon);
 
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return null;
+    }
+
+    return { latitude, longitude };
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -67,12 +76,36 @@ export default function TripDetail({ navigation, route }: Props) {
     load();
   }, [tripId]);
 
+  const t = summary?.trip;
+  const startCoordinate = getLocationCoordinate(t?.startLocation, path[0]);
+  const endCoordinate = getLocationCoordinate(t?.endLocation, path[path.length - 1]);
+  const routeCoordinates = path.length > 0
+    ? path
+        .map((point) => ({
+          latitude: Number(point.lat),
+          longitude: Number(point.lon),
+        }))
+        .filter(
+          (point) =>
+            !isNaN(point.latitude) &&
+            !isNaN(point.longitude),
+        )
+    : [startCoordinate, endCoordinate].filter((point): point is { latitude: number; longitude: number } => point != null);
+
   useEffect(() => {
-    if (path.length > 0 && mapRef.current && mapReady) {
+    if (routeCoordinates.length > 0 && mapRef.current && mapReady) {
       try {
+        if (routeCoordinates.length > 1) {
+          mapRef.current.fitToCoordinates(routeCoordinates, {
+            edgePadding: { top: 80, right: 40, bottom: 80, left: 40 },
+            animated: true,
+          });
+          return;
+        }
+
         mapRef.current.animateToRegion({
-          latitude: Number(path[0].lat),
-          longitude: Number(path[0].lon),
+          latitude: routeCoordinates[0].latitude,
+          longitude: routeCoordinates[0].longitude,
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }, 1000);
@@ -80,13 +113,13 @@ export default function TripDetail({ navigation, route }: Props) {
         console.warn('animateToRegion failed', err);
       }
     }
-  }, [path, mapReady]);
+  }, [mapReady, routeCoordinates]);
 
-  const hasPath = path.length > 0;
+  const hasPath = routeCoordinates.length > 0;
   const initialRegion = useMemo(() => {
-    if (path.length > 0) {
-      const lat = Number(path[0].lat);
-      const lon = Number(path[0].lon);
+    if (routeCoordinates.length > 0) {
+      const lat = Number(routeCoordinates[0].latitude);
+      const lon = Number(routeCoordinates[0].longitude);
       return {
         latitude: isNaN(lat) ? 20.5937 : lat,
         longitude: isNaN(lon) ? 78.9629 : lon,
@@ -100,9 +133,8 @@ export default function TripDetail({ navigation, route }: Props) {
       latitudeDelta: 30,
       longitudeDelta: 30,
     };
-  }, [hasPath, path]);
+  }, [hasPath, routeCoordinates]);
 
-  const t = summary?.trip;
   const startStr = t?.startTime ? format(new Date(t.startTime), 'HH:mm') : '—';
   const endStr = t?.endTime ? format(new Date(t.endTime), 'HH:mm') : '—';
   const distStr = t?.distanceKm != null
@@ -126,6 +158,7 @@ export default function TripDetail({ navigation, route }: Props) {
   const cityFinish = endParts?.City || null;
   const addressStart = t?.startLocation?.Full || null;
   const addressEnd = t?.endLocation?.Full || null;
+  const eventPoints = path.filter((point) => point.eventType);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -163,7 +196,7 @@ export default function TripDetail({ navigation, route }: Props) {
 
         {summary && (
           <View style={[styles.summaryCard, { borderColor: 'rgba(255,255,255,0.08)' }]}>
-            <Text style={styles.detailsTitle}>Trip details (Damoov)</Text>
+            <Text style={styles.detailsTitle}>Trip details</Text>
 
             <View style={styles.detailsGrid}>
               <View style={styles.detailsRow}>
@@ -285,14 +318,33 @@ export default function TripDetail({ navigation, route }: Props) {
               {hasPath && (
                 <>
                   <Polyline
-                    coordinates={path.map(p => ({
-                      latitude: Number(p.lat),
-                      longitude: Number(p.lon),
-                    }))}
+                    coordinates={routeCoordinates}
                     strokeWidth={4}
                     strokeColor="#ffbf00"
                   />
-                  {path.map((p, index) => {
+                  {startCoordinate && (
+                    <Marker
+                      coordinate={startCoordinate}
+                      title="Start"
+                      description={addressStart || startStr}
+                    >
+                      <View style={[styles.markerDot, styles.startMarker]}>
+                        <Icon name="play" size={7} color="#fff" />
+                      </View>
+                    </Marker>
+                  )}
+                  {endCoordinate && (
+                    <Marker
+                      coordinate={endCoordinate}
+                      title="Finish"
+                      description={addressEnd || endStr}
+                    >
+                      <View style={[styles.markerDot, styles.endMarker]}>
+                        <Icon name="stop" size={7} color="#fff" />
+                      </View>
+                    </Marker>
+                  )}
+                  {eventPoints.map((p, index) => {
                     const lat = Number(p.lat);
                     const lon = Number(p.lon);
                     if (isNaN(lat) || isNaN(lon)) return null;
@@ -306,14 +358,11 @@ export default function TripDetail({ navigation, route }: Props) {
                       <Marker
                         key={`marker-${tripId}-${index}`}
                         coordinate={{ latitude: lat, longitude: lon }}
-                        title={p.eventType || 'Point'}
+                        title={p.eventType || 'Event'}
                         description={timeLabel}
                       >
-                        <View style={[
-                          styles.markerDot,
-                          p.eventType ? styles.eventMarker : styles.pathMarker
-                        ]}>
-                          {p.eventType && <Icon name="exclamation" size={8} color="#fff" />}
+                        <View style={[styles.markerDot, styles.eventMarker]}>
+                          <Icon name="exclamation" size={8} color="#fff" />
                         </View>
                       </Marker>
                     );
@@ -408,10 +457,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  startMarker: { backgroundColor: '#10b981', width: 18, height: 18, borderRadius: 9 },
+  endMarker: { backgroundColor: '#ef4444', width: 18, height: 18, borderRadius: 9 },
   pathMarker: { backgroundColor: '#ffbf00' },
   eventMarker: { backgroundColor: '#ef4444', width: 16, height: 16, borderRadius: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: hp(20) },
   footer: { paddingHorizontal: wp(5), paddingVertical: hp(1.5) },
   footerText: { color: '#aaa', fontSize: wp(3.4) },
 });
-

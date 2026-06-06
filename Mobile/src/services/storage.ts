@@ -3,6 +3,8 @@ const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
 const AUTH_PERSISTED_AT_KEY = 'auth_persisted_at_ms';
 const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
+const TELEMATICS_PROVIDER_KEY = 'telematics_provider';
+const TELEMATICS_AUTO_MODE_KEY = 'telematics_auto_mode_enabled';
 const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
 const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
 const LAST_RECEIVED_OTP_KEY = 'last_received_otp';
@@ -356,100 +358,23 @@ export function setLastOdometerUpdate(vehicleId: string, msSinceEpoch: number): 
   storage.set(`last_odometer_update_${vehicleId}`, String(Math.floor(msSinceEpoch)));
 }
 
-export function setVehicleHealthCache(vehicleId: string, data: any): void {
-  storage.set(`vehicle_health_cache_${vehicleId}`, JSON.stringify(data));
+export type TelematicsProvider = 'damoov' | 'inhouse';
+
+export function getTelematicsProvider(): TelematicsProvider {
+  const provider = storage.getString(TELEMATICS_PROVIDER_KEY);
+  return provider === 'inhouse' ? 'inhouse' : 'damoov';
 }
 
-export function getVehicleHealthCache(vehicleId: string): any | null {
-  const s = storage.getString(`vehicle_health_cache_${vehicleId}`);
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
+export function setTelematicsProvider(provider: TelematicsProvider): void {
+  storage.set(TELEMATICS_PROVIDER_KEY, provider);
 }
 
-export function setServiceHistoryCache(vehicleId: string, data: any): void {
-  storage.set(`service_history_cache_${vehicleId}`, JSON.stringify(data));
+export function getTelematicsAutoModeEnabled(): boolean {
+  const value = storage.getString(TELEMATICS_AUTO_MODE_KEY);
+  if (value == null || value === '') return true;
+  return value === 'true';
 }
 
-export function getServiceHistoryCache(vehicleId: string): any | null {
-  const s = storage.getString(`service_history_cache_${vehicleId}`);
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
-
-export function setDIYGuidesCache(data: any): void {
-  storage.set('diy_guides_cache', JSON.stringify(data));
-}
-
-export function getDIYGuidesCache(): any | null {
-  const s = storage.getString('diy_guides_cache');
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
-
-export function setDLCache(data: any): void {
-  storage.set('dl_cache', JSON.stringify(data));
-}
-
-export function getDLCache(): any | null {
-  const s = storage.getString('dl_cache');
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
-
-export function setFastagCache(data: any): void {
-  storage.set('fastag_cache', JSON.stringify(data));
-}
-
-export function getFastagCache(): any | null {
-  const s = storage.getString('fastag_cache');
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
-
-export function setNearbyPlacesCache(type: string, data: any): void {
-  storage.set(`nearby_places_cache_${type}`, JSON.stringify(data));
-}
-
-export function getNearbyPlacesCache(type: string): any | null {
-  const s = storage.getString(`nearby_places_cache_${type}`);
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
-
-export function setChallansCache(regNo: string, data: any): void {
-  storage.set(`challans_cache_${regNo}`, JSON.stringify(data));
-}
-
-export function getChallansCache(regNo: string): any | null {
-  const s = storage.getString(`challans_cache_${regNo}`);
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
+export function setTelematicsAutoModeEnabled(enabled: boolean): void {
+  storage.set(TELEMATICS_AUTO_MODE_KEY, enabled ? 'true' : 'false');
 }

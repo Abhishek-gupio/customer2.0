@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    StatusBar, ActivityIndicator, RefreshControl, Alert, Image
+    StatusBar, ActivityIndicator, RefreshControl, Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import {
-    AlertTriangle, CheckCircle, RefreshCcw,
-    Calendar, MapPin, Receipt, ExternalLink, ShieldAlert
+import { 
+    CheckCircle, RefreshCcw, ShieldAlert
 } from 'lucide-react-native';
 import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
 import { api } from '../../services/api';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
+import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
 
 const ChallansScreen = () => {
     const navigation = useNavigation();
@@ -23,6 +24,26 @@ const ChallansScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [challans, setChallans] = useState<any[]>([]);
     const [stats, setStats] = useState({ total: 0, unpaid: 0, amount: 0 });
+
+    const reportChallanError = useCallback((error: unknown, surface: string, fallbackMessage: string) => {
+        const { correlationId } = reportHandledError(error, {
+            surface,
+            level: 'feature',
+            extras: {
+                vehicleId: vehicle.id,
+                registrationNumber: vehicle.registrationNumber,
+            },
+        });
+
+        return appendCorrelationId(
+            getNetworkAwareErrorMessage(
+                error,
+                fallbackMessage,
+                'You are offline. Reconnect to load challans and try again.',
+            ),
+            correlationId,
+        );
+    }, [vehicle.id, vehicle.registrationNumber]);
 
     const fetchChallans = useCallback(async (isSync = false) => {
         if (!isSync) setLoading(true);
@@ -56,13 +77,15 @@ const ChallansScreen = () => {
                 amount: totalAmount
             });
         } catch (error) {
-            console.error('Error fetching challans:', error);
-            Alert.alert('Error', 'Failed to fetch challans. Please try again.');
+            Alert.alert(
+                'Challans unavailable',
+                reportChallanError(error, 'payments-challans-fetch', 'Failed to fetch challans. Please try again.'),
+            );
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [vehicle.id, vehicle.registrationNumber]);
+    }, [reportChallanError, vehicle.id, vehicle.registrationNumber]);
 
     useEffect(() => {
         fetchChallans(true);
@@ -73,7 +96,7 @@ const ChallansScreen = () => {
         fetchChallans(true);
     };
 
-    const handlePayChallan = (challan: any) => {
+    const handlePayChallan = (_challan: any) => {
         Alert.alert(
             'Payment Notice',
             'Redirecting to government portal to pay this challan.',

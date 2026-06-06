@@ -155,8 +155,8 @@ export default function ReceiptReviewer({
       return;
     }
 
+    let payload: any = null;
     setLoading(true);
-      let payload: any;
       try {
         let parsedDate: string | undefined;
         if (date) {
@@ -210,7 +210,11 @@ export default function ReceiptReviewer({
       }
 
       try {
-        await queueExpenseCreate(payload);
+        if (payload) {
+          await queueExpenseCreate(payload as any);
+        } else {
+          throw new Error(message || "Failed to save expense");
+        }
         onClose();
         Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
         if (onSuccess) onSuccess();
@@ -220,6 +224,11 @@ export default function ReceiptReviewer({
           error?.error?.message ?? message ?? "Failed to save expense",
         );
       }
+      showStatus(
+        "Error",
+        error?.error?.message ?? error?.message ?? "Failed to save expense",
+        "error"
+      );
     } finally {
       setLoading(false);
     }

@@ -38,6 +38,7 @@ import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue }
 const FlashListAny = FlashList as any;
 const EXPENSES_CACHE_KEY = 'cache:expenses:list';
 const EXPENSES_CACHE_TTL_MS = 3 * 60 * 1000;
+let hasTriggeredPaymentsFeatureBoundaryTest = false;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -124,6 +125,11 @@ const toDate = (value: unknown) => {
   return null;
 };
 
+function PaymentsFeatureBoundaryTestCrash(): never {
+  hasTriggeredPaymentsFeatureBoundaryTest = true;
+  throw new Error('payments feature test');
+}
+
 const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
@@ -133,6 +139,10 @@ const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDat
 const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
 const ExpenseFeed = () => {
+  const ENABLE_PAYMENTS_FEATURE_BOUNDARY_TEST = __DEV__ && false;
+  const shouldTriggerPaymentsFeatureBoundaryTest =
+    ENABLE_PAYMENTS_FEATURE_BOUNDARY_TEST &&
+    !hasTriggeredPaymentsFeatureBoundaryTest;
   const navigation = useNavigation<DocListNavProp>();
   const route = useRoute();
 
@@ -725,6 +735,9 @@ const ExpenseFeed = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {shouldTriggerPaymentsFeatureBoundaryTest ? (
+        <PaymentsFeatureBoundaryTestCrash />
+      ) : null}
       <FlashListAny
         data={displayedExpenses}
         estimatedItemSize={80}

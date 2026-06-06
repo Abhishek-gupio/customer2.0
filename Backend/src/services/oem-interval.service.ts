@@ -7,6 +7,7 @@ const db = dbInstances as any;
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
   : null;
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 /** Part type and suggested interval from OEM/public knowledge. */
 export type SuggestedInterval = {
@@ -47,7 +48,7 @@ export async function suggestIntervalsFromAI(
     return [];
   }
 
-  const modelInstance = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const modelInstance = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
   const yearStr = year ? String(year) : "unknown";
 
   const prompt = `

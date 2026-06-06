@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
   Image,
 } from 'react-native';
@@ -26,7 +25,8 @@ import {
 } from 'react-native-responsive-screen';
 import { generatePDF as RNGeneratePDF } from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
-import RNFS from 'react-native-fs';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
+import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
 export default function DLVerification() {
   const navigation = useNavigation();
   const [dlNumber, setDlNumber] = useState('');
@@ -40,9 +40,38 @@ export default function DLVerification() {
     title: '',
     message: '',
   });
-  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+  const showStatus = useCallback((title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
     setStatusModal({ visible: true, type, title, message });
-  };
+  }, []);
+
+  const reportDlError = useCallback((
+    error: unknown,
+    surface: string,
+    fallbackMessage: string,
+    title = 'Error',
+    extras?: Record<string, unknown>,
+  ) => {
+    const { correlationId } = reportHandledError(error, {
+      surface,
+      level: 'feature',
+      extras,
+    });
+
+    showStatus(
+      title,
+      appendCorrelationId(
+        getNetworkAwareErrorMessage(
+          error,
+          fallbackMessage,
+          'You are offline. Reconnect and try again.',
+        ),
+        correlationId,
+      ),
+      'error',
+    );
+
+    return correlationId;
+  }, [showStatus]);
 
   const [confirmModal, setConfirmModal] = useState({
     visible: false,
@@ -53,22 +82,27 @@ export default function DLVerification() {
     onConfirm: () => { }
   });
 
-  useEffect(() => {
-    fetchExistingDL();
-  }, []);
-
-  const fetchExistingDL = async () => {
+  const fetchExistingDL = useCallback(async () => {
     try {
       const resp: any = await api.get('/v1/documents/get-dl');
       if (resp.success && resp.data) {
         setVerificationResult(resp.data);
       }
     } catch (e) {
-      console.error("Error fetching existing DL", e);
+      reportDlError(
+        e,
+        'payments-dl-existing-record',
+        'Could not load your saved driving licence record.',
+        'DL unavailable',
+      );
     } finally {
       setCheckingExisting(false);
     }
-  };
+  }, [reportDlError]);
+
+  useEffect(() => {
+    fetchExistingDL();
+  }, [fetchExistingDL]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -90,7 +124,11 @@ export default function DLVerification() {
           setDob('');
           showStatus('Success', 'License removed successfully');
         } catch (e) {
-          showStatus('Error', 'Failed to delete license', 'error');
+          reportDlError(
+            e,
+            'payments-dl-delete',
+            'Failed to delete license.',
+          );
         }
       }
     });
@@ -187,7 +225,11 @@ export default function DLVerification() {
       return file?.filePath;
     } catch (e: any) {
       setLoading(false);
-      showStatus('Error', e.message || 'Could not generate certificate PDF.', 'error');
+      reportDlError(
+        e,
+        'payments-dl-pdf',
+        'Could not generate certificate PDF.',
+      );
       return null;
     } finally {
       setLoading(false);
@@ -203,7 +245,14 @@ export default function DLVerification() {
         type: 'application/pdf',
       });
     } catch (e: any) {
-      showStatus('Share Failed', 'Unable to open share sheet.', 'error');
+      if (!e?.message?.toLowerCase?.().includes('cancel')) {
+        reportDlError(
+          e,
+          'payments-dl-share',
+          'Unable to open share sheet.',
+          'Share Failed',
+        );
+      }
     }
   };
 
@@ -223,10 +272,23 @@ export default function DLVerification() {
 
       if (response.success) {
         setVerificationResult(response.data);
+      } else {
+        reportDlError(
+          new Error(response.message || 'Unable to verify DL. Please check the details and try again.'),
+          'payments-dl-verify-response',
+          'Unable to verify DL. Please check the details and try again.',
+          'Verification Failed',
+          { dlNumberPresent: Boolean(cleanDl), dobPresent: Boolean(dob) },
+        );
       }
     } catch (error: any) {
-      console.error('DL Verification Error:', error);
-      showStatus('Verification Failed', error.message || 'Unable to verify DL. Please check the details and try again.', 'error');
+      reportDlError(
+        error,
+        'payments-dl-verify',
+        'Unable to verify DL. Please check the details and try again.',
+        'Verification Failed',
+        { dlNumberPresent: Boolean(dlNumber), dobPresent: Boolean(dob) },
+      );
     } finally {
       setLoading(false);
     }

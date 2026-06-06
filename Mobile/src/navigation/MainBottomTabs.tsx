@@ -21,14 +21,22 @@ import AIAssistant from '../screens/Main/AIAssistant';
 import Odometer from '../screens/Main/Odometer'; 
 import HeyGupioOverlay from '../components/HeyGupioOverlay';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
+import { withErrorBoundary } from '../components/withErrorBoundary';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const GupioLogoAI = require('../assets/images/gupio-logo-ai.png') as any;
 
 const AI_GRADIENT = ['#4f46e5', '#7c3aed', '#06b6d4', '#4f46e5'] as const;
 const FLOW_DURATION_MS = 3000;
-const AGENT_PULSE_MS = 5600;
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const AIAssistantScreen = withErrorBoundary(AIAssistant, {
+  boundaryName: 'chat-ai-assistant-tab',
+  fallbackTitle: 'AI assistant could not load',
+  fallbackMessage:
+    'Retry the assistant or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
 
 const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   Home: 'home',
@@ -102,6 +110,8 @@ function CenterTabButton({
 }
 
 export function MainBottomTabs() {
+  const [overlayResetKey, setOverlayResetKey] = React.useState(0);
+
   return (
     <View style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
       <Tab.Navigator
@@ -137,7 +147,7 @@ export function MainBottomTabs() {
         />
         <Tab.Screen
           name="AIAssistant"
-          component={AIAssistant}
+          component={AIAssistantScreen}
           options={{
             tabBarLabel: () => null,
             tabBarIcon: () => null,
@@ -178,7 +188,20 @@ export function MainBottomTabs() {
           }}
         />
       </Tab.Navigator>
-      <HeyGupioOverlay />
+      <ErrorBoundary
+        level="widget"
+        boundaryName="chat-hey-gupio-overlay"
+        fallbackTitle="Assistant overlay is unavailable"
+        fallbackMessage="You can keep using the app normally. Retry the overlay or report the issue if it keeps happening."
+        onRetry={() => {
+          setOverlayResetKey(current => current + 1);
+        }}
+        onSoftRefresh={() => {
+          setOverlayResetKey(current => current + 1);
+        }}
+      >
+        <HeyGupioOverlay key={overlayResetKey} />
+      </ErrorBoundary>
     </View>
   );
 }

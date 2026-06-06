@@ -378,7 +378,7 @@ async function parsePdfIntervals(pdfBuffer: Buffer): Promise<SuggestedInterval[]
     const { env } = await import("../config/env");
     if (!env.GEMINI_API_KEY) return [];
     const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: env.GEMINI_TEXT_MODEL });
     const prompt = `
 From this vehicle manual / service schedule text, extract maintenance intervals.
 Return a JSON array. Each object: { "partType": "ENGINE_OIL" | "OIL_FILTER" | "AIR_FILTER" | "BRAKE_PADS" | "BRAKE_DISCS" | "BATTERY" | "TYRES_FRONT" | "TYRES_REAR" | "CLUTCH_PLATE" | "SPARK_PLUGS" | "COOLANT" | "TIMING_BELT" | "AC_FILTER" | "WIPER_BLADES" | "HEADLIGHT_BULB" | "OTHER_PART", "intervalKm": number, "intervalMonths": number }.

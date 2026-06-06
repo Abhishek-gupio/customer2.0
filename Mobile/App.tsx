@@ -26,6 +26,9 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 import { setupNotifications } from './src/services/notification';
 import NetworkBanner from './src/components/NetworkBanner';
+import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
+import { initializeInHouseTelematicsAutoEngine } from './src/services/inHouseTelematicsAutoEngine';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 let RNAndroidNotificationListener: any = null;
 if (Platform.OS === 'android') {
@@ -73,9 +76,16 @@ const linking = {
   },
 };
 
+function AppBoundaryTestCrash(): never {
+  throw new Error('app boundary test');
+}
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
+  const [appResetKey, setAppResetKey] = useState(0);
+  const ENABLE_APP_BOUNDARY_TEST = __DEV__ && false;
+  const forceAppBoundaryCrash = ENABLE_APP_BOUNDARY_TEST && appResetKey === 0;
 
   useEffect(() => {
     hydrateAuthFromPersistedStorage()
@@ -88,6 +98,8 @@ function App() {
         setupNotifications().catch(err => {
           console.error('Error during notification setup:', err);
         });
+        initializeOfflineQueueAutoSync();
+        initializeInHouseTelematicsAutoEngine();
       });
   }, []);
 
@@ -138,10 +150,10 @@ function App() {
       }
     };
 
-    void checkAndPromptNotificationPermission();
+    checkAndPromptNotificationPermission().catch(() => {});
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (nextAppState === 'active') {
-        void checkAndPromptNotificationPermission();
+        checkAndPromptNotificationPermission().catch(() => {});
       }
     });
 
@@ -150,15 +162,7 @@ function App() {
     };
   }, [storageReady]);
 
-  if (!storageReady) {
-    return (
-      <View style={styles.bootstrapLoader}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
-  }
-
-  return (
+  const appContent = storageReady ? (
     <Provider store={store}>
       <GestureHandlerRootView style={styles.appRoot}>
         <View style={styles.appContent}>
@@ -174,6 +178,26 @@ function App() {
         </View>
       </GestureHandlerRootView>
     </Provider>
+  ) : (
+    <View style={styles.bootstrapLoader}>
+      <ActivityIndicator size="large" color="#fff" />
+    </View>
+  );
+  return (
+    <ErrorBoundary
+      level="app"
+      boundaryName="mobile-app-root"
+      fallbackTitle="Gupio could not recover"
+      fallbackMessage="Try restarting this session. If the problem keeps happening, report it with the correlation id."
+      onRetry={() => {
+        setAppResetKey(current => current + 1);
+      }}
+    >
+      <React.Fragment key={`${storageReady ? 'ready' : 'boot'}-${appResetKey}`}>
+        {forceAppBoundaryCrash ? <AppBoundaryTestCrash /> : null}
+        {appContent}
+      </React.Fragment>
+    </ErrorBoundary>
   );
 }
 

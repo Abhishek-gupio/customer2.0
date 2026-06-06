@@ -9,6 +9,7 @@ import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
   : null;
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 export const ocrService = {
   /**
@@ -45,7 +46,7 @@ export const ocrService = {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
       const prompt = `
                 You are an expert Indian vehicle document assistant. 
@@ -115,7 +116,7 @@ export const ocrService = {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
       const prompt = `
 First, decide if this image is a RECEIPT, BILL, or INVOICE (a document showing a purchase, transaction, or payment — e.g. fuel slip, service bill, restaurant bill, parking slip, toll slip). 
 - If it is NOT a receipt/bill/invoice (e.g. random photo, ID card, screenshot of chat, menu only, advertisement), return exactly: {"isReceipt": false, "error": "Please scan a receipt or bill. This image does not look like a receipt."}
@@ -189,7 +190,7 @@ Rules:
     if (!genAI) return null;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
       const prompt = `
                 Analyze this car dashboard image and extract ONLY the current odometer reading (total distance traveled).
                 Return ONLY the number. No units (km/miles), no text.
@@ -229,7 +230,7 @@ Rules:
     }
 
     try {
-      const voiceModel = env.GEMINI_VOICE_MODEL || "gemini-1.5-flash";
+      const voiceModel = env.GEMINI_VOICE_MODEL || GEMINI_TEXT_MODEL;
       const model = genAI.getGenerativeModel({
         model: voiceModel,
         generationConfig: {
@@ -290,7 +291,7 @@ Return ONLY a JSON object with: transcription, amount, category, merchantName, d
     }
 
     try {
-      const voiceModel = env.GEMINI_VOICE_MODEL || "gemini-1.5-flash";
+      const voiceModel = env.GEMINI_VOICE_MODEL || GEMINI_TEXT_MODEL;
       const model = genAI.getGenerativeModel({
         model: voiceModel,
         generationConfig: {
@@ -429,7 +430,7 @@ JSON:`;
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
       const prompt = `
                 You are an expert Indian financial transaction parser.
@@ -529,7 +530,7 @@ JSON:`;
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
       const prompt = `
                 You are an expert Indian vehicle service advisor.
