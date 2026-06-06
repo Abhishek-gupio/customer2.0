@@ -466,7 +466,7 @@ export default function Login() {
               duration={1.2}
               splitType="chars"
               tag="h1"
-              textAlign="left"
+              textAlign="center"
             />
             <span className="auth-subtitle">Use your admin email and password</span>
             <input

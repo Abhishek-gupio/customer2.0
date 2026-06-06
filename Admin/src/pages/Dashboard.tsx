@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { BarChart3, ReceiptIndianRupee, Ticket, Users, CarFront, ShieldAlert, Sparkles, Clock, TrendingUp, Activity, PieChart } from 'lucide-react';
 import { Area, Bar, ComposedChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, AreaChart, Pie, Cell, PieChart as RePieChart } from 'recharts';
 import { adminApi } from '../api/client';
@@ -17,6 +17,7 @@ import BoundarySection from '../components/BoundarySection';
 import { appendCorrelationId, reportHandledError } from '../lib/errorReporting';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { hasRole } = useAuth();
   const [stats, setStats] = useState<{
     customers: number;
@@ -26,7 +27,7 @@ export default function Dashboard() {
     supportTicketsOpen: number;
     unverifiedVehiclesCount: number;
     totalCustomersToday: number;
-    recentHighExpenses: { id: string; amount: number; customer: { fullName: string }; category: string; date: string }[];
+    recentHighExpenses: { id: string; amount: number; customer: { id: string; fullName: string }; category: string; date: string }[];
     expenseCategoryBreakdown: { category: string; amount: number; count: number }[];
     ticketPriorityDistribution: { priority: string; count: number }[];
     vehicleHealthDistribution: { critical: number; warning: number; good: number };
@@ -278,7 +279,7 @@ export default function Dashboard() {
           color="orange"
           sparklineData={calculateSparkline(stats?.trendData || [], 'expenseAmount')}
           subtext={calculatePeriodSubtext(stats?.trendData || [], 'expenseAmount', selectedRange, true)}
-          href="/customers"
+          href="/expenses"
         />
         <KPICard
           title="Open Tickets"
@@ -354,7 +355,7 @@ export default function Dashboard() {
                   stats.recentHighExpenses.map((exp) => (
                     <Link
                       key={exp.id}
-                      to={`/customers`}
+                      to={`/expenses/${exp.id}`}
                       className="group flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-2.5 transition hover:bg-white/[0.04] hover:border-white/[0.08]"
                     >
                       <div className="flex flex-col gap-0.5 min-w-0">
@@ -713,7 +714,11 @@ export default function Dashboard() {
                       </thead>
                       <tbody className="divide-y divide-white/[0.02]">
                         {healthVehicles.map((v) => (
-                          <tr key={v.id} className="group hover:bg-white/[0.01] transition-colors">
+                          <tr
+                            key={v.id}
+                            onClick={() => v.customer?.id && navigate(`/customers/${v.customer.id}`)}
+                            className="group hover:bg-white/[0.03] transition-colors cursor-pointer"
+                          >
                             <td className="px-5 py-3 text-xs font-black text-white/90">{v.registrationNumber}</td>
                             <td className="px-5 py-3">
                               <div className="flex flex-col">
@@ -737,7 +742,7 @@ export default function Dashboard() {
                               </div>
                             </td>
                             <td className="px-5 py-3">
-                              <Link to={`/customers/${v.customer?.id}`} className="text-[10px] font-black text-[var(--accent)] hover:underline">VIEW DETAIL</Link>
+                              <Link to={`/customers/${v.customer?.id}`} className="text-[10px] font-black text-[var(--accent)]">VIEW DETAIL</Link>
                             </td>
                           </tr>
                         ))}

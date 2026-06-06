@@ -97,7 +97,7 @@ export default function Vehicles() {
           return (
             <div>
               <div className="font-semibold text-white/90">{v.make} {v.model}</div>
-              <div className="text-[11px] text-white/45">
+              <div className="text-[11px] text-white/65">
                 {v.year ? `${v.year} · ` : ''}{v.fuelType || 'Unknown fuel'}{v.variant ? ` · ${v.variant}` : ''}
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function Vehicles() {
           return (
             <div className="block">
               <div className="font-medium text-white/80">{v.customer.fullName || v.ownerName || 'Unnamed Owner'}</div>
-              <div className="text-[10px] text-white/40">{v.customer.phoneNumber}</div>
+              <div className="text-[10px] text-white/60">{v.customer.phoneNumber}</div>
             </div>
           );
         },
@@ -133,7 +133,7 @@ export default function Vehicles() {
         cell: ({ row }) => {
           const c = row.original._count;
           return (
-            <div className="flex gap-3 text-[10px] uppercase font-bold tracking-tight text-white/40">
+            <div className="flex gap-3 text-[10px] uppercase font-bold tracking-tight text-white/60">
               <div className="flex flex-col">
                 <span className="text-white/70">{c.expenses}</span>
                 <span>Exp</span>
@@ -328,7 +328,7 @@ export default function Vehicles() {
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-[#0c0c0e]">
                 {table.getHeaderGroups().map((hg) => (
-                  <tr key={hg.id} className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/50 bg-[#111]">
+                  <tr key={hg.id} className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/75 bg-[#111]">
                     {hg.headers.map((h) => (
                       <th
                         key={h.id}
@@ -343,7 +343,7 @@ export default function Vehicles() {
                         >
                           {flexRender(h.column.columnDef.header, h.getContext())}
                           {h.column.getCanSort() && (
-                            <span className="text-white/40">
+                            <span className="text-white/60">
                               {h.column.getIsSorted() === 'asc' ? (
                                 <ChevronUp className="h-4 w-4" />
                               ) : h.column.getIsSorted() === 'desc' ? (
@@ -409,16 +409,44 @@ export default function Vehicles() {
           </div>
 
           {data && data.pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between gap-4 border-t border-white/[0.07] px-5 py-4">
-              <div className="text-sm text-white/50">
-                Page <span className="text-white font-medium">{page}</span> of{' '}
-                <span className="text-white font-medium">{data.pagination.totalPages}</span>
+            <div className="flex items-center justify-between border-t border-white/[0.04] bg-black/20 p-6">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+                Found {data.pagination.total} Vehicles
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 rounded-lg text-[10px] font-black uppercase"
+                >
                   Previous
                 </Button>
-                <Button variant="secondary" size="sm" disabled={page >= data.pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
+                <div className="flex items-center gap-1 mx-2">
+                   {Array.from({ length: Math.min(5, data.pagination.totalPages) }).map((_, i) => {
+                     const p = i + 1;
+                     return (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          className={cn(
+                            "h-7 w-7 rounded-lg text-[10px] font-black transition-all",
+                            page === p ? "bg-[var(--accent)] text-black shadow-lg" : "text-white/40 hover:bg-white/5"
+                          )}
+                        >
+                          {p}
+                        </button>
+                     );
+                   })}
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
+                  disabled={page === data.pagination.totalPages}
+                  className="h-8 rounded-lg text-[10px] font-black uppercase"
+                >
                   Next
                 </Button>
               </div>

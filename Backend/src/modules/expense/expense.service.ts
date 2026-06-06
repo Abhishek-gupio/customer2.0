@@ -43,13 +43,15 @@ export const expenseService = {
       }
     }
 
+    const expenseCategory = input.category;
+
     const expense = await db.expense.create({
       data: {
         customerId,
         vehicleId: targetVehicleId,
         driverId,
         amount: input.amount,
-        category: input.category,
+        category: expenseCategory,
         date: input.date ? new Date(input.date) : new Date(),
         merchantName: input.merchantName,
         location: input.location,
@@ -61,7 +63,7 @@ export const expenseService = {
     });
 
     // 1. Warranty/Service Record Integration (Decomposed)
-    if ((expense.category === "SERVICE" || expense.category === "REPAIR") && targetVehicleId) {
+    if ((expenseCategory === "SERVICE" || expenseCategory === "REPAIR") && targetVehicleId) {
       if (input.parts && input.parts.length > 0) {
         await expenseWarrantyService.syncExpenseToWarranty(expense, targetVehicleId, input.parts, input.odometerReading)
           .catch(err => logger.error({ err }, "Manual parts warranty sync failed"));

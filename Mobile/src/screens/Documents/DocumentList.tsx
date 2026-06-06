@@ -8,12 +8,8 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
-  Dimensions,
-  Image,
-  Modal,
   Alert,
   PermissionsAndroid,
-  TouchableWithoutFeedback,
   Linking,
 } from 'react-native';
 // @ts-ignore
@@ -21,22 +17,9 @@ import { generatePDF } from 'react-native-html-to-pdf';
 import RNShareCustom from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  ShieldCheck,
-  FileText,
-  ArrowRight,
-  Plus,
-  Camera,
-  Image as ImageIcon,
-  FileUp,
-  X,
-  Download,
-  Share2,
-  Trash2,
-} from 'lucide-react-native';
+import { FileText, ArrowRight, Car } from 'lucide-react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { pick as pickDocument, types as docTypes } from '@react-native-documents/picker';
-import BackButton from '../../components/BackButton';
 import { useNavigation } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -49,18 +32,19 @@ import {
   removeDocumentAsync,
   type DocumentItem,
 } from '../../store/slices/documentsSlice';
-import { INDPlate } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { uploadDocument, connectDigiLocker, syncDigiLocker } from '../../services/documentService';
 import { getNetworkOnlineState } from '../../services/api';
 import { queueDocumentUpload, flushQueuedDocumentUploads } from '../../services/offlineMutationQueue';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
-import BoundaryBlock from '../../components/BoundaryBlock';
-import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
-
-const { width } = Dimensions.get('window');
-const FALLBACK_ICON_SIZE = 40;
+import DocumentsHeader from '../../components/Documents/DocumentsHeader';
+import DocumentHealthSection from '../../components/Documents/DocumentHealthSection';
+import DigiLockerBanner from '../../components/Documents/DigiLockerBanner';
+import VehicleSummaryCard from '../../components/Documents/VehicleSummaryCard';
+import DocumentSlot from '../../components/Documents/DocumentSlot';
+import DocumentSourceModal from '../../components/Documents/DocumentSourceModal';
+import DocumentViewerModal from '../../components/Documents/DocumentViewerModal';
 const REQUIRED_DOCS = [
   { type: 'RC', label: 'reg certificate' },
   { type: 'Insurance', label: 'insurance policy' },
@@ -69,98 +53,6 @@ const REQUIRED_DOCS = [
 ] as const;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
-
-function formatDocDate(date?: string | null): string {
-  if (!date) return 'No expiry found';
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return 'No expiry found';
-  return parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function getDocumentStatusMeta(doc?: DocumentItem | null) {
-  if (!doc) {
-    return {
-      label: 'Missing',
-      caption: 'Tap to add',
-      tone: '#A1A1AA',
-      bg: 'rgba(255,255,255,0.06)',
-      border: 'rgba(255,255,255,0.08)',
-    };
-  }
-
-  if (doc.status === 'expired') {
-    return {
-      label: 'Expired',
-      caption: `Expired ${formatDocDate(doc.expiryDate)}`,
-      tone: '#FB7185',
-      bg: 'rgba(251,113,133,0.14)',
-      border: 'rgba(251,113,133,0.35)',
-    };
-  }
-
-  if (doc.status === 'expiring') {
-    return {
-      label: 'Expiring',
-      caption: `Due ${formatDocDate(doc.expiryDate)}`,
-      tone: '#F59E0B',
-      bg: 'rgba(245,158,11,0.14)',
-      border: 'rgba(245,158,11,0.35)',
-    };
-  }
-
-  return {
-    label: doc.verificationStatus === 'VERIFIED' ? 'Verified' : 'Stored',
-    caption: doc.expiryDate ? `Valid till ${formatDocDate(doc.expiryDate)}` : 'Ready in glovebox',
-    tone: '#22C55E',
-    bg: 'rgba(34,197,94,0.14)',
-    border: 'rgba(34,197,94,0.35)',
-  };
-}
-
-interface DocumentSlotProps {
-  label: string;
-  type: string;
-  documents: DocumentItem[];
-  onView: (doc: DocumentItem) => void;
-  onUpload: (type: string) => void;
-}
-
-const DocumentSlot = ({ label, type, documents, onView, onUpload }: DocumentSlotProps) => {
-  const doc = documents.find(d => d.type === type);
-  const statusMeta = getDocumentStatusMeta(doc);
-  return (
-    <View style={styles.slotContainer}>
-      <TouchableOpacity
-        style={styles.slotBox}
-        onPress={() => {
-          if (doc) {
-            onView(doc);
-          } else {
-            onUpload(type);
-          }
-        }}
-      >
-        {doc ? (
-          <View style={styles.imageWrapper}>
-            <Image
-              source={{ uri: doc.imageUri }}
-              style={styles.slotImage}
-              resizeMode="cover"
-              onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
-            />
-          </View>
-        ) : (
-          <Plus size={24} color="#333" />
-        )}
-      </TouchableOpacity>
-      <Text style={styles.slotLabel}>{label}</Text>
-      <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
-        <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
-      </View>
-      <Text style={styles.slotHint}>{statusMeta.caption}</Text>
-    </View>
-  );
-};
 
 export default function DocumentList() {
   const ENABLE_DOCUMENTS_FEATURE_BOUNDARY_TEST = __DEV__ && false;
@@ -171,7 +63,7 @@ export default function DocumentList() {
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [showViewerModal, setShowViewerModal] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<string>('');
-  const [viewingDoc, setViewingDoc] = useState<any>(null);
+  const [viewingDoc, setViewingDoc] = useState<DocumentItem | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [loaderMessage, setLoaderMessage] = useState('Uploading document...');
 
@@ -658,6 +550,16 @@ export default function DocumentList() {
     setShowSourceModal(true);
   };
 
+  const handleDocumentSlotPress = (type: string) => {
+    const doc = getDocByType(type);
+    if (doc) {
+      setViewingDoc(doc);
+      setShowViewerModal(true);
+      return;
+    }
+    openDocumentFlow(type);
+  };
+
   const handlePriorityAction = () => {
     if (missingRequiredDocs[0]) {
       openDocumentFlow(missingRequiredDocs[0].type);
@@ -741,74 +643,20 @@ export default function DocumentList() {
       }
     } catch (error: any) {
       setIsUploading(false);
-      reportDocumentError(
-        error,
-        'documents-digilocker-connect',
-        error?.message || 'Could not connect to DigiLocker.',
-        undefined,
-        'DigiLocker Unavailable',
-      );
+      showStatus('Error', error.message || 'Could not connect to DigiLocker', 'error');
     }
-  };
-
-  const DocumentSlot = ({ label, type }: { label: string; type: string }) => {
-    const doc = getDocByType(type);
-    const statusMeta = getDocumentStatusMeta(doc);
-    return (
-      <View style={styles.slotContainer}>
-        <TouchableOpacity
-          style={styles.slotBox}
-          onPress={() => {
-            if (doc) {
-              setViewingDoc(doc);
-              setShowViewerModal(true);
-            } else {
-              setSelectedDocType(type);
-              setShowSourceModal(true);
-            }
-          }}
-        >
-          {doc ? (
-            <View style={styles.imageWrapper}>
-              <Image
-                source={{ uri: doc.imageUri }}
-                style={styles.slotImage}
-                resizeMode="cover"
-                onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
-              />
-            </View>
-          ) : (
-            <Plus size={24} color="#333" />
-          )}
-        </TouchableOpacity>
-        <Text style={styles.slotLabel}>{label}</Text>
-        <View style={[styles.slotStatusBadge, { backgroundColor: statusMeta.bg, borderColor: statusMeta.border }]}>
-          <Text style={[styles.slotStatusText, { color: statusMeta.tone }]}>{statusMeta.label}</Text>
-        </View>
-        <Text style={styles.slotHint}>{statusMeta.caption}</Text>
-      </View>
-    );
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" />
 
-      <View style={styles.header}>
-        <BackButton onPress={() => navigation.goBack()} />
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>glovebox</Text>
-          {totalDocs > 0 ? (
-            <View style={styles.progressHeaderRow}>
-              <Text style={styles.progressTextLeft}>{totalDocs} out of {MAX_DOCS} documents stored</Text>
-              <Text style={styles.progressTextRight}>{progressPercent}% COMPLETE</Text>
-            </View>
-          ) : (
-            <Text style={styles.headerSubtitle}>one place for all your vehicle documents</Text>
-          )}
-        </View>
-        <View style={{ width: 44 }} />
-      </View>
+      <DocumentsHeader
+        totalDocs={totalDocs}
+        maxDocs={MAX_DOCS}
+        progressPercent={progressPercent}
+        onBackPress={() => navigation.goBack()}
+      />
 
       {totalDocs > 0 && (
         <View style={styles.progressBarContainer}>
@@ -823,111 +671,16 @@ export default function DocumentList() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.trustBadge}>
-          <ShieldCheck size={14} color="#00C853" />
-          <Text style={styles.trustText}>100% safe and secure</Text>
-        </View>
+        <DocumentHealthSection
+          healthyCount={healthyRequiredDocs.length}
+          reviewCount={expiringRequiredDocs.length + expiredRequiredDocs.length}
+          missingItems={missingRequiredDocs}
+          reviewItems={[...expiredRequiredDocs, ...expiringRequiredDocs]}
+          onPrimaryAction={handlePriorityAction}
+          onSecondaryAction={handleConnectDigiLocker}
+        />
 
-        <View style={styles.healthOverviewRow}>
-          <View style={styles.healthMetricCard}>
-            <Text style={styles.healthMetricValue}>{healthyRequiredDocs.length}</Text>
-            <Text style={styles.healthMetricLabel}>Ready now</Text>
-          </View>
-          <View style={styles.healthMetricCard}>
-            <Text style={[styles.healthMetricValue, styles.healthMetricWarning]}>
-              {expiringRequiredDocs.length + expiredRequiredDocs.length}
-            </Text>
-            <Text style={styles.healthMetricLabel}>Need review</Text>
-          </View>
-          <View style={styles.healthMetricCard}>
-            <Text style={styles.healthMetricValue}>{missingRequiredDocs.length}</Text>
-            <Text style={styles.healthMetricLabel}>Missing</Text>
-          </View>
-        </View>
-
-        <BoundaryBlock
-          boundaryName="documents-health-widget"
-          fallbackTitle="Document health is unavailable"
-          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
-        >
-        <View style={styles.nextActionCard}>
-          <View style={styles.nextActionHeader}>
-            <Text style={styles.nextActionTitle}>Document health</Text>
-            <Text style={styles.nextActionCaption}>
-              {missingRequiredDocs.length > 0
-                ? `${missingRequiredDocs.length} document${missingRequiredDocs.length === 1 ? '' : 's'} still missing`
-                : expiringRequiredDocs.length + expiredRequiredDocs.length > 0
-                  ? 'A few documents need attention soon'
-                  : 'Your glovebox is in good shape'}
-            </Text>
-          </View>
-
-          {missingRequiredDocs.length > 0 ? (
-            <Text style={styles.nextActionBody}>
-              Add {missingRequiredDocs.slice(0, 2).map(item => item.label).join(' and ')} to complete your core document set.
-            </Text>
-          ) : expiredRequiredDocs.length + expiringRequiredDocs.length > 0 ? (
-            <Text style={styles.nextActionBody}>
-              Review expiry dates and keep renewal documents ready before your next drive.
-            </Text>
-          ) : (
-            <Text style={styles.nextActionBody}>
-              Everything important is stored. Linking DigiLocker can still make future refreshes easier.
-            </Text>
-          )}
-
-          <View style={styles.nextActionButtons}>
-            <TouchableOpacity style={styles.nextActionPrimaryBtn} onPress={handlePriorityAction}>
-              <Text style={styles.nextActionPrimaryText}>
-                {missingRequiredDocs.length > 0
-                  ? `Add ${missingRequiredDocs[0].label}`
-                  : expiredRequiredDocs.length + expiringRequiredDocs.length > 0
-                    ? 'Review document'
-                    : 'Link DigiLocker'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.nextActionSecondaryBtn} onPress={handleConnectDigiLocker}>
-              <Text style={styles.nextActionSecondaryText}>Sync official docs</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        </BoundaryBlock>
-
-        {/* DigiLocker Banner */}
-        <BoundaryBlock
-          boundaryName="documents-digilocker-banner-widget"
-          fallbackTitle="DigiLocker banner is unavailable"
-          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
-        >
-        <View style={styles.digiBanner}>
-          <View style={styles.digiRow}>
-            <View style={styles.digiContentLeft}>
-              {totalDocs > 0 ? (
-                <Text style={styles.digiTitle}>add your official driving license to your glovebox</Text>
-              ) : (
-                <Text style={styles.digiTitle}>accepted as official documents by traffic police everywhere</Text>
-              )}
-
-              <TouchableOpacity style={styles.digiBtn} onPress={handleConnectDigiLocker}>
-                <View style={styles.digiBtnContent}>
-                  <View style={styles.digiLogoPlaceholder}>
-                    <FileText size={14} color="#FFF" />
-                  </View>
-                  <Text style={styles.digiBtnText}>Link to Digilocker</Text>
-                </View>
-                <ArrowRight size={18} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.digiGraphic}>
-              <Image
-                source={require('../../assets/images/document.png') as any}
-                style={styles.digiImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-        </View>
-        </BoundaryBlock>
+        <DigiLockerBanner hasDocuments={totalDocs > 0} onPress={handleConnectDigiLocker} />
 
         {/* Your Vehicle Documents */}
         <View style={styles.sectionHeaderRow}>
@@ -935,69 +688,44 @@ export default function DocumentList() {
         </View>
 
         {primaryVehicle ? (
-          <View style={styles.vehicleSummaryCard}>
-            <View style={styles.primaryBadge}>
-              <Text style={styles.primaryBadgeText}>ACTIVE PRIMARY</Text>
+          <VehicleSummaryCard
+            vehicle={primaryVehicle}
+            onViewDetails={() => navigation.navigate('VehicleDetails', {
+              vehicleId: primaryVehicle.id,
+              initialTab: 'Details'
+            })}
+          />
+        ) : (
+          <TouchableOpacity 
+            style={styles.noVehicleCard}
+            onPress={() => navigation.navigate('VehicleList')}
+          >
+            <View style={styles.noVehicleIcon}>
+               <Car size={32} color="#8E8E93" />
             </View>
-            <View style={styles.vehicleThumbWrap}>
-              {primaryVehicle.imageUrl ? (
-                <Image
-                  source={{ uri: getAbsoluteUrl(primaryVehicle.imageUrl) }}
-                  style={styles.vehicleThumb}
-                  resizeMode="contain"
-                />
-              ) : (
-                <MaterialIcon 
-                  name={primaryVehicle.vehicleType === 'BIKE' ? 'motorcycle' : 'directions-car'} 
-                  size={FALLBACK_ICON_SIZE} 
-                  color="#444" 
-                />
-              )}
+            <View style={styles.noVehicleContent}>
+               <Text style={styles.noVehicleTitle}>No primary vehicle set</Text>
+               <Text style={styles.noVehicleDesc}>Tap to select a vehicle from your garage to manage documents.</Text>
             </View>
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.vehicleName}>{primaryVehicle.model?.toUpperCase() || 'SXL'}</Text>
-              <View style={styles.plateWrap}>
-                <INDPlate number={primaryVehicle.registrationNumber} />
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('VehicleDetails', {
-                vehicleId: primaryVehicle.id,
-                initialTab: 'Details'
-              })}
-              style={styles.viewDetailsBtn}
-            >
-              <Text style={styles.viewDetailsText}>View details</Text>
-            </TouchableOpacity>
-          </View>
+            <ArrowRight size={20} color="#666" />
+          </TouchableOpacity>
         )}
 
-        <BoundaryBlock
-          boundaryName="documents-vehicle-grid-widget"
-          fallbackTitle="Vehicle documents are unavailable"
-          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
-        >
         <View style={styles.gloveboxGrid}>
-          <DocumentSlot 
-            label="RC Front" 
-            type="RC" 
-            documents={documents}
-            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
-            onUpload={openDocumentFlow}
+          <DocumentSlot
+            label="RC Front"
+            document={getDocByType('RC')}
+            onPress={() => handleDocumentSlotPress('RC')}
           />
-          <DocumentSlot 
-            label="Insurance" 
-            type="Insurance" 
-            documents={documents}
-            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
-            onUpload={openDocumentFlow}
+          <DocumentSlot
+            label="Insurance"
+            document={getDocByType('Insurance')}
+            onPress={() => handleDocumentSlotPress('Insurance')}
           />
-          <DocumentSlot 
-            label="PUC" 
-            type="PUC" 
-            documents={documents}
-            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
-            onUpload={openDocumentFlow}
+          <DocumentSlot
+            label="PUC"
+            document={getDocByType('PUC')}
+            onPress={() => handleDocumentSlotPress('PUC')}
           />
         </View>
         </BoundaryBlock>
@@ -1013,12 +741,10 @@ export default function DocumentList() {
           fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
         >
         <View style={styles.personalGrid}>
-          <DocumentSlot 
-            label="Driving License" 
-            type="DL" 
-            documents={documents}
-            onView={(doc) => { setViewingDoc(doc); setShowViewerModal(true); }}
-            onUpload={openDocumentFlow}
+          <DocumentSlot
+            label="Driving License"
+            document={getDocByType('DL')}
+            onPress={() => handleDocumentSlotPress('DL')}
           />
         </View>
         </BoundaryBlock>
@@ -1050,136 +776,33 @@ export default function DocumentList() {
         </View>
       ) : null}
 
-      {/* Source Selection Modal */}
-      <Modal
+      <DocumentSourceModal
         visible={showSourceModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowSourceModal(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setShowSourceModal(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Choose Source</Text>
-                  <TouchableOpacity onPress={() => setShowSourceModal(false)}>
-                    <X size={24} color="#666" />
-                  </TouchableOpacity>
-                </View>
+        onClose={() => setShowSourceModal(false)}
+        onTakePhoto={() => {
+          setShowSourceModal(false);
+          handleTakePhoto(selectedDocType);
+        }}
+        onPickImage={() => {
+          setShowSourceModal(false);
+          handlePickImage(selectedDocType);
+        }}
+        onPickDocument={() => {
+          setShowSourceModal(false);
+          handlePickDocument(selectedDocType);
+        }}
+      />
 
-                <View style={styles.modalOptions}>
-                  <TouchableOpacity
-                    style={styles.modalOption}
-                    onPress={() => { setShowSourceModal(false); handleTakePhoto(selectedDocType); }}
-                  >
-                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(255, 193, 7, 0.1)' }]}>
-                      <Camera size={22} color="#FFC107" />
-                    </View>
-                    <Text style={styles.modalOptionText}>Take Photo</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.modalOption}
-                    onPress={() => { setShowSourceModal(false); handlePickImage(selectedDocType); }}
-                  >
-                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
-                      <ImageIcon size={22} color="#2196F3" />
-                    </View>
-                    <Text style={styles.modalOptionText}>From Gallery</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.modalOption}
-                    onPress={() => { setShowSourceModal(false); handlePickDocument(selectedDocType); }}
-                  >
-                    <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
-                      <FileUp size={22} color="#4CAF50" />
-                    </View>
-                    <Text style={styles.modalOptionText}>Choose File (PDF)</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.modalCancelBtn}
-                  onPress={() => setShowSourceModal(false)}
-                >
-                  <Text style={styles.modalCancelText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-
-      {/* Document Viewer Modal (v14) */}
-      <Modal
+      <DocumentViewerModal
         visible={showViewerModal}
-        transparent={false}
-        animationType="fade"
-        onRequestClose={() => setShowViewerModal(false)}
-      >
-        <SafeAreaView style={styles.viewerContainer}>
-          <View style={styles.viewerHeader}>
-            <View style={styles.viewerHeaderLeft}>
-              <Text style={styles.viewerTitle}>{viewingDoc?.type || 'Document'}</Text>
-              <Text style={styles.viewerSubtitle}>{primaryVehicle?.registrationNumber}</Text>
-            </View>
-            <View style={styles.viewerHeaderRight}>
-              <TouchableOpacity
-                style={styles.viewerHeaderIcon}
-                onPress={() => {
-                  if (viewingDoc) {
-                    handleDeleteDoc(viewingDoc.id, viewingDoc.type);
-                    setShowViewerModal(false);
-                  }
-                }}
-              >
-                <Trash2 size={22} color="#FF453A" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.viewerHeaderIcon, { marginLeft: 16 }]}
-                onPress={() => setShowViewerModal(false)}
-              >
-                <X size={24} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-          </View>
+        document={viewingDoc}
+        vehicle={primaryVehicle}
+        onClose={() => setShowViewerModal(false)}
+        onDelete={(doc) => handleDeleteDoc(doc.id, doc.type)}
+        onShare={handleShareDoc}
+        onDownload={handleDownloadDoc}
+      />
 
-          <ScrollView
-            contentContainerStyle={styles.viewerContent}
-            centerContent={true}
-            showsVerticalScrollIndicator={false}
-          >
-            {viewingDoc?.imageUri ? (
-              <Image
-                source={{ uri: viewingDoc.imageUri }}
-                style={styles.fullImage}
-                resizeMode="contain"
-                onError={(e) => console.log('Viewer Image Load Error:', e.nativeEvent.error)}
-              />
-            ) : (
-              <View style={styles.viewerPlaceholder}>
-                <FileText size={64} color="#333" />
-                <Text style={styles.placeholderText}>Preview not available</Text>
-              </View>
-            )}
-          </ScrollView>
-
-          <View style={styles.viewerFooter}>
-            <TouchableOpacity style={styles.viewerActionBtn} onPress={() => handleShareDoc(viewingDoc)}>
-              <Share2 size={20} color="#FFF" />
-              <Text style={styles.viewerActionText}>Share as PDF</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.viewerActionBtn, styles.viewerActionBtnOutline]} onPress={() => handleDownloadDoc(viewingDoc)}>
-              <Download size={20} color="#FFF" />
-              <Text style={styles.viewerActionText}>Download PDF</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
-
-      {/* ── Status Feedback Modal (Success/Delete/Error) ── */}
       <StatusModal
         visible={statusModal.visible}
         type={statusModal.type}
@@ -1188,7 +811,6 @@ export default function DocumentList() {
         onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
       />
 
-      {/* ── Confirmation Modal (Delete/DigiLocker) ── */}
       <ConfirmModal
         visible={confirmModal.visible}
         title={confirmModal.title}
@@ -1204,40 +826,8 @@ export default function DocumentList() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 24 : 12,
-    paddingBottom: 24,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  headerTitleContainer: { marginLeft: 16, justifyContent: 'center' },
-  headerRightAction: { padding: 4 },
-  headerTitle: { fontSize: 28, fontFamily: 'Outfit-Bold', color: '#FFF', fontWeight: '800', lineHeight: 32, letterSpacing: -0.5, textTransform: 'lowercase' },
-  headerSubtitle: { fontSize: 11, fontFamily: 'Outfit-Regular', color: '#666', marginTop: 1, textTransform: 'lowercase' },
-
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingTop: 0 },
-
-  trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  trustText: { fontSize: 13, fontFamily: 'Outfit-Bold', color: '#00C853', fontWeight: '600' },
-
-
-  // DigiLocker Banner
-  digiBanner: { backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginTop: 32 },
-  digiRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  digiContentLeft: { flex: 1, paddingRight: 16 },
-  digiTitle: { fontSize: 16, fontFamily: 'Outfit-Bold', color: '#000', lineHeight: 22, fontWeight: '700', marginBottom: 12 },
-  digiGraphic: { width: 75, alignItems: 'flex-end', justifyContent: 'flex-start', marginTop: -10, marginRight: -4 },
-  digiImage: { width: 75, height: 75 },
-
-  digiBtn: { backgroundColor: '#111', borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, alignSelf: 'flex-start' },
-  digiBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  digiLogoPlaceholder: { width: 20, height: 20, borderRadius: 4, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
-  digiBtnText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Bold', fontWeight: '600', marginRight: 12 },
-
-  // Sections
   sectionHeaderRow: { marginTop: 44, marginBottom: 24 },
   sectionTitle: { fontSize: 11, fontFamily: 'Outfit-Bold', color: '#8E8E93', letterSpacing: 1, fontWeight: '700' },
 
@@ -1353,33 +943,6 @@ const styles = StyleSheet.create({
   },
   gloveboxGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   personalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-
-  slotContainer: { width: (width - 72) / 3, gap: 12 },
-  slotBox: { width: '100%', aspectRatio: 1, backgroundColor: '#0A0A0A', borderRadius: 14, borderWidth: 1, borderColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
-  slotLabel: { fontSize: 11, fontFamily: 'Outfit-Medium', color: '#8E8E93', textTransform: 'lowercase', textAlign: 'center' },
-  slotStatusBadge: {
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginTop: -4,
-  },
-  slotStatusText: {
-    fontSize: 10,
-    fontFamily: 'Outfit-Bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  slotHint: {
-    fontSize: 10,
-    fontFamily: 'Outfit-Regular',
-    color: '#666',
-    textAlign: 'center',
-    marginTop: -6,
-    lineHeight: 14,
-  },
-
   quickActions: { marginTop: 40, gap: 12 },
   actionBtn: {
     backgroundColor: '#000',
@@ -1390,140 +953,12 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#222'
+    borderColor: '#222',
   },
   actionBtnOutline: { backgroundColor: 'transparent', borderColor: '#333' },
   actionBtnText: { color: '#FFF', fontSize: 16, fontFamily: 'Outfit-Bold', fontWeight: '700' },
-
   loaderOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.85)', alignItems: 'center', justifyContent: 'center' },
   loaderText: { color: '#FFF', marginTop: 16, fontFamily: 'Outfit-Medium', fontSize: 14 },
-
-  // Modals
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#121212',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    borderWidth: 1,
-    borderColor: '#222',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-  },
-  modalOptions: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0A0A0A',
-    padding: 18,
-    borderRadius: 16,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: '#1A1A1A',
-  },
-  modalOptionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalOptionText: {
-    fontSize: 16,
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-  },
-  modalCancelBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
-  },
-  modalCancelText: {
-    fontSize: 16,
-    fontFamily: 'Outfit-Bold',
-    color: '#888',
-  },
-
-  // Viewer (v14)
-  viewerContainer: { flex: 1, backgroundColor: '#000' },
-  viewerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1A'
-  },
-  viewerHeaderLeft: { flex: 1 },
-  viewerHeaderRight: { flexDirection: 'row', alignItems: 'center' },
-  viewerTitle: { color: '#FFF', fontSize: 20, fontFamily: 'Outfit-Bold', textTransform: 'lowercase' },
-  viewerSubtitle: { color: '#8E8E93', fontSize: 12, fontFamily: 'Outfit-Medium', marginTop: 2, textTransform: 'uppercase' },
-  viewerHeaderIcon: { padding: 4 },
-  viewerContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  fullImage: { width: '100%', height: '100%' },
-  viewerPlaceholder: { alignItems: 'center' },
-  placeholderText: { color: '#444', marginTop: 16, fontFamily: 'Outfit-Medium' },
-  viewerFooter: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#1A1A1A'
-  },
-  viewerActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: '#1A1A1A',
-    paddingVertical: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#333'
-  },
-  viewerActionBtnOutline: {
-    backgroundColor: 'transparent',
-    borderColor: '#333'
-  },
-  viewerActionText: { color: '#FFF', fontSize: 15, fontFamily: 'Outfit-Bold' },
-
-  // Progress Bar
-  progressHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-    width: width - 92, // Account for padding and back button
-  },
-  progressTextLeft: {
-    fontSize: 11, fontFamily: 'Outfit-Regular', color: '#8E8E93', textTransform: 'lowercase'
-  },
-  progressTextRight: {
-    fontSize: 10, fontFamily: 'Outfit-Bold', color: '#FF9800', letterSpacing: 1
-  },
   progressBarContainer: {
     paddingHorizontal: 24,
     paddingTop: 8,
@@ -1534,108 +969,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     borderRadius: 2,
     width: '100%',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: '#FF9800',
-    borderRadius: 2
-  },
-
-  // New Styles
-  imageWrapper: { width: '100%', height: '100%', borderRadius: 14, overflow: 'hidden' },
-  slotImage: { width: '100%', height: '100%', backgroundColor: '#1A1A1A' },
-
-  // Status Modal Styles
-  statusModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  statusModalContent: {
-    width: '100%',
-    backgroundColor: '#121212',
-    borderRadius: 32,
-    padding: 32,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1A1A1A',
-  },
-  statusIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  statusIconCircleSuccess: {
-    backgroundColor: 'rgba(0, 200, 83, 0.1)',
-  },
-  statusIconCircleDelete: {
-    backgroundColor: 'rgba(255, 69, 58, 0.1)',
-  },
-  statusTitle: {
-    fontSize: 22,
-    fontFamily: 'Outfit-Bold',
-    color: '#FFF',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  statusMessage: {
-    fontSize: 14,
-    fontFamily: 'Outfit-Regular',
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 20,
-  },
-  statusActionBtn: {
-    width: '100%',
-    backgroundColor: '#FFF',
-    paddingVertical: 18,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  statusActionText: {
-    fontSize: 16,
-    fontFamily: 'Outfit-Bold',
-    color: '#000',
-    fontWeight: '700',
-  },
-
-  // Confirm Modal Specifics
-  confirmActionRow: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  confirmCancelBtn: {
-    flex: 1,
-    backgroundColor: '#1A1A1A',
-    paddingVertical: 18,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  confirmCancelText: {
-    fontSize: 16,
-    fontFamily: 'Outfit-Bold',
-    color: '#8E8E93',
-  },
-  confirmDeleteBtn: {
-    flex: 1,
-    backgroundColor: '#FF453A',
-    paddingVertical: 18,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  confirmDeleteText: {
-    fontSize: 16,
-    fontFamily: 'Outfit-Bold',
-    color: '#FFF',
+    borderRadius: 2,
   },
 });

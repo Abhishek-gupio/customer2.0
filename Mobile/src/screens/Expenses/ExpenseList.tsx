@@ -1245,12 +1245,10 @@ const styles = StyleSheet.create({
     flexDirection:"row",
     alignItems: 'center',
     gap:wp(1.5)
-    // justifyContent: 'center',
   },
   selectedDateText: {
     color: '#aaa',
     fontSize: wp(3.2),
-    // marginTop: hp(1),
   },
   growthText: { color: '#00c853', fontSize: wp(3.5) },
   percentBadge: {
@@ -1630,8 +1628,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   Dropcontainer:{
-    // backgroundColor:"#999",
-    // color:"#999"
     padding:wp(3)
   }
 });

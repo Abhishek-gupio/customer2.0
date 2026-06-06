@@ -1171,7 +1171,7 @@ export default function AIAssistant() {
               >
               <View style={styles.emptyContainer}>
                       <FastImage
-                        source={require('../../assets/images/index.gif') as any}
+                        source={require('../../assets/aibot/index.gif') as any}
                         style={styles.gif}
                         resizeMode="contain"
                       />
