@@ -1,0 +1,88 @@
+name: gupio_customer
+description: GuPio Customer App — Flutter migration from React Native.
+version: 2.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management (replaces Redux + Zustand + 5 Context providers)
+  flutter_riverpod: ^2.5.1
+  hooks_riverpod: ^2.5.1
+
+  # Navigation (replaces React Navigation)
+  go_router: ^14.1.4
+
+  # HTTP client (replaces custom fetch + axios pattern)
+  dio: ^5.4.3+1
+
+  # Secure storage for JWT tokens (replaces MMKV)
+  flutter_secure_storage: ^9.2.2
+
+  # Firebase
+  firebase_core: ^3.3.0
+  firebase_messaging: ^15.0.4
+
+  # Google Sign-In
+  google_sign_in: ^6.2.1
+
+  # Maps
+  google_maps_flutter: ^2.7.0
+
+  # Voice — speech_to_text 6.x uses jcenter() (shut down); add back when 7.x stabilizes
+  # speech_to_text: ^7.0.0
+  # flutter_tts: ^4.0.2
+
+  # Media
+  image_picker: ^1.1.2
+  # file_picker removed — uses compileSdk 34, conflicts with flutter_plugin_android_lifecycle>=36
+  video_player: ^2.9.1
+  cached_network_image: ^3.4.1
+
+  # Real-time
+  socket_io_client: ^2.0.3+1
+
+  # Data models
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Charts (replaces react-native-chart-kit)
+  fl_chart: ^0.68.0
+
+  # Animations (replaces Lottie RN)
+  lottie: ^3.1.2
+
+  # PDF
+  pdf: ^3.11.1
+  printing: ^5.13.1
+
+  # UI utilities
+  shimmer: ^3.0.0
+  pin_code_fields: ^8.0.1
+  intl: ^0.19.0
+  url_launcher: ^6.3.0
+  share_plus: ^10.0.2
+  permission_handler: ^11.3.1
+  connectivity_plus: ^6.0.3
+  device_info_plus: ^10.1.2
+  package_info_plus: ^8.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/lottie/
+  # fonts: declared when Outfit font files are added to assets/fonts/
