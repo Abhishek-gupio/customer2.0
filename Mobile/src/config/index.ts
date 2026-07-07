@@ -5,7 +5,10 @@ import { Platform } from 'react-native';
 const FORCE_USE_PRODUCTION_API = false;
 
 const DEV_PORT = 9000;
-const ANDROID_LOCALHOST = 'http://10.0.2.2';
+// 10.0.2.2 only resolves on the Android *emulator* (its NAT alias for the host).
+// A physical device has no such alias, so it must hit its own localhost via
+// `adb reverse tcp:9000 tcp:9000`, which tunnels that back to this machine over USB.
+const ANDROID_LOCALHOST = 'http://localhost';
 const IOS_LOCALHOST = 'http://localhost';
 const DEV_HOST = `${Platform.OS === 'android' ? ANDROID_LOCALHOST : IOS_LOCALHOST}:${DEV_PORT}`;
 

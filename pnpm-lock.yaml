@@ -15,6 +15,9 @@ patchedDependencies:
   '@react-native-voice/voice@3.2.4':
     hash: fcqxx3jgrww7xfvohg7nlqemqe
     path: patches/@react-native-voice__voice@3.2.4.patch
+  metro@0.83.5:
+    hash: jhkihlbz346quglekprpepvnr4
+    path: patches/metro@0.83.5.patch
   react-native-tts@4.1.1:
     hash: wmsqw4gtfflojlp2xjpln7eh6m
     path: patches/react-native-tts@4.1.1.patch
@@ -12205,7 +12208,7 @@ snapshots:
       '@react-native/dev-middleware': 0.83.1
       debug: 4.4.3(supports-color@5.5.0)
       invariant: 2.2.4
-      metro: 0.83.5
+      metro: 0.83.5(patch_hash=jhkihlbz346quglekprpepvnr4)
       metro-config: 0.83.5
       metro-core: 0.83.5
       semver: 7.7.4
@@ -16773,7 +16776,7 @@ snapshots:
       connect: 3.7.0
       flow-enums-runtime: 0.0.6
       jest-validate: 29.7.0
-      metro: 0.83.5
+      metro: 0.83.5(patch_hash=jhkihlbz346quglekprpepvnr4)
       metro-cache: 0.83.5
       metro-core: 0.83.5
       metro-runtime: 0.83.5
@@ -16860,7 +16863,7 @@ snapshots:
       '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
       flow-enums-runtime: 0.0.6
-      metro: 0.83.5
+      metro: 0.83.5(patch_hash=jhkihlbz346quglekprpepvnr4)
       metro-babel-transformer: 0.83.5
       metro-cache: 0.83.5
       metro-cache-key: 0.83.5
@@ -16873,7 +16876,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  metro@0.83.5:
+  metro@0.83.5(patch_hash=jhkihlbz346quglekprpepvnr4):
     dependencies:
       '@babel/code-frame': 7.29.0
       '@babel/core': 7.29.0

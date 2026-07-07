@@ -45,6 +45,8 @@ import VehicleSummaryCard from '../../components/Documents/VehicleSummaryCard';
 import DocumentSlot from '../../components/Documents/DocumentSlot';
 import DocumentSourceModal from '../../components/Documents/DocumentSourceModal';
 import DocumentViewerModal from '../../components/Documents/DocumentViewerModal';
+import BoundaryBlock from '../../components/BoundaryBlock';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
 const REQUIRED_DOCS = [
   { type: 'RC', label: 'reg certificate' },
   { type: 'Insurance', label: 'insurance policy' },
@@ -100,6 +102,13 @@ export default function DocumentList() {
 
   const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
     setStatusModal({ visible: true, type, title, message });
+  };
+  const checkPrimaryVehicle = () => {
+    if (!primaryVehicle) {
+      showStatus('No vehicle', 'Set a primary vehicle first.', 'error');
+      return false;
+    }
+    return true;
   };
   const reportDocumentError = (
     error: unknown,
@@ -711,6 +720,11 @@ export default function DocumentList() {
           </TouchableOpacity>
         )}
 
+        <BoundaryBlock
+          boundaryName="documents-vehicle-grid-widget"
+          fallbackTitle="Vehicle documents are unavailable"
+          fallbackMessage="You can keep using the rest of the glovebox. Retry this block or report the issue if it keeps happening."
+        >
         <View style={styles.gloveboxGrid}>
           <DocumentSlot
             label="RC Front"

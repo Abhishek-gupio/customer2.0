@@ -63,15 +63,19 @@ const ChallansScreen = () => {
                 amount: totalAmount
             });
         } catch (error) {
+            const { correlationId } = reportHandledError(error, { surface: 'payments-challans-fetch', level: 'feature' });
             Alert.alert(
                 'Challans unavailable',
-                reportChallanError(error, 'payments-challans-fetch', 'Failed to fetch challans. Please try again.'),
+                appendCorrelationId(
+                    getNetworkAwareErrorMessage(error, 'Failed to fetch challans. Please try again.'),
+                    correlationId,
+                ),
             );
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [reportChallanError, vehicle.id, vehicle.registrationNumber]);
+    }, [vehicle.id, vehicle.registrationNumber]);
 
     useEffect(() => {
         fetchChallans(true);
