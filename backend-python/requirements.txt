@@ -19,7 +19,7 @@ python-multipart==0.0.19
 pytesseract==0.3.13
 Pillow==11.0.0
 python-socketio==5.11.4
-cuid2==2.0.3
+cuid2==2.0.1
 slowapi==0.1.9
 structlog==24.4.0
 python-dotenv==1.0.1
