@@ -31,6 +31,7 @@ interface PartStatusCardProps {
     currentOdo?: number;
     overdueByKm?: number;
     intervalSource?: string;
+    dataQuality?: string;
     onPressHistory?: () => void;
     onPressUpdate?: () => void;
 }
@@ -55,13 +56,15 @@ export const PartStatusCard = React.memo(({
     currentOdo,
     overdueByKm,
     intervalSource,
+    dataQuality,
     onPressHistory,
     onPressUpdate,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
     const displayPercentage = Math.max(0, Math.min(100, percentage));
-    const isOemIntervalSource = ['OEM_WEBSITE', 'OEM'].includes((intervalSource || '').toUpperCase());
-    const isAiSource = (intervalSource || '').toUpperCase() === 'AI_SUGGESTED';
+    const normalizedQuality = (dataQuality || '').toUpperCase();
+    const isOemIntervalSource = normalizedQuality === 'VERIFIED' || (!normalizedQuality && ['OEM_WEBSITE', 'OEM'].includes((intervalSource || '').toUpperCase()));
+    const isAiSource = normalizedQuality === 'AI_PREDICTED' || (!normalizedQuality && (intervalSource || '').toUpperCase() === 'AI_SUGGESTED');
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -87,6 +90,11 @@ export const PartStatusCard = React.memo(({
                                     {warrantyMonths != null && warrantyMonths > 0 && (
                                         <Text style={styles.warrantyTag}>• WARRANTY</Text>
                                     )}
+                                    {isOemIntervalSource ? (
+                                        <Text style={styles.verifiedTag}>• VERIFIED</Text>
+                                    ) : isAiSource ? (
+                                        <Text style={styles.aiTag}>• AI PREDICTED</Text>
+                                    ) : null}
                                 </View>
                             </View>
                         </View>
@@ -149,7 +157,7 @@ export const PartStatusCard = React.memo(({
                             <View style={styles.gridItem}>
                                 <Text style={styles.lab}>SPEC SOURCE</Text>
                                 <Text style={styles.val}>
-                                    {isOemIntervalSource ? 'OFFICIAL OEM' : isAiSource ? 'SMART AI' : 'BASE DATA'}
+                                    {isOemIntervalSource ? 'VERIFIED' : isAiSource ? 'PREDICTED (AI)' : 'ESTIMATED'}
                                 </Text>
                             </View>
                         </View>
@@ -223,6 +231,18 @@ const styles = StyleSheet.create({
     },
     warrantyTag: {
         color: '#22C55E',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        marginLeft: 6,
+    },
+    verifiedTag: {
+        color: '#22C55E',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        marginLeft: 6,
+    },
+    aiTag: {
+        color: '#F59E0B',
         fontSize: wp(2.2),
         fontFamily: 'Outfit-Black',
         marginLeft: 6,

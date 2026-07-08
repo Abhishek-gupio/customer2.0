@@ -75,6 +75,9 @@ const envSchema = z.object({
   GEMINI_TEXT_MODEL: z.string().default("gemini-2.5-flash-lite"),
   /** Model for voice expense parsing; use gemini-1.5-pro for best accuracy. */
   GEMINI_VOICE_MODEL: z.string().default("gemini-2.5-flash-lite"),
+  /** Groq is tried first for plain-text AI calls (fast, small free-tier quota); falls back to Gemini when unset or on error. */
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default("llama-3.1-8b-instant"),
 
   // Weather
   WEATHER_API_KEY: z.string().optional(),

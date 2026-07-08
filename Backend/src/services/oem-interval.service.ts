@@ -1,13 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logger } from "../config/logger";
-import { env } from "../config/env";
 import { dbInstances } from "@repo/db-customer";
+import { callAI, isAIConfigured } from "./ai-provider.service";
 
 const db = dbInstances as any;
-const genAI = env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
-  : null;
-const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 /** Part type and suggested interval from OEM/public knowledge. */
 export type SuggestedInterval = {
@@ -21,8 +16,8 @@ export type SuggestedInterval = {
  * Reference: Public OEM-style intervals for Indian market (from manufacturer manuals / PMS).
  * Used in the prompt so the model returns structured data aligned with real schedules.
  */
-const OEM_REFERENCE_INTERVALS = `
-Indian OEM typical intervals (use as reference; return for matching make/model):
+const CAR_REFERENCE_INTERVALS = `
+Indian OEM typical intervals for cars (use as reference; return for matching make/model):
 - Maruti Suzuki (Swift, Dzire, Baleno, Brezza, Alto, Ertiga, etc.): ENGINE_OIL 10000 km / 6 months, OIL_FILTER 10000/6, AIR_FILTER 20000/12, BRAKE_PADS 30000/24, SPARK_PLUGS 30000/24, COOLANT 40000/24, AC_FILTER 15000/12, WIPER_BLADES 20000/12, BATTERY 36 months.
 - Hyundai India (i20, Creta, Venue, Verna, Grand i10, etc.): ENGINE_OIL 10000 km / 1 year, OIL_FILTER 10000/12, AIR_FILTER 20000-30000/12, BRAKE_FLUID 45000/3y, SPARK_PLUGS 60000-160000 (model dependent), AC_FILTER 20000/2y.
 - Tata (Nexon, Harrier, Punch, Tiago, Safari): ENGINE_OIL 10000/6-12, OIL_FILTER 10000, AIR_FILTER 20000, BRAKE_PADS 30000-40000.
@@ -31,8 +26,19 @@ Indian OEM typical intervals (use as reference; return for matching make/model):
 If make/model not in list, use generic: ENGINE_OIL 10000/6, OIL_FILTER 10000/6, AIR_FILTER 15000/12, BRAKE_PADS 30000/24, BATTERY 36/-, SPARK_PLUGS 30000/24, COOLANT 40000/24, AC_FILTER 15000/12, WIPER_BLADES 20000/12.
 `;
 
+const BIKE_REFERENCE_INTERVALS = `
+Indian OEM typical intervals for two-wheelers (motorcycles/scooters) -- use as reference:
+- Hero MotoCorp (Splendor, HF Deluxe, Passion, Glamour): engine oil every 2500-3000 km or 3 months, air filter 10000 km/12 months, spark plugs 10000 km/12 months, chain and sprocket kit 20000 km/24 months, rear brake shoes (drum) 20000 km/24 months, battery 24 months.
+- Honda two-wheelers (Activa, Shine, Unicorn): engine oil 3000 km/4 months; scooters use a CVT belt instead of a chain -- CVT belt 20000-25000 km/24 months, air filter 8000-12000 km/12 months.
+- Bajaj Auto (Pulsar, Platina, CT100): engine oil 3000-5000 km/6 months, chain and sprocket kit 20000 km/24 months, front disc brake pads (where fitted) 25000 km/24 months.
+- TVS Motor (Apache, Jupiter, Ntorq): engine oil 3000-5000 km/6 months, CVT belt on scooters 20000 km/24 months, chain and sprocket kit on motorcycles 20000 km/24 months.
+- Royal Enfield (Classic, Bullet, Meteor): engine oil 3000 km/3 months, chain and sprocket kit 20000 km/24 months, spark plugs 15000 km/24 months.
+- Suzuki Motorcycle India (Access, Gixxer): engine oil 3000-4000 km/6 months, CVT belt on the Access 20000 km/24 months.
+If make/model not in list, use generic for two-wheelers: engine oil 3000 km/3 months, oil filter 6000 km/6 months, air filter 10000 km/12 months, brake pads 20000 km/24 months, brake shoes 20000 km/24 months, chain and sprocket kit 20000 km/24 months, spark plugs 10000 km/12 months, battery 24 months.
+`;
+
 const PART_TYPES =
-  "ENGINE_OIL, OIL_FILTER, AIR_FILTER, BRAKE_PADS, BRAKE_DISCS, BATTERY, TYRES_FRONT, TYRES_REAR, CLUTCH_PLATE, SPARK_PLUGS, COOLANT, TIMING_BELT, AC_FILTER, WIPER_BLADES, HEADLIGHT_BULB, OTHER_PART";
+  "ENGINE_OIL, OIL_FILTER, AIR_FILTER, BRAKE_PADS, BRAKE_DISCS, BRAKE_SHOES, BATTERY, TYRES_FRONT, TYRES_REAR, CLUTCH_PLATE, SPARK_PLUGS, COOLANT, TIMING_BELT, CVT_BELT, CHAIN_SPROCKET_KIT, AC_FILTER, WIPER_BLADES, HEADLIGHT_BULB, OTHER_PART";
 
 /**
  * Use AI to suggest parts replacement intervals for a vehicle based on public OEM knowledge (Indian market).
@@ -42,21 +48,23 @@ export async function suggestIntervalsFromAI(
   make: string,
   model: string,
   year: number | null,
+  vehicleType?: string | null,
 ): Promise<SuggestedInterval[]> {
-  if (!genAI) {
-    logger.warn("Gemini not configured, cannot suggest OEM intervals");
+  if (!isAIConfigured()) {
+    logger.warn("No AI provider configured, cannot suggest OEM intervals");
     return [];
   }
 
-  const modelInstance = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
   const yearStr = year ? String(year) : "unknown";
+  const isBike = /BIKE|MOTORCYCLE|SCOOTER|2W|TWO/i.test(String(vehicleType || ""));
+  const referenceIntervals = isBike ? BIKE_REFERENCE_INTERVALS : CAR_REFERENCE_INTERVALS;
 
   const prompt = `
 You are an expert in Indian vehicle service schedules. Using ONLY the reference data below (from public OEM manuals), return replacement intervals for this vehicle.
 
-Vehicle: Make="${make}", Model="${model}", Year=${yearStr}
+Vehicle: Make="${make}", Model="${model}", Year=${yearStr}, Category=${isBike ? "TWO_WHEELER (motorcycle/scooter)" : "CAR"}
 
-${OEM_REFERENCE_INTERVALS}
+${referenceIntervals}
 
 Task: Return a JSON array of intervals. Each object must have:
 - partType: one of [${PART_TYPES}]
@@ -70,8 +78,7 @@ Return ONLY valid JSON array, no markdown or extra text. Example: [{"partType":"
 `;
 
   try {
-    const result = await modelInstance.generateContent(prompt);
-    const text = result.response.text();
+    const text = await callAI(prompt);
     const jsonStr = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(jsonStr) as SuggestedInterval[];
 
@@ -87,6 +94,18 @@ Return ONLY valid JSON array, no markdown or extra text. Example: [{"partType":"
     logger.error({ err: e, make, model }, "AI OEM interval suggestion failed");
     return [];
   }
+}
+
+/**
+ * Priority rank for an interval source. Used so a lower-priority source (e.g. a later
+ * AI-fallback save) can never silently downgrade/overwrite an already-verified,
+ * higher-priority source (e.g. real OEM-scraped data) already stored for the same row.
+ */
+function sourceRank(source?: string | null): number {
+  const s = (source || "").toUpperCase();
+  if (s === "OEM_WEBSITE") return 2;
+  if (s === "AI_SUGGESTED") return 1;
+  return 0;
 }
 
 /**
@@ -112,16 +131,41 @@ export async function saveSuggestedIntervals(
 
   for (const p of intervals) {
     try {
-      await db.partReplacementInterval.upsert({
-        where: {
-          make_model_yearMin_yearMax_partType: {
-            make,
-            model,
-            yearMin,
-            yearMax,
-            partType: p.partType as any,
-          },
+      const incomingSource = p.source || "AI_SUGGESTED";
+      const isOemWebsite = incomingSource.toUpperCase() === "OEM_WEBSITE";
+      const incomingRank = sourceRank(incomingSource);
+      const whereKey = {
+        make_model_yearMin_yearMax_partType: {
+          make,
+          model,
+          yearMin,
+          yearMax,
+          partType: p.partType as any,
         },
+      };
+
+      const existing = await db.partReplacementInterval.findUnique({ where: whereKey });
+
+      if (existing && sourceRank(existing.source) > incomingRank) {
+        // A higher-priority source (e.g. OEM_WEBSITE) already sits here -- never let a
+        // lower-priority save (e.g. AI_SUGGESTED) downgrade it.
+        logger.debug(
+          { make, model, partType: p.partType, existingSource: existing.source, incomingSource },
+          "Skipping interval overwrite: existing source outranks incoming source",
+        );
+        if (isOemWebsite) {
+          // Confirming an OEM value (or attempting to supersede a lower-rank one) still
+          // counts as "just verified against the live OEM source".
+          await db.partReplacementInterval.update({
+            where: whereKey,
+            data: { verifiedAt: new Date() },
+          });
+        }
+        continue;
+      }
+
+      await db.partReplacementInterval.upsert({
+        where: whereKey,
         create: {
           make,
           model,
@@ -131,12 +175,14 @@ export async function saveSuggestedIntervals(
           intervalMonths: p.intervalMonths,
           intervalKm: p.intervalKm,
           defaultWarrantyMonths: 0,
-          source: p.source || "AI_SUGGESTED",
+          source: incomingSource,
+          ...(isOemWebsite ? { verifiedAt: new Date() } : {}),
         },
         update: {
           intervalMonths: p.intervalMonths,
           intervalKm: p.intervalKm,
-          source: p.source || "AI_SUGGESTED",
+          source: incomingSource,
+          ...(isOemWebsite ? { verifiedAt: new Date() } : {}),
         },
       });
       saved++;

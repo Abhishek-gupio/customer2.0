@@ -451,6 +451,45 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
   }
 }
 
+// Recomputes the trip safety score server-side from the submitted GPS events instead of
+// trusting the client-submitted `safetyScore` value verbatim (a client could otherwise submit
+// any number, e.g. 100, with no relationship to actual driving behavior). Mirrors the
+// weighted-penalty formula used by the mobile recorder at
+// Mobile/src/services/inHouseTelematics.ts so both stay consistent.
+function recomputeInHouseSafetyScore(
+  events: Array<{ eventType?: string; severity?: number | null } | null | undefined> | undefined,
+  distanceKm: number,
+): number {
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  let harshBrakingScore = 0;
+  let hardAccelScore = 0;
+  let speedingScore = 0;
+
+  for (const event of safeEvents) {
+    const type = String(event?.eventType ?? "").toUpperCase();
+    const rawSeverity = Number(event?.severity);
+    const severity = Number.isFinite(rawSeverity)
+      ? Math.max(0, Math.min(1, rawSeverity))
+      : 0.5;
+
+    if (type.includes("BRAK")) {
+      harshBrakingScore += severity;
+    } else if (type.includes("ACCEL")) {
+      hardAccelScore += severity;
+    } else if (type.includes("SPEED")) {
+      speedingScore += severity;
+    }
+  }
+
+  const exposureNormalization = Math.max(0.65, Math.min(1.25, (distanceKm || 0) / 8));
+  const weightedPenalty =
+    (harshBrakingScore * 5.2 + hardAccelScore * 4.4 + speedingScore * 3.1) /
+    exposureNormalization;
+
+  return Math.round(Math.max(42, Math.min(100, 100 - weightedPenalty * 3.2)));
+}
+
 export const telematicsService = {
   resolveProvider(provider?: unknown): TelematicsProvider {
     return normalizeTelematicsProvider(provider);
@@ -630,7 +669,14 @@ export const telematicsService = {
     const tripId = input.tripId || `INHOUSE_${Date.now()}`;
 
     const stats = input.statistics ?? null;
-    const scores = input.scores ?? null;
+    const recomputedSafetyScore = recomputeInHouseSafetyScore(
+      input.events,
+      Number(input.distanceKm ?? 0) || 0,
+    );
+    const scores =
+      input.scores && typeof input.scores === "object"
+        ? { ...input.scores, Safety: recomputedSafetyScore }
+        : { Safety: recomputedSafetyScore };
     const pathRows = Array.isArray(input.path)
       ? input.path
           .filter(
@@ -667,7 +713,7 @@ export const telematicsService = {
         endTime: end,
         distanceKm: Number(input.distanceKm ?? 0) || 0,
         durationMin: Number(input.durationMin ?? 0) || 0,
-        safetyScore: Math.round(Number(input.safetyScore ?? 100) || 100),
+        safetyScore: recomputedSafetyScore,
         maxSpeed: input.maxSpeed ?? null,
         avgSpeed: input.avgSpeed ?? null,
         startLocation,
@@ -683,7 +729,7 @@ export const telematicsService = {
         endTime: end,
         distanceKm: Number(input.distanceKm ?? 0) || 0,
         durationMin: Number(input.durationMin ?? 0) || 0,
-        safetyScore: Math.round(Number(input.safetyScore ?? 100) || 100),
+        safetyScore: recomputedSafetyScore,
         maxSpeed: input.maxSpeed ?? null,
         avgSpeed: input.avgSpeed ?? null,
         startLocation,

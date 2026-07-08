@@ -485,6 +485,7 @@ exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
   intervalKm: 'intervalKm',
   defaultWarrantyMonths: 'defaultWarrantyMonths',
   source: 'source',
+  verifiedAt: 'verifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1297,6 +1298,9 @@ exports.ServicePartType = exports.$Enums.ServicePartType = {
   AC_FILTER: 'AC_FILTER',
   WIPER_BLADES: 'WIPER_BLADES',
   HEADLIGHT_BULB: 'HEADLIGHT_BULB',
+  BRAKE_SHOES: 'BRAKE_SHOES',
+  CHAIN_SPROCKET_KIT: 'CHAIN_SPROCKET_KIT',
+  CVT_BELT: 'CVT_BELT',
   OTHER_PART: 'OTHER_PART'
 };
 

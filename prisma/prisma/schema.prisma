@@ -528,6 +528,7 @@ model PartReplacementInterval {
   intervalKm            Int
   defaultWarrantyMonths Int             @default(0)
   source                String?
+  verifiedAt            DateTime?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
 
@@ -1708,6 +1709,9 @@ enum ServicePartType {
   AC_FILTER
   WIPER_BLADES
   HEADLIGHT_BULB
+  BRAKE_SHOES
+  CHAIN_SPROCKET_KIT
+  CVT_BELT
   OTHER_PART
 
   @@schema("customer")

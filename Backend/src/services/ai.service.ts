@@ -4,6 +4,7 @@ import { vectorService } from "./vector.service";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAICacheManager } from "@google/generative-ai/server";
 import { env } from "../config/env";
+import { callAI, callAIForLargeContent, isAIConfigured } from "./ai-provider.service";
 import { toolRegistry } from "./tools.service";
 import { voiceService } from "./voice.service";
 import { contextService } from "./context.service";
@@ -447,21 +448,18 @@ export const aiService = {
       .map((m: any) => `${m.role.toUpperCase()}: ${m.content}`)
       .join("\n");
 
-    if (!genAI) return;
+    if (!isAIConfigured()) return;
 
     try {
-      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
-      const result = await model.generateContent(
-        `Summarize this conversation concisely, keeping key facts, user preferences, and decisions. 
+      const prompt = `Summarize this conversation concisely, keeping key facts, user preferences, and decisions. 
 Previous summary: ${session?.summary || "None"}
 
 Conversation:
 ${conversationText}
 
-Write a concise summary (max 200 words) capturing all important details.`,
-      );
+Write a concise summary (max 200 words) capturing all important details.`;
 
-      const summary = result.response.text().trim();
+      const summary = (await callAIForLargeContent(prompt)).trim();
 
       await db.chatSession.update({
         where: { id: sessionId },
@@ -1175,9 +1173,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
   // AI DRIVING COACH — unchanged
   // ==========================================================================
   async generateDrivingCoachAdvice(events: any[], context: any) {
-    if (!genAI) throw new Error("AI not configured");
-
-    const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
+    if (!isAIConfigured()) throw new Error("AI not configured");
 
     const prompt = `
             You are a friendly, calm driving instructor.
@@ -1201,8 +1197,8 @@ Write a concise summary (max 200 words) capturing all important details.`,
         `;
 
     try {
-      const result = await model.generateContent(prompt);
-      return result.response.text().trim();
+      const result = await callAI(prompt);
+      return result.trim();
     } catch (error) {
       logger.error({ error }, "AI Coach generation failed");
       return "Drive safely and maintain a steady speed.";

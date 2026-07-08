@@ -61,6 +61,8 @@ interface PartData {
   overdueByKm?: number;
   /** OEM_WEBSITE = scraped from OEM; DEFAULT/FALLBACK = not from OEM, may be incorrect */
   intervalSource?: string;
+  /** VERIFIED | AI_PREDICTED | ESTIMATED — pre-computed equivalent of intervalSource tiering */
+  dataQuality?: string;
 }
 
 const OEM_WARNING_EXCLUDED_PART_TYPES = new Set(["OTHER_PART"]);
@@ -206,6 +208,7 @@ export const WarrantyStatus = () => {
           currentOdo: primary.currentOdometer,
           overdueByKm: item.overdueByKm,
           intervalSource: item.intervalSource,
+          dataQuality: item.dataQuality,
         };
       }) : [];
 

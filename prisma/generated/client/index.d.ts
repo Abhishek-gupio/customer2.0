@@ -508,6 +508,9 @@ export const ServicePartType: {
   AC_FILTER: 'AC_FILTER',
   WIPER_BLADES: 'WIPER_BLADES',
   HEADLIGHT_BULB: 'HEADLIGHT_BULB',
+  BRAKE_SHOES: 'BRAKE_SHOES',
+  CHAIN_SPROCKET_KIT: 'CHAIN_SPROCKET_KIT',
+  CVT_BELT: 'CVT_BELT',
   OTHER_PART: 'OTHER_PART'
 };
 
@@ -39958,6 +39961,7 @@ export namespace Prisma {
     intervalKm: number | null
     defaultWarrantyMonths: number | null
     source: string | null
+    verifiedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -39973,6 +39977,7 @@ export namespace Prisma {
     intervalKm: number | null
     defaultWarrantyMonths: number | null
     source: string | null
+    verifiedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -39988,6 +39993,7 @@ export namespace Prisma {
     intervalKm: number
     defaultWarrantyMonths: number
     source: number
+    verifiedAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -40021,6 +40027,7 @@ export namespace Prisma {
     intervalKm?: true
     defaultWarrantyMonths?: true
     source?: true
+    verifiedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -40036,6 +40043,7 @@ export namespace Prisma {
     intervalKm?: true
     defaultWarrantyMonths?: true
     source?: true
+    verifiedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -40051,6 +40059,7 @@ export namespace Prisma {
     intervalKm?: true
     defaultWarrantyMonths?: true
     source?: true
+    verifiedAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -40153,6 +40162,7 @@ export namespace Prisma {
     intervalKm: number
     defaultWarrantyMonths: number
     source: string | null
+    verifiedAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: PartReplacementIntervalCountAggregateOutputType | null
@@ -40187,6 +40197,7 @@ export namespace Prisma {
     intervalKm?: boolean
     defaultWarrantyMonths?: boolean
     source?: boolean
+    verifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["partReplacementInterval"]>
@@ -40202,6 +40213,7 @@ export namespace Prisma {
     intervalKm?: boolean
     defaultWarrantyMonths?: boolean
     source?: boolean
+    verifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["partReplacementInterval"]>
@@ -40217,6 +40229,7 @@ export namespace Prisma {
     intervalKm?: boolean
     defaultWarrantyMonths?: boolean
     source?: boolean
+    verifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["partReplacementInterval"]>
@@ -40232,11 +40245,12 @@ export namespace Prisma {
     intervalKm?: boolean
     defaultWarrantyMonths?: boolean
     source?: boolean
+    verifiedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type PartReplacementIntervalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "make" | "model" | "yearMin" | "yearMax" | "partType" | "intervalMonths" | "intervalKm" | "defaultWarrantyMonths" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["partReplacementInterval"]>
+  export type PartReplacementIntervalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "make" | "model" | "yearMin" | "yearMax" | "partType" | "intervalMonths" | "intervalKm" | "defaultWarrantyMonths" | "source" | "verifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["partReplacementInterval"]>
 
   export type $PartReplacementIntervalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "PartReplacementInterval"
@@ -40252,6 +40266,7 @@ export namespace Prisma {
       intervalKm: number
       defaultWarrantyMonths: number
       source: string | null
+      verifiedAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["partReplacementInterval"]>
@@ -40687,6 +40702,7 @@ export namespace Prisma {
     readonly intervalKm: FieldRef<"PartReplacementInterval", 'Int'>
     readonly defaultWarrantyMonths: FieldRef<"PartReplacementInterval", 'Int'>
     readonly source: FieldRef<"PartReplacementInterval", 'String'>
+    readonly verifiedAt: FieldRef<"PartReplacementInterval", 'DateTime'>
     readonly createdAt: FieldRef<"PartReplacementInterval", 'DateTime'>
     readonly updatedAt: FieldRef<"PartReplacementInterval", 'DateTime'>
   }
@@ -99811,6 +99827,7 @@ export namespace Prisma {
     intervalKm: 'intervalKm',
     defaultWarrantyMonths: 'defaultWarrantyMonths',
     source: 'source',
+    verifiedAt: 'verifiedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -103806,6 +103823,7 @@ export namespace Prisma {
     intervalKm?: IntFilter<"PartReplacementInterval"> | number
     defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
     source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"PartReplacementInterval"> | Date | string | null
     createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
     updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
   }
@@ -103821,6 +103839,7 @@ export namespace Prisma {
     intervalKm?: SortOrder
     defaultWarrantyMonths?: SortOrder
     source?: SortOrderInput | SortOrder
+    verifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -103840,6 +103859,7 @@ export namespace Prisma {
     intervalKm?: IntFilter<"PartReplacementInterval"> | number
     defaultWarrantyMonths?: IntFilter<"PartReplacementInterval"> | number
     source?: StringNullableFilter<"PartReplacementInterval"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"PartReplacementInterval"> | Date | string | null
     createdAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
     updatedAt?: DateTimeFilter<"PartReplacementInterval"> | Date | string
   }, "id" | "make_model_yearMin_yearMax_partType">
@@ -103855,6 +103875,7 @@ export namespace Prisma {
     intervalKm?: SortOrder
     defaultWarrantyMonths?: SortOrder
     source?: SortOrderInput | SortOrder
+    verifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PartReplacementIntervalCountOrderByAggregateInput
@@ -103878,6 +103899,7 @@ export namespace Prisma {
     intervalKm?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
     defaultWarrantyMonths?: IntWithAggregatesFilter<"PartReplacementInterval"> | number
     source?: StringNullableWithAggregatesFilter<"PartReplacementInterval"> | string | null
+    verifiedAt?: DateTimeNullableWithAggregatesFilter<"PartReplacementInterval"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PartReplacementInterval"> | Date | string
   }
@@ -110955,6 +110977,7 @@ export namespace Prisma {
     intervalKm: number
     defaultWarrantyMonths?: number
     source?: string | null
+    verifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -110970,6 +110993,7 @@ export namespace Prisma {
     intervalKm: number
     defaultWarrantyMonths?: number
     source?: string | null
+    verifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -110985,6 +111009,7 @@ export namespace Prisma {
     intervalKm?: IntFieldUpdateOperationsInput | number
     defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
     source?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -111000,6 +111025,7 @@ export namespace Prisma {
     intervalKm?: IntFieldUpdateOperationsInput | number
     defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
     source?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -111015,6 +111041,7 @@ export namespace Prisma {
     intervalKm: number
     defaultWarrantyMonths?: number
     source?: string | null
+    verifiedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -111030,6 +111057,7 @@ export namespace Prisma {
     intervalKm?: IntFieldUpdateOperationsInput | number
     defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
     source?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -111045,6 +111073,7 @@ export namespace Prisma {
     intervalKm?: IntFieldUpdateOperationsInput | number
     defaultWarrantyMonths?: IntFieldUpdateOperationsInput | number
     source?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -118088,6 +118117,7 @@ export namespace Prisma {
     intervalKm?: SortOrder
     defaultWarrantyMonths?: SortOrder
     source?: SortOrder
+    verifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -118111,6 +118141,7 @@ export namespace Prisma {
     intervalKm?: SortOrder
     defaultWarrantyMonths?: SortOrder
     source?: SortOrder
+    verifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -118126,6 +118157,7 @@ export namespace Prisma {
     intervalKm?: SortOrder
     defaultWarrantyMonths?: SortOrder
     source?: SortOrder
+    verifiedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
