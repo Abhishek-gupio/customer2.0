@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import Groq from "groq-sdk";
+import fs from "fs";
+import path from "path";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
 
@@ -21,12 +23,12 @@ type AIOptions = {
   maxOutputTokens?: number;
 };
 
-function groqClient(): Groq | null {
+export function groqClient(): Groq | null {
   if (!env.GROQ_API_KEY) return null;
   return new Groq({ apiKey: env.GROQ_API_KEY });
 }
 
-function geminiClient(): GoogleGenAI | null {
+export function geminiClient(): GoogleGenAI | null {
   if (!env.GEMINI_API_KEY) return null;
   return new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 }
@@ -104,4 +106,64 @@ export async function callAIForLargeContent(prompt: string, systemPrompt?: strin
 /** True if at least one text-AI provider (Groq or Gemini) is configured. */
 export function isAIConfigured(): boolean {
   return Boolean(env.GROQ_API_KEY || env.GEMINI_API_KEY);
+}
+
+/**
+ * Transcribe audio using Groq Whisper (fast), falling back to Gemini if needed.
+ */
+export async function transcribeAudio(
+  audioBuffer: Buffer,
+  originalName: string,
+  mimeType?: string,
+): Promise<string> {
+  const groq = groqClient();
+  if (groq) {
+    const tempDir = path.resolve(env.UPLOAD_DIR || "uploads", "temp");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    const ext = path.extname(originalName) || ".wav";
+    const tempFilePath = path.join(tempDir, `transcription-${Date.now()}${ext}`);
+    
+    try {
+      fs.writeFileSync(tempFilePath, audioBuffer);
+      const response = await groq.audio.transcriptions.create({
+        file: fs.createReadStream(tempFilePath),
+        model: "whisper-large-v3",
+      });
+      if (response.text) {
+        return response.text.trim();
+      }
+    } catch (err) {
+      logger.warn({ err: (err as Error).message }, "[AI] Groq Whisper failed, falling back to Gemini for transcription");
+    } finally {
+      try {
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+      } catch (err) {
+        logger.error({ err }, "Failed to delete temp audio file");
+      }
+    }
+  }
+
+  const gemini = geminiClient();
+  if (!gemini) {
+    throw new Error("No AI provider configured for audio transcription. Set GROQ_API_KEY or GEMINI_API_KEY.");
+  }
+  
+  const response = await gemini.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: [
+      {
+        inlineData: {
+          data: audioBuffer.toString("base64"),
+          mimeType: mimeType || "audio/wav",
+        },
+      },
+      "Transcribe this audio recording exactly. Provide ONLY the transcribed text, nothing else.",
+    ],
+  });
+
+  return response.text?.trim() ?? "";
 }

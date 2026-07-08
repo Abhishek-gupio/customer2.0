@@ -47,17 +47,41 @@ interface UIMessage {
   timestamp: Date;
 }
 
+import { getVoiceLanguageIndex } from '../../services/storage';
+
+const VOICE_LANGUAGES_MAP = [
+  'en-IN',     // Auto / Device language defaults to en-IN
+  'hi-IN',     // Hindi
+  'ta-IN',     // Tamil
+  'te-IN',     // Telugu
+  'kn-IN',     // Kannada
+  'ml-IN',     // Malayalam
+  'bn-IN',     // Bengali
+  'mr-IN',     // Marathi
+  'en-IN',     // English (India)
+  'en-US',     // English (US)
+];
+
+function getPreferredLocale(): string {
+  try {
+    const index = getVoiceLanguageIndex();
+    return VOICE_LANGUAGES_MAP[index] || 'en-IN';
+  } catch {
+    return 'en-IN';
+  }
+}
+
 const VOICE_LOCALES = [
+  'en-IN',
+  'hi-IN',
   'kn-IN',
   'te-IN',
   'ta-IN',
   'ml-IN',
-  'hi-IN',
   'mr-IN',
   'bn-IN',
   'gu-IN',
   'pa-IN',
-  'en-IN',
   'en-US',
   'en',
 ] as const;
@@ -376,10 +400,12 @@ export default function AIAssistant() {
         }
       } catch {}
 
+      const preferred = getPreferredLocale();
       const localeIndex = Math.min(voiceRetryRef.current, VOICE_LOCALES.length - 1);
       const fallbackLocales = [
+        preferred,
         VOICE_LOCALES[localeIndex],
-        ...VOICE_LOCALES.filter((_, index) => index !== localeIndex),
+        ...VOICE_LOCALES.filter((l) => l !== preferred && l !== VOICE_LOCALES[localeIndex]),
       ];
 
       let started = false;

@@ -51,6 +51,7 @@ export interface ChatResponse {
         toolResults?: any[];
         agentSteps?: any[];
         suggestedActions?: SuggestedAction[];
+        navigate?: { screen: string; params?: Record<string, unknown> };
     };
 }
 

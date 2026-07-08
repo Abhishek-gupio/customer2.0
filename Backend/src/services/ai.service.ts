@@ -11,6 +11,7 @@ import { contextService } from "./context.service";
 import { analyticsService } from "./analytics.service";
 import { AppError } from "../utils/AppError";
 import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
+import { Intent } from "../utils/intentSchema";
 
 const db = dbInstances as any;
 
@@ -234,6 +235,7 @@ MASTER SYSTEM CONTEXT:
 You are Gupio AI, an intelligent support assistant for vehicle management and user services. You operate in 4 specialized modes based on user selection or intent. Always access user context (name, vehicle details, history) before responding.
 
 CORE PRINCIPLES FOR ALL MODES:
+- **LANGUAGE SUPPORT**: Reply in the same language and script used by the user. If the user asks/speaks in Hindi, reply in Hindi (Devanagari script). If in Kannada, reply in Kannada (Kannada script). If in Tamil, reply in Tamil (Tamil script). If in Telugu, reply in Telugu (Telugu script). If in Malayalam, reply in Malayalam (Malayalam script). If in Marathi, reply in Marathi (Devanagari script). If in Bengali, reply in Bengali (Bengali script). If in Gujarati, reply in Gujarati (Gujarati script). If in Punjabi, reply in Punjabi (Gurmukhi script). Otherwise, reply in English.
 - Address user by name (available in [USER PROFILE] context)
 - Be concise, specific, and action-oriented.
 - **SKIP PREAMBLES**: Do not say "I understand" or "I am analyzing." Go straight to the answer/action.
@@ -683,53 +685,91 @@ Write a concise summary (max 200 words) capturing all important details.`;
       message,
     });
 
+    let navigate: any = null;
+    let isVoiceIntentProcessed = false;
+    let responseText = "";
+    let allToolResults: any[] = [];
+    let agentSteps: any[] = [];
+
+    // Pre-emptively check for voice command/navigation intent
     try {
-      // Build content parts (text + optional image)
-      const parts: any[] = [{ text: userPrompt }];
-
-      // Feature 5: Multimodal — add image if provided
-      if (imageBuffer && mimeType) {
-        parts.push({
-          inlineData: {
-            data: imageBuffer.toString("base64"),
-            mimeType,
-          },
-        });
+      const userRequestIndex = message.indexOf("User request: ");
+      const cleanUserQuery = userRequestIndex !== -1 
+        ? message.substring(userRequestIndex + "User request: ".length).trim() 
+        : message;
+      const voiceIntent = await voiceService.extractIntent(cleanUserQuery);
+      if (voiceIntent && voiceIntent.intent !== "unsupported") {
+        const processed = await this.processIntent(customerId, voiceIntent);
+        if (processed && processed.success !== false) {
+          isVoiceIntentProcessed = true;
+          if (processed.navigate) {
+            navigate = processed.navigate;
+          }
+          if (processed.message) {
+            responseText = processed.message;
+          }
+          if (processed.data) {
+            allToolResults.push({
+              tool: voiceIntent.intent,
+              result: processed.data,
+            });
+          }
+        }
       }
+    } catch (err) {
+      logger.debug({ err }, "Intent extraction in chat failed");
+    }
 
-      let responseText = "";
-      let allToolResults: any[] = [];
-      let agentSteps: any[] = [];
+    try {
+      if (!isVoiceIntentProcessed) {
+        // Build content parts (text + optional image)
+        const parts: any[] = [{ text: userPrompt }];
 
-      if (agentMode) {
-        // Feature 8: Agent Mode (ReAct loop)
-        const agentResult = await this.chatAgent(
-          model,
-          parts,
-          customerId,
-        );
-        responseText = agentResult.responseText;
-        allToolResults = agentResult.toolResults;
-        agentSteps = agentResult.steps;
-      } else {
-        // Feature 2: Multi-turn function calling
-        const result = await model.generateContent(parts);
-        responseText = result.response.text();
+        // Feature 5: Multimodal — add image if provided
+        if (imageBuffer && mimeType) {
+          parts.push({
+            inlineData: {
+              data: imageBuffer.toString("base64"),
+              mimeType,
+            },
+          });
+        }
 
-        const candidate = result.response.candidates?.[0];
-        const functionCalls = candidate?.content.parts.filter(
-          (p: any) => p.functionCall,
-        );
+        try {
+          if (agentMode) {
+            // Feature 8: Agent Mode (ReAct loop)
+            const agentResult = await this.chatAgent(
+              model,
+              parts,
+              customerId,
+            );
+            responseText = agentResult.responseText;
+            allToolResults = agentResult.toolResults;
+            agentSteps = agentResult.steps;
+          } else {
+            // Feature 2: Multi-turn function calling
+            const result = await model.generateContent(parts);
+            responseText = result.response.text();
 
-        if (functionCalls && functionCalls.length > 0) {
-          // Multi-turn tool execution
-          const toolLoopResult = await this.executeToolLoop(
-            model,
-            userPrompt,
-            customerId,
-          );
-          responseText = toolLoopResult.responseText;
-          allToolResults = toolLoopResult.toolResults;
+            const candidate = result.response.candidates?.[0];
+            const functionCalls = candidate?.content.parts.filter(
+              (p: any) => p.functionCall,
+            );
+
+            if (functionCalls && functionCalls.length > 0) {
+              // Multi-turn tool execution
+              const toolLoopResult = await this.executeToolLoop(
+                model,
+                userPrompt,
+                customerId,
+              );
+              responseText = toolLoopResult.responseText;
+              allToolResults = toolLoopResult.toolResults;
+            }
+          }
+        } catch (geminiError: any) {
+          logger.warn({ err: geminiError.message || geminiError }, "[AI] Gemini chat failed, falling back to Groq");
+          responseText = await callAI(userPrompt, SYSTEM_PROMPT);
         }
       }
 
@@ -788,6 +828,7 @@ Write a concise summary (max 200 words) capturing all important details.`;
         sessionId: finalSessionId,
         message: responseText,
         voiceUrl,
+        navigate,
         contextUsed: contextDocs.length,
         toolResults:
           allToolResults.length > 0 ? allToolResults : undefined,
@@ -1025,17 +1066,57 @@ Write a concise summary (max 200 words) capturing all important details.`;
         logger.error({ err }, "Background stream logging failed"),
       );
     } catch (error) {
-      if (isGeminiRateLimitError(error)) {
-        logger.warn({ error }, "AI Stream hit Gemini rate limit");
-        yield JSON.stringify({
-          type: "error",
-          message: "AI is busy. Please try again in a moment.",
-          code: "GEMINI_RATE_LIMIT",
+      logger.warn({ error: (error as Error).message || error }, "[AI] Gemini stream failed, trying Groq fallback");
+      try {
+        const responseText = await callAI(userPrompt, SYSTEM_PROMPT);
+        yield JSON.stringify({ type: "chunk", text: responseText });
+        
+        // Background side effects
+        const responseTimeMs = Date.now() - startTime;
+        const voiceUrl = await voiceService.generateSpeechUrl(responseText);
+        
+        await db.$transaction([
+          db.chatMessage.create({
+            data: {
+              sessionId: finalSessionId,
+              role: "user",
+              content: message,
+            },
+          }),
+          db.chatMessage.create({
+            data: {
+              sessionId: finalSessionId,
+              role: "assistant",
+              content: responseText,
+              metadata: {
+                voiceUrl,
+              },
+            },
+          }),
+        ]);
+        await this.maybeSummarizeSession(finalSessionId);
+        await analyticsService.trackInteraction({
+          customerId,
+          sessionId: finalSessionId,
+          responseTimeMs,
+          hadToolCall: false,
+          hadImage: !!imageBuffer,
+          wasStreaming: true,
         });
-        return;
+        
+        yield JSON.stringify({
+          type: "done",
+          voiceUrl,
+          contextUsed: contextDocs.length,
+          suggestedActions: mergeSuggestedActionsWithNavigation(
+            getSuggestedActionsFromText(responseText),
+            [],
+          ),
+        });
+      } catch (fallbackError) {
+        logger.error({ error: fallbackError }, "AI Stream fallback failed");
+        yield JSON.stringify({ type: "error", message: "Stream failed" });
       }
-      logger.error({ error }, "AI Stream generation failed");
-      yield JSON.stringify({ type: "error", message: "Stream failed" });
     }
   },
 
@@ -1202,6 +1283,152 @@ Write a concise summary (max 200 words) capturing all important details.`;
     } catch (error) {
       logger.error({ error }, "AI Coach generation failed");
       return "Drive safely and maintain a steady speed.";
+    }
+  },
+
+  async processIntent(customerId: string, intent: Intent): Promise<any> {
+    logger.info({ customerId, intent: intent.intent }, "Processing voice assistant intent");
+
+    switch (intent.intent) {
+      case "open_screen":
+        return {
+          success: true,
+          message: `Opening screen ${intent.screenName}...`,
+          navigate: {
+            screen: intent.screenName,
+          },
+        };
+
+      case "add_expense": {
+        try {
+          const expenseTool = toolRegistry.add_expense;
+          const result = await expenseTool.execute(customerId, {
+            amount: intent.amount,
+            category: intent.category,
+            merchantName: intent.merchantName,
+            notes: intent.notes,
+          });
+          return {
+            success: true,
+            message: `Expense of ₹${intent.amount} added successfully.`,
+            data: result,
+            navigate: {
+              screen: "Expenses",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice add_expense failed");
+          return {
+            success: false,
+            error: "Failed to add expense.",
+          };
+        }
+      }
+
+      case "get_challans": {
+        try {
+          const challanTool = toolRegistry.get_challans;
+          const result = await challanTool.execute(customerId, {
+            registrationNumber: intent.registrationNumber,
+          });
+          return {
+            success: true,
+            message: "Retrieved challan information.",
+            data: result,
+            navigate: {
+              screen: "Challans",
+              params: {
+                registrationNumber: intent.registrationNumber,
+              },
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_challans failed");
+          return {
+            success: false,
+            error: "Failed to retrieve challans.",
+          };
+        }
+      }
+
+      case "get_expenses_summary": {
+        try {
+          const summaryTool = toolRegistry.get_expenses_summary;
+          const result = await summaryTool.execute(customerId, {});
+          return {
+            success: true,
+            message: "Retrieved expenses summary.",
+            data: result,
+            navigate: {
+              screen: "Expenses",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_expenses_summary failed");
+          return {
+            success: false,
+            error: "Failed to retrieve expenses summary.",
+          };
+        }
+      }
+
+      case "get_vehicle_status": {
+        try {
+          const statusTool = toolRegistry.get_vehicle_status;
+          const result = await statusTool.execute(customerId, {});
+          return {
+            success: true,
+            message: "Retrieved vehicle status details.",
+            data: result,
+            navigate: {
+              screen: "VehicleList",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_vehicle_status failed");
+          return {
+            success: false,
+            error: "Failed to retrieve vehicle status.",
+          };
+        }
+      }
+
+      case "get_driving_trips_summary": {
+        try {
+          const tripsTool = toolRegistry.get_driving_trips_summary;
+          const result = await tripsTool.execute(customerId, {});
+          return {
+            success: true,
+            message: "Retrieved driving trips summary.",
+            data: result,
+            navigate: {
+              screen: "DrivingSummary",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_driving_trips_summary failed");
+          return {
+            success: false,
+            error: "Failed to retrieve driving trips summary.",
+          };
+        }
+      }
+
+      case "trigger_sos":
+        return {
+          success: true,
+          message: "SOS alert screen triggered.",
+          navigate: {
+            screen: "SOS",
+          },
+        };
+
+      case "unsupported":
+      default:
+        return {
+          success: false,
+          error: (intent as any).message || "This voice command is not supported by the app.",
+        };
     }
   },
 };

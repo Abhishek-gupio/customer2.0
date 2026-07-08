@@ -20,6 +20,29 @@ import Tts from 'react-native-tts';
 import { useNavigation } from '@react-navigation/native';
 import { chatService } from '../services/chatService';
 import { VoiceOwnerContext } from '../context/VoiceOwnerContext';
+import { getVoiceLanguageIndex } from '../services/storage';
+
+const VOICE_LANGUAGES_MAP = [
+  'en-IN',     // Auto / Device language defaults to en-IN
+  'hi-IN',     // Hindi
+  'ta-IN',     // Tamil
+  'te-IN',     // Telugu
+  'kn-IN',     // Kannada
+  'ml-IN',     // Malayalam
+  'bn-IN',     // Bengali
+  'mr-IN',     // Marathi
+  'en-IN',     // English (India)
+  'en-US',     // English (US)
+];
+
+function getPreferredLocale(): string {
+  try {
+    const index = getVoiceLanguageIndex();
+    return VOICE_LANGUAGES_MAP[index] || 'en-IN';
+  } catch {
+    return 'en-IN';
+  }
+}
 
 const VOICE_LOCALES = [
   'en-IN',
@@ -256,6 +279,14 @@ export default function HeyGupioOverlay() {
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
+
+  useEffect(() => {
+    const preferred = getPreferredLocale();
+    const idx = VOICE_LOCALES.indexOf(preferred as any);
+    if (idx !== -1) {
+      preferredVoiceLocaleIndexRef.current = idx;
+    }
+  }, []);
 
   useEffect(() => {
     const listenerId = dragPosition.addListener((value) => {
@@ -527,6 +558,17 @@ export default function HeyGupioOverlay() {
             lon: sosResult.longitude,
           });
         }
+        
+        // Auto navigation based on voice assistant response
+        if (data.navigate) {
+          const rootNavigation = navigation.getParent?.() ?? navigation;
+          if (data.navigate.params) {
+            rootNavigation.navigate(data.navigate.screen as any, data.navigate.params);
+          } else {
+            rootNavigation.navigate(data.navigate.screen as any);
+          }
+        }
+
         await chatService.refreshUserContext().catch(() => null);
         const reply =
           (
