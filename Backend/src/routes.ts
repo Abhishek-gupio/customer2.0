@@ -20,6 +20,7 @@ import { supportRoutes } from "./modules/support/support.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
 import { tripExpenseRoutes } from "./modules/trip-expense/trip-expense.routes";
 import { diyRoutes } from "./modules/diy/diy.routes";
+import { voiceActionRoutes } from "./modules/voice-action/voice-action.routes";
 
 const router = Router();
 
@@ -78,5 +79,6 @@ router.use("/v1/support", supportRoutes);
 router.use("/v1/admin", adminRoutes);
 router.use("/v1/trip-expense", tripExpenseRoutes);
 router.use("/v1/diy", diyRoutes);
+router.use("/v1/voice-actions", voiceActionRoutes);
 
 export const apiRoutes = router;

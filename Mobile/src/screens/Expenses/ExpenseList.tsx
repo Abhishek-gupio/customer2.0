@@ -25,7 +25,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
 import { getAbsoluteUrl } from '../../config';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
-import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
+import { useExpenseStore } from '../../store/expenseStore';
 import NotificationPermission from '../../components/NotificationPermission';
 import Bills from './Bills';
 import { colors } from '../../theme/colors';
@@ -162,6 +162,7 @@ const ExpenseFeed = () => {
   const isRefreshingRef = React.useRef(false);
   const pendingRefreshRef = React.useRef(false);
   const vehicleIdRef = React.useRef<string | null>(null);
+  const lastSeenExpenseVersionRef = React.useRef(useExpenseStore.getState().version);
   const [isCalendarVisible, setIsCalendarVisible] = React.useState(false);
   const [calendarMonth, setCalendarMonth] = React.useState(() => {
     const now = new Date();
@@ -409,8 +410,11 @@ const ExpenseFeed = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // Check if refresh was requested and apply appropriate delay
-      const needsRefresh = getAndClearExpenseListRefresh();
+      // Check if a voice/manual add bumped the expense store since we last looked, and apply
+      // appropriate delay for the follow-up fetch.
+      const currentExpenseVersion = useExpenseStore.getState().version;
+      const needsRefresh = currentExpenseVersion !== lastSeenExpenseVersionRef.current;
+      lastSeenExpenseVersionRef.current = currentExpenseVersion;
       const timers: ReturnType<typeof setTimeout>[] = [];
 
       let cancelled = false;
@@ -463,19 +467,18 @@ const ExpenseFeed = () => {
     };
   }, [fetchExpenses, loadPrimaryVehicle]);
 
-  // ── Compute "Total This Month" ──
+  // Live-refresh when a voice/manual add bumps the expense store while this screen is already
+  // mounted (useFocusEffect above only catches focus transitions, not this case).
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      if (!getAndClearExpenseListRefresh()) {
-        return;
-      }
-
+    const unsubscribe = useExpenseStore.subscribe((state) => {
+      if (state.version === lastSeenExpenseVersionRef.current) return;
+      lastSeenExpenseVersionRef.current = state.version;
       loadPrimaryVehicle().then((resolvedPrimaryVehicle) => {
         fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
       });
-    }, 1000);
+    });
 
-    return () => clearInterval(timer);
+    return unsubscribe;
   }, [fetchExpenses, loadPrimaryVehicle]);
 
   React.useEffect(() => {

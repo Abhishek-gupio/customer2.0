@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import StatusModal from '../../components/common/Modals/StatusModal';
-import { useFocusEffect } from '../../lib/react-navigation-native';
+import { useFocusEffect, useRoute, RouteProp } from '../../lib/react-navigation-native';
+import type { MainTabParamList } from '../../navigation/types';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -27,7 +28,10 @@ import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { setWarrantyStatusNeedsRefresh } from '../../utils/refreshManager';
 import { setLastOdometerUpdate } from '../../services/storage';
 
+type OdometerRouteProp = RouteProp<MainTabParamList, 'Odometer'>;
+
 export default function Odometer() {
+  const route = useRoute<OdometerRouteProp>();
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [reading, setReading] = useState('');
@@ -66,6 +70,13 @@ export default function Odometer() {
       fetchPrimary();
     }, [fetchPrimary])
   );
+
+  useEffect(() => {
+    if (route.params?.justSetViaVoice) {
+      showStatus('Updated', 'Odometer reading updated via voice command.', 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSaveReading = async () => {
     const value = reading.trim() ? parseInt(reading.replace(/\D/g, ''), 10) : 0;

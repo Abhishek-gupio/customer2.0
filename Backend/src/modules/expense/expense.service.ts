@@ -104,12 +104,35 @@ export const expenseService = {
     return expenseParsingService.previewExpenseFromVoiceAudio(customerId, file);
   },
 
-  async previewExpenseFromVoiceText(text: string) {
-    return expenseParsingService.previewExpenseFromVoiceText(text);
+  async previewExpenseFromVoiceText(
+    customerId: string,
+    text: string,
+    vehicleHint?: { vehicleId?: string; registrationNumber?: string },
+  ) {
+    return expenseParsingService.previewExpenseFromVoiceText(customerId, text, vehicleHint);
   },
 
-  async createExpenseFromVoiceText(customerId: string, text: string) {
-    return expenseParsingService.createExpenseFromVoiceText(customerId, text);
+  async createExpenseFromVoiceText(
+    customerId: string,
+    text: string,
+    vehicleHint?: { vehicleId?: string; registrationNumber?: string },
+  ) {
+    return expenseParsingService.createExpenseFromVoiceText(customerId, text, vehicleHint);
+  },
+
+  async commitVoiceExpenseDraft(
+    customerId: string,
+    draft: {
+      amount: number;
+      category: string;
+      merchantName?: string | null;
+      date?: string | null;
+      notes?: string | null;
+      rawText?: string | null;
+    },
+    vehicleHint?: { vehicleId?: string; registrationNumber?: string },
+  ) {
+    return expenseParsingService.commitVoiceExpenseDraft(customerId, draft, vehicleHint);
   },
 
   async setBudget(customerId: string, input: ExpenseBudgetInput) {

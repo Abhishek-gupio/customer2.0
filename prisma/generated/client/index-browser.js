@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.3.0
- * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+ * Prisma Client JS version: 7.5.0
+ * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
  */
 Prisma.prismaVersion = {
-  client: "7.3.0",
-  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
+  client: "7.5.0",
+  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -485,6 +485,7 @@ exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
   intervalKm: 'intervalKm',
   defaultWarrantyMonths: 'defaultWarrantyMonths',
   source: 'source',
+  verifiedAt: 'verifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1297,6 +1298,9 @@ exports.ServicePartType = exports.$Enums.ServicePartType = {
   AC_FILTER: 'AC_FILTER',
   WIPER_BLADES: 'WIPER_BLADES',
   HEADLIGHT_BULB: 'HEADLIGHT_BULB',
+  BRAKE_SHOES: 'BRAKE_SHOES',
+  CHAIN_SPROCKET_KIT: 'CHAIN_SPROCKET_KIT',
+  CVT_BELT: 'CVT_BELT',
   OTHER_PART: 'OTHER_PART'
 };
 

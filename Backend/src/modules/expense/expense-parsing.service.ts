@@ -348,31 +348,70 @@ export const expenseParsingService = {
     return { success: true, expense, fuelIntelligence, parserMeta: { method: "VOICE_AUDIO" as const } };
   },
 
-  async previewExpenseFromVoiceText(text: string) {
+  async previewExpenseFromVoiceText(
+    customerId: string,
+    text: string,
+    vehicleHint?: { vehicleId?: string; registrationNumber?: string },
+  ) {
     const aiResult = await ocrService.parseVoiceExpenseFromText(text);
     if (aiResult.error) throw AppError.badRequest(String(aiResult.error));
+
+    const amount = Number(aiResult.amount) || 0;
+    const category = normalizeExpenseCategory(aiResult.category);
+    const confidence = (aiResult.confidence as "HIGH" | "MEDIUM" | "LOW") || "MEDIUM";
+
+    const vehicle = await vehicleService.resolveVehicleTarget(customerId, vehicleHint ?? {});
+
+    let hasAnomaly = false;
+    if (amount > 0) {
+      const anomaly = await expenseIntelligenceService.detectAnomalies(
+        customerId,
+        amount,
+        category,
+        aiResult.merchantName ?? undefined,
+        vehicle.vehicleId ?? undefined,
+      );
+      hasAnomaly = anomaly.hasAnomaly;
+    }
+
+    // Auto-commit only when the parser is confident, the vehicle is unambiguous, and the
+    // amount isn't anomalous for its category — everything else needs an explicit confirm turn.
+    const requiresConfirmation = confidence !== "HIGH" || vehicle.ambiguous || hasAnomaly;
 
     return {
       success: true,
       dryRun: true,
       expense: {
-        amount: Number(aiResult.amount) || 0,
-        category: normalizeExpenseCategory(aiResult.category),
+        amount,
+        category,
         merchantName: aiResult.merchantName ?? null,
         date: aiResult.date || new Date().toISOString().split("T")[0],
         notes: aiResult.notes ?? `Voice transcription: ${aiResult.transcription || text}`,
+        rawText: aiResult.transcription || text,
       },
+      vehicle: {
+        vehicleId: vehicle.vehicleId,
+        ambiguous: vehicle.ambiguous,
+        candidates: vehicle.candidates,
+      },
+      parserMeta: { method: "VOICE_TEXT" as const, confidence },
+      requiresConfirmation,
+      previewedAt: new Date().toISOString(),
     };
   },
 
-  async createExpenseFromVoiceText(customerId: string, text: string) {
+  async createExpenseFromVoiceText(
+    customerId: string,
+    text: string,
+    vehicleHint?: { vehicleId?: string; registrationNumber?: string },
+  ) {
     const aiResult = await ocrService.parseVoiceExpenseFromText(text);
     if (aiResult.error) throw AppError.badRequest(String(aiResult.error));
     const amount = Number(aiResult.amount) || 0;
     if (amount <= 0) throw AppError.badRequest("Could not detect expense amount from text.");
 
     const category = normalizeExpenseCategory(aiResult.category);
-    const targetVehicleId = await vehicleService.resolveVehicleId(customerId, undefined);
+    const vehicle = await vehicleService.resolveVehicleTarget(customerId, vehicleHint ?? {});
     const rawText = typeof aiResult.transcription === "string" ? aiResult.transcription : text;
 
     const dupCheck = await expenseIntelligenceService.isDuplicate(customerId, amount, category, new Date());
@@ -388,7 +427,7 @@ export const expenseParsingService = {
     const expense = await db.expense.create({
       data: {
         customerId,
-        vehicleId: targetVehicleId,
+        vehicleId: vehicle.vehicleId,
         amount,
         category,
         merchantName: aiResult.merchantName ?? null,
@@ -414,5 +453,95 @@ export const expenseParsingService = {
     }
 
     return { success: true, expense, fuelIntelligence, parserMeta: { method: "VOICE_TEXT" as const } };
+  },
+
+  /**
+   * Commits an already-parsed draft (from previewExpenseFromVoiceText) without a second AI
+   * call — used both for the confidence-gated auto-commit fast path and for the explicit
+   * "yes" turn after a confirmation question. Re-runs the duplicate and vehicle checks against
+   * current data rather than trusting the client-echoed draft blindly.
+   */
+  async commitVoiceExpenseDraft(
+    customerId: string,
+    draft: {
+      amount: number;
+      category: string;
+      merchantName?: string | null;
+      date?: string | null;
+      notes?: string | null;
+      rawText?: string | null;
+      previewedAt?: string | null;
+    },
+    vehicleHint?: { vehicleId?: string; registrationNumber?: string },
+  ) {
+    // Don't blindly trust a client-echoed draft — a preview more than 10 minutes old must be
+    // re-parsed rather than committed, since prices/context may have changed and this is the
+    // same window expenseIntelligenceService treats as "recent" for dedup purposes.
+    const MAX_DRAFT_AGE_MS = 10 * 60 * 1000;
+    if (draft.previewedAt) {
+      const previewedAt = new Date(draft.previewedAt).getTime();
+      if (!Number.isFinite(previewedAt) || Date.now() - previewedAt > MAX_DRAFT_AGE_MS) {
+        return {
+          success: false,
+          stale: true,
+          reason: "This expense draft has expired. Please say the command again.",
+        };
+      }
+    }
+
+    const amount = Number(draft.amount) || 0;
+    if (amount <= 0) throw AppError.badRequest("Could not detect expense amount from the draft.");
+    const category = normalizeExpenseCategory(draft.category);
+
+    const dupCheck = await expenseIntelligenceService.isDuplicate(customerId, amount, category, new Date());
+    if (dupCheck.isDuplicate) {
+      return {
+        success: false,
+        skipped: true,
+        reason: dupCheck.reason,
+        existingExpenseId: dupCheck.existingExpenseId,
+      };
+    }
+
+    const vehicle = await vehicleService.resolveVehicleTarget(customerId, vehicleHint ?? {});
+    if (vehicle.ambiguous) {
+      return {
+        success: false,
+        requiresVehicleSelection: true,
+        candidates: vehicle.candidates,
+        reason: "Multiple vehicles found and none is marked primary — specify a registration number.",
+      };
+    }
+
+    const rawText = draft.rawText || draft.notes || "";
+    const expense = await db.expense.create({
+      data: {
+        customerId,
+        vehicleId: vehicle.vehicleId,
+        amount,
+        category,
+        merchantName: draft.merchantName ?? null,
+        date: draft.date ? new Date(draft.date) : new Date(),
+        source: "VOICE",
+        rawText: rawText.slice(0, 5000),
+        isAutomated: true,
+        notes: draft.notes ?? `Voice (text): ${rawText.slice(0, 500)}`,
+      } as any,
+    });
+
+    if (queues?.budgetCheck) {
+      void queues.budgetCheck
+        .add("check-budget", { customerId, metadata: { category: expense.category, amount: expense.amount } })
+        .catch(() => {});
+    } else {
+      void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
+    }
+
+    let fuelIntelligence = null;
+    if (category === "FUEL") {
+      fuelIntelligence = await fuelPriceService.enrichFuelExpense(amount, "Delhi", "PETROL").catch(() => null);
+    }
+
+    return { success: true, expense, fuelIntelligence, parserMeta: { method: "VOICE_TEXT_CONFIRMED" as const } };
   },
 };

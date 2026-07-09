@@ -82,6 +82,145 @@ export type PartLifecycle = {
   source?: string;
 };
 
+/** Coarse vehicle category used to decide which parts are tracked and which fallback intervals apply. */
+export type VehicleTypeBucket = "CAR" | "BIKE";
+
+/**
+ * Buckets a free-text vehicleType field into CAR or BIKE.
+ * Defaults to CAR when the type is missing/ambiguous, since cars are the more conservative
+ * (longer-interval, more-parts) assumption.
+ */
+function resolveVehicleTypeBucket(vehicleType?: string | null): VehicleTypeBucket {
+  const normalized = (vehicleType ?? "").toUpperCase();
+  if (
+    normalized.includes("BIKE") ||
+    normalized.includes("MOTORCYCLE") ||
+    normalized.includes("SCOOTER") ||
+    normalized.includes("2W") ||
+    normalized.includes("TWO")
+  ) {
+    return "BIKE";
+  }
+  return "CAR";
+}
+
+/**
+ * Part types that are actually fitted/tracked for a given vehicle bucket.
+ * A scooter has no AC filter/wiper blades/timing belt, and most Indian commuter bikes have
+ * no coolant loop -- tracking car-only parts on a bike creates phantom overdue entries for
+ * parts that were never fitted in the first place.
+ */
+function getTrackedPartTypesForVehicle(bucket: VehicleTypeBucket): string[] {
+  if (bucket === "BIKE") {
+    return [
+      "ENGINE_OIL",
+      "OIL_FILTER",
+      "AIR_FILTER",
+      "BRAKE_PADS",
+      "BRAKE_DISCS",
+      "BRAKE_SHOES",
+      "BATTERY",
+      "TYRES_FRONT",
+      "TYRES_REAR",
+      "CLUTCH_PLATE",
+      "SPARK_PLUGS",
+      "CHAIN_SPROCKET_KIT",
+      "CVT_BELT",
+      "HEADLIGHT_BULB",
+    ];
+  }
+  return [
+    "ENGINE_OIL",
+    "OIL_FILTER",
+    "AIR_FILTER",
+    "BRAKE_PADS",
+    "BRAKE_DISCS",
+    "BATTERY",
+    "TYRES_FRONT",
+    "TYRES_REAR",
+    "CLUTCH_PLATE",
+    "SPARK_PLUGS",
+    "COOLANT",
+    "TIMING_BELT",
+    "AC_FILTER",
+    "WIPER_BLADES",
+    "HEADLIGHT_BULB",
+  ];
+}
+
+/**
+ * A motorcycle has a chain and sprocket while a scooter has a CVT belt -- never both -- and
+ * vehicleType alone cannot reliably tell us which drivetrain a given bike uses. So these two
+ * part types are never defaulted from registration date like other parts; they only appear
+ * once the customer or garage has actually logged a real service record for one of them.
+ */
+const OPPORTUNISTIC_PART_TYPES = new Set<string>(["CHAIN_SPROCKET_KIT", "CVT_BELT"]);
+
+/**
+ * Generic (no vehicle-specific/OEM/AI data) fallback intervals, split by vehicle bucket.
+ * This replaces a previous flat "12 months / 10000 km" fallback applied to every part on
+ * every vehicle, which was accurate for roughly nothing (wildly wrong for e.g. a commuter
+ * bike's engine oil, actually due every ~3000 km, vs. a Fortuner's).
+ */
+const GENERIC_FALLBACK_INTERVALS: Record<VehicleTypeBucket, Record<string, { months: number; km: number }>> = {
+  BIKE: {
+    ENGINE_OIL: { months: 3, km: 3000 },
+    OIL_FILTER: { months: 6, km: 6000 },
+    AIR_FILTER: { months: 12, km: 10000 },
+    BRAKE_PADS: { months: 12, km: 15000 },
+    BRAKE_DISCS: { months: 36, km: 30000 },
+    BRAKE_SHOES: { months: 18, km: 20000 },
+    BATTERY: { months: 24, km: 30000 },
+    TYRES_FRONT: { months: 24, km: 20000 },
+    TYRES_REAR: { months: 18, km: 15000 },
+    CLUTCH_PLATE: { months: 36, km: 30000 },
+    SPARK_PLUGS: { months: 12, km: 10000 },
+    CHAIN_SPROCKET_KIT: { months: 18, km: 20000 },
+    CVT_BELT: { months: 24, km: 20000 },
+    HEADLIGHT_BULB: { months: 24, km: 20000 },
+  },
+  CAR: {
+    ENGINE_OIL: { months: 6, km: 10000 },
+    OIL_FILTER: { months: 6, km: 10000 },
+    AIR_FILTER: { months: 12, km: 15000 },
+    BRAKE_PADS: { months: 24, km: 30000 },
+    BRAKE_DISCS: { months: 48, km: 60000 },
+    BATTERY: { months: 36, km: 50000 },
+    TYRES_FRONT: { months: 36, km: 40000 },
+    TYRES_REAR: { months: 36, km: 40000 },
+    CLUTCH_PLATE: { months: 60, km: 80000 },
+    SPARK_PLUGS: { months: 24, km: 30000 },
+    COOLANT: { months: 24, km: 40000 },
+    TIMING_BELT: { months: 60, km: 60000 },
+    AC_FILTER: { months: 12, km: 15000 },
+    WIPER_BLADES: { months: 12, km: 15000 },
+    HEADLIGHT_BULB: { months: 36, km: 30000 },
+  },
+};
+
+/**
+ * Looks up the generic fallback interval for a given vehicle bucket + part type.
+ * Falls back to the old flat 12-month/10000km default as an ultimate safety net when the
+ * bucket/partType combination has no entry (e.g. OTHER_PART).
+ */
+function getGenericFallback(bucket: VehicleTypeBucket, partType: string): PartLifecycle {
+  const found = GENERIC_FALLBACK_INTERVALS[bucket]?.[partType];
+  if (found) {
+    return {
+      months: found.months,
+      km: found.km,
+      defaultWarrantyMonths: 0,
+      source: "FALLBACK",
+    };
+  }
+  return {
+    months: 12,
+    km: 10000,
+    defaultWarrantyMonths: 0,
+    source: "FALLBACK",
+  };
+}
+
 /**
  * Get replacement interval for a part on a specific vehicle.
  * Uses PartReplacementInterval (vehicle-specific) then DEFAULT rows, then in-memory fallback.
@@ -92,12 +231,13 @@ async function getLifecycleForVehiclePart(
 ): Promise<PartLifecycle> {
   const vehicle = await db.customerVehicle.findUnique({
     where: { id: vehicleId },
-    select: { make: true, model: true, manufacturingMonthYear: true, registrationDate: true },
+    select: { make: true, model: true, manufacturingMonthYear: true, registrationDate: true, vehicleType: true },
   });
 
   const make = (vehicle?.make ?? "").trim() || null;
   const model = (vehicle?.model ?? "").trim() || null;
-  
+  const bucket = resolveVehicleTypeBucket(vehicle?.vehicleType);
+
   // Use explicit year first; fallback to registration year.
   let year: number | null = null;
   if (vehicle?.manufacturingMonthYear) {
@@ -174,12 +314,7 @@ async function getLifecycleForVehiclePart(
     }
 
     if (matches.length === 0) {
-      return { 
-        months: 12, 
-        km: 10000, 
-        defaultWarrantyMonths: 0, 
-        source: "FALLBACK" 
-      };
+      return getGenericFallback(bucket, partType);
     }
 
     // Prefer OEM_WEBSITE (scraped from original OEM) over DEFAULT or other sources; then by specificity
@@ -194,6 +329,18 @@ async function getLifecycleForVehiclePart(
     matches.sort((a: any, b: any) => score(b) - score(a));
 
     const best = matches[0];
+
+    // If this row hasn't been (re-)confirmed against the live OEM site yet, kick off a
+    // background verification attempt so a vehicle that only ever got an AI guess (e.g.
+    // because the scrape failed at signup time) can be upgraded once the OEM site becomes
+    // scrapeable again. Only for rows tied to a real vehicle make -- never the generic
+    // seeded DEFAULT catch-all rows. Fire-and-forget: must not affect this response.
+    if (!best.verifiedAt && best.make !== "DEFAULT") {
+      fetchAndSaveIntervalsForVehicle(vehicleId, { forceRefresh: true, skipAiFallback: true }).catch((err) =>
+        logger.warn({ err, vehicleId, make, model }, "Background OEM verification failed (non-critical)"),
+      );
+    }
+
     return {
       months: best.intervalMonths,
       km: best.intervalKm,
@@ -202,12 +349,7 @@ async function getLifecycleForVehiclePart(
     };
   } catch (e) {
     logger.warn({ err: e, vehicleId, partType }, "PartReplacementInterval lookup failed");
-    return { 
-      months: 12, 
-      km: 10000, 
-      defaultWarrantyMonths: 0, 
-      source: "FALLBACK" 
-    };
+    return getGenericFallback(bucket, partType);
   }
 }
 
@@ -223,6 +365,16 @@ function pickLatestSavedPart(existing: any, candidate: any) {
   const existingReplacedAt = new Date(existing.lastReplacedAt || 0).getTime();
   const candidateReplacedAt = new Date(candidate.lastReplacedAt || 0).getTime();
   return candidateReplacedAt > existingReplacedAt ? candidate : existing;
+}
+
+/**
+ * Maps a raw interval source string to a customer-facing data-quality label.
+ */
+function toDataQualityLabel(source?: string | null): string {
+  const s = (source || "").toUpperCase();
+  if (s === "OEM_WEBSITE") return "VERIFIED";
+  if (s === "AI_SUGGESTED") return "AI_PREDICTED";
+  return "ESTIMATED";
 }
 
 export const warrantyService = {
@@ -422,7 +574,7 @@ export const warrantyService = {
     // Get current odometer
     const vehicle = await dbInstances.customerVehicle.findUnique({
       where: { id: vehicleId },
-      select: { currentOdometer: true, make: true, model: true, registrationDate: true },
+      select: { currentOdometer: true, make: true, model: true, registrationDate: true, vehicleType: true },
     });
 
     const currentOdo = vehicle?.currentOdometer || 0;
@@ -465,17 +617,15 @@ export const warrantyService = {
       })[0];
 
     const due: any[] = [];
-    const trackedPartTypes = [
-      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
-      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
-      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
-    ];
+    const trackedPartTypes = getTrackedPartTypesForVehicle(resolveVehicleTypeBucket(vehicle?.vehicleType));
 
     for (const partType of trackedPartTypes) {
       let part =
         partType === "TYRES"
           ? latestTyresAggregate ?? latestParts.get(partType)
           : latestParts.get(partType);
+      // Never guess a motorcycle chain-drive vs a scooter CVT belt without a real service record.
+      if (!part && OPPORTUNISTIC_PART_TYPES.has(partType)) continue;
       const lifecycle = await getLifecycleForVehiclePart(vehicleId, partType);
 
       let replacedAt: Date;
@@ -547,6 +697,7 @@ export const warrantyService = {
           message,
           overdueByKm: isOverdueByKm ? overdueByKm : undefined,
           intervalSource: lifecycle.source || "FALLBACK",
+          dataQuality: toDataQualityLabel(lifecycle.source),
         });
       } else {
         // Active/Good status
@@ -566,6 +717,7 @@ export const warrantyService = {
           warrantyMonths: part.warrantyMonths || lifecycle.defaultWarrantyMonths,
           message: `✅ ${partType} is in good condition.`,
           intervalSource: lifecycle.source || "FALLBACK",
+          dataQuality: toDataQualityLabel(lifecycle.source),
         });
       }
     }
@@ -711,9 +863,10 @@ export const warrantyService = {
    */
   getPartLifecycleInfo() {
     return [
-      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
-      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
-      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
+      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS",
+      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT",
+      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB",
+      "BRAKE_SHOES", "CHAIN_SPROCKET_KIT", "CVT_BELT"
     ].map((partType) => ({
       partType,
       recommendedIntervalMonths: 12,
@@ -767,11 +920,15 @@ export const warrantyService = {
    * Useful when adding a new vehicle to establish a baseline.
    */
   async initializeMaintenance(vehicleId: string, odometer: number) {
-    const trackedPartTypes = [
-      "ENGINE_OIL", "OIL_FILTER", "AIR_FILTER", "BRAKE_PADS", "BRAKE_DISCS", 
-      "BATTERY", "TYRES", "CLUTCH_PLATE", "SPARK_PLUGS", "COOLANT", 
-      "TIMING_BELT", "AC_FILTER", "WIPER_BLADES", "HEADLIGHT_BULB"
-    ];
+    // Fetch just the vehicleType so we seed baseline parts appropriate to a car vs a bike,
+    // and skip opportunistic parts we should not guess for a brand-new vehicle either.
+    const vehicleForInit = await db.customerVehicle.findUnique({
+      where: { id: vehicleId },
+      select: { vehicleType: true },
+    });
+    const trackedPartTypes = getTrackedPartTypesForVehicle(
+      resolveVehicleTypeBucket(vehicleForInit?.vehicleType),
+    ).filter((partType) => OPPORTUNISTIC_PART_TYPES.has(partType) === false);
 
     logger.info({ vehicleId, odometer }, "Initializing maintenance state for new vehicle");
     

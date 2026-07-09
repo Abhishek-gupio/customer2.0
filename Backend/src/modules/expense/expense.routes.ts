@@ -61,6 +61,11 @@ router.post(
   expenseController.parseVoiceText,
 ); // Voice Command (transcribed text → AI)
 
+router.post(
+  "/parse/voice/commit",
+  expenseController.commitVoiceDraft,
+); // Commit an already-parsed voice-expense draft (no second AI call)
+
 // ============================================================
 // 3. ANALYTICS & BUDGETS
 // ============================================================

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,11 +12,14 @@ import {
     ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import { api } from '../../services/api';
 import BackButton from '../../components/BackButton';
+import type { RootStackParamList } from '../../navigation/types';
+
+type BudgetSettingsRouteProp = RouteProp<RootStackParamList, 'BudgetSettings'>;
 
 const CATEGORIES = [
     { id: 'FUEL', label: 'Fuel', icon: 'water-outline' },
@@ -37,10 +40,17 @@ const PERIODS = [
 
 export default function BudgetSettings() {
     const navigation = useNavigation();
+    const route = useRoute<BudgetSettingsRouteProp>();
     const [loading, setLoading] = useState(false);
 
-    const [selectedCategory, setSelectedCategory] = useState<string>('FUEL');
-    const [amount, setAmount] = useState<string>('');
+    // Display-seed from voice-set params only — the voice-action framework already committed
+    // the budget server-side before navigating here, so this never re-submits on mount.
+    const [selectedCategory, setSelectedCategory] = useState<string>(
+        route.params?.initialCategory || 'FUEL',
+    );
+    const [amount, setAmount] = useState<string>(
+        route.params?.initialAmount != null ? String(route.params.initialAmount) : '',
+    );
     const [period, setPeriod] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [notifyThreshold, setNotifyThreshold] = useState<string>('80');
     const [statusModal, setStatusModal] = useState({
@@ -52,6 +62,13 @@ export default function BudgetSettings() {
     const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
         setStatusModal({ visible: true, type, title, message });
     };
+
+    useEffect(() => {
+        if (route.params?.justSetViaVoice) {
+            showStatus('Budget updated', 'Set via voice command.', 'success');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSaveBudget = async () => {
         if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {

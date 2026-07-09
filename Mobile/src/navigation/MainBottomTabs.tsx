@@ -18,11 +18,9 @@ import type { MainTabParamList } from './types';
 import Home from '../screens/Main/Home';
 import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
-import Odometer from '../screens/Main/Odometer'; 
-import HeyGupioOverlay from '../components/HeyGupioOverlay';
+import Odometer from '../screens/Main/Odometer';
 import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
 import { withErrorBoundary } from '../components/withErrorBoundary';
-import ErrorBoundary from '../components/ErrorBoundary';
 
 const GupioLogoAI = require('../assets/images/gupio-logo-ai.png') as any;
 
@@ -110,8 +108,6 @@ function CenterTabButton({
 }
 
 export function MainBottomTabs() {
-  const [overlayResetKey, setOverlayResetKey] = React.useState(0);
-
   return (
     <View style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
       <Tab.Navigator
@@ -188,20 +184,6 @@ export function MainBottomTabs() {
           }}
         />
       </Tab.Navigator>
-      <ErrorBoundary
-        level="widget"
-        boundaryName="chat-hey-gupio-overlay"
-        fallbackTitle="Assistant overlay is unavailable"
-        fallbackMessage="You can keep using the app normally. Retry the overlay or report the issue if it keeps happening."
-        onRetry={() => {
-          setOverlayResetKey(current => current + 1);
-        }}
-        onSoftRefresh={() => {
-          setOverlayResetKey(current => current + 1);
-        }}
-      >
-        <HeyGupioOverlay key={overlayResetKey} />
-      </ErrorBoundary>
     </View>
   );
 }

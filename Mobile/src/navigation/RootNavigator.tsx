@@ -1,8 +1,11 @@
 import React from 'react';
+import { View } from 'react-native';
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
 } from '../lib/react-navigation-native-stack';
+import HeyGupioOverlay from '../components/HeyGupioOverlay';
+import ErrorBoundary from '../components/ErrorBoundary';
 import type { RootStackParamList } from './types';
 import SplashScreen from '../components/SplashScreen';
 import SigninFirst from '../screens/Auth/Signin_first';
@@ -153,7 +156,10 @@ const TripDetailScreen = withErrorBoundary(TripDetail, {
 
 
 export function RootNavigator() {
+  const [overlayResetKey, setOverlayResetKey] = React.useState(0);
+
   return (
+    <View style={{ flex: 1 }}>
     <Stack.Navigator
       initialRouteName="Splash"
       screenOptions={{ headerShown: false }}
@@ -218,5 +224,20 @@ export function RootNavigator() {
       <Stack.Screen name="DLVerification" component={DLVerificationScreen} />
       <Stack.Screen name="Fastag" component={FastagScreen} />
     </Stack.Navigator>
+    <ErrorBoundary
+      level="widget"
+      boundaryName="chat-hey-gupio-overlay"
+      fallbackTitle="Assistant overlay is unavailable"
+      fallbackMessage="You can keep using the app normally. Retry the overlay or report the issue if it keeps happening."
+      onRetry={() => {
+        setOverlayResetKey(current => current + 1);
+      }}
+      onSoftRefresh={() => {
+        setOverlayResetKey(current => current + 1);
+      }}
+    >
+      <HeyGupioOverlay key={overlayResetKey} />
+    </ErrorBoundary>
+    </View>
   );
 }

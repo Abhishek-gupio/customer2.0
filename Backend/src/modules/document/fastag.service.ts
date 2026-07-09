@@ -1,11 +1,9 @@
 import axios from "axios";
 import { logger } from "../../config/logger";
 import { AppError } from "../../utils/AppError";
+import { env } from "../../config/env";
 
 const BASE_URL = "https://javabackend.idspay.in/api/v1/prod";
-const API_ID = "APID1557";
-const API_KEY = "f145878d-19f0-4854-b53f-39764c159687";
-const TOKEN_ID = "3nvyL2c5zCsZQaJsaoHTRu3qD1XHgB0E";
 
 export const fastagVerificationService = {
   /**
@@ -15,9 +13,9 @@ export const fastagVerificationService = {
   async verifyAccount(creditorAccountId: string, ifscCode: string) {
     try {
       const payload = {
-        api_id: API_ID,
-        api_key: API_KEY,
-        token_id: TOKEN_ID,
+        api_id: env.API_ID,
+        api_key: env.API_KEY,
+        token_id: env.TOKEN_ID,
         creditorAccountId,
         ifscCode,
       };

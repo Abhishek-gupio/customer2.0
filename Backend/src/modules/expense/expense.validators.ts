@@ -97,6 +97,7 @@ export const updateExpenseSchema = z.object({
 export const parseExpenseSchema = z.object({
   text: z.string().min(1, "Text is required"),
   vehicleId: z.string().optional(),
+  registrationNumber: z.string().optional(),
   source: z
     .enum(["MANUAL", "SMS", "NOTIFICATION", "VOICE", "RECEIPT", "UPI"])
     .optional()

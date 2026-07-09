@@ -4,6 +4,7 @@ import { expenseService } from "../modules/expense/expense.service";
 import {
   CreateExpenseInput,
   ExpenseCategory,
+  expenseBudgetSchema,
 } from "../modules/expense/expense.validators";
 import { warrantyService } from "./warranty.service";
 import { documentService } from "../modules/document/document.service";
@@ -19,6 +20,8 @@ import { telematicsService } from "./telematics.service";
 import { vehicleService } from "../modules/vehicle/vehicle.service";
 import { addVehicleSchema } from "../modules/vehicle/vehicle.validators";
 import { tripExpenseService } from "../modules/trip-expense/trip-expense.service";
+import { supportService } from "../modules/support/support.service";
+import { createTicketSchema } from "../modules/support/support.validators";
 
 const db = dbInstances as any;
 
@@ -100,7 +103,13 @@ export const toolRegistry = {
         return { success: false, error: "Amount and Category are required." };
       }
 
-      // Map AI category to Enum if needed
+      const parsedAmount = parseFloat(args.amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        return { success: false, error: "Amount must be a positive number." };
+      }
+
+      // Map AI category to Enum — reject rather than silently defaulting to OTHER, since a
+      // silent default would misfile the expense with no indication anything was off.
       const validCategories = [
         "FUEL",
         "TOLL",
@@ -111,9 +120,14 @@ export const toolRegistry = {
         "EMI",
         "OTHER",
       ];
-      const category = validCategories.includes(args.category.toUpperCase())
-        ? (args.category.toUpperCase() as ExpenseCategory)
-        : "OTHER";
+      const upperCategory = String(args.category).toUpperCase();
+      if (!validCategories.includes(upperCategory)) {
+        return {
+          success: false,
+          error: `Category must be one of: ${validCategories.join(", ")}.`,
+        };
+      }
+      const category = upperCategory as ExpenseCategory;
 
       // Resolve Natural Language Dates (yesterday, today)
       let finalDate = new Date();
@@ -129,45 +143,27 @@ export const toolRegistry = {
         }
       }
 
-      // Resolve Vehicle ID from Reg Number if provided
-      let vehicleId = args.vehicleId;
-      if (!vehicleId && args.registrationNumber) {
-        const v = await db.customerVehicle.findFirst({
-          where: {
-            customerId,
-            registrationNumber: {
-              contains: args.registrationNumber.replace(/\s/g, ""),
-              mode: "insensitive",
-            },
-          },
-          select: { id: true },
-        });
-        if (v) vehicleId = v.id;
-      }
+      // Resolve vehicle from an explicit id or a spoken registration number (access-scoped,
+      // covers shared vehicles too — unlike a raw customerId-only lookup).
+      const resolvedVehicle = await resolveVehicleForTools(
+        customerId,
+        args.vehicleId,
+        args.registrationNumber,
+      );
 
       const input: CreateExpenseInput = {
-        amount: parseFloat(args.amount),
+        amount: parsedAmount,
         category,
         merchantName: args.merchantName,
         location: args.location,
         notes: args.notes,
         date: finalDate.toISOString(),
-        vehicleId,
+        vehicleId: resolvedVehicle?.id ?? args.vehicleId,
         source: "VOICE",
       };
 
       const result = await expenseService.createExpense(customerId, input);
       const successMessage = `Expense of ₹${result.expense.amount} for ${result.expense.category} added successfully.`;
-
-      // Update the expense notes with the success message for better record keeping
-      await db.expense.update({
-        where: { id: result.expense.id },
-        data: {
-          notes: input.notes
-            ? `${input.notes} | ${successMessage}`
-            : successMessage,
-        },
-      });
 
       return {
         success: true,
@@ -196,10 +192,15 @@ export const toolRegistry = {
     execute: async (customerId: string, args: any) => {
       let id = args.expenseId;
 
-      // If no ID, find the latest expense for this user
+      // If no ID, find the latest expense for this user — scoped to the same category when
+      // one is given, so "change my last fuel amount" can't silently overwrite a more recent
+      // expense in a different category.
       if (!id) {
         const latest = await db.expense.findFirst({
-          where: { customerId },
+          where: {
+            customerId,
+            ...(args.category ? { category: args.category.toUpperCase() } : {}),
+          },
           orderBy: { createdAt: "desc" },
           select: { id: true },
         });
@@ -215,18 +216,16 @@ export const toolRegistry = {
       if (args.location) data.location = args.location;
       if (args.notes) data.notes = args.notes;
 
+      if (Object.keys(data).length === 0) {
+        return { success: false, error: "Provide at least one field to update (amount, category, merchantName, location, or notes)." };
+      }
+
       const updated = await db.expense.update({
         where: { id, customerId },
         data,
       });
 
       const successMessage = `Expense updated successfully. New amount: ₹${updated.amount}`;
-
-      // Store the update message in the record
-      await db.expense.update({
-        where: { id, customerId },
-        data: { notes: successMessage },
-      });
 
       return {
         success: true,
@@ -307,24 +306,27 @@ export const toolRegistry = {
     name: "set_budget",
     description: "Set a monthly budget for a specific category",
     parameters: {
-      category: "string (FUEL, SERVICE, TOTAL, etc.)",
-      amount: "number",
+      category: "string (required) (FUEL, TOLL, SERVICE, PARKING, INSURANCE, CHALLAN, EMI, REPAIR, OTHER)",
+      amount: "number (required)",
     },
     execute: async (customerId: string, args: any) => {
       if (!args.category || !args.amount) {
-        return { error: "Category and Amount required." };
+        return { success: false, error: "Category and Amount required." };
       }
 
-      await expenseService.setBudget(customerId, {
-        category: args.category.toUpperCase(),
+      const parsed = expenseBudgetSchema.safeParse({
+        category: String(args.category).toUpperCase(),
         amount: parseFloat(args.amount),
-        period: "MONTHLY",
-        notifyThreshold: 80, // Default to 80% notification
       });
+      if (!parsed.success) {
+        return { success: false, error: "Not a valid budget category or amount." };
+      }
+
+      await expenseService.setBudget(customerId, parsed.data);
 
       return {
         success: true,
-        message: `Monthly budget of ₹${args.amount} set for ${args.category}.`,
+        message: `Monthly budget of ₹${parsed.data.amount} set for ${parsed.data.category}.`,
       };
     },
   },
@@ -1040,26 +1042,31 @@ export const toolRegistry = {
     name: "create_support_ticket",
     description: "Create a new support ticket for the user.",
     parameters: {
-      subject: "string (required; brief summary of the issue)",
+      subject: "string (required; brief summary of the issue, 5-100 characters)",
       description: "string (required; detailed explanation)",
-      category: "string (optional; APP, VEHICLE, BILLING, SOS, OTHER)",
-      priority: "string (optional; LOW, MEDIUM, HIGH, CRITICAL)",
+      category: "string (optional; VEHICLE, DOCUMENTS, VALET, AI_ASSISTANT, BILLING, ACCOUNT, TECHNICAL, OTHER)",
+      priority: "string (optional; LOW, MEDIUM, HIGH, URGENT)",
     },
     execute: async (customerId: string, args: any) => {
       if (!args.subject || !args.description) {
-        return { error: "Subject and Description are required." };
+        return { success: false, error: "Subject and Description are required." };
       }
+
+      const parsedInput = createTicketSchema.safeParse({
+        subject: args.subject,
+        description: args.description,
+        category: args.category || "OTHER",
+        priority: args.priority || undefined,
+      });
+      if (!parsedInput.success) {
+        return {
+          success: false,
+          error: "Subject must be 5-100 characters and category must be a valid ticket category.",
+        };
+      }
+
       try {
-        const ticket = await (dbInstances as any).supportTicket.create({
-          data: {
-            customerId,
-            subject: args.subject,
-            description: args.description,
-            category: args.category || "OTHER",
-            priority: args.priority || "MEDIUM",
-            status: "OPEN",
-          },
-        });
+        const ticket = await supportService.createTicket(customerId, parsedInput.data as any);
         return {
           success: true,
           message: "Support ticket created successfully. Our team will look into it.",
@@ -1077,34 +1084,37 @@ export const toolRegistry = {
    */
   add_ticket_message: {
     name: "add_ticket_message",
-    description: "Add a message or reply to an existing support ticket.",
+    description: "Add a message or reply to an existing support ticket. If no ticketId is given, uses the customer's most recent open ticket.",
     parameters: {
-      ticketId: "string (required)",
+      ticketId: "string (optional, will use the most recent open ticket if not provided)",
       content: "string (required; message body)",
     },
     execute: async (customerId: string, args: any) => {
-      if (!args.ticketId || !args.content) return { error: "ticketId and content are required." };
+      if (!args.content) return { success: false, error: "content is required." };
+
+      let ticketId = args.ticketId;
+      if (!ticketId) {
+        const latest = await (dbInstances as any).supportTicket.findFirst({
+          where: { customerId, status: { notIn: ["CLOSED", "RESOLVED"] } },
+          orderBy: { updatedAt: "desc" },
+          select: { id: true },
+        });
+        if (!latest) return { success: false, error: "No open support tickets found to reply to." };
+        ticketId = latest.id;
+      }
+
       try {
-        const msg = await (dbInstances as any).ticketMessage.create({
-          data: {
-            ticketId: args.ticketId,
-            senderId: customerId,
-            senderRole: "CUSTOMER",
-            content: args.content,
-          },
-        });
-        // Update ticket's updatedAt
-        await (dbInstances as any).supportTicket.update({
-          where: { id: args.ticketId },
-          data: { updatedAt: new Date() },
-        });
+        // supportService.addMessage verifies ticket ownership (customerId match) and blocks
+        // replying to a closed/resolved ticket — do not bypass it with a raw Prisma write.
+        const msg = await supportService.addMessage(customerId, ticketId, { content: args.content });
         return {
           success: true,
           message: "Reply added to ticket.",
           messageId: msg.id,
+          ticketId,
         };
-      } catch (e) {
-        return { success: false, error: "Could not add message to ticket." };
+      } catch (e: any) {
+        return { success: false, error: e?.message || "Could not add message to ticket." };
       }
     },
   },
@@ -1211,11 +1221,14 @@ export const toolRegistry = {
       registrationNumber: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
-      const resolved = await resolveVehicleForTools(
+      let resolved = await resolveVehicleForTools(
         customerId,
         args.vehicleId,
         args.registrationNumber,
       );
+      if (!resolved) {
+        resolved = await defaultGarageVehicleForTools(customerId);
+      }
       if (!resolved) {
         return { success: false, error: "Provide vehicleId or registrationNumber to sync challans." };
       }
@@ -1404,11 +1417,14 @@ export const toolRegistry = {
       registrationNumber: "string (optional)",
     },
     execute: async (customerId: string, args: any) => {
-      const resolved = await resolveVehicleForTools(
+      let resolved = await resolveVehicleForTools(
         customerId,
         args.vehicleId,
         args.registrationNumber,
       );
+      if (!resolved) {
+        resolved = await defaultGarageVehicleForTools(customerId);
+      }
       if (!resolved) {
         return { success: false, error: "Provide vehicleId or registrationNumber for service history." };
       }
