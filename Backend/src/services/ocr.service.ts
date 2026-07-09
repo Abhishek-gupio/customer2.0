@@ -25,7 +25,7 @@ export const ocrService = {
       // return text;
       return "Tesseract OCR Disabled due to runtime environment issues.";
     } catch (error) {
-      logger.error({ error }, "OCR text extraction failed");
+      logger.error({ err: error }, "OCR text extraction failed");
       throw error;
     }
   },
@@ -90,7 +90,7 @@ export const ocrService = {
         rawText: "AI Parsed Structured Data",
       };
     } catch (error) {
-      logger.error({ error }, "Gemini AI parsing failed");
+      logger.error({ err: error }, "Gemini AI parsing failed");
       // Fallback to basic text indexing if AI fails
       let rawText = "";
       try {
@@ -159,7 +159,7 @@ Rules:
 
       return parsed;
     } catch (error) {
-      logger.error({ error }, "Gemini Receipt parsing failed");
+      logger.error({ err: error }, "Gemini Receipt parsing failed");
       // Fallback to text extraction
       const text = await this.extractText(imageBuffer);
       return { rawText: text, error: "AI parsing failed" };
@@ -212,7 +212,7 @@ Rules:
       const reading = parseInt(text.replace(/[^0-9]/g, ""));
       return isNaN(reading) ? null : reading;
     } catch (error) {
-      logger.error({ error }, "AI Odometer parsing failed");
+      logger.error({ err: error }, "AI Odometer parsing failed");
       return null;
     }
   },
@@ -272,7 +272,7 @@ Return ONLY a JSON object with: transcription, amount, category, merchantName, d
           "GEMINI_RATE_LIMIT"
         );
       }
-      logger.error({ error }, "Gemini Voice Expense parsing failed");
+      logger.error({ err: error }, "Gemini Voice Expense parsing failed");
       return { error: "Voice parsing failed", rawText: "" };
     }
   },
@@ -353,7 +353,7 @@ JSON:`;
           "GEMINI_RATE_LIMIT"
         );
       }
-      logger.error({ error }, "Voice text parsing failed");
+      logger.error({ err: error }, "Voice text parsing failed");
       return { error: "Voice text parsing failed", rawText: transcription };
     }
   },
@@ -471,7 +471,7 @@ JSON:`;
 
       return parsed;
     } catch (error) {
-      logger.error({ error }, "AI notification parsing failed");
+      logger.error({ err: error }, "AI notification parsing failed");
       return {
         amount: 0,
         category: "OTHER",
@@ -580,7 +580,7 @@ JSON:`;
 
       return parsed;
     } catch (error) {
-      logger.error({ error }, "AI service detail extraction failed");
+      logger.error({ err: error }, "AI service detail extraction failed");
       return this.basicServicePrediction(amount, merchantName);
     }
   },
