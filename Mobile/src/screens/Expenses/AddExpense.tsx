@@ -34,7 +34,7 @@ import { useNavigation } from "../../lib/react-navigation-native";
 import { api } from "../../services/api";
 import { checkImageQuality } from "../../services/documentService";
 import { googleMapsService } from "../../services/googleMapsService";
-import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
+import { useExpenseStore } from "../../store/expenseStore";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
 import { VoiceOwnerContext } from "../../context/VoiceOwnerContext";
 
@@ -878,7 +878,7 @@ export default function AddExpenseScreen() {
           setShowManual(false);
         }}
         onSuccess={() => {
-          setExpenseListNeedsRefresh();
+          useExpenseStore.getState().notifyCreated();
           setShowManual(false);
           navigation.goBack();
         }}
@@ -893,7 +893,7 @@ export default function AddExpenseScreen() {
           setScannedData(null);
         }}
         onSuccess={() => {
-          setExpenseListNeedsRefresh();
+          useExpenseStore.getState().notifyCreated();
           setShowReviewer(false);
           setScannedData(null);
           navigation.goBack();

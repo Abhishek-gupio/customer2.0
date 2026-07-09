@@ -110,6 +110,17 @@ function looksLikeExpenseCommand(transcript: string): boolean {
   return hasExpenseCategory && hasAmount && hasCreateVerb;
 }
 
+function looksLikeProfileUpdateCommand(transcript: string): boolean {
+  const t = normalize(transcript);
+  if (!t) return false;
+
+  return (
+    /(change|update|set|edit)\s+(my\s+)?name\s+(to|as)\s+/.test(t) ||
+    /\bmy\s+name\s+(is|should\s+be)\s+/.test(t) ||
+    /\bcall\s+me\s+/.test(t)
+  );
+}
+
 function buildOverlayPrompt(transcript: string): string {
   const trimmed = transcript.trim();
   if (!trimmed) return trimmed;
@@ -549,6 +560,16 @@ export default function HeyGupioOverlay() {
         const expenseCreatedResult = Array.isArray(data.toolResults)
           ? data.toolResults.find((item: any) => item?.kind === 'expense_created')
           : null;
+        const expensePendingConfirmation = Array.isArray(data.toolResults)
+          ? data.toolResults.find((item: any) => item?.kind === 'expense_pending_confirmation')
+          : null;
+        const voiceActionPendingConfirmation = Array.isArray(data.toolResults)
+          ? data.toolResults.find((item: any) => item?.kind === 'voice_action_pending_confirmation')
+          : null;
+        const profileUpdatedResult = Array.isArray(data.toolResults)
+          ? data.toolResults.find((item: any) => item?.kind === 'profile_updated')
+          : null;
+        const awaitingFollowUpAnswer = !!(expensePendingConfirmation || voiceActionPendingConfirmation);
         if (sosResult?.sosAlertId) {
           const rootNavigation = navigation.getParent?.() ?? navigation;
           rootNavigation.navigate('ActiveSOS', {
@@ -580,14 +601,22 @@ export default function HeyGupioOverlay() {
                 )
           ) || 'Done.';
         const safeReply =
-          looksLikeExpenseCommand(transcript) && !expenseCreatedResult
+          looksLikeExpenseCommand(transcript) && !expenseCreatedResult && !expensePendingConfirmation
             ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
-            : reply;
+            : looksLikeProfileUpdateCommand(transcript) && !profileUpdatedResult
+              ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+              : reply;
         setOverlayStatus('speaking');
         speakWithTts(safeReply, () => {
           ttsFinishRef.current = null;
-          continuousModeRef.current = false;
-          setOverlayStatus('idle');
+          if (awaitingFollowUpAnswer) {
+            // The assistant just asked a clarifying question (e.g. "which category?") — keep
+            // listening for the answer instead of going idle and waiting for another mic tap.
+            scheduleRestartListening();
+          } else {
+            continuousModeRef.current = false;
+            setOverlayStatus('idle');
+          }
         }, lastInputLocaleRef.current);
       } catch (err: any) {
         setOverlayStatus('speaking');

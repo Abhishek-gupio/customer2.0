@@ -15,7 +15,8 @@ import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
-import { useNavigation } from '../../lib/react-navigation-native';
+import { useNavigation, useRoute, RouteProp } from '../../lib/react-navigation-native';
+import type { RootStackParamList } from '../../navigation/types';
 import { api } from '../../services/api';
 import {
   widthPercentageToDP as wp,
@@ -25,8 +26,11 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
 import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
 
+type FastagRouteProp = RouteProp<RootStackParamList, 'Fastag'>;
+
 export default function Fastag() {
   const navigation = useNavigation();
+  const route = useRoute<FastagRouteProp>();
   const [accountNumber, setAccountNumber] = useState('');
   const [ifscCode, setIfscCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -103,6 +107,13 @@ export default function Fastag() {
   useEffect(() => {
     fetchExistingFastag();
   }, [fetchExistingFastag]);
+
+  useEffect(() => {
+    if (route.params?.justVerifiedViaVoice) {
+      showStatus('Verified', 'Your Fastag account was verified via voice command.', 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBack = () => navigation.goBack();
 

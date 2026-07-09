@@ -136,15 +136,48 @@ export const expenseController = {
     if (!text) throw AppError.badRequest("No text provided");
 
     const dryRun = req.query.dryRun === "true" || req.body.dryRun === true;
+    const vehicleHint = {
+      vehicleId: typeof req.body?.vehicleId === "string" ? req.body.vehicleId : undefined,
+      registrationNumber:
+        typeof req.body?.registrationNumber === "string" ? req.body.registrationNumber : undefined,
+    };
 
     if (dryRun) {
-      const result = await expenseService.previewExpenseFromVoiceText(text);
+      const result = await expenseService.previewExpenseFromVoiceText(
+        req.customer.id,
+        text,
+        vehicleHint,
+      );
       return success(res, result, 200);
     }
 
     const result = await expenseService.createExpenseFromVoiceText(
       req.customer.id,
       text,
+      vehicleHint,
+    );
+    success(res, result, 201);
+  }),
+
+  // 9. Commit an already-parsed voice-expense draft (from parseVoiceText's dryRun preview)
+  // without re-running AI extraction — used for the confidence-gated auto-commit fast path
+  // and for the explicit "yes" turn after a confirmation question.
+  commitVoiceDraft: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const draft = req.body?.draft;
+    if (!draft || typeof draft !== "object") {
+      throw AppError.badRequest("No draft provided");
+    }
+    const vehicleHint = {
+      vehicleId: typeof req.body?.vehicleId === "string" ? req.body.vehicleId : undefined,
+      registrationNumber:
+        typeof req.body?.registrationNumber === "string" ? req.body.registrationNumber : undefined,
+    };
+
+    const result = await expenseService.commitVoiceExpenseDraft(
+      req.customer.id,
+      draft,
+      vehicleHint,
     );
     success(res, result, 201);
   }),

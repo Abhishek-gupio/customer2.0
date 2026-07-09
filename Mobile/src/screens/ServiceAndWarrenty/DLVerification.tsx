@@ -17,7 +17,8 @@ import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
-import { useNavigation } from '../../lib/react-navigation-native';
+import { useNavigation, useRoute, RouteProp } from '../../lib/react-navigation-native';
+import type { RootStackParamList } from '../../navigation/types';
 import { api } from '../../services/api';
 import {
   widthPercentageToDP as wp,
@@ -27,8 +28,12 @@ import { generatePDF as RNGeneratePDF } from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
 import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
+
+type DLVerificationRouteProp = RouteProp<RootStackParamList, 'DLVerification'>;
+
 export default function DLVerification() {
   const navigation = useNavigation();
+  const route = useRoute<DLVerificationRouteProp>();
   const [dlNumber, setDlNumber] = useState('');
   const [dob, setDob] = useState('');
   const [loading, setLoading] = useState(false);
@@ -103,6 +108,13 @@ export default function DLVerification() {
   useEffect(() => {
     fetchExistingDL();
   }, [fetchExistingDL]);
+
+  useEffect(() => {
+    if (route.params?.justVerifiedViaVoice) {
+      showStatus('Verified', 'Your driving licence was verified via voice command.', 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBack = () => {
     navigation.goBack();

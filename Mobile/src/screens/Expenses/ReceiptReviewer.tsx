@@ -17,7 +17,7 @@ import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api } from "../../services/api";
 import { parse } from "date-fns";
-import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
+import { useExpenseStore } from "../../store/expenseStore";
 import { vehicleService, type Vehicle } from "../../services/vehicleService";
 import { queueExpenseCreate } from "../../services/offlineMutationQueue";
 import { getNetworkOnlineState } from '../../services/api';
@@ -180,7 +180,7 @@ export default function ReceiptReviewer({
 
       await api.post("/v1/expenses", payload);
       clearCachedValue('cache:expenses:list');
-      setExpenseListNeedsRefresh();
+      useExpenseStore.getState().notifyCreated();
 
       setCategory("Fuel");
       setAmount("");

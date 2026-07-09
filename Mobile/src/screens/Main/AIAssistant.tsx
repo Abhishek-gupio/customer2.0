@@ -166,6 +166,17 @@ function looksLikeProfileUpdateCommand(message: string): boolean {
   );
 }
 
+function looksLikeExpenseCommand(message: string): boolean {
+  const text = message.trim().toLowerCase();
+  if (!text) return false;
+
+  const hasExpenseCategory = /\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(text);
+  const hasAmount = /(?:rs\.?|rupees?|inr|₹)?\s*\d+(?:\.\d+)?/i.test(text);
+  const hasCreateVerb = /\b(add|log|create|save|spent|pay|paid|refuel|refueled|service|serviced)\b/.test(text);
+
+  return hasExpenseCategory && hasAmount && hasCreateVerb;
+}
+
 function ChatFeatureBoundaryTestCrash(): never {
   hasTriggeredChatFeatureBoundaryTest = true;
   throw new Error('chat feature test');
@@ -789,10 +800,21 @@ export default function AIAssistant() {
         const profileUpdated = Array.isArray(response.toolResults)
           ? response.toolResults.some((item: any) => item?.kind === 'profile_updated')
           : false;
+        const sosResult = Array.isArray(response.toolResults)
+          ? response.toolResults.find((item: any) => item?.kind === 'sos')
+          : null;
+        const expenseCreated = Array.isArray(response.toolResults)
+          ? response.toolResults.some((item: any) => item?.kind === 'expense_created')
+          : false;
+        const expensePending = Array.isArray(response.toolResults)
+          ? response.toolResults.some((item: any) => item?.kind === 'expense_pending_confirmation')
+          : false;
         const safeResponseMessage =
           looksLikeProfileUpdateCommand(messageText) && !profileUpdated
             ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
-            : response.message;
+            : looksLikeExpenseCommand(messageText) && !expenseCreated && !expensePending
+              ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
+              : response.message;
         setSessionId(response.sessionId);
         setMessages((prev) =>
           prev.map((m) =>
@@ -811,6 +833,22 @@ export default function AIAssistant() {
         );
         if (profileUpdated) {
           refreshDisplayedUserName().catch(() => {});
+        }
+        if (sosResult?.sosAlertId) {
+          rootNavigation.navigate('ActiveSOS' as any, {
+            sosId: sosResult.sosAlertId,
+            type: sosResult.type,
+            lat: sosResult.latitude,
+            lon: sosResult.longitude,
+          } as any);
+        }
+        if ((response as any).navigate) {
+          const navTarget = (response as any).navigate;
+          if (navTarget.params) {
+            rootNavigation.navigate(navTarget.screen as any, navTarget.params);
+          } else {
+            rootNavigation.navigate(navTarget.screen as any);
+          }
         }
       } catch (error) {
         reportHandledError(error, {
@@ -893,7 +931,11 @@ export default function AIAssistant() {
                             looksLikeProfileUpdateCommand(messageText) &&
                             !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated'))
                               ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
-                              : m.text,
+                              : looksLikeExpenseCommand(messageText) &&
+                                  !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'expense_created')) &&
+                                  !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'expense_pending_confirmation'))
+                                ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
+                                : m.text,
                           isStreaming: false,
                           voiceUrl: chunk.voiceUrl,
                           toolResults: chunk.toolResults || m.toolResults,
@@ -903,6 +945,26 @@ export default function AIAssistant() {
                   ),
                 );
                 setIsStreaming(false);
+                {
+                  const sosResult = Array.isArray(chunk.toolResults)
+                    ? chunk.toolResults.find((item: any) => item?.kind === 'sos')
+                    : null;
+                  if (sosResult?.sosAlertId) {
+                    rootNavigation.navigate('ActiveSOS' as any, {
+                      sosId: sosResult.sosAlertId,
+                      type: sosResult.type,
+                      lat: sosResult.latitude,
+                      lon: sosResult.longitude,
+                    } as any);
+                  }
+                }
+                if (chunk.navigate) {
+                  if (chunk.navigate.params) {
+                    rootNavigation.navigate(chunk.navigate.screen as any, chunk.navigate.params);
+                  } else {
+                    rootNavigation.navigate(chunk.navigate.screen as any);
+                  }
+                }
                 break;
 
             case 'error':
@@ -1007,6 +1069,16 @@ export default function AIAssistant() {
       setQuickExpenseAmount('');
       setQuickExpenseCategory('FUEL');
       setQuickExpenseVisible(true);
+    } else if (action.navigate) {
+      // Navigate directly with the params already resolved from the original tool call,
+      // rather than re-sending the prompt as a new message and hoping a second AI round-trip
+      // re-derives the same target (it doesn't always — that's how this used to lose the
+      // vehicle param on screens like Challans).
+      if (action.navigate.params) {
+        rootNavigation.navigate(action.navigate.screen as any, action.navigate.params);
+      } else {
+        rootNavigation.navigate(action.navigate.screen as any);
+      }
     } else {
       handleSend(action.prompt);
     }

@@ -17,7 +17,8 @@ import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { api, getNetworkOnlineState } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
-import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
+import { setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
+import { useExpenseStore } from "../../store/expenseStore";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
@@ -425,7 +426,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         });
       }
 
-      setExpenseListNeedsRefresh();
+      useExpenseStore.getState().notifyCreated();
       if (isPartCategory) {
         setWarrantyStatusNeedsRefresh();
       }

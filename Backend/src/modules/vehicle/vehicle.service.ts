@@ -310,6 +310,62 @@ export const vehicleService = {
   },
 
   /**
+   * Resolves a vehicle from an explicit id or a spoken registration number, falling back to
+   * the customer's primary vehicle. Unlike resolveVehicleId, this reports when it had to guess
+   * between multiple vehicles with none marked primary, so a caller (e.g. voice assistant) can
+   * ask the user to disambiguate instead of silently picking one.
+   */
+  async resolveVehicleTarget(
+    customerId: string,
+    hint: { vehicleId?: string | null; registrationNumber?: string | null },
+  ): Promise<{
+    vehicleId: string | null;
+    ambiguous: boolean;
+    candidates: { id: string; registrationNumber: string; make: string | null; model: string | null }[];
+  }> {
+    const accessFilter = { OR: [{ customerId }, { accessList: { some: { customerId } } }] };
+
+    const vehicleId = hint.vehicleId?.trim();
+    if (vehicleId) {
+      const owned = await dbInstances.customerVehicle.findFirst({
+        where: { id: vehicleId, isActive: true, ...accessFilter },
+        select: { id: true },
+      });
+      if (owned) return { vehicleId: owned.id, ambiguous: false, candidates: [] };
+    }
+
+    const registrationNumber = hint.registrationNumber?.trim();
+    if (registrationNumber) {
+      const clean = registrationNumber.replace(/\s/g, "");
+      const matched = await dbInstances.customerVehicle.findFirst({
+        where: {
+          isActive: true,
+          registrationNumber: { contains: clean, mode: "insensitive" },
+          ...accessFilter,
+        },
+        select: { id: true, registrationNumber: true, make: true, model: true },
+      });
+      if (matched) return { vehicleId: matched.id, ambiguous: false, candidates: [] };
+    }
+
+    const allVehicles = await dbInstances.customerVehicle.findMany({
+      where: { isActive: true, ...accessFilter },
+      select: { id: true, registrationNumber: true, make: true, model: true, isPrimary: true },
+    });
+
+    if (allVehicles.length === 0) return { vehicleId: null, ambiguous: false, candidates: [] };
+
+    const primary = allVehicles.find((v) => v.isPrimary);
+    if (primary) return { vehicleId: primary.id, ambiguous: false, candidates: [] };
+
+    if (allVehicles.length > 1) {
+      return { vehicleId: null, ambiguous: true, candidates: allVehicles };
+    }
+
+    return { vehicleId: allVehicles[0].id, ambiguous: false, candidates: [] };
+  },
+
+  /**
    * Centralized Access Control: Ensures a user can interact with a vehicle
    * Logic: Owners always have access. Shared users must have a matching role.
    */

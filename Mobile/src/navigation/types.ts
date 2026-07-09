@@ -28,7 +28,9 @@ export type RootStackParamList = {
   TicketDetail: { ticketId: string };
   DigiLockerKYC: { url: string; client_id: string };
   Settings: undefined;
-  BudgetSettings: undefined;
+  BudgetSettings:
+    | { initialCategory?: string; initialAmount?: number; justSetViaVoice?: boolean }
+    | undefined;
   ServiceHistory: { selectedPartType?: string } | undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;
@@ -40,8 +42,8 @@ export type RootStackParamList = {
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
   TripExpense: undefined;
-  DLVerification: undefined;
-  Fastag: undefined;
+  DLVerification: { justVerifiedViaVoice?: boolean } | undefined;
+  Fastag: { justVerifiedViaVoice?: boolean } | undefined;
 
   TripPlannerInsights: undefined;
   DIYGuides: undefined;
@@ -55,7 +57,7 @@ export type MainTabParamList = {
     userMessage?: string;
     sessionId?: string;
   } | undefined;
-  Odometer: undefined;
+  Odometer: { justSetViaVoice?: boolean } | undefined;
 };
 
 declare global {

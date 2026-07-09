@@ -2,7 +2,9 @@ import { api, doRefresh } from './api';
 import { API_BASE_URL } from '../config';
 import { getAccessToken, getPrimaryVehicleId } from './storage';
 import { vehicleService, type Vehicle } from './vehicleService';
-import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from '../utils/refreshManager';
+import { setWarrantyStatusNeedsRefresh } from '../utils/refreshManager';
+import { useExpenseStore } from '../store/expenseStore';
+import { tryResolvePendingVoiceAction, tryResolveLocalVoiceAction } from './voiceActionService';
 import { listDocuments, type DocumentResponse } from './documentService';
 import { getProfile, updateProfile, type ProfileResponse, type UpdateProfilePayload } from './profileService';
 import { googleMapsService } from './googleMapsService';
@@ -96,6 +98,7 @@ export interface SSEChunk {
     contextUsed?: number;
     toolResults?: any[];
     suggestedActions?: SuggestedAction[];
+    navigate?: { screen: string; params?: Record<string, unknown> };
 }
 
 type ChatVehicleContext = {
@@ -150,6 +153,7 @@ type LocalChatResolution = {
     toolResults?: any[];
     agentSteps?: any[];
     suggestedActions?: SuggestedAction[];
+    navigate?: { screen: string; params?: Record<string, unknown> };
 };
 
 type ProfileUpdateIntent = {
@@ -161,13 +165,6 @@ type VehicleFactAnswer = {
     value?: string | number | null;
     fallback: string;
     label: string;
-};
-
-type ExpenseCreateIntent = {
-    amount?: number;
-    category?: string;
-    partTypes?: string[];
-    needsMoreInfoMessage?: string;
 };
 
 const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
@@ -722,85 +719,259 @@ function getLocalVehicleFactAnswer(
     return null;
 }
 
-function extractExpenseCreateIntent(message: string): ExpenseCreateIntent | null {
+/**
+ * Permissive routing gate only — decides whether a message looks expense-shaped enough to send
+ * to the backend voice-expense parser. Deliberately does NOT extract amount/category itself
+ * (that regressed to first-number-in-sentence / first-matching-category bugs); all real parsing
+ * happens server-side via expenseParsingService's Gemini-backed parser. Kept permissive (biased
+ * toward over-triggering) because anything that falls through lands on a weaker, un-language-aware
+ * fallback (the per-message intent pre-check inside the backend chat pipeline).
+ */
+function looksExpenseShaped(message: string): boolean {
     const text = getEffectiveUserMessage(message).toLowerCase();
-    if (!text) return null;
+    if (!text) return false;
 
     const hasExpenseCategory = /\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(text);
     const hasAmount = /(?:rs\.?|rupees?|inr|₹)?\s*\d+(?:\.\d+)?/i.test(text);
     const hasCreateVerb = /\b(add|log|create|save|spent|pay|paid|refuel|refueled|service|serviced)\b/.test(text);
-    const hasExpenseIntent =
+
+    return (
         /(add|log|create|save)\s+.*expense|expense\s+(of|for)|spent\s+\d+/.test(text) ||
         /(add|log|create|save)\s+.*\b(fuel|petrol|diesel|cng|service|maintenance|toll|parking|insurance|challan|fine|other)\b/.test(text) ||
-        (hasExpenseCategory && hasAmount && hasCreateVerb);
+        (hasExpenseCategory && hasAmount && hasCreateVerb)
+    );
+}
 
-    if (!hasExpenseIntent) {
-        return null;
+/** Matches a spoken/typed Indian registration number, e.g. "KA 01 AB 1234" or "ka01ab1234". */
+function extractRegistrationNumberHint(message: string): string | undefined {
+    const text = getEffectiveUserMessage(message);
+    const match = text.match(/\b([A-Za-z]{2}[\s-]?\d{1,2}[\s-]?[A-Za-z]{1,2}[\s-]?\d{4})\b/);
+    return match ? match[1].replace(/[\s-]/g, '').toUpperCase() : undefined;
+}
+
+function looksLikeAddVehicleCommand(message: string): boolean {
+    const text = getEffectiveUserMessage(message).toLowerCase();
+    if (!text) return false;
+    return (
+        (/\b(add|register)\b/.test(text) && /\b(vehicle|car|bike|scooter)\b/.test(text)) ||
+        (/\badd\b/.test(text) && /\bgarage\b/.test(text))
+    );
+}
+
+/**
+ * "Add a vehicle" style commands don't commit anything server-side — AddVehicle.tsx already
+ * has its own RTO-verify-then-confirm wizard, and a voice action that wrote straight to the DB
+ * would bypass that safety step for a real asset registration. So this just opens the screen,
+ * pre-filling the registration number if one was mentioned in the same breath (reusing the
+ * existing initialRegistrationNumber prop the screen already supports for typed input).
+ */
+async function tryResolveLocalAddVehicleIntent(
+    message: string,
+    sessionId: string | undefined,
+): Promise<LocalChatResolution | null> {
+    if (!looksLikeAddVehicleCommand(message)) return null;
+
+    const registrationNumber = extractRegistrationNumberHint(message);
+
+    return {
+        sessionId,
+        message: registrationNumber
+            ? `Opening the add vehicle screen for ${registrationNumber}.`
+            : 'Opening the add vehicle screen — what is the registration number?',
+        voiceUrl: null,
+        contextUsed: registrationNumber ? 1 : 0,
+        toolResults: [],
+        agentSteps: [],
+        navigate: {
+            screen: 'AddVehicle',
+            ...(registrationNumber ? { params: { registrationNumber } } : {}),
+        },
+    };
+}
+
+/** Which warranty-tracked parts a SERVICE expense mentions, e.g. "engine oil", "brake pads". */
+function extractServicePartTypes(text: string): string[] {
+    const lower = text.toLowerCase();
+    return normalizeSelectedPartTypes(
+        [
+            { regex: /\bengine oil\b|\boil change\b|\boil service\b|\bengine oil change\b/, partType: 'ENGINE_OIL' },
+            { regex: /\bbattery\b/, partType: 'BATTERY' },
+            { regex: /\boil filter\b/, partType: 'OIL_FILTER' },
+            { regex: /\bair filter\b/, partType: 'AIR_FILTER' },
+            { regex: /\bbrake pads\b|\bbrake pad\b/, partType: 'BRAKE_PADS' },
+            { regex: /\bbrake discs\b|\bbrake disc\b|\bdisc brake\b|\bdisc brakes\b/, partType: 'BRAKE_DISCS' },
+            { regex: /\bfront tyre\b|\bfront tires\b|\bfront tire\b|\bfront tyres\b/, partType: 'TYRES_FRONT' },
+            { regex: /\brear tyre\b|\brear tires\b|\brear tire\b|\brear tyres\b/, partType: 'TYRES_REAR' },
+            { regex: /\btyres\b|\btires\b|\btyre\b|\btire\b/, partType: 'TYRES' },
+            { regex: /\bclutch plate\b|\bclutch\b/, partType: 'CLUTCH_PLATE' },
+            { regex: /\bspark plugs\b|\bspark plug\b/, partType: 'SPARK_PLUGS' },
+            { regex: /\bcoolant\b/, partType: 'COOLANT' },
+            { regex: /\btiming belt\b/, partType: 'TIMING_BELT' },
+            { regex: /\bac filter\b|\bcabin filter\b|\bac service filter\b/, partType: 'AC_FILTER' },
+            { regex: /\bwiper\b|\bwiper blade\b|\bwipers\b/, partType: 'WIPER_BLADES' },
+            { regex: /\bheadlight\b|\bheadlight bulb\b|\bbulb\b/, partType: 'HEADLIGHT_BULB' },
+        ]
+            .filter((item) => item.regex.test(lower))
+            .map((item) => item.partType),
+    );
+}
+
+type VoiceExpenseVehicleHint = { vehicleId?: string; registrationNumber?: string };
+
+type VoiceExpenseDraft = {
+    amount: number;
+    category: string;
+    merchantName?: string | null;
+    date?: string | null;
+    notes?: string | null;
+    rawText?: string | null;
+    previewedAt?: string | null;
+};
+
+type PendingExpenseDraft = {
+    draft: VoiceExpenseDraft;
+    vehicleHint: VoiceExpenseVehicleHint;
+    sourceMessage: string;
+    expiresAt: number;
+};
+
+const PENDING_EXPENSE_DRAFT_TTL_MS = 3 * 60 * 1000;
+const pendingExpenseDrafts = new Map<string, PendingExpenseDraft>();
+
+function ensureExpenseSessionKey(sessionId?: string): string {
+    return sessionId || `voice-expense-${Math.random().toString(36).slice(2)}`;
+}
+
+/** Fire-and-forget-free: recreates the old client parser's SERVICE+parts → warranty linkage. */
+/** Spoken odometer mention, e.g. "odometer 45230", "at 45230 km" — falls back to the vehicle's
+ * stored reading server-side (expense-warranty.service.ts's syncExpenseToWarranty) when absent. */
+function extractSpokenOdometerReading(text: string): number | undefined {
+    const match = text.match(/\b(?:odometer|odo|at)\s+(\d{2,7})\s*(?:km|kms|kilometers?)?\b/i)
+        || text.match(/\b(\d{2,7})\s*(?:km|kms|kilometers?)\b/i);
+    if (!match) return undefined;
+    const value = Number(match[1]);
+    return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+async function maybeCreateServiceRecordForExpense(
+    sourceMessage: string,
+    category: string,
+    expense: { id?: string; vehicleId?: string | null; date?: string },
+): Promise<void> {
+    if (category !== 'SERVICE' || !expense.vehicleId) return;
+    const effectiveMessage = getEffectiveUserMessage(sourceMessage);
+    const partTypes = extractServicePartTypes(effectiveMessage);
+    if (partTypes.length === 0) return;
+
+    const odometerAtService = extractSpokenOdometerReading(effectiveMessage);
+
+    setWarrantyStatusNeedsRefresh();
+
+    await api
+        .post('/v1/expenses/warranty/service-records', {
+            vehicleId: expense.vehicleId,
+            expenseId: expense.id,
+            serviceType: 'REGULAR_SERVICE',
+            serviceDate: expense.date || new Date().toISOString(),
+            parts: partTypes.map((partType) => ({ partType })),
+            ...(odometerAtService != null ? { odometerAtService } : {}),
+        })
+        .catch(() => {});
+}
+
+function buildExpenseConfirmationQuestion(preview: any): string {
+    const amountLabel = `Rs. ${Number(preview.expense.amount).toLocaleString('en-IN')}`;
+    const categoryLabel = String(preview.expense.category || '').toLowerCase();
+    if (preview.vehicle?.ambiguous) {
+        const options = (preview.vehicle.candidates || [])
+            .map((v: any) => v.registrationNumber)
+            .filter(Boolean)
+            .join(' or ');
+        return options
+            ? `Which vehicle should I log ${amountLabel} for ${categoryLabel} — ${options}?`
+            : `Which vehicle should I log this ${categoryLabel} expense for?`;
     }
+    return `Should I log ${amountLabel} for ${categoryLabel}? Say yes to confirm.`;
+}
 
-    const amountMatch = text.match(/(?:rs\.?|rupees?|inr|₹)?\s*(\d+(?:\.\d+)?)/i);
-    const amount = amountMatch ? Number(amountMatch[1]) : undefined;
+async function buildExpenseCommitResolution(
+    sessionId: string,
+    sourceMessage: string,
+    commitResponse: any,
+): Promise<LocalChatResolution> {
+    const data = (commitResponse as any)?.data ?? commitResponse;
+    const base = {
+        sessionId,
+        voiceUrl: null as null,
+        agentSteps: [] as any[],
+    };
 
-    const categoryMap: Array<{ regex: RegExp; category: string }> = [
-        { regex: /\bfuel\b|\bpetrol\b|\bdiesel\b|\bcng\b/, category: 'FUEL' },
-        { regex: /\btoll\b/, category: 'TOLL' },
-        { regex: /\bservice\b|\bmaintenance\b/, category: 'SERVICE' },
-        { regex: /\bparking\b/, category: 'PARKING' },
-        { regex: /\binsurance\b/, category: 'INSURANCE' },
-        { regex: /\bchallan\b|\bfine\b/, category: 'CHALLAN' },
-        { regex: /\bother\b/, category: 'OTHER' },
-    ];
-
-    const category = categoryMap.find((item) => item.regex.test(text))?.category;
-    const servicePartTypes = normalizeSelectedPartTypes([
-        ...[
-        { regex: /\bengine oil\b|\boil change\b|\boil service\b|\bengine oil change\b/, partType: 'ENGINE_OIL' },
-        { regex: /\bbattery\b/, partType: 'BATTERY' },
-        { regex: /\boil filter\b/, partType: 'OIL_FILTER' },
-        { regex: /\bair filter\b/, partType: 'AIR_FILTER' },
-        { regex: /\bbrake pads\b|\bbrake pad\b/, partType: 'BRAKE_PADS' },
-        { regex: /\bbrake discs\b|\bbrake disc\b|\bdisc brake\b|\bdisc brakes\b/, partType: 'BRAKE_DISCS' },
-        { regex: /\bfront tyre\b|\bfront tires\b|\bfront tire\b|\bfront tyres\b/, partType: 'TYRES_FRONT' },
-        { regex: /\brear tyre\b|\brear tires\b|\brear tire\b|\brear tyres\b/, partType: 'TYRES_REAR' },
-        { regex: /\btyres\b|\btires\b|\btyre\b|\btire\b/, partType: 'TYRES' },
-        { regex: /\bclutch plate\b|\bclutch\b/, partType: 'CLUTCH_PLATE' },
-        { regex: /\bspark plugs\b|\bspark plug\b/, partType: 'SPARK_PLUGS' },
-        { regex: /\bcoolant\b/, partType: 'COOLANT' },
-        { regex: /\btiming belt\b/, partType: 'TIMING_BELT' },
-        { regex: /\bac filter\b|\bcabin filter\b|\bac service filter\b/, partType: 'AC_FILTER' },
-        { regex: /\bwiper\b|\bwiper blade\b|\bwipers\b/, partType: 'WIPER_BLADES' },
-        { regex: /\bheadlight\b|\bheadlight bulb\b|\bbulb\b/, partType: 'HEADLIGHT_BULB' },
-      ]
-        .filter((item) => item.regex.test(text))
-        .map((item) => item.partType),
-    ]);
-
-    if (!amount || Number.isNaN(amount) || amount <= 0) {
+    if (data?.stale) {
         return {
-            needsMoreInfoMessage: 'Tell me the expense amount, for example add fuel expense 500.',
+            ...base,
+            message: data.reason || 'That expense draft expired. Please say the command again.',
+            contextUsed: 0,
+            toolResults: [],
         };
     }
 
-    if (!category) {
+    if (data?.requiresVehicleSelection) {
+        const options = (data.candidates || [])
+            .map((v: any) => v.registrationNumber)
+            .filter(Boolean)
+            .join(' or ');
         return {
-            amount,
-            needsMoreInfoMessage: 'Tell me the expense category, like fuel, toll, service, parking, insurance, or challan.',
+            ...base,
+            message: options
+                ? `Which vehicle should I log this for — ${options}?`
+                : 'Which vehicle should I log this expense for?',
+            contextUsed: 0,
+            toolResults: [{ kind: 'expense_pending_confirmation' }],
         };
     }
 
-    if (category === 'SERVICE' && servicePartTypes.length === 0) {
+    if (data?.skipped) {
         return {
-            amount,
-            category,
-            needsMoreInfoMessage:
-                'Tell me which service part was updated, for example engine oil, air filter, brake pads, battery, or tyres.',
+            ...base,
+            message: data.reason || 'That looks like an expense you already logged — skipping.',
+            contextUsed: 0,
+            toolResults: [],
+        };
+    }
+
+    if (data?.success && data?.expense) {
+        useExpenseStore.getState().notifyCreated({
+            id: data.expense.id,
+            amount: data.expense.amount,
+            category: data.expense.category,
+            vehicleId: data.expense.vehicleId,
+        });
+
+        await maybeCreateServiceRecordForExpense(sourceMessage, data.expense.category, data.expense);
+
+        const category = String(data.expense.category || '');
+        const categoryLabel = category ? `${category.charAt(0)}${category.slice(1).toLowerCase()}` : 'Expense';
+        return {
+            ...base,
+            message: `${categoryLabel} expense of Rs. ${Number(data.expense.amount).toLocaleString('en-IN')} added successfully.`,
+            contextUsed: 1,
+            toolResults: [
+                {
+                    kind: 'expense_created',
+                    category: data.expense.category,
+                    amount: data.expense.amount,
+                    vehicleId: data.expense.vehicleId,
+                },
+            ],
+            navigate: { screen: 'Expenses' },
         };
     }
 
     return {
-        amount,
-        category,
-        partTypes: category === 'SERVICE' ? servicePartTypes : undefined,
+        ...base,
+        message: 'I could not save that expense. Please try again.',
+        contextUsed: 0,
+        toolResults: [],
     };
 }
 
@@ -1092,6 +1263,7 @@ async function tryResolveLocalVehicleAnswer(
         contextUsed: value ? 1 : 0,
         toolResults: [],
         agentSteps: [],
+        navigate: { screen: 'VehicleList' },
     };
 }
 
@@ -1112,6 +1284,7 @@ async function tryResolveLocalVehicleCountAnswer(
         contextUsed: count,
         toolResults: [],
         agentSteps: [],
+        navigate: { screen: 'VehicleList' },
     };
 }
 
@@ -1168,6 +1341,7 @@ async function tryResolveLocalWarrantyStatus(
             contextUsed: items.length,
             toolResults: [],
             agentSteps: [],
+            navigate: { screen: 'WarrantyStatus' },
         };
     } catch {
         return {
@@ -1181,18 +1355,96 @@ async function tryResolveLocalWarrantyStatus(
     }
 }
 
+/**
+ * Handles a "yes"/"no"/vehicle-name reply to a pending expense confirmation question from a
+ * previous turn. Must run BEFORE the general expense-shaped gate (and every other local
+ * resolver) so a bare "yes" isn't swallowed by an unrelated matcher. Returns null if there is
+ * no pending draft for this session, or if the reply doesn't look like an answer to it — in
+ * either case the caller falls through to normal handling.
+ */
+async function tryResolvePendingExpenseConfirmation(
+    message: string,
+    sessionId: string | undefined,
+): Promise<LocalChatResolution | null> {
+    if (!sessionId) return null;
+    const pending = pendingExpenseDrafts.get(sessionId);
+    if (!pending) return null;
+    pendingExpenseDrafts.delete(sessionId);
+
+    if (Date.now() > pending.expiresAt) return null;
+
+    const text = getEffectiveUserMessage(message).trim().toLowerCase();
+    const isAffirmative = /^(yes|yep|yeah|confirm|correct|ok|okay|haan|sure|go ahead)\b/.test(text);
+    const isNegative = /^(no|nope|cancel|nah|don't|stop)\b/.test(text);
+    const registrationHint = extractRegistrationNumberHint(message);
+
+    if (isNegative) {
+        return {
+            sessionId,
+            message: 'Okay, I have not logged that expense.',
+            voiceUrl: null,
+            contextUsed: 0,
+            toolResults: [],
+            agentSteps: [],
+        };
+    }
+
+    if (!isAffirmative && !registrationHint) {
+        // Doesn't look like an answer to the pending question — abandon rather than guess.
+        return null;
+    }
+
+    const vehicleHint: VoiceExpenseVehicleHint = registrationHint
+        ? { registrationNumber: registrationHint }
+        : pending.vehicleHint;
+
+    try {
+        const commitResponse = await api.post<any>('/v1/expenses/parse/voice/commit', {
+            draft: pending.draft,
+            ...vehicleHint,
+        });
+        return buildExpenseCommitResolution(sessionId, pending.sourceMessage, commitResponse);
+    } catch {
+        return {
+            sessionId,
+            message: 'I could not save that expense right now. Please try again.',
+            voiceUrl: null,
+            contextUsed: 0,
+            toolResults: [],
+            agentSteps: [],
+        };
+    }
+}
+
 async function tryResolveLocalExpenseCreate(
     message: string,
     sessionId: string | undefined,
-    vehicle: ChatVehicleContext | null,
 ): Promise<LocalChatResolution | null> {
-    const intent = extractExpenseCreateIntent(message);
-    if (!intent) return null;
+    if (!looksExpenseShaped(message)) return null;
 
-    if (intent.needsMoreInfoMessage) {
+    const text = getEffectiveUserMessage(message);
+    const registrationHint = extractRegistrationNumberHint(message);
+    const vehicleHint: VoiceExpenseVehicleHint = registrationHint
+        ? { registrationNumber: registrationHint }
+        : {};
+
+    let previewResponse: any;
+    try {
+        previewResponse = await api.post<any>('/v1/expenses/parse/voice/text', {
+            text,
+            dryRun: true,
+            ...vehicleHint,
+        });
+    } catch {
+        return null; // fall through to general chat rather than fail the whole turn
+    }
+
+    const preview = (previewResponse as any)?.data ?? previewResponse;
+    if (!preview?.success) return null;
+    if (!preview.expense || !(Number(preview.expense.amount) > 0)) {
         return {
             sessionId,
-            message: intent.needsMoreInfoMessage,
+            message: 'Tell me the expense amount, for example add fuel expense 500.',
             voiceUrl: null,
             contextUsed: 0,
             toolResults: [],
@@ -1200,76 +1452,54 @@ async function tryResolveLocalExpenseCreate(
         };
     }
 
-    if (!vehicle?.id) {
-        return {
-            sessionId,
-            message: 'I could not find a vehicle to attach this expense to.',
-            voiceUrl: null,
-            contextUsed: 0,
-            toolResults: [],
-            agentSteps: [],
-        };
-    }
-
-    const payload: any = {
-        amount: intent.amount,
-        category: intent.category,
-        vehicleId: vehicle.id,
-        source: 'MANUAL',
-        date: new Date().toISOString(),
-        notes: getEffectiveUserMessage(message),
+    const key = ensureExpenseSessionKey(sessionId);
+    const draft: VoiceExpenseDraft = {
+        amount: preview.expense.amount,
+        category: preview.expense.category,
+        merchantName: preview.expense.merchantName,
+        date: preview.expense.date,
+        notes: preview.expense.notes,
+        rawText: preview.expense.rawText,
+        previewedAt: preview.previewedAt,
     };
+    const resolvedVehicleHint: VoiceExpenseVehicleHint = registrationHint
+        ? { registrationNumber: registrationHint }
+        : preview.vehicle?.vehicleId
+          ? { vehicleId: preview.vehicle.vehicleId }
+          : {};
 
-    if (intent.category === 'SERVICE' && intent.partTypes?.length) {
-        payload.parts = intent.partTypes.map((partType) => ({
-            partType,
-            cost: intent.amount,
-        }));
+    if (!preview.requiresConfirmation) {
+        try {
+            const commitResponse = await api.post<any>('/v1/expenses/parse/voice/commit', {
+                draft,
+                ...resolvedVehicleHint,
+            });
+            return buildExpenseCommitResolution(key, message, commitResponse);
+        } catch {
+            return {
+                sessionId: key,
+                message: 'I could not save that expense right now. Please try again.',
+                voiceUrl: null,
+                contextUsed: 0,
+                toolResults: [],
+                agentSteps: [],
+            };
+        }
     }
 
-    const response = await api.post('/v1/expenses', payload);
-    const responseData = (response as any)?.data ?? response;
-    const serviceRecord = responseData?.serviceRecord ?? null;
-    const warrantySyncError = responseData?.warrantySyncError ?? null;
-
-    setExpenseListNeedsRefresh();
-    if (intent.category === 'SERVICE') {
-        setWarrantyStatusNeedsRefresh();
-    }
-
-    if (
-        intent.category === 'SERVICE' &&
-        intent.partTypes?.length &&
-        !warrantySyncError &&
-        !serviceRecord
-    ) {
-        await api.post('/v1/expenses/warranty/service-records', {
-            vehicleId: vehicle.id,
-            expenseId: responseData?.expense?.id,
-            serviceType: 'REGULAR_SERVICE',
-            serviceDate: payload.date,
-            notes: payload.notes,
-            parts: intent.partTypes.map((partType) => ({
-                partType,
-                cost: intent.amount,
-            })),
-        }).catch(() => {});
-    }
+    pendingExpenseDrafts.set(key, {
+        draft,
+        vehicleHint: resolvedVehicleHint,
+        sourceMessage: message,
+        expiresAt: Date.now() + PENDING_EXPENSE_DRAFT_TTL_MS,
+    });
 
     return {
-        sessionId,
-        message: `${intent.category?.charAt(0)}${intent.category?.slice(1).toLowerCase()} expense of Rs. ${intent.amount?.toLocaleString('en-IN')} added successfully.`,
+        sessionId: key,
+        message: buildExpenseConfirmationQuestion(preview),
         voiceUrl: null,
-        contextUsed: 1,
-        toolResults: [
-            {
-                kind: 'expense_created',
-                category: intent.category,
-                amount: intent.amount,
-                vehicleId: vehicle.id,
-                partTypes: intent.partTypes ?? [],
-            },
-        ],
+        contextUsed: 0,
+        toolResults: [{ kind: 'expense_pending_confirmation' }],
         agentSteps: [],
     };
 }
@@ -1449,6 +1679,14 @@ export const chatService = {
     ): Promise<ChatResponse['data']> {
         const primaryVehicle = await getPrimaryVehicleContext();
         const userContext = await getUserContext();
+        const pendingExpenseConfirmation = await tryResolvePendingExpenseConfirmation(message, sessionId);
+        if (pendingExpenseConfirmation && !options?.image) {
+            return pendingExpenseConfirmation;
+        }
+        const pendingVoiceAction = await tryResolvePendingVoiceAction(message, sessionId);
+        if (pendingVoiceAction && !options?.image) {
+            return pendingVoiceAction;
+        }
         const localProfileUpdate = await tryResolveLocalProfileUpdate(message, sessionId);
         if (localProfileUpdate && !options?.image) {
             return localProfileUpdate;
@@ -1465,9 +1703,17 @@ export const chatService = {
         if (localNearbyPlaces && !options?.image) {
             return localNearbyPlaces;
         }
-        const localExpenseCreate = await tryResolveLocalExpenseCreate(message, sessionId, primaryVehicle);
+        const localAddVehicleIntent = await tryResolveLocalAddVehicleIntent(message, sessionId);
+        if (localAddVehicleIntent && !options?.image) {
+            return localAddVehicleIntent;
+        }
+        const localExpenseCreate = await tryResolveLocalExpenseCreate(message, sessionId);
         if (localExpenseCreate && !options?.image) {
             return localExpenseCreate;
+        }
+        const localVoiceAction = await tryResolveLocalVoiceAction(message, sessionId);
+        if (localVoiceAction && !options?.image) {
+            return localVoiceAction;
         }
         const localUserFactAnswer = await tryResolveLocalUserFactAnswer(message, sessionId, userContext);
         if (localUserFactAnswer && !options?.image) {
@@ -1537,6 +1783,31 @@ export const chatService = {
     ): Promise<void> {
         const primaryVehicle = await getPrimaryVehicleContext();
         const userContext = await getUserContext();
+        const pendingExpenseConfirmation = await tryResolvePendingExpenseConfirmation(message, sessionId);
+        if (pendingExpenseConfirmation && !options?.image) {
+            onChunk({ type: 'session', sessionId: pendingExpenseConfirmation.sessionId });
+            onChunk({ type: 'chunk', text: pendingExpenseConfirmation.message });
+            onChunk({
+                type: 'done',
+                contextUsed: pendingExpenseConfirmation.contextUsed,
+                toolResults: pendingExpenseConfirmation.toolResults,
+                suggestedActions: pendingExpenseConfirmation.suggestedActions,
+                navigate: pendingExpenseConfirmation.navigate,
+            });
+            return;
+        }
+        const pendingVoiceAction = await tryResolvePendingVoiceAction(message, sessionId);
+        if (pendingVoiceAction && !options?.image) {
+            onChunk({ type: 'session', sessionId: pendingVoiceAction.sessionId });
+            onChunk({ type: 'chunk', text: pendingVoiceAction.message });
+            onChunk({
+                type: 'done',
+                contextUsed: pendingVoiceAction.contextUsed,
+                toolResults: pendingVoiceAction.toolResults,
+                navigate: pendingVoiceAction.navigate,
+            });
+            return;
+        }
         const localProfileUpdate = await tryResolveLocalProfileUpdate(message, sessionId);
         if (localProfileUpdate && !options?.image) {
             onChunk({ type: 'session', sessionId: localProfileUpdate.sessionId });
@@ -1585,7 +1856,19 @@ export const chatService = {
             });
             return;
         }
-        const localExpenseCreate = await tryResolveLocalExpenseCreate(message, sessionId, primaryVehicle);
+        const localAddVehicleIntent = await tryResolveLocalAddVehicleIntent(message, sessionId);
+        if (localAddVehicleIntent && !options?.image) {
+            onChunk({ type: 'session', sessionId: localAddVehicleIntent.sessionId });
+            onChunk({ type: 'chunk', text: localAddVehicleIntent.message });
+            onChunk({
+                type: 'done',
+                contextUsed: localAddVehicleIntent.contextUsed,
+                toolResults: localAddVehicleIntent.toolResults,
+                navigate: localAddVehicleIntent.navigate,
+            });
+            return;
+        }
+        const localExpenseCreate = await tryResolveLocalExpenseCreate(message, sessionId);
         if (localExpenseCreate && !options?.image) {
             onChunk({ type: 'session', sessionId: localExpenseCreate.sessionId });
             onChunk({ type: 'chunk', text: localExpenseCreate.message });
@@ -1594,6 +1877,19 @@ export const chatService = {
                 contextUsed: localExpenseCreate.contextUsed,
                 toolResults: localExpenseCreate.toolResults,
                 suggestedActions: localExpenseCreate.suggestedActions,
+                navigate: localExpenseCreate.navigate,
+            });
+            return;
+        }
+        const localVoiceAction = await tryResolveLocalVoiceAction(message, sessionId);
+        if (localVoiceAction && !options?.image) {
+            onChunk({ type: 'session', sessionId: localVoiceAction.sessionId });
+            onChunk({ type: 'chunk', text: localVoiceAction.message });
+            onChunk({
+                type: 'done',
+                contextUsed: localVoiceAction.contextUsed,
+                toolResults: localVoiceAction.toolResults,
+                navigate: localVoiceAction.navigate,
             });
             return;
         }

@@ -19,7 +19,10 @@ import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
 const ChallansScreen = () => {
     const navigation = useNavigation();
     const route = useRoute<any>();
-    const { vehicle } = route.params;
+    // Default defensively — a caller navigating here without a vehicle (or losing it on an
+    // intermediate re-render) should surface the screen's existing "no vehicle identifier"
+    // error handling below, not crash on vehicle.id before that logic ever runs.
+    const vehicle = route.params?.vehicle || {};
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);

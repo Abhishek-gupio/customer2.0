@@ -30,9 +30,9 @@ import { PartStatusCard } from '../../components/ServiceAndWarranty/PartStatusCa
 import { WarrantySummary } from '../../components/ServiceAndWarranty/WarrantySummary';
 import {
   getAndClearWarrantyStatusRefresh,
-  setExpenseListNeedsRefresh,
   setWarrantyStatusNeedsRefresh,
 } from '../../utils/refreshManager';
+import { useExpenseStore } from '../../store/expenseStore';
 import BackButton from '../../components/BackButton';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import type { RootStackParamList } from '../../navigation/types';
@@ -316,7 +316,7 @@ export const WarrantyStatus = () => {
         })),
       });
 
-      setExpenseListNeedsRefresh();
+      useExpenseStore.getState().notifyCreated();
       setWarrantyStatusNeedsRefresh();
       closeUpdateModal();
       await fetchData();

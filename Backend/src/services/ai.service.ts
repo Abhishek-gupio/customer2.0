@@ -127,6 +127,7 @@ function buildNavigationActionsFromToolResults(
   for (const tr of toolResults) {
     const tool = tr.tool;
     const res = tr.result;
+    const args = tr.args;
     if (!res || res.success === false) continue;
 
     if (tool === "get_challans" && res.vehicle?.id && !res.summary) {
@@ -196,6 +197,78 @@ function buildNavigationActionsFromToolResults(
         label: "Expenses",
         prompt: "Open expenses",
         navigate: { screen: "Expenses" },
+      });
+    }
+    if (tool === "set_budget" && res.success) {
+      add({
+        label: "View budget",
+        prompt: "Open budget settings",
+        navigate: { screen: "BudgetSettings" },
+      });
+    }
+    if (tool === "list_my_vehicles" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if ((tool === "get_profile" || tool === "update_profile") && res.success) {
+      add({
+        label: "My Profile",
+        prompt: "Open my profile",
+        navigate: { screen: "MyProfile" },
+      });
+    }
+    if ((tool === "list_documents" || tool === "get_document_status") && res.success) {
+      add({
+        label: "My Documents",
+        prompt: "Open my documents",
+        navigate: { screen: "DocumentList" },
+      });
+    }
+    if (tool === "get_or_suggest_parts_interval" && res.success) {
+      add({
+        label: "Warranty & parts",
+        prompt: "Open warranty and parts status",
+        navigate: { screen: "WarrantyStatus" },
+      });
+    }
+    if (tool === "list_support_tickets" && res.success) {
+      add({
+        label: "My tickets",
+        prompt: "Open my support tickets",
+        navigate: { screen: "TicketHistory" },
+      });
+    }
+    if (tool === "get_ticket_details" && res.success && args?.ticketId) {
+      add({
+        label: "Ticket details",
+        prompt: "Open this ticket",
+        navigate: {
+          screen: "TicketDetail",
+          params: { ticketId: args.ticketId },
+        },
+      });
+    }
+    if (tool === "create_support_ticket" && res.success && res.ticketId) {
+      add({
+        label: "Ticket details",
+        prompt: "Open this ticket",
+        navigate: {
+          screen: "TicketDetail",
+          params: { ticketId: res.ticketId },
+        },
+      });
+    }
+    if (tool === "get_trip_detail_by_id" && res.success && res.trip?.id) {
+      add({
+        label: "Trip details",
+        prompt: "Show this trip's route and harsh events",
+        navigate: {
+          screen: "TripDetail",
+          params: { tripId: res.trip.id },
+        },
       });
     }
   }
@@ -396,6 +469,40 @@ export const aiService = {
       // continue without caching — the model will use system instructions inline.
       logger.debug({ error }, "Context cache creation failed, using inline mode");
       return null;
+    }
+  },
+
+  /**
+   * Resolves an existing chat session or creates a new one. Falls back to creating a new
+   * session (rather than throwing) when `sessionId` is stale, deleted, or belongs to a
+   * different customer — a client-supplied session id should never be able to crash the
+   * request.
+   */
+  async resolveOrCreateSession(customerId: string, sessionId: string | undefined, message: string) {
+    try {
+      if (sessionId) {
+        const existing = await db.chatSession.findUnique({
+          where: { id: sessionId, customerId },
+          include: { messages: { orderBy: { createdAt: "asc" } } },
+        });
+        if (existing) return existing;
+        logger.warn({ customerId, sessionId }, "[AI] sessionId not found for customer, starting a new session");
+      }
+      return await db.chatSession.create({
+        data: {
+          customerId,
+          title: message.substring(0, 50),
+          messages: { create: [] },
+        },
+        include: { messages: true },
+      });
+    } catch (err: any) {
+      if (err?.code === "P1001") {
+        // Database temporarily unreachable — surface a clean, retryable error instead of a
+        // raw Prisma stack trace bubbling up as an unhandled 500.
+        throw AppError.internal("Our database is temporarily unavailable. Please try again in a moment.", "DB_UNAVAILABLE");
+      }
+      throw err;
     }
   },
 
@@ -639,22 +746,7 @@ Write a concise summary (max 200 words) capturing all important details.`;
     const [cacheName, sessionData, contextDocs, userContext] =
       await Promise.all([
         this.getOrUpdateCache(),
-        sessionId
-          ? db.chatSession.findUnique({
-            where: { id: sessionId, customerId },
-            include: {
-              messages: { orderBy: { createdAt: "asc" } },
-            },
-            // Select summary for memory
-          })
-          : db.chatSession.create({
-            data: {
-              customerId,
-              title: message.substring(0, 50),
-              messages: { create: [] },
-            },
-            include: { messages: true },
-          }),
+        this.resolveOrCreateSession(customerId, sessionId, message),
         vectorService.hybridSearch(customerId, message, 5).catch(() => []),
         contextService.buildUserContext(customerId),
       ]);
@@ -866,19 +958,7 @@ Write a concise summary (max 200 words) capturing all important details.`;
     const [cacheName, sessionData, contextDocs, userContext] =
       await Promise.all([
         this.getOrUpdateCache(),
-        sessionId
-          ? db.chatSession.findUnique({
-            where: { id: sessionId, customerId },
-            include: { messages: { orderBy: { createdAt: "asc" } } },
-          })
-          : db.chatSession.create({
-            data: {
-              customerId,
-              title: message.substring(0, 50),
-              messages: { create: [] },
-            },
-            include: { messages: true },
-          }),
+        this.resolveOrCreateSession(customerId, sessionId, message),
         vectorService.hybridSearch(customerId, message, 5).catch(() => []),
         contextService.buildUserContext(customerId),
       ]);
