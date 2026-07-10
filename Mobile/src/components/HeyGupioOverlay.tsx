@@ -18,7 +18,12 @@ import FastImage from 'react-native-fast-image';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { useNavigation } from '@react-navigation/native';
-import { chatService } from '../services/chatService';
+import {
+  chatService,
+  tryResolveLocalEmergencyAlert,
+  tryResolveLocalNearbyPlaces,
+} from '../services/chatService';
+import { sendAgentMessage } from '../agent/agentClient';
 import { VoiceOwnerContext } from '../context/VoiceOwnerContext';
 import { getVoiceLanguageIndex } from '../services/storage';
 
@@ -546,11 +551,26 @@ export default function HeyGupioOverlay() {
 
       modeRef.current = 'wake';
       try {
-        const overlayPrompt = buildOverlayPrompt(transcript);
+        // Send the raw transcript, not a wrapped "System instruction: speak naturally, no
+        // JSON..." prompt — that wrapper was written for feeding straight into Gemini's
+        // general-chat generation and actively breaks flow extraction: a flow's extractor
+        // asks Groq for raw JSON, and the wrapper's "no JSON, no markdown" instruction was
+        // winning out, so Groq replied conversationally instead of extracting, and the same
+        // slot question repeated forever. Flows author their own response text; only the
+        // general-chat strategy ever produces freeform Gemini prose, and that path can apply
+        // its own speech-formatting instructions server-side if needed later.
         const primaryVehicle = await chatService.getPrimaryVehicleSpeechContext().catch(() => null);
-        const data = await chatService.sendMessage(overlayPrompt, sessionIdRef.current, {
-          agentMode: true,
-        });
+        // SOS and nearby-places both need live device GPS, which the server-side agent has no
+        // channel for today — kept as fast, direct client-side checks rather than moved into
+        // the agent pipeline. Everything else routes through sendAgentMessage. Both local
+        // checks never set `navigate`/`events` (confirmed in chatService.ts), so they're
+        // normalized into the same shape sendAgentMessage returns.
+        const localResolution =
+          (await tryResolveLocalEmergencyAlert(transcript, sessionIdRef.current)) ||
+          (await tryResolveLocalNearbyPlaces(transcript, sessionIdRef.current));
+        const data = localResolution
+          ? { ...localResolution, events: [] as const }
+          : await sendAgentMessage(transcript, sessionIdRef.current);
         if (data.sessionId) {
           sessionIdRef.current = data.sessionId;
         }
@@ -560,16 +580,12 @@ export default function HeyGupioOverlay() {
         const expenseCreatedResult = Array.isArray(data.toolResults)
           ? data.toolResults.find((item: any) => item?.kind === 'expense_created')
           : null;
-        const expensePendingConfirmation = Array.isArray(data.toolResults)
-          ? data.toolResults.find((item: any) => item?.kind === 'expense_pending_confirmation')
-          : null;
-        const voiceActionPendingConfirmation = Array.isArray(data.toolResults)
-          ? data.toolResults.find((item: any) => item?.kind === 'voice_action_pending_confirmation')
-          : null;
         const profileUpdatedResult = Array.isArray(data.toolResults)
           ? data.toolResults.find((item: any) => item?.kind === 'profile_updated')
           : null;
-        const awaitingFollowUpAnswer = !!(expensePendingConfirmation || voiceActionPendingConfirmation);
+        // A flow that's still missing a slot asks a follow-up via an `ask_user` event — keep
+        // listening for the answer instead of going idle and waiting for another mic tap.
+        const awaitingFollowUpAnswer = data.events.some((event) => event.type === 'ask_user');
         if (sosResult?.sosAlertId) {
           const rootNavigation = navigation.getParent?.() ?? navigation;
           rootNavigation.navigate('ActiveSOS', {
@@ -579,16 +595,9 @@ export default function HeyGupioOverlay() {
             lon: sosResult.longitude,
           });
         }
-        
-        // Auto navigation based on voice assistant response
-        if (data.navigate) {
-          const rootNavigation = navigation.getParent?.() ?? navigation;
-          if (data.navigate.params) {
-            rootNavigation.navigate(data.navigate.screen as any, data.navigate.params);
-          } else {
-            rootNavigation.navigate(data.navigate.screen as any);
-          }
-        }
+        // Screen navigation and draft-state patching from `data.events` is already applied by
+        // `sendAgentMessage` (via the event bus in agent/eventHandlers.ts) — no manual
+        // navigate() call needed here.
 
         await chatService.refreshUserContext().catch(() => null);
         const reply =
@@ -601,7 +610,7 @@ export default function HeyGupioOverlay() {
                 )
           ) || 'Done.';
         const safeReply =
-          looksLikeExpenseCommand(transcript) && !expenseCreatedResult && !expensePendingConfirmation
+          looksLikeExpenseCommand(transcript) && !expenseCreatedResult
             ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
             : looksLikeProfileUpdateCommand(transcript) && !profileUpdatedResult
               ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'

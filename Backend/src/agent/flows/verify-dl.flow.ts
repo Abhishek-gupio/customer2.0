@@ -1,24 +1,30 @@
-import { registerVoiceAction } from "../voice-action.registry";
-import { VoiceAction, VoiceActionExtractResult, VoiceActionCommitResult } from "../voice-action.types";
-import { callAI } from "../../../services/ai-provider.service";
-import { logger } from "../../../config/logger";
-import { dlVerificationService } from "../../../services/dl-verification.service";
-import { documentService } from "../../document/document.service";
+import { registerFlow } from "./registry";
+import { Flow, FlowExtractResult, FlowCommitResult } from "../types";
+import { routeText } from "../modelRouter";
+import { logger } from "../../config/logger";
+import { dlVerificationService } from "../../services/dl-verification.service";
+import { documentService } from "../../modules/document/document.service";
 
 // DD-MM-YYYY, matching the exact format the manual DLVerification screen sends.
 const DOB_REGEX = /^\d{2}-\d{2}-\d{4}$/;
 
-const SLOTS: VoiceAction["slots"] = [
+const SLOTS: Flow["slots"] = [
   { name: "dlNumber", askPrompt: "What's your driving licence number?" },
   { name: "dob", askPrompt: "What's your date of birth?" },
 ];
+
+function matches(text: string): boolean {
+  return (
+    /\b(verify|check)\b.*\b(dl|driving licen[cs]e|license)\b/i.test(text) || /\bdl verification\b/i.test(text)
+  );
+}
 
 async function extract(
   _customerId: string,
   newReplyText: string,
   knownValues: Record<string, any>,
   missingSlotsHint: string[],
-): Promise<VoiceActionExtractResult> {
+): Promise<FlowExtractResult> {
   const systemPrompt = `You extract driving-licence verification details from a short spoken reply.
 Only these fields matter:
 - dlNumber: an Indian driving licence number, letters and digits only (strip spaces the user said between groups)
@@ -30,11 +36,11 @@ Output ONLY raw JSON, no markdown, no explanation: {"dlNumber": string|null, "do
 
   let parsed: any = {};
   try {
-    const raw = await callAI(newReplyText, systemPrompt, { temperature: 0.1, maxOutputTokens: 150 });
+    const raw = await routeText(newReplyText, systemPrompt, { temperature: 0.1, maxOutputTokens: 150 });
     const cleanJson = raw.replace(/```json/i, "").replace(/```/g, "").trim();
     parsed = JSON.parse(cleanJson);
   } catch (err) {
-    logger.debug({ err }, "[VoiceAction:verify_dl] extract parse failed");
+    logger.warn({ err }, "[Flow:verify_dl] extract parse failed");
     parsed = {};
   }
 
@@ -51,12 +57,12 @@ Output ONLY raw JSON, no markdown, no explanation: {"dlNumber": string|null, "do
   // Only HIGH confidence once dob actually matches the required DD-MM-YYYY shape — otherwise
   // re-ask rather than send a malformed date to the paid external verification API.
   const formatsValid = missingSlots.length === 0 && DOB_REGEX.test(String(values.dob));
-  const confidence: "HIGH" | "MEDIUM" | "LOW" = formatsValid ? "HIGH" : "LOW";
+  const confidence: FlowExtractResult["confidence"] = formatsValid ? "HIGH" : "LOW";
 
   return { values, missingSlots, confidence };
 }
 
-async function commit(customerId: string, values: Record<string, any>): Promise<VoiceActionCommitResult> {
+async function commit(customerId: string, values: Record<string, any>): Promise<FlowCommitResult> {
   const dlNumber = String(values.dlNumber || "").replace(/\s/g, "").toUpperCase();
   const dob = String(values.dob || "").trim();
 
@@ -70,12 +76,12 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   try {
     const result = await dlVerificationService.verifyDL(dlNumber, dob);
     await documentService.storeVerifiedDL(customerId, result, dlNumber).catch((err) => {
-      logger.error({ err, customerId }, "[VoiceAction:verify_dl] failed to store verification result");
+      logger.error({ err, customerId }, "[Flow:verify_dl] failed to store verification result");
     });
     return {
       success: true,
       message: "Your driving licence has been verified successfully.",
-      navigateParams: { justVerifiedViaVoice: true },
+      data: { justVerifiedViaVoice: true },
     };
   } catch (err: any) {
     return {
@@ -85,10 +91,13 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   }
 }
 
-registerVoiceAction({
+registerFlow({
   key: "verify_dl",
+  description: "Verify the user's driving licence using their licence number and date of birth.",
+  matches,
   slots: SLOTS,
-  targetScreen: "DLVerification",
+  view: "DLVerification",
+  draftKey: "dl_verification",
   extract,
   commit,
 });

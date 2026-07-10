@@ -4,6 +4,7 @@ export {
   useRoute,
   useFocusEffect,
   CommonActions,
+  createNavigationContainerRef,
   type NavigatorScreenParams,
   type RouteProp,
 } from '@react-navigation/native';

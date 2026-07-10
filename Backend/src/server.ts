@@ -38,6 +38,21 @@ async function bootstrap() {
   async function shutdown(signal: string) {
     logger.info({ signal }, "Shutdown signal received");
 
+    // Socket.IO keeps WebSocket connections open independently of the HTTP server's own
+    // connection tracking — httpServer.close()'s callback only fires once every connection is
+    // closed, and a live WebSocket (from the mobile app, or a lingering dev connection) never
+    // closes on its own. Without this, shutdown silently hung for the full 10s force-timeout
+    // below on every restart with an open socket, which is exactly why a quick nodemon
+    // restart during dev kept hitting EADDRINUSE — the old process hadn't actually released
+    // the port yet.
+    try {
+      const { getIO } = await import("./socket");
+      getIO().close();
+      logger.info("Socket.IO server closed");
+    } catch (err) {
+      logger.warn({ err }, "Socket.IO close skipped (not initialized or already closed)");
+    }
+
     httpServer.close(async () => {
       logger.info("HTTP server closed");
 

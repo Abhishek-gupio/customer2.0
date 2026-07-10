@@ -19,7 +19,8 @@ import MapView, { Polyline, Marker } from 'react-native-maps';
 import Share from 'react-native-share';
 // @ts-ignore
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import { useNavigation } from '../../lib/react-navigation-native';
+import { useNavigation, useRoute } from '../../lib/react-navigation-native';
+import { useAgentStateStore } from '../../agent/stateStore';
 import { tripExpenseService, type TripRoute, type TripExpenseResult } from '../../services/tripExpenseService';
 import { placesService, type SearchSuggestion } from '../../services/placesService';
 import { vehicleService, type Vehicle } from '../../services/vehicleService';
@@ -114,6 +115,8 @@ const getModelFirstWord = (model?: string, makeFirstWord?: string) => {
 
 export default function TripExpenseScreen() {
   const navigation = useNavigation();
+  const route = useRoute() as { params?: { draftKey?: string; tripId?: string } };
+  const draftKey = route.params?.draftKey;
 
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -180,6 +183,24 @@ export default function TripExpenseScreen() {
     };
     loadCachedData();
   }, []);
+
+  // If the Hey Gupio agent opened this screen (draftKey present), its draft — including any
+  // fields patched in on later turns while this screen stays mounted, e.g. once an optional
+  // vehicle slot gets filled — takes priority over the stale AsyncStorage cache above.
+  useEffect(() => {
+    if (!draftKey) return;
+    const applyDraft = (fields: Record<string, unknown> | undefined) => {
+      if (!fields) return;
+      if (typeof fields.origin === 'string') setFrom(fields.origin);
+      if (typeof fields.destination === 'string') setTo(fields.destination);
+      if (fields.result) setResult(fields.result as TripExpenseResult);
+    };
+    applyDraft(useAgentStateStore.getState().drafts[draftKey]?.fields);
+    const unsubscribe = useAgentStateStore.subscribe((state) => {
+      applyDraft(state.drafts[draftKey]?.fields);
+    });
+    return unsubscribe;
+  }, [draftKey]);
 
   useEffect(() => {
     analyticsService.trackScreenView('trip_expense_screen');

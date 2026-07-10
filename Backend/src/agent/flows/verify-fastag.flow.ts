@@ -1,9 +1,9 @@
-import { registerVoiceAction } from "../voice-action.registry";
-import { VoiceAction, VoiceActionExtractResult, VoiceActionCommitResult } from "../voice-action.types";
-import { callAI } from "../../../services/ai-provider.service";
-import { logger } from "../../../config/logger";
-import { fastagVerificationService } from "../../document/fastag.service";
-import { documentService } from "../../document/document.service";
+import { registerFlow } from "./registry";
+import { Flow, FlowExtractResult, FlowCommitResult } from "../types";
+import { routeText } from "../modelRouter";
+import { logger } from "../../config/logger";
+import { fastagVerificationService } from "../../modules/document/fastag.service";
+import { documentService } from "../../modules/document/document.service";
 
 // IFSC: 4 letters, a literal 0, then 6 alphanumeric characters (standard RBI format).
 const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
@@ -12,17 +12,23 @@ const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 // burns a call against the paid external verification API.
 const ACCOUNT_ID_REGEX = /^\d{6,18}$/;
 
-const SLOTS: VoiceAction["slots"] = [
+const SLOTS: Flow["slots"] = [
   { name: "creditorAccountId", askPrompt: "What's the bank account number to verify?" },
   { name: "ifscCode", askPrompt: "What's the IFSC code for that account?" },
 ];
+
+function matches(text: string): boolean {
+  return (
+    /\b(verify|check)\b.*\b(fastag|bank account|beneficiary)\b/i.test(text) || /\bfastag verification\b/i.test(text)
+  );
+}
 
 async function extract(
   _customerId: string,
   newReplyText: string,
   knownValues: Record<string, any>,
   missingSlotsHint: string[],
-): Promise<VoiceActionExtractResult> {
+): Promise<FlowExtractResult> {
   const systemPrompt = `You extract bank account verification details from a short spoken reply.
 Only these fields matter:
 - creditorAccountId: a bank account number, digits only (strip spaces/dashes the user may have said between groups of digits)
@@ -34,11 +40,11 @@ Output ONLY raw JSON, no markdown, no explanation: {"creditorAccountId": string|
 
   let parsed: any = {};
   try {
-    const raw = await callAI(newReplyText, systemPrompt, { temperature: 0.1, maxOutputTokens: 150 });
+    const raw = await routeText(newReplyText, systemPrompt, { temperature: 0.1, maxOutputTokens: 150 });
     const cleanJson = raw.replace(/```json/i, "").replace(/```/g, "").trim();
     parsed = JSON.parse(cleanJson);
   } catch (err) {
-    logger.debug({ err }, "[VoiceAction:verify_fastag] extract parse failed");
+    logger.warn({ err }, "[Flow:verify_fastag] extract parse failed");
     parsed = {};
   }
 
@@ -60,12 +66,12 @@ Output ONLY raw JSON, no markdown, no explanation: {"creditorAccountId": string|
     missingSlots.length === 0 &&
     ACCOUNT_ID_REGEX.test(String(values.creditorAccountId)) &&
     IFSC_REGEX.test(String(values.ifscCode));
-  const confidence: "HIGH" | "MEDIUM" | "LOW" = formatsValid ? "HIGH" : "LOW";
+  const confidence: FlowExtractResult["confidence"] = formatsValid ? "HIGH" : "LOW";
 
   return { values, missingSlots, confidence };
 }
 
-async function commit(customerId: string, values: Record<string, any>): Promise<VoiceActionCommitResult> {
+async function commit(customerId: string, values: Record<string, any>): Promise<FlowCommitResult> {
   const accountId = String(values.creditorAccountId || "").replace(/\D/g, "");
   const ifsc = String(values.ifscCode || "").replace(/\s/g, "").toUpperCase();
 
@@ -79,12 +85,12 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   try {
     const result = await fastagVerificationService.verifyAccount(accountId, ifsc);
     await documentService.storeFastagVerification(customerId, result).catch((err) => {
-      logger.error({ err, customerId }, "[VoiceAction:verify_fastag] failed to store verification result");
+      logger.error({ err, customerId }, "[Flow:verify_fastag] failed to store verification result");
     });
     return {
       success: true,
       message: "Your Fastag account has been verified successfully.",
-      navigateParams: { justVerifiedViaVoice: true },
+      data: { justVerifiedViaVoice: true },
     };
   } catch (err: any) {
     return {
@@ -94,10 +100,13 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   }
 }
 
-registerVoiceAction({
+registerFlow({
   key: "verify_fastag",
+  description: "Verify a bank account (account number + IFSC code) for Fastag/toll auto-payments.",
+  matches,
   slots: SLOTS,
-  targetScreen: "Fastag",
+  view: "Fastag",
+  draftKey: "fastag",
   extract,
   commit,
 });

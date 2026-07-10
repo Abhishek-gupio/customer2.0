@@ -20,7 +20,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { MainTabParamList } from '../../navigation/types';
-import { chatService, type SSEChunk, type SuggestedAction } from '../../services/chatService';
+import {
+  chatService,
+  tryResolveLocalEmergencyAlert,
+  tryResolveLocalNearbyPlaces,
+  type SSEChunk,
+  type SuggestedAction,
+} from '../../services/chatService';
+import { sendAgentMessage, sendAgentMessageStream } from '../../agent/agentClient';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 import { VoiceOwnerContext } from '../../context/VoiceOwnerContext';
@@ -767,7 +774,13 @@ export default function AIAssistant() {
       text && text !== message
         ? detectInputLocale(messageText)
         : lastInputLocaleRef.current || detectInputLocale(messageText);
-    const languageAwareMessage = buildLanguageAwarePrompt(messageText, effectiveLocale);
+    // NOT wrapped via buildLanguageAwarePrompt anymore — that "System instruction: reply in
+    // language X..." wrapper was designed for Gemini's general-chat generation and, like
+    // HeyGupioOverlay's equivalent, actively breaks flow extraction (the flow's own "output
+    // ONLY raw JSON" instruction loses out to the wrapper's freeform-reply instruction, so
+    // Groq answers conversationally instead of extracting, and the same slot question repeats
+    // forever). Flows author their own response text; only general chat produces freeform
+    // Gemini prose, and that path can apply language steering server-side if needed later.
 
     const userMsg: UIMessage = {
       id: `user-${Date.now()}`,
@@ -796,7 +809,7 @@ export default function AIAssistant() {
       if (fallbackAttempted) return;
       fallbackAttempted = true;
       try {
-        const response = await chatService.sendMessage(languageAwareMessage, sessionId);
+        const response = await sendAgentMessage(messageText, sessionId);
         const profileUpdated = Array.isArray(response.toolResults)
           ? response.toolResults.some((item: any) => item?.kind === 'profile_updated')
           : false;
@@ -806,16 +819,13 @@ export default function AIAssistant() {
         const expenseCreated = Array.isArray(response.toolResults)
           ? response.toolResults.some((item: any) => item?.kind === 'expense_created')
           : false;
-        const expensePending = Array.isArray(response.toolResults)
-          ? response.toolResults.some((item: any) => item?.kind === 'expense_pending_confirmation')
-          : false;
         const safeResponseMessage =
           looksLikeProfileUpdateCommand(messageText) && !profileUpdated
             ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
-            : looksLikeExpenseCommand(messageText) && !expenseCreated && !expensePending
+            : looksLikeExpenseCommand(messageText) && !expenseCreated
               ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
               : response.message;
-        setSessionId(response.sessionId);
+        if (response.sessionId) setSessionId(response.sessionId);
         setMessages((prev) =>
           prev.map((m) =>
             m.id === botMsgId
@@ -825,8 +835,6 @@ export default function AIAssistant() {
                   isStreaming: false,
                   voiceUrl: response.voiceUrl,
                   toolResults: response.toolResults,
-                  agentSteps: response.agentSteps,
-                  suggestedActions: (response as any).suggestedActions,
                 }
               : m,
           ),
@@ -842,14 +850,8 @@ export default function AIAssistant() {
             lon: sosResult.longitude,
           } as any);
         }
-        if ((response as any).navigate) {
-          const navTarget = (response as any).navigate;
-          if (navTarget.params) {
-            rootNavigation.navigate(navTarget.screen as any, navTarget.params);
-          } else {
-            rootNavigation.navigate(navTarget.screen as any);
-          }
-        }
+        // Screen navigation/state patching from `response.events` is already applied by
+        // `sendAgentMessage` via the event bus — no manual navigate() call needed here.
       } catch (error) {
         reportHandledError(error, {
           surface: 'chat-ai-assistant-send-fallback',
@@ -863,124 +865,134 @@ export default function AIAssistant() {
     };
 
       try {
-        await chatService.sendMessageStream(
-          languageAwareMessage,
-          sessionId,
-          async (chunk: SSEChunk) => {
-            switch (chunk.type) {
-              case 'session':
-                if (chunk.sessionId) setSessionId(chunk.sessionId);
-                break;
+        // SOS and nearby-places need live device GPS, which the server-side agent has no
+        // channel for today — kept as fast, direct client-side checks ahead of the agent call.
+        const localResolution =
+          (await tryResolveLocalEmergencyAlert(messageText, sessionId)) ||
+          (await tryResolveLocalNearbyPlaces(messageText, sessionId));
 
-              case 'chunk':
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMsgId
-                      ? { ...m, text: m.text + (chunk.text || '') }
-                      : m,
-                  ),
-                );
-                scrollToBottom();
-                break;
+        if (localResolution) {
+          if (localResolution.sessionId) setSessionId(localResolution.sessionId);
+          const toolResults = localResolution.toolResults;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === botMsgId
+                ? { ...m, text: localResolution.message, isStreaming: false, toolResults }
+                : m,
+            ),
+          );
+          setIsStreaming(false);
+          scrollToBottom();
+          const sosResult = Array.isArray(toolResults)
+            ? toolResults.find((item: any) => item?.kind === 'sos')
+            : null;
+          if (sosResult?.sosAlertId) {
+            rootNavigation.navigate('ActiveSOS' as any, {
+              sosId: sosResult.sosAlertId,
+              type: sosResult.type,
+              lat: sosResult.latitude,
+              lon: sosResult.longitude,
+            } as any);
+          }
+          setIsStreaming(false);
+          return;
+        }
 
-              case 'tool_start':
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMsgId
-                      ? { ...m, text: m.text + `\nRunning ${chunk.tool || 'tool'}...` }
-                      : m,
-                  ),
-                );
-                break;
+        // Routed through the unified, streaming agent endpoint — the UI updates as each token
+        // and event arrives instead of waiting for the full turn.
+        await sendAgentMessageStream(messageText, sessionId, (chunk) => {
+          switch (chunk.type) {
+            case 'session':
+              if (chunk.sessionId) setSessionId(chunk.sessionId);
+              break;
 
-              case 'tool_result':
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMsgId
-                      ? {
-                          ...m,
-                          text: m.text + `\nDone: ${chunk.message || 'Success'}`,
-                          toolResults: [...(m.toolResults || []), chunk.result],
-                        }
-                      : m,
-                  ),
-                );
-                scrollToBottom();
-                break;
+            case 'chunk':
+              setMessages((prev) =>
+                prev.map((m) => (m.id === botMsgId ? { ...m, text: m.text + (chunk.text || '') } : m)),
+              );
+              scrollToBottom();
+              break;
 
-              case 'tool_error':
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMsgId
-                      ? { ...m, text: m.text + `\nError: ${chunk.error || 'Failed'}` }
-                      : m,
-                  ),
-                );
-                break;
+            case 'tool_start':
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMsgId ? { ...m, text: m.text + `\nRunning ${chunk.tool || 'tool'}...` } : m,
+                ),
+              );
+              break;
 
-              case 'done':
-                if (Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated')) {
-                  refreshDisplayedUserName().catch(() => {});
-                }
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botMsgId
-                      ? {
-                          ...m,
-                          text:
-                            looksLikeProfileUpdateCommand(messageText) &&
-                            !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'profile_updated'))
-                              ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
-                              : looksLikeExpenseCommand(messageText) &&
-                                  !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'expense_created')) &&
-                                  !(Array.isArray(chunk.toolResults) && chunk.toolResults.some((item: any) => item?.kind === 'expense_pending_confirmation'))
-                                ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
-                                : m.text,
-                          isStreaming: false,
-                          voiceUrl: chunk.voiceUrl,
-                          toolResults: chunk.toolResults || m.toolResults,
-                          suggestedActions: chunk.suggestedActions,
-                        }
-                      : m,
-                  ),
-                );
-                setIsStreaming(false);
-                {
-                  const sosResult = Array.isArray(chunk.toolResults)
-                    ? chunk.toolResults.find((item: any) => item?.kind === 'sos')
-                    : null;
-                  if (sosResult?.sosAlertId) {
-                    rootNavigation.navigate('ActiveSOS' as any, {
-                      sosId: sosResult.sosAlertId,
-                      type: sosResult.type,
-                      lat: sosResult.latitude,
-                      lon: sosResult.longitude,
-                    } as any);
-                  }
-                }
-                if (chunk.navigate) {
-                  if (chunk.navigate.params) {
-                    rootNavigation.navigate(chunk.navigate.screen as any, chunk.navigate.params);
-                  } else {
-                    rootNavigation.navigate(chunk.navigate.screen as any);
-                  }
-                }
-                break;
+            case 'tool_result':
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMsgId
+                    ? { ...m, text: m.text + `\nDone: ${chunk.message || 'Success'}`, toolResults: [...(m.toolResults || []), chunk.result] }
+                    : m,
+                ),
+              );
+              scrollToBottom();
+              break;
+
+            case 'tool_error':
+              setMessages((prev) =>
+                prev.map((m) => (m.id === botMsgId ? { ...m, text: m.text + `\nError: ${chunk.error || 'Failed'}` } : m)),
+              );
+              break;
+
+            case 'done': {
+              const toolResults = chunk.toolResults;
+              if (Array.isArray(toolResults) && toolResults.some((item: any) => item?.kind === 'profile_updated')) {
+                refreshDisplayedUserName().catch(() => {});
+              }
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMsgId
+                    ? {
+                        ...m,
+                        text:
+                          looksLikeProfileUpdateCommand(messageText) &&
+                          !(Array.isArray(toolResults) && toolResults.some((item: any) => item?.kind === 'profile_updated'))
+                            ? 'I could not confirm that your name was updated. Please try again with change my name to your new name.'
+                            : looksLikeExpenseCommand(messageText) &&
+                                !(Array.isArray(toolResults) && toolResults.some((item: any) => item?.kind === 'expense_created'))
+                              ? 'I could not confirm that the expense was saved. Please try again with the amount and category, for example add fuel 500.'
+                              : chunk.message || m.text,
+                        isStreaming: false,
+                        voiceUrl: chunk.voiceUrl,
+                        toolResults: toolResults || m.toolResults,
+                      }
+                    : m,
+                ),
+              );
+              setIsStreaming(false);
+              // Flow-driven turns carry their events as separate `type: 'event'` chunks
+              // (published to the bus as they arrive, above the switch); this `done` chunk's
+              // own `events` (general-chat navigate) were already published by agentClient.
+              const sosResult = Array.isArray(toolResults)
+                ? toolResults.find((item: any) => item?.kind === 'sos')
+                : null;
+              if (sosResult?.sosAlertId) {
+                rootNavigation.navigate('ActiveSOS' as any, {
+                  sosId: sosResult.sosAlertId,
+                  type: sosResult.type,
+                  lat: sosResult.latitude,
+                  lon: sosResult.longitude,
+                } as any);
+              }
+              break;
+            }
 
             case 'error':
-              runFallback().catch(() => {});
-              break;
+              throw new Error(chunk.message || 'Stream failed');
           }
-        },
-      );
-    } catch (error) {
-      reportHandledError(error, {
-        surface: 'chat-ai-assistant-stream',
-        level: 'feature',
-        extras: { sessionId, isLocalSession, messageLength: messageText.length },
-      });
-      await runFallback();
-    }
+        });
+      } catch (error) {
+        reportHandledError(error, {
+          surface: 'chat-ai-assistant-stream',
+          level: 'feature',
+          extras: { sessionId, isLocalSession, messageLength: messageText.length },
+        });
+        await runFallback();
+      }
   };
 
   const handleVoicePlay = (

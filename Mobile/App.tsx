@@ -23,6 +23,8 @@ import {
   setUserId,
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { navigationRef } from './src/navigation/navigationRef';
+import { initAgentEventHandlers } from './src/agent/eventHandlers';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 import { setupNotifications } from './src/services/notification';
 import NetworkBanner from './src/components/NetworkBanner';
@@ -88,6 +90,7 @@ function App() {
   const forceAppBoundaryCrash = ENABLE_APP_BOUNDARY_TEST && appResetKey === 0;
 
   useEffect(() => {
+    initAgentEventHandlers();
     hydrateAuthFromPersistedStorage()
       .catch(() => {
         /* keep going; MMKV path still works */
@@ -169,7 +172,7 @@ function App() {
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <NetworkBanner />
-            <NavigationContainer linking={linking}>
+            <NavigationContainer ref={navigationRef} linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />
               </VoiceOwnerProvider>

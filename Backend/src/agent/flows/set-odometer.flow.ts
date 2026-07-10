@@ -1,20 +1,26 @@
-import { registerVoiceAction } from "../voice-action.registry";
-import { VoiceAction, VoiceActionExtractResult, VoiceActionCommitResult } from "../voice-action.types";
-import { callAI } from "../../../services/ai-provider.service";
-import { logger } from "../../../config/logger";
-import { vehicleService } from "../../vehicle/vehicle.service";
-import { AppError } from "../../../utils/AppError";
+import { registerFlow } from "./registry";
+import { Flow, FlowExtractResult, FlowCommitResult } from "../types";
+import { routeText } from "../modelRouter";
+import { logger } from "../../config/logger";
+import { vehicleService } from "../../modules/vehicle/vehicle.service";
+import { AppError } from "../../utils/AppError";
 
-const SLOTS: VoiceAction["slots"] = [
-  { name: "reading", askPrompt: "What's the current odometer reading?" },
-];
+const SLOTS: Flow["slots"] = [{ name: "reading", askPrompt: "What's the current odometer reading?" }];
+
+function matches(text: string): boolean {
+  return (
+    /\b(update|set|log|record)\b.*\bodometer\b/i.test(text) ||
+    /\bodometer\b.*\b(reading|is|update|km|kms)\b/i.test(text) ||
+    /\bmy (car|vehicle|bike) (has done|is at)\b/i.test(text)
+  );
+}
 
 async function extract(
   _customerId: string,
   newReplyText: string,
   knownValues: Record<string, any>,
   missingSlotsHint: string[],
-): Promise<VoiceActionExtractResult> {
+): Promise<FlowExtractResult> {
   const systemPrompt = `You extract an odometer reading from a short spoken reply.
 Only this field matters: reading — a positive whole number of kilometers, parsed from either digits ("45230") or spoken words ("forty five thousand two hundred and thirty").
 
@@ -24,11 +30,11 @@ Output ONLY raw JSON, no markdown, no explanation: {"reading": number|null}`;
 
   let parsed: any = {};
   try {
-    const raw = await callAI(newReplyText, systemPrompt, { temperature: 0.1, maxOutputTokens: 100 });
+    const raw = await routeText(newReplyText, systemPrompt, { temperature: 0.1, maxOutputTokens: 100 });
     const cleanJson = raw.replace(/```json/i, "").replace(/```/g, "").trim();
     parsed = JSON.parse(cleanJson);
   } catch (err) {
-    logger.debug({ err }, "[VoiceAction:set_odometer] extract parse failed");
+    logger.warn({ err }, "[Flow:set_odometer] extract parse failed");
     parsed = {};
   }
 
@@ -38,12 +44,12 @@ Output ONLY raw JSON, no markdown, no explanation: {"reading": number|null}`;
   }
 
   const missingSlots = SLOTS.map((s) => s.name).filter((name) => values[name] == null);
-  const confidence: "HIGH" | "MEDIUM" | "LOW" = missingSlots.length === 0 ? "HIGH" : "LOW";
+  const confidence: FlowExtractResult["confidence"] = missingSlots.length === 0 ? "HIGH" : "LOW";
 
   return { values, missingSlots, confidence };
 }
 
-async function commit(customerId: string, values: Record<string, any>): Promise<VoiceActionCommitResult> {
+async function commit(customerId: string, values: Record<string, any>): Promise<FlowCommitResult> {
   const reading = Number(values.reading);
   if (!Number.isFinite(reading) || reading <= 0) {
     return { success: false, message: "That doesn't look like a valid odometer reading. Please say it again." };
@@ -53,8 +59,10 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   if (vehicle.ambiguous) {
     return {
       success: false,
-      message: "Which vehicle should I update — " +
-        vehicle.candidates.map((v) => v.registrationNumber).filter(Boolean).join(" or ") + "?",
+      message:
+        "Which vehicle should I update — " +
+        vehicle.candidates.map((v) => v.registrationNumber).filter(Boolean).join(" or ") +
+        "?",
     };
   }
   if (!vehicle.vehicleId) {
@@ -62,14 +70,14 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   }
 
   try {
-    await vehicleService.addOdometerLog(customerId, vehicle.vehicleId, {
-      reading,
-      date: new Date(),
-    });
+    await vehicleService.addOdometerLog(customerId, vehicle.vehicleId, { reading, date: new Date() });
     return {
       success: true,
       message: `Odometer updated to ${reading.toLocaleString("en-IN")} kilometers.`,
-      navigateParams: { screen: "Odometer", params: { justSetViaVoice: true } },
+      data: { reading },
+      // Odometer lives inside the Main tab navigator, not the root stack — redirect *where*
+      // the engine's open_view event points; the engine still authors the actual event.
+      viewOverride: { view: "Main", params: { screen: "Odometer", params: { justSetViaVoice: true } } },
     };
   } catch (err: any) {
     if (err instanceof AppError) {
@@ -79,14 +87,13 @@ async function commit(customerId: string, values: Record<string, any>): Promise<
   }
 }
 
-registerVoiceAction({
+registerFlow({
   key: "set_odometer",
+  description: "Record or update the vehicle's current odometer reading.",
+  matches,
   slots: SLOTS,
-  // Odometer lives inside the Main tab navigator, not the root stack — React Navigation's
-  // nested-dispatch convention (navigate('Main', { screen: 'Odometer', params })) already
-  // works with the existing generic {screen, params} navigate contract for free, as long as
-  // targetScreen is the parent ("Main") and navigateParams carries the child {screen, params}.
-  targetScreen: "Main",
+  view: "Main",
+  draftKey: "odometer",
   extract,
   commit,
 });
