@@ -212,6 +212,22 @@ export const adminApi = {
       method: 'PATCH',
     }),
 
+  createParkingDealer: (data: { ownerName: string; phoneNumber: string; email?: string; password: string }) =>
+    api<ParkingDealerListItem>('/v1/parking/admin/dealers', { method: 'POST', body: JSON.stringify(data) }),
+  listParkingDealers: () => api<ParkingDealerListItem[]>('/v1/parking/admin/dealers'),
+
+  listPaymentOrders: (params?: { status?: string; stuckOnly?: boolean; page?: number; limit?: number }) => {
+    const sp = new URLSearchParams();
+    if (params?.status) sp.set('status', params.status);
+    if (params?.stuckOnly) sp.set('stuckOnly', 'true');
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    const q = sp.toString();
+    return api<{ data: PaymentOrderListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/payments/admin/orders${q ? `?${q}` : ''}`
+    );
+  },
+
 };
 
 
@@ -490,6 +506,31 @@ export interface AdminUser {
   name: string | null;
   role: string;
   canAccessCustomers?: boolean;
+}
+
+export interface ParkingDealerListItem {
+  id: string;
+  ownerName: string;
+  phoneNumber: string;
+  email: string | null;
+  status: 'PENDING_VERIFICATION' | 'VERIFIED' | 'SUSPENDED';
+  createdAt: string;
+  _count?: { listings: number };
+}
+
+export interface PaymentOrderListItem {
+  id: string;
+  purpose: string;
+  referenceId: string;
+  amountPaise: number;
+  currency: string;
+  status: 'CREATED' | 'ATTEMPTED' | 'PAID' | 'FAILED' | 'CANCELLED';
+  razorpayOrderId: string | null;
+  createdAt: string;
+  isStuck: boolean;
+  customer: { id: string; fullName: string | null; phoneNumber: string };
+  attempts: { id: string; status: string; failureReason: string | null; razorpayPaymentId: string | null }[];
+  refunds: { id: string; status: string; amountPaise: number }[];
 }
 
 

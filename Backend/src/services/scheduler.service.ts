@@ -9,7 +9,10 @@ export const schedulerService = {
    */
   async init() {
     if (!isQueueEnabled || !queues) {
-      logger.info("BullMQ scheduler disabled (REDIS_URL not set)");
+      logger.warn(
+        "BullMQ scheduler disabled (REDIS_URL not set) — abandoned parking-booking holds will only be " +
+          "cleared lazily (on the next search/booking touching that slot), not swept proactively every 5 min.",
+      );
       return;
     }
     logger.info("Initializing BullMQ Scheduler Service...");

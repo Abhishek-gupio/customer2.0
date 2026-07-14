@@ -50,7 +50,9 @@ export interface ParkingBooking {
 
 export interface CreateBookingResult {
   booking: ParkingBooking;
-  payment: { orderId: string; razorpayOrderId: string; amountPaise: number; currency: string; keyId: string };
+  // null only in the narrow retry window where a prior request created the booking
+  // but hadn't yet reached Razorpay — the screen should ask the user to retry.
+  payment: { orderId: string; razorpayOrderId: string; amountPaise: number; currency: string; keyId: string } | null;
 }
 
 function unwrap<T>(res: { data?: T } | T): T {
@@ -98,10 +100,13 @@ export const parkingService = {
     vehicleId?: string;
     startTime: Date;
     endTime: Date;
+    /** Same key across retries of one "Book & Pay" tap prevents a double booking on network retry. */
+    idempotencyKey: string;
   }): Promise<CreateBookingResult> => {
     const res = await api.post<{ data?: CreateBookingResult }>('/v1/parking/bookings', {
       listingId: input.listingId,
       vehicleId: input.vehicleId,
+      idempotencyKey: input.idempotencyKey,
       startTime: input.startTime.toISOString(),
       endTime: input.endTime.toISOString(),
     });

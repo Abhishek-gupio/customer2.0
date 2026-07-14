@@ -49,6 +49,13 @@ export const dealerController = {
     success(res, listing);
   }),
 
+  uploadPhotos: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+    const listing = await parkingService.addListingPhotos(req.dealer.id, req.params.id as string, files);
+    success(res, listing, 201);
+  }),
+
   listListings: asyncHandler(async (req: Request, res: Response) => {
     if (!req.dealer?.id) throw AppError.unauthorized();
     const listings = await parkingService.listDealerListings(req.dealer.id);

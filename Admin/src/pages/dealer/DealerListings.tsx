@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, MapPin, IndianRupee, Car, Bike, CalendarClock, ParkingSquare } from 'lucide-react';
+import { Plus, MapPin, IndianRupee, Car, Bike, CalendarClock, ParkingSquare, Camera, Loader2 } from 'lucide-react';
 import { dealerApi, type DealerListing } from '../../api/dealerClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -32,6 +32,19 @@ export default function DealerListings() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const handlePhotoUpload = async (listingId: string, fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setUploadingId(listingId);
+    const res = await dealerApi.uploadPhotos(listingId, Array.from(fileList));
+    setUploadingId(null);
+    if (res.success) {
+      setListings((prev) => prev.map((l) => (l.id === listingId ? res.data : l)));
+    } else {
+      setError(res.error.message);
+    }
+  };
 
   const load = () => {
     setLoading(true);
@@ -162,9 +175,38 @@ export default function DealerListings() {
                   <IndianRupee className="h-3.5 w-3.5" />{(listing.hourlyRatePaise / 100).toFixed(0)}/hr
                 </span>
               </CardContent>
-              <div className="flex items-center gap-1.5 px-5 pb-4 text-xs text-white/40">
-                <CalendarClock className="h-3.5 w-3.5" />
-                Manage availability
+
+              {listing.photos.length > 0 && (
+                <div className="flex gap-1.5 px-5 pb-3 overflow-x-auto">
+                  {listing.photos.map((url) => (
+                    <img key={url} src={url} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover border border-white/10" />
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between px-5 pb-4">
+                <div className="flex items-center gap-1.5 text-xs text-white/40">
+                  <CalendarClock className="h-3.5 w-3.5" />
+                  Manage availability
+                </div>
+                <label
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-white cursor-pointer transition-colors"
+                >
+                  {uploadingId === listing.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Camera className="h-3.5 w-3.5" />
+                  )}
+                  {uploadingId === listing.id ? 'Uploading…' : 'Add photos'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handlePhotoUpload(listing.id, e.target.files)}
+                  />
+                </label>
               </div>
             </Card>
           ))}

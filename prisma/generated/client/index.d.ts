@@ -108630,6 +108630,7 @@ export namespace Prisma {
     amountPaise: number | null
     status: $Enums.BookingStatus | null
     orderId: string | null
+    idempotencyKey: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -108645,6 +108646,7 @@ export namespace Prisma {
     amountPaise: number | null
     status: $Enums.BookingStatus | null
     orderId: string | null
+    idempotencyKey: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -108660,6 +108662,7 @@ export namespace Prisma {
     amountPaise: number
     status: number
     orderId: number
+    idempotencyKey: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -108685,6 +108688,7 @@ export namespace Prisma {
     amountPaise?: true
     status?: true
     orderId?: true
+    idempotencyKey?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -108700,6 +108704,7 @@ export namespace Prisma {
     amountPaise?: true
     status?: true
     orderId?: true
+    idempotencyKey?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -108715,6 +108720,7 @@ export namespace Prisma {
     amountPaise?: true
     status?: true
     orderId?: true
+    idempotencyKey?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -108817,6 +108823,7 @@ export namespace Prisma {
     amountPaise: number
     status: $Enums.BookingStatus
     orderId: string | null
+    idempotencyKey: string | null
     createdAt: Date
     updatedAt: Date
     _count: ParkingBookingCountAggregateOutputType | null
@@ -108851,6 +108858,7 @@ export namespace Prisma {
     amountPaise?: boolean
     status?: boolean
     orderId?: boolean
+    idempotencyKey?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -108868,6 +108876,7 @@ export namespace Prisma {
     amountPaise?: boolean
     status?: boolean
     orderId?: boolean
+    idempotencyKey?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -108885,6 +108894,7 @@ export namespace Prisma {
     amountPaise?: boolean
     status?: boolean
     orderId?: boolean
+    idempotencyKey?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
@@ -108902,11 +108912,12 @@ export namespace Prisma {
     amountPaise?: boolean
     status?: boolean
     orderId?: boolean
+    idempotencyKey?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
+  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "idempotencyKey" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
   export type ParkingBookingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
@@ -108937,6 +108948,7 @@ export namespace Prisma {
       amountPaise: number
       status: $Enums.BookingStatus
       orderId: string | null
+      idempotencyKey: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["parkingBooking"]>
@@ -109374,6 +109386,7 @@ export namespace Prisma {
     readonly amountPaise: FieldRef<"ParkingBooking", 'Int'>
     readonly status: FieldRef<"ParkingBooking", 'BookingStatus'>
     readonly orderId: FieldRef<"ParkingBooking", 'String'>
+    readonly idempotencyKey: FieldRef<"ParkingBooking", 'String'>
     readonly createdAt: FieldRef<"ParkingBooking", 'DateTime'>
     readonly updatedAt: FieldRef<"ParkingBooking", 'DateTime'>
   }
@@ -112317,6 +112330,7 @@ export namespace Prisma {
     amountPaise: 'amountPaise',
     status: 'status',
     orderId: 'orderId',
+    idempotencyKey: 'idempotencyKey',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -120721,6 +120735,7 @@ export namespace Prisma {
     amountPaise?: IntFilter<"ParkingBooking"> | number
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    idempotencyKey?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
@@ -120738,6 +120753,7 @@ export namespace Prisma {
     amountPaise?: SortOrder
     status?: SortOrder
     orderId?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     customer?: CustomerOrderByWithRelationInput
@@ -120746,6 +120762,7 @@ export namespace Prisma {
 
   export type ParkingBookingWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    idempotencyKey?: string
     AND?: ParkingBookingWhereInput | ParkingBookingWhereInput[]
     OR?: ParkingBookingWhereInput[]
     NOT?: ParkingBookingWhereInput | ParkingBookingWhereInput[]
@@ -120762,7 +120779,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
-  }, "id">
+  }, "id" | "idempotencyKey">
 
   export type ParkingBookingOrderByWithAggregationInput = {
     id?: SortOrder
@@ -120775,6 +120792,7 @@ export namespace Prisma {
     amountPaise?: SortOrder
     status?: SortOrder
     orderId?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ParkingBookingCountOrderByAggregateInput
@@ -120798,6 +120816,7 @@ export namespace Prisma {
     amountPaise?: IntWithAggregatesFilter<"ParkingBooking"> | number
     status?: EnumBookingStatusWithAggregatesFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
+    idempotencyKey?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
   }
@@ -129285,6 +129304,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
@@ -129302,6 +129322,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -129315,6 +129336,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
@@ -129332,6 +129354,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -129347,6 +129370,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -129360,6 +129384,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -129375,6 +129400,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -135441,6 +135467,7 @@ export namespace Prisma {
     amountPaise?: SortOrder
     status?: SortOrder
     orderId?: SortOrder
+    idempotencyKey?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -135460,6 +135487,7 @@ export namespace Prisma {
     amountPaise?: SortOrder
     status?: SortOrder
     orderId?: SortOrder
+    idempotencyKey?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -135475,6 +135503,7 @@ export namespace Prisma {
     amountPaise?: SortOrder
     status?: SortOrder
     orderId?: SortOrder
+    idempotencyKey?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -142725,6 +142754,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     listing: ParkingListingCreateNestedOneWithoutBookingsInput
@@ -142740,6 +142770,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -143388,6 +143419,7 @@ export namespace Prisma {
     amountPaise?: IntFilter<"ParkingBooking"> | number
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    idempotencyKey?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
   }
@@ -160322,6 +160354,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
@@ -160337,6 +160370,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -161239,6 +161273,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -161904,6 +161939,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
@@ -161919,6 +161955,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -161933,6 +161970,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165842,6 +165880,7 @@ export namespace Prisma {
     amountPaise: number
     status?: $Enums.BookingStatus
     orderId?: string | null
+    idempotencyKey?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -165890,6 +165929,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
@@ -165905,6 +165945,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165919,6 +165960,7 @@ export namespace Prisma {
     amountPaise?: IntFieldUpdateOperationsInput | number
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

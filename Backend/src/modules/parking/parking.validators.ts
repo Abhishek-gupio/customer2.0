@@ -21,6 +21,8 @@ export const createBookingSchema = z
     vehicleId: z.string().optional(),
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
+    /** Client-generated, stable across retries of the same tap — prevents double-booking on network retry. */
+    idempotencyKey: z.string().min(10).max(100).optional(),
   })
   .refine((v) => v.endTime > v.startTime, {
     message: "endTime must be after startTime",
@@ -37,6 +39,15 @@ export const joinWaitlistSchema = z.object({
 export const dealerLoginSchema = z.object({
   phoneNumber: z.string().min(6),
   password: z.string().min(1),
+});
+
+// ── Admin-facing (Gupio ops onboarding a dealer) ────────────────
+
+export const adminCreateDealerSchema = z.object({
+  ownerName: z.string().min(1),
+  phoneNumber: z.string().min(6),
+  email: z.string().email().optional(),
+  password: z.string().min(8),
 });
 
 export const createListingSchema = z.object({
@@ -72,3 +83,4 @@ export type DealerLoginInput = z.infer<typeof dealerLoginSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 export type CreateSlotWindowsInput = z.infer<typeof createSlotWindowsSchema>;
+export type AdminCreateDealerInput = z.infer<typeof adminCreateDealerSchema>;

@@ -88,6 +88,15 @@ export const dealerApi = {
   updateListing: (id: string, data: Partial<DealerListing>) =>
     dealerApiRequest<DealerListing>(`/v1/parking/dealer/listings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
+  uploadPhotos: (id: string, files: File[]) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('photos', file));
+    return dealerApiRequest<DealerListing>(`/v1/parking/dealer/listings/${id}/photos`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   listListings: () => dealerApiRequest<DealerListing[]>('/v1/parking/dealer/listings'),
 
   createSlotWindows: (listingId: string, data: { fromDate: string; toDate: string; startHour: number; endHour: number; capacity: number }) =>

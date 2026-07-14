@@ -1295,6 +1295,7 @@ exports.Prisma.ParkingBookingScalarFieldEnum = {
   amountPaise: 'amountPaise',
   status: 'status',
   orderId: 'orderId',
+  idempotencyKey: 'idempotencyKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

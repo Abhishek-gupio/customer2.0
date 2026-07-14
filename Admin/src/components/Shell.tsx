@@ -10,6 +10,8 @@ import {
   LibraryBig,
   UserCircle,
   Shield,
+  ParkingSquare,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +30,8 @@ const navItems = [
   { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
   { to: '/car-library', label: 'Car Library', icon: LibraryBig, roles: ['ADMIN'], color: 'violet' },
   { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red' },
+  { to: '/parking-dealers', label: 'Parking Dealers', icon: ParkingSquare, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
+  { to: '/payments-ops', label: 'Payments', icon: Receipt, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'emerald' },
   { to: '/manage-admins', label: 'Admins', icon: Shield, roles: ['SUPER_ADMIN'], color: 'white' },
 ];
 

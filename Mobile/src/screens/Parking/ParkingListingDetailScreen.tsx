@@ -21,6 +21,11 @@ function hourLabel(h: number): string {
   return `${hour12} ${h === 24 || h >= 12 ? 'PM' : period}`;
 }
 
+/** Not a strict UUID — just needs to be unique and, importantly, the SAME value across retries of one tap. */
+function generateIdempotencyKey(): string {
+  return `booking_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export default function ParkingListingDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -36,6 +41,9 @@ export default function ParkingListingDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Stable for the life of this screen instance, so retrying "Book & Pay" after a
+  // network error reuses the same key instead of risking a second booking.
+  const [idempotencyKey] = useState(generateIdempotencyKey);
 
   useEffect(() => {
     (async () => {
@@ -67,7 +75,15 @@ export default function ParkingListingDetailScreen() {
         listingId: listing.id,
         startTime,
         endTime,
+        idempotencyKey,
       });
+
+      if (!payment) {
+        // Extremely narrow window: an earlier attempt's booking exists but its
+        // payment order hadn't been created yet. Safe to just ask for a retry.
+        Alert.alert('Almost there', 'Setting up your payment — please tap Book & Pay again.');
+        return;
+      }
 
       try {
         const result = await openRazorpayCheckout({

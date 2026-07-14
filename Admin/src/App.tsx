@@ -12,6 +12,8 @@ import VehicleCatalog from './pages/VehicleCatalog';
 import ExpenseDetail from './pages/ExpenseDetail';
 import Expenses from './pages/Expenses';
 import ManageAdmins from './pages/ManageAdmins';
+import ParkingDealers from './pages/ParkingDealers';
+import PaymentsOps from './pages/PaymentsOps';
 import DealerRoutes from './pages/dealer/DealerRoutes';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
@@ -134,13 +136,29 @@ export default function App() {
                 </RoleProtectedRoute>
               } 
             />
-            <Route 
-              path="manage-admins" 
+            <Route
+              path="manage-admins"
               element={
                 <RoleProtectedRoute allowedRoles={['SUPER_ADMIN']}>
                   <ManageAdmins />
                 </RoleProtectedRoute>
-              } 
+              }
+            />
+            <Route
+              path="parking-dealers"
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+                  <ParkingDealers />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="payments-ops"
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+                  <PaymentsOps />
+                </RoleProtectedRoute>
+              }
             />
             <Route path="expenses/:id" element={<ExpenseDetail />} />
 

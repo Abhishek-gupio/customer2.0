@@ -89,6 +89,65 @@ export const paymentsService = {
   },
 
   /**
+   * Ops visibility: support/admin staff couldn't otherwise see a payment
+   * stuck without a webhook ever arriving, short of querying the DB by hand.
+   */
+  async adminListOrders(filters: { status?: string; stuckOnly?: boolean; page?: number; limit?: number }) {
+    const page = Math.max(filters.page ?? 1, 1);
+    const limit = Math.min(Math.max(filters.limit ?? 25, 1), 100);
+    const stuckCutoff = new Date(Date.now() - 15 * 60 * 1000);
+
+    const where: Record<string, unknown> = {};
+    if (filters.stuckOnly) {
+      where.status = { in: ["CREATED", "ATTEMPTED"] };
+      where.createdAt = { lt: stuckCutoff };
+    } else if (filters.status) {
+      where.status = filters.status;
+    }
+
+    const [orders, total] = await Promise.all([
+      dbInstances.customerOrder.findMany({
+        where,
+        include: {
+          customer: { select: { id: true, fullName: true, phoneNumber: true } },
+          attempts: { orderBy: { createdAt: "desc" }, take: 1 },
+          refunds: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      dbInstances.customerOrder.count({ where }),
+    ]);
+
+    return {
+      data: orders.map((order) => ({
+        ...order,
+        isStuck: (order.status === "CREATED" || order.status === "ATTEMPTED") && order.createdAt < stuckCutoff,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  },
+
+  /**
+   * Re-derives the same checkout payload a client would have gotten from
+   * createOrder, without calling Razorpay again — used when a booking
+   * create request is replayed (idempotency) and the order already exists.
+   */
+  async getCheckoutInfo(orderId: string | null) {
+    if (!orderId) return null;
+    const order = await dbInstances.customerOrder.findUnique({ where: { id: orderId } });
+    if (!order?.razorpayOrderId) return null;
+    return {
+      orderId: order.id,
+      razorpayOrderId: order.razorpayOrderId,
+      amountPaise: order.amountPaise,
+      currency: order.currency,
+      keyId: env.RAZORPAY_KEY_ID,
+    };
+  },
+
+  /**
    * Optional immediate client-side check for a snappy UI. The webhook
    * (processWebhook below) remains the source of truth for order status —
    * this never flips `CustomerOrder.status` itself.

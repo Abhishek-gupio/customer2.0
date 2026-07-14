@@ -3,6 +3,7 @@ import { dbInstances } from "@repo/db-customer";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { notificationService } from "../../services/notification.service";
+import { storageService } from "../../services/storage.service";
 import { paymentEvents } from "../../services/payment-events";
 import { paymentsService } from "../payments/payments.service";
 import { signDealerAccess, getDealerAccessExpirySeconds } from "./parking.jwt";
@@ -14,6 +15,7 @@ import type {
   CreateListingInput,
   UpdateListingInput,
   CreateSlotWindowsInput,
+  AdminCreateDealerInput,
 } from "./parking.validators";
 
 const SALT_ROUNDS = 10;
@@ -47,6 +49,16 @@ async function findCoveringSlotWindow(listingId: string, date: Date, startHour: 
       endHour: { gte: endHour },
     },
   });
+}
+
+/** True if `err` is a Prisma unique-constraint violation (P2002) on the given field. */
+function isUniqueConstraintOn(err: unknown, field: string): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = "code" in err ? String((err as { code: unknown }).code) : "";
+  if (code !== "P2002") return false;
+  const target = (err as { meta?: { target?: unknown } }).meta?.target;
+  const targets = Array.isArray(target) ? target : typeof target === "string" ? [target] : [];
+  return targets.includes(field);
 }
 
 /** Atomic check-and-increment — Prisma's filter DSL can't compare two columns of the same row. */
@@ -89,6 +101,38 @@ async function notifyWaitlistForFreedCapacity(listingId: string, date: Date): Pr
       });
     } catch (err) {
       logger.error({ err, entryId: entry.id }, "Failed to notify waitlist entry");
+    }
+  }
+}
+
+async function expireOneAbandonedBooking(booking: { id: string; slotWindowId: string; listingId: string; startTime: Date }): Promise<void> {
+  await dbInstances.parkingBooking.update({
+    where: { id: booking.id },
+    data: { status: "CANCELLED" },
+  });
+  await releaseCapacity(booking.slotWindowId);
+  await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+}
+
+/**
+ * Defense-in-depth: the BullMQ sweep (releaseAbandonedBookings below) is the
+ * primary mechanism, but it silently does nothing if Redis/BullMQ isn't
+ * configured (see config/queue.ts's isQueueEnabled). Calling this inline at
+ * the moments that actually matter — right before reserving capacity, and
+ * when a customer is looking at availability — means a stale PENDING_PAYMENT
+ * hold gets cleared the next time anyone touches that slot, even if the
+ * background job never runs at all.
+ */
+async function expireAbandonedBookingsForSlotWindow(slotWindowId: string): Promise<void> {
+  const cutoff = new Date(Date.now() - ABANDONED_HOLD_MS);
+  const abandoned = await dbInstances.parkingBooking.findMany({
+    where: { slotWindowId, status: "PENDING_PAYMENT", createdAt: { lt: cutoff } },
+  });
+  for (const booking of abandoned) {
+    try {
+      await expireOneAbandonedBooking(booking);
+    } catch (err) {
+      logger.error({ err, bookingId: booking.id }, "Failed to lazily expire abandoned parking booking");
     }
   }
 }
@@ -158,11 +202,12 @@ export const parkingService = {
 
   async getAvailability(listingId: string, date: Date) {
     const dayStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-    const windows = await dbInstances.parkingSlotWindow.findMany({
-      where: { listingId, date: dayStart },
-      orderBy: { startHour: "asc" },
-    });
-    return windows.map((w) => ({
+    const query = { where: { listingId, date: dayStart }, orderBy: { startHour: "asc" as const } };
+    const windows = await dbInstances.parkingSlotWindow.findMany(query);
+    await Promise.all(windows.map((w) => expireAbandonedBookingsForSlotWindow(w.id)));
+    // Re-fetch so the response reflects any holds just expired above.
+    const refreshed = await dbInstances.parkingSlotWindow.findMany(query);
+    return refreshed.map((w) => ({
       id: w.id,
       startHour: w.startHour,
       endHour: w.endHour,
@@ -172,6 +217,20 @@ export const parkingService = {
   },
 
   async createBooking(customerId: string, input: CreateBookingInput) {
+    // Fast path: the same client tap retried after a network blip. Return the
+    // original result instead of creating a second booking/reservation/order.
+    if (input.idempotencyKey) {
+      const existing = await dbInstances.parkingBooking.findUnique({
+        where: { idempotencyKey: input.idempotencyKey },
+      });
+      if (existing) {
+        if (existing.customerId !== customerId) {
+          throw AppError.conflict("This idempotency key was already used by another request");
+        }
+        return { booking: existing, payment: await paymentsService.getCheckoutInfo(existing.orderId) };
+      }
+    }
+
     const listing = await dbInstances.parkingListing.findUnique({ where: { id: input.listingId } });
     if (!listing || listing.status !== "ACTIVE") {
       throw AppError.notFound("Listing not available");
@@ -184,6 +243,10 @@ export const parkingService = {
       throw AppError.notFound("No availability for this time window");
     }
 
+    // Backstop for when the BullMQ sweep can't run (Redis down/unconfigured) —
+    // clear this slot's own stale holds before deciding if it's actually full.
+    await expireAbandonedBookingsForSlotWindow(slotWindow.id);
+
     const reserved = await reserveCapacity(slotWindow.id);
     if (!reserved) {
       throw AppError.conflict("This time slot just filled up");
@@ -192,18 +255,36 @@ export const parkingService = {
     const hours = hoursBetween(input.startTime, input.endTime);
     const amountPaise = hours * listing.hourlyRatePaise;
 
-    const booking = await dbInstances.parkingBooking.create({
-      data: {
-        customerId,
-        listingId: listing.id,
-        slotWindowId: slotWindow.id,
-        vehicleId: input.vehicleId,
-        startTime: input.startTime,
-        endTime: input.endTime,
-        amountPaise,
-        status: "PENDING_PAYMENT",
-      },
-    });
+    let booking;
+    try {
+      booking = await dbInstances.parkingBooking.create({
+        data: {
+          customerId,
+          listingId: listing.id,
+          slotWindowId: slotWindow.id,
+          vehicleId: input.vehicleId,
+          startTime: input.startTime,
+          endTime: input.endTime,
+          amountPaise,
+          status: "PENDING_PAYMENT",
+          idempotencyKey: input.idempotencyKey ?? null,
+        },
+      });
+    } catch (err) {
+      // Slow path: a genuinely concurrent duplicate request lost the race on
+      // the idempotencyKey unique constraint. Undo our own (redundant)
+      // reservation and hand back the winner's booking instead of erroring.
+      if (input.idempotencyKey && isUniqueConstraintOn(err, "idempotencyKey")) {
+        await releaseCapacity(slotWindow.id);
+        const winner = await dbInstances.parkingBooking.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+        });
+        if (winner) {
+          return { booking: winner, payment: await paymentsService.getCheckoutInfo(winner.orderId) };
+        }
+      }
+      throw err;
+    }
 
     try {
       const payment = await paymentsService.createOrder(customerId, {
@@ -278,7 +359,12 @@ export const parkingService = {
     });
   },
 
-  /** BullMQ maintenance job — see jobs/workers.ts. Releases holds abandoned before payment ever started. */
+  /**
+   * BullMQ maintenance job — see jobs/workers.ts. Primary mechanism for
+   * releasing holds abandoned before payment ever started; requires Redis.
+   * expireAbandonedBookingsForSlotWindow (called inline from createBooking
+   * and getAvailability below) is the backstop when Redis isn't configured.
+   */
   async releaseAbandonedBookings() {
     const cutoff = new Date(Date.now() - ABANDONED_HOLD_MS);
     const abandoned = await dbInstances.parkingBooking.findMany({
@@ -286,12 +372,7 @@ export const parkingService = {
     });
     for (const booking of abandoned) {
       try {
-        await dbInstances.parkingBooking.update({
-          where: { id: booking.id },
-          data: { status: "CANCELLED" },
-        });
-        await releaseCapacity(booking.slotWindowId);
-        await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+        await expireOneAbandonedBooking(booking);
       } catch (err) {
         logger.error({ err, bookingId: booking.id }, "Failed to release abandoned parking booking");
       }
@@ -322,6 +403,42 @@ export const parkingService = {
     };
   },
 
+  // ── Admin-facing (Gupio ops onboarding a dealer — no dealer self-signup exists) ──
+
+  async adminCreateDealer(input: AdminCreateDealerInput) {
+    const existing = await dbInstances.parkingDealer.findUnique({ where: { phoneNumber: input.phoneNumber } });
+    if (existing) {
+      throw AppError.conflict("A dealer with this phone number already exists");
+    }
+    const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
+    return dbInstances.parkingDealer.create({
+      data: {
+        ownerName: input.ownerName,
+        phoneNumber: input.phoneNumber,
+        email: input.email,
+        passwordHash,
+        // An admin creating this account directly implies they've already vetted the dealer.
+        status: "VERIFIED",
+      },
+      select: { id: true, ownerName: true, phoneNumber: true, email: true, status: true, createdAt: true },
+    });
+  },
+
+  async adminListDealers() {
+    return dbInstances.parkingDealer.findMany({
+      select: {
+        id: true,
+        ownerName: true,
+        phoneNumber: true,
+        email: true,
+        status: true,
+        createdAt: true,
+        _count: { select: { listings: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
   async createListing(dealerId: string, input: CreateListingInput) {
     return dbInstances.parkingListing.create({ data: { ...input, dealerId } });
   },
@@ -332,6 +449,17 @@ export const parkingService = {
       throw AppError.notFound("Listing not found");
     }
     return dbInstances.parkingListing.update({ where: { id: listingId }, data: input });
+  },
+
+  async addListingPhotos(dealerId: string, listingId: string, files: Express.Multer.File[]) {
+    if (files.length === 0) throw AppError.badRequest("No photos uploaded");
+    const listing = await dbInstances.parkingListing.findUnique({ where: { id: listingId } });
+    if (!listing || listing.dealerId !== dealerId) {
+      throw AppError.notFound("Listing not found");
+    }
+    const uploaded = await Promise.all(files.map((file) => storageService.uploadFile(file, "parking", true)));
+    const photos = [...listing.photos, ...uploaded.map((u) => u.url)];
+    return dbInstances.parkingListing.update({ where: { id: listingId }, data: { photos } });
   },
 
   async listDealerListings(dealerId: string) {

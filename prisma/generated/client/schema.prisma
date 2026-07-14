@@ -2270,20 +2270,21 @@ model ParkingSlotWindow {
 }
 
 model ParkingBooking {
-  id           String         @id @default(cuid())
-  customerId   String
-  listingId    String
-  slotWindowId String // which ParkingSlotWindow capacity was reserved from
-  vehicleId    String?
-  startTime    DateTime
-  endTime      DateTime
-  amountPaise  Int
-  status       BookingStatus  @default(PENDING_PAYMENT)
-  orderId      String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  customer     Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  listing      ParkingListing @relation(fields: [listingId], references: [id])
+  id             String         @id @default(cuid())
+  customerId     String
+  listingId      String
+  slotWindowId   String // which ParkingSlotWindow capacity was reserved from
+  vehicleId      String?
+  startTime      DateTime
+  endTime        DateTime
+  amountPaise    Int
+  status         BookingStatus  @default(PENDING_PAYMENT)
+  orderId        String?
+  idempotencyKey String?        @unique // client-generated; retrying the same tap must not double-book
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  listing        ParkingListing @relation(fields: [listingId], references: [id])
 
   @@index([customerId])
   @@index([listingId, startTime])
